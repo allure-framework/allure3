@@ -1,0 +1,16 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;missing-status-test",
+        "keyword": "Scenario",
+        "name": "Missing steps test",
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]
