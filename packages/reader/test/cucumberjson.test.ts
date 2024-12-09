@@ -132,8 +132,6 @@ describe("cucumberjson reader", () => {
       });
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
       expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        status: "unknown",
-        message: "The result of the step 'Then unknown' is unknown",
         steps: [
           expect.objectContaining({
             status: "unknown",
@@ -152,18 +150,73 @@ describe("cucumberjson reader", () => {
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
       expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
         status: "unknown",
-        message: "No steps found",
+        message: "Step results are missing",
       });
     });
 
-    it("should parse a failed scenario with multiple", async () => {
+    it("should parse a failed scenario with multiple steps", async () => {
       const visitor = await readResults(cucumberjson, {
-        "cucumberjsondata/mixedStepsFailed.json": "cucumber.json",
+        "cucumberjsondata/mixedStepStatusesFailed.json": "cucumber.json",
       });
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
       expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
         status: "failed",
         message: "The step 'Then fail' failed",
+      });
+    });
+
+    it("should parse an undefined scenario with multiple steps", async () => {
+      const visitor = await readResults(cucumberjson, {
+        "cucumberjsondata/mixedStepStatusesUndefined.json": "cucumber.json",
+      });
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        status: "broken",
+        message: "The step 'Then undefined' didn't match any definition",
+      });
+    });
+
+    it("should parse an ambiguous scenario with multiple steps", async () => {
+      const visitor = await readResults(cucumberjson, {
+        "cucumberjsondata/mixedStepStatusesAmbiguous.json": "cucumber.json",
+      });
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        status: "broken",
+        message: "The step 'Then ambiguous' matched more than one definition",
+      });
+    });
+
+    it("should parse an unknown scenario with multiple steps", async () => {
+      const visitor = await readResults(cucumberjson, {
+        "cucumberjsondata/mixedStepStatusesUnknown.json": "cucumber.json",
+      });
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        status: "unknown",
+        message: "The result of the step 'Then unknown' is unknown",
+      });
+    });
+
+    it("should parse a pending scenario with multiple steps", async () => {
+      const visitor = await readResults(cucumberjson, {
+        "cucumberjsondata/mixedStepStatusesPending.json": "cucumber.json",
+      });
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        status: "skipped",
+        message: "The step 'Then pend' signalled pending during execution",
+      });
+    });
+
+    it("should parse a skipped scenario with multiple steps", async () => {
+      const visitor = await readResults(cucumberjson, {
+        "cucumberjsondata/mixedStepStatusesSkipped.json": "cucumber.json",
+      });
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        status: "skipped",
+        message: "One or more steps of the scenario were skipped",
       });
     });
   });

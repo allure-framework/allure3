@@ -29,23 +29,9 @@
           },
           {
             "keyword": "Then ",
-            "name": "pend",
-            "result": {
-              "status": "pending"
-            }
-          },
-          {
-            "keyword": "Then ",
             "name": "undefined",
             "result": {
               "status": "undefined"
-            }
-          },
-          {
-            "keyword": "Then ",
-            "name": "ambiguous",
-            "result": {
-              "status": "ambiguous"
             }
           },
           {

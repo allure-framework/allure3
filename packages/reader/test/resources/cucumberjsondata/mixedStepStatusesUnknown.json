@@ -8,9 +8,23 @@
         "steps": [
           {
             "keyword": "Then ",
-            "name": "fail",
+            "name": "pass",
             "result": {
-              "status": "failed"
+              "status": "passed"
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "unknown",
+            "result": {
+              "status": "unknown"
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "skip",
+            "result": {
+              "status": "skipped"
             }
           }
         ],
