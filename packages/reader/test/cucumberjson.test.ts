@@ -257,4 +257,76 @@ describe("cucumberjson reader", () => {
       expect(test).not.toHaveProperty("trace");
     });
   });
+
+  describe("duration", () => {
+    describe("in ns", () => {
+      it("should round down a remainder less than 0.5 ms", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/durationsNsRoundDown.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            expect.objectContaining({
+              duration: 12,
+            }),
+          ],
+        });
+      });
+
+      it("should round up a remainder greater than or equal to 0.5 ms", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/durationsNsRoundUp.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            expect.objectContaining({
+              duration: 13,
+            }),
+          ],
+        });
+      });
+
+      it("should sum durations of steps at the test level", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/durationsNsMultiple.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          duration: 25,
+        });
+      });
+
+      it("should ignore steps with no duration when calculating the test's duration", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/durationsNsOptional.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          duration: 25,
+        });
+      });
+
+      it("should not set test duration if it's missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/durationsMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).not.toHaveProperty("duration");
+        expect(test).toMatchObject({
+          steps: [
+            expect.not.objectContaining({ duration: expect.anything() }),
+            expect.not.objectContaining({ duration: expect.anything() }),
+            expect.not.objectContaining({ duration: expect.anything() }),
+          ],
+        });
+      });
+    });
+  });
 });

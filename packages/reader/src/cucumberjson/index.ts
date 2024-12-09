@@ -15,7 +15,7 @@ import { randomUUID } from "node:crypto";
 import { Category, ExecutorInfo } from "../model.js";
 import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberStepResult } from "./model.js";
 
-const NS_IN_MS = 1000_000;
+const NS_IN_MS = 1_000_000;
 
 const readerId = "cucumberjson";
 
@@ -48,11 +48,19 @@ const allureStepMessages: Record<string, string> = {
   failed: "The step failed",
 };
 
-type AllureCucumberStepPair = { cucumberStep: CucumberStep; allureStep: RawTestStepResult };
+type CucumberAllureStepData = { cucumberStepData: CucumberStepData; allureStep: RawTestStepResult };
 
 type FeatureData = {
   featureName: string;
   featureId: string;
+};
+
+type CucumberStepData = {
+  keyword?: string;
+  name?: string;
+  status: string;
+  duration?: number;
+  errorMessage?: string;
 };
 
 export const cucumberjson: ResultsReader = {
@@ -104,51 +112,73 @@ const processScenario = async (
 const isCucumberFeature = ({ keyword, elements }: CucumberFeature) =>
   typeof keyword === "string" && keyword.toLowerCase() === "feature" && Array.isArray(elements);
 
-const pairCucumberStepsWithAllureSteps = (steps: readonly CucumberStep[]) =>
-  steps.map((c) => ({
-    cucumberStep: c,
-    allureStep: mapCucumberStepToAllureStepResult(c),
-  }));
+const getCucumberAndAllureStepLevelData = (steps: readonly CucumberStep[]) =>
+  steps.map((c) => {
+    const cucumberStepData = getCucumberStepData(c);
+    return {
+      cucumberStepData: cucumberStepData,
+      allureStep: mapCucumberStepToAllureStepResult(cucumberStepData),
+    };
+  });
+
+const getCucumberStepData = ({ keyword, name, result }: CucumberStep): CucumberStepData => {
+  const { status, duration, error_message: errorMessage } = result ?? {};
+  return {
+    name,
+    keyword,
+    status: status ?? "unknown",
+    duration,
+    errorMessage,
+  };
+};
 
 const mapCucumberScenarioToAllureTestResult = (
   { featureName, featureId }: FeatureData,
   { name: scenarioName, steps }: CucumberFeatureElement,
 ) => {
-  const cucumberAllureStepPairs = pairCucumberStepsWithAllureSteps(steps ?? []);
+  const cucumberAllureStepData = getCucumberAndAllureStepLevelData(steps ?? []);
   return {
     name: scenarioName,
     fullName: `${featureId}#${scenarioName}`,
-    steps: cucumberAllureStepPairs.map(({ allureStep }) => allureStep),
+    steps: cucumberAllureStepData.map(({ allureStep }) => allureStep),
     labels: [{ name: "feature", value: featureName }],
-    ...resolveTestResultStatusProps(cucumberAllureStepPairs),
+    ...resolveDurationProperty(calculateRestDuration(cucumberAllureStepData)),
+    ...resolveTestResultStatusProps(cucumberAllureStepData),
   };
 };
 
+const calculateRestDuration = (cucumberAllureStepData: readonly CucumberAllureStepData[]) =>
+  cucumberAllureStepData.reduce<number | undefined>(
+    (testDuration, { cucumberStepData: { duration } }) =>
+      typeof testDuration === "undefined" ? duration : testDuration + (duration ?? 0),
+    undefined,
+  );
+
 const resolveTestResultStatusProps = (
-  cucumberAllureSteps: readonly AllureCucumberStepPair[],
+  cucumberAllureSteps: readonly CucumberAllureStepData[],
 ): { status: RawTestStatus; message?: string; trace?: string } => {
-  const pair = getCucumberAllureStepPairWithMaxPriorityStatus(cucumberAllureSteps);
-  return pair
-    ? resolveResultOfTestFromStepPair(pair)
+  const stepsData = getCucumberAllureStepWithMaxPriorityStatus(cucumberAllureSteps);
+  return stepsData
+    ? resolveResultOfTestFromStepsData(stepsData)
     : {
         status: "unknown",
         message: "Step results are missing",
       };
 };
 
-const resolveResultOfTestFromStepPair = ({
-  cucumberStep: { result },
+const resolveResultOfTestFromStepsData = ({
+  cucumberStepData: { status: cucumberStatus, errorMessage },
   allureStep: { name, status },
-}: AllureCucumberStepPair) => ({
+}: CucumberAllureStepData) => ({
   status: status ?? "unknown",
-  ...resolveTestMessageAndTrace(name!, result ?? {}),
+  ...resolveTestMessageAndTrace(name!, cucumberStatus, errorMessage),
 });
 
-const resolveTestMessageAndTrace = (allureStepName: string, { status, error_message }: CucumberStepResult) =>
+const resolveTestMessageAndTrace = (allureStepName: string, status: string, errorMessage: string | undefined) =>
   status !== "passed"
     ? {
         message: resolveTestMessage(status, allureStepName),
-        trace: error_message,
+        trace: errorMessage,
       }
     : {};
 
@@ -170,7 +200,7 @@ const resolveTestMessage = (cucumberStepStatus: string | undefined, allureStepNa
   }
 };
 
-const getCucumberAllureStepPairWithMaxPriorityStatus = (cucumberAllureSteps: readonly AllureCucumberStepPair[]) => {
+const getCucumberAllureStepWithMaxPriorityStatus = (cucumberAllureSteps: readonly CucumberAllureStepData[]) => {
   switch (cucumberAllureSteps.length) {
     case 0:
       return undefined;
@@ -181,25 +211,33 @@ const getCucumberAllureStepPairWithMaxPriorityStatus = (cucumberAllureSteps: rea
   }
 };
 
-const statusPriorityReducingFn = (
-  testDefiningStepPair: AllureCucumberStepPair,
-  currentStepPair: AllureCucumberStepPair,
-) =>
-  allureStepStatusPriorityOrder[testDefiningStepPair.allureStep.status!] <=
-  allureStepStatusPriorityOrder[currentStepPair.allureStep.status!]
-    ? testDefiningStepPair
-    : currentStepPair;
+const statusPriorityReducingFn = (testDefiningStep: CucumberAllureStepData, currentStep: CucumberAllureStepData) =>
+  allureStepStatusPriorityOrder[testDefiningStep.allureStep.status!] <=
+  allureStepStatusPriorityOrder[currentStep.allureStep.status!]
+    ? testDefiningStep
+    : currentStep;
 
-const mapCucumberStepToAllureStepResult = ({ keyword, name, result }: CucumberStep): RawTestStepResult => ({
+const mapCucumberStepToAllureStepResult = ({
+  keyword,
+  name,
+  status,
+  duration,
+  errorMessage,
+}: CucumberStepData): RawTestStepResult => ({
   type: "step",
   name: `${keyword}${name}`,
-  ...mapCucumberStepResultToStepProps(result ?? {}),
+  ...mapCucumberStepResultToStepProps(status, duration, errorMessage),
 });
 
-const mapCucumberStepResultToStepProps = ({ status, error_message }: CucumberStepResult) => {
+const mapCucumberStepResultToStepProps = (
+  status: string,
+  duration: number | undefined,
+  errorMessage: string | undefined,
+) => {
   return {
     status: cucumberStatusToAllureStatus[status ?? "unknown"],
-    ...resolveStepMessageAndTrace(status, error_message),
+    ...resolveDurationProperty(duration),
+    ...resolveStepMessageAndTrace(status, errorMessage),
   };
 };
 
@@ -211,4 +249,7 @@ const resolveStepMessageAndTrace = (status: string, errorMessage: string | undef
       }
     : {};
 
-const nsToMs = (ns: number) => Math.floor(ns / NS_IN_MS);
+const resolveDurationProperty = (duration: number | undefined) =>
+  typeof duration !== "undefined" ? { duration: nsToMs(duration) } : {};
+
+const nsToMs = (ns: number) => Math.round(ns / NS_IN_MS);
