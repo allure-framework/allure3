@@ -2,9 +2,9 @@
   {
     "elements": [
       {
-        "id": "foo;failed-test",
+        "id": "foo;ambiguous-test",
         "keyword": "Scenario",
-        "name": "Failed test",
+        "name": "Ambiguous test",
         "steps": [
           {
             "keyword": "Then ",

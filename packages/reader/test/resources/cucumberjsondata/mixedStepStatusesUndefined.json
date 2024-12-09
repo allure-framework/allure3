@@ -2,9 +2,9 @@
   {
     "elements": [
       {
-        "id": "foo;failed-test",
+        "id": "foo;undefined-test",
         "keyword": "Scenario",
-        "name": "Failed test",
+        "name": "Undefined test",
         "steps": [
           {
             "keyword": "Then ",
