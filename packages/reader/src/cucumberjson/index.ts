@@ -11,6 +11,7 @@ import type {
   ResultsReader,
   ResultsVisitor,
 } from "@allure/reader-api";
+import { BufferResultFile } from "@allure/reader-api";
 import { randomUUID } from "node:crypto";
 import { Category, ExecutorInfo } from "../model.js";
 import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberStepResult } from "./model.js";
@@ -48,20 +49,21 @@ const allureStepMessages: Record<string, string> = {
   failed: "The step failed",
 };
 
-type CucumberAllureStepData = { cucumberStepData: CucumberStepData; allureStep: RawTestStepResult };
-
 type FeatureData = {
   featureName: string;
   featureId: string;
 };
 
-type CucumberStepData = {
+type PreProcessedStep = {
   keyword?: string;
   name?: string;
   status: string;
   duration?: number;
   errorMessage?: string;
+  attachments: RawTestAttachment[];
 };
+
+type PostProcessedStep = { preProcessedStep: PreProcessedStep; allureStep: RawTestStepResult };
 
 export const cucumberjson: ResultsReader = {
   async read(visitor, data) {
@@ -103,25 +105,23 @@ const processScenario = async (
   feature: FeatureData,
   scenario: CucumberFeatureElement,
 ) => {
-  await visitor.visitTestResult(mapCucumberScenarioToAllureTestResult(feature, scenario), {
+  const preProcessedSteps = await preProcessSteps(visitor, scenario.steps ?? []);
+  await visitor.visitTestResult(mapCucumberScenarioToAllureTestResult(feature, scenario, preProcessedSteps), {
     readerId,
     metadata: { originalFileName },
   });
 };
 
-const isCucumberFeature = ({ keyword, elements }: CucumberFeature) =>
-  typeof keyword === "string" && keyword.toLowerCase() === "feature" && Array.isArray(elements);
+const preProcessSteps = async (visitor: ResultsVisitor, steps: readonly CucumberStep[]) => {
+  const preProcessedSteps: PreProcessedStep[] = [];
+  for (const step of steps) {
+    preProcessedSteps.push(await preProcessOneStep(visitor, step));
+  }
+  return preProcessedSteps;
+};
 
-const getCucumberAndAllureStepLevelData = (steps: readonly CucumberStep[]) =>
-  steps.map((c) => {
-    const cucumberStepData = getCucumberStepData(c);
-    return {
-      cucumberStepData: cucumberStepData,
-      allureStep: mapCucumberStepToAllureStepResult(cucumberStepData),
-    };
-  });
-
-const getCucumberStepData = ({ keyword, name, result }: CucumberStep): CucumberStepData => {
+const preProcessOneStep = async (visitor: ResultsVisitor, step: CucumberStep): Promise<PreProcessedStep> => {
+  const { keyword, name, result } = step;
   const { status, duration, error_message: errorMessage } = result ?? {};
   return {
     name,
@@ -129,33 +129,69 @@ const getCucumberStepData = ({ keyword, name, result }: CucumberStep): CucumberS
     status: status ?? "unknown",
     duration,
     errorMessage,
+    attachments: await processStepAttachments(visitor, step),
   };
 };
+
+const processStepAttachments = async (visitor: ResultsVisitor, step: CucumberStep) =>
+  [await processStepDocStringAttachment(visitor, step)].filter((s): s is RawTestAttachment => typeof s !== "undefined");
+
+const processStepDocStringAttachment = async (
+  visitor: ResultsVisitor,
+  { doc_string: docString }: CucumberStep,
+): Promise<RawTestAttachment | undefined> => {
+  if (docString) {
+    const { value, content_type: contentType } = docString;
+    if (value && value.trim()) {
+      const fileName = randomUUID();
+      await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(value), fileName), { readerId });
+      return {
+        type: "attachment",
+        contentType: contentType || "text/markdown",
+        originalFileName: fileName,
+        name: "Description",
+      };
+    }
+  }
+};
+
+const isCucumberFeature = ({ keyword, elements }: CucumberFeature) =>
+  typeof keyword === "string" && keyword.toLowerCase() === "feature" && Array.isArray(elements);
+
+const pairWithAllureSteps = (preProcessedCucumberSteps: readonly PreProcessedStep[]) =>
+  preProcessedCucumberSteps.map((c) => {
+    return {
+      preProcessedStep: c,
+      allureStep: createAllureStepResult(c),
+    };
+  });
 
 const mapCucumberScenarioToAllureTestResult = (
   { featureName, featureId }: FeatureData,
-  { name: scenarioName, steps }: CucumberFeatureElement,
-) => {
-  const cucumberAllureStepData = getCucumberAndAllureStepLevelData(steps ?? []);
+  { name, description }: CucumberFeatureElement,
+  preProcessedSteps: readonly PreProcessedStep[],
+): RawTestResult => {
+  const postProcessedSteps = pairWithAllureSteps(preProcessedSteps);
   return {
-    name: scenarioName,
-    fullName: `${featureId}#${scenarioName}`,
-    steps: cucumberAllureStepData.map(({ allureStep }) => allureStep),
+    fullName: `${featureId}#${name}`,
+    name,
+    description,
+    duration: convertDuration(calculateTestDuration(postProcessedSteps)),
+    steps: postProcessedSteps.map(({ allureStep }) => allureStep),
     labels: [{ name: "feature", value: featureName }],
-    ...resolveDurationProperty(calculateRestDuration(cucumberAllureStepData)),
-    ...resolveTestResultStatusProps(cucumberAllureStepData),
+    ...resolveTestResultStatusProps(postProcessedSteps),
   };
 };
 
-const calculateRestDuration = (cucumberAllureStepData: readonly CucumberAllureStepData[]) =>
+const calculateTestDuration = (cucumberAllureStepData: readonly PostProcessedStep[]) =>
   cucumberAllureStepData.reduce<number | undefined>(
-    (testDuration, { cucumberStepData: { duration } }) =>
+    (testDuration, { preProcessedStep: { duration } }) =>
       typeof testDuration === "undefined" ? duration : testDuration + (duration ?? 0),
     undefined,
   );
 
 const resolveTestResultStatusProps = (
-  cucumberAllureSteps: readonly CucumberAllureStepData[],
+  cucumberAllureSteps: readonly PostProcessedStep[],
 ): { status: RawTestStatus; message?: string; trace?: string } => {
   const stepsData = getCucumberAllureStepWithMaxPriorityStatus(cucumberAllureSteps);
   return stepsData
@@ -167,9 +203,9 @@ const resolveTestResultStatusProps = (
 };
 
 const resolveResultOfTestFromStepsData = ({
-  cucumberStepData: { status: cucumberStatus, errorMessage },
+  preProcessedStep: { status: cucumberStatus, errorMessage },
   allureStep: { name, status },
-}: CucumberAllureStepData) => ({
+}: PostProcessedStep) => ({
   status: status ?? "unknown",
   ...resolveTestMessageAndTrace(name!, cucumberStatus, errorMessage),
 });
@@ -200,7 +236,7 @@ const resolveTestMessage = (cucumberStepStatus: string | undefined, allureStepNa
   }
 };
 
-const getCucumberAllureStepWithMaxPriorityStatus = (cucumberAllureSteps: readonly CucumberAllureStepData[]) => {
+const getCucumberAllureStepWithMaxPriorityStatus = (cucumberAllureSteps: readonly PostProcessedStep[]) => {
   switch (cucumberAllureSteps.length) {
     case 0:
       return undefined;
@@ -211,21 +247,23 @@ const getCucumberAllureStepWithMaxPriorityStatus = (cucumberAllureSteps: readonl
   }
 };
 
-const statusPriorityReducingFn = (testDefiningStep: CucumberAllureStepData, currentStep: CucumberAllureStepData) =>
+const statusPriorityReducingFn = (testDefiningStep: PostProcessedStep, currentStep: PostProcessedStep) =>
   allureStepStatusPriorityOrder[testDefiningStep.allureStep.status!] <=
   allureStepStatusPriorityOrder[currentStep.allureStep.status!]
     ? testDefiningStep
     : currentStep;
 
-const mapCucumberStepToAllureStepResult = ({
+const createAllureStepResult = ({
   keyword,
   name,
   status,
   duration,
   errorMessage,
-}: CucumberStepData): RawTestStepResult => ({
+  attachments,
+}: PreProcessedStep): RawTestStepResult => ({
   type: "step",
   name: `${keyword}${name}`,
+  steps: attachments,
   ...mapCucumberStepResultToStepProps(status, duration, errorMessage),
 });
 
@@ -236,7 +274,7 @@ const mapCucumberStepResultToStepProps = (
 ) => {
   return {
     status: cucumberStatusToAllureStatus[status ?? "unknown"],
-    ...resolveDurationProperty(duration),
+    duration: convertDuration(duration),
     ...resolveStepMessageAndTrace(status, errorMessage),
   };
 };
@@ -249,7 +287,7 @@ const resolveStepMessageAndTrace = (status: string, errorMessage: string | undef
       }
     : {};
 
-const resolveDurationProperty = (duration: number | undefined) =>
-  typeof duration !== "undefined" ? { duration: nsToMs(duration) } : {};
+const convertDuration = (duration: number | undefined) =>
+  typeof duration !== "undefined" ? nsToMs(duration) : undefined;
 
 const nsToMs = (ns: number) => Math.round(ns / NS_IN_MS);

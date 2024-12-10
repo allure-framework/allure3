@@ -17,7 +17,7 @@ export type CucumberFeatureElement = {
   keyword: string;
   line: number;
   name: string;
-  steps: CucumberStep[];
+  steps?: CucumberStep[];
   tags?: CucumberTag[];
   type: string;
 };
@@ -35,9 +35,9 @@ export type CucumberStep = {
 };
 
 export type CucumberDocString = {
-  content_type: string;
-  line: number;
-  value: string;
+  content_type?: string;
+  line?: number;
+  value?: string;
 };
 
 export type CucumberDatatableRow = {
