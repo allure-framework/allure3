@@ -261,7 +261,7 @@ describe("cucumberjson reader", () => {
     describe("duration", () => {
       it("should round down a remainder less than 0.5 ms", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durationRoundDown.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/roundDown.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
@@ -276,7 +276,7 @@ describe("cucumberjson reader", () => {
 
       it("should round up a remainder greater than or equal to 0.5 ms", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durationRoundUp.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/roundUp.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
@@ -291,7 +291,7 @@ describe("cucumberjson reader", () => {
 
       it("should sum durations of steps at the test level", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durationsAll.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/allDefined.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
@@ -302,7 +302,7 @@ describe("cucumberjson reader", () => {
 
       it("should ignore steps with no duration when calculating the test's duration", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durationsSome.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/someDefined.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
@@ -313,7 +313,7 @@ describe("cucumberjson reader", () => {
 
       it("should leave durations undefined if they aren't present", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durationsNone.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/noneDefined.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
