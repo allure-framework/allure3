@@ -10,8 +10,7 @@
             "keyword": "Then ",
             "name": "fail",
             "result": {
-              "status": "failed",
-              "error_message": "Lorem Ipsum"
+              "status": "bar"
             }
           }
         ],

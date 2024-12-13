@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { cucumberjson } from "../src/index.js";
 import { readResults } from "./utils.js";
@@ -23,7 +22,7 @@ describe("cucumberjson reader", () => {
     describe("step statuses", async () => {
       it("should parse a passed step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/onePassedStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/passed.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -37,7 +36,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a failed step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneFailedStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/failed.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -52,7 +51,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an unknown step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneUnknownStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/unknown.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -67,7 +66,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a skipped step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneSkippedStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/skipped.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -82,7 +81,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a pending step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/onePendingStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/pending.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -97,7 +96,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an undefined step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneUndefinedStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/undefined.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -112,7 +111,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an ambiguous step", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneAmbiguousStep.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/ambiguous.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -125,9 +124,39 @@ describe("cucumberjson reader", () => {
         });
       });
 
-      it("should treat a missing step status as unknown", async () => {
+      it("should treat a step with a missing result as unknown", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneStepWithNoResult.json": "cucumber.json",
+          "cucumberjsondata/reference/stepStatuses/missingResult.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [
+            expect.objectContaining({
+              status: "unknown",
+              message: "The result of the step is unknown",
+            }),
+          ],
+        });
+      });
+
+      it("should treat a step with a missing status as unknown", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepStatuses/missingStatus.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [
+            expect.objectContaining({
+              status: "unknown",
+              message: "The result of the step is unknown",
+            }),
+          ],
+        });
+      });
+
+      it("should treat an invalid step status as unknown", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepStatuses/invalidStatus.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -144,7 +173,7 @@ describe("cucumberjson reader", () => {
     describe("test statuses", () => {
       it("should parse a scenario with no steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/oneScenarioWithNoSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/noSteps.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -155,7 +184,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a failed scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/failedScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/failed.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -166,7 +195,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an undefined scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/undefinedScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/undefined.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -177,7 +206,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an ambiguous scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/ambiguousScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/ambiguous.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -188,7 +217,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse an unknown scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/unknownScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/unknown.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -199,7 +228,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a pending scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/pendingScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/pending.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -210,7 +239,7 @@ describe("cucumberjson reader", () => {
 
       it("should parse a skipped scenario with multiple steps", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/skippedScenarioWithMultipleSteps.json": "cucumber.json",
+          "cucumberjsondata/reference/scenarioStatuses/skipped.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -218,12 +247,57 @@ describe("cucumberjson reader", () => {
           message: "One or more steps of the scenario were skipped",
         });
       });
+
+      it("should parse a passed scenario with multiple steps", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/scenarioStatuses/passed.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test.message).toBeUndefined();
+        expect(test).toMatchObject({
+          status: "passed",
+        });
+      });
+
+      it("should parse a scenario with a step that has no result", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/scenarioStatuses/noStepResult.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          status: "unknown",
+          message: "The result of the step 'Then unknown' is unknown",
+        });
+      });
+
+      it("should parse a scenario with a step that has no status", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/scenarioStatuses/noStepStatus.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          status: "unknown",
+          message: "The result of the step 'Then unknown' is unknown",
+        });
+      });
+
+      it("should parse a scenario with a step that has an invalid status", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/scenarioStatuses/invalidStepStatus.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          status: "unknown",
+          message: "The result of the step 'Then unknown' is unknown",
+        });
+      });
     });
 
-    describe("trace", () => {
+    describe("traces", () => {
       it("should set trace from error_message", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/failedScenarioWithMessage.json": "cucumber.json",
+          "cucumberjsondata/reference/traces/failed.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
@@ -240,7 +314,7 @@ describe("cucumberjson reader", () => {
 
       it("should not set passed step trace at test level", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/passedScenarioWithMessage.json": "cucumber.json",
+          "cucumberjsondata/reference/traces/passed.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
@@ -258,7 +332,7 @@ describe("cucumberjson reader", () => {
     });
 
     // The reference implementation sets durations in ns
-    describe("duration", () => {
+    describe("durations", () => {
       it("should round down a remainder less than 0.5 ms", async () => {
         const visitor = await readResults(cucumberjson, {
           "cucumberjsondata/reference/durations/roundDown.json": "cucumber.json",
@@ -328,14 +402,26 @@ describe("cucumberjson reader", () => {
       });
     });
 
+    describe("descriptions", () => {
     it("should parse a scenario's description", async () => {
       const visitor = await readResults(cucumberjson, {
-        "cucumberjsondata/reference/scenarioDescription.json": "cucumber.json",
+          "cucumberjsondata/reference/descriptions/valid.json": "cucumber.json",
       });
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
       const test = visitor.visitTestResult.mock.calls[0][0];
       expect(test.description).toEqual("Lorem Ipsum");
     });
+
+      it("should ignore an invalid description of a scenario", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/descriptions/invalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test.description).toBeUndefined();
+      });
+    });
+
 
     describe("step arguments", () => {
       describe("doc strings", () => {
