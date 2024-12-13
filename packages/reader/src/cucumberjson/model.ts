@@ -1,3 +1,5 @@
+export const TEST_NAME_PLACEHOLDER = "The scenario's name is not defined";
+
 export type CucumberFeature = {
   description: string;
   elements: CucumberFeatureElement[];

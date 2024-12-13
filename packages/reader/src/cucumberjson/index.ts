@@ -13,8 +13,9 @@ import type {
 } from "@allure/reader-api";
 import { BufferResultFile } from "@allure/reader-api";
 import { randomUUID } from "node:crypto";
-import { Category, ExecutorInfo } from "../model.js";
-import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberStepResult } from "./model.js";
+import type { CucumberFeature, CucumberFeatureElement, CucumberStep } from "./model.js";
+import { TEST_NAME_PLACEHOLDER } from "./model.js";
+import { ensureString } from "../xml-utils.js";
 
 const NS_IN_MS = 1_000_000;
 
@@ -49,9 +50,15 @@ const allureStepMessages: Record<string, string> = {
   failed: "The step failed",
 };
 
-type FeatureData = {
-  featureName: string;
-  featureId: string;
+type FeatureIdData = {
+  featureName: string | undefined;
+  featureUri: string | undefined;
+  featureId: string | undefined;
+};
+
+type ScenarioIdData = {
+  scenarioId: string | undefined;
+  scenarioName: string | undefined;
 };
 
 type PreProcessedStep = {
@@ -90,9 +97,9 @@ export const cucumberjson: ResultsReader = {
 
 const processFeature = async (visitor: ResultsVisitor, originalFileName: string, feature: CucumberFeature) => {
   if (isCucumberFeature(feature)) {
-    const { name: featureName, uri, elements } = feature;
-    for (const scenario of elements) {
-      await processScenario(visitor, originalFileName, { featureName, featureId: uri }, scenario);
+    for (const scenario of feature.elements) {
+      const featureIds = parseFeatureIds(feature);
+      await processScenario(visitor, originalFileName, featureIds, scenario);
     }
     return true;
   }
@@ -102,7 +109,7 @@ const processFeature = async (visitor: ResultsVisitor, originalFileName: string,
 const processScenario = async (
   visitor: ResultsVisitor,
   originalFileName: string,
-  feature: FeatureData,
+  feature: FeatureIdData,
   scenario: CucumberFeatureElement,
 ) => {
   const preProcessedSteps = await preProcessSteps(visitor, scenario.steps ?? []);
@@ -167,20 +174,58 @@ const pairWithAllureSteps = (preProcessedCucumberSteps: readonly PreProcessedSte
   });
 
 const mapCucumberScenarioToAllureTestResult = (
-  { featureName, featureId }: FeatureData,
-  { name, description }: CucumberFeatureElement,
+  featureIds: FeatureIdData,
+  scenario: CucumberFeatureElement,
   preProcessedSteps: readonly PreProcessedStep[],
 ): RawTestResult => {
+  const scenarioIds = parseScenaroiIds(scenario);
   const postProcessedSteps = pairWithAllureSteps(preProcessedSteps);
   return {
-    fullName: `${featureId}#${name}`,
-    name,
-    description,
+    fullName: calculateFullName(featureIds, scenarioIds),
+    name: ensureString(scenario.name, TEST_NAME_PLACEHOLDER),
+    description: ensureString(scenario.description),
     duration: convertDuration(calculateTestDuration(postProcessedSteps)),
     steps: postProcessedSteps.map(({ allureStep }) => allureStep),
-    labels: [{ name: "feature", value: featureName }],
+    labels: calculateTestLabels(featureIds),
     ...resolveTestResultStatusProps(postProcessedSteps),
   };
+};
+
+const calculateTestLabels = ({ featureName }: FeatureIdData) =>
+  featureName ? [{ name: "feature", value: featureName }] : [];
+
+const parseFeatureIds = (feature: CucumberFeature): FeatureIdData => {
+  return {
+    featureId: ensureString(feature.id),
+    featureName: ensureString(feature.name),
+    featureUri: ensureString(feature.uri),
+  };
+};
+
+const parseScenaroiIds = (scenario: CucumberFeatureElement): ScenarioIdData => {
+  return {
+    scenarioId: ensureString(scenario.id),
+    scenarioName: ensureString(scenario.name),
+  };
+};
+
+const calculateFullName = ({ featureUri, featureName, featureId }: FeatureIdData, { scenarioName, scenarioId }: ScenarioIdData) => {
+  if (!scenarioName && !scenarioId) {
+    return randomUUID();
+  }
+
+  // featureUri may contain the feature file's path, hence, is more precise.
+  // featureName is the second best choice because it most probably won't have collisions.
+  const featurePart = featureUri || featureName || featureId;
+  if (featurePart) {
+    // scenarioId might have collisions: differenc names are translated into the same id.
+    // That's why we're prioritizing scenarioName if the feature part is proven to exist.
+    const scenarioPart = scenarioName || scenarioId;
+    return `${featurePart}#${scenarioPart}`;
+  }
+
+  // If no feature part found, we're prioritizing scenarioId because there can be the feature id in it.
+  return scenarioId || scenarioName;
 };
 
 const calculateTestDuration = (cucumberAllureStepData: readonly PostProcessedStep[]) =>
@@ -271,18 +316,16 @@ const mapCucumberStepResultToStepProps = (
   status: string,
   duration: number | undefined,
   errorMessage: string | undefined,
-) => {
-  return {
-    status: cucumberStatusToAllureStatus[status ?? "unknown"],
-    duration: convertDuration(duration),
-    ...resolveStepMessageAndTrace(status, errorMessage),
-  };
-};
+) => ({
+  status: cucumberStatusToAllureStatus[status ?? "unknown"] ?? "unknown",
+  duration: convertDuration(duration),
+  ...resolveStepMessageAndTrace(status, errorMessage),
+});
 
 const resolveStepMessageAndTrace = (status: string, errorMessage: string | undefined) =>
   status !== "passed" || errorMessage
     ? {
-        message: allureStepMessages[status ?? "unknown"],
+        message: allureStepMessages[status ?? "unknown"] ?? allureStepMessages["unknown"],
         trace: errorMessage,
       }
     : {};

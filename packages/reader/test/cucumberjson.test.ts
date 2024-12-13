@@ -2,20 +2,217 @@ import { describe, expect, it } from "vitest";
 import { cucumberjson } from "../src/index.js";
 import { readResults } from "./utils.js";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 describe("cucumberjson reader", () => {
   // As implemented in https://github.com/cucumber/cucumber-ruby or https://github.com/cucumber/json-formatter (which
   // uses cucumber-ruby as a reference for its tests).
   describe("reference", () => {
-    it("should parse a scenario", async () => {
-      const visitor = await readResults(cucumberjson, {
-        "cucumberjsondata/reference/onePassedStep.json": "cucumber.json",
+    describe("names", () => {
+      it("should parse names", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/wellDefined.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "Passed test",
+          fullName: "features/foo.feature#Passed test",
+          labels: [{ name: "feature", value: "Foo" }],
+        });
       });
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        name: "Passed test",
-        status: "passed",
-        fullName: "features/foo.feature#Passed test",
-        labels: [{ name: "feature", value: "Foo" }],
+
+      it("should handle missing scenario name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "The scenario's name is not defined",
+          fullName: "features/foo.feature#foo;passed-test",
+        });
+      });
+      
+      it("should handle an ill-formed scenario name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "The scenario's name is not defined",
+          fullName: "features/foo.feature#foo;passed-test",
+        });
+      });
+
+      it("should generate random fullName if scenario name and id are missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameIdMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "The scenario's name is not defined",
+          fullName: expect.stringMatching(UUID_PATTERN),
+        });
+      });
+
+      it("should generate random fullName if scenario name and id are ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameIdInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          name: "The scenario's name is not defined",
+          fullName: expect.stringMatching(UUID_PATTERN),
+        });
+      });
+
+      it("should not add a feature label if the feature's name is missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureNameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          labels: [],
+        });
+      });
+
+      it("should not add a feature label if the feature's name is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureNameInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          labels: [],
+        });
+      });
+
+      it("should not add a feature label if the feature's name is empty", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureNameEmpty.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          labels: [],
+        });
+      });
+
+      it("should use feature name if the uri is missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Foo#Passed test",
+        });
+      });
+
+      it("should use feature name if the uri is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Foo#Passed test",
+        });
+      });
+
+      it("should handle missing feature uri and scenario name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriScenarioNameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Foo#foo;passed-test",
+        });
+      });
+
+      it("should use feature id if uri and name are missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "foo#Passed test",
+        });
+      });
+
+      it("should handle missing feature uri and name, and scenario name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameScenarioNameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "foo#foo;passed-test",
+        });
+      });
+
+      it("should set fullName to scenario id if feature uri, name, and id are missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameIdMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "foo;passed-test",
+        });
+      });
+
+      it("should set fullName to scenario id if feature uri and name are missing and id is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameMissingIdInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "foo;passed-test",
+        });
+      });
+
+      it("should set fullName to scenario name if no other id exists", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameOnly.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Passed test",
+        });
+      });
+
+      it("should handle empty feature uri", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriEmpty.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Foo#Passed test",
+        });
+      });
+
+      it("should handle empty feature uri and name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameEmpty.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "foo#Passed test",
+        });
+      });
+
+      it("should handle empty scenario name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/scenarioNameEmpty.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "features/foo.feature#foo;passed-test",
+        });
+      });
+
+      it("should handle empty feature uri, name, and id and empty scenario id", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/names/featureUriNameIdScenarioIdEmpty.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          fullName: "Passed test",
+        });
       });
     });
 
@@ -403,14 +600,14 @@ describe("cucumberjson reader", () => {
     });
 
     describe("descriptions", () => {
-    it("should parse a scenario's description", async () => {
-      const visitor = await readResults(cucumberjson, {
+      it("should parse a scenario's description", async () => {
+        const visitor = await readResults(cucumberjson, {
           "cucumberjsondata/reference/descriptions/valid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test.description).toEqual("Lorem Ipsum");
       });
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      const test = visitor.visitTestResult.mock.calls[0][0];
-      expect(test.description).toEqual("Lorem Ipsum");
-    });
 
       it("should ignore an invalid description of a scenario", async () => {
         const visitor = await readResults(cucumberjson, {
