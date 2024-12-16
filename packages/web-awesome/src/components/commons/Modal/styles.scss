@@ -100,22 +100,6 @@
   color: var(--gray-neutral-0);
 }
 
-.modal-thumb {
-  display: flex;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  background: var(--constant-bg-base-primary-night);
-  overflow: hidden;
-  border: 1px solid transparent;
-  cursor: pointer;
-  user-select: none;
-
-  &.active {
-    border: 1px solid var(--constant-on-border-heavy);
-  }
-}
 
 .modal-gallery {
   display: flex;

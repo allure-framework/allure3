@@ -2,9 +2,9 @@ import { ensureReportDataReady, getReportOptions } from "@allurereport/web-commo
 import { useEffect } from "preact/compat";
 import { Footer } from "@/components/app/Footer";
 import MainReport from "@/components/app/MainReport";
-import Modal from "@/components/app/Modal";
 import TestResult from "@/components/app/TestResult";
 import { Loadable } from "@/components/commons/Loadable";
+import Modal from "@/components/commons/Modal";
 import { PageLoader } from "@/components/commons/PageLoader";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
@@ -41,7 +41,7 @@ export const BaseLayout = ({ testResultId }) => {
       transformData={(data) => data[testResultId]}
       renderData={(testResult) => (
         <>
-          <Modal testResult={testResult} />
+          <Modal />
           <div className={styles.wrapper}>
             <TestResult testResult={testResult} />
             <Footer />

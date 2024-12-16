@@ -4,10 +4,10 @@ import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import LineArrowsExpand from "@/assets/svg/line-arrows-expand-3.svg";
 import LineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
-import { isModalOpen, openModal } from "@/components/app/Modal";
 import { Attachment } from "@/components/app/TestResult/TestResultSteps/attachment";
 import * as styles from "@/components/app/TestResult/TestResultSteps/styles.scss";
 import { IconButton } from "@/components/commons/Button";
+import { isModalOpen, openModal } from "@/components/commons/Modal";
 import { TooltipWrapper } from "@/components/commons/Tooltip";
 import { Text } from "@/components/commons/Typography";
 import { useI18n } from "@/stores";
@@ -26,7 +26,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
   const { t: tooltip } = useI18n("controls");
   const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
   const contentSize = contentLength
-    ? filesize(contentLength as number, {
+    ? filesize(contentLength, {
         base: 2,
         round: 1,
       })
