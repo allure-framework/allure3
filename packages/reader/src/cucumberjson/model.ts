@@ -33,7 +33,7 @@ export type CucumberStep = {
   name?: string;
   output?: string[];
   result: CucumberStepResult;
-  rows?: CucumberDatatableRow[];
+  rows?: unknown; // CucumberDatatableRow[]
 };
 
 export type CucumberDocString = {
@@ -43,7 +43,7 @@ export type CucumberDocString = {
 };
 
 export type CucumberDatatableRow = {
-  cells: string[];
+  cells: unknown; // string[]
 };
 
 export type CucumberStepResult = {

@@ -1,4 +1,3 @@
-import { notNull } from "@allure/core-api";
 import type {
   RawFixtureResult,
   RawTestAttachment,
@@ -13,9 +12,9 @@ import type {
 } from "@allure/reader-api";
 import { BufferResultFile } from "@allure/reader-api";
 import { randomUUID } from "node:crypto";
-import type { CucumberFeature, CucumberFeatureElement, CucumberStep } from "./model.js";
+import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow } from "./model.js";
 import { TEST_NAME_PLACEHOLDER } from "./model.js";
-import { ensureString } from "../xml-utils.js";
+import { ensureArray, isArray, ensureString, ensureObject, isNonNullObject, isString } from "../utils.js";
 
 const NS_IN_MS = 1_000_000;
 
@@ -141,7 +140,10 @@ const preProcessOneStep = async (visitor: ResultsVisitor, step: CucumberStep): P
 };
 
 const processStepAttachments = async (visitor: ResultsVisitor, step: CucumberStep) =>
-  [await processStepDocStringAttachment(visitor, step)].filter((s): s is RawTestAttachment => typeof s !== "undefined");
+  [
+    await processStepDocStringAttachment(visitor, step),
+    await processStepDataTableAttachment(visitor, step),
+  ].filter((s): s is RawTestAttachment => typeof s !== "undefined");
 
 const processStepDocStringAttachment = async (
   visitor: ResultsVisitor,
@@ -150,16 +152,65 @@ const processStepDocStringAttachment = async (
   if (docString) {
     const { value, content_type: contentType } = docString;
     if (value && value.trim()) {
-      const fileName = randomUUID();
-      await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(value), fileName), { readerId });
-      return {
-        type: "attachment",
-        contentType: contentType || "text/markdown",
-        originalFileName: fileName,
-        name: "Description",
-      };
+      return await visitBufferAttachment(
+        visitor,
+        "Description",
+        value,
+        contentType || "text/markdown",
+      );
     }
   }
+};
+
+const processStepDataTableAttachment = async (
+  visitor: ResultsVisitor,
+  { rows }: CucumberStep,
+) => {
+  if (isArray(rows)) {
+    const content = formatDataTable(rows);
+    return await visitBufferAttachment(
+      visitor,
+      "Data",
+      content,
+      "text/csv",
+    );
+  }
+};
+
+const visitBufferAttachment = async (
+  visitor: ResultsVisitor,
+  name: string,
+  content: string,
+  contentType: string,
+): Promise<RawTestAttachment> => {
+  const fileName = randomUUID();
+    await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(content), fileName), { readerId });
+    return {
+      type: "attachment",
+      contentType,
+      originalFileName: fileName,
+      name,
+    };
+};
+
+
+// CSV formatting follows the rules in https://www.ietf.org/rfc/rfc4180.txt
+const formatDataTable = (rows: readonly unknown[]) => {
+  return rows
+    .filter((r) => isNonNullObject<CucumberDatatableRow>(r))
+    .map(formatDataTableRow)
+    .filter(isString)
+    .join("\r\n");
+};
+
+const formatDataTableRow = ({ cells }: CucumberDatatableRow) => {
+  const checkedCells = ensureArray<string>(cells);
+  return checkedCells ? checkedCells.map(formatDataTableCell).join(",") : undefined;
+};
+
+const formatDataTableCell = (cell: string) => {
+  const escapedCell = ensureString(cell, "").replaceAll("\"", "\"\"");
+  return `"${escapedCell}"`;
 };
 
 const isCucumberFeature = ({ keyword, elements }: CucumberFeature) =>

@@ -619,7 +619,6 @@ describe("cucumberjson reader", () => {
       });
     });
 
-
     describe("step arguments", () => {
       describe("doc strings", () => {
         it("should parse a step's doc string", async () => {
@@ -752,6 +751,112 @@ describe("cucumberjson reader", () => {
               },
             ],
           });
+        });
+      });
+
+      describe("data tables", () => {
+        it("should parse a step's data table", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/wellDefined.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"\r\n"val1","val2"');
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Data",
+                    contentType: "text/csv",
+                    originalFileName: attachment.getOriginalFileName(),
+                  },
+                ],
+              },
+            ],
+          });
+        });
+
+        it("should escape quotes", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/quotes.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"\r\n"va""l1","""val2"""');
+        });
+
+        it("should ignore the ill-formed rows property", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/rowsInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).not.toHaveBeenCalled();
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
+        });
+
+        it("should ignore an ill-formed row", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/rowInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"');
+        });
+
+        it("should ignore a row with no cells property", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/cellsMissing.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"');
+        });
+
+        it("should ignore a row with the ill-formed cells property", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/cellsInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"');
+        });
+
+        it("should treat an ill-formed cell as an empty string", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/dataTables/cellInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"\r\n"val1",""');
         });
       });
     });
