@@ -860,5 +860,150 @@ describe("cucumberjson reader", () => {
         });
       });
     });
+
+    describe("embeddings", () => {
+      it("should parse an embedding", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/wellDefined.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        const content = await attachment.asUtf8String();
+        expect(content).toEqual('Hello!');
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [
+                {
+                  type: "attachment",
+                  name: "Embedding",
+                  contentType: "text/plain",
+                  originalFileName: attachment.getOriginalFileName(),
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      it("should ignore the ill-formed embeddings property", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/embeddingsInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).not.toHaveBeenCalled();
+      });
+
+      it("should ignore an ill-formed embeddings element", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/embeddingsElementInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).not.toHaveBeenCalled();
+      });
+
+      it("should use application/octet-stream if no mime_type specified", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/mediaTypeMissing.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [
+                {
+                  contentType: "application/octet-stream",
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      it("should use application/octet-stream if the mime_type is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/mediaTypeInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [
+                {
+                  contentType: "application/octet-stream",
+                },
+              ],
+            },
+          ],
+        });
+      });
+
+      it("should attach an empty file if no data is specified", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/dataMissing.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        const content = await attachment.asBuffer();
+        expect(content).toHaveLength(0);
+      });
+
+      it("should attach an empty file if the data is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/dataInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        const content = await attachment.asBuffer();
+        expect(content).toHaveLength(0);
+      });
+
+      it("should attach an empty file if the data is an ill-formed base64 string", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/dataInvalidBase64.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        const content = await attachment.asBuffer();
+        expect(content).toHaveLength(0);
+      });
+
+      it("should include an embedding's number if more than one", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/embeddings/twoEmbeddings.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(2);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [
+                { name: "Embedding 1" },
+                { name: "Embedding 2" },
+              ],
+            },
+          ],
+        });
+      });
+    });
   });
 });

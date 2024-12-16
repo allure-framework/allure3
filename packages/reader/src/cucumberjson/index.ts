@@ -12,7 +12,7 @@ import type {
 } from "@allure/reader-api";
 import { BufferResultFile } from "@allure/reader-api";
 import { randomUUID } from "node:crypto";
-import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow } from "./model.js";
+import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow, CucumberEmbedding } from "./model.js";
 import { TEST_NAME_PLACEHOLDER } from "./model.js";
 import { ensureArray, isArray, ensureString, ensureObject, isNonNullObject, isString } from "../utils.js";
 
@@ -143,6 +143,7 @@ const processStepAttachments = async (visitor: ResultsVisitor, step: CucumberSte
   [
     await processStepDocStringAttachment(visitor, step),
     await processStepDataTableAttachment(visitor, step),
+    ...(await processStepEmbeddingAttachments(visitor, step)),
   ].filter((s): s is RawTestAttachment => typeof s !== "undefined");
 
 const processStepDocStringAttachment = async (
@@ -155,7 +156,7 @@ const processStepDocStringAttachment = async (
       return await visitBufferAttachment(
         visitor,
         "Description",
-        value,
+        Buffer.from(value),
         contentType || "text/markdown",
       );
     }
@@ -171,20 +172,41 @@ const processStepDataTableAttachment = async (
     return await visitBufferAttachment(
       visitor,
       "Data",
-      content,
+      Buffer.from(content),
       "text/csv",
     );
   }
 };
 
+const processStepEmbeddingAttachments = async (
+  visitor: ResultsVisitor,
+  { embeddings }: CucumberStep,
+) => {
+  const attachments: RawTestAttachment[] = [];
+  const checkedEmbeddings = ensureArray(embeddings) ?? [];
+  const getName = checkedEmbeddings.length > 1 ? (i: number) => `Embedding ${i}` : () => "Embedding";
+  const embeddingsWithNames = checkedEmbeddings.map<[unknown, string]>((e, i) => [e, getName(i + 1)]);
+  for (const [embedding, name] of embeddingsWithNames) {
+    if (isNonNullObject<CucumberEmbedding>(embedding)) {
+      attachments.push(await visitBufferAttachment(
+        visitor,
+        name,
+        Buffer.from(ensureString(embedding.data, ""), "base64"),
+        ensureString(embedding.mime_type, "application/octet-stream"),
+      ));
+    }
+  }
+  return attachments;
+};
+
 const visitBufferAttachment = async (
   visitor: ResultsVisitor,
   name: string,
-  content: string,
+  content: Buffer,
   contentType: string,
 ): Promise<RawTestAttachment> => {
   const fileName = randomUUID();
-    await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(content), fileName), { readerId });
+    await visitor.visitAttachmentFile(new BufferResultFile(content, fileName), { readerId });
     return {
       type: "attachment",
       contentType,

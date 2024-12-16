@@ -1,5 +1,7 @@
 export const TEST_NAME_PLACEHOLDER = "The scenario's name is not defined";
 
+// TODO: fix known/unknown typings
+
 export type CucumberFeature = {
   description: string;
   elements: CucumberFeatureElement[];
@@ -26,7 +28,7 @@ export type CucumberFeatureElement = {
 
 export type CucumberStep = {
   doc_string?: CucumberDocString;
-  embeddings?: CucumberEmbedding[];
+  embeddings?: unknown; // CucumberEmbedding[]
   keyword?: string;
   line?: number;
   match?: CucumberStepMatch;
@@ -62,6 +64,6 @@ export type CucumberTag = {
 };
 
 export type CucumberEmbedding = {
-  data: string;
-  mime_type: string;
+  data: unknown; // string
+  mime_type: unknown; // string
 };
