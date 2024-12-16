@@ -1,9 +1,6 @@
 import type {
-  RawFixtureResult,
   RawTestAttachment,
   RawTestLabel,
-  RawTestLink,
-  RawTestParameter,
   RawTestResult,
   RawTestStatus,
   RawTestStepResult,
@@ -12,9 +9,9 @@ import type {
 } from "@allure/reader-api";
 import { BufferResultFile } from "@allure/reader-api";
 import { randomUUID } from "node:crypto";
-import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow, CucumberEmbedding } from "./model.js";
+import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow, CucumberEmbedding, CucumberTag } from "./model.js";
 import { TEST_NAME_PLACEHOLDER } from "./model.js";
-import { ensureArray, isArray, ensureString, ensureObject, isNonNullObject, isString } from "../utils.js";
+import { ensureArray, isArray, ensureString, isNonNullObject, isString } from "../utils.js";
 
 const NS_IN_MS = 1_000_000;
 
@@ -49,15 +46,17 @@ const allureStepMessages: Record<string, string> = {
   failed: "The step failed",
 };
 
-type FeatureIdData = {
+type PreProcessedFeature = {
   featureName: string | undefined;
   featureUri: string | undefined;
   featureId: string | undefined;
+  tags: string[];
 };
 
-type ScenarioIdData = {
+type PreProcessedScenario = {
   scenarioId: string | undefined;
   scenarioName: string | undefined;
+  tags: string[];
 };
 
 type PreProcessedStep = {
@@ -97,8 +96,8 @@ export const cucumberjson: ResultsReader = {
 const processFeature = async (visitor: ResultsVisitor, originalFileName: string, feature: CucumberFeature) => {
   if (isCucumberFeature(feature)) {
     for (const scenario of feature.elements) {
-      const featureIds = parseFeatureIds(feature);
-      await processScenario(visitor, originalFileName, featureIds, scenario);
+      const preProcessedFeature = preProcessFeature(feature);
+      await processScenario(visitor, originalFileName, preProcessedFeature, scenario);
     }
     return true;
   }
@@ -108,7 +107,7 @@ const processFeature = async (visitor: ResultsVisitor, originalFileName: string,
 const processScenario = async (
   visitor: ResultsVisitor,
   originalFileName: string,
-  feature: FeatureIdData,
+  feature: PreProcessedFeature,
   scenario: CucumberFeatureElement,
 ) => {
   const preProcessedSteps = await preProcessSteps(visitor, scenario.steps ?? []);
@@ -219,7 +218,7 @@ const visitBufferAttachment = async (
 // CSV formatting follows the rules in https://www.ietf.org/rfc/rfc4180.txt
 const formatDataTable = (rows: readonly unknown[]) => {
   return rows
-    .filter((r) => isNonNullObject<CucumberDatatableRow>(r))
+    .filter(isNonNullObject<CucumberDatatableRow>)
     .map(formatDataTableRow)
     .filter(isString)
     .join("\r\n");
@@ -247,42 +246,60 @@ const pairWithAllureSteps = (preProcessedCucumberSteps: readonly PreProcessedSte
   });
 
 const mapCucumberScenarioToAllureTestResult = (
-  featureIds: FeatureIdData,
+  preProcessedFeature: PreProcessedFeature,
   scenario: CucumberFeatureElement,
   preProcessedSteps: readonly PreProcessedStep[],
 ): RawTestResult => {
-  const scenarioIds = parseScenaroiIds(scenario);
+  const preProcessedScenario = preProcessScenario(scenario);
   const postProcessedSteps = pairWithAllureSteps(preProcessedSteps);
   return {
-    fullName: calculateFullName(featureIds, scenarioIds),
+    fullName: calculateFullName(preProcessedFeature, preProcessedScenario),
     name: ensureString(scenario.name, TEST_NAME_PLACEHOLDER),
     description: ensureString(scenario.description),
     duration: convertDuration(calculateTestDuration(postProcessedSteps)),
     steps: postProcessedSteps.map(({ allureStep }) => allureStep),
-    labels: calculateTestLabels(featureIds),
+    labels: calculateTestLabels(preProcessedFeature, preProcessedScenario),
     ...resolveTestResultStatusProps(postProcessedSteps),
   };
 };
 
-const calculateTestLabels = ({ featureName }: FeatureIdData) =>
-  featureName ? [{ name: "feature", value: featureName }] : [];
+const calculateTestLabels = ({ featureName, tags: featureTags }: PreProcessedFeature, { tags: scenarioTags }: PreProcessedScenario) => {
+  const labels: RawTestLabel[] = [];
+  if (featureName) {
+    labels.push({ name: "feature", value: featureName });
+  }
+  labels.push(
+    ...featureTags.map((value) => ({ name: "tag", value })),
+    ...scenarioTags.map((value) => ({ name: "tag", value })),
+  );
+  return labels;
+};
 
-const parseFeatureIds = (feature: CucumberFeature): FeatureIdData => {
+const preProcessFeature = (feature: CucumberFeature): PreProcessedFeature => {
   return {
     featureId: ensureString(feature.id),
     featureName: ensureString(feature.name),
     featureUri: ensureString(feature.uri),
+    tags: parseTags(feature.tags),
   };
 };
 
-const parseScenaroiIds = (scenario: CucumberFeatureElement): ScenarioIdData => {
+const parseTags = (tags: unknown) => {
+  return (ensureArray(tags) ?? [])
+    .filter(isNonNullObject<CucumberTag>)
+    .map(({ name }) => name)
+    .filter(isString);
+};
+
+const preProcessScenario = (scenario: CucumberFeatureElement): PreProcessedScenario => {
   return {
     scenarioId: ensureString(scenario.id),
     scenarioName: ensureString(scenario.name),
+    tags: parseTags(scenario.tags),
   };
 };
 
-const calculateFullName = ({ featureUri, featureName, featureId }: FeatureIdData, { scenarioName, scenarioId }: ScenarioIdData) => {
+const calculateFullName = ({ featureUri, featureName, featureId }: PreProcessedFeature, { scenarioName, scenarioId }: PreProcessedScenario) => {
   if (!scenarioName && !scenarioId) {
     return randomUUID();
   }

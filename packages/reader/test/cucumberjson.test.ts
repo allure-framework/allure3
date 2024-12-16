@@ -1005,6 +1005,150 @@ describe("cucumberjson reader", () => {
         });
       });
     });
+
+    describe("tags", () => {
+      it("should parse feature tags", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/feature.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.arrayContaining([
+            { name: "tag", value: "tag1" },
+            { name: "tag", value: "tag2" },
+          ]),
+        });
+      });
+
+      it("should parse scenario tags", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/scenario.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.arrayContaining([
+            { name: "tag", value: "tag1" },
+            { name: "tag", value: "tag2" },
+          ]),
+        });
+      });
+
+      it("should ignore the ill-formed feature tags property", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/featureTagsInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore the ill-formed feature tag element", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/featureTagsElementInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore a feature tag with a missing name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/featureTagNameMissing.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore a feature tag with the ill-formed name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/featureTagNameInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore the ill-formed scenario tags property", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/scenarioTagsInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore the ill-formed scenario tag element", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/scenarioTagsElementInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore a scenario tag with a missing name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/scenarioTagNameMissing.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+
+      it("should ignore a scenario tag with the ill-formed name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/tags/scenarioTagNameInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          labels: expect.not.arrayContaining([
+            { name: "tag" },
+          ]),
+        });
+      });
+    });
   });
 
   describe("cucumber-jvm", () => {

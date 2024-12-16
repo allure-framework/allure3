@@ -9,7 +9,7 @@ export type CucumberFeature = {
   keyword: string;
   line: number;
   name: string;
-  tags?: CucumberTag[];
+  tags?: unknown; // CucumberTag[]
   uri: string;
 };
 
@@ -22,7 +22,7 @@ export type CucumberFeatureElement = {
   line: number;
   name: string;
   steps?: CucumberStep[];
-  tags?: CucumberTag[];
+  tags?: unknown; // CucumberTag[]
   type: string;
 };
 
@@ -60,7 +60,7 @@ export type CucumberStepMatch = {
 
 export type CucumberTag = {
   line: number;
-  name: string;
+  name: unknown; // string
 };
 
 export type CucumberEmbedding = {
