@@ -66,4 +66,5 @@ export type CucumberTag = {
 export type CucumberEmbedding = {
   data: unknown; // string
   mime_type: unknown; // string
+  name?: unknown; // string; Cucumber-JVM: https://github.com/cucumber/cucumber-jvm/pull/1693
 };

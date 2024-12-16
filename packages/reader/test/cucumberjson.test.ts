@@ -1006,4 +1006,42 @@ describe("cucumberjson reader", () => {
       });
     });
   });
+
+  describe("cucumber-jvm", () => {
+    describe("embeddings", () => {
+      it("should use the embedding's name as the attachment name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/cucumberjvm/embeddings/named.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [{ name: "Foo" }],
+            },
+          ],
+        });
+      });
+
+      it("should ignore the ill-formed name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/cucumberjvm/embeddings/nameInvalid.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          steps: [
+            {
+              steps: [{ name: "Embedding" }],
+            },
+          ],
+        });
+      });
+    });
+  });
 });

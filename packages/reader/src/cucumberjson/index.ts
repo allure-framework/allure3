@@ -186,11 +186,11 @@ const processStepEmbeddingAttachments = async (
   const checkedEmbeddings = ensureArray(embeddings) ?? [];
   const getName = checkedEmbeddings.length > 1 ? (i: number) => `Embedding ${i}` : () => "Embedding";
   const embeddingsWithNames = checkedEmbeddings.map<[unknown, string]>((e, i) => [e, getName(i + 1)]);
-  for (const [embedding, name] of embeddingsWithNames) {
+  for (const [embedding, fallbackName] of embeddingsWithNames) {
     if (isNonNullObject<CucumberEmbedding>(embedding)) {
       attachments.push(await visitBufferAttachment(
         visitor,
-        name,
+        ensureString(embedding.name, fallbackName),
         Buffer.from(ensureString(embedding.data, ""), "base64"),
         ensureString(embedding.mime_type, "application/octet-stream"),
       ));
