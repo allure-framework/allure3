@@ -1,12 +1,12 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { modalData } from "@/components/app/Modal";
 import { HtmlAttachmentPreview } from "@/components/app/TestResult/TestResultSteps/HtmlAttachmentPreview";
 import { AttachmentCode } from "@/components/app/TestResult/TestResultSteps/attachmentCode";
 import { AttachmentImage } from "@/components/app/TestResult/TestResultSteps/attachmentImage";
 import { AttachmentVideo } from "@/components/app/TestResult/TestResultSteps/attachmentVideo";
 import { EmptyComponent } from "@/components/app/TestResult/TestResultSteps/wrongAttachment";
+import { modalData } from "@/components/commons/Modal";
 import { Spinner } from "@/components/commons/Spinner";
 import { type Attachments, attachmentType, fetchAttachment } from "@/utils/attachments";
 import * as styles from "./styles.scss";
