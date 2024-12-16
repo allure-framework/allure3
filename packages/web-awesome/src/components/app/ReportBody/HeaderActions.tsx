@@ -1,14 +1,14 @@
 import { useI18n } from "@/stores/locale";
+import { setTreeQuery, treeFiltersStore } from "@/stores/tree";
 import { SearchBox } from "../../commons/SearchBox";
 import { Filters } from "./Filters";
-import { useReportContentContext } from "./context";
 import * as styles from "./styles.scss";
 
 const Search = () => {
-  const { setQuery, query } = useReportContentContext();
+  const { query } = treeFiltersStore.value;
   const { t } = useI18n("search");
 
-  return <SearchBox placeholder={t("search-placeholder")} value={query} onChange={setQuery} />;
+  return <SearchBox placeholder={t("search-placeholder")} value={query} onChange={setTreeQuery} />;
 };
 
 export const HeaderActions = () => {

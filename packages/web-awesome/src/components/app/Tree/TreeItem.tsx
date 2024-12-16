@@ -10,13 +10,15 @@ interface TreeItemProps {
   status: TestStatus;
   duration?: number;
   id: string;
+  order: number;
 }
 
-export const TreeItem: FunctionComponent<TreeItemProps> = ({ name, status, duration, id, ...rest }) => {
+export const TreeItem: FunctionComponent<TreeItemProps> = ({ name, order, status, duration, id, ...rest }) => {
   const formattedDuration = formatDuration(duration);
 
   return (
     <div {...rest} className={styles["tree-item"]} onClick={() => navigateTo(id)}>
+      <span>#{order}</span>
       <TreeItemIcon status={status} />
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}

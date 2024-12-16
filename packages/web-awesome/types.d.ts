@@ -37,7 +37,6 @@ export type AllureAwesomeTestResult = Omit<
   | "expectedResultHtml"
   | "precondition"
   | "preconditionHtml"
-  | "start"
   | "steps"
 > & {
   setup: AllureAwesomeFixtureResult[];
@@ -48,6 +47,7 @@ export type AllureAwesomeTestResult = Omit<
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: AllureAwesomeBreadcrumbItem[];
+  order?: number;
 };
 
 export type AllureAwesomeTree = TreeData<DefaultTreeLeaf, DefaultTreeGroup>;

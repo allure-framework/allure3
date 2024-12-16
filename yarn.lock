@@ -517,6 +517,10 @@ __metadata:
     "@types/prismjs": "npm:^1"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/snapshot": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.7"
+    autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
     babel-plugin-prismjs: "npm:^2.1.0"
     clsx: "npm:^2.1.1"
@@ -542,6 +546,7 @@ __metadata:
     md5: "npm:^2.3.0"
     mini-css-extract-plugin: "npm:^2.9.1"
     npm-run-all2: "npm:^7.0.1"
+    postcss: "npm:^8.4.49"
     preact: "npm:^10.24.0"
     prismjs: "npm:^1.29.0"
     reset.css: "npm:^2.0.2"
@@ -552,6 +557,7 @@ __metadata:
     svg-sprite-loader: "npm:^6.0.11"
     typescript: "npm:^5.6.3"
     typescript-eslint: "npm:^8.6.0"
+    vitest: "npm:^2.1.8"
     webpack: "npm:^5.94.0"
     webpack-cli: "npm:^5.1.4"
     webpack-dev-server: "npm:^5.1.0"
@@ -11614,6 +11620,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picocolors@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "picocolors@npm:1.1.1"
+  checksum: 10/e1cf46bf84886c79055fdfa9dcb3e4711ad259949e3565154b004b260cd356c5d54b31a1437ce9782624bf766272fe6b0154f5f0c744fb7af5d454d2b60db045
+  languageName: node
+  linkType: hard
+
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.3, picomatch@npm:^2.3.1":
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
@@ -12140,6 +12153,17 @@ __metadata:
     picocolors: "npm:^1.1.0"
     source-map-js: "npm:^1.2.1"
   checksum: 10/f2b50ba9b6fcb795232b6bb20de7cdc538c0025989a8ed9c4438d1960196ba3b7eaff41fdb1a5c701b3504651ea87aeb685577707f0ae4d6ce6f3eae5df79a81
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.49":
+  version: 8.4.49
+  resolution: "postcss@npm:8.4.49"
+  dependencies:
+    nanoid: "npm:^3.3.7"
+    picocolors: "npm:^1.1.1"
+    source-map-js: "npm:^1.2.1"
+  checksum: 10/28fe1005b1339870e0a5006375ba5ac1213fd69800f79e7db09c398e074421ba6e162898e94f64942fed554037fd292db3811d87835d25ab5ef7f3c9daacb6ca
   languageName: node
   linkType: hard
 

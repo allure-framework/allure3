@@ -39,7 +39,6 @@ export const Tab = (props: { id: string; children: ComponentChildren }) => {
   const { id, children, ...rest } = props;
   const { currentTab, setCurrentTab } = useTabsContext();
   const isCurrentTab = currentTab === id;
-
   const handleTabClick = () => {
     if (isCurrentTab) {
       return;

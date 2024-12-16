@@ -5,6 +5,7 @@ import { ArrowButton } from "@/components/app/ArrowButton";
 import { Loadable } from "@/components/commons/Loadable";
 import { Text } from "@/components/commons/Typography";
 import { statsStore } from "@/stores";
+import { setTreeStatus, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 interface TreeHeaderProps {
@@ -12,7 +13,6 @@ interface TreeHeaderProps {
   categoryTitle: string;
   isOpened: boolean;
   toggleTree: () => void;
-  statusFilter?: string;
 }
 
 const maxWidthTab = 140;
@@ -31,10 +31,12 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   categoryTitle,
   isOpened,
   toggleTree,
-  statusFilter = "total",
   statistic,
   ...rest
 }) => {
+    // TODO: ???????
+  const { status: statusFilter } = treeFiltersStore.value;
+
   return (
     <Loadable
       source={statsStore}

@@ -1,5 +1,7 @@
 import type { DefaultTreeData } from "@allurereport/core-api";
 import type { ReportContentContextValue } from "@/components/app/ReportBody/context";
+import { TreeFiltersState } from "@/stores/tree";
+import { AllureAwesomeTestResult } from "../../types";
 
 const statusOrder = {
   failed: 1,
@@ -100,7 +102,11 @@ export const filterLeaves = (
     query: filterOptions.query,
   });
 
-  leavesFiltered = filterByTestType({ leaves: leavesFiltered, leavesById, filterTypes: filterOptions.filter });
+  leavesFiltered = filterByTestType({
+    leaves: leavesFiltered,
+    leavesById,
+    filterTypes: filterOptions.filter,
+  });
 
   leavesFiltered = sortedLeaves({ leavesFiltered, leavesById, filterOptions });
 
@@ -147,4 +153,80 @@ export const filterGroups = (
   }
 
   return sortedGroups;
+};
+
+// TODO: new
+export const newFilterLeaves = (
+  leaves: string[] = [],
+  leavesById: DefaultTreeData["leavesById"],
+  filterOptions?: TreeFiltersState,
+) => {
+  const filteredLeaves = leaves
+    .map((leafId) => leavesById[leafId])
+    .filter((leaf) => {
+      const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
+      const statusMatched =
+        !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
+      const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
+      const retryMatched = !filterOptions?.filter?.retry || leaf?.retries?.length > 0;
+      // TODO: at this moment we don't have a new field implementation even in the generator
+      const newMatched = !filterOptions?.filter?.new || leaf.new;
+
+      return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched].every(Boolean);
+    })
+    .sort((a, b) => a.start - b.start)
+    .map(
+      (leaf, i) =>
+        ({
+          ...leaf,
+          order: i + 1,
+        }) as AllureAwesomeTestResult,
+    );
+
+  if (!filterOptions) {
+    return filteredLeaves;
+  }
+
+  return filteredLeaves.sort((a, b) => {
+    const asc = filterOptions.direction === "asc";
+
+    switch (filterOptions.sortBy) {
+      case "order":
+        return asc ? a.order - b.order : b.order - a.order
+      case "duration":
+        return asc ? (a.duration || 0) - (b.duration || 0) : (b.duration || 0) - (a.duration || 0);
+      case "alphabet":
+        return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+      case "status": {
+        const statusA = statusOrder[a.status] || statusOrder.unknown;
+        const statusB = statusOrder[b.status] || statusOrder.unknown;
+
+        return asc ? statusA - statusB : statusB - statusA;
+      }
+      default:
+        return 0;
+    }
+  });
+};
+
+export const fillTree = (payload: {
+  group: any;
+  groupsById: DefaultTreeData["groupsById"];
+  leavesById: DefaultTreeData["leavesById"];
+  filterOptions?: TreeFiltersState;
+}) => {
+  const { group, groupsById, leavesById, filterOptions } = payload;
+
+  return {
+    ...group,
+    leaves: newFilterLeaves(group.leaves, leavesById, filterOptions),
+    groups: group?.groups?.map((groupId) =>
+      fillTree({
+        group: groupsById[groupId],
+        groupsById,
+        leavesById,
+        filterOptions,
+      }),
+    ),
+  };
 };

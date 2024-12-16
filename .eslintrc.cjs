@@ -214,6 +214,7 @@ module.exports = {
     "no-undef-init": "error",
     "no-underscore-dangle": ["error", { allow: ["_currentRetry", "_retriedTest", "_retries"] }],
     "no-unsafe-finally": "error",
+    "no-unused-vars": "off",
     "no-unused-labels": "error",
     "no-var": "error",
     "object-shorthand": "off",

@@ -22,7 +22,8 @@
     "build:prod:multi": "webpack --mode production",
     "build:dev:single": "SINGLE_FILE_MODE=1 webpack --mode development",
     "build:dev:multi": "webpack --mode development",
-    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run"
   },
   "browserslist": [
     "last 1 version",
@@ -57,6 +58,10 @@
     "@types/prismjs": "^1",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/runner": "^2.1.8",
+    "@vitest/snapshot": "^2.1.8",
+    "allure-vitest": "^3.0.7",
+    "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
     "css-loader": "^7.1.2",
@@ -78,6 +83,7 @@
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.1",
     "npm-run-all2": "^7.0.1",
+    "postcss": "^8.4.49",
     "rimraf": "^6.0.1",
     "sass": "^1.79.1",
     "sass-loader": "^16.0.1",
@@ -85,6 +91,7 @@
     "svg-sprite-loader": "^6.0.11",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.6.0",
+    "vitest": "^2.1.8",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.1.0",

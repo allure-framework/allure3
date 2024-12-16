@@ -5,12 +5,12 @@ import sortAscIcon from "@/assets/svg/line-arrows-sort-line-asc.svg";
 import sortDescIcon from "@/assets/svg/line-arrows-sort-line-desc.svg";
 import switchVerticalIcon from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import { useI18n } from "@/stores/locale";
+import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
 import { DropdownButton } from "../../commons/Button";
 import { Link } from "../../commons/Link";
 import { Menu } from "../../commons/Menu";
 import { SvgIcon } from "../../commons/SvgIcon";
 import { Text } from "../../commons/Typography";
-import { useReportContentContext } from "./context";
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {
@@ -21,7 +21,7 @@ export const SortBy = () => {
   const { t: sortByLocale } = useI18n("sort-by");
   const { t: sortByValuesLocale } = useI18n("sort-by.values");
   const { t: sortByDirectionsLocale } = useI18n("sort-by.directions");
-  const { direction, sortBy, setSortBy, setDirection } = useReportContentContext();
+  const { sortBy, direction } = treeFiltersStore.value;
 
   const displayedSortByValue = sortByValuesLocale(sortBy);
   const displayedDirection = sortByDirectionsLocale(`${sortBy}-${direction}-short`);
@@ -72,16 +72,16 @@ export const SortBy = () => {
               )}
             >
               <Menu.Section>
-                <Menu.ItemWithCheckmark onClick={() => setSortBy("order")} isChecked={sortBy === "order"}>
+                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("order")} isChecked={sortBy === "order"}>
                   {sortByValuesLocale("order")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setSortBy("duration")} isChecked={sortBy === "duration"}>
+                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("duration")} isChecked={sortBy === "duration"}>
                   {sortByValuesLocale("duration")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setSortBy("status")} isChecked={sortBy === "status"}>
+                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("status")} isChecked={sortBy === "status"}>
                   {sortByValuesLocale("status")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setSortBy("alphabet")} isChecked={sortBy === "alphabet"}>
+                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("alphabet")} isChecked={sortBy === "alphabet"}>
                   {sortByValuesLocale("alphabet")}
                 </Menu.ItemWithCheckmark>
               </Menu.Section>
@@ -111,14 +111,14 @@ export const SortBy = () => {
             >
               <Menu.Section>
                 <Menu.ItemWithCheckmark
-                  onClick={() => setDirection("asc")}
+                  onClick={() => setTreeDirection("asc")}
                   leadingIcon={sortAscIcon.id}
                   isChecked={direction === "asc"}
                 >
                   {sortByDirectionsLocale(`${sortBy}-asc`)}
                 </Menu.ItemWithCheckmark>
                 <Menu.ItemWithCheckmark
-                  onClick={() => setDirection("desc")}
+                  onClick={() => setTreeDirection("desc")}
                   leadingIcon={sortDescIcon.id}
                   isChecked={direction === "desc"}
                 >

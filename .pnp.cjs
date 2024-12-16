@@ -700,6 +700,10 @@ const RAW_RUNTIME_STATE =
           ["@types/prismjs", "npm:1.26.4"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@vitest/runner", "npm:2.1.8"],\
+          ["@vitest/snapshot", "npm:2.1.8"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.0.7"],\
+          ["autoprefixer", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:10.4.20"],\
           ["babel-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:9.2.1"],\
           ["babel-plugin-prismjs", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.1.0"],\
           ["clsx", "npm:2.1.1"],\
@@ -725,6 +729,7 @@ const RAW_RUNTIME_STATE =
           ["md5", "npm:2.3.0"],\
           ["mini-css-extract-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
+          ["postcss", "npm:8.4.49"],\
           ["preact", "npm:10.24.0"],\
           ["prismjs", "npm:1.29.0"],\
           ["reset.css", "npm:2.0.2"],\
@@ -735,6 +740,7 @@ const RAW_RUNTIME_STATE =
           ["svg-sprite-loader", "npm:6.0.11"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["typescript-eslint", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:8.6.0"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.8"],\
           ["webpack", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.94.0"],\
           ["webpack-cli", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.1.4"],\
           ["webpack-dev-server", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.1.0"],\
@@ -9158,6 +9164,25 @@ const RAW_RUNTIME_STATE =
           "postcss"\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:10.4.20", {\
+        "packageLocation": "./.yarn/__virtual__/autoprefixer-virtual-a1f54af0c2/0/cache/autoprefixer-npm-10.4.20-dd5fd05d27-d3c4b562fc.zip/node_modules/autoprefixer/",\
+        "packageDependencies": [\
+          ["autoprefixer", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:10.4.20"],\
+          ["@types/postcss", null],\
+          ["browserslist", "npm:4.23.3"],\
+          ["caniuse-lite", "npm:1.0.30001650"],\
+          ["fraction.js", "npm:4.3.7"],\
+          ["normalize-range", "npm:0.1.2"],\
+          ["picocolors", "npm:1.0.1"],\
+          ["postcss", "npm:8.4.49"],\
+          ["postcss-value-parser", "npm:4.2.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/postcss",\
+          "postcss"\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["available-typed-arrays", [\
@@ -16756,6 +16781,13 @@ const RAW_RUNTIME_STATE =
           ["picocolors", "npm:1.1.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:1.1.1", {\
+        "packageLocation": "./.yarn/cache/picocolors-npm-1.1.1-4fede47cf1-e1cf46bf84.zip/node_modules/picocolors/",\
+        "packageDependencies": [\
+          ["picocolors", "npm:1.1.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["picomatch", [\
@@ -16877,6 +16909,16 @@ const RAW_RUNTIME_STATE =
           ["postcss", "npm:8.4.47"],\
           ["nanoid", "npm:3.3.7"],\
           ["picocolors", "npm:1.1.0"],\
+          ["source-map-js", "npm:1.2.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:8.4.49", {\
+        "packageLocation": "./.yarn/cache/postcss-npm-8.4.49-1c13833dd1-28fe1005b1.zip/node_modules/postcss/",\
+        "packageDependencies": [\
+          ["postcss", "npm:8.4.49"],\
+          ["nanoid", "npm:3.3.7"],\
+          ["picocolors", "npm:1.1.1"],\
           ["source-map-js", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
