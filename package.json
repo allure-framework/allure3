@@ -13,8 +13,8 @@
   "scripts": {
     "build": "yarn workspaces foreach -Avvpt run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
-    "eslint": "eslint ./packages/**/*.{js,jsx,ts,tsx}",
-    "eslint:format": "eslint --fix ./packages/**/*.{js,jsx,ts,tsx}",
+    "eslint": "yarn workspaces foreach -Avvpt run eslint",
+    "eslint:format": "yarn workspaces foreach -Avvpt run eslint:format",
     "prepare": "husky",
     "prettier:format": "prettier --write './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' package.json ./packages/*/package.json",
     "prereport": "rimraf ./out/allure-report",
