@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/quotes */
 import watchDirectory from "@allurereport/directory-watcher";
 import * as console from "node:console";
 import { type Stats, createReadStream } from "node:fs";
@@ -84,6 +85,7 @@ export const serve = async (options?: {
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
+        // eslint-disable-next-line quote-props
         Connection: "keep-alive",
       });
 

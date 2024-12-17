@@ -27,6 +27,8 @@
     "pretest": "rimraf ./out",
     "test": "run-p 'test:*'",
     "test:unit": "vitest run",
+    "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
+    "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
     "test:e2e": "playwright test"
   },
   "dependencies": {
