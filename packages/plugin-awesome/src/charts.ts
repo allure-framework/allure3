@@ -1,6 +1,7 @@
 import type { Statistic, TestStatus } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import { PieArcDatum, arc, pie } from "d3-shape";
+import type { PieArcDatum } from "d3-shape";
+import { arc, pie } from "d3-shape";
 
 export type TestResultSlice = {
   status: TestStatus;
@@ -19,9 +20,7 @@ export const d3Pie = pie<TestResultSlice>()
   .padAngle(0.03)
   .sortValues((a, b) => a - b);
 
-export function getPercentage(value: number, total: number) {
-  return Math.floor((value / total) * 10000) / 100;
-}
+export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
 export const getChartData = (stats: Statistic): TestResultChartData => {
   const convertedStatuses = statusesList
@@ -31,9 +30,9 @@ export const getChartData = (stats: Statistic): TestResultChartData => {
       count: stats[status]!,
     }));
   const arcsData = d3Pie(convertedStatuses);
-  const slices = arcsData.map((arc) => ({
-    d: d3Arc(arc),
-    ...arc.data,
+  const slices = arcsData.map((arcData) => ({
+    d: d3Arc(arcData),
+    ...arcData.data,
   }));
   const percentage = getPercentage(stats.passed ?? 0, stats.total);
 

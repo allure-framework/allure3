@@ -178,9 +178,8 @@ export const generateAttachmentsFiles = async (
 export const generateHistoryDataPoints = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
   const result = new Map<string, string>();
   const allHistoryPoints = await store.allHistoryDataPoints();
-  allHistoryPoints.sort((a, b) => b.timestamp - a.timestamp);
 
-  for (const historyPoint of allHistoryPoints?.slice(0, 6)) {
+  for (const historyPoint of allHistoryPoints.slice(0, 6)) {
     const src = `history/${historyPoint.uuid}.json`;
     await writer.writeData(src, historyPoint);
   }
