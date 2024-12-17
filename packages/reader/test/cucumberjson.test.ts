@@ -1242,4 +1242,18 @@ describe("cucumberjson reader", () => {
       });
     });
   });
+
+  describe("behave", () => {
+    describe("stepNames", () => {
+      it("should join the keyword and the name with a whitespace", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/behave/stepNames/noSpaceAfterKeyword.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "Then pass" }],
+        });
+      });
+    });
+  });
 });
