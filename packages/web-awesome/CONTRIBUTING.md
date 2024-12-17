@@ -28,7 +28,7 @@ cp -rf ../sandbox/allure-report/awesome/widgets out/dev
 ### 3. Run dev script
 
 ```bash
-yarn workspace @allurerepot/web-awesome dev
+yarn workspace @allurereport/web-awesome dev
 ```
 
 Open the started report in the browser: http://localhost:8080.
