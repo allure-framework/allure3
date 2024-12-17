@@ -297,9 +297,9 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "passed",
-            }),
+            },
           ],
         });
       });
@@ -311,10 +311,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "failed",
               message: "The step failed",
-            }),
+            },
           ],
         });
       });
@@ -326,10 +326,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "unknown",
               message: "The result of the step is unknown",
-            }),
+            },
           ],
         });
       });
@@ -341,10 +341,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "skipped",
               message: "The step was skipped because the previous step hadn't passed",
-            }),
+            },
           ],
         });
       });
@@ -356,10 +356,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "skipped",
               message: "The step signalled pending during execution",
-            }),
+            },
           ],
         });
       });
@@ -371,10 +371,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "broken",
               message: "The step didn't match any definition",
-            }),
+            },
           ],
         });
       });
@@ -386,10 +386,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "broken",
               message: "The step matched more than one definition",
-            }),
+            },
           ],
         });
       });
@@ -401,10 +401,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "unknown",
               message: "The result of the step is unknown",
-            }),
+            },
           ],
         });
       });
@@ -416,10 +416,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "unknown",
               message: "The result of the step is unknown",
-            }),
+            },
           ],
         });
       });
@@ -431,10 +431,10 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               status: "unknown",
               message: "The result of the step is unknown",
-            }),
+            },
           ],
         });
       });
@@ -574,10 +574,10 @@ describe("cucumberjson reader", () => {
           message: "The step 'Then fail' failed",
           trace: "Lorem Ipsum",
           steps: [
-            expect.objectContaining({
+            {
               message: "The step failed",
               trace: "Lorem Ipsum",
-            }),
+            },
           ],
         });
       });
@@ -590,10 +590,10 @@ describe("cucumberjson reader", () => {
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               message: "The step passed",
               trace: "Lorem Ipsum",
-            }),
+            },
           ],
         });
         expect(test).not.toHaveProperty("message");
@@ -611,9 +611,9 @@ describe("cucumberjson reader", () => {
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               duration: 12,
-            }),
+            },
           ],
         });
       });
@@ -626,9 +626,9 @@ describe("cucumberjson reader", () => {
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
           steps: [
-            expect.objectContaining({
+            {
               duration: 13,
-            }),
+            },
           ],
         });
       });
