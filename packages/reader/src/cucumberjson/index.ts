@@ -6,8 +6,8 @@ import type {
   RawTestStepResult,
   ResultsReader,
   ResultsVisitor,
-} from "@allure/reader-api";
-import { BufferResultFile } from "@allure/reader-api";
+} from "@allurereport/reader-api";
+import { BufferResultFile } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
 import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow, CucumberEmbedding, CucumberTag } from "./model.js";
 import { TEST_NAME_PLACEHOLDER } from "./model.js";
