@@ -28,7 +28,7 @@ export const QualityGateCommandAction = async (resultsDir: string, options: Qual
   console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
 
   for (const result of failedResults) {
-    let scope: string = "";
+    let scope = "";
 
     switch (result.meta?.type) {
       case "label":
@@ -42,7 +42,7 @@ export const QualityGateCommandAction = async (resultsDir: string, options: Qual
     console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
   }
 
-  console.error(red(`\nThe process has been exited with code 1`));
+  console.error(red("\nThe process has been exited with code 1"));
 
   process.exit(allureReport.exitCode);
 };

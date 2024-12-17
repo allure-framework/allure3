@@ -1,7 +1,8 @@
 import { AllureReport, isFileNotFoundError, readRuntimeConfig } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
+import type {
+  Watcher} from "@allurereport/directory-watcher";
 import {
-  Watcher,
   allureResultsDirectoriesWatcher,
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
@@ -33,7 +34,7 @@ const runTests = async (
   environment: Record<string, string>,
   silent: boolean,
 ) => {
-  let testProcessStarted: boolean = false;
+  let testProcessStarted = false;
 
   const allureResultsWatchers: Map<string, Watcher> = new Map();
 

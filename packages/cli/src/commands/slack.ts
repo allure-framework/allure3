@@ -1,4 +1,5 @@
 import { AllureReport, resolveConfig } from "@allurereport/core";
+import * as console from "node:console";
 import { createCommand } from "../utils/commands.js";
 
 type CommandOptions = {

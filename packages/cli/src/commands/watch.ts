@@ -41,7 +41,7 @@ export const WatchCommandAction = async (resultsDir: string, options: WatchComma
 
   const server = await serve({
     servePath: config.output,
-    port: options.port ? parseInt(options.port) : undefined,
+    port: options.port ? parseInt(options.port, 10) : undefined,
     live: false,
     open: false,
   });

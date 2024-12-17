@@ -1,5 +1,6 @@
 import { AllureReport, resolveConfig } from "@allurereport/core";
 import { createCommand } from "../utils/commands.js";
+import * as console from "node:console";
 
 export type LogCommandOptions = {
   allSteps?: boolean;

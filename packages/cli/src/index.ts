@@ -4,8 +4,8 @@ import console from "node:console";
 import { readFileSync } from "node:fs";
 import { cwd } from "node:process";
 import {
-  ClassicCommand,
   AwesomeCommand,
+  ClassicCommand,
   CsvCommand,
   GenerateCommand,
   HistoryCommand,
@@ -19,7 +19,9 @@ import {
   WatchCommand,
 } from "./commands/index.js";
 
-const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+const pkg: { name: string; description: string; version: string } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+);
 
 const cli = cac(pkg.name).usage(pkg.description).help().version(pkg.version);
 const commands = [

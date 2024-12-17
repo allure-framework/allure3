@@ -144,7 +144,7 @@ module.exports = {
         allowNumber: true,
         allowBoolean: true,
         allowAny: true,
-        allowNullish: false,
+        allowNullish: true,
       },
     ],
     "@stylistic/semi": ["error"],

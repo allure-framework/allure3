@@ -1,4 +1,5 @@
 import { AllureReport, resolveConfig } from "@allurereport/core";
+import * as console from "node:console";
 import { basename, dirname, resolve } from "node:path";
 import { createCommand } from "../utils/commands.js";
 
