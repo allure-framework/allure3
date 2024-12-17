@@ -1,6 +1,7 @@
-import { Statistic } from "@allurereport/core-api";
-import { Allure2Status, Allure2TestResult, GroupTime, statisticKeys } from "./model.js";
-import { TreeGroup, TreeLeaf } from "./tree.js";
+import type { Statistic } from "@allurereport/core-api";
+import type { Allure2Status, Allure2TestResult, GroupTime } from "./model.js";
+import { statisticKeys } from "./model.js";
+import type { TreeGroup, TreeLeaf } from "./tree.js";
 
 export const updateStatistic = (statistic: Statistic, test: { status: Allure2Status }): undefined => {
   statistic[test.status] = (statistic[test.status] ?? 0) + 1;

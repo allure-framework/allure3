@@ -1,4 +1,5 @@
-import { Statistic, byStatistic } from "@allurereport/core-api";
+import type { Statistic } from "@allurereport/core-api";
+import { byStatistic } from "@allurereport/core-api";
 import { compareBy } from "@allurereport/core-api";
 import { createHash } from "node:crypto";
 import type { Allure2Status, Allure2TestResult, Allure2Time } from "./model.js";

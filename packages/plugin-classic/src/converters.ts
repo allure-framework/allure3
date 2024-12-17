@@ -40,6 +40,7 @@ const sortByTime = (a: { time: Allure2Time }, b: { time: Allure2Time }): number 
 const convertStatus = (status: TestStatus): Allure2Status => status;
 
 const convertStageResult = (context: ConvertContext, result: TestResult | TestFixtureResult): Allure2StageResult => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { name, ...testStage } = convertStep(context, {
     name: "test",
     steps: result.steps,
@@ -56,7 +57,7 @@ const convertStageResult = (context: ConvertContext, result: TestResult | TestFi
 const convertStep = (context: ConvertContext, step: TestStepResult): Allure2Step => {
   if (isStep(step)) {
     const name = step.name;
-    const steps = step.steps.map((step) => convertStep(context, step));
+    const steps = step.steps.map((child) => convertStep(context, child));
     const stepsCount = steps.length;
     const parameters = step.parameters;
     const parametersCount = parameters.length;
@@ -83,9 +84,9 @@ const convertStep = (context: ConvertContext, step: TestStepResult): Allure2Step
     };
   }
   // step is attachment, so wrap it with attachment meta step.
-  const name = step.link.name;
+  const stepName = step.link.name;
   return {
-    name,
+    name: stepName,
     time: {},
     status: "unknown",
     steps: [],

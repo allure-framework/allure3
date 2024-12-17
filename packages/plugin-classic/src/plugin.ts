@@ -16,7 +16,7 @@ import {
   generateTree,
   generateTrendData,
 } from "./generators.js";
-import { Allure2Category, Allure2ExecutorInfo, Allure2PluginOptions, Allure2TestResult } from "./model.js";
+import type { Allure2Category, Allure2ExecutorInfo, Allure2PluginOptions, Allure2TestResult } from "./model.js";
 import { InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
 export class Allure2Plugin implements Plugin {
@@ -34,7 +34,7 @@ export class Allure2Plugin implements Plugin {
     const tests = await store.allTestResults({ includeHidden: true });
     const allTr: Allure2TestResult[] = [];
 
-    for (let value of tests) {
+    for (const value of tests) {
       const fixtures = await store.fixturesByTrId(value.id);
       const retries = await store.retriesByTrId(value.id);
       const history = await store.historyByTrId(value.id);
@@ -65,11 +65,11 @@ export class Allure2Plugin implements Plugin {
     await generateEnvironmentJson(writer, environmentItems);
 
     const executor = await store.metadataByKey<Partial<Allure2ExecutorInfo>>("allure2_executor");
-    const history = await store.allHistoryDataPoints();
+    const historyDataPoints = await store.allHistoryDataPoints();
 
     await generateExecutorJson(writer, executor);
     await generateDefaultWidgetData(writer, displayedTr, "duration.json", "status-chart.json", "severity.json");
-    await generateTrendData(writer, reportName, displayedTr, history);
+    await generateTrendData(writer, reportName, displayedTr, historyDataPoints);
     await generateEmptyTrendData(writer, "duration-trend.json", "categories-trend.json", "retry-trend.json");
 
     const reportDataFiles = singleFile ? (writer as InMemoryReportDataWriter).reportFiles() : [];

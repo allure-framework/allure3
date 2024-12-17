@@ -21,7 +21,8 @@ import type {
   StatusChartData,
   SummaryData,
 } from "./model.js";
-import { Classifier, TreeLayer, byLabels, collapseTree, createTree, createWidget } from "./tree.js";
+import type { Classifier, TreeLayer } from "./tree.js";
+import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
 import { updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
 
@@ -295,7 +296,7 @@ export const generateExecutorJson = async (writer: Allure2DataWriter, executor?:
 
 export const generateDefaultWidgetData = async (
   writer: Allure2DataWriter,
-  tests: Array<Allure2TestResult>,
+  tests: Allure2TestResult[],
   ...fileNames: string[]
 ) => {
   const statusChartData = tests
