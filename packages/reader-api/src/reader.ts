@@ -1,5 +1,5 @@
-import { ResultFile } from "@allurereport/plugin-api";
-import { RawFixtureResult, RawMetadata, RawTestResult } from "./model.js";
+import type { ResultFile } from "@allurereport/plugin-api";
+import type { RawFixtureResult, RawMetadata, RawTestResult } from "./model.js";
 
 export interface ReaderContext {
   readerId: string;

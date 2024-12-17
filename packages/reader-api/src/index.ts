@@ -1,3 +1,3 @@
-export * from "./model.js";
-export * from "./reader.js";
+export type * from "./model.js";
+export type * from "./reader.js";
 export * from "./resultFile.js";

@@ -3,7 +3,7 @@ import { lookup } from "mime-types";
 import { ReadStream, createReadStream, createWriteStream, existsSync, statSync } from "node:fs";
 import "node:fs/promises";
 import { basename } from "node:path";
-import { Readable } from "node:stream";
+import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 export abstract class BaseResultFile implements ResultFile {
@@ -93,7 +93,7 @@ export class PathResultFile extends BaseResultFile {
   }
 }
 
-export const readSteamToJson = async <T extends unknown>(stream: Readable): Promise<T | undefined> => {
+export const readSteamToJson = async <T>(stream: Readable): Promise<T | undefined> => {
   const text = await readStreamToString(stream);
   return JSON.parse(text);
 };
@@ -106,6 +106,7 @@ export const readStreamToString = async (stream: Readable): Promise<string> => {
 export const readStreamToBuffer = async (stream: Readable): Promise<Buffer> => {
   const chunks: Uint8Array[] = [];
   for await (const chunk of stream) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     chunks.push(Buffer.from(chunk));
   }
   return Buffer.concat(chunks);
