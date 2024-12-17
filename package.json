@@ -17,10 +17,7 @@
     "eslint:format": "yarn workspaces foreach -Avvpt run eslint:format",
     "prepare": "husky",
     "prettier:format": "prettier --write './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' package.json ./packages/*/package.json",
-    "prereport": "rimraf ./out/allure-report",
-    "report": "yarn allure generate ./out/allure-results",
-    "pretest": "rimraf ./out/allure-results",
-    "test": "yarn workspaces foreach -Avvpt run test"
+    "test": "yarn allure run -- yarn workspaces foreach -Avvpt run test"
   },
   "lint-staged": {
     "packages/*/{src,test,features}/**/*.{js,ts,tsx}": [

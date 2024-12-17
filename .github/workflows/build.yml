@@ -28,8 +28,6 @@ jobs:
       run: yarn test
     - name: Lint Project
       run: yarn eslint
-    - name: Generate report
-      run: yarn report
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
