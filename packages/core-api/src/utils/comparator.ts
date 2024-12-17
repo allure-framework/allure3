@@ -1,4 +1,4 @@
-import { Statistic } from "../aggregate.js";
+import type { Statistic } from "../aggregate.js";
 import { statusesList } from "../constants.js";
 import type { TestStatus } from "../model.js";
 

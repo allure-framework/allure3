@@ -1,5 +1,5 @@
-import { Statistic } from "../aggregate.js";
-import { TestResult } from "../model.js";
+import type { Statistic } from "../aggregate.js";
+import type { TestResult } from "../model.js";
 
 type TreeNode<T> = Omit<T, "nodeId"> & {
   nodeId: string;

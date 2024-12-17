@@ -1,4 +1,4 @@
-import { AttachmentTestStepResult, DefaultTestStepResult, TestStepResult } from "../model.js";
+import type { AttachmentTestStepResult, DefaultTestStepResult, TestStepResult } from "../model.js";
 
 export const isStep = (result: TestStepResult): result is DefaultTestStepResult => {
   return result.type === "step";
