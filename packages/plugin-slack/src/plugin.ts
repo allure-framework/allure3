@@ -13,8 +13,6 @@ export class SlackPlugin implements Plugin {
   constructor(readonly options: SlackPluginOptions = {}) {}
 
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
-    const { reportFiles } = context;
-
     const statistic = await store.testsStatistic();
     if (statistic.total === 0) {
       throw new Error("no test results found");
@@ -82,6 +80,7 @@ export class SlackPlugin implements Plugin {
       }),
       headers: {
         "Content-Type": "application/json;charset=utf-8",
+        // eslint-disable-next-line quote-props
         Authorization: `Bearer ${token}`,
       },
     });
