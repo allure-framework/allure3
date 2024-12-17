@@ -31,7 +31,7 @@ describe("cucumberjson reader", () => {
           fullName: "features/foo.feature#foo;passed-test",
         });
       });
-      
+
       it("should handle an ill-formed scenario name", async () => {
         const visitor = await readResults(cucumberjson, {
           "cucumberjsondata/reference/names/scenarioNameInvalid.json": "cucumber.json",
@@ -872,7 +872,7 @@ describe("cucumberjson reader", () => {
         const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
         const test = visitor.visitTestResult.mock.calls[0][0];
         const content = await attachment.asUtf8String();
-        expect(content).toEqual('Hello!');
+        expect(content).toEqual("Hello!");
         expect(test).toMatchObject({
           steps: [
             {
@@ -996,10 +996,7 @@ describe("cucumberjson reader", () => {
         expect(test).toMatchObject({
           steps: [
             {
-              steps: [
-                { name: "Embedding 1" },
-                { name: "Embedding 2" },
-              ],
+              steps: [{ name: "Embedding 1" }, { name: "Embedding 2" }],
             },
           ],
         });
@@ -1045,9 +1042,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1059,9 +1054,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1073,9 +1066,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1087,9 +1078,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1101,9 +1090,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1115,9 +1102,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1129,9 +1114,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
 
@@ -1143,9 +1126,7 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
         expect(test).toMatchObject({
-          labels: expect.not.arrayContaining([
-            { name: "tag" },
-          ]),
+          labels: expect.not.arrayContaining([{ name: "tag" }]),
         });
       });
     });

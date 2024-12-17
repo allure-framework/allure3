@@ -14,7 +14,7 @@
             },
             "embeddings": [
               {
-                "data": {"foo": "bar"},
+                "data": { "foo": "bar" },
                 "mime_type": "text/plain"
               }
             ]

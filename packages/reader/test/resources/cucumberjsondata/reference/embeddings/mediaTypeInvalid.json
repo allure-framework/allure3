@@ -15,7 +15,7 @@
             "embeddings": [
               {
                 "data": "SGVsbG8h",
-                "mime_type": {"foo": "bar"}
+                "mime_type": { "foo": "bar" }
               }
             ]
           }

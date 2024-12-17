@@ -12,8 +12,10 @@
     "keyword": "Feature",
     "name": "Foo",
     "uri": "features/foo.feature",
-    "tags": [{
-      "name": {"foo": "bar"}
-    }]
+    "tags": [
+      {
+        "name": { "foo": "bar" }
+      }
+    ]
   }
 ]

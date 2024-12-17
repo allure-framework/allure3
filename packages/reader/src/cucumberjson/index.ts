@@ -9,9 +9,16 @@ import type {
 } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
-import type { CucumberFeature, CucumberFeatureElement, CucumberStep, CucumberDatatableRow, CucumberEmbedding, CucumberTag } from "./model.js";
+import { ensureArray, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
+import type {
+  CucumberDatatableRow,
+  CucumberEmbedding,
+  CucumberFeature,
+  CucumberFeatureElement,
+  CucumberStep,
+  CucumberTag,
+} from "./model.js";
 import { TEST_NAME_PLACEHOLDER } from "./model.js";
-import { ensureArray, isArray, ensureString, isNonNullObject, isString } from "../utils.js";
 
 const NS_IN_MS = 1_000_000;
 
@@ -30,7 +37,7 @@ const cucumberStatusToAllureStatus: Record<string, RawTestStatus> = {
   passed: "passed",
   skipped: "skipped",
   pending: "skipped",
-  undefined: "broken",
+  ["undefined"]: "broken",
   ambiguous: "broken",
   failed: "failed",
 };
@@ -41,7 +48,7 @@ const allureStepMessages: Record<string, string> = {
   passed: "The step passed",
   skipped: "The step was skipped because the previous step hadn't passed",
   pending: "The step signalled pending during execution",
-  undefined: "The step didn't match any definition",
+  ["undefined"]: "The step didn't match any definition",
   ambiguous: "The step matched more than one definition",
   failed: "The step failed",
 };
@@ -71,7 +78,7 @@ type PreProcessedStep = {
 type PostProcessedStep = { preProcessedStep: PreProcessedStep; allureStep: RawTestStepResult };
 
 export const cucumberjson: ResultsReader = {
-  async read(visitor, data) {
+  read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
     try {
       const parsed = await data.asJson<CucumberFeature[]>();
@@ -83,6 +90,7 @@ export const cucumberjson: ResultsReader = {
         return oneOrMoreFeaturesParsed;
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error("error parsing", originalFileName, e);
       return false;
     }
@@ -152,47 +160,33 @@ const processStepDocStringAttachment = async (
   if (docString) {
     const { value, content_type: contentType } = docString;
     if (value && value.trim()) {
-      return await visitBufferAttachment(
-        visitor,
-        "Description",
-        Buffer.from(value),
-        contentType || "text/markdown",
-      );
+      return await visitBufferAttachment(visitor, "Description", Buffer.from(value), contentType || "text/markdown");
     }
   }
 };
 
-const processStepDataTableAttachment = async (
-  visitor: ResultsVisitor,
-  { rows }: CucumberStep,
-) => {
+const processStepDataTableAttachment = async (visitor: ResultsVisitor, { rows }: CucumberStep) => {
   if (isArray(rows)) {
     const content = formatDataTable(rows);
-    return await visitBufferAttachment(
-      visitor,
-      "Data",
-      Buffer.from(content),
-      "text/csv",
-    );
+    return await visitBufferAttachment(visitor, "Data", Buffer.from(content), "text/csv");
   }
 };
 
-const processStepEmbeddingAttachments = async (
-  visitor: ResultsVisitor,
-  { embeddings }: CucumberStep,
-) => {
+const processStepEmbeddingAttachments = async (visitor: ResultsVisitor, { embeddings }: CucumberStep) => {
   const attachments: RawTestAttachment[] = [];
   const checkedEmbeddings = ensureArray(embeddings) ?? [];
   const getName = checkedEmbeddings.length > 1 ? (i: number) => `Embedding ${i}` : () => "Embedding";
   const embeddingsWithNames = checkedEmbeddings.map<[unknown, string]>((e, i) => [e, getName(i + 1)]);
   for (const [embedding, fallbackName] of embeddingsWithNames) {
     if (isNonNullObject<CucumberEmbedding>(embedding)) {
-      attachments.push(await visitBufferAttachment(
-        visitor,
-        ensureString(embedding.name, fallbackName),
-        Buffer.from(ensureString(embedding.data, ""), "base64"),
-        ensureString(embedding.mime_type, "application/octet-stream"),
-      ));
+      attachments.push(
+        await visitBufferAttachment(
+          visitor,
+          ensureString(embedding.name, fallbackName),
+          Buffer.from(ensureString(embedding.data, ""), "base64"),
+          ensureString(embedding.mime_type, "application/octet-stream"),
+        ),
+      );
     }
   }
   return attachments;
@@ -205,15 +199,14 @@ const visitBufferAttachment = async (
   contentType: string,
 ): Promise<RawTestAttachment> => {
   const fileName = randomUUID();
-    await visitor.visitAttachmentFile(new BufferResultFile(content, fileName), { readerId });
-    return {
-      type: "attachment",
-      contentType,
-      originalFileName: fileName,
-      name,
-    };
+  await visitor.visitAttachmentFile(new BufferResultFile(content, fileName), { readerId });
+  return {
+    type: "attachment",
+    contentType,
+    originalFileName: fileName,
+    name,
+  };
 };
-
 
 // CSV formatting follows the rules in https://www.ietf.org/rfc/rfc4180.txt
 const formatDataTable = (rows: readonly unknown[]) => {
@@ -230,7 +223,7 @@ const formatDataTableRow = ({ cells }: CucumberDatatableRow) => {
 };
 
 const formatDataTableCell = (cell: string) => {
-  const escapedCell = ensureString(cell, "").replaceAll("\"", "\"\"");
+  const escapedCell = ensureString(cell, "").replaceAll(String.raw`"`, String.raw`""`);
   return `"${escapedCell}"`;
 };
 
@@ -263,7 +256,10 @@ const mapCucumberScenarioToAllureTestResult = (
   };
 };
 
-const calculateTestLabels = ({ featureName, tags: featureTags }: PreProcessedFeature, { tags: scenarioTags }: PreProcessedScenario) => {
+const calculateTestLabels = (
+  { featureName, tags: featureTags }: PreProcessedFeature,
+  { tags: scenarioTags }: PreProcessedScenario,
+) => {
   const labels: RawTestLabel[] = [];
   if (featureName) {
     labels.push({ name: "feature", value: featureName });
@@ -299,7 +295,10 @@ const preProcessScenario = (scenario: CucumberFeatureElement): PreProcessedScena
   };
 };
 
-const calculateFullName = ({ featureUri, featureName, featureId }: PreProcessedFeature, { scenarioName, scenarioId }: PreProcessedScenario) => {
+const calculateFullName = (
+  { featureUri, featureName, featureId }: PreProcessedFeature,
+  { scenarioName, scenarioId }: PreProcessedScenario,
+) => {
   if (!scenarioName && !scenarioId) {
     return randomUUID();
   }
@@ -311,7 +310,7 @@ const calculateFullName = ({ featureUri, featureName, featureId }: PreProcessedF
     // scenarioId might have collisions: differenc names are translated into the same id.
     // That's why we're prioritizing scenarioName if the feature part is proven to exist.
     const scenarioPart = scenarioName || scenarioId;
-    return `${featurePart}#${scenarioPart}`;
+    return `${featurePart}#${scenarioPart!}`;
   }
 
   // If no feature part found, we're prioritizing scenarioId because there can be the feature id in it.
@@ -397,7 +396,7 @@ const createAllureStepResult = ({
   attachments,
 }: PreProcessedStep): RawTestStepResult => ({
   type: "step",
-  name: `${keyword}${name}`,
+  name: `${keyword!}${name!}`,
   steps: attachments,
   ...mapCucumberStepResultToStepProps(status, duration, errorMessage),
 });
@@ -415,7 +414,7 @@ const mapCucumberStepResultToStepProps = (
 const resolveStepMessageAndTrace = (status: string, errorMessage: string | undefined) =>
   status !== "passed" || errorMessage
     ? {
-        message: allureStepMessages[status ?? "unknown"] ?? allureStepMessages["unknown"],
+        message: allureStepMessages[status ?? "unknown"] ?? allureStepMessages.unknown,
         trace: errorMessage,
       }
     : {};

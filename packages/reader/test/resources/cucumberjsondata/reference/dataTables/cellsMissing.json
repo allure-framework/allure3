@@ -9,10 +9,7 @@
           {
             "keyword": "Then ",
             "name": "pass",
-            "rows": [
-              {"cells": ["col1", "col2"]},
-              {}
-            ]
+            "rows": [{ "cells": ["col1", "col2"] }, {}]
           }
         ],
         "type": "scenario"

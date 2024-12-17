@@ -6,7 +6,7 @@
         "keyword": "Scenario",
         "name": "Bar",
         "type": "scenario",
-        "tags": {"foo": "bar"}
+        "tags": { "foo": "bar" }
       }
     ],
     "id": "foo",

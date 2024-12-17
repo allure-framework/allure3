@@ -12,7 +12,7 @@
             "result": {
               "status": "passed"
             },
-            "embeddings": {"foo": "bar"}
+            "embeddings": { "foo": "bar" }
           }
         ],
         "type": "scenario"
