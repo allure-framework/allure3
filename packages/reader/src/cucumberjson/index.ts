@@ -54,16 +54,18 @@ const allureStepMessages: Record<string, string> = {
 };
 
 type PreProcessedFeature = {
-  featureName: string | undefined;
-  featureUri: string | undefined;
-  featureId: string | undefined;
+  name: string | undefined;
+  uri: string | undefined;
+  id: string | undefined;
   tags: string[];
 };
 
 type PreProcessedScenario = {
-  scenarioId: string | undefined;
-  scenarioName: string | undefined;
+  id: string | undefined;
+  name: string | undefined;
+  description: string | undefined;
   tags: string[];
+  type: string | undefined;
 };
 
 type PreProcessedStep = {
@@ -103,8 +105,8 @@ export const cucumberjson: ResultsReader = {
 
 const processFeature = async (visitor: ResultsVisitor, originalFileName: string, feature: CucumberFeature) => {
   if (isCucumberFeature(feature)) {
+    const preProcessedFeature = preProcessFeature(feature);
     for (const scenario of feature.elements) {
-      const preProcessedFeature = preProcessFeature(feature);
       await processScenario(visitor, originalFileName, preProcessedFeature, scenario);
     }
     return true;
@@ -118,12 +120,20 @@ const processScenario = async (
   feature: PreProcessedFeature,
   scenario: CucumberFeatureElement,
 ) => {
-  const preProcessedSteps = await preProcessSteps(visitor, scenario.steps ?? []);
-  await visitor.visitTestResult(mapCucumberScenarioToAllureTestResult(feature, scenario, preProcessedSteps), {
-    readerId,
-    metadata: { originalFileName },
-  });
+  const preProcessedScenario = preProcessScenario(scenario);
+  if (shouldProcessScenario(preProcessedScenario)) {
+    const preProcessedSteps = await preProcessSteps(visitor, scenario.steps ?? []);
+    await visitor.visitTestResult(
+      mapCucumberScenarioToAllureTestResult(feature, preProcessedScenario, preProcessedSteps),
+      {
+        readerId,
+        metadata: { originalFileName },
+      },
+    );
+  }
 };
+
+const shouldProcessScenario = ({ type }: PreProcessedScenario) => type !== "background";
 
 const preProcessSteps = async (visitor: ResultsVisitor, steps: readonly CucumberStep[]) => {
   const preProcessedSteps: PreProcessedStep[] = [];
@@ -240,24 +250,23 @@ const pairWithAllureSteps = (preProcessedCucumberSteps: readonly PreProcessedSte
 
 const mapCucumberScenarioToAllureTestResult = (
   preProcessedFeature: PreProcessedFeature,
-  scenario: CucumberFeatureElement,
+  scenario: PreProcessedScenario,
   preProcessedSteps: readonly PreProcessedStep[],
 ): RawTestResult => {
-  const preProcessedScenario = preProcessScenario(scenario);
   const postProcessedSteps = pairWithAllureSteps(preProcessedSteps);
   return {
-    fullName: calculateFullName(preProcessedFeature, preProcessedScenario),
-    name: ensureString(scenario.name, TEST_NAME_PLACEHOLDER),
-    description: ensureString(scenario.description),
+    fullName: calculateFullName(preProcessedFeature, scenario),
+    name: scenario.name ?? TEST_NAME_PLACEHOLDER,
+    description: scenario.description,
     duration: convertDuration(calculateTestDuration(postProcessedSteps)),
     steps: postProcessedSteps.map(({ allureStep }) => allureStep),
-    labels: calculateTestLabels(preProcessedFeature, preProcessedScenario),
+    labels: calculateTestLabels(preProcessedFeature, scenario),
     ...resolveTestResultStatusProps(postProcessedSteps),
   };
 };
 
 const calculateTestLabels = (
-  { featureName, tags: featureTags }: PreProcessedFeature,
+  { name: featureName, tags: featureTags }: PreProcessedFeature,
   { tags: scenarioTags }: PreProcessedScenario,
 ) => {
   const labels: RawTestLabel[] = [];
@@ -273,9 +282,9 @@ const calculateTestLabels = (
 
 const preProcessFeature = (feature: CucumberFeature): PreProcessedFeature => {
   return {
-    featureId: ensureString(feature.id),
-    featureName: ensureString(feature.name),
-    featureUri: ensureString(feature.uri),
+    id: ensureString(feature.id),
+    name: ensureString(feature.name),
+    uri: ensureString(feature.uri),
     tags: parseTags(feature.tags),
   };
 };
@@ -289,15 +298,17 @@ const parseTags = (tags: unknown) => {
 
 const preProcessScenario = (scenario: CucumberFeatureElement): PreProcessedScenario => {
   return {
-    scenarioId: ensureString(scenario.id),
-    scenarioName: ensureString(scenario.name),
+    id: ensureString(scenario.id),
+    name: ensureString(scenario.name),
+    description: ensureString(scenario.description),
     tags: parseTags(scenario.tags),
+    type: scenario.type,
   };
 };
 
 const calculateFullName = (
-  { featureUri, featureName, featureId }: PreProcessedFeature,
-  { scenarioName, scenarioId }: PreProcessedScenario,
+  { uri: featureUri, name: featureName, id: featureId }: PreProcessedFeature,
+  { name: scenarioName, id: scenarioId }: PreProcessedScenario,
 ) => {
   if (!scenarioName && !scenarioId) {
     return randomUUID();

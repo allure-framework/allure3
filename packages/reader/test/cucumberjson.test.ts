@@ -1226,6 +1226,21 @@ describe("cucumberjson reader", () => {
         });
       });
     });
+
+    describe("backgrounds", () => {
+      // TODO: implement background-to-fixture conversion
+      it("should ignore backgrounds", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/backgrounds/wellDefined.json": "cucumber.json",
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          name: "Baz",
+        });
+      });
+    });
   });
 
   describe("cucumber-jvm", () => {
