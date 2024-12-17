@@ -27,6 +27,7 @@ const watchDirectory = (
   const watcher = chokidarWatch(directory, { persistent: true, usePolling, ignoreInitial });
 
   watcher.on("all", async (eventName, path) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await handler(eventName, path);
   });
   watcher.on("error", (error) => {
@@ -38,4 +39,9 @@ const watchDirectory = (
 
 export default watchDirectory;
 
-export { newFilesInDirectoryWatcher, allureResultsDirectoriesWatcher, delayedFileProcessingWatcher, Watcher } from "./watcher.js";
+export type { Watcher } from "./watcher.js";
+export {
+  newFilesInDirectoryWatcher,
+  allureResultsDirectoriesWatcher,
+  delayedFileProcessingWatcher,
+} from "./watcher.js";

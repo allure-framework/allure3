@@ -1,6 +1,7 @@
 import console from "node:console";
 import { createHash } from "node:crypto";
-import { Dirent, createReadStream } from "node:fs";
+import type { Dirent } from "node:fs";
+import { createReadStream } from "node:fs";
 import { opendir, realpath, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { setImmediate, setTimeout } from "node:timers/promises";
@@ -263,6 +264,7 @@ const waitUntilFileStopChanging = async (
   const { maxWait, minWait } = options;
 
   const prev: FileInfo = { ...info };
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const now = Date.now();
     if (now - start > maxWait) {
@@ -380,6 +382,7 @@ export const md5File = async (path: string): Promise<string> => {
     });
 
     output.once("readable", () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       resolve(output.read().toString("hex"));
     });
 
