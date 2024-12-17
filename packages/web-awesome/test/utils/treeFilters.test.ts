@@ -1,10 +1,10 @@
 import { type TestResult } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
-import { fillTree, newFilterLeaves } from "../../src/utils/treeFilters.js";
-import { type AllureAwesomeTestResult } from "../../types.js";
+import { fillTree, filterLeaves } from "../../src/utils/treeFilters.js";
+import type { AllureAwesomeTestResult } from "../../types.js";
 
 describe("utils > treeFilters", () => {
-  describe("newFilterLeaves", () => {
+  describe("filterLeaves", () => {
     it("returns the leaves as is when no filter options are provided", () => {
       const baseDate = Date.now();
       const leaves = ["a1", "b2", "c3"];
@@ -22,7 +22,7 @@ describe("utils > treeFilters", () => {
           start: baseDate + 2000,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById);
+      const result = filterLeaves(leaves, leavesById);
 
       expect(result).toEqual([
         expect.objectContaining({ name: "a1", order: 1 }),
@@ -51,7 +51,7 @@ describe("utils > treeFilters", () => {
           start: baseDate + 2000,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         status: "passed",
       });
 
@@ -81,7 +81,7 @@ describe("utils > treeFilters", () => {
           flaky: true,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         filter: {
           flaky: true,
         },
@@ -112,7 +112,7 @@ describe("utils > treeFilters", () => {
           start: baseDate + 2000,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         filter: {
           retry: true,
         },
@@ -137,7 +137,7 @@ describe("utils > treeFilters", () => {
           duration: 3000,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
         sortBy: "duration",
       });
@@ -165,7 +165,7 @@ describe("utils > treeFilters", () => {
           duration: 3000,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
         sortBy: "duration",
       });
@@ -190,7 +190,7 @@ describe("utils > treeFilters", () => {
           name: "c3",
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
         sortBy: "alphabet",
       });
@@ -215,7 +215,7 @@ describe("utils > treeFilters", () => {
           name: "c3",
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
         sortBy: "alphabet",
       });
@@ -251,7 +251,7 @@ describe("utils > treeFilters", () => {
           status: "skipped",
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
         sortBy: "status",
       });
@@ -289,7 +289,7 @@ describe("utils > treeFilters", () => {
           status: "skipped",
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
         sortBy: "status",
       });
@@ -320,7 +320,7 @@ describe("utils > treeFilters", () => {
           start: baseDate,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
         sortBy: "order",
       });
@@ -349,7 +349,7 @@ describe("utils > treeFilters", () => {
           start: baseDate,
         } as AllureAwesomeTestResult,
       };
-      const result = newFilterLeaves(leaves, leavesById, {
+      const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
         sortBy: "order",
       });

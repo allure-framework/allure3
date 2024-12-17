@@ -1,4 +1,9 @@
-import type { AttachmentLink, EnvironmentItem, Statistic, TestResult } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  EnvironmentItem,
+  Statistic,
+  TestResult
+} from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { createTreeByLabels } from "@allurereport/plugin-api";
 import type {
@@ -52,7 +57,7 @@ const template = `<!DOCTYPE html>
           "single_file": "{{singleFile}}"
         });
     </script>
-    {{/if}} 
+    {{/if}}
     <script>
       window.allureReportOptions = {{{ reportOptions }}}
     </script>
@@ -99,9 +104,21 @@ const createBreadcrumbs = (convertedTr: AllureAwesomeTestResult) => {
   }, [] as string[][]);
 };
 
+export const getTestResultStart = (testResult: AllureAwesomeTestResult) => {
+  if (testResult.start) {
+    return testResult.start;
+  }
+
+  if (testResult.stop && testResult.duration) {
+    return testResult.stop - testResult.duration;
+  }
+
+  return undefined;
+};
+
 export const generateTestResults = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
-  const convertedTrs: AllureAwesomeTestResult[] = [];
+  let convertedTrs: AllureAwesomeTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = await store.fixturesByTrId(tr.id);
@@ -123,9 +140,21 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
     convertedTrs.push(convertedTr);
   }
 
+  convertedTrs = convertedTrs
+    .sort((a, b) =>  getTestResultStart(a)! > getTestResultStart(b)! ? 1 : -1)
+    .map((tr, idx) => ({
+      ...tr,
+      order: idx + 1,
+    }));
+
   for (const convertedTr of convertedTrs) {
     await writer.writeTestCase(convertedTr);
   }
+
+  await writer.writeWidget(
+    "nav.json",
+    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+  );
 };
 
 export const generateTree = async (

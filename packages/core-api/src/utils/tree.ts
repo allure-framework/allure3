@@ -20,6 +20,7 @@ export type TreeData<L, G> = {
 };
 
 export type DefaultTreeLeaf = Pick<TestResult, "name" | "status" | "duration">;
+
 export type DefaultTreeGroup = {
   name: string;
   statistic: Statistic;

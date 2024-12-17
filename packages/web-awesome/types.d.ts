@@ -1,12 +1,13 @@
 import type {
-  AttachmentLink, AttachmentTestStepResult,
+  AttachmentTestStepResult,
   DefaultTreeGroup,
-  DefaultTreeLeaf,
   HistoryTestResult,
   TestFixtureResult,
   TestResult,
+  TestStatus,
   TestStepResult,
   TreeData,
+  WithChildren,
 } from "@allurereport/core-api";
 
 export type AllureAwesomeReportOptions = {
@@ -24,6 +25,8 @@ export type AllureAwesomeFixtureResult = Omit<
 > & {
   steps: AllureAwesomeTestStepResult[];
 };
+
+export type AllureAwesomeStatus = TestStatus | "total";
 
 export type AllureAwesomeTestStepResult = TestStepResult;
 
@@ -48,6 +51,17 @@ export type AllureAwesomeTestResult = Omit<
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: AllureAwesomeBreadcrumbItem[];
   order?: number;
+  groupOrder?: number;
 };
 
-export type AllureAwesomeTree = TreeData<DefaultTreeLeaf, DefaultTreeGroup>;
+export type AllureAwesomeTree = TreeData<AllureAwesomeTestResult, DefaultTreeGroup>;
+
+export type AllureAwesomeTreeLeaf = AllureAwesomeTestResult & { nodeId: string };
+
+export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
+
+export type AllureAwesomeOrderedTree = DefaultTreeGroup & {
+  nodeId: string;
+  leaves: AllureAwesomeTreeLeaf[];
+  groups: AllureAwesomeOrderedTree[];
+};

@@ -1,15 +1,15 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-import { fillTree, filterGroups, filterLeaves } from "@/utils/treeFilters";
+import { fillTree } from "@/utils/treeFilters";
+import type { AllureAwesomeStatus } from "../../types";
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
 export type TreeFiltersState = {
   query: string;
-  // TODO: use normal status type here
-  status: string;
+  status: AllureAwesomeStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
@@ -29,7 +29,7 @@ export const treeFiltersStore = signal<TreeFiltersState>({
     retry: false,
     new: false,
   },
-  sortBy: "alphabet",
+  sortBy: "order",
   direction: "asc",
 });
 
@@ -40,7 +40,7 @@ export const setTreeQuery = (query: string) => {
   };
 };
 
-export const setTreeStatus = (status: string) => {
+export const setTreeStatus = (status: AllureAwesomeStatus) => {
   treeFiltersStore.value = {
     ...treeFiltersStore.value,
     status,
@@ -59,7 +59,7 @@ export const setTreeDirection = (direction: TreeDirection) => {
     ...treeFiltersStore.value,
     direction,
   };
-}
+};
 
 export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
   treeFiltersStore.value = {
@@ -70,15 +70,6 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
     },
   };
 };
-
-// const leavesToRender = filterLeaves(leaves, treeData?.leavesById, statusFilter, reportContext);
-// const groupsToRender = filterGroups(
-//     groups,
-//     treeData?.groupsById,
-//     treeData?.leavesById,
-//     statusFilter,
-//     reportContext,
-// );
 
 export const filteredTree = computed(() => {
   const { root, leavesById, groupsById } = treeStore.value.data;

@@ -1,4 +1,3 @@
-import type { TestStatus } from "@allurereport/core-api";
 import { useEffect } from "preact/hooks";
 import { useTabsContext } from "@/components/app/Tabs";
 import Tree from "@/components/app/Tree/Tree";
@@ -6,7 +5,8 @@ import { Loadable } from "@/components/commons/Loadable";
 import { PageLoader } from "@/components/commons/PageLoader";
 import { Text } from "@/components/commons/Typography";
 import { useI18n } from "@/stores/locale";
-import { treeStore, filteredTree, setTreeStatus } from "@/stores/tree";
+import { filteredTree, setTreeStatus, treeStore } from "@/stores/tree";
+import type { AllureAwesomeStatus } from "../../../../types";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
@@ -14,7 +14,7 @@ export const TreeList = () => {
   const { currentTab } = useTabsContext();
 
   useEffect(() => {
-    setTreeStatus(currentTab);
+    setTreeStatus(currentTab as AllureAwesomeStatus);
   }, [currentTab]);
 
   return (
@@ -36,7 +36,7 @@ export const TreeList = () => {
 
         return (
           <div className={styles["tree-list"]}>
-            <Tree group={filteredTree.value} statusFilter={currentTab as TestStatus} root />
+            <Tree tree={filteredTree.value} statusFilter={currentTab as AllureAwesomeStatus} root />
           </div>
         );
       }}

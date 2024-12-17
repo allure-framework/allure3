@@ -5,7 +5,7 @@ import { ArrowButton } from "@/components/app/ArrowButton";
 import { Loadable } from "@/components/commons/Loadable";
 import { Text } from "@/components/commons/Typography";
 import { statsStore } from "@/stores";
-import { setTreeStatus, treeFiltersStore } from "@/stores/tree";
+import { treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 interface TreeHeaderProps {
@@ -34,7 +34,6 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   statistic,
   ...rest
 }) => {
-    // TODO: ???????
   const { status: statusFilter } = treeFiltersStore.value;
 
   return (

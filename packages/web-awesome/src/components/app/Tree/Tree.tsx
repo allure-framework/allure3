@@ -1,39 +1,30 @@
-import type { Statistic, TestStatus, WithChildren } from "@allurereport/core-api";
+import type { Statistic } from "@allurereport/core-api";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import { useReportContentContext } from "@/components/app/ReportBody/context";
 import TreeItem from "@/components/app/Tree/TreeItem";
-import { Loadable } from "@/components/commons/Loadable";
-import { PageLoader } from "@/components/commons/PageLoader";
 import { Text } from "@/components/commons/Typography";
 import { useI18n } from "@/stores";
-import { treeStore, filteredTree } from "@/stores/tree";
-import { filterGroups, filterLeaves } from "@/utils/treeFilters";
+import type { AllureAwesomeOrderedTree, AllureAwesomeStatus } from "../../../../types";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
 
 interface TreeProps {
   statistic?: Statistic;
-  group: {
-    // TODO: use proper types
-    leaves: any[];
-    groups: any[];
-  };
-  // leaves?: WithChildren["leaves"];
-  // groups?: WithChildren["groups"];
+  tree: AllureAwesomeOrderedTree;
   name?: string;
   root?: boolean;
-  statusFilter?: TestStatus;
+  statusFilter?: AllureAwesomeStatus;
 }
 
-const Tree: FunctionComponent<TreeProps> = ({ group, statusFilter, root, name, statistic }) => {
-  const [isOpened, setIsOpen] = useState(statistic === undefined || !!statistic.failed || !!statistic.broken);
+const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
   const { t } = useI18n("empty");
+  const [isOpened, setIsOpen] = useState(statistic === undefined || !!statistic.failed || !!statistic.broken);
+  const toggleTree = () => {
+    setIsOpen(!isOpened);
+  };
 
-  // console.log("filtered tree", filteredTree.value)
-
-  if (!group?.groups?.length && !group?.leaves?.length) {
+  if (!tree?.groups?.length && !tree?.leaves?.length) {
     return (
       <div className={styles["tree-list"]}>
         <div className={styles["tree-empty-results"]}>
@@ -50,42 +41,26 @@ const Tree: FunctionComponent<TreeProps> = ({ group, statusFilter, root, name, s
         [styles.root]: root,
       })}
     >
-      {group.groups.map((nestedGroup) => {
-        // const group = treeData?.groupsById?.[groupId];
-
-        // if (!group) {
-        //   return null;
-        // }
-
-        return (
-          <Tree
-            key={nestedGroup.nodeId}
-            name={nestedGroup.name}
-            group={nestedGroup}
-            statistic={nestedGroup.statistic}
-            statusFilter={statusFilter}
-          />
-        );
-      })}
-      {group.leaves.map((leaf) => {
-        // const leaf = treeData?.leavesById?.[leafId];
-        //
-        // if (!leaf) {
-        //   return null;
-        // }
-
-        return (
-          <TreeItem
-            data-testid="tree-leaf"
-            key={leaf.nodeId}
-            id={leaf.nodeId}
-            name={leaf.name}
-            status={leaf.status}
-            order={leaf.order}
-            duration={leaf.duration}
-          />
-        );
-      })}
+      {tree?.groups?.map?.((subTree) => (
+        <Tree
+          key={subTree.nodeId}
+          name={subTree.name}
+          tree={subTree}
+          statistic={subTree.statistic}
+          statusFilter={statusFilter}
+        />
+      ))}
+      {tree?.leaves?.map?.((leaf) => (
+        <TreeItem
+          data-testid="tree-leaf"
+          key={leaf.nodeId}
+          id={leaf.nodeId}
+          name={leaf.name}
+          status={leaf.status}
+          groupOrder={leaf.groupOrder}
+          duration={leaf.duration}
+        />
+      ))}
     </div>
   );
 
@@ -95,8 +70,7 @@ const Tree: FunctionComponent<TreeProps> = ({ group, statusFilter, root, name, s
         <TreeHeader
           categoryTitle={name}
           isOpened={isOpened}
-          // toggleTree={toggleTree}
-          toggleTree={() => {}}
+          toggleTree={toggleTree}
           statistic={statistic}
           data-testid="tree-group-header"
         />
@@ -104,29 +78,6 @@ const Tree: FunctionComponent<TreeProps> = ({ group, statusFilter, root, name, s
       {treeContent}
     </div>
   );
-
-  // return (
-  //   <Loadable
-  //     source={treeStore}
-  //     renderLoader={() => <PageLoader />}
-  //     renderData={(treeData) => {
-  //       // const reportContext = useReportContentContext();
-  //       const toggleTree = () => {
-  //         setIsOpen(!isOpened);
-  //       };
-  //       // const leavesToRender = filterLeaves(leaves, treeData?.leavesById, statusFilter, reportContext);
-  //       // const groupsToRender = filterGroups(
-  //       //   groups,
-  //       //   treeData?.groupsById,
-  //       //   treeData?.leavesById,
-  //       //   statusFilter,
-  //       //   reportContext,
-  //       // );
-  //
-  //
-  //     }}
-  //   />
-  // );
 };
 
 export default Tree;
