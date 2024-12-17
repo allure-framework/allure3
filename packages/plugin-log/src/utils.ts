@@ -64,9 +64,7 @@ export const stringifyStepResultTitle = (result: DefaultTestStepResult) => {
 
 export const printTest = (test: TestResult, options?: PrintFunctionOptions, indent: number = 0) => {
   const title = stringifyTestResultTitle(test);
-  const stepsToPrint = !!options?.allSteps
-    ? test.steps.filter(isStep)
-    : test.steps.filter(isFailedResult).filter(isStep);
+  const stepsToPrint = options?.allSteps ? test.steps.filter(isStep) : test.steps.filter(isFailedResult).filter(isStep);
   const failedResult = isFailedResult(test);
   const indentSpaces = "  ".repeat(indent);
 
@@ -114,8 +112,8 @@ export const printStep = (step: DefaultTestStepResult, options?: PrintFunctionOp
     return;
   }
 
-  stepsToPrint.forEach((step) => {
-    printStep(step, options, indent + 1);
+  stepsToPrint.forEach((child) => {
+    printStep(child, options, indent + 1);
   });
 };
 

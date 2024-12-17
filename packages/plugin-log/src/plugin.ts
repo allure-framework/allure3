@@ -1,4 +1,5 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import * as console from "node:console";
 import { gray } from "yoctocolors";
 import type { LogPluginOptions } from "./model.js";
 import { printSummary, printTest } from "./utils.js";
@@ -8,16 +9,16 @@ export class LogPlugin implements Plugin {
 
   done = async (context: PluginContext, store: AllureStore) => {
     const { groupBy = "suite" } = this.options ?? {};
-    const tests = await store.allTestResults();
+    const allTestResults = await store.allTestResults();
 
     if (groupBy === "none") {
-      tests.forEach((test) => {
+      allTestResults.forEach((test) => {
         printTest(test, this.options);
       });
 
       console.log("");
 
-      printSummary(Array.from(tests));
+      printSummary(Array.from(allTestResults));
       return;
     }
 
@@ -44,6 +45,6 @@ export class LogPlugin implements Plugin {
       console.log("");
     });
 
-    printSummary(Array.from(tests));
+    printSummary(Array.from(allTestResults));
   };
 }
