@@ -8,7 +8,7 @@ import type {
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
-import { ResultFile } from "./resultFile.js";
+import type { ResultFile } from "./resultFile.js";
 
 export interface AllureStore {
   // base state

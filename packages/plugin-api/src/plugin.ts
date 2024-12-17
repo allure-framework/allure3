@@ -1,4 +1,4 @@
-import { AllureStore } from "./store.js";
+import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
   import?: string;

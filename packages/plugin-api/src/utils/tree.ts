@@ -100,7 +100,7 @@ export const createTreeByLabels = (data: TestResult[], labelNames: string[]) => 
   return createTree<TestResult, DefaultTreeLeaf, DefaultTreeGroup>(
     data,
     (item) => byLabels(item, labelNames),
-    ({ id, name, status, duration, flaky, retries }) => ({
+    ({ id, name, status, duration, flaky }) => ({
       nodeId: id,
       name,
       status,

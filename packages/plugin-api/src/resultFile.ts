@@ -1,5 +1,4 @@
-import "node:fs/promises";
-import { Readable } from "node:stream";
+import type { Readable } from "node:stream";
 
 export interface ResultFile {
   readContent: <T>(transform: (stream: Readable) => Promise<T | undefined>) => Promise<T | undefined>;

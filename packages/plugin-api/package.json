@@ -21,6 +21,8 @@
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
+    "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
+    "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
     "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
