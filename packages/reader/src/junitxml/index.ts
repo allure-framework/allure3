@@ -17,7 +17,7 @@ const xmlParser = new XMLParser({
 const readerId = "junit";
 
 export const junitXml: ResultsReader = {
-  async read(visitor, data) {
+  read: async (visitor, data) => {
     if (data.getOriginalFileName().endsWith(".xml")) {
       try {
         const content = await data.asUtf8String();
@@ -25,8 +25,9 @@ export const junitXml: ResultsReader = {
           return false;
         }
         const parsed = xmlParser.parse(content);
-
-        // console.log(JSON.stringify(parsed, null, " "));
+        if (!isStringAnyRecord(parsed)) {
+          return false;
+        }
 
         return await parseRootElement(visitor, parsed);
       } catch (e) {
@@ -95,7 +96,7 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
 };
 
 const parseTestCase = async (visitor: ResultsVisitor, suite: { name?: string }, testCase: Record<string, any>) => {
-  const { name, classname, time, failure, skipped } = testCase;
+  const { name, failure, skipped } = testCase;
 
   const { status, message, trace } = getStatus(failure, skipped);
 

@@ -1,9 +1,9 @@
-import { ResultsReader } from "@allurereport/reader-api";
+import type { ResultsReader } from "@allurereport/reader-api";
 
 const readerId = "attachments";
 
 export const attachments: ResultsReader = {
-  async read(visitor, data) {
+  read: async (visitor, data) => {
     await visitor.visitAttachmentFile(data, { readerId });
     return true;
   },

@@ -6,6 +6,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
+import * as console from "node:console";
 import {
   cleanBadXmlCharacters,
   ensureInt,
@@ -33,7 +34,7 @@ const xmlParser = new XMLParser({
 const readerId = "allure1";
 
 export const allure1: ResultsReader = {
-  async read(visitor, data) {
+  read: async (visitor, data) => {
     if (data.getOriginalFileName().endsWith("-testsuite.xml")) {
       try {
         const asBuffer = await data.asBuffer();
@@ -42,6 +43,9 @@ export const allure1: ResultsReader = {
         }
         const content = cleanBadXmlCharacters(asBuffer).toString("utf-8");
         const parsed = xmlParser.parse(content);
+        if (!isStringAnyRecord(parsed)) {
+          return false;
+        }
 
         return await parseRootElement(visitor, parsed);
       } catch (e) {

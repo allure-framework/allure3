@@ -20,7 +20,7 @@ export const ensureInt = (obj: unknown): number | undefined => {
     return undefined;
   }
 
-  const parsed = parseInt(stringValue);
+  const parsed = parseInt(stringValue, 10);
   return isNaN(parsed) ? undefined : parsed;
 };
 
@@ -42,9 +42,9 @@ export const isStringAnyRecordArray = (obj: unknown): obj is Record<string, any>
 
 // codes of chars - " \t\r\n\ud800\ue000\ufffe\uffff"
 export const isBadXmlCharacter = (c: number): boolean => {
-  let cDataCharacter = c < 32 && c != 9 && c != 13 && c != 10;
+  let cDataCharacter = c < 32 && c !== 9 && c !== 13 && c !== 10;
   cDataCharacter ||= c >= 55296 && c < 57344;
-  cDataCharacter ||= c == 65534 || c == 65535;
+  cDataCharacter ||= c === 65534 || c === 65535;
   return cDataCharacter;
 };
 

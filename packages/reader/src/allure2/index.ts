@@ -12,8 +12,9 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
+import * as console from "node:console";
 import { randomUUID } from "node:crypto";
-import { Category, ExecutorInfo } from "../model.js";
+import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
 import {
   cleanBadXmlCharacters,
@@ -50,7 +51,7 @@ const xmlParser = new XMLParser({
 const readerId = "allure2";
 
 export const allure2: ResultsReader = {
-  async read(visitor, data) {
+  read: async (visitor, data) => {
     // this is essential in case we need to attach valid result files
     // e.g. like in allure2.test.ts
     if (data.getOriginalFileName().match(/.*-attachment(\..+)?/)) {
@@ -207,10 +208,7 @@ const processCategories = async (visitor: ResultsVisitor, result: Partial<Catego
     messageRegex: ensureString(value.messageRegex),
     traceRegex: ensureString(value.traceRegex),
     matchedStatuses: Array.isArray(value.matchedStatuses)
-      ? value.matchedStatuses
-          .map((v) => ensureString(v))
-          .filter(notNull)
-          .map((v) => v!)
+      ? value.matchedStatuses.map((v) => ensureString(v)).filter(notNull)
       : [],
     flaky: ensureBoolean(value.flaky),
   }));
@@ -272,19 +270,19 @@ const processEnvironment = async (visitor: ResultsVisitor, result: Record<string
   );
 };
 
-async function processFixtures(
+const processFixtures = async (
   visitor: ResultsVisitor,
   fixtures: FixtureResult[] | undefined,
   type: RawFixtureResult["type"],
   children: string[],
-) {
+) => {
   if (fixtures) {
     for (const fixture of fixtures) {
       const dist = convertFixture(type, children, fixture);
       await visitor.visitTestFixtureResult(dist, { readerId });
     }
   }
-}
+};
 
 const processTestResultContainer = async (visitor: ResultsVisitor, result: Partial<TestResultContainer>) => {
   if (result.children && result.children.length > 0) {

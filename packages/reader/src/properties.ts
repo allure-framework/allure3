@@ -221,61 +221,6 @@ const hex = (char: string) => {
   throw new Error(`Non-hex char ${char}`);
 };
 
-const escapeKey = (key: string) => {
-  return mapcatChars(key, (char, code) => {
-    if (isSeparator(char)) {
-      return `\\${char}`;
-    }
-    return escapeCharacter(char, code, true);
-  });
-};
-
-const escapeValue = (value: string) => {
-  let escapeWhitespace = true;
-  return mapcatChars(value, (char, code) => {
-    if (!isWhitespace(char)) {
-      escapeWhitespace = false;
-    }
-    return escapeCharacter(char, code, escapeWhitespace);
-  });
-};
-
-const mapcatChars = (value: string, fn: (char: string, code: number) => string) => {
-  let result = "";
-  for (let i = 0; i < value.length; i++) {
-    const char = value[i];
-    const code = value.charCodeAt(i);
-
-    result += fn(char, code);
-  }
-  return result;
-};
-
-const escapeCharacter = (char: string, code: number, escapeWhitespace: boolean) => {
-  if (isAsciiPrintable(code)) {
-    if (char === " " && escapeWhitespace) {
-      return "\\ ";
-    } else if (char === "\\") {
-      return "\\\\";
-    } else {
-      return char;
-    }
-  } else if (char === "\t") {
-    return "\\t";
-  } else if (char === "\n") {
-    return "\\n";
-  } else if (char === "\f") {
-    return "\\f";
-  } else if (char === "\r") {
-    return "\\r";
-  } else if (code < 160 || code >= 256) {
-    // Control sets 0 and 1 or non-ASCII characters
-    return escapeUnicode(code);
-  } else {
-    return char;
-  }
-};
-
 const isWhitespace = (char: string) => {
   switch (char) {
     case "\t":
@@ -284,14 +229,6 @@ const isWhitespace = (char: string) => {
       return true;
   }
   return false;
-};
-
-const isAsciiPrintable = (code: number) => code > 31 && code < 127;
-
-const escapeUnicode = (code: number) => {
-  const unicode = code.toString(16);
-  const prefix = "0".repeat(4 - unicode.length);
-  return `\\u${prefix}${unicode}`;
 };
 
 const isSeparator = (char: string) => {
