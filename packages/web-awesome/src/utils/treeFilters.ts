@@ -1,3 +1,4 @@
+import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
 import type { TreeFiltersState } from "@/stores/tree";
 import type {
   AllureAwesomeOrderedTree,
@@ -32,7 +33,7 @@ export const filterLeaves = (
 
       return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
     })
-    .sort((a, b) => a.start - b.start)
+    .sort(nullsLast(compareBy("start", ordinal())))
     .map(
       (leaf, i) =>
         ({

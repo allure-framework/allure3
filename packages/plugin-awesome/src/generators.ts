@@ -1,8 +1,11 @@
-import type {
-  AttachmentLink,
-  EnvironmentItem,
-  Statistic,
-  TestResult
+import {
+  type AttachmentLink,
+  type EnvironmentItem,
+  type Statistic,
+  type TestResult,
+  compareBy,
+  nullsLast,
+  ordinal,
 } from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { createTreeByLabels } from "@allurereport/plugin-api";
@@ -104,18 +107,6 @@ const createBreadcrumbs = (convertedTr: AllureAwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const getTestResultStart = (testResult: AllureAwesomeTestResult) => {
-  if (testResult.start) {
-    return testResult.start;
-  }
-
-  if (testResult.stop && testResult.duration) {
-    return testResult.stop - testResult.duration;
-  }
-
-  return undefined;
-};
-
 export const generateTestResults = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
   let convertedTrs: AllureAwesomeTestResult[] = [];
@@ -140,12 +131,10 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
     convertedTrs.push(convertedTr);
   }
 
-  convertedTrs = convertedTrs
-    .sort((a, b) =>  getTestResultStart(a)! > getTestResultStart(b)! ? 1 : -1)
-    .map((tr, idx) => ({
-      ...tr,
-      order: idx + 1,
-    }));
+  convertedTrs = convertedTrs.sort(nullsLast(compareBy("start", ordinal()))).map((tr, idx) => ({
+    ...tr,
+    order: idx + 1,
+  }));
 
   for (const convertedTr of convertedTrs) {
     await writer.writeTestCase(convertedTr);

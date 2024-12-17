@@ -25,9 +25,9 @@ describe("utils > treeFilters", () => {
       const result = filterLeaves(leaves, leavesById);
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "c3", order: 3 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
       ]);
     });
 
@@ -56,8 +56,8 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "c3", order: 2 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "c3", groupOrder: 2 }),
       ]);
     });
 
@@ -88,8 +88,8 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "c3", order: 2 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "c3", groupOrder: 2 }),
       ]);
     });
 
@@ -118,7 +118,7 @@ describe("utils > treeFilters", () => {
         },
       });
 
-      expect(result).toEqual([expect.objectContaining({ name: "a1", order: 1 })]);
+      expect(result).toEqual([expect.objectContaining({ name: "a1", groupOrder: 1 })]);
     });
 
     it("sorts leave by duration in ascending order", () => {
@@ -143,9 +143,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "c3", order: 3 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
       ]);
     });
 
@@ -171,9 +171,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", order: 3 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "a1", order: 1 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
       ]);
     });
 
@@ -196,9 +196,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "c3", order: 3 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
       ]);
     });
 
@@ -221,9 +221,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", order: 3 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "a1", order: 1 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
       ]);
     });
 
@@ -257,11 +257,11 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "c3", order: 3 }),
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "e5", order: 5 }),
-        expect.objectContaining({ name: "d4", order: 4 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "e5", groupOrder: 5 }),
+        expect.objectContaining({ name: "d4", groupOrder: 4 }),
       ]);
     });
 
@@ -295,11 +295,11 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "d4", order: 4 }),
-        expect.objectContaining({ name: "e5", order: 5 }),
-        expect.objectContaining({ name: "a1", order: 1 }),
-        expect.objectContaining({ name: "c3", order: 3 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
+        expect.objectContaining({ name: "d4", groupOrder: 4 }),
+        expect.objectContaining({ name: "e5", groupOrder: 5 }),
+        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
       ]);
     });
 
@@ -326,9 +326,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", order: 1 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "a1", order: 3 }),
+        expect.objectContaining({ name: "c3", groupOrder: 1 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "a1", groupOrder: 3 }),
       ]);
     });
 
@@ -355,9 +355,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", order: 3 }),
-        expect.objectContaining({ name: "b2", order: 2 }),
-        expect.objectContaining({ name: "c3", order: 1 }),
+        expect.objectContaining({ name: "a1", groupOrder: 3 }),
+        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "c3", groupOrder: 1 }),
       ]);
     });
   });
@@ -404,13 +404,13 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual({
-        leaves: [expect.objectContaining({ name: "a1", order: 1 })],
+        leaves: [expect.objectContaining({ name: "a1", groupOrder: 1 })],
         groups: [
           {
-            leaves: [expect.objectContaining({ name: "b2", order: 1 })],
+            leaves: [expect.objectContaining({ name: "b2", groupOrder: 1 })],
             groups: [
               {
-                leaves: [expect.objectContaining({ name: "c3", order: 1 })],
+                leaves: [expect.objectContaining({ name: "c3", groupOrder: 1 })],
                 groups: [],
               },
             ],
