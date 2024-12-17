@@ -19,7 +19,7 @@ const formatStep = (step: TestStepResult, indent: number = 0): string | undefine
 
   const prefix = " ".repeat(indent);
   const res = [
-    prefix + step.name + " " + step.status + ` (${formatDuration(step.duration)})`,
+    `${prefix}${step.name} ${step.status} (${formatDuration(step.duration)})`,
     ...step.steps.map((s) => formatStep(s, indent + 2)).filter((s) => s),
   ];
 

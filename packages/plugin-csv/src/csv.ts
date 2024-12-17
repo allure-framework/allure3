@@ -19,10 +19,11 @@ export const generateCsv = async <T>(
     })
     .join("\n");
 
-  const header = disableHeaders ? "" : fields.map((f) => f.header).join(separator) + "\n";
+  const header = disableHeaders ? "" : `${fields.map((f) => f.header).join(separator)}\n`;
   return header + content;
 };
 
 const forceEscapeCsv = (value: any): string => {
+  // eslint-disable-next-line @stylistic/quotes,prefer-template
   return value ? '"' + `${value}`.replaceAll('"', '""') + '"' : "";
 };
