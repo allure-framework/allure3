@@ -9,7 +9,7 @@ import type {
 } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
-import { ensureArray, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
+import { ensureArray, ensureInt, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
 import type {
   CucumberDatatableRow,
   CucumberEmbedding,
@@ -140,7 +140,7 @@ const preProcessOneStep = async (visitor: ResultsVisitor, step: CucumberStep): P
     name: ensureString(name)?.trim(),
     keyword: ensureString(keyword)?.trim(),
     status: status ?? "unknown",
-    duration,
+    duration: ensureInt(duration),
     errorMessage,
     attachments: await processStepAttachments(visitor, step),
   };

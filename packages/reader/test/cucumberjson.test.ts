@@ -644,9 +644,32 @@ describe("cucumberjson reader", () => {
         });
       });
 
-      it("should ignore steps with no duration when calculating the test's duration", async () => {
+      it("should convert durations from strings", async () => {
         const visitor = await readResults(cucumberjson, {
-          "cucumberjsondata/reference/durations/someDefined.json": "cucumber.json",
+          "cucumberjsondata/reference/durations/strings.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          duration: 25,
+          steps: [{ duration: 12 }, { duration: 12 }],
+        });
+      });
+
+      it("should ignore steps with no durations when calculating the test's duration", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/durations/oneMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({
+          duration: 25,
+        });
+      });
+
+      it("should ignore steps with ill-formed durations when calculating the test's duration", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/durations/oneInvalid.json": "cucumber.json",
         });
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         const test = visitor.visitTestResult.mock.calls[0][0];
