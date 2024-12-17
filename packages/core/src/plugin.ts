@@ -1,4 +1,4 @@
-import { PluginState, ReportFiles } from "@allurereport/plugin-api";
+import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 

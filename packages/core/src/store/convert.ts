@@ -1,4 +1,4 @@
-import {
+import type {
   AttachmentLink,
   AttachmentLinkExpected,
   AttachmentLinkInvalid,
@@ -12,11 +12,11 @@ import {
   TestResult,
   TestStatus,
   TestStepResult,
-  notNull,
 } from "@allurereport/core-api";
+import { notNull } from "@allurereport/core-api";
 import { findByLabelName } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
-import {
+import type {
   RawFixtureResult,
   RawStep,
   RawTestAttachment,
@@ -32,6 +32,7 @@ import { extname } from "node:path";
 
 const defaultStatus: TestStatus = "unknown";
 
+// eslint-disable-next-line no-underscore-dangle
 export const __unknown = "#___unknown_value___#";
 
 export type StateData = {
@@ -167,10 +168,10 @@ const processAttachmentLink = (
 
   const id = md5(attach.originalFileName);
 
-  let previous: AttachmentLink | undefined = attachments.get(id);
+  const previous: AttachmentLink | undefined = attachments.get(id);
 
   if (!previous) {
-    const link: AttachmentLinkExpected = {
+    const linkExpected: AttachmentLinkExpected = {
       id,
       originalFileName: attach.originalFileName,
       ext: extname(attach.originalFileName),
@@ -179,9 +180,9 @@ const processAttachmentLink = (
       used: true,
       missed: true,
     };
-    attachments.set(id, link);
-    visitAttachmentLink(link);
-    return createAttachmentStep(link);
+    attachments.set(id, linkExpected);
+    visitAttachmentLink(linkExpected);
+    return createAttachmentStep(linkExpected);
   }
 
   // deny reusing same file multiple times
@@ -349,13 +350,13 @@ const processTagLabels = (label: TestLabel): TestLabel[] => {
   if (label.name === "tag" && label.value) {
     const matchTag = label.value.match(idLabelMatcher);
     if (matchTag) {
-      const id = matchTag?.groups?.["id"];
+      const id = matchTag?.groups?.id;
       return id ? [{ name: "ALLURE_ID", value: id }] : [];
     }
     const matchLabel = label.value.match(tagLabelMatcher);
     if (matchLabel) {
-      const name = matchLabel?.groups?.["name"];
-      const value = matchLabel?.groups?.["value"];
+      const name = matchLabel?.groups?.name;
+      const value = matchLabel?.groups?.value;
       return name && value ? [{ name, value }] : [];
     }
   }

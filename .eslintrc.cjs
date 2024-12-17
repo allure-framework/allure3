@@ -138,6 +138,7 @@ module.exports = {
     "@typescript-eslint/prefer-regexp-exec": "off",
     "@typescript-eslint/prefer-promise-reject-errors": "off",
     "@stylistic/quotes": ["error", "double"],
+    "@typescript-eslint/require-await": "off",
     "@typescript-eslint/restrict-template-expressions": [
       "error",
       {

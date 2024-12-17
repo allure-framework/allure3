@@ -67,5 +67,5 @@ export const writeHistory = async (historyPath: string, data: HistoryDataPoint) 
   const path = resolve(historyPath);
   const parentDir = dirname(path);
   await mkdir(parentDir, { recursive: true });
-  await writeFile(path, JSON.stringify(data) + "\n", { encoding: "utf-8", flag: "a+" });
+  await writeFile(path, `${JSON.stringify(data)}\n`, { encoding: "utf-8", flag: "a+" });
 };

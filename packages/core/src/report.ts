@@ -12,7 +12,8 @@ import { createHistory, writeHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
-import { AllureStoreEvents, Events } from "./utils/event.js";
+import type { AllureStoreEvents } from "./utils/event.js";
+import { Events } from "./utils/event.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -21,8 +22,8 @@ export class AllureReport {
   readonly #reportUuid: string;
   readonly #reportName: string;
   readonly #store: DefaultAllureStore;
-  readonly #readers: ReadonlyArray<ResultsReader>;
-  readonly #plugins: ReadonlyArray<PluginInstance>;
+  readonly #readers: readonly ResultsReader[];
+  readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
   readonly #events: Events;
@@ -176,7 +177,7 @@ export class AllureReport {
       this.#state = {};
     }
 
-    for (let descriptor of this.#plugins) {
+    for (const descriptor of this.#plugins) {
       if (!descriptor.enabled) {
         continue;
       }

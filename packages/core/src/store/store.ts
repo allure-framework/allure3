@@ -131,7 +131,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#eventEmitter?.emit("testFixtureResult", testFixtureResult.id);
   }
 
-  async visitAttachmentFile(resultFile: ResultFile, context: ReaderContext): Promise<void> {
+  async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
     const originalFileName = resultFile.getOriginalFileName();
     const id = md5(originalFileName);
 
@@ -161,7 +161,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#eventEmitter?.emit("attachmentFile", id);
   }
 
-  async visitMetadata(metadata: RawMetadata, context: ReaderContext): Promise<void> {
+  async visitMetadata(metadata: RawMetadata): Promise<void> {
     Object.keys(metadata).forEach((key) => this.#metadata.set(key, metadata[key]));
   }
 
@@ -248,7 +248,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
     return (this.indexTestResultByHistoryId.get(tr.historyId) ?? [])
-      .filter((tr) => tr.hidden)
+      .filter((r) => r.hidden)
       .sort(nullsLast(compareBy("start", reverse(ordinal()))));
   }
 

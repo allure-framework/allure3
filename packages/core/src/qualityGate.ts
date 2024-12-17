@@ -119,6 +119,7 @@ export class QualityGate {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const validator = new Validator(rules[rule], meta);
 
       validators.push(validator);
