@@ -744,7 +744,7 @@ describe("cucumberjson reader", () => {
           });
         });
 
-        it("should ignore a step's empty doc string", async () => {
+        it("should ignore a step's doc string with a missing value", async () => {
           const visitor = await readResults(cucumberjson, {
             "cucumberjsondata/reference/docstrings/missingValue.json": "cucumber.json",
           });
@@ -795,7 +795,7 @@ describe("cucumberjson reader", () => {
           });
         });
 
-        it("should parse a step's doc string with a empty content type", async () => {
+        it("should parse a step's doc string with an empty content type", async () => {
           const visitor = await readResults(cucumberjson, {
             "cucumberjsondata/reference/docstrings/emptyContentType.json": "cucumber.json",
           });
@@ -840,7 +840,7 @@ describe("cucumberjson reader", () => {
                   {
                     type: "attachment",
                     name: "Description",
-                    contentType: "application/json", // fallback to markdown
+                    contentType: "application/json",
                     originalFileName: attachment.getOriginalFileName(),
                   },
                 ],
