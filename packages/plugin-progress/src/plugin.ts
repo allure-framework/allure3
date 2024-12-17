@@ -15,7 +15,7 @@ export class ProgressPlugin implements Plugin {
   }
 
   start = async (context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void> => {
-    realtime.onTestResults(async (trIds) => {
+    realtime.onTestResults(async () => {
       await this.#render(store);
     });
   };
