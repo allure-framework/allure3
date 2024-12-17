@@ -1,7 +1,8 @@
 import type { RawTestStatus, ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
-import { ensureString, isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
+import { ensureString } from "../utils.js";
+import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
 const arrayTags: Set<string> = new Set(["testsuite.testcase", "testsuites.testsuite", "testsuites.testsuite.testcase"]);
 

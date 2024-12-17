@@ -16,14 +16,8 @@ import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
-import {
-  cleanBadXmlCharacters,
-  ensureBoolean,
-  ensureInt,
-  ensureString,
-  isStringAnyRecord,
-  isStringAnyRecordArray,
-} from "../xml-utils.js";
+import { ensureBoolean, ensureInt, ensureString } from "../utils.js";
+import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 import type {
   Attachment,
   FixtureResult,

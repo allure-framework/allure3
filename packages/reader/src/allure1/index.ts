@@ -7,13 +7,8 @@ import type {
 } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
-import {
-  cleanBadXmlCharacters,
-  ensureInt,
-  ensureString,
-  isStringAnyRecord,
-  isStringAnyRecordArray,
-} from "../xml-utils.js";
+import { ensureInt, ensureString } from "../utils.js";
+import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
 const arrayTags: Set<string> = new Set([
   "test-suite.test-cases.test-case",
@@ -143,7 +138,7 @@ const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
     const steps = parseSteps(stepsElement);
 
     return {
-      name: ensureString(title, ensureString(name)),
+      name: ensureString(title) ?? ensureString(name),
       status: convertStatus(ensureString(status)),
       start,
       stop,

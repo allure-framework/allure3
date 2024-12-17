@@ -3,27 +3,6 @@ export const isEmptyElement = (obj: unknown): obj is "" => {
   return obj === "";
 };
 
-export const ensureBoolean = (obj: unknown, fallback?: boolean) => {
-  return typeof obj === "boolean" ? obj : fallback;
-};
-
-export const ensureString = (obj: unknown, fallback?: string) => {
-  return typeof obj === "string" ? obj : fallback;
-};
-
-export const ensureInt = (obj: unknown): number | undefined => {
-  if (typeof obj === "number") {
-    return obj;
-  }
-  const stringValue = ensureString(obj);
-  if (!stringValue) {
-    return undefined;
-  }
-
-  const parsed = parseInt(stringValue, 10);
-  return isNaN(parsed) ? undefined : parsed;
-};
-
 export const isStringAnyRecord = (obj: unknown): obj is Record<string, any> => {
   if (typeof obj !== "object") {
     return false;
