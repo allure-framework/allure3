@@ -18,7 +18,7 @@ import type {
   CucumberStep,
   CucumberTag,
 } from "./model.js";
-import { TEST_NAME_PLACEHOLDER } from "./model.js";
+import { STEP_NAME_PLACEHOLDER, TEST_NAME_PLACEHOLDER } from "./model.js";
 
 const NS_IN_MS = 1_000_000;
 
@@ -137,8 +137,8 @@ const preProcessOneStep = async (visitor: ResultsVisitor, step: CucumberStep): P
   const { keyword, name, result } = step;
   const { status, duration, error_message: errorMessage } = result ?? {};
   return {
-    name,
-    keyword,
+    name: ensureString(name)?.trim(),
+    keyword: ensureString(keyword)?.trim(),
     status: status ?? "unknown",
     duration,
     errorMessage,
@@ -396,10 +396,17 @@ const createAllureStepResult = ({
   attachments,
 }: PreProcessedStep): RawTestStepResult => ({
   type: "step",
-  name: `${keyword!}${name!}`,
+  name: getAllureStepName(keyword, name),
   steps: attachments,
   ...mapCucumberStepResultToStepProps(status, duration, errorMessage),
 });
+
+const getAllureStepName = (keyword: string | undefined, name: string | undefined) => {
+  if (!name) {
+    return keyword ? `${keyword} <${STEP_NAME_PLACEHOLDER.toLowerCase()}>` : STEP_NAME_PLACEHOLDER;
+  }
+  return keyword ? `${keyword} ${name}` : name;
+};
 
 const mapCucumberStepResultToStepProps = (
   status: string,

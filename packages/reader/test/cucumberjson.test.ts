@@ -217,6 +217,78 @@ describe("cucumberjson reader", () => {
       });
     });
 
+    describe("step names", () => {
+      it("should join the keyword with the name", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/wellDefined.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "Then pass" }],
+        });
+      });
+
+      it("should ignore a missing keyword", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/keywordMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "pass" }],
+        });
+      });
+
+      it("should ignore the ill-formed keyword", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/keywordInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "pass" }],
+        });
+      });
+
+      it("should use a placeholder if the name is missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/nameMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "Then <the step's name is not defined>" }],
+        });
+      });
+
+      it("should use a placeholder if the name is ill-formed", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/nameInvalid.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "Then <the step's name is not defined>" }],
+        });
+      });
+
+      it("should use a placeholder if both the name and the keyword are missing", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/nameKeywordMissing.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "The step's name is not defined" }],
+        });
+      });
+
+      it("should trim the name and the keyword", async () => {
+        const visitor = await readResults(cucumberjson, {
+          "cucumberjsondata/reference/stepNames/nameKeywordWithWhitespaces.json": "cucumber.json",
+        });
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ name: "Then pass" }],
+        });
+      });
+    });
+
     describe("step statuses", () => {
       it("should parse a passed step", async () => {
         const visitor = await readResults(cucumberjson, {

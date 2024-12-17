@@ -1,4 +1,5 @@
 export const TEST_NAME_PLACEHOLDER = "The scenario's name is not defined";
+export const STEP_NAME_PLACEHOLDER = "The step's name is not defined";
 
 // TODO: fix known/unknown typings
 
