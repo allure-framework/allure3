@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { describe, expect, it } from "vitest";
 import { cucumberjson } from "../src/index.js";
 import { readResults } from "./utils.js";
@@ -6,7 +7,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 describe("cucumberjson reader", () => {
   // As implemented in https://github.com/cucumber/cucumber-ruby or https://github.com/cucumber/json-formatter (which
-  // uses cucumber-ruby as a reference for its tests).
+  // uses cucumber-ruby as the reference for its tests).
   describe("reference", () => {
     describe("names", () => {
       it("should parse names", async () => {
@@ -216,7 +217,7 @@ describe("cucumberjson reader", () => {
       });
     });
 
-    describe("step statuses", async () => {
+    describe("step statuses", () => {
       it("should parse a passed step", async () => {
         const visitor = await readResults(cucumberjson, {
           "cucumberjsondata/reference/stepStatuses/passed.json": "cucumber.json",
