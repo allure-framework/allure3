@@ -65,7 +65,7 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 };
 
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>): Promise<boolean> => {
-  const { name: testSuiteName, "test-cases": testCases } = testSuite;
+  const { "name": testSuiteName, "test-cases": testCases } = testSuite;
   if (!isStringAnyRecord(testCases)) {
     return false;
   }

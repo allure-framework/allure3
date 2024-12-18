@@ -1,5 +1,4 @@
 /// <reference types="allure-vitest" />
-
 import { it } from "vitest";
 
 it("sample test", async () => {

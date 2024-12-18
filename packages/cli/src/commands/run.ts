@@ -1,7 +1,6 @@
 import { AllureReport, isFileNotFoundError, readRuntimeConfig } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
-import type {
-  Watcher} from "@allurereport/directory-watcher";
+import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
   delayedFileProcessingWatcher,

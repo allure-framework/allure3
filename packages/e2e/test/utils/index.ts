@@ -62,7 +62,9 @@ export const generateTestResults = async (payload: GeneratorParams) => {
   await report.done();
 };
 
-export const boostrapReport = async (params: Omit<GeneratorParams, "reportDir" | "resultsDir">): Promise<ReportBootstrap> => {
+export const boostrapReport = async (
+  params: Omit<GeneratorParams, "reportDir" | "resultsDir">,
+): Promise<ReportBootstrap> => {
   const temp = tmpdir();
   const allureTestResultsDir = await mkdtemp(resolve(temp, "allure-results-"));
   const allureReportDir = await mkdtemp(resolve(temp, "allure-report-"));

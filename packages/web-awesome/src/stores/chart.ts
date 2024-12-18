@@ -21,12 +21,12 @@ export const fetchPieChartData = async () => {
     pieChartStore.value = {
       data: res,
       error: undefined,
-      loading: false
+      loading: false,
     };
   } catch (err) {
     pieChartStore.value = {
       error: err.message,
-      loading: false
+      loading: false,
     };
   }
 };

@@ -1,4 +1,23 @@
-export const AVAILABLE_LOCALES = ["en", "ru", "pl", "es", "pt", "de", "am", "az", "fr", "it", "ja", "he", "ka", "kr", "nl", "sv", "tr", "zh"] as const;
+export const AVAILABLE_LOCALES = [
+  "en",
+  "ru",
+  "pl",
+  "es",
+  "pt",
+  "de",
+  "am",
+  "az",
+  "fr",
+  "it",
+  "ja",
+  "he",
+  "ka",
+  "kr",
+  "nl",
+  "sv",
+  "tr",
+  "zh",
+] as const;
 
 export const DEFAULT_LOCALE = "en";
 
@@ -101,5 +120,5 @@ export const LANG_LOCALE: Record<
     short: "Zh",
     full: "中文",
     iso: "zh-CN",
-  }
+  },
 };

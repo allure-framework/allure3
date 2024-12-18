@@ -1,13 +1,13 @@
+import { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { MetadataButton } from "@/components/app/MetadataButton";
 import { Text } from "@/components/commons/Typography";
-import * as styles from "./styles.scss";
-import { FunctionalComponent } from "preact";
 import { AllureAwesomeTestResult } from "../../../../../types";
+import * as styles from "./styles.scss";
 
 export type TestResultDescriptionProps = {
   description: AllureAwesomeTestResult["description"];
-}
+};
 
 export const TestResultDescription: FunctionalComponent<TestResultDescriptionProps> = ({ description }) => {
   const [isOpen, setIsOpen] = useState<boolean>(true);

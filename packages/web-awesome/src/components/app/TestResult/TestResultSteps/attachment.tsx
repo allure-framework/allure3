@@ -1,16 +1,14 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
+import { modalData } from "@/components/app/Modal";
+import { HtmlAttachmentPreview } from "@/components/app/TestResult/TestResultSteps/HtmlAttachmentPreview";
 import { AttachmentCode } from "@/components/app/TestResult/TestResultSteps/attachmentCode";
 import { AttachmentImage } from "@/components/app/TestResult/TestResultSteps/attachmentImage";
 import { AttachmentVideo } from "@/components/app/TestResult/TestResultSteps/attachmentVideo";
 import { EmptyComponent } from "@/components/app/TestResult/TestResultSteps/wrongAttachment";
 import { Spinner } from "@/components/commons/Spinner";
 import { type Attachments, attachmentType, fetchAttachment } from "@/utils/attachments";
-import {
-  HtmlAttachmentPreview
-} from "@/components/app/TestResult/TestResultSteps/HtmlAttachmentPreview";
-import { modalData } from "@/components/app/Modal";
 import * as styles from "./styles.scss";
 
 const componentsByAttachmentType = {
@@ -63,8 +61,8 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
 
   // temp solution before modal component refactoring
   if (CurrentPreviewComponent && previewable && modalData.value.preview) {
-    return <CurrentPreviewComponent attachment={attachment} item={item} />
+    return <CurrentPreviewComponent attachment={attachment} item={item} />;
   }
 
-  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : <EmptyComponent />
+  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : <EmptyComponent />;
 };

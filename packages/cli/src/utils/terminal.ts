@@ -1,4 +1,4 @@
-import type { TestResult, TestStatus} from "@allurereport/core-api";
+import type { TestResult, TestStatus } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import console from "node:console";
 import { blue, gray, green, red, yellow } from "yoctocolors";

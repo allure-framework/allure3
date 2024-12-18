@@ -1,4 +1,4 @@
-import { it, expect } from "vitest";
+import { expect, it } from "vitest";
 
 it("sample passed test", async () => {
   expect(true).toBe(true);

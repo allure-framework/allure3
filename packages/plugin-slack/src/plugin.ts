@@ -80,8 +80,7 @@ export class SlackPlugin implements Plugin {
       }),
       headers: {
         "Content-Type": "application/json;charset=utf-8",
-        // eslint-disable-next-line quote-props
-        Authorization: `Bearer ${token}`,
+        "Authorization": `Bearer ${token}`,
       },
     });
 

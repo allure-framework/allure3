@@ -99,9 +99,9 @@ export const Menu = (props: {
       }).then(({ x, y }) => {
         if (menuRef.current) {
           Object.assign(menuRef.current.style, {
-            left: `${x}px`,
-            top: `${y}px`,
-            position: "absolute",
+            "left": `${x}px`,
+            "top": `${y}px`,
+            "position": "absolute",
             "z-index": 10,
           });
         }

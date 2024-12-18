@@ -18,12 +18,10 @@ export const fetchTestResult = async (testResultId: string) => {
     ...testResultStore.value,
     loading: true,
     error: undefined,
-  }
+  };
 
   try {
-    const data = await fetchReportJsonData<AllureAwesomeTestResult>(
-      `data/test-results/${testResultId}.json`,
-    );
+    const data = await fetchReportJsonData<AllureAwesomeTestResult>(`data/test-results/${testResultId}.json`);
 
     testResultStore.value = {
       data: { ...testResultStore.value.data, [testResultId]: data },

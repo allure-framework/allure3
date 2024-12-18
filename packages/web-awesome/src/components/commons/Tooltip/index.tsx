@@ -49,9 +49,9 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
         }).then(({ x, y }) => {
           if (tooltipRef.current) {
             Object.assign(tooltipRef.current.style, {
-              left: `${x}px`,
-              top: `${y}px`,
-              position: "absolute",
+              "left": `${x}px`,
+              "top": `${y}px`,
+              "position": "absolute",
               "z-index": 100,
             });
           }

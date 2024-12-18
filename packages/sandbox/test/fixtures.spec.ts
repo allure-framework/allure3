@@ -1,12 +1,5 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  it,
-} from "vitest";
-import { step, attachment } from "allure-js-commons";
+import { attachment, step } from "allure-js-commons";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "vitest";
 
 beforeAll(async () => {
   await step("beforeAll 1", () => {});
@@ -24,63 +17,39 @@ describe("folder 1", () => {
   beforeEach(async () => {
     await step("beforeEach (folder 1) 1", () => {});
     await step("beforeEach (folder 1) 2", () => {});
-    await attachment(
-      "beforeEach (folder 1) 3",
-      "beforeEach (folder 1) attachment",
-      "text/plain",
-    );
+    await attachment("beforeEach (folder 1) 3", "beforeEach (folder 1) attachment", "text/plain");
   });
 
   afterEach(async () => {
     await step("afterEach (folder 1) 1", () => {});
     await step("afterEach (folder 1) 2", () => {});
-    await attachment(
-      "afterEach (folder 1) 3",
-      "afterEach (folder 1) attachment",
-      "text/plain",
-    );
+    await attachment("afterEach (folder 1) 3", "afterEach (folder 1) attachment", "text/plain");
   });
 
   describe("folder 2", () => {
     beforeEach(async () => {
       await step("beforeEach (folder 2) 1", () => {});
       await step("beforeEach (folder 2) 2", () => {});
-      await attachment(
-        "beforeEach (folder 2) 3",
-        "beforeEach (folder 2) attachment",
-        "text/plain",
-      );
+      await attachment("beforeEach (folder 2) 3", "beforeEach (folder 2) attachment", "text/plain");
     });
 
     afterEach(async () => {
       await step("afterEach (folder 2) 1", () => {});
       await step("afterEach (folder 2) 2", () => {});
-      await attachment(
-        "afterEach (folder 2) 3",
-        "afterEach (folder 2) attachment",
-        "text/plain",
-      );
+      await attachment("afterEach (folder 2) 3", "afterEach (folder 2) attachment", "text/plain");
     });
 
     describe("folder 3", () => {
       beforeEach(async () => {
         await step("beforeEach (folder 3) 1", () => {});
         await step("beforeEach (folder 3) 2", () => {});
-        await attachment(
-          "beforeEach (folder 3) 3",
-          "beforeEach (folder 3) attachment",
-          "text/plain",
-        );
+        await attachment("beforeEach (folder 3) 3", "beforeEach (folder 3) attachment", "text/plain");
       });
 
       afterEach(async () => {
         await step("afterEach (folder 3) 1", () => {});
         await step("afterEach (folder 3) 2", () => {});
-        await attachment(
-          "afterEach (folder 3) 3",
-          "afterEach (folder 3) attachment",
-          "text/plain",
-        );
+        await attachment("afterEach (folder 3) 3", "afterEach (folder 3) attachment", "text/plain");
       });
 
       it("test", async () => {
