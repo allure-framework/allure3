@@ -1,6 +1,6 @@
 import { ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY } from "@allurereport/web-commons";
 
-/* eslint-disable */
+/* eslint max-lines: 0 */
 export const EXTENSIONS_BY_TYPE: Record<string, string> = {
   "application/andrew-inset": ".ez",
   "application/applixware": ".aw",
