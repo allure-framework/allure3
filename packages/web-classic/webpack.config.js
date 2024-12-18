@@ -90,7 +90,7 @@ export default (env, argv) => {
     },
     plugins: [
       new webpack.DefinePlugin({
-        DEVELOPMENT: argv?.mode === "development",
+        "DEVELOPMENT": argv?.mode === "development",
         "process.env": {
           DEBUG_INFO_ENABLED: argv?.mode === "development",
         },
