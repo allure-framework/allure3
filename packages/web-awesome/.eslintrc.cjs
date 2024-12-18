@@ -1,6 +1,6 @@
 module.exports = {
   env: { browser: true, es2020: true },
-  extends: ["../../.eslintrc.cjs", "eslint-config-preact"],
+  extends: ["eslint-config-preact", "../../.eslintrc.cjs"],
   ignorePatterns: ["dist/", ".eslintrc.cjs", "postcss.config.js", "webpack.config.js", "types.d.ts"],
   parser: "@typescript-eslint/parser",
   overrides: [
