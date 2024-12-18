@@ -6,7 +6,6 @@ export interface Attachment {
 
 // TODO we need to ensure case insensitive enums mapping + do not fail in case of invalid values
 
-/* eslint-disable no-shadow */
 export enum Status {
   FAILED = "failed",
   BROKEN = "broken",
@@ -14,7 +13,6 @@ export enum Status {
   SKIPPED = "skipped",
 }
 
-/* eslint-disable no-shadow */
 export enum Stage {
   SCHEDULED = "scheduled",
   RUNNING = "running",
@@ -23,7 +21,6 @@ export enum Stage {
   INTERRUPTED = "interrupted",
 }
 
-/* eslint-disable no-shadow */
 export enum ParameterMode {
   HIDDEN = "hidden",
   MASKED = "masked",
