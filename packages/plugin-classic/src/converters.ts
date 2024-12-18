@@ -40,7 +40,6 @@ const sortByTime = (a: { time: Allure2Time }, b: { time: Allure2Time }): number 
 const convertStatus = (status: TestStatus): Allure2Status => status;
 
 const convertStageResult = (context: ConvertContext, result: TestResult | TestFixtureResult): Allure2StageResult => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { name, ...testStage } = convertStep(context, {
     name: "test",
     steps: result.steps,
