@@ -8,6 +8,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
+import * as console from "node:console";
 import { randomUUID } from "node:crypto";
 import { ensureArray, ensureInt, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
 import type {
@@ -92,7 +93,6 @@ export const cucumberjson: ResultsReader = {
         return oneOrMoreFeaturesParsed;
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error("error parsing", originalFileName, e);
       return false;
     }
