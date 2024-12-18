@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/quotes */
 import watchDirectory from "@allurereport/directory-watcher";
 import * as console from "node:console";
 import { type Stats, createReadStream } from "node:fs";

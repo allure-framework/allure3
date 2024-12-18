@@ -24,6 +24,6 @@ export const generateCsv = async <T>(
 };
 
 const forceEscapeCsv = (value: any): string => {
-  // eslint-disable-next-line @stylistic/quotes,prefer-template
+  // eslint-disable-next-line prefer-template
   return value ? '"' + `${value}`.replaceAll('"', '""') + '"' : "";
 };

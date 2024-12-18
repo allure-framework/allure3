@@ -35,7 +35,7 @@ module.exports = {
         },
       },
     ],
-    "@stylistic/quotes": ["error", "double"],
+    "@stylistic/quotes": ["error", "double", { avoidEscape: true }],
     "@stylistic/semi": ["error"],
     "@stylistic/type-annotation-spacing": "error",
     "arrow-body-style": "off",
