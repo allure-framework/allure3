@@ -1,4 +1,4 @@
-import { AllureReport, readRuntimeConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import { createCommand } from "../utils/commands.js";
 
 type CommandOptions = {
@@ -10,7 +10,7 @@ type CommandOptions = {
 
 export const GenerateCommandAction = async (resultsDir: string, options: CommandOptions) => {
   const { config: configPath, output, cwd, reportName } = options;
-  const config = await readRuntimeConfig(configPath, cwd, output, reportName);
+  const config = await readConfig(cwd, configPath, { name: reportName, output });
   const allureReport = new AllureReport(config);
 
   await allureReport.start();

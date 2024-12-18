@@ -33,6 +33,7 @@
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-server-reload": "workspace:*",

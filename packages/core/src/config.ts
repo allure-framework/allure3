@@ -1,7 +1,7 @@
 import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
-import type { QualityGateConfig } from "@allurereport/plugin-api";
-import { readdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import * as console from "node:console";
+import { stat } from "node:fs/promises";
+import { resolve } from "node:path";
 import * as process from "node:process";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readHistory } from "./history.js";
@@ -9,96 +9,82 @@ import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { importWrapper } from "./utils/module.js";
 
-export { defineConfig } from "@allurereport/plugin-api";
-
-export const createConfig = async (opts: {
-  reportName?: string;
-  output?: string;
-  historyPath?: string;
-  knownIssuesPath?: string;
-  plugins?: PluginInstance[];
-  qualityGate?: QualityGateConfig;
-  cwd?: string;
-}): Promise<FullConfig> => {
-  const {
-    reportName = "Allure Report",
-    output = "allure-report",
-    historyPath,
-    knownIssuesPath,
-    qualityGate,
-    cwd,
-  } = opts;
-  const workingDirectory = cwd ?? process.cwd();
-  const target = resolve(workingDirectory, output);
-  const history = historyPath ? await readHistory(resolve(workingDirectory, historyPath)) : [];
-  const known = knownIssuesPath ? await readKnownIssues(resolve(workingDirectory, knownIssuesPath)) : [];
-
-  return {
-    name: reportName,
-    history,
-    historyPath,
-    known,
-    qualityGate,
-    plugins: opts.plugins ?? [],
-    reportFiles: new FileSystemReportFiles(target),
-    output: target,
-  };
-};
-
-const defaultRuntimeConfig: Config = {};
-
 export const getPluginId = (key: string) => {
   return key.replace(/^@.*\//, "").replace(/[/\\]/g, "-");
 };
 
-export const findRuntimeConfigPath = async (cwd: string = process.cwd()): Promise<string | undefined> => {
-  const files = await readdir(cwd);
+const configNames = ["allurerc.js", "allurerc.mjs"];
+const defaultConfig: Config = {};
 
-  if (files.includes("allurerc.js")) {
-    return join(cwd, "allurerc.js");
+export const findConfig = async (cwd: string, configPath?: string) => {
+  if (configPath) {
+    const resolved = resolve(cwd, configPath);
+    try {
+      const stats = await stat(resolved);
+      if (stats.isFile()) {
+        return resolved;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    throw new Error(`invalid config path ${resolved}: not a regular file`);
   }
 
-  if (files.includes("allurerc.mjs")) {
-    return join(cwd, "allurerc.mjs");
+  for (const configName of configNames) {
+    const resolved = resolve(cwd, configName);
+    try {
+      const stats = await stat(resolved);
+      if (stats.isFile()) {
+        return resolved;
+      }
+    } catch (ignored) {
+      // ignore
+    }
   }
-
-  return undefined;
 };
 
-// more advanced override, e.g. default plugins
-export const readRuntimeConfig = async (
-  configPath?: string,
-  cwd?: string,
-  output?: string,
-  name?: string,
-): Promise<FullConfig> => {
-  const runtimeConfigPath = !configPath ? await findRuntimeConfigPath(cwd) : resolve(cwd ?? process.cwd(), configPath);
-  const runtimeConfig = runtimeConfigPath ? await loadConfig(runtimeConfigPath) : defaultRuntimeConfig;
+export interface ConfigOverride {
+  name?: string;
+  output?: string;
+  historyPath?: string;
+  knownIssuesPath?: string;
+}
 
-  return await resolveConfig(runtimeConfig, { output, name });
+export const readConfig = async (
+  cwd: string = process.cwd(),
+  configPath?: string,
+  override?: ConfigOverride,
+): Promise<FullConfig> => {
+  const cfg = await findConfig(cwd, configPath);
+  const config = cfg ? await loadConfig(cfg) : { ...defaultConfig };
+  return await resolveConfig(config, override);
 };
 
 export const loadConfig = async (configPath: string): Promise<Config> => {
   return (await import(configPath)).default;
 };
 
-export const resolveConfig = async (
-  config: Config,
-  override: { name?: string; output?: string } = {},
-): Promise<FullConfig> => {
-  const { plugins = {}, name, output, historyPath, ...rest } = config;
-  const pluginInstances = await resolvePlugins(plugins);
-  const out = resolve(override.output ?? output ?? "./allure-report");
-  const history = historyPath ? await readHistory(historyPath) : [];
+export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
+  const name = override.name ?? config.name ?? "Allure Report";
+  const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");
+  const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
+  const output = resolve(override.output ?? config.output ?? "./allure-report");
+
+  const history = await readHistory(historyPath);
+  const known = await readKnownIssues(knownIssuesPath);
+
+  const pluginInstances = await resolvePlugins(config.plugins ?? {});
 
   return {
-    ...rest,
-    name: override.name ?? name ?? "Allure Report",
-    reportFiles: new FileSystemReportFiles(out),
+    name,
+    reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
-    output: out,
+    output,
     history,
     historyPath,
+    knownIssuesPath,
+    known,
+    qualityGate: config.qualityGate,
   };
 };
 

@@ -1,16 +1,17 @@
-import { AllureReport, readRuntimeConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import console from "node:console";
 import process from "node:process";
 import { bold, red } from "yoctocolors";
 import { createCommand } from "../utils/commands.js";
 
 type QualityGateCommandOptions = {
+  config?: string;
   cwd?: string;
 };
 
 export const QualityGateCommandAction = async (resultsDir: string, options: QualityGateCommandOptions) => {
-  const cwd = options.cwd ?? process.cwd();
-  const fullConfig = await readRuntimeConfig(cwd, "./allure-report");
+  const { cwd, config: configPath } = options;
+  const fullConfig = await readConfig(cwd, configPath);
   const allureReport = new AllureReport(fullConfig);
 
   await allureReport.start();
@@ -52,9 +53,15 @@ export const QualityGateCommand = createCommand({
   description: "Returns status code 1 if there any test failure above specified success rate",
   options: [
     [
+      "--config, -c <file>",
+      {
+        description: "The path Allure config file",
+      },
+    ],
+    [
       "--cwd <cwd>",
       {
-        description: "The working directory for the command to run (default: current working directory)",
+        description: "The working directory for the command to run (Default: current working directory)",
       },
     ],
   ],

@@ -1,16 +1,17 @@
-import { readRuntimeConfig } from "@allurereport/core";
+import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { createCommand } from "../utils/commands.js";
 
 type CommandOptions = {
   config?: string;
+  cwd?: string;
   port?: number;
   live: boolean;
 };
 
 export const OpenCommandAction = async (reportDir: string | undefined, options: CommandOptions) => {
-  const { config: configPath, port, live } = options;
-  const config = await readRuntimeConfig(configPath, undefined, reportDir);
+  const { config: configPath, port, live, cwd } = options;
+  const config = await readConfig(cwd, configPath, { output: reportDir });
 
   await serve({
     port: port,
@@ -41,6 +42,12 @@ export const OpenCommand = createCommand({
       {
         description: "Reload pages on any file change in the served directory",
         default: false,
+      },
+    ],
+    [
+      "--cwd <cwd>",
+      {
+        description: "The working directory for the command to run (default: current working directory)",
       },
     ],
   ],

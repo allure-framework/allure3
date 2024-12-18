@@ -1,4 +1,3 @@
-import { defineConfig } from "@allurereport/core";
 import { cac } from "cac";
 import console from "node:console";
 import { readFileSync } from "node:fs";
@@ -53,4 +52,4 @@ console.log(cwd());
 
 cli.parse();
 
-export { defineConfig };
+export { defineConfig } from "@allurereport/plugin-api";

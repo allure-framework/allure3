@@ -36,6 +36,6 @@ export interface Config {
   plugins?: Record<string, PluginDescriptor>;
 }
 
-export const defineConfig = async (allureConfig: Config): Promise<Config> => {
+export const defineConfig = (allureConfig: Config): Config => {
   return allureConfig;
 };

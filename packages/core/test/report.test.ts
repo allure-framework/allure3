@@ -1,7 +1,8 @@
-import { Plugin } from "@allurereport/plugin-api";
+import type { Plugin } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { Mocked, describe, expect, it, vi } from "vitest";
-import { createConfig } from "../src/config.js";
+import type { Mocked } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
@@ -21,8 +22,8 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
 
 describe("report", () => {
   it("should not fail with the empty report", async () => {
-    const config = await createConfig({
-      reportName: "Allure Report",
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
 
     const allureReport = new AllureReport(config);
@@ -32,8 +33,8 @@ describe("report", () => {
   });
 
   it("should not allow call done() before start()", async () => {
-    const config = await createConfig({
-      reportName: "Allure Report",
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
 
     const allureReport = new AllureReport(config);
@@ -43,8 +44,8 @@ describe("report", () => {
   });
 
   it("should not allow to readDirectory() before start()", async () => {
-    const config = await createConfig({
-      reportName: "Allure Report",
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
 
     const allureReport = new AllureReport(config);
@@ -54,8 +55,8 @@ describe("report", () => {
   });
 
   it("should not allow to readFile() before start()", async () => {
-    const config = await createConfig({
-      reportName: "Allure Report",
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
 
     const allureReport = new AllureReport(config);
@@ -65,8 +66,8 @@ describe("report", () => {
   });
 
   it("should not allow to readResult() before start()", async () => {
-    const config = await createConfig({
-      reportName: "Allure Report",
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
 
     const allureReport = new AllureReport(config);
@@ -80,10 +81,10 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2");
     const p3 = createPlugin("p3");
-    const config = await createConfig({
-      reportName: "Allure Report",
-      plugins: [p1, p2, p3],
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
+    config.plugins?.push(p1, p2, p3);
 
     const allureReport = new AllureReport(config);
     await allureReport.start();
@@ -100,10 +101,10 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2", false);
     const p3 = createPlugin("p3");
-    const config = await createConfig({
-      reportName: "Allure Report",
-      plugins: [p1, p2, p3],
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
+    config.plugins?.push(p1, p2, p3);
 
     const allureReport = new AllureReport(config);
     await allureReport.start();
@@ -119,10 +120,10 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2");
     const p3 = createPlugin("p3");
-    const config = await createConfig({
-      reportName: "Allure Report",
-      plugins: [p1, p2, p3],
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
+    config.plugins?.push(p1, p2, p3);
 
     const allureReport = new AllureReport(config);
     await allureReport.start();
@@ -140,10 +141,10 @@ describe("report", () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2", false);
     const p3 = createPlugin("p3");
-    const config = await createConfig({
-      reportName: "Allure Report",
-      plugins: [p1, p2, p3],
+    const config = await resolveConfig({
+      name: "Allure Report",
     });
+    config.plugins?.push(p1, p2, p3);
 
     const allureReport = new AllureReport(config);
     await allureReport.start();

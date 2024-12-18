@@ -8,9 +8,10 @@ export interface FullConfig {
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
-  history?: HistoryDataPoint[];
-  historyPath?: string;
+  history: HistoryDataPoint[];
+  historyPath: string;
   appendHistory?: boolean;
+  knownIssuesPath: string;
   known?: KnownTestFailure[];
   qualityGate?: QualityGateConfig;
   // TODO: https://github.com/qameta/allure3/issues/180

@@ -1,4 +1,4 @@
-import { AllureReport, isFileNotFoundError, readRuntimeConfig } from "@allurereport/core";
+import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import AllureAwesome from "@allurereport/plugin-awesome";
 import ProgressPlugin from "@allurereport/plugin-progress";
@@ -29,7 +29,7 @@ export const WatchCommandAction = async (resultsDir: string, options: WatchComma
   });
 
   const { config: configPath, output, cwd, reportName } = options;
-  const config = await readRuntimeConfig(configPath, cwd, output, reportName);
+  const config = await readConfig(cwd, configPath, { output, name: reportName });
 
   try {
     await rm(config.output, { recursive: true });

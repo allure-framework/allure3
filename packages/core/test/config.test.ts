@@ -1,10 +1,72 @@
-import { MockInstance, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineConfig, getPluginId, resolvePlugin } from "../src/config.js";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import type { MockInstance } from "vitest";
+import { afterEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { findConfig, getPluginId, resolvePlugin } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
+
+describe("findConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-findConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch (err) {}
+  });
+
+  it("should find allurerc.js in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.js"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.js"));
+  });
+
+  it("should find allurerc.mjs in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.mjs"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.mjs"));
+  });
+
+  it("should find allurerc.js first", async () => {
+    await writeFile(join(fixturesDir, "allurerc.js"), "some content", "utf-8");
+    await writeFile(join(fixturesDir, "allurerc.mjs"), "some other content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.js"));
+  });
+
+  it("should find provided config path first", async () => {
+    const fileName = "config.js";
+    await writeFile(join(fixturesDir, fileName), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir, fileName);
+    expect(found).toEqual(resolve(fixturesDir, fileName));
+  });
+
+  it("should fail if provided config file is not found", async () => {
+    const fileName = "config.js";
+
+    await expect(findConfig(fixturesDir, fileName)).rejects.toThrow("invalid config path");
+  });
+
+  it("should accept absolute path to config", async () => {
+    const fileName = "config.js";
+    await writeFile(join(fixturesDir, fileName), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir, resolve(fixturesDir, fileName));
+    expect(found).toEqual(resolve(fixturesDir, fileName));
+  });
+});
 
 describe("getPluginId", () => {
   it("cuts off npm package scope and returns the rest part", () => {
@@ -49,39 +111,5 @@ describe("resolvePlugin", () => {
     (importWrapper as unknown as MockInstance).mockRejectedValue(new Error("an error"));
 
     expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
-  });
-});
-
-describe("defineConfig", () => {
-  it("returns config which includes plugins descriptors with normalized id and the plugin instance", async () => {
-    class Plugin {}
-
-    (importWrapper as unknown as MockInstance).mockImplementation((path: string) => {
-      return { default: Plugin };
-    });
-
-    const result = await defineConfig({
-      name: "foo",
-      output: "bar",
-      plugins: {
-        "allure/plugin-foo": {
-          import: "classic",
-          options: {},
-        },
-      },
-    });
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        name: "foo",
-        output: "bar",
-        plugins: {
-          "allure/plugin-foo": {
-            import: "classic",
-            options: {},
-          },
-        },
-      }),
-    );
   });
 });

@@ -8643,6 +8643,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core", "workspace:packages/core"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/directory-watcher", "workspace:packages/directory-watcher"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-server-reload", "workspace:packages/plugin-server-reload"],\

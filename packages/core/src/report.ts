@@ -53,7 +53,7 @@ export class AllureReport {
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
     this.#appendHistory = appendHistory ?? true;
-    this.#historyPath = historyPath ?? "./.allure/history.jsonl";
+    this.#historyPath = historyPath;
     this.#store = new DefaultAllureStore(history, known, this.#eventEmitter);
     this.#readers = [...readers];
     this.#plugins = [...plugins];

@@ -1,7 +1,6 @@
-import { AllureReport, isFileNotFoundError, readRuntimeConfig } from "@allurereport/core";
+import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
-import type {
-  Watcher} from "@allurereport/directory-watcher";
+import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
   delayedFileProcessingWatcher,
@@ -127,7 +126,7 @@ export const RunCommandAction = async (options: RunCommandOptions) => {
   console.log(`${command} ${commandArgs.join(" ")}`);
 
   const { config: configPath, output, reportName, rerun: maxRerun = 0, silent = false } = options;
-  const config = await readRuntimeConfig(configPath, cwd, output, reportName);
+  const config = await readConfig(cwd, configPath, { output, name: reportName });
 
   try {
     await rm(config.output, { recursive: true });
