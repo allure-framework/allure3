@@ -23,8 +23,9 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
+  const emptyTree = !tree?.groups?.length && !tree?.leaves?.length;
 
-  if (!tree?.groups?.length && !tree?.leaves?.length) {
+  if (emptyTree) {
     return (
       <div className={styles["tree-list"]}>
         <div className={styles["tree-empty-results"]}>

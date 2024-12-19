@@ -1,7 +1,7 @@
-import type { TestResult } from "@allurereport/core-api";
+import { TestResult, TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createTreeByLabels } from "../src/index.js";
+import { createTreeByLabels, sortTree, transformTree } from "../src/index.js";
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),
@@ -21,6 +21,24 @@ const itResult = (args: Partial<TestResult>): TestResult => ({
   },
   ...args,
 });
+const sampleTree = {
+  root: {
+    leaves: ["l1", "l2"],
+    groups: ["g1"],
+  },
+  leavesById: {
+    l1: { nodeId: "l1", name: "1", status: "passed", start: 5000 },
+    l2: { nodeId: "l2", name: "2", status: "passed", start: 3000 },
+    l3: { nodeId: "l3", name: "3", status: "passed", start: 4000 },
+    l4: { nodeId: "l4", name: "4", status: "passed", start: 0 },
+    l5: { nodeId: "l5", name: "5", status: "passed", start: 2000 },
+    l6: { nodeId: "l6", name: "6", status: "passed", start: 1000 },
+  },
+  groupsById: {
+    g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l3", "l4"] },
+    g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l5", "l6"] },
+  },
+};
 
 describe("tree builder", () => {
   it("should create empty tree", async () => {
@@ -185,5 +203,79 @@ describe("tree builder", () => {
     expect(treeByLabels.groupsById[storyBUuid]).toHaveProperty("nodeId", storyBUuid);
     expect(treeByLabels.groupsById[storyBUuid]).toHaveProperty("name", "B");
     expect(treeByLabels.groupsById[storyBUuid]).toHaveProperty("leaves", [tr3.id]);
+  });
+});
+
+describe("tree transforming", () => {
+  it("sorts leaves if comparator is passed", () => {
+    const tree = JSON.parse(JSON.stringify(sampleTree));
+    const res = sortTree(tree as TreeData<any, any>, nullsLast(compareBy("start", ordinal())));
+
+    expect(res).toMatchObject({
+      root: expect.objectContaining({
+        leaves: ["l2", "l1"],
+      }),
+      groupsById: expect.objectContaining({
+        g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l4", "l3"] },
+        g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6", "l5"] },
+      }),
+    });
+  });
+});
+
+describe("tree transformation", () => {
+  it("transforms leaves if comparator is passed", () => {
+    const tree = JSON.parse(JSON.stringify(sampleTree));
+    const res = transformTree(tree as TreeData<any, any>, (leaf, i) => ({
+      ...leaf,
+      groupOrder: i + 1,
+    }));
+
+    expect(res).toMatchObject({
+      leavesById: {
+        l1: {
+          groupOrder: 1,
+          name: "1",
+          nodeId: "l1",
+          start: 5000,
+          status: "passed",
+        },
+        l2: {
+          groupOrder: 2,
+          name: "2",
+          nodeId: "l2",
+          start: 3000,
+          status: "passed",
+        },
+        l3: {
+          groupOrder: 1,
+          name: "3",
+          nodeId: "l3",
+          start: 4000,
+          status: "passed",
+        },
+        l4: {
+          groupOrder: 2,
+          name: "4",
+          nodeId: "l4",
+          start: 0,
+          status: "passed",
+        },
+        l5: {
+          groupOrder: 1,
+          name: "5",
+          nodeId: "l5",
+          start: 2000,
+          status: "passed",
+        },
+        l6: {
+          groupOrder: 2,
+          name: "6",
+          nodeId: "l6",
+          start: 1000,
+          status: "passed",
+        },
+      },
+    });
   });
 });

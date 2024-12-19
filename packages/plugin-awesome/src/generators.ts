@@ -8,7 +8,7 @@ import {
   ordinal,
 } from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import { createTreeByLabels } from "@allurereport/plugin-api";
+import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
   AllureAwesomeReportOptions,
@@ -154,6 +154,9 @@ export const generateTree = async (
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
   const tree = createTreeByLabels(visibleTests, labels);
+
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
   await writer.writeWidget(`${treeName}.json`, tree);
 };

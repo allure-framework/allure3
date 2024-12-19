@@ -32,15 +32,7 @@ export const filterLeaves = (
       // const newMatched = !filterOptions?.filter?.new || leaf.new;
 
       return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
-    })
-    .sort(nullsLast(compareBy("start", ordinal())))
-    .map(
-      (leaf, i) =>
-        ({
-          ...leaf,
-          groupOrder: i + 1,
-        }) as AllureAwesomeTreeLeaf,
-    );
+    });
 
   if (!filterOptions) {
     return filteredLeaves;
@@ -79,13 +71,19 @@ export const fillTree = (payload: {
   return {
     ...group,
     leaves: filterLeaves(group.leaves, leavesById, filterOptions),
-    groups: group?.groups?.map((groupId) =>
-      fillTree({
-        group: groupsById[groupId],
-        groupsById,
-        leavesById,
-        filterOptions,
-      }),
-    ),
+    groups: group?.groups
+      ?.filter((groupId) => {
+        const subGroup = groupsById[groupId];
+
+        return subGroup?.leaves?.length || subGroup?.groups?.length;
+      })
+      ?.map((groupId) =>
+        fillTree({
+          group: groupsById[groupId],
+          groupsById,
+          leavesById,
+          filterOptions,
+        }),
+      ),
   };
 };
