@@ -5,13 +5,13 @@ import { useState } from "preact/hooks";
 import TreeItem from "@/components/app/Tree/TreeItem";
 import { Text } from "@/components/commons/Typography";
 import { useI18n } from "@/stores";
-import type { AllureAwesomeOrderedTree, AllureAwesomeStatus } from "../../../../types";
+import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus } from "../../../../types";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
 
 interface TreeProps {
   statistic?: Statistic;
-  tree: AllureAwesomeOrderedTree;
+  tree: AllureAwesomeRecursiveTree;
   name?: string;
   root?: boolean;
   statusFilter?: AllureAwesomeStatus;
@@ -23,7 +23,7 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
-  const emptyTree = !tree?.groups?.length && !tree?.leaves?.length;
+  const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
 
   if (emptyTree) {
     return (
@@ -42,7 +42,7 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
         [styles.root]: root,
       })}
     >
-      {tree?.groups?.map?.((subTree) => (
+      {tree?.trees?.map?.((subTree) => (
         <Tree
           key={subTree.nodeId}
           name={subTree.name}

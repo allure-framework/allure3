@@ -54,14 +54,17 @@ export type AllureAwesomeTestResult = Omit<
   groupOrder?: number;
 };
 
-export type AllureAwesomeTree = TreeData<AllureAwesomeTestResult, DefaultTreeGroup>;
-
 export type AllureAwesomeTreeLeaf = AllureAwesomeTestResult & { nodeId: string };
 
 export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
-export type AllureAwesomeOrderedTree = DefaultTreeGroup & {
+export type AllureAwesomeTree = TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>;
+
+/**
+ * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
+ */
+export type AllureAwesomeRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
   leaves: AllureAwesomeTreeLeaf[];
-  groups: AllureAwesomeOrderedTree[];
+  trees: AllureAwesomeRecursiveTree[];
 };

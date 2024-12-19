@@ -1,5 +1,5 @@
 import type { TreeFiltersState } from "@/stores/tree";
-import type { AllureAwesomeOrderedTree, AllureAwesomeTree, AllureAwesomeTreeGroup } from "../../types";
+import type { AllureAwesomeRecursiveTree, AllureAwesomeTree, AllureAwesomeTreeGroup } from "../../types";
 
 const statusOrder = {
   failed: 1,
@@ -54,25 +54,30 @@ export const filterLeaves = (
   });
 };
 
-export const fillTree = (payload: {
+/**
+ * Fills the given tree from generator and returns recursive tree which includes leaves data instead of their IDs
+ * Filters leaves when `filterOptions` property is provided
+ * @param payload
+ */
+export const createRecursiveTree = (payload: {
   group: AllureAwesomeTreeGroup;
   groupsById: AllureAwesomeTree["groupsById"];
   leavesById: AllureAwesomeTree["leavesById"];
   filterOptions?: TreeFiltersState;
-}): AllureAwesomeOrderedTree => {
+}): AllureAwesomeRecursiveTree => {
   const { group, groupsById, leavesById, filterOptions } = payload;
 
   return {
     ...group,
     leaves: filterLeaves(group.leaves, leavesById, filterOptions),
-    groups: group?.groups
+    trees: group?.groups
       ?.filter((groupId) => {
         const subGroup = groupsById[groupId];
 
         return subGroup?.leaves?.length || subGroup?.groups?.length;
       })
       ?.map((groupId) =>
-        fillTree({
+        createRecursiveTree({
           group: groupsById[groupId],
           groupsById,
           leavesById,
@@ -82,8 +87,8 @@ export const fillTree = (payload: {
   };
 };
 
-export const isFilledTreeEmpty = (tree: AllureAwesomeTreeGroup) => {
-  if (!tree.groups?.length && !tree.leaves?.length) {
+export const isRecursiveTreeEmpty = (tree: AllureAwesomeRecursiveTree) => {
+  if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }
 
@@ -91,5 +96,5 @@ export const isFilledTreeEmpty = (tree: AllureAwesomeTreeGroup) => {
     return false;
   }
 
-  return tree.groups?.every((group) => isFilledTreeEmpty(group));
+  return tree.trees?.every((subTree) => isRecursiveTreeEmpty(subTree));
 };

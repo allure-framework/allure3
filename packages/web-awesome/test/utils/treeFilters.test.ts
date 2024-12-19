@@ -1,6 +1,6 @@
 import { type TestResult } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
-import { fillTree, filterLeaves } from "../../src/utils/treeFilters.js";
+import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
 import type { AllureAwesomeTestResult } from "../../types.js";
 
 describe("utils > treeFilters", () => {
@@ -393,7 +393,7 @@ describe("utils > treeFilters", () => {
           groups: [],
         },
       };
-      const result = fillTree({
+      const result = createRecursiveTree({
         group,
         leavesById,
         groupsById,
