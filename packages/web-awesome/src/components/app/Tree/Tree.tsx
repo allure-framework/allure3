@@ -26,13 +26,7 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
 
   if (emptyTree) {
-    return (
-      <div className={styles["tree-list"]}>
-        <div className={styles["tree-empty-results"]}>
-          <Text className={styles["tree-empty-results-title"]}>{t("no-results")}</Text>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const treeContent = isOpened && (
