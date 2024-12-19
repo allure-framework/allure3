@@ -146,6 +146,7 @@ export const filterTree = <L, G>(tree: TreeData<L, G>, predicate: (leaf: TreeLea
         }
 
         filterGroupLeaves(subGroup);
+        visitedGroups.add(groupId);
       });
     }
 
