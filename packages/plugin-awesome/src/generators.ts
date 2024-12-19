@@ -7,7 +7,7 @@ import {
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import {AllureStore, filterTree, ReportFiles, ResultFile} from "@allurereport/plugin-api";
+import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
