@@ -1,7 +1,7 @@
 import { TestResult, TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createTreeByLabels, sortTree, transformTree } from "../src/index.js";
+import { createTreeByLabels, filterTree, sortTree, transformTree } from "../src/index.js";
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),
@@ -28,11 +28,11 @@ const sampleTree = {
   },
   leavesById: {
     l1: { nodeId: "l1", name: "1", status: "passed", start: 5000 },
-    l2: { nodeId: "l2", name: "2", status: "passed", start: 3000 },
+    l2: { nodeId: "l2", name: "2", status: "failed", start: 3000 },
     l3: { nodeId: "l3", name: "3", status: "passed", start: 4000 },
-    l4: { nodeId: "l4", name: "4", status: "passed", start: 0 },
+    l4: { nodeId: "l4", name: "4", status: "failed", start: 0 },
     l5: { nodeId: "l5", name: "5", status: "passed", start: 2000 },
-    l6: { nodeId: "l6", name: "6", status: "passed", start: 1000 },
+    l6: { nodeId: "l6", name: "6", status: "failed", start: 1000 },
   },
   groupsById: {
     g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l3", "l4"] },
@@ -206,7 +206,7 @@ describe("tree builder", () => {
   });
 });
 
-describe("tree transforming", () => {
+describe("tree sorting", () => {
   it("sorts leaves if comparator is passed", () => {
     const tree = JSON.parse(JSON.stringify(sampleTree));
     const res = sortTree(tree as TreeData<any, any>, nullsLast(compareBy("start", ordinal())));
@@ -245,7 +245,7 @@ describe("tree transformation", () => {
           name: "2",
           nodeId: "l2",
           start: 3000,
-          status: "passed",
+          status: "failed",
         },
         l3: {
           groupOrder: 1,
@@ -259,7 +259,7 @@ describe("tree transformation", () => {
           name: "4",
           nodeId: "l4",
           start: 0,
-          status: "passed",
+          status: "failed",
         },
         l5: {
           groupOrder: 1,
@@ -273,8 +273,26 @@ describe("tree transformation", () => {
           name: "6",
           nodeId: "l6",
           start: 1000,
-          status: "passed",
+          status: "failed",
         },
+      },
+    });
+  });
+});
+
+describe("tree filtering", () => {
+  it("transforms leaves if comparator is passed", () => {
+    const tree = JSON.parse(JSON.stringify(sampleTree));
+    const res = filterTree(tree as TreeData<any, any>, (leaf) => leaf.status !== "passed");
+
+    expect(res).toMatchObject({
+      root: {
+        leaves: ["l2"],
+        groups: ["g1"],
+      },
+      groupsById: {
+        g1: { nodeId: "g1", name: "1", groups: ["g2"], leaves: ["l4"] },
+        g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6"] },
       },
     });
   });

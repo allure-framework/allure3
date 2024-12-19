@@ -7,7 +7,7 @@ import {
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import {AllureStore, filterTree, ReportFiles, ResultFile} from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
@@ -155,6 +155,8 @@ export const generateTree = async (
   const visibleTests = tests.filter((test) => !test.hidden);
   const tree = createTreeByLabels(visibleTests, labels);
 
+  // @ts-ignore
+  filterTree(tree, (leaf) => !leaf.hidden);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
   transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 

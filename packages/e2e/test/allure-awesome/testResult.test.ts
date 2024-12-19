@@ -11,6 +11,10 @@ test.beforeAll(async () => {
   bootstrap = await boostrapReport({
     reportConfig: {
       name: "Sample allure report",
+      appendHistory: false,
+      history: undefined,
+      historyPath: undefined,
+      knownIssuesPath: undefined,
     },
     testResults: [
       {

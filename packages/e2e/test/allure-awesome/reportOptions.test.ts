@@ -33,6 +33,10 @@ test.describe("allure-awesome", () => {
       bootstrap = await boostrapReport({
         reportConfig: {
           name: "Sample allure report",
+          appendHistory: false,
+          history: undefined,
+          historyPath: undefined,
+          knownIssuesPath: undefined,
         },
         testResults: fixtures.testResults,
       });

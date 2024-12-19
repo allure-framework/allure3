@@ -6,11 +6,13 @@ import { type ReportBootstrap, boostrapReport } from "../utils/index.js";
 let bootstrap: ReportBootstrap;
 
 test.beforeAll(async () => {
-  const now = Date.now();
-
   bootstrap = await boostrapReport({
     reportConfig: {
       name: "Sample allure report",
+      appendHistory: false,
+      history: undefined,
+      historyPath: undefined,
+      knownIssuesPath: undefined,
     },
     testResults: [
       {
@@ -18,14 +20,14 @@ test.beforeAll(async () => {
         fullName: "sample.js#0 sample passed test",
         status: Status.PASSED,
         stage: Stage.FINISHED,
-        start: now,
+        start: 1000,
       },
       {
         name: "1 sample failed test",
         fullName: "sample.js#1 sample failed test",
         status: Status.FAILED,
         stage: Stage.FINISHED,
-        start: now + 5000,
+        start: 5000,
         statusDetails: {
           message: "Assertion error: Expected 1 to be 2",
           trace: "failed test trace",
@@ -36,7 +38,7 @@ test.beforeAll(async () => {
         fullName: "sample.js#2 sample broken test",
         status: Status.BROKEN,
         stage: Stage.FINISHED,
-        start: now + 10000,
+        start: 10000,
         statusDetails: {
           message: "An unexpected error",
           trace: "broken test trace",
@@ -45,14 +47,14 @@ test.beforeAll(async () => {
       {
         name: "3 sample skipped test",
         fullName: "sample.js#3 sample skipped test",
-        start: now + 15000,
+        start: 15000,
         status: Status.SKIPPED,
       },
       {
         name: "4 sample unknown test",
         fullName: "sample.js#4 sample unknown test",
         status: undefined,
-        start: now + 20000,
+        start: 20000,
         stage: Stage.PENDING,
       },
     ],
@@ -76,14 +78,19 @@ test.describe("allure-awesome", () => {
       await expect(treeLeaves).toHaveCount(5);
       await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
       await expect(treeLeaves.nth(0).getByTestId("tree-leaf-status-passed")).toBeVisible();
+      await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
       await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
       await expect(treeLeaves.nth(1).getByTestId("tree-leaf-status-failed")).toBeVisible();
+      await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#2");
       await expect(treeLeaves.nth(2).getByTestId("tree-leaf-title")).toHaveText("2 sample broken test");
       await expect(treeLeaves.nth(2).getByTestId("tree-leaf-status-broken")).toBeVisible();
+      await expect(treeLeaves.nth(2).getByTestId("tree-leaf-order")).toHaveText("#3");
       await expect(treeLeaves.nth(3).getByTestId("tree-leaf-title")).toHaveText("3 sample skipped test");
       await expect(treeLeaves.nth(3).getByTestId("tree-leaf-status-skipped")).toBeVisible();
+      await expect(treeLeaves.nth(3).getByTestId("tree-leaf-order")).toHaveText("#4");
       await expect(treeLeaves.nth(4).getByTestId("tree-leaf-title")).toHaveText("4 sample unknown test");
       await expect(treeLeaves.nth(4).getByTestId("tree-leaf-status-unknown")).toBeVisible();
+      await expect(treeLeaves.nth(4).getByTestId("tree-leaf-order")).toHaveText("#5");
     });
 
     test("statistics in metadata renders information about the tests", async ({ page }) => {

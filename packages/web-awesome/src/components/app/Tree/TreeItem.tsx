@@ -19,7 +19,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({ name, groupOrder, s
   return (
     <div {...rest} className={styles["tree-item"]} onClick={() => navigateTo(id)}>
       <TreeItemIcon status={status} />
-      <span class={styles.order}>#{groupOrder}</span>
+      <span data-testid="tree-leaf-order" class={styles.order}>#{groupOrder}</span>
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}
       </Text>
