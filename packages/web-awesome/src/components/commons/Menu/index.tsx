@@ -147,7 +147,7 @@ type ItemProps = {
   rightSlot?: ComponentChildren;
   closeMenuOnClick?: boolean;
   ariaLabel?: string;
-  setIsOpened: (isOpened: boolean) => void;
+  setIsOpened?: (isOpened: boolean) => void;
 };
 
 Menu.Item = (props: ItemProps) => {

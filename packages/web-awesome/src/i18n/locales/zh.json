@@ -60,7 +60,9 @@
     "status-desc-short": "反转"
   },
   "empty": {
-    "no-results": "未找到结果",
+    "no-results": "没有结果",
+    "no-tests-found": "未找到结果",
+    "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
     "no-history-results": "没有历史信息",
     "no-retries-results": "没有重试信息"

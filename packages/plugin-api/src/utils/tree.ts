@@ -1,4 +1,5 @@
 import type {
+  Comparator,
   DefaultTreeGroup,
   DefaultTreeLeaf,
   TestResult,
@@ -38,19 +39,18 @@ const createTree = <T, L, G>(
   addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
 ): TreeData<L, G> => {
   const groupsByClassifier: Record<string, Record<string, TreeGroup<G>>> = {};
-
   const leavesById: Record<string, TreeLeaf<L>> = {};
   const groupsById: Record<string, TreeGroup<G>> = {};
-
   const root: WithChildren = { groups: [], leaves: [] };
 
   for (const item of data) {
     const leaf = leafFactory(item);
+
     leavesById[leaf.nodeId] = leaf;
 
     const itemGroups = classifier(item);
-
     let parentGroups = [root];
+
     for (const layer of itemGroups) {
       if (layer.length === 0) {
         break;
@@ -66,9 +66,11 @@ const createTree = <T, L, G>(
 
           if (groupsByClassifier[parentId][group] === undefined) {
             const newGroup = groupFactory(parentId, group);
+
             groupsByClassifier[parentId][group] = newGroup;
             groupsById[newGroup.nodeId] = newGroup;
           }
+
           const currentGroup = groupsByClassifier[parentId][group];
 
           addGroup(parentGroup, currentGroup.nodeId);
@@ -82,6 +84,8 @@ const createTree = <T, L, G>(
     parentGroups.forEach((parentGroup) => addLeaf(parentGroup, leaf.nodeId));
   }
 
+  // TODO: iterate over groupsById to sort leaves by start here?
+
   return {
     root,
     groupsById,
@@ -89,7 +93,7 @@ const createTree = <T, L, G>(
   };
 };
 
-const byLabels = (item: TestResult, labelNames: string[]): string[][] => {
+export const byLabels = (item: TestResult, labelNames: string[]): string[][] => {
   return labelNames.map(
     (labelName) =>
       item.labels.filter((label) => labelName === label.name).map((label) => label.value ?? "__unknown") ?? [],
@@ -116,4 +120,76 @@ export const createTreeByLabels = (data: TestResult[], labelNames: string[]) => 
       incrementStatistic(group.statistic, leaf.status);
     },
   );
+};
+
+/**
+ * Mutates the given tree by sorting leaves in each group.
+ * Returns the link to the same tree.
+ * @param tree
+ * @param comparator
+ */
+export const sortTree = <L, G>(tree: TreeData<L, G>, comparator: Comparator<TreeLeaf<L>>) => {
+  const { root, leavesById, groupsById } = tree;
+  const sortGroupLeaves = (group: TreeGroup<G>) => {
+    if (!comparator) {
+      return group;
+    }
+
+    if (group.groups?.length) {
+      group.groups.forEach((groupId) => {
+        sortGroupLeaves(groupsById[groupId]);
+      });
+    }
+
+    if (group.leaves?.length) {
+      group.leaves = group.leaves.sort((a, b) => {
+        const leafA = leavesById[a];
+        const leafB = leavesById[b];
+
+        return comparator(leafA, leafB);
+      });
+    }
+
+    return group;
+  };
+
+  sortGroupLeaves(root as TreeGroup<G>);
+
+  return tree;
+};
+
+/**
+ * Mutates the given tree by applying the transformer function to each leaf.
+ * Returns the link to the same tree.
+ * @param tree
+ * @param transformer
+ */
+export const transformTree = <L, G>(
+  tree: TreeData<L, G>,
+  transformer: (leaf: TreeLeaf<L>, idx: number) => TreeLeaf<L>,
+) => {
+  const { root, leavesById, groupsById } = tree;
+  const transformGroupLeaves = (group: TreeGroup<G>) => {
+    if (!transformer) {
+      return group;
+    }
+
+    if (group.groups?.length) {
+      group.groups.forEach((groupId) => {
+        transformGroupLeaves(groupsById[groupId]);
+      });
+    }
+
+    if (group.leaves?.length) {
+      group.leaves.forEach((leaf, i) => {
+        leavesById[leaf] = transformer(leavesById[leaf], i);
+      });
+    }
+
+    return group;
+  };
+
+  transformGroupLeaves(root as TreeGroup<G>);
+
+  return tree;
 };

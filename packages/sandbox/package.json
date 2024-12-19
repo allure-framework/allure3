@@ -9,7 +9,9 @@
   "type": "module",
   "scripts": {
     "pret": "rimraf ./allure-results",
-    "t": "vitest run"
+    "t": "vitest run",
+    "prereport": "rimraf ./allure-report",
+    "report": "yarn allure generate ./allure-results"
   },
   "devDependencies": {
     "@allurereport/plugin-csv": "workspace:*",

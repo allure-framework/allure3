@@ -60,7 +60,9 @@
     "status-desc-short": "역순"
   },
   "empty": {
-    "no-results": "결과를 찾을 수 없습니다",
+    "no-results": "결과 없음",
+    "no-tests-found": "결과를 찾을 수 없음",
+    "clear-filters": "필터 지우기",
     "no-attachments-results": "첨부파일 정보를 사용할 수 없습니다",
     "no-history-results": "기록 정보를 사용할 수 없습니다",
     "no-retries-results": "재시도 정보를 사용할 수 없습니다"

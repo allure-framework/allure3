@@ -1,12 +1,13 @@
 import type {
-  AttachmentLink, AttachmentTestStepResult,
+  AttachmentTestStepResult,
   DefaultTreeGroup,
-  DefaultTreeLeaf,
   HistoryTestResult,
   TestFixtureResult,
   TestResult,
+  TestStatus,
   TestStepResult,
   TreeData,
+  WithChildren,
 } from "@allurereport/core-api";
 
 export type AllureAwesomeReportOptions = {
@@ -25,6 +26,8 @@ export type AllureAwesomeFixtureResult = Omit<
   steps: AllureAwesomeTestStepResult[];
 };
 
+export type AllureAwesomeStatus = TestStatus | "total";
+
 export type AllureAwesomeTestStepResult = TestStepResult;
 
 type AllureAwesomeBreadcrumbItem = string[] | string[][];
@@ -37,7 +40,6 @@ export type AllureAwesomeTestResult = Omit<
   | "expectedResultHtml"
   | "precondition"
   | "preconditionHtml"
-  | "start"
   | "steps"
 > & {
   setup: AllureAwesomeFixtureResult[];
@@ -48,6 +50,21 @@ export type AllureAwesomeTestResult = Omit<
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: AllureAwesomeBreadcrumbItem[];
+  order?: number;
+  groupOrder?: number;
 };
 
-export type AllureAwesomeTree = TreeData<DefaultTreeLeaf, DefaultTreeGroup>;
+export type AllureAwesomeTreeLeaf = AllureAwesomeTestResult & { nodeId: string };
+
+export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
+
+export type AllureAwesomeTree = TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>;
+
+/**
+ * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
+ */
+export type AllureAwesomeRecursiveTree = DefaultTreeGroup & {
+  nodeId: string;
+  leaves: AllureAwesomeTreeLeaf[];
+  trees: AllureAwesomeRecursiveTree[];
+};

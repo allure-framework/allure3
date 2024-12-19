@@ -60,6 +60,9 @@
     "status-desc-short": "Invertido"
   },
   "empty": {
+    "no-results": "Sin resultados",
+    "no-tests-found": "No se encontraron resultados",
+    "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
     "no-history-results": "No hay información de historial disponible",
     "no-retries-results": "No hay información de reintentos disponible"

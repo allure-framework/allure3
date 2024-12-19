@@ -1,10 +1,11 @@
-import { Statistic, statusesList } from "@allurereport/core-api";
+import { type Statistic, statusesList } from "@allurereport/core-api";
 import { clsx } from "clsx";
-import { FunctionComponent } from "preact";
+import { type FunctionComponent } from "preact";
 import { ArrowButton } from "@/components/app/ArrowButton";
 import { Loadable } from "@/components/commons/Loadable";
 import { Text } from "@/components/commons/Typography";
 import { statsStore } from "@/stores";
+import { treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 interface TreeHeaderProps {
@@ -12,15 +13,14 @@ interface TreeHeaderProps {
   categoryTitle: string;
   isOpened: boolean;
   toggleTree: () => void;
-  statusFilter?: string;
 }
 
-const maxWidthTab: number = 140;
-const minWidthTab: number = 46;
+const maxWidthTab = 140;
+const minWidthTab = 46;
 // to make the progress bar more visually responsive for smaller values,
 // we can adjust the formula by adding an offset to stretch the lower part
 // of the logarithmic scale
-const offset: number = 10;
+const offset = 10;
 
 const progress = (current: number, total: number) => {
   const logOffset = Math.log(offset);
@@ -31,10 +31,11 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
   categoryTitle,
   isOpened,
   toggleTree,
-  statusFilter = "total",
   statistic,
   ...rest
 }) => {
+  const { status: statusFilter } = treeFiltersStore.value;
+
   return (
     <Loadable
       source={statsStore}
@@ -49,8 +50,8 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
                   value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
               )
               .map(({ status, value }) => {
-                const className = clsx(styles[`tree-header-bar-item`], styles[status]);
-                const style = { flexGrow: `${value}` };
+                const className = clsx(styles["tree-header-bar-item"], styles[status]);
+                const style = { flexGrow: value };
 
                 return (
                   <div key={status} className={className} style={style}>

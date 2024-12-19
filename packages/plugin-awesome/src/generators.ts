@@ -1,6 +1,14 @@
-import type { AttachmentLink, EnvironmentItem, Statistic, TestResult } from "@allurereport/core-api";
+import {
+  type AttachmentLink,
+  type EnvironmentItem,
+  type Statistic,
+  type TestResult,
+  compareBy,
+  nullsLast,
+  ordinal,
+} from "@allurereport/core-api";
 import type { AllureStore, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import { createTreeByLabels } from "@allurereport/plugin-api";
+import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
   AllureAwesomeReportOptions,
@@ -52,7 +60,7 @@ const template = `<!DOCTYPE html>
           "single_file": "{{singleFile}}"
         });
     </script>
-    {{/if}} 
+    {{/if}}
     <script>
       window.allureReportOptions = {{{ reportOptions }}}
     </script>
@@ -101,7 +109,7 @@ const createBreadcrumbs = (convertedTr: AllureAwesomeTestResult) => {
 
 export const generateTestResults = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
-  const convertedTrs: AllureAwesomeTestResult[] = [];
+  let convertedTrs: AllureAwesomeTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = await store.fixturesByTrId(tr.id);
@@ -123,9 +131,19 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
     convertedTrs.push(convertedTr);
   }
 
+  convertedTrs = convertedTrs.sort(nullsLast(compareBy("start", ordinal()))).map((tr, idx) => ({
+    ...tr,
+    order: idx + 1,
+  }));
+
   for (const convertedTr of convertedTrs) {
     await writer.writeTestCase(convertedTr);
   }
+
+  await writer.writeWidget(
+    "nav.json",
+    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+  );
 };
 
 export const generateTree = async (
@@ -136,6 +154,9 @@ export const generateTree = async (
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
   const tree = createTreeByLabels(visibleTests, labels);
+
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
   await writer.writeWidget(`${treeName}.json`, tree);
 };

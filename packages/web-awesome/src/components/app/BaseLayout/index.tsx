@@ -6,11 +6,10 @@ import Modal from "@/components/app/Modal";
 import TestResult from "@/components/app/TestResult";
 import { Loadable } from "@/components/commons/Loadable";
 import { PageLoader } from "@/components/commons/PageLoader";
-import { fetchStats, getTheme } from "@/stores";
-import { getLocale } from "@/stores";
+import { fetchStats, getTheme, getLocale } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
-import { fetchTestResult, testResultStore } from "@/stores/testResults";
+import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { fetchTreeData, treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
@@ -23,6 +22,7 @@ export const BaseLayout = ({ testResultId }) => {
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
+      fetchTestResultNav();
     } else {
       Promise.all([
         ensureReportDataReady(),

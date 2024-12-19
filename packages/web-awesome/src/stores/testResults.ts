@@ -9,6 +9,30 @@ export const testResultStore = signal<StoreSignalState<Record<string, AllureAwes
   data: undefined,
 });
 
+export const testResultNavStore = signal<StoreSignalState<string[]>>({
+  loading: true,
+  error: undefined,
+  data: undefined,
+});
+
+export const fetchTestResultNav = async () => {
+  try {
+    const data = await fetchReportJsonData<string[]>("widgets/nav.json");
+
+    testResultNavStore.value = {
+      data,
+      error: undefined,
+      loading: false,
+    };
+  } catch (err) {
+    testResultNavStore.value = {
+      ...testResultNavStore.value,
+      error: err.message,
+      loading: false,
+    };
+  }
+};
+
 export const fetchTestResult = async (testResultId: string) => {
   if (!testResultId || testResultStore.value.data?.[testResultId]) {
     return;

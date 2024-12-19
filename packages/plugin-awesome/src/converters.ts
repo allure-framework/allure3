@@ -21,6 +21,8 @@ export const convertTestResult = (tr: TestResult): AllureAwesomeTestResult => {
   return {
     id: tr.id,
     name: tr.name,
+    start: tr.start,
+    stop: tr.stop,
     duration: tr.duration,
     status: tr.status,
     fullName: tr.fullName,

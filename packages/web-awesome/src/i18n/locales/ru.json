@@ -57,7 +57,9 @@
     "status-desc-short": "По обычному"
   },
   "empty": {
-    "no-results": "Результатов не найдено",
+    "no-results": "Нет результатов",
+    "no-tests-found": "Результаты не найдены",
+    "clear-filters": "Очистить фильтры",
     "no-attachments-results": "Информация о вложениях отсутствует",
     "no-history-results": "Информация об истории отсутствует",
     "no-retries-results": "Информация о перезапусках отсутствует"

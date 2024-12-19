@@ -60,7 +60,9 @@
     "status-desc-short": "Omgekeerd"
   },
   "empty": {
-    "no-results": "Geen resultaten gevonden",
+    "no-results": "Geen resultaten",
+    "no-tests-found": "Geen resultaten gevonden",
+    "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar"

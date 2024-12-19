@@ -10,7 +10,7 @@ type TabsContextT = {
 
 const TabsContext = createContext<TabsContextT | null>(null);
 
-export function useTabsContext() {
+export const useTabsContext = () => {
   const context = useContext(TabsContext);
 
   if (!context) {
@@ -18,7 +18,7 @@ export function useTabsContext() {
   }
 
   return context;
-}
+};
 
 export const TabsProvider = (props: { initialTab?: string; children: ComponentChildren }) => {
   const { children, initialTab } = props;
@@ -39,7 +39,6 @@ export const Tab = (props: { id: string; children: ComponentChildren }) => {
   const { id, children, ...rest } = props;
   const { currentTab, setCurrentTab } = useTabsContext();
   const isCurrentTab = currentTab === id;
-
   const handleTabClick = () => {
     if (isCurrentTab) {
       return;

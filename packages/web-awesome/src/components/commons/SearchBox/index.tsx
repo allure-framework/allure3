@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { useState } from "preact/hooks";
+import {useEffect, useState} from "preact/hooks";
 import searchIcon from "@/assets/svg/line-general-search-md.svg";
 import closeIcon from "@/assets/svg/line-general-x-close.svg";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
@@ -20,24 +20,26 @@ type Props = {
 export const SearchBox = (props: Props) => {
   const { placeholder, value, onChange, changeDebounce = 300 } = props;
   const [localValue, setLocalValue] = useState(value);
-
   const onChangeDebounced = useDebouncedCallback(onChange, changeDebounce);
-
   const handleChange = (e: Event) => {
     const newValue = (e.target as HTMLInputElement).value;
 
     setLocalValue(newValue);
     onChangeDebounced(newValue);
   };
-
   const handleClear = (e: PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setLocalValue("");
     onChangeDebounced("");
   };
-
   const showClear = !!localValue;
+
+  useEffect(() => {
+    if (localValue !== value) {
+      setLocalValue(value);
+    }
+  }, [value]);
 
   return (
     <Text className={styles.inputWrap} type="ui" size="m" tag="div">

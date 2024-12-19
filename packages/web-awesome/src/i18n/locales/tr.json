@@ -60,7 +60,9 @@
     "status-desc-short": "Ters"
   },
   "empty": {
-    "no-results": "Sonuç bulunamadı",
+    "no-results": "Sonuç yok",
+    "no-tests-found": "Sonuç bulunamadı",
+    "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil"

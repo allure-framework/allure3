@@ -1,6 +1,5 @@
 import { type ComponentChildren, createContext } from "preact";
 import { useCallback, useContext, useReducer } from "preact/hooks";
-import { capitalize } from "@/utils/capitalize";
 
 export type SortBy = "order" | "duration" | "status" | "alphabet";
 export type Direction = "asc" | "desc";

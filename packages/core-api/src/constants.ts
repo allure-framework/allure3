@@ -1,6 +1,7 @@
 import type { Statistic } from "./aggregate.js";
 import type { TestStatus } from "./model.js";
 
+// TODO: use as a type in the tree filter store
 export const statusesList: TestStatus[] = ["failed", "broken", "passed", "skipped", "unknown"];
 
 export const unsuccessfulStatuses = new Set<TestStatus>(["failed", "broken"]);
