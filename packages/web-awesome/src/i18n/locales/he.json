@@ -60,7 +60,9 @@
     "status-desc-short": "הפוך"
   },
   "empty": {
-    "no-results": "לא נמצאו תוצאות",
+    "no-results": "אין תוצאות",
+    "no-tests-found": "לא נמצאו תוצאות",
+    "clear-filters": "נקה מסננים",
     "no-attachments-results": "לא נמצאה מידע על קבצים מצורפים",
     "no-history-results": "לא נמצאה מידע על היסטוריה",
     "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים"

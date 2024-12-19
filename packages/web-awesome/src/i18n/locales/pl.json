@@ -57,7 +57,9 @@
     "status-desc-short": "Domyślnie"
   },
   "empty": {
-    "no-results": "Nie znaleziono wyników",
+    "no-results": "Brak wyników",
+    "no-tests-found": "Nie znaleziono wyników",
+    "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-history-results": "Brak dostępnych informacji o historii",
     "no-retries-results": "Brak dostępnych informacji o ponownych próbach"

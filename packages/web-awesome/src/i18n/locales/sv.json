@@ -60,7 +60,9 @@
     "status-desc-short": "Omvänd"
   },
   "empty": {
-    "no-results": "Inga resultat hittades",
+    "no-results": "Inga resultat",
+    "no-tests-found": "Inga resultat hittades",
+    "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-history-results": "Ingen historik information tillgänglig",
     "no-retries-results": "Ingen omtagningar information tillgänglig"

@@ -122,6 +122,12 @@ export const createTreeByLabels = (data: TestResult[], labelNames: string[]) => 
   );
 };
 
+/**
+ * Mutates the given tree by sorting leaves in each group.
+ * Returns the link to the same tree.
+ * @param tree
+ * @param comparator
+ */
 export const sortTree = <L, G>(tree: TreeData<L, G>, comparator: Comparator<TreeLeaf<L>>) => {
   const { root, leavesById, groupsById } = tree;
   const sortGroupLeaves = (group: TreeGroup<G>) => {
@@ -152,6 +158,12 @@ export const sortTree = <L, G>(tree: TreeData<L, G>, comparator: Comparator<Tree
   return tree;
 };
 
+/**
+ * Mutates the given tree by applying the transformer function to each leaf.
+ * Returns the link to the same tree.
+ * @param tree
+ * @param transformer
+ */
 export const transformTree = <L, G>(
   tree: TreeData<L, G>,
   transformer: (leaf: TreeLeaf<L>, idx: number) => TreeLeaf<L>,

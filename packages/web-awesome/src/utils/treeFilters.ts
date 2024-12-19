@@ -1,11 +1,5 @@
-import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
 import type { TreeFiltersState } from "@/stores/tree";
-import type {
-  AllureAwesomeOrderedTree,
-  AllureAwesomeTree,
-  AllureAwesomeTreeGroup,
-  AllureAwesomeTreeLeaf,
-} from "../../types";
+import type { AllureAwesomeOrderedTree, AllureAwesomeTree, AllureAwesomeTreeGroup } from "../../types";
 
 const statusOrder = {
   failed: 1,
@@ -86,4 +80,16 @@ export const fillTree = (payload: {
         }),
       ),
   };
+};
+
+export const isFilledTreeEmpty = (tree: AllureAwesomeTreeGroup) => {
+  if (!tree.groups?.length && !tree.leaves?.length) {
+    return true;
+  }
+
+  if (tree.leaves?.length) {
+    return false;
+  }
+
+  return tree.groups?.every((group) => isFilledTreeEmpty(group));
 };

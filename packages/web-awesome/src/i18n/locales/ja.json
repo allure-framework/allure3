@@ -60,7 +60,9 @@
     "status-desc-short": "逆順"
   },
   "empty": {
-    "no-results": "結果が見つかりません",
+    "no-results": "結果がありません",
+    "no-tests-found": "結果が見つかりません",
+    "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
     "no-retries-results": "再試行情報が利用できません"

@@ -159,14 +159,16 @@
 }
 
 .tree-empty-results {
-  display: flex;
   padding: 44px 24px;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
 .tree-empty-results-title {
   color: var(--on-text-secondary);
+}
+
+.tree-empty-results-clear-button {
+  margin-top: 4px;
 }
 
 .order {

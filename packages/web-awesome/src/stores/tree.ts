@@ -1,7 +1,7 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-import { fillTree } from "@/utils/treeFilters";
+import { fillTree, isFilledTreeEmpty } from "@/utils/treeFilters";
 import type { AllureAwesomeStatus } from "../../types";
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
@@ -21,6 +21,8 @@ export const treeStore = signal<StoreSignalState<any>>({
   data: undefined,
 });
 
+export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
+
 export const treeFiltersStore = signal<TreeFiltersState>({
   query: "",
   status: "total",
@@ -32,6 +34,35 @@ export const treeFiltersStore = signal<TreeFiltersState>({
   sortBy: "order",
   direction: "asc",
 });
+
+export const filteredTree = computed(() => {
+  const { root, leavesById, groupsById } = treeStore.value.data;
+
+  return fillTree({
+    group: root,
+    leavesById,
+    groupsById,
+    filterOptions: treeFiltersStore.value,
+  });
+});
+
+export const noTestsFound = computed(() => {
+  return isFilledTreeEmpty(filteredTree.value);
+});
+
+export const clearTreeFilters = () => {
+  treeFiltersStore.value = {
+    query: "",
+    status: "total",
+    filter: {
+      flaky: false,
+      retry: false,
+      new: false,
+    },
+    sortBy: "order",
+    direction: "asc",
+  };
+};
 
 export const setTreeQuery = (query: string) => {
   treeFiltersStore.value = {
@@ -70,17 +101,6 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
     },
   };
 };
-
-export const filteredTree = computed(() => {
-  const { root, leavesById, groupsById } = treeStore.value.data;
-
-  return fillTree({
-    group: root,
-    leavesById,
-    groupsById,
-    filterOptions: treeFiltersStore.value,
-  });
-});
 
 export const fetchTreeData = async (treeName: string) => {
   treeStore.value = {

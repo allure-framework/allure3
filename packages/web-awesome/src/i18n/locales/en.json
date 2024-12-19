@@ -60,7 +60,9 @@
     "status-desc-short": "Reversed"
   },
   "empty": {
-    "no-results": "No results found",
+    "no-results": "No results",
+    "no-tests-found": "No results found",
+    "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
     "no-history-results": "No history information available",
     "no-retries-results": "No retries information available"

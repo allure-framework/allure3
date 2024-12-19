@@ -61,6 +61,8 @@
   },
   "empty": {
     "no-results": "Nəticə tapılmadı",
+    "no-tests-found": "Nəticə tapılmadı",
+    "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Əlavə məlumatı mövcud deyil",
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
     "no-retries-results": "Təkrar məlumatı mövcud deyil"
