@@ -1,4 +1,6 @@
 import type {
+  RawStep,
+  RawTestAttachment,
   RawTestParameter,
   RawTestStatus,
   RawTestStepResult,
@@ -91,6 +93,7 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: { name?: string
     steps: stepsElement,
     start: startElement,
     stop: stopElement,
+    attachments: attachmentsElement,
   } = testCase;
 
   const name = ensureString(nameElement);
@@ -99,7 +102,7 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: { name?: string
 
   const { message, trace } = parseFailure(failureElement);
   const parameters = parseParameters(parametersElement);
-  const steps = parseSteps(stepsElement);
+  const steps: RawStep[] = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
   await visitor.visitTestResult(
     { name, status, start, stop, duration, message, trace, parameters, steps },
@@ -145,6 +148,29 @@ const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
       duration,
       steps,
       type: "step",
+    };
+  });
+};
+
+const parseAttachments = (element: unknown): RawTestAttachment[] | undefined => {
+  console.log(element);
+  if (!isStringAnyRecord(element)) {
+    return undefined;
+  }
+
+  const { attachment: attachmentElement } = element;
+  if (!isStringAnyRecordArray(attachmentElement)) {
+    return undefined;
+  }
+
+  console.log(attachmentElement);
+  return attachmentElement.map((attachment: Record<any, string>) => {
+    const { title, source, type } = attachment;
+    return {
+      type: "attachment",
+      name: ensureString(title),
+      originalFileName: ensureString(source),
+      contentType: ensureString(type),
     };
   });
 };
