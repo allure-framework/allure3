@@ -83,20 +83,21 @@ type PostProcessedStep = { preProcessedStep: PreProcessedStep; allureStep: RawTe
 export const cucumberjson: ResultsReader = {
   read: async (visitor, data) => {
     const originalFileName = data.getOriginalFileName();
-    try {
-      const parsed = await data.asJson<CucumberFeature[]>();
-      if (parsed) {
-        let oneOrMoreFeaturesParsed = false;
-        for (const feature of parsed) {
-          oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
+    if (originalFileName.endsWith(".json")) {
+      try {
+        const parsed = await data.asJson<CucumberFeature[]>();
+        if (parsed) {
+          let oneOrMoreFeaturesParsed = false;
+          for (const feature of parsed) {
+            oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
+          }
+          return oneOrMoreFeaturesParsed;
         }
-        return oneOrMoreFeaturesParsed;
+      } catch (e) {
+        console.error("error parsing", originalFileName, e);
+        return false;
       }
-    } catch (e) {
-      console.error("error parsing", originalFileName, e);
-      return false;
     }
-
     return false;
   },
 

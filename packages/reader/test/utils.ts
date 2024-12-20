@@ -31,14 +31,18 @@ export const mockVisitor: () => Mocked<ResultsVisitor> = () => ({
   visitTestFixtureResult: vi.fn<ResultsVisitor["visitTestFixtureResult"]>(),
 });
 
-export const readResults = async (reader: ResultsReader, files: Record<string, string> = {}) => {
+export const readResults = async (
+  reader: ResultsReader,
+  files: Record<string, string> = {},
+  result: boolean = true,
+) => {
   return step("readResults", async () => {
     const visitor = mockVisitor();
     for (const filesKey in files) {
       const resultFile = await readResourceAsResultFile(filesKey, files[filesKey]);
       await attachResultFile(resultFile);
       const read = await reader.read(visitor, resultFile);
-      expect(read).toBe(true);
+      expect(read).toBe(result);
     }
     return visitor;
   });

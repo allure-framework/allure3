@@ -6,6 +6,17 @@ import { readResults } from "./utils.js";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 describe("cucumberjson reader", () => {
+  it("should ignore a file with no .json extension", async () => {
+    const visitor = await readResults(
+      cucumberjson,
+      {
+        "cucumberjsondata/reference/names/wellDefined.json": "cucumber",
+      },
+      false,
+    );
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(0);
+  });
+
   // As implemented in https://github.com/cucumber/cucumber-ruby or https://github.com/cucumber/json-formatter (which
   // uses cucumber-ruby as the reference for its tests).
   describe("reference", () => {
