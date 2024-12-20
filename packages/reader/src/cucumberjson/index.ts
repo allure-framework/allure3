@@ -13,9 +13,11 @@ import { randomUUID } from "node:crypto";
 import { ensureArray, ensureInt, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
 import type {
   CucumberDatatableRow,
+  CucumberDocString,
   CucumberEmbedding,
   CucumberFeature,
   CucumberFeatureElement,
+  CucumberJsStepArgument,
   CucumberStep,
   CucumberTag,
 } from "./model.js";
@@ -159,28 +161,48 @@ const preProcessOneStep = async (visitor: ResultsVisitor, step: CucumberStep): P
 
 const processStepAttachments = async (visitor: ResultsVisitor, step: CucumberStep) =>
   [
-    await processStepDocStringAttachment(visitor, step),
-    await processStepDataTableAttachment(visitor, step),
+    await processStepDocStringAttachment(visitor, step.doc_string),
+    await processStepDataTableAttachment(visitor, step.rows),
+    ...(await processCucumberJsStepArguments(visitor, step.arguments as CucumberJsStepArgument[])),
     ...(await processStepEmbeddingAttachments(visitor, step)),
   ].filter((s): s is RawTestAttachment => typeof s !== "undefined");
 
-const processStepDocStringAttachment = async (
-  visitor: ResultsVisitor,
-  { doc_string: docString }: CucumberStep,
-): Promise<RawTestAttachment | undefined> => {
+const processStepDocStringAttachment = async (visitor: ResultsVisitor, docString: CucumberDocString | undefined) => {
   if (docString) {
-    const { value, content_type: contentType } = docString;
-    if (value && value.trim()) {
-      return await visitBufferAttachment(visitor, "Description", Buffer.from(value), contentType || "text/markdown");
+    const { value, content, content_type: contentType } = docString;
+    const resolvedValue = ensureString(value ?? content);
+    if (resolvedValue && resolvedValue.trim()) {
+      return await visitBufferAttachment(
+        visitor,
+        "Description",
+        Buffer.from(resolvedValue),
+        ensureString(contentType) || "text/markdown",
+      );
     }
   }
 };
 
-const processStepDataTableAttachment = async (visitor: ResultsVisitor, { rows }: CucumberStep) => {
+const processStepDataTableAttachment = async (visitor: ResultsVisitor, rows: unknown) => {
   if (isArray(rows)) {
     const content = formatDataTable(rows);
     return await visitBufferAttachment(visitor, "Data", Buffer.from(content), "text/csv");
   }
+};
+
+const processCucumberJsStepArguments = async (visitor: ResultsVisitor, stepArguments: unknown) => {
+  const attachments = [];
+  if (isArray(stepArguments)) {
+    for (const stepArgument of stepArguments) {
+      if (isNonNullObject<CucumberJsStepArgument>(stepArgument)) {
+        if ("content" in stepArgument) {
+          attachments.push(await processStepDocStringAttachment(visitor, stepArgument));
+        } else if ("rows" in stepArgument) {
+          attachments.push(await processStepDataTableAttachment(visitor, stepArgument.rows));
+        }
+      }
+    }
+  }
+  return attachments;
 };
 
 const processStepEmbeddingAttachments = async (visitor: ResultsVisitor, { embeddings }: CucumberStep) => {

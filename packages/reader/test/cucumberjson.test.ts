@@ -772,6 +772,23 @@ describe("cucumberjson reader", () => {
           });
         });
 
+        it("should ignore a step's doc string with an ill-formed value", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/docstrings/valueInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
+        });
+
         it("should ignore a step's empty doc string", async () => {
           const visitor = await readResults(cucumberjson, {
             "cucumberjsondata/reference/docstrings/emptyValue.json": "cucumber.json",
@@ -809,6 +826,33 @@ describe("cucumberjson reader", () => {
         it("should parse a step's doc string with an empty content type", async () => {
           const visitor = await readResults(cucumberjson, {
             "cucumberjsondata/reference/docstrings/emptyContentType.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual("Lorem Ipsum");
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Description",
+                    contentType: "text/markdown", // fallback to markdown
+                    originalFileName: attachment.getOriginalFileName(),
+                  },
+                ],
+              },
+            ],
+          });
+        });
+
+        it("should parse a step's doc string with an ill-formed content type", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/reference/docstrings/contentTypeInvalid.json": "cucumber.json",
           });
 
           expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -1301,6 +1345,170 @@ describe("cucumberjson reader", () => {
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
         expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
           steps: [{ name: "Then pass" }],
+        });
+      });
+    });
+  });
+
+  describe("cucumberjs", () => {
+    describe("step arguments", () => {
+      describe("docstrings", () => {
+        it("should parse a step's doc string", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/docStringWellDefined.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual("Lorem Ipsum");
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Description",
+                    contentType: "text/markdown",
+                    originalFileName: attachment.getOriginalFileName(),
+                  },
+                ],
+              },
+            ],
+          });
+        });
+
+        it("should parse a step's data table", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/dataTableWellDefined.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+          const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          const content = await attachment.asUtf8String();
+          expect(content).toEqual('"col1","col2"\r\n"val1","val2"');
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Data",
+                    contentType: "text/csv",
+                    originalFileName: attachment.getOriginalFileName(),
+                  },
+                ],
+              },
+            ],
+          });
+        });
+
+        it("should parse multiple arguments", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/twoWellDefinedArguments.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(2);
+          const docStringAttachment = visitor.visitAttachmentFile.mock.calls[0][0];
+          const dataTableAttachment = visitor.visitAttachmentFile.mock.calls[1][0];
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          const docStringContent = await docStringAttachment.asUtf8String();
+          const dataTableContent = await dataTableAttachment.asUtf8String();
+          expect(docStringContent).toEqual("Lorem Ipsum");
+          expect(dataTableContent).toEqual('"col1","col2"\r\n"val1","val2"');
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Description",
+                    contentType: "text/markdown",
+                    originalFileName: docStringAttachment.getOriginalFileName(),
+                  },
+                  {
+                    type: "attachment",
+                    name: "Data",
+                    contentType: "text/csv",
+                    originalFileName: dataTableAttachment.getOriginalFileName(),
+                  },
+                ],
+              },
+            ],
+          });
+        });
+
+        it("should ignore an invalid step arguments property", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/argumentsPropertyInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
+        });
+
+        it("should ignore a invalid step arguments", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/argumentInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
+        });
+
+        it("should ignore a step's doc string with a missing content", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/docStringContentMissing.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
+        });
+
+        it("should ignore a step's doc string with an ill-formed content", async () => {
+          const visitor = await readResults(cucumberjson, {
+            "cucumberjsondata/cucumberjs/stepArguments/docStringContentInvalid.json": "cucumber.json",
+          });
+
+          expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+          expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+          const test = visitor.visitTestResult.mock.calls[0][0];
+          expect(test).toMatchObject({
+            steps: [
+              {
+                steps: [],
+              },
+            ],
+          });
         });
       });
     });
