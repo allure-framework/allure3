@@ -1,4 +1,4 @@
-import { ensureReportDataReady } from "@allurereport/web-commons";
+import { ensureReportDataReady, getReportOptions } from "@allurereport/web-commons";
 import { useEffect } from "preact/compat";
 import { Footer } from "@/components/app/Footer";
 import MainReport from "@/components/app/MainReport";
@@ -6,11 +6,12 @@ import Modal from "@/components/app/Modal";
 import TestResult from "@/components/app/TestResult";
 import { Loadable } from "@/components/commons/Loadable";
 import { PageLoader } from "@/components/commons/PageLoader";
-import { fetchStats, getTheme, getLocale } from "@/stores";
+import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { fetchTreeData, treeStore } from "@/stores/tree";
+import type { AllureAwesomeReportOptions } from "../../../../types";
 import * as styles from "./styles.scss";
 
 export const BaseLayout = ({ testResultId }) => {
@@ -24,11 +25,13 @@ export const BaseLayout = ({ testResultId }) => {
       fetchTestResult(testResultId);
       fetchTestResultNav();
     } else {
+      const { groupBy = "suite" } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
+
       Promise.all([
         ensureReportDataReady(),
         fetchStats(),
         fetchPieChartData(),
-        fetchTreeData("suites"),
+        fetchTreeData(groupBy),
         fetchEnvInfo(),
       ]);
     }

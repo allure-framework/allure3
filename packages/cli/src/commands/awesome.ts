@@ -10,6 +10,7 @@ type AwesomeCommandOptions = {
   singleFile?: boolean;
   historyPath?: string;
   knownIssues?: string;
+  groupBy?: string;
 };
 
 export const AwesomeCommandAction = async (resultsDir: string, options: AwesomeCommandOptions) => {
@@ -90,6 +91,13 @@ export const AwesomeCommand = createCommand({
         description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
       },
     ],
+    [
+      "--group-by, -g <string>",
+      {
+        description: "Group test results by label, e.g. suite, feature, package, story, epic etc.",
+        default: "suite",
+      }
+    ]
   ],
   action: AwesomeCommandAction,
 });

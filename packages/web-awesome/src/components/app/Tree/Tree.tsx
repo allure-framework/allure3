@@ -3,8 +3,6 @@ import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import TreeItem from "@/components/app/Tree/TreeItem";
-import { Text } from "@/components/commons/Typography";
-import { useI18n } from "@/stores";
 import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus } from "../../../../types";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
@@ -18,7 +16,6 @@ interface TreeProps {
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
-  const { t } = useI18n("empty");
   const [isOpened, setIsOpen] = useState(statistic === undefined || !!statistic.failed || !!statistic.broken);
   const toggleTree = () => {
     setIsOpen(!isOpened);

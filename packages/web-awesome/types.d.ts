@@ -14,6 +14,7 @@ export type AllureAwesomeReportOptions = {
   reportName?: string;
   logo?: string;
   theme?: "light" | "dark";
+  groupBy?: string;
   reportLanguage?: "en" | "ru";
   createdAt: number;
   reportUuid: string;
