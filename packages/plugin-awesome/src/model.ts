@@ -4,7 +4,7 @@ export type AllureAwesomeOptions = {
   logo?: string;
   theme?: "light" | "dark";
   reportLanguage?: "en" | "ru";
-  groupBy?: string;
+  groupBy?: string[];
   ci?: {
     type: "github" | "jenkins";
     url: string;

@@ -102,7 +102,7 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
   };
 };
 
-export const fetchTreeData = async (treeName: string) => {
+export const fetchTreeData = async () => {
   treeStore.value = {
     ...treeStore.value,
     loading: true,
@@ -110,7 +110,7 @@ export const fetchTreeData = async (treeName: string) => {
   };
 
   try {
-    const res = await fetchReportJsonData<AllureAwesomeTree>(`widgets/${treeName}.json`);
+    const res = await fetchReportJsonData<AllureAwesomeTree>("widgets/tree.json");
 
     treeStore.value = {
       data: res,

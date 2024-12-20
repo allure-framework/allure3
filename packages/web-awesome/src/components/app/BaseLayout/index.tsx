@@ -11,7 +11,6 @@ import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { fetchTreeData, treeStore } from "@/stores/tree";
-import type { AllureAwesomeReportOptions } from "../../../../types";
 import * as styles from "./styles.scss";
 
 export const BaseLayout = ({ testResultId }) => {
@@ -25,13 +24,11 @@ export const BaseLayout = ({ testResultId }) => {
       fetchTestResult(testResultId);
       fetchTestResultNav();
     } else {
-      const { groupBy = "suite" } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-
       Promise.all([
         ensureReportDataReady(),
         fetchStats(),
         fetchPieChartData(),
-        fetchTreeData(groupBy),
+        fetchTreeData(),
         fetchEnvInfo(),
       ]);
     }

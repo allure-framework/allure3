@@ -226,7 +226,7 @@ test.describe("features", () => {
         knownIssuesPath: undefined,
       },
       pluginConfig: {
-        groupBy: "feature",
+        groupBy: ["feature"],
       },
       testResults: [
         {
@@ -235,9 +235,7 @@ test.describe("features", () => {
           status: Status.PASSED,
           stage: Stage.FINISHED,
           start: 1000,
-          labels: [
-            { name: "feature", value: "foo" },
-          ],
+          labels: [{ name: "feature", value: "foo" }],
         },
         {
           name: "1 sample failed test",
@@ -262,7 +260,7 @@ test.describe("features", () => {
     await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
     await parentGroupHeader.getByTestId("tree-arrow").click();
 
-    await page.pause()
+    await page.pause();
 
     await expect(treeLeaves).toHaveCount(2);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
@@ -283,7 +281,7 @@ test.describe("stories", () => {
         knownIssuesPath: undefined,
       },
       pluginConfig: {
-        groupBy: "story",
+        groupBy: ["story"],
       },
       testResults: [
         {
@@ -292,9 +290,7 @@ test.describe("stories", () => {
           status: Status.PASSED,
           stage: Stage.FINISHED,
           start: 1000,
-          labels: [
-            { name: "story", value: "foo" },
-          ],
+          labels: [{ name: "story", value: "foo" }],
         },
         {
           name: "1 sample failed test",
@@ -319,7 +315,7 @@ test.describe("stories", () => {
     await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
     await parentGroupHeader.getByTestId("tree-arrow").click();
 
-    await page.pause()
+    await page.pause();
 
     await expect(treeLeaves).toHaveCount(2);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");

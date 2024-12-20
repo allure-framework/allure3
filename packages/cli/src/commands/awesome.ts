@@ -15,7 +15,7 @@ type AwesomeCommandOptions = {
 
 export const AwesomeCommandAction = async (resultsDir: string, options: AwesomeCommandOptions) => {
   const before = new Date().getTime();
-  const { output, reportName: name, historyPath, knownIssues: knownIssuesPath, ...rest } = options;
+  const { output, reportName: name, historyPath, knownIssues: knownIssuesPath, groupBy, ...rest } = options;
   const config = await resolveConfig({
     output,
     name,
@@ -23,7 +23,10 @@ export const AwesomeCommandAction = async (resultsDir: string, options: AwesomeC
     knownIssuesPath,
     plugins: {
       "@allurereport/plugin-awesome": {
-        options: rest,
+        options: {
+          ...rest,
+          groupBy: groupBy?.split(","),
+        },
       },
     },
   });
@@ -94,8 +97,8 @@ export const AwesomeCommand = createCommand({
     [
       "--group-by, -g <string>",
       {
-        description: "Group test results by label, e.g. suite, feature, package, story, epic etc.",
-        default: "suite",
+        description: "Group test results by labels. The labels should be separated by commas",
+        default: "parentSuite,suite,subSuite",
       }
     ]
   ],

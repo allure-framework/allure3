@@ -1,7 +1,7 @@
 import { TestResult, TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createTreeByLabels, filterTree, sortTree, transformTree } from "../src/index.js";
+import { createTreeByLabels, filterTree, filterTreeLabels, sortTree, transformTree } from "../src/index.js";
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),
@@ -295,5 +295,53 @@ describe("tree filtering", () => {
         g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l6"] },
       },
     });
+  });
+});
+
+describe("filterTreeLabels", () => {
+  it("returns labels that exist in the given test results", () => {
+    expect(
+      filterTreeLabels(
+        [
+          {
+            labels: [
+              { name: "parentSuite", value: "foo" },
+              {
+                name: "suite",
+                value: "bar",
+              },
+              { name: "subSuite", value: "baz" },
+            ],
+          } as TestResult,
+        ],
+        ["parentSuite", "suite", "subSuite"],
+      ),
+    ).toEqual(["parentSuite", "suite", "subSuite"]);
+    expect(
+      filterTreeLabels(
+        [
+          {
+            labels: [
+              {
+                name: "suite",
+                value: "bar",
+              },
+              { name: "subSuite", value: "baz" },
+            ],
+          } as TestResult,
+        ],
+        ["parentSuite", "suite", "subSuite"],
+      ),
+    ).toEqual(["suite", "subSuite"]);
+    expect(
+      filterTreeLabels(
+        [
+          {
+            labels: [{ name: "subSuite", value: "baz" }],
+          } as TestResult,
+        ],
+        ["parentSuite", "suite", "subSuite"],
+      ),
+    ).toEqual(["subSuite"]);
   });
 });
