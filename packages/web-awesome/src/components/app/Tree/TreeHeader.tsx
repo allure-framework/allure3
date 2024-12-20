@@ -62,9 +62,9 @@ const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
           : null;
 
         return (
-          <div {...rest} className={styles["tree-header"]} onClick={toggleTree}>
-            <ArrowButton isOpened={isOpened} />
-            <Text size="m" bold className={styles["tree-header-title"]}>
+          <div data-testid="tree-header" {...rest} className={styles["tree-header"]} onClick={toggleTree}>
+            <ArrowButton data-testid="tree-arrow" isOpened={isOpened} />
+            <Text data-testid="tree-header-title" size="m" bold className={styles["tree-header-title"]}>
               {categoryTitle}
             </Text>
             {treeHeaderBar && (

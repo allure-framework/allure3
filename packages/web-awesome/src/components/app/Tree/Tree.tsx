@@ -28,6 +28,7 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
 
   const treeContent = isOpened && (
     <div
+      data-testid="tree-content"
       className={cx({
         [styles["tree-content"]]: true,
         [styles.root]: root,
@@ -64,7 +65,6 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
           isOpened={isOpened}
           toggleTree={toggleTree}
           statistic={statistic}
-          data-testid="tree-group-header"
         />
       )}
       {treeContent}

@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { FunctionalComponent } from "preact";
+import type { FunctionalComponent } from "preact";
 import lineChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import { SvgIcon } from "@/components/commons/SvgIcon";
 import * as styles from "./styles.scss";
@@ -18,9 +18,10 @@ export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({
   iconSize = "xs",
   className,
   icon,
+  ...rest
 }) => {
   return (
-    <button className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])}>
+    <button className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])} {...rest}>
       <SvgIcon
         id={icon || lineChevronDown.id}
         size={iconSize}

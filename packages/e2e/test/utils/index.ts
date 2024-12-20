@@ -35,7 +35,7 @@ export const generateTestResults = async (payload: GeneratorParams) => {
       {
         id: "awesome",
         enabled: true,
-        plugin: new AllureAwesomePlugin({}),
+        plugin: new AllureAwesomePlugin(pluginConfig),
         options: {
           ...pluginConfig,
         },
