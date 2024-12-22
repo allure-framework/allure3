@@ -1,1 +1,1 @@
-yarn test
+yarn lint-staged

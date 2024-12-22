@@ -40,7 +40,7 @@
   font-weight: 400;
 }
 
-.test-result-nav-next {
+.test-result-nav-prev {
   transform: rotate(-180deg);
   &:active {
     transform: scale(var(--allure-btn-pressed-scale)) rotate(-180deg);
