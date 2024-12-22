@@ -8,7 +8,6 @@ import {
   type TreeLeaf,
   type WithChildren,
   findByLabelName,
-  reverse,
 } from "@allurereport/core-api";
 import { emptyStatistic, incrementStatistic } from "@allurereport/core-api";
 import { md5 } from "./misc.js";

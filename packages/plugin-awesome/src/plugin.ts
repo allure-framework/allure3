@@ -1,4 +1,4 @@
-import { type EnvironmentItem, findByLabelName } from "@allurereport/core-api";
+import { type EnvironmentItem } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
