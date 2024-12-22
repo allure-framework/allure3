@@ -25,11 +25,11 @@ import {
  * ```js
  * import allure from "allure";
  *
- * allure(["run", "--", "npm", "test"]);     // equivalent to `allure run -- npm test`
- * allure(["generate", "./allure-results"]); // equivalent to `allure generate ./allure-results`
+ * allure("run -- npm test"]);          // equivalent to `allure run -- npm test`
+ * allure("generate ./allure-results"); // equivalent to `allure generate ./allure-results`
  * ```
  */
-const run = (argv: string[]) => {
+const run = (argv: string) => {
   const pkg: { name: string; description: string; version: string } = JSON.parse(
     readFileSync(new URL("../package.json", import.meta.url), "utf8"),
   );
@@ -61,7 +61,7 @@ const run = (argv: string[]) => {
 
   console.log(cwd());
 
-  cli.parse(["", "", ...argv]);
+  cli.parse(["", "", ...argv.split(" ")]);
 };
 
 export { defineConfig } from "@allurereport/plugin-api";
