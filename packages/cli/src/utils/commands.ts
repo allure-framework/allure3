@@ -22,6 +22,7 @@ export const createCommand = (payload: CreateCommandOptions) => {
   if (!payload.name) {
     throw new Error("Command name is not provided!");
   }
+
   if (!payload.action) {
     throw new Error("Command action is not provided!");
   }
