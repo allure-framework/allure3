@@ -18,6 +18,17 @@ import {
   WatchCommand,
 } from "./commands/index.js";
 
+/**
+ * Programmatic entry point for the Allure 3 CLI
+ * @param argv the array of arguments which already doesn't includes the node binary and the script path (the first two elements)
+ * @example
+ * ```js
+ * import allure from "allure";
+ *
+ * allure(["run", "--", "npm", "test"]);     // equivalent to `allure run -- npm test`
+ * allure(["generate", "./allure-results"]); // equivalent to `allure generate ./allure-results`
+ * ```
+ */
 const run = (argv: string[]) => {
   const pkg: { name: string; description: string; version: string } = JSON.parse(
     readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -50,7 +61,7 @@ const run = (argv: string[]) => {
 
   console.log(cwd());
 
-  cli.parse(argv);
+  cli.parse(["", "", ...argv]);
 };
 
 export { defineConfig } from "@allurereport/plugin-api";
