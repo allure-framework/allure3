@@ -1,0 +1,71 @@
+pre[class*="language-"],
+code[class*="language-"] {
+  background: var(--bg-base-secondary);
+  font-size: 12px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--on-text-primary);
+  text-shadow: none !important;
+  margin: 0;
+}
+
+.toolbar {
+  display: none;
+}
+
+.token.number {
+  color: var(--on-support-aldebaran);
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: var(--on-support-atlas);
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: var(--on-support-castor);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--on-support-sirius);
+}
+
+.token.function,
+.token.class-name {
+  color: var(--on-support-capella);
+}
+
+.token.punctuation {
+  color: var(--on-text-primary);
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: var(--on-support-atlas);
+}
+
+.line-numbers,
+.line-numbers-rows {
+  border-right: none;
+  color: var(--on-text-hint);
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: var(--on-text-primary);
+  background: none;
+}

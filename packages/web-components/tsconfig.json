@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["./src"],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "declaration": true,
+    "declarationMap": true, // Карты для деклараций
+    "esModuleInterop": true,
+    "lib": [
+      "ES2019",
+      "dom"
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "declarationDir": "./dist/types",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "ESNext",
+    "types": [],
+  },
+  "exclude": ["node_modules",".yarn","**/*.stories.tsx"],
+
+}

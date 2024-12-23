@@ -1,0 +1,26 @@
+@mixin status-bg-and-text {
+  &.status-passed {
+    background-color: var(--bg-support-castor);
+    color: var(--constant-on-text-primary);
+  }
+
+  &.status-failed {
+    background-color: var(--bg-support-capella);
+    color: var(--constant-on-text-primary);
+  }
+
+  &.status-broken {
+    background-color: var(--bg-support-atlas);
+    color: var(--constant-on-text-primary);
+  }
+
+  &.status-skipped {
+    background-color: var(--bg-support-rau);
+    color: var(--constant-on-text-primary);
+  }
+
+  &.status-unknown {
+    background-color: var(--bg-support-skat);
+    color: var(--constant-on-text-primary);
+  }
+}
