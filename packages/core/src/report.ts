@@ -1,5 +1,5 @@
 import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, junitXml } from "@allurereport/reader";
+import { allure1, allure2, attachments, cucumberjson, junitXml } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -37,7 +37,7 @@ export class AllureReport {
   constructor(opts: FullConfig) {
     const {
       name,
-      readers = [allure1, allure2, junitXml, attachments],
+      readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
       history,
       known,

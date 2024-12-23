@@ -37,12 +37,14 @@ export type CucumberStep = {
   output?: string[];
   result: CucumberStepResult;
   rows?: unknown; // CucumberDatatableRow[]
+  arguments?: unknown; // CucumberJsStepArgument[]; Cucumber-JS
 };
 
 export type CucumberDocString = {
   content_type?: string;
   line?: number;
   value?: string;
+  content?: string; // Cucumber-JS
 };
 
 export type CucumberDatatableRow = {
@@ -69,3 +71,5 @@ export type CucumberEmbedding = {
   mime_type: unknown; // string
   name?: unknown; // string; Cucumber-JVM: https://github.com/cucumber/cucumber-jvm/pull/1693
 };
+
+export type CucumberJsStepArgument = CucumberDocString | { rows: CucumberDatatableRow[] };
