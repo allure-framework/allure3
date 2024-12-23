@@ -24,6 +24,7 @@ export const Filters = () => {
             size="m"
             style="outline"
             isActive={isOpened}
+            data-testid="filters-button"
             onClick={onClick}
           />
         </div>
@@ -43,6 +44,7 @@ export const Filters = () => {
                 focusable={false}
                 value={flaky}
                 label={t("enable-filter", { filter: t("flaky") })}
+                data-testid="flaky-filter"
                 onChange={(value) => setTreeFilter("flaky", value)}
               />
             </div>
@@ -61,6 +63,7 @@ export const Filters = () => {
                 focusable={false}
                 value={retry}
                 label={t("enable-filter", { filter: t("retry") })}
+                data-testid="retry-filter"
                 onChange={(value) => setTreeFilter("retry", value)}
               />
             </div>
@@ -79,6 +82,7 @@ export const Filters = () => {
                 focusable={false}
                 value={isNew}
                 label={t("enable-filter", { filter: t("new") })}
+                data-testid="new-filter"
                 onChange={(value) => setTreeFilter("new", value)}
               />
             </div>

@@ -43,6 +43,7 @@ export const convertTestResult = (tr: TestResult): AllureAwesomeTestResult => {
     history: [],
     retries: [],
     breadcrumbs: [],
+    retry: false,
   };
 };
 

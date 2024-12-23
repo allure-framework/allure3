@@ -9,7 +9,7 @@ import {
   type WithChildren,
   findByLabelName,
 } from "@allurereport/core-api";
-import { emptyStatistic, incrementStatistic } from "@allurereport/core-api";
+import { emptyStatistic } from "@allurereport/core-api";
 import { md5 } from "./misc.js";
 
 const addLeaf = (node: WithChildren, nodeId: string) => {
@@ -108,26 +108,40 @@ export const filterTreeLabels = (data: TestResult[], labelNames: string[]) => {
     .reverse();
 };
 
-export const createTreeByLabels = (data: TestResult[], labelNames: string[]) => {
-  return createTree<TestResult, DefaultTreeLeaf, DefaultTreeGroup>(
+export const createTreeByLabels = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  labelNames: string[],
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
+  return createTree<T, L, G>(
     data,
-    (item) => byLabels(item, labelNames),
-    ({ id, name, status, duration, flaky, start }) => ({
-      nodeId: id,
-      name,
-      status,
-      duration,
-      flaky,
-      start,
-    }),
-    (parentId, groupClassifier) => ({
-      nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
-      name: groupClassifier,
-      statistic: emptyStatistic(),
-    }),
-    (group, leaf) => {
-      incrementStatistic(group.statistic, leaf.status);
-    },
+    (item) => byLabels(item as TestResult, labelNames),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
   );
 };
 

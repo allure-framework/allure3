@@ -147,6 +147,86 @@ test.describe("commons", () => {
   });
 });
 
+test.describe("filters", () => {
+  test.describe("retry", () => {
+    test.beforeAll(async () => {
+      bootstrap = await boostrapReport({
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          history: undefined,
+          historyPath: undefined,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 sample test",
+            fullName: "sample.js#0 sample test",
+            historyId: "foo",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 0,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+          {
+            name: "0 sample test",
+            fullName: "sample.js#0 sample test",
+            historyId: "foo",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+          {
+            name: "0 sample test",
+            fullName: "sample.js#0 sample test",
+            historyId: "foo",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 2000,
+          },
+          {
+            name: "1 sample test",
+            fullName: "sample.js#1 sample test",
+            historyId: "bar",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 3000,
+          },
+          {
+            name: "2 sample test",
+            fullName: "sample.js#2 sample test",
+            historyId: "baz",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 4000,
+          },
+        ],
+      });
+    });
+
+    test("shows only tests with retries", async ({ page }) => {
+      const treeLeaves = page.getByTestId("tree-leaf");
+
+      await expect(treeLeaves).toHaveCount(3);
+      await page.getByTestId("filters-button").click();
+      await page.getByTestId("retry-filter").click();
+
+      await expect(treeLeaves).toHaveCount(1);
+
+      await page.getByTestId("retry-filter").click();
+
+      await expect(treeLeaves).toHaveCount(3);
+    });
+  });
+});
+
 test.describe("suites", () => {
   test.beforeAll(async () => {
     bootstrap = await boostrapReport({

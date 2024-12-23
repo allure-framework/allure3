@@ -21,7 +21,7 @@ export const filterLeaves = (
       const statusMatched =
         !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
       const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
-      const retryMatched = !filterOptions?.filter?.retry || leaf?.retries?.length > 0;
+      const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
       // TODO: at this moment we don't have a new field implementation even in the generator
       // const newMatched = !filterOptions?.filter?.new || leaf.new;
 
@@ -66,10 +66,13 @@ export const createRecursiveTree = (payload: {
   filterOptions?: TreeFiltersState;
 }): AllureAwesomeRecursiveTree => {
   const { group, groupsById, leavesById, filterOptions } = payload;
+  const groupLeaves = group.leaves ?? [];
 
   return {
     ...group,
-    leaves: filterLeaves(group.leaves, leavesById, filterOptions),
+    // FIXME: don't have any idea, why eslint marks next line as unsafe because it actually has a correct type
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    leaves: filterLeaves(groupLeaves, leavesById, filterOptions),
     trees: group?.groups
       ?.filter((groupId) => {
         const subGroup = groupsById[groupId];

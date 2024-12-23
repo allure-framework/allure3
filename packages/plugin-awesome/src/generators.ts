@@ -2,8 +2,8 @@ import {
   type AttachmentLink,
   type EnvironmentItem,
   type Statistic,
-  type TestResult,
   compareBy,
+  incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
@@ -13,6 +13,8 @@ import type {
   AllureAwesomeFixtureResult,
   AllureAwesomeReportOptions,
   AllureAwesomeTestResult,
+  AllureAwesomeTreeGroup,
+  AllureAwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
 import {
   createBaseUrlScript,
@@ -118,6 +120,7 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
 
     convertedTr.history = await store.historyByTrId(tr.id);
     convertedTr.retries = await store.retriesByTrId(tr.id);
+    convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
@@ -144,16 +147,36 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
     "nav.json",
     convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
   );
+
+  return convertedTrs;
 };
 
 export const generateTree = async (
   writer: AllureAwesomeDataWriter,
   treeName: string,
   labels: string[],
-  tests: TestResult[],
+  tests: AllureAwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree = createTreeByLabels(visibleTests, labels);
+  const tree = createTreeByLabels<AllureAwesomeTestResult, AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>(
+    visibleTests,
+    labels,
+    ({ id, name, status, duration, flaky, start, retries }) => {
+      return {
+        nodeId: id,
+        retry: !!retries?.length,
+        name,
+        status,
+        duration,
+        flaky,
+        start,
+      };
+    },
+    undefined,
+    (group, leaf) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
+  );
 
   // @ts-ignore
   filterTree(tree, (leaf) => !leaf.hidden);

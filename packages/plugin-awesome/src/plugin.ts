@@ -22,19 +22,19 @@ export class AllureAwesomePlugin implements Plugin {
     const { singleFile, groupBy } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic();
-    const allTr = await store.allTestResults({ includeHidden: true });
     const attachments = await store.allAttachments();
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
+
+    const convertedTrs = await generateTestResults(this.#writer!, store);
+
     await generateTree(
       this.#writer!,
       "tree",
       groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
-      allTr,
+      convertedTrs,
     );
-
-    await generateTestResults(this.#writer!, store);
     await generateHistoryDataPoints(this.#writer!, store);
 
     if (environmentItems?.length) {

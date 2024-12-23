@@ -1,4 +1,4 @@
-import { TestResult, TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
+import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createTreeByLabels, filterTree, filterTreeLabels, sortTree, transformTree } from "../src/index.js";
@@ -39,6 +39,13 @@ const sampleTree = {
     g2: { nodeId: "g2", name: "2", groups: [], leaves: ["l5", "l6"] },
   },
 };
+const sampleLeafFactory = (tr: TestResult) => ({
+  nodeId: tr.id,
+  name: tr.name,
+  status: tr.status,
+  duration: tr.duration,
+  flaky: tr.flaky,
+});
 
 describe("tree builder", () => {
   it("should create empty tree", async () => {
@@ -54,7 +61,7 @@ describe("tree builder", () => {
   it("should create tree without groups", async () => {
     const tr1 = itResult({ name: "first" });
     const tr2 = itResult({ name: "second" });
-    const treeByLabels = createTreeByLabels([tr1, tr2], []);
+    const treeByLabels = createTreeByLabels([tr1, tr2], [], sampleLeafFactory);
 
     expect(treeByLabels.root.groups).toHaveLength(0);
     expect(treeByLabels.root.leaves).toContain(tr1.id);
@@ -92,7 +99,7 @@ describe("tree builder", () => {
         { name: "story", value: "A" },
       ],
     });
-    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["feature"]);
+    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["feature"], sampleLeafFactory);
 
     expect(treeByLabels.root.groups).toHaveLength(2);
     const rootGroup1 = treeByLabels.root.groups![0];
@@ -152,7 +159,7 @@ describe("tree builder", () => {
         { name: "story", value: "A" },
       ],
     });
-    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["feature"]);
+    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["feature"], sampleLeafFactory);
 
     expect(treeByLabels.root.leaves).toHaveLength(1);
     expect(treeByLabels.root.leaves).toContain(tr2.id);

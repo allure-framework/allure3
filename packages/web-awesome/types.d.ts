@@ -53,9 +53,12 @@ export type AllureAwesomeTestResult = Omit<
   breadcrumbs: AllureAwesomeBreadcrumbItem[];
   order?: number;
   groupOrder?: number;
+  retry: boolean;
 };
 
-export type AllureAwesomeTreeLeaf = AllureAwesomeTestResult & { nodeId: string };
+export type AllureAwesomeTreeLeaf = Pick<AllureAwesomeTestResult, "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"> & {
+  nodeId: string
+};
 
 export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 

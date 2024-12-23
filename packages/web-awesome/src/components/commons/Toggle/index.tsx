@@ -8,7 +8,7 @@ type Props = {
 };
 
 export const Toggle = (props: Props) => {
-  const { value, label, onChange, focusable = true } = props;
+  const { value, label, onChange, focusable = true, ...rest } = props;
 
   const handleChange = (e: Event) => {
     const newValue = !(e.target as HTMLInputElement).checked;
@@ -17,6 +17,7 @@ export const Toggle = (props: Props) => {
 
   return (
     <input
+      {...rest}
       tabIndex={focusable ? 0 : -1}
       className={styles.toggle}
       role="switch"

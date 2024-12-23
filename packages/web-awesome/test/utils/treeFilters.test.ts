@@ -1,4 +1,3 @@
-import { type TestResult } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
 import type { AllureAwesomeTestResult } from "../../types.js";
@@ -25,9 +24,9 @@ describe("utils > treeFilters", () => {
       const result = filterLeaves(leaves, leavesById);
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
       ]);
     });
 
@@ -55,10 +54,7 @@ describe("utils > treeFilters", () => {
         status: "passed",
       });
 
-      expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "c3", groupOrder: 2 }),
-      ]);
+      expect(result).toEqual([expect.objectContaining({ name: "a1" }), expect.objectContaining({ name: "c3" })]);
     });
 
     it("returns the flaky leaves", () => {
@@ -87,10 +83,7 @@ describe("utils > treeFilters", () => {
         },
       });
 
-      expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "c3", groupOrder: 2 }),
-      ]);
+      expect(result).toEqual([expect.objectContaining({ name: "a1" }), expect.objectContaining({ name: "c3" })]);
     });
 
     it("returns leaves which contains retries", () => {
@@ -100,16 +93,17 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-          retries: [{}],
+          retry: true,
         } as AllureAwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-          retries: [] as TestResult[],
+          retry: false,
         } as AllureAwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
+          retry: false,
         } as AllureAwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
@@ -118,7 +112,7 @@ describe("utils > treeFilters", () => {
         },
       });
 
-      expect(result).toEqual([expect.objectContaining({ name: "a1", groupOrder: 1 })]);
+      expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
     });
 
     it("sorts leave by duration in ascending order", () => {
@@ -143,9 +137,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
       ]);
     });
 
@@ -171,9 +165,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "a1" }),
       ]);
     });
 
@@ -196,9 +190,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
       ]);
     });
 
@@ -221,9 +215,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "a1" }),
       ]);
     });
 
@@ -257,11 +251,11 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "e5", groupOrder: 5 }),
-        expect.objectContaining({ name: "d4", groupOrder: 4 }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "e5" }),
+        expect.objectContaining({ name: "d4" }),
       ]);
     });
 
@@ -295,11 +289,11 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "d4", groupOrder: 4 }),
-        expect.objectContaining({ name: "e5", groupOrder: 5 }),
-        expect.objectContaining({ name: "a1", groupOrder: 1 }),
-        expect.objectContaining({ name: "c3", groupOrder: 3 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
+        expect.objectContaining({ name: "d4" }),
+        expect.objectContaining({ name: "e5" }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "b2" }),
       ]);
     });
 
@@ -310,14 +304,17 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate + 2000,
+          groupOrder: 3,
         } as AllureAwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
+          groupOrder: 2,
         } as AllureAwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate,
+          groupOrder: 1,
         } as AllureAwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
@@ -326,9 +323,9 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "c3", groupOrder: 1 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "a1", groupOrder: 3 }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "a1" }),
       ]);
     });
 
@@ -339,14 +336,17 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate + 2000,
+          groupOrder: 3,
         } as AllureAwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
+          groupOrder: 2,
         } as AllureAwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate,
+          groupOrder: 1,
         } as AllureAwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
@@ -355,15 +355,15 @@ describe("utils > treeFilters", () => {
       });
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "a1", groupOrder: 3 }),
-        expect.objectContaining({ name: "b2", groupOrder: 2 }),
-        expect.objectContaining({ name: "c3", groupOrder: 1 }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
       ]);
     });
   });
 
-  describe("fillGroup", () => {
-    it("replaces the group leaves IDs by filtered and sorted leaves objects for all nested groups", () => {
+  describe("createRecursiveTree", () => {
+    it("creates recursive tree with filtered and sorted leaves objects", () => {
       const baseDate = Date.now();
       const group = {
         leaves: ["a1"],
@@ -403,20 +403,22 @@ describe("utils > treeFilters", () => {
         },
       });
 
-      expect(result).toEqual({
-        leaves: [expect.objectContaining({ name: "a1", groupOrder: 1 })],
-        groups: [
-          {
-            leaves: [expect.objectContaining({ name: "b2", groupOrder: 1 })],
-            groups: [
-              {
-                leaves: [expect.objectContaining({ name: "c3", groupOrder: 1 })],
-                groups: [],
-              },
-            ],
-          },
-        ],
-      });
+      expect(result).toEqual(
+        expect.objectContaining({
+          leaves: [expect.objectContaining({ name: "a1" })],
+          trees: [
+            expect.objectContaining({
+              leaves: [expect.objectContaining({ name: "b2" })],
+              trees: [
+                expect.objectContaining({
+                  leaves: [expect.objectContaining({ name: "c3" })],
+                  trees: [],
+                }),
+              ],
+            }),
+          ],
+        }),
+      );
     });
   });
 });
