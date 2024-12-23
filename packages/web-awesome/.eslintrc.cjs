@@ -1,6 +1,10 @@
 module.exports = {
   env: { browser: true, es2020: true },
-  extends: ["eslint-config-preact", "../../.eslintrc.cjs"],
+  extends: [
+    "eslint-config-preact",
+    "../../.eslintrc.cjs",
+    "plugin:storybook/recommended"
+  ],
   ignorePatterns: ["dist/", ".eslintrc.cjs", "postcss.config.js", "webpack.config.js", "types.d.ts"],
   parser: "@typescript-eslint/parser",
   overrides: [
