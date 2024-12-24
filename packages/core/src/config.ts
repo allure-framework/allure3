@@ -8,6 +8,7 @@ import { readHistory } from "./history.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { importWrapper } from "./utils/module.js";
+import { normalizeImportPath } from "./utils/path.js";
 
 export const getPluginId = (key: string) => {
   return key.replace(/^@.*\//, "").replace(/[/\\]/g, "-");
@@ -19,21 +20,26 @@ const defaultConfig: Config = {};
 export const findConfig = async (cwd: string, configPath?: string) => {
   if (configPath) {
     const resolved = resolve(cwd, configPath);
+
     try {
       const stats = await stat(resolved);
+
       if (stats.isFile()) {
         return resolved;
       }
     } catch (e) {
       console.error(e);
     }
+
     throw new Error(`invalid config path ${resolved}: not a regular file`);
   }
 
   for (const configName of configNames) {
     const resolved = resolve(cwd, configName);
+
     try {
       const stats = await stat(resolved);
+
       if (stats.isFile()) {
         return resolved;
       }
@@ -61,7 +67,7 @@ export const readConfig = async (
 };
 
 export const loadConfig = async (configPath: string): Promise<Config> => {
-  return (await import(configPath)).default;
+  return (await import(normalizeImportPath(configPath))).default;
 };
 
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
@@ -103,6 +109,7 @@ export const resolvePlugin = async (path: string) => {
 
     return module.default;
   } catch (err) {
+    console.error(err);
     throw new Error(`Cannot resolve plugin: ${path}`);
   }
 };
