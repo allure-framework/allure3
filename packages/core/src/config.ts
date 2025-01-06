@@ -109,7 +109,6 @@ export const resolvePlugin = async (path: string) => {
 
     return module.default;
   } catch (err) {
-    console.error(err);
     throw new Error(`Cannot resolve plugin: ${path}`);
   }
 };
