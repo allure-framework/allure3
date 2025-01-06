@@ -16,6 +16,7 @@ const arrayTags: Set<string> = new Set([
   "test-suite.test-cases.test-case",
   "test-suite.test-cases.test-case.steps.step",
   "test-suite.test-cases.test-case.attachments.attachment",
+  "test-suite.test-cases.test-case.steps.step.attachments.attachment",
   "test-suite.test-cases.test-case.labels",
 ]);
 
@@ -136,9 +137,17 @@ const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
   }
 
   return stepElement.map((step) => {
-    const { name, title, status, start: startElement, stop: stopElement, steps: stepsElement } = step;
+    const {
+      name,
+      title,
+      status,
+      start: startElement,
+      stop: stopElement,
+      steps: stepsElement,
+      attachments: attachmentsElement,
+    } = step;
     const { start, stop, duration } = parseTime(startElement, stopElement);
-    const steps = parseSteps(stepsElement);
+    const steps = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
     return {
       name: ensureString(title) ?? ensureString(name),
@@ -153,7 +162,6 @@ const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
 };
 
 const parseAttachments = (element: unknown): RawTestAttachment[] | undefined => {
-  console.log(element);
   if (!isStringAnyRecord(element)) {
     return undefined;
   }
@@ -163,7 +171,6 @@ const parseAttachments = (element: unknown): RawTestAttachment[] | undefined => 
     return undefined;
   }
 
-  console.log(attachmentElement);
   return attachmentElement.map((attachment: Record<any, string>) => {
     const { title, source, type } = attachment;
     return {

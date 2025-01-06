@@ -387,4 +387,122 @@ describe("allure1 reader", () => {
       });
     });
   });
+
+  describe("step attachments", () => {
+    it("should parse a step attachments", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [
+          {
+            steps: [
+              {
+                type: "attachment",
+                name: "foo",
+                originalFileName: "bar",
+                contentType: "text/plain",
+              },
+              {
+                type: "attachment",
+                name: "baz",
+                originalFileName: "qux",
+                contentType: "image/png",
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("should ignore a missing title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/titleMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ name: undefined }] }],
+      });
+    });
+
+    it("should ignore an invalid title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/titleInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ name: undefined }] }],
+      });
+    });
+
+    it("should ignore a missing source", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/sourceMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ originalFileName: undefined }] }],
+      });
+    });
+
+    it("should ignore an invalid source", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/sourceInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ originalFileName: undefined }] }],
+      });
+    });
+
+    it("should ignore a missing type", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/typeMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ contentType: undefined }] }],
+      });
+    });
+
+    it("should ignore an invalid type", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/typeInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [{ contentType: undefined }] }],
+      });
+    });
+
+    it("should ignore an ill-formed collection element", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/attachmentCollectionInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [] }],
+      });
+    });
+
+    it("should ignore an ill-formed attachment element", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/stepAttachments/attachmentInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        steps: [{ steps: [] }],
+      });
+    });
+  });
 });
