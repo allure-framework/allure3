@@ -107,7 +107,8 @@
     "collapse": "Свернуть",
     "expand": "Развернуть",
     "fullscreen": "На весь экран",
-    "language": "Сменить язык"
+    "language": "Сменить язык",
+    "openInNewTab": "Открыть в новой вкладке"
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"

@@ -44,11 +44,10 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
       source={testResultNavStore}
       renderData={(data) => {
         const currentIndex = data.indexOf(id) + 1;
-
         return (
           <div className={styles["test-result-nav"]}>
             {fullName && <FullName />}
-            {data && (
+            {data && !testResult?.hidden && (
               <div className={styles["test-result-navigator"]}>
                 <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={currentIndex > 1}>
                   <IconButton

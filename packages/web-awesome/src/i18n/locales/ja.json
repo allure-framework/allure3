@@ -109,7 +109,8 @@
     "collapse": "折りたたむ",
     "expand": "展開",
     "fullscreen": "全画面",
-    "language": "言語を変更"
+    "language": "言語を変更",
+    "openInNewTab": "新しいタブで開く"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"

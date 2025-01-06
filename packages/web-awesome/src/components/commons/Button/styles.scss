@@ -290,6 +290,12 @@
 
     &:hover {
       --allure-btn-bg-color: var(--bg-control-flat-medium);
+
+      .contentIcon,
+      .leadingIcon,
+      .dropdownIcon {
+        color: var(--allure-btn-icon-color);
+      }
     }
 
     &:active,
@@ -519,10 +525,6 @@
   color: var(--on-icon-secondary);
   transition: color var(--color-change-transition-duration);
   user-select: none;
-
-  &:hover {
-    color: var(--allure-btn-icon-color);
-  }
 
   &:focus {
     outline: none;

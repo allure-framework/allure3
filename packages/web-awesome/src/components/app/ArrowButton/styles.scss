@@ -2,10 +2,12 @@
   background: transparent;
   border: none;
   padding: 8px 4px;
+  border-radius: 4px;
   color: var(--on-icon-secondary);
 
   &:hover {
     background: var(--bg-control-flat-medium);
+    color: var(--on-icon-primary);
   }
 }
 

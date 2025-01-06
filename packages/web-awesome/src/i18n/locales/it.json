@@ -109,7 +109,8 @@
     "collapse": "Comprimi",
     "expand": "Espandi",
     "fullscreen": "Schermo intero",
-    "language": "Cambia lingua"
+    "language": "Cambia lingua",
+    "openInNewTab": "Apri in una nuova scheda"
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"

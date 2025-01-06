@@ -109,7 +109,8 @@
     "collapse": "접기",
     "expand": "펼치기",
     "fullscreen": "전체 화면",
-    "language": "언어 변경"
+    "language": "언어 변경",
+    "openInNewTab": "새 탭에서 열기"
   },
   "errors": {
     "missedAttachment": "첨부파일을 찾을 수 없습니다"

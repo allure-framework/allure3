@@ -109,7 +109,8 @@
     "collapse": "כווץ",
     "expand": "הרחב",
     "fullscreen": "מסך מלא",
-    "language": "שנה שפה"
+    "language": "שנה שפה",
+    "openInNewTab": "פתח בכרטיסייה חדשה"
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"

@@ -31,3 +31,20 @@
   gap: 4px;
   align-items: center;
 }
+
+.test-result-info-statuses {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-result-info-status {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.metadata-icon {
+  margin-right: 8px;
+  color: var(--on-icon-secondary);
+}

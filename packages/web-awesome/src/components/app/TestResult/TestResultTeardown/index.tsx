@@ -1,6 +1,6 @@
-import { FunctionalComponent } from "preact";
+import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import { AllureAwesomeTestResult } from "types";
+import type { AllureAwesomeTestResult } from "types";
 import lineHelpersFlag from "@/assets/svg/line-helpers-flag.svg";
 import { TestResultDropdown } from "@/components/app/TestResult/TestResultDropdown";
 import * as styles from "@/components/app/TestResult/TestResultSteps/styles.scss";

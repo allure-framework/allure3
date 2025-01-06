@@ -49,7 +49,6 @@
   padding: 6px 8px 6px 6px;
   transition: background-color 300ms;
   gap: 4px;
-  align-items: center;
   cursor: pointer;
   position: relative;
 
@@ -173,4 +172,11 @@
 
 .order {
   user-select: none;
+  color: var(--on-text-hint);
+  min-width: 16px;
+  text-align: center;
+  box-sizing: content-box;
+  padding-top: 2px;
+  line-height: 16px;
+  width: 24px;
 }

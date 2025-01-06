@@ -109,7 +109,8 @@
     "collapse": "Recolher",
     "expand": "Expandir",
     "fullscreen": "Tela cheia",
-    "language": "Alterar idioma"
+    "language": "Alterar idioma",
+    "openInNewTab": "Abrir em nova aba"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"

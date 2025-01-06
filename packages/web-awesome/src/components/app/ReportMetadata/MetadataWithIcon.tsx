@@ -1,8 +1,8 @@
-import { FunctionComponent, h } from "preact";
+import type { FunctionComponent } from "preact";
 import notifications from "@/assets/svg/line-alerts-notification-box.svg";
 import refresh from "@/assets/svg/line-arrows-refresh-ccw-1.svg";
 import lineGeneralZap from "@/assets/svg/line-general-zap.svg";
-import { MetadataProps } from "@/components/app/ReportMetadata/MetadataItem";
+import type { MetadataProps } from "@/components/app/ReportMetadata/MetadataItem";
 import { SvgIcon } from "@/components/commons/SvgIcon";
 import { Text } from "@/components/commons/Typography";
 import * as styles from "./styles.scss";

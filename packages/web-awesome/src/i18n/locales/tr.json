@@ -109,7 +109,8 @@
     "collapse": "Daralt",
     "expand": "Genişlet",
     "fullscreen": "Tam ekran",
-    "language": "Dili değiştir"
+    "language": "Dili değiştir",
+    "openInNewTab": "Yeni sekmede aç"
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"

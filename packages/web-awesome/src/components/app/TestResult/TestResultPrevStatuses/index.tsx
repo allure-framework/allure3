@@ -1,8 +1,7 @@
-import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
-import { FunctionalComponent } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
-import { AllureAwesomeTestResult } from "types";
+import type { FunctionalComponent } from "preact";
+import type { AllureAwesomeTestResult } from "types";
 import LineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
+import { useTestResultTabsContext } from "@/components/app/TestResult/TestResultTabs";
 import { SvgIcon } from "@/components/commons/SvgIcon";
 import { TooltipWrapper } from "@/components/commons/Tooltip";
 import { Text } from "@/components/commons/Typography";
@@ -12,8 +11,9 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus = ({ item }) => {
+  const { setCurrentTab } = useTestResultTabsContext();
   return (
-    <div className={styles["test-result-prev-status"]}>
+    <div className={styles["test-result-prev-status"]} onClick={() => setCurrentTab("history")}>
       <SvgIcon id={LineShapesDotCircle.id} className={styles[`status-${item?.status}`]} />
     </div>
   );
@@ -41,7 +41,7 @@ export const TestResultPrevStatuses: FunctionalComponent<TestResultPrevStatusesP
   return (
     <div className={styles["test-result-prev-statuses"]}>
       {history?.slice(0, 6).map((item, key) => (
-        <div className={styles["test-result-prev-status"]}>
+        <div key={key} className={styles["test-result-prev-status"]}>
           <TooltipWrapper key={key} tooltipComponent={<TestResultPrevStatusTooltip item={item} />}>
             <TestResultPrevStatus item={item} />
           </TooltipWrapper>

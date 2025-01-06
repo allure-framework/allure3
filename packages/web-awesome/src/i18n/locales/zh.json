@@ -109,7 +109,8 @@
     "collapse": "折叠",
     "expand": "展开",
     "fullscreen": "全屏",
-    "language": "更改语言"
+    "language": "更改语言",
+    "openInNewTab": "在新标签页中打开"
   },
   "errors": {
     "missedAttachment": "未找到附件"

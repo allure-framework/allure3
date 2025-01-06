@@ -1,7 +1,7 @@
 import { formatDuration } from "@allurereport/core-api";
-import * as test from "node:test";
-import { FunctionalComponent } from "preact";
-import { AllureAwesomeTestResult } from "types";
+import type { FunctionalComponent } from "preact";
+import type { AllureAwesomeTestResult } from "types";
+import { TestResultInfoStatuses } from "@/components/app/TestResult/TestResultInfo/TestResultInfoStatuses";
 import { TestResultNavigation } from "@/components/app/TestResult/TestResultNavigation";
 import { TestResultPrevStatuses } from "@/components/app/TestResult/TestResultPrevStatuses";
 import { TestResultSeverity } from "@/components/app/TestResult/TestResultSeverity";
@@ -19,11 +19,12 @@ export type TestResultInfoProps = {
 };
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
-  const { name, status, duration, labels, history, retries, attachments, stop } = testResult ?? {};
+  const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
   const formattedDuration = formatDuration(duration);
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const { t } = useI18n("ui");
+  const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);
 
   const Content = () => {
     return (
@@ -37,6 +38,7 @@ export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testR
           {Boolean(status) && <TestResultStatus status={status} />}
           {Boolean(history?.length) && <TestResultPrevStatuses history={history} />}
           <TestResultSeverity severity={severity} />
+          {Boolean(statuses.length) && <TestResultInfoStatuses statuses={statuses} />}
           <TooltipWrapper tooltipText={fullDate}>
             <Text tag={"div"} size={"s"} bold className={styles["test-result-duration"]}>
               {formattedDuration}

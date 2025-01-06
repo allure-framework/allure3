@@ -109,7 +109,8 @@
     "collapse": "Einklappen",
     "expand": "Ausklappen",
     "fullscreen": "Vollbild",
-    "language": "Sprache ändern"
+    "language": "Sprache ändern",
+    "openInNewTab": "In neuem Tab öffnen"
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"

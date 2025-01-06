@@ -1,7 +1,7 @@
 import type { Statistic } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import { StoreSignalState } from "@/stores/types";
+import type { StoreSignalState } from "@/stores/types";
 
 export const statsStore = signal<StoreSignalState<Statistic>>({
   loading: true,

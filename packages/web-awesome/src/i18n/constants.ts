@@ -63,8 +63,8 @@ export const LANG_LOCALE: Record<
   },
   am: {
     short: "Am",
-    full: "አማርኛ",
-    iso: "am-ET",
+    full: "Հայերեն",
+    iso: "hy-AM",
   },
   az: {
     short: "Az",

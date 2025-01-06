@@ -107,7 +107,8 @@
     "collapse": "Skrócić",
     "expand": "Poszerzyć",
     "fullscreen": "Pełny ekran",
-    "language": "Zmień język"
+    "language": "Zmień język",
+    "openInNewTab": "Otwórz w nowej karcie"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"

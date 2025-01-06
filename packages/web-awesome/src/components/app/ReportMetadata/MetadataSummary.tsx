@@ -1,7 +1,9 @@
+import type { Statistic } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
 import { computed } from "@preact/signals";
-import { FunctionComponent } from "preact";
-import MetadataItem, { MetadataProps } from "@/components/app/ReportMetadata/MetadataItem";
+import type { FunctionComponent } from "preact";
+import type { MetadataProps } from "@/components/app/ReportMetadata/MetadataItem";
+import MetadataItem from "@/components/app/ReportMetadata/MetadataItem";
 import { MetadataTestType } from "@/components/app/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/app/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/app/ReportMetadata/styles.scss";
@@ -12,6 +14,7 @@ import { capitalize } from "@/utils/capitalize";
 
 export const MetadataSummary: FunctionComponent = () => {
   const { t } = useI18n("statuses");
+  const { t: testSummary } = useI18n("testSummary");
 
   return (
     <Loadable
@@ -23,20 +26,21 @@ export const MetadataSummary: FunctionComponent = () => {
           type: "all",
           count: stats.total,
         }));
-        // TODO: https://github.com/qameta/allure3/issues/178
-        // const metadataStatsKeys: (keyof Statistic)[] = ["flakyTests", "retryTests", "newTests"];
-        // const metaDataTests = metadataStatsKeys
-        //   .filter((key) => stats[key])
-        //   .map((key) => {
-        //     const title = t[key];
-        //     const props = { title, count: stats[key], type: key };
-        //
-        //     return (
-        //       <>
-        //         <MetadataItem key={key} props={props} renderComponent={MetadataWithIcon} />
-        //       </>
-        //     );
-        //   });
+        const metaDataTests = ["flaky", "retry"]
+          .map((key) => {
+            if (!stats[key]) {
+              return;
+            }
+            const title = testSummary(key);
+            const props = { title, count: stats[key] || 0, type: key };
+
+            return (
+              <div key={key}>
+                <MetadataItem key={key} props={props} renderComponent={MetadataWithIcon} />
+              </div>
+            );
+          })
+          .filter(Boolean);
 
         const metadataStatuses = statusesList
           .map((status) => ({ status, value: stats[status] }))
@@ -67,8 +71,8 @@ export const MetadataSummary: FunctionComponent = () => {
                 props={allTest.value}
                 renderComponent={MetadataWithIcon}
               />
-              {/*<div className={styles["report-metadata-separator"]}></div>*/}
-              {/*{metaDataTests}*/}
+              {Boolean(metaDataTests.length) && <div className={styles["report-metadata-separator"]} />}
+              {metaDataTests}
             </div>
             <div className={styles["report-metadata-status"]}>{metadataStatuses}</div>
           </div>

@@ -109,7 +109,8 @@
     "collapse": "Réduire",
     "expand": "Agrandir",
     "fullscreen": "Plein écran",
-    "language": "Changer la langue"
+    "language": "Changer la langue",
+    "openInNewTab": "Ouvrir dans un nouvel onglet"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"

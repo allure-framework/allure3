@@ -1,5 +1,5 @@
-import { FunctionComponent, FunctionalComponent } from "preact";
-import { AllureAwesomeTestResult } from "types";
+import type { FunctionComponent, FunctionalComponent } from "preact";
+import type { AllureAwesomeTestResult } from "types";
 import * as styles from "@/components/app/BaseLayout/styles.scss";
 import { TestResultAttachmentView } from "@/components/app/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/app/TestResult/TestResultEmpty";

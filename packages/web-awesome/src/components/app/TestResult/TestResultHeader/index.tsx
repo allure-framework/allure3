@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { FunctionalComponent } from "preact";
-import { AllureAwesomeTestResult } from "types";
+import type { FunctionalComponent } from "preact";
+import type { AllureAwesomeTestResult } from "types";
 import LineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import LineGeneralHomeLine from "@/assets/svg/line-general-home-line.svg";
 import { LanguagePicker } from "@/components/app/LanguagePicker";
