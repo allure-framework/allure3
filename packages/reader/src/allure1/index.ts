@@ -16,10 +16,20 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 
 const DEFAULT_STEP_NAME = "The step's name is not defined";
 
+const TEST_ID_LABEL_NAME = "testCaseId";
+const HISTORY_ID_LABEL_NAME = "historyId";
+const STATUS_DETAILS_LABEL_NAME = "status_details";
+
 const ISSUE_LABEL_NAME = "issue";
 const TMS_LABEL_NAME = "tms";
 
-const RESERVER_LABEL_NAMES = new Set<string>([ISSUE_LABEL_NAME, TMS_LABEL_NAME]);
+const RESERVER_LABEL_NAMES = new Set<string>([
+  TEST_ID_LABEL_NAME,
+  HISTORY_ID_LABEL_NAME,
+  ISSUE_LABEL_NAME,
+  TMS_LABEL_NAME,
+  STATUS_DETAILS_LABEL_NAME,
+]);
 
 const arrayTags: Set<string> = new Set([
   "test-suite.labels.label",
@@ -119,7 +129,16 @@ const parseTestCase = async (
   const name = ensureString(nameElement);
   const status = convertStatus(ensureString(statusElement));
   const { start, stop, duration } = parseTime(startElement, stopElement);
+
   const allure1Labels = [...suiteLabels, ...parseLabels(labelsElement)];
+  const testId = maybeFindLabelValue(allure1Labels, TEST_ID_LABEL_NAME);
+  const historyId = maybeFindLabelValue(allure1Labels, HISTORY_ID_LABEL_NAME);
+
+  const statusDetailLabels = findAllLabels(allure1Labels, STATUS_DETAILS_LABEL_NAME);
+  const flaky = labelValueExistsIgnoreCase(statusDetailLabels, "flaky");
+  const muted = labelValueExistsIgnoreCase(statusDetailLabels, "muted");
+  const known = labelValueExistsIgnoreCase(statusDetailLabels, "known");
+
   const links = [...createLinks(allure1Labels, ISSUE_LABEL_NAME), ...createLinks(allure1Labels, TMS_LABEL_NAME)];
   const labels = allure1Labels.filter(({ name: labelName }) => !labelName || !RESERVER_LABEL_NAMES.has(labelName));
 
@@ -128,7 +147,24 @@ const parseTestCase = async (
   const steps: RawStep[] = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
   await visitor.visitTestResult(
-    { name, status, start, stop, duration, message, trace, labels, links, parameters, steps },
+    {
+      name,
+      testId,
+      historyId,
+      status,
+      start,
+      stop,
+      duration,
+      message,
+      trace,
+      flaky,
+      muted,
+      known,
+      labels,
+      links,
+      parameters,
+      steps,
+    },
     { readerId },
   );
 };
@@ -170,6 +206,11 @@ const convertLabel = (labelElement: Record<string, unknown>): RawTestLabel => {
 };
 
 const findAllLabels = (labels: readonly RawTestLabel[], name: string) => labels.filter((l) => l.name === name);
+const maybeFindLabelValue = (labels: readonly RawTestLabel[], name: string) =>
+  labels.find((l) => l.name === name)?.value;
+
+const labelValueExistsIgnoreCase = (labels: readonly RawTestLabel[], value: string) =>
+  labels.some((l) => l.value?.toLowerCase() === value);
 
 const createLinks = (labels: readonly RawTestLabel[], type: string): RawTestLink[] =>
   findAllLabels(labels, type).map(({ name, value }) => ({ name: value, url: value, type: name }));

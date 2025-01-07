@@ -549,7 +549,7 @@ describe("allure1 reader", () => {
     describe("special labels", () => {
       it("should convert issue labels to links", async () => {
         const visitor = await readResults(allure1, {
-          "allure1data/labels/issues.xml": randomTestsuiteFileName(),
+          "allure1data/labels/special/issues.xml": randomTestsuiteFileName(),
         });
 
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -569,7 +569,7 @@ describe("allure1 reader", () => {
 
       it("should convert tms labels to links", async () => {
         const visitor = await readResults(allure1, {
-          "allure1data/labels/tms.xml": randomTestsuiteFileName(),
+          "allure1data/labels/special/tms.xml": randomTestsuiteFileName(),
         });
 
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -583,6 +583,76 @@ describe("allure1 reader", () => {
               { name: "foo", url: "foo", type: "tms" },
               { name: "bar", url: "bar", type: "tms" },
             ],
+          },
+        ]);
+      });
+
+      it("should set historyId from label", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/special/historyId.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            historyId: "foo",
+            labels: [],
+          },
+        ]);
+      });
+
+      it("should set testCaseId from label", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/special/testCaseId.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            testId: "foo",
+            labels: [],
+          },
+        ]);
+      });
+
+      it("should set status detail properties from labels", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/special/statusDetails.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            flaky: true,
+            muted: true,
+            known: true,
+            labels: [],
+          },
+        ]);
+      });
+
+      it("should ignore case when checking status detail labels", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/special/statusDetailsUpperCase.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            muted: true,
+            labels: [],
           },
         ]);
       });
