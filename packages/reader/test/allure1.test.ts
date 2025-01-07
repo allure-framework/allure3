@@ -345,6 +345,18 @@ describe("allure1 reader", () => {
 
       expect(trs).toMatchObject([{ status: "unknown" }]);
     });
+
+    it("should not take casing into account", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/upperCase.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "passed" }]);
+    });
   });
 
   describe("timings", () => {
@@ -899,6 +911,19 @@ describe("allure1 reader", () => {
         const tr = trs[0];
 
         expect(tr.steps).toMatchObject([{ status: "unknown" }]);
+      });
+
+      it("should not take casing into account", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/upperCase.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "passed" }]);
       });
     });
 
