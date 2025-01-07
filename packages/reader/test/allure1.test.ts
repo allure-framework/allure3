@@ -545,6 +545,48 @@ describe("allure1 reader", () => {
         },
       ]);
     });
+
+    describe("special labels", () => {
+      it("should convert issue labels to links", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/issues.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            labels: [],
+            links: [
+              { name: "foo", url: "foo", type: "issue" },
+              { name: "bar", url: "bar", type: "issue" },
+            ],
+          },
+        ]);
+      });
+
+      it("should convert tms labels to links", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/labels/tms.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          {
+            labels: [],
+            links: [
+              { name: "foo", url: "foo", type: "tms" },
+              { name: "bar", url: "bar", type: "tms" },
+            ],
+          },
+        ]);
+      });
+    });
   });
 
   describe("attachments", () => {

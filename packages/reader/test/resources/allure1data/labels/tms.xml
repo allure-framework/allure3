@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <test-suite xmlns="urn:model.allure.qatools.yandex.ru" version="1.4.4-SNAPSHOT">
     <labels>
-        <label name="foo" value="bar" />
+        <label name="tms" value="foo" />
     </labels>
     <test-cases>
         <test-case>
             <labels>
-                <label name="baz" value="qux" />
+                <label name="tms" value="bar" />
             </labels>
         </test-case>
     </test-cases>

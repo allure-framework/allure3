@@ -2,6 +2,7 @@ import type {
   RawStep,
   RawTestAttachment,
   RawTestLabel,
+  RawTestLink,
   RawTestParameter,
   RawTestStatus,
   RawTestStepResult,
@@ -14,6 +15,11 @@ import { ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
 const DEFAULT_STEP_NAME = "The step's name is not defined";
+
+const ISSUE_LABEL_NAME = "issue";
+const TMS_LABEL_NAME = "tms";
+
+const RESERVER_LABEL_NAMES = new Set<string>([ISSUE_LABEL_NAME, TMS_LABEL_NAME]);
 
 const arrayTags: Set<string> = new Set([
   "test-suite.labels.label",
@@ -113,14 +119,16 @@ const parseTestCase = async (
   const name = ensureString(nameElement);
   const status = convertStatus(ensureString(statusElement));
   const { start, stop, duration } = parseTime(startElement, stopElement);
-  const labels = [...suiteLabels, ...parseLabels(labelsElement)];
+  const allure1Labels = [...suiteLabels, ...parseLabels(labelsElement)];
+  const links = [...createLinks(allure1Labels, ISSUE_LABEL_NAME), ...createLinks(allure1Labels, TMS_LABEL_NAME)];
+  const labels = allure1Labels.filter(({ name: labelName }) => !labelName || !RESERVER_LABEL_NAMES.has(labelName));
 
   const { message, trace } = parseFailure(failureElement);
   const parameters = parseParameters(parametersElement);
   const steps: RawStep[] = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
   await visitor.visitTestResult(
-    { name, status, start, stop, duration, message, trace, labels, parameters, steps },
+    { name, status, start, stop, duration, message, trace, labels, links, parameters, steps },
     { readerId },
   );
 };
@@ -160,6 +168,11 @@ const convertLabel = (labelElement: Record<string, unknown>): RawTestLabel => {
     value: ensureString(value),
   };
 };
+
+const findAllLabels = (labels: readonly RawTestLabel[], name: string) => labels.filter((l) => l.name === name);
+
+const createLinks = (labels: readonly RawTestLabel[], type: string): RawTestLink[] =>
+  findAllLabels(labels, type).map(({ name, value }) => ({ name: value, url: value, type: name }));
 
 const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
   if (!isStringAnyRecord(element)) {
