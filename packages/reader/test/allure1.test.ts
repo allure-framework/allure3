@@ -237,47 +237,10 @@ describe("allure1 reader", () => {
     );
   });
 
-  it("should parse steps", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/steps.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-    const tr = trs[0];
-
-    expect(tr.steps).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "step 1",
-          status: "passed",
-          start: 1412949529363,
-          stop: 1412949531730,
-          duration: 2367,
-        }),
-        expect.objectContaining({
-          name: "step 2",
-          status: "broken",
-          start: 1412949529363,
-          stop: 1412949535730,
-          duration: 6367,
-        }),
-        expect.objectContaining({
-          name: "step 3",
-          status: "passed",
-          start: 1412949529363,
-          stop: 1412949536730,
-          duration: 7367,
-        }),
-      ]),
-    );
-  });
-
   describe("test attachments", () => {
     it("should parse a test case attachments", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -301,7 +264,7 @@ describe("allure1 reader", () => {
 
     it("should ignore a missing title", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/titleMissing.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/titleMissing.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -312,7 +275,7 @@ describe("allure1 reader", () => {
 
     it("should ignore an invalid title", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/titleInvalid.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/titleInvalid.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -323,7 +286,7 @@ describe("allure1 reader", () => {
 
     it("should ignore a missing source", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/sourceMissing.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/sourceMissing.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -334,7 +297,7 @@ describe("allure1 reader", () => {
 
     it("should ignore an invalid source", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/sourceInvalid.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/sourceInvalid.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -345,7 +308,7 @@ describe("allure1 reader", () => {
 
     it("should ignore a missing type", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/typeMissing.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/typeMissing.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -356,7 +319,7 @@ describe("allure1 reader", () => {
 
     it("should ignore an invalid type", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/typeInvalid.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/typeInvalid.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -367,7 +330,7 @@ describe("allure1 reader", () => {
 
     it("should ignore an ill-formed collection element", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/attachmentCollectionInvalid.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/attachmentCollectionInvalid.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -378,7 +341,7 @@ describe("allure1 reader", () => {
 
     it("should ignore an ill-formed attachment element", async () => {
       const visitor = await readResults(allure1, {
-        "allure1data/testAttachments/attachmentInvalid.xml": randomTestsuiteFileName(),
+        "allure1data/attachments/attachmentInvalid.xml": randomTestsuiteFileName(),
       });
 
       expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
@@ -388,120 +351,184 @@ describe("allure1 reader", () => {
     });
   });
 
-  describe("step attachments", () => {
-    it("should parse a step attachments", async () => {
+  describe("steps", () => {
+    it("should parse nested steps", async () => {
       const visitor = await readResults(allure1, {
+        "allure1data/steps/nesting.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.steps).toMatchObject([
+        {
+          name: "step 1",
+          steps: [{ name: "step 1.1" }, { name: "step 1.2" }, { name: "step 1.3" }],
+        },
+        { name: "step 2" },
+        { name: "step 3" },
+      ]);
+    });
+
+    describe("names", () => {
+      it("should prioritize title if given", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/names/titleAndName.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ name: "foo" }]);
+      });
+
+      it("should use name if title is missing", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/names/titleMissingWithName.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ name: "foo" }]);
+      });
+
+      it("should use name if title is ill-formed", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/names/titleInvalidWithName.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ name: "baz" }]);
+      });
         "allure1data/stepAttachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
-      });
-
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [
-          {
-            steps: [
-              {
-                type: "attachment",
-                name: "foo",
-                originalFileName: "bar",
-                contentType: "text/plain",
-              },
-              {
-                type: "attachment",
-                name: "baz",
-                originalFileName: "qux",
-                contentType: "image/png",
-              },
-            ],
-          },
-        ],
-      });
     });
 
-    it("should ignore a missing title", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/titleMissing.xml": randomTestsuiteFileName(),
+    describe("attachments", () => {
+      it("should parse a step attachments", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [
+            {
+              steps: [
+                {
+                  type: "attachment",
+                  name: "foo",
+                  originalFileName: "bar",
+                  contentType: "text/plain",
+                },
+                {
+                  type: "attachment",
+                  name: "baz",
+                  originalFileName: "qux",
+                  contentType: "image/png",
+                },
+              ],
+            },
+          ],
+        });
       });
 
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ name: undefined }] }],
-      });
-    });
+      it("should ignore a missing title", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/titleMissing.xml": randomTestsuiteFileName(),
+        });
 
-    it("should ignore an invalid title", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/titleInvalid.xml": randomTestsuiteFileName(),
-      });
-
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ name: undefined }] }],
-      });
-    });
-
-    it("should ignore a missing source", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/sourceMissing.xml": randomTestsuiteFileName(),
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ name: undefined }] }],
+        });
       });
 
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ originalFileName: undefined }] }],
-      });
-    });
+      it("should ignore an invalid title", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/titleInvalid.xml": randomTestsuiteFileName(),
+        });
 
-    it("should ignore an invalid source", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/sourceInvalid.xml": randomTestsuiteFileName(),
-      });
-
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ originalFileName: undefined }] }],
-      });
-    });
-
-    it("should ignore a missing type", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/typeMissing.xml": randomTestsuiteFileName(),
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ name: undefined }] }],
+        });
       });
 
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ contentType: undefined }] }],
-      });
-    });
+      it("should ignore a missing source", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/sourceMissing.xml": randomTestsuiteFileName(),
+        });
 
-    it("should ignore an invalid type", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/typeInvalid.xml": randomTestsuiteFileName(),
-      });
-
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [{ contentType: undefined }] }],
-      });
-    });
-
-    it("should ignore an ill-formed collection element", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/attachmentCollectionInvalid.xml": randomTestsuiteFileName(),
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ originalFileName: undefined }] }],
+        });
       });
 
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [] }],
-      });
-    });
+      it("should ignore an invalid source", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/sourceInvalid.xml": randomTestsuiteFileName(),
+        });
 
-    it("should ignore an ill-formed attachment element", async () => {
-      const visitor = await readResults(allure1, {
-        "allure1data/stepAttachments/attachmentInvalid.xml": randomTestsuiteFileName(),
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ originalFileName: undefined }] }],
+        });
       });
 
-      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
-        steps: [{ steps: [] }],
+      it("should ignore a missing type", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/typeMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ contentType: undefined }] }],
+        });
+      });
+
+      it("should ignore an invalid type", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/typeInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ contentType: undefined }] }],
+        });
+      });
+
+      it("should ignore an ill-formed collection element", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/attachmentCollectionInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [] }],
+        });
+      });
+
+      it("should ignore an ill-formed attachment element", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/attachmentInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [] }],
+        });
       });
     });
   });
