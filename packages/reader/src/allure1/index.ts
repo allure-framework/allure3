@@ -1,6 +1,7 @@
 import type {
   RawStep,
   RawTestAttachment,
+  RawTestLabel,
   RawTestParameter,
   RawTestStatus,
   RawTestStepResult,
@@ -15,12 +16,13 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 const DEFAULT_STEP_NAME = "The step's name is not defined";
 
 const arrayTags: Set<string> = new Set([
+  "test-suite.labels.label",
   "test-suite.test-cases.test-case",
+  "test-suite.test-cases.test-case.labels.label",
   "test-suite.test-cases.test-case.steps.step",
   "test-suite.test-cases.test-case.attachments.attachment",
   "test-suite.test-cases.test-case.parameters.parameter",
   "test-suite.test-cases.test-case.steps.step.attachments.attachment",
-  "test-suite.test-cases.test-case.labels",
 ]);
 
 const xmlParser = new XMLParser({
@@ -71,7 +73,7 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 };
 
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>): Promise<boolean> => {
-  const { "name": testSuiteName, "test-cases": testCases } = testSuite;
+  const { "name": testSuiteName, "test-cases": testCases, "labels": labelsElement } = testSuite;
   if (!isStringAnyRecord(testCases)) {
     return false;
   }
@@ -82,13 +84,20 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
     return false;
   }
 
+  const labels = parseLabels(labelsElement);
+
   for (const tc of testCase) {
-    await parseTestCase(visitor, { name: ensureString(testSuiteName) }, tc);
+    await parseTestCase(visitor, { name: ensureString(testSuiteName), labels }, tc);
   }
   return true;
 };
 
-const parseTestCase = async (visitor: ResultsVisitor, testSuite: { name?: string }, testCase: Record<string, any>) => {
+const parseTestCase = async (
+  visitor: ResultsVisitor,
+  testSuite: { name?: string; labels: readonly RawTestLabel[] },
+  testCase: Record<string, any>,
+) => {
+  const { labels: suiteLabels } = testSuite;
   const {
     name: nameElement,
     status: statusElement,
@@ -98,18 +107,20 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: { name?: string
     start: startElement,
     stop: stopElement,
     attachments: attachmentsElement,
+    labels: labelsElement,
   } = testCase;
 
   const name = ensureString(nameElement);
   const status = convertStatus(ensureString(statusElement));
   const { start, stop, duration } = parseTime(startElement, stopElement);
+  const labels = [...suiteLabels, ...parseLabels(labelsElement)];
 
   const { message, trace } = parseFailure(failureElement);
   const parameters = parseParameters(parametersElement);
   const steps: RawStep[] = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
   await visitor.visitTestResult(
-    { name, status, start, stop, duration, message, trace, parameters, steps },
+    { name, status, start, stop, duration, message, trace, labels, parameters, steps },
     { readerId },
   );
 };
@@ -127,6 +138,27 @@ const parseTime = (startElement: unknown, stopElement: unknown) => {
   const stop = ensureInt(stopElement);
   const duration = stop !== undefined && start !== undefined ? Math.max(0, stop - start) : undefined;
   return { start, stop, duration };
+};
+
+const parseLabels = (labelsElement: unknown): RawTestLabel[] => {
+  if (!isStringAnyRecord(labelsElement)) {
+    return [];
+  }
+
+  const { label: labelElements } = labelsElement;
+  if (!Array.isArray(labelElements)) {
+    return [];
+  }
+
+  return labelElements.filter(isStringAnyRecord).map(convertLabel);
+};
+
+const convertLabel = (labelElement: Record<string, unknown>): RawTestLabel => {
+  const { name, value } = labelElement;
+  return {
+    name: ensureString(name),
+    value: ensureString(value),
+  };
 };
 
 const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {

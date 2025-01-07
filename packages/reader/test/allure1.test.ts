@@ -377,6 +377,176 @@ describe("allure1 reader", () => {
     });
   });
 
+  describe("labels", () => {
+    it("should parse one test case label", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/oneTestCaseLabel.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: "foo", value: "bar" }] }]);
+    });
+
+    it("should parse two test case labels", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/twoTestCaseLabels.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: [
+            { name: "foo", value: "bar" },
+            { name: "baz", value: "qux" },
+          ],
+        },
+      ]);
+    });
+
+    it("should ignore an ill-formed test case labels collection", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/testCaseCollectionInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [] }]);
+    });
+
+    it("should ignore an ill-formed test case label element", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/testCaseLabelElementInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: "foo", value: "bar" }] }]);
+    });
+
+    it("should ignore an ill-formed test case label element", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/testCaseLabelElementInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: "foo", value: "bar" }] }]);
+    });
+
+    it("should handle a missing name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/nameMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: undefined, value: "bar" }] }]);
+    });
+
+    it("should handle an ill-formed name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/nameInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: undefined, value: "bar" }] }]);
+    });
+
+    it("should handle a missing value", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/valueMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: "foo", value: undefined }] }]);
+    });
+
+    it("should handle an ill-formed value", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/valueInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ labels: [{ name: "foo", value: undefined }] }]);
+    });
+
+    it("should parse one suite label", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/oneSuiteLabelTwoTestCases.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(2);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        { labels: [{ name: "foo", value: "bar" }] },
+        { labels: [{ name: "foo", value: "bar" }] },
+      ]);
+    });
+
+    it("should parse two suite labels", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/twoSuiteLabels.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: [
+            { name: "foo", value: "bar" },
+            { name: "baz", value: "qux" },
+          ],
+        },
+      ]);
+    });
+
+    it("should concat suite and case labels", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/suiteAndTestCaseLabels.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: [
+            { name: "foo", value: "bar" },
+            { name: "baz", value: "qux" },
+          ],
+        },
+      ]);
+    });
+  });
+
   describe("attachments", () => {
     it("should parse a test case attachments", async () => {
       const visitor = await readResults(allure1, {
