@@ -12,6 +12,8 @@ import * as console from "node:console";
 import { ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
+const DEFAULT_STEP_NAME = "The step's name is not defined";
+
 const arrayTags: Set<string> = new Set([
   "test-suite.test-cases.test-case",
   "test-suite.test-cases.test-case.steps.step",
@@ -150,7 +152,7 @@ const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
     const steps = [...(parseSteps(stepsElement) ?? []), ...(parseAttachments(attachmentsElement) ?? [])];
 
     return {
-      name: ensureString(title) ?? ensureString(name),
+      name: ensureString(title) ?? ensureString(name) ?? DEFAULT_STEP_NAME,
       status: convertStatus(ensureString(status)),
       start,
       stop,

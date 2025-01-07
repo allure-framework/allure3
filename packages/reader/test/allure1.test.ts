@@ -411,7 +411,19 @@ describe("allure1 reader", () => {
 
         expect(tr.steps).toMatchObject([{ name: "baz" }]);
       });
-        "allure1data/stepAttachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
+
+      it("should use placeholder if title and name are both missing", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/names/titleAndNameMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ name: "The step's name is not defined" }]);
+      });
     });
 
     describe("attachments", () => {
