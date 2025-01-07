@@ -4,4 +4,4 @@
         <test-case title="foo">
         </test-case>
     </test-cases>
-</ns2:test-suite>
+</test-suite>

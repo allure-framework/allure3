@@ -4,4 +4,4 @@
         <test-case start="5" stop="25">
         </test-case>
     </test-cases>
-</ns2:test-suite>
+</test-suite>
