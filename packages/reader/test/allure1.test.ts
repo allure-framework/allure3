@@ -535,6 +535,129 @@ describe("allure1 reader", () => {
     });
   });
 
+  describe("parameters", () => {
+    it("should parse a test parameter", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/wellDefined.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: "foo", value: "bar" }],
+      });
+    });
+
+    it("should handle a missing name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/nameMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: undefined, value: "bar" }],
+      });
+    });
+
+    it("should ignore an ill-formed name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/nameInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: undefined, value: "bar" }],
+      });
+    });
+
+    it("should handle a missing value", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/valueMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: "foo", value: undefined }],
+      });
+    });
+
+    it("should ignore an ill-formed value", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/valueInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: "foo", value: undefined }],
+      });
+    });
+
+    it("should treat a missing kind as argument", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: "foo", value: "bar" }],
+      });
+    });
+
+    it("should ignore an argument with an ill-formed kind", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [],
+      });
+    });
+
+    it("should not take the casing into account when checking the kind", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindArgUpperCase.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [{ name: "foo", value: "bar" }],
+      });
+    });
+
+    it("should parse environment variables", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindEnvVar.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [], // Environment variables are currently ignored
+      });
+    });
+
+    it("should parse system properties", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindSysProp.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [], // System properties are currently ignored
+      });
+    });
+
+    it("should ignore arguments of unknown kind", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/parameters/kindUnknown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+      expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+        parameters: [],
+      });
+    });
+  });
+
   describe("steps", () => {
     it("should parse a step", async () => {
       const visitor = await readResults(allure1, {
@@ -860,7 +983,7 @@ describe("allure1 reader", () => {
     });
 
     describe("attachments", () => {
-      it("should parse a step attachments", async () => {
+      it("should parse step attachments", async () => {
         const visitor = await readResults(allure1, {
           "allure1data/steps/attachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
         });
