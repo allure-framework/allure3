@@ -536,6 +536,24 @@ describe("allure1 reader", () => {
   });
 
   describe("steps", () => {
+    it("should parse a step", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/steps/oneWellDefinedStep.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.steps).toMatchObject([
+        {
+          name: "foo",
+          type: "step",
+        },
+      ]);
+    });
+
     it("should parse nested steps", async () => {
       const visitor = await readResults(allure1, {
         "allure1data/steps/nesting.xml": randomTestsuiteFileName(),
@@ -553,6 +571,38 @@ describe("allure1 reader", () => {
         },
         { name: "step 2" },
         { name: "step 3" },
+      ]);
+    });
+
+    it("should ignore an invalid steps collection", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/steps/collectionInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          steps: [],
+        },
+      ]);
+    });
+
+    it("should ignore steps if the collection contains an invalid step", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/steps/stepInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          steps: [],
+        },
       ]);
     });
 
