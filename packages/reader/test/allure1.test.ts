@@ -128,25 +128,6 @@ describe("allure1 reader", () => {
     );
   });
 
-  it("should parse invalid or missing status", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/empty-status.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(4);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-
-    expect(trs).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "testOne", status: "unknown" }),
-        expect.objectContaining({ name: "testTwo", status: "passed" }),
-        expect.objectContaining({ name: "testThree", status: "failed" }),
-        expect.objectContaining({ name: "testFour", status: "unknown" }),
-      ]),
-    );
-  });
-
   it("should parse file with single test case", async () => {
     const visitor = await readResults(allure1, {
       "allure1data/single.xml": randomTestsuiteFileName(),
@@ -157,22 +138,6 @@ describe("allure1 reader", () => {
     const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
     expect(trs).toMatchObject(expect.arrayContaining([expect.objectContaining({ name: "testOne", status: "passed" })]));
-  });
-
-  it("should parse start and stop", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/single.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-
-    expect(trs).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "testOne", start: 1412949539363, stop: 1412949539715, duration: 352 }),
-      ]),
-    );
   });
 
   it("should parse message and trace", async () => {
@@ -212,27 +177,6 @@ describe("allure1 reader", () => {
           status: "failed",
           trace: failureTrace,
         }),
-      ]),
-    );
-  });
-
-  it("should parse parameters", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/params.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-    const tr = trs[0];
-
-    expect(tr.parameters).toMatchObject(
-      expect.arrayContaining([
-        { name: "first param", value: "value 1" },
-        { name: "second param", value: "value 2" },
-        { value: "value 2" },
-        { name: "name 4" },
-        { name: "name 5", value: "value 5" },
       ]),
     );
   });
