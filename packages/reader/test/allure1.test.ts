@@ -237,7 +237,81 @@ describe("allure1 reader", () => {
     );
   });
 
-  describe("test attachments", () => {
+  describe("timings", () => {
+    it("should parse start and stop and calculate duration", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/wellDefined.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: 5, stop: 25, duration: 20 }]);
+    });
+
+    it("should skip duration if start is missing", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/startMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: undefined, stop: 25, duration: undefined }]);
+    });
+
+    it("should ignore ill-formed start and skip duration", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/startInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: undefined, stop: 25, duration: undefined }]);
+    });
+
+    it("should skip duration if stop is missing", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/stopMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: 5, stop: undefined, duration: undefined }]);
+    });
+
+    it("should ignore ill-formed stop and skip duration", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/stopInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: 5, stop: undefined, duration: undefined }]);
+    });
+
+    it("should set duration to zero if start is greater than stop", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/timings/startGreaterThanStop.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ start: 25, stop: 5, duration: 0 }]);
+    });
+  });
+
+  describe("attachments", () => {
     it("should parse a test case attachments", async () => {
       const visitor = await readResults(allure1, {
         "allure1data/attachments/wellDefinedAttachments.xml": randomTestsuiteFileName(),
@@ -423,6 +497,205 @@ describe("allure1 reader", () => {
         const tr = trs[0];
 
         expect(tr.steps).toMatchObject([{ name: "The step's name is not defined" }]);
+      });
+    });
+
+    describe("statuses", () => {
+      it("should parse a passed step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/passed.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "passed" }]);
+      });
+
+      it("should parse a failed step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/failed.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "failed" }]);
+      });
+
+      it("should parse a broken step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/broken.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "broken" }]);
+      });
+
+      it("should parse a skipped step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/skipped.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "skipped" }]);
+      });
+
+      it("should parse a canceled step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/canceled.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "skipped" }]);
+      });
+
+      it("should parse a pending step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/pending.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "skipped" }]);
+      });
+
+      it("should parse an unknown status", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/unknown.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "unknown" }]);
+      });
+
+      it("should treat a missing status as unknown", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/statusMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "unknown" }]);
+      });
+
+      it("should treat an ill-formed status as unknown", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/statuses/statusInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ status: "unknown" }]);
+      });
+    });
+
+    describe("timings", () => {
+      it("should parse start and stop and calculate duration", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/wellDefined.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: 1, stop: 11, duration: 10 }]);
+      });
+
+      it("should skip duration if start is missing", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/startMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: undefined, stop: 11, duration: undefined }]);
+      });
+
+      it("should ignore ill-formed start and skip duration", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/startInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: undefined, stop: 11, duration: undefined }]);
+      });
+
+      it("should skip duration if stop is missing", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/stopMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: 1, stop: undefined, duration: undefined }]);
+      });
+
+      it("should ignore ill-formed stop and skip duration", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/stopInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: 1, stop: undefined, duration: undefined }]);
+      });
+
+      it("should set duration to zero if start is greater than stop", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/timings/startGreaterThanStop.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+        const tr = trs[0];
+
+        expect(tr.steps).toMatchObject([{ start: 11, stop: 1, duration: 0 }]);
       });
     });
 
