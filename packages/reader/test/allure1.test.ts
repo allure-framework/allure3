@@ -237,6 +237,116 @@ describe("allure1 reader", () => {
     );
   });
 
+  describe("statuses", () => {
+    it("should parse a passed test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/passed.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "passed" }]);
+    });
+
+    it("should parse a failed test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/failed.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "failed" }]);
+    });
+
+    it("should parse a broken test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/broken.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "broken" }]);
+    });
+
+    it("should parse a skipped test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/skipped.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "skipped" }]);
+    });
+
+    it("should parse a canceled test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/canceled.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "skipped" }]);
+    });
+
+    it("should parse a pending test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/pending.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "skipped" }]);
+    });
+
+    it("should parse an unknown status", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/unknown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "unknown" }]);
+    });
+
+    it("should treat a missing status as unknown", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/statusMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "unknown" }]);
+    });
+
+    it("should treat an ill-formed status as unknown", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/statuses/statusInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "unknown" }]);
+    });
+  });
+
   describe("timings", () => {
     it("should parse start and stop and calculate duration", async () => {
       const visitor = await readResults(allure1, {
