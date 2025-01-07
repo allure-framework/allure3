@@ -181,6 +181,245 @@ describe("allure1 reader", () => {
     );
   });
 
+  describe("descriptions", () => {
+    it("should parse a test case markdown description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/markdown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should parse a test case text description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/text.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should parse a test case HTML description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/html.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toBeUndefined();
+      expect(tr.descriptionHtml).toEqual("Lorem Ipsum");
+    });
+
+    it("should parse a test suite markdown description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/suiteMarkdown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should parse a test suite text description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/suiteText.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should parse a test suite HTML description", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/suiteHtml.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toBeUndefined();
+      expect(tr.descriptionHtml).toEqual("Lorem Ipsum");
+    });
+
+    it("should not set properties if both descriptions are missing", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/noDescriptions.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toBeUndefined();
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should combine suite and test markdown descriptions", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/markdownMarkdown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum\n\nDolor Sit Amet");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should combine suite and test HTML descriptions", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/htmlHtml.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toBeUndefined();
+      expect(tr.descriptionHtml).toEqual("Lorem Ipsum<br>Dolor Sit Amet");
+    });
+
+    it("should combine markdown suite and HTML test descriptions", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/markdownHtml.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toEqual("Dolor Sit Amet");
+    });
+
+    it("should combine text suite and HTML test descriptions", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/textHtml.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toEqual("Dolor Sit Amet");
+    });
+
+    it("should combine text suite test descriptions", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/textText.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum\n\nDolor Sit Amet");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should ignore type case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/typeUpperCase.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.descriptionHtml).toEqual("Lorem Ipsum");
+    });
+
+    it("should ignore a missing value", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/valueMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toBeUndefined();
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should treat missing type as markdown", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/typeMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should treat an ill-formed type as markdown", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/typeInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+
+    it("should treat an unknown type as markdown", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/descriptions/typeUnknown.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.description).toEqual("Lorem Ipsum");
+      expect(tr.descriptionHtml).toBeUndefined();
+    });
+  });
+
   describe("statuses", () => {
     it("should parse a passed test case", async () => {
       const visitor = await readResults(allure1, {

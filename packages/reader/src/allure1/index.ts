@@ -89,7 +89,12 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 };
 
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>): Promise<boolean> => {
-  const { "name": testSuiteName, "test-cases": testCases, "labels": labelsElement } = testSuite;
+  const {
+    "name": testSuiteName,
+    "description": descriptionElement,
+    "test-cases": testCases,
+    "labels": labelsElement,
+  } = testSuite;
   if (!isStringAnyRecord(testCases)) {
     return false;
   }
@@ -103,19 +108,24 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
   const labels = parseLabels(labelsElement);
 
   for (const tc of testCase) {
-    await parseTestCase(visitor, { name: ensureString(testSuiteName), labels }, tc);
+    await parseTestCase(
+      visitor,
+      { name: ensureString(testSuiteName), ...parseDescription(descriptionElement), labels },
+      tc,
+    );
   }
   return true;
 };
 
 const parseTestCase = async (
   visitor: ResultsVisitor,
-  testSuite: { name?: string; labels: readonly RawTestLabel[] },
+  testSuite: { name?: string; description?: string; descriptionHtml?: string; labels: readonly RawTestLabel[] },
   testCase: Record<string, any>,
 ) => {
-  const { labels: suiteLabels } = testSuite;
+  const { description: suiteDescription, descriptionHtml: suiteDescriptionHtml, labels: suiteLabels } = testSuite;
   const {
     name: nameElement,
+    description: descriptionElement,
     status: statusElement,
     failure: failureElement,
     parameters: parametersElement,
@@ -128,6 +138,12 @@ const parseTestCase = async (
 
   const name = ensureString(nameElement);
   const status = convertStatus(ensureString(statusElement));
+
+  const { description: testCaseDescription, descriptionHtml: testCaseDescriptionHtml } =
+    parseDescription(descriptionElement);
+  const description = combineDescriptions(suiteDescription, testCaseDescription, "\n\n");
+  const descriptionHtml = combineDescriptions(suiteDescriptionHtml, testCaseDescriptionHtml, "<br>");
+
   const { start, stop, duration } = parseTime(startElement, stopElement);
 
   const allure1Labels = [...suiteLabels, ...parseLabels(labelsElement)];
@@ -149,6 +165,8 @@ const parseTestCase = async (
   await visitor.visitTestResult(
     {
       name,
+      description,
+      descriptionHtml,
       testId,
       historyId,
       status,
@@ -167,6 +185,29 @@ const parseTestCase = async (
     },
     { readerId },
   );
+};
+
+const parseDescription = (element: unknown): { description?: string; descriptionHtml?: string } => {
+  if (typeof element === "string") {
+    return { description: element };
+  }
+
+  if (!isStringAnyRecord(element)) {
+    return {};
+  }
+
+  const { "#text": value, type } = element;
+  const safeValue = ensureString(value);
+
+  return ensureString(type)?.toLowerCase() === "html" ? { descriptionHtml: safeValue } : { description: safeValue };
+};
+
+const combineDescriptions = (
+  suiteDescription: string | undefined,
+  testDescription: string | undefined,
+  sep: string,
+) => {
+  return [suiteDescription, testDescription].filter(Boolean).join(sep) || undefined;
 };
 
 const parseFailure = (element: unknown): { message?: string; trace?: string } => {
