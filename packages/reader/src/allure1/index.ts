@@ -17,6 +17,7 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 const DEFAULT_TEST_NAME = "The test's name is not defined";
 const DEFAULT_STEP_NAME = "The step's name is not defined";
 
+const SUITE_LABEL_NAME = "suite";
 const TEST_CLASS_LABEL_NAME = "testClass";
 const TEST_METHOD_LABEL_NAME = "testMethod";
 const TEST_ID_LABEL_NAME = "testCaseId";
@@ -191,7 +192,7 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: SuiteData, test
     ...createLinks(allLabels, ISSUE_LABEL_NAME, ISSUE_LINK_TYPE),
     ...createLinks(allLabels, TMS_LABEL_NAME, TMS_LINK_TYPE),
   ];
-  const labels = composeLabels(allLabels, testClass, testMethod);
+  const labels = composeTestResultLabels(allLabels, testClass, testMethod, suiteTitle ?? suiteName);
 
   const { message, trace } = parseFailure(failureElement);
   const parameters = parseParameters(parametersElement);
@@ -285,6 +286,7 @@ const convertLabel = (labelElement: Record<string, unknown>): RawTestLabel => {
   };
 };
 
+const labelExists = (labels: readonly RawTestLabel[], name: string) => labels.some((l) => l.name === name);
 const findAllLabels = (labels: readonly RawTestLabel[], name: string) => labels.filter((l) => l.name === name);
 const maybeFindLabelValue = (labels: readonly RawTestLabel[], name: string) =>
   labels.find((l) => l.name === name)?.value;
@@ -309,15 +311,29 @@ const resolveTestClass = (
 const resolveTestMethod = (testCaseLabels: RawTestLabel[], name: string | undefined, title: string | undefined) =>
   maybeFindLabelValue(testCaseLabels, TEST_METHOD_LABEL_NAME) ?? name ?? title;
 
-const composeLabels = (allLabels: RawTestLabel[], testClass: string | undefined, testMethod: string | undefined) => {
+const composeTestResultLabels = (
+  allLabels: RawTestLabel[],
+  testClass: string | undefined,
+  testMethod: string | undefined,
+  suite: string | undefined,
+) => {
   const labels = allLabels.filter(({ name: labelName }) => !labelName || !RESERVER_LABEL_NAMES.has(labelName));
-  if (testClass) {
-    labels.push({ name: TEST_CLASS_LABEL_NAME, value: testClass });
-  }
-  if (testMethod) {
-    labels.push({ name: TEST_METHOD_LABEL_NAME, value: testMethod });
-  }
+  addLabel(labels, TEST_CLASS_LABEL_NAME, testClass);
+  addLabel(labels, TEST_METHOD_LABEL_NAME, testMethod);
+  addLabelIfNotExists(labels, SUITE_LABEL_NAME, suite);
   return labels;
+};
+
+const addLabelIfNotExists = (labels: RawTestLabel[], name: string, value: string | undefined) => {
+  if (!labelExists(labels, name)) {
+    addLabel(labels, name, value);
+  }
+};
+
+const addLabel = (labels: RawTestLabel[], name: string, value: string | undefined) => {
+  if (value) {
+    labels.push({ name, value });
+  }
 };
 
 const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {

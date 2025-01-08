@@ -178,10 +178,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "test-class.test-method",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "test-class" },
             { name: "testMethod", value: "test-method" },
-          ],
+          ]),
         },
       ]);
     });
@@ -198,10 +198,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "suite-class.test-method",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "suite-class" },
             { name: "testMethod", value: "test-method" },
-          ],
+          ]),
         },
       ]);
     });
@@ -218,10 +218,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "suite-name.test-method",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "suite-name" },
             { name: "testMethod", value: "test-method" },
-          ],
+          ]),
         },
       ]);
     });
@@ -238,10 +238,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "suite-title.test-method",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "suite-title" },
             { name: "testMethod", value: "test-method" },
-          ],
+          ]),
         },
       ]);
     });
@@ -258,7 +258,24 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: undefined,
-          labels: [{ name: "testMethod", value: "test-method" }],
+          labels: expect.not.arrayContaining([{ name: "testClass" }]),
+        },
+      ]);
+    });
+
+    it("should ignore an ill-formed suite title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/suiteTitleInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: undefined,
+          labels: expect.not.arrayContaining([{ name: "testClass" }]),
         },
       ]);
     });
@@ -275,10 +292,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "test-class.test-name",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "test-class" },
             { name: "testMethod", value: "test-name" },
-          ],
+          ]),
         },
       ]);
     });
@@ -295,10 +312,10 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: "test-class.test-title",
-          labels: [
+          labels: expect.arrayContaining([
             { name: "testClass", value: "test-class" },
             { name: "testMethod", value: "test-title" },
-          ],
+          ]),
         },
       ]);
     });
@@ -315,7 +332,7 @@ describe("allure1 reader", () => {
       expect(trs).toMatchObject([
         {
           fullName: undefined,
-          labels: [{ name: "testClass", value: "test-class" }],
+          labels: expect.not.arrayContaining([{ name: "testMethod" }]),
         },
       ]);
     });
@@ -1025,6 +1042,54 @@ describe("allure1 reader", () => {
             { name: "foo", value: "bar" },
             { name: "baz", value: "qux" },
           ],
+        },
+      ]);
+    });
+
+    it("should add a suite label from a suite title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/suiteTitleAndName.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: expect.arrayContaining([{ name: "suite", value: "foo" }]),
+        },
+      ]);
+    });
+
+    it("should add a suite label from a suite name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/suiteName.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: expect.arrayContaining([{ name: "suite", value: "foo" }]),
+        },
+      ]);
+    });
+
+    it("should not add a suite label if already exists", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/labels/suiteNameAndLabel.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          labels: expect.not.arrayContaining([{ name: "suite", value: "foo" }]),
         },
       ]);
     });
