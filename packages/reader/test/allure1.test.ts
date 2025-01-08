@@ -988,9 +988,9 @@ describe("allure1 reader", () => {
         ]);
       });
 
-      it("should convert tms labels to links", async () => {
+      it("should convert testId labels to links", async () => {
         const visitor = await readResults(allure1, {
-          "allure1data/labels/special/tms.xml": randomTestsuiteFileName(),
+          "allure1data/labels/special/testId.xml": randomTestsuiteFileName(),
         });
 
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);

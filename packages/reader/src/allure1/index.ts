@@ -21,9 +21,11 @@ const TEST_METHOD_LABEL_NAME = "testMethod";
 const TEST_ID_LABEL_NAME = "testCaseId";
 const HISTORY_ID_LABEL_NAME = "historyId";
 const STATUS_DETAILS_LABEL_NAME = "status_details";
-
 const ISSUE_LABEL_NAME = "issue";
-const TMS_LABEL_NAME = "tms";
+const TMS_LABEL_NAME = "testId";
+
+const ISSUE_LINK_TYPE = "issue";
+const TMS_LINK_TYPE = "tms";
 
 type SuiteData = {
   name?: string;
@@ -182,7 +184,10 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: SuiteData, test
   const muted = labelValueExistsIgnoreCase(statusDetailLabels, "muted");
   const known = labelValueExistsIgnoreCase(statusDetailLabels, "known");
 
-  const links = [...createLinks(allLabels, ISSUE_LABEL_NAME), ...createLinks(allLabels, TMS_LABEL_NAME)];
+  const links = [
+    ...createLinks(allLabels, ISSUE_LABEL_NAME, ISSUE_LINK_TYPE),
+    ...createLinks(allLabels, TMS_LABEL_NAME, TMS_LINK_TYPE),
+  ];
   const labels = composeLabels(allLabels, testClass, testMethod);
 
   const { message, trace } = parseFailure(failureElement);
@@ -284,8 +289,8 @@ const maybeFindLabelValue = (labels: readonly RawTestLabel[], name: string) =>
 const labelValueExistsIgnoreCase = (labels: readonly RawTestLabel[], value: string) =>
   labels.some((l) => l.value?.toLowerCase() === value);
 
-const createLinks = (labels: readonly RawTestLabel[], type: string): RawTestLink[] =>
-  findAllLabels(labels, type).map(({ name, value }) => ({ name: value, url: value, type: name }));
+const createLinks = (labels: readonly RawTestLabel[], labelName: string, linkType: string): RawTestLink[] =>
+  findAllLabels(labels, labelName).map(({ value }) => ({ name: value, url: value, type: linkType }));
 
 const resolveTestClass = (
   testCaseLabels: RawTestLabel[],
