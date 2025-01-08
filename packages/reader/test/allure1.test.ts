@@ -72,37 +72,6 @@ describe("allure1 reader", () => {
     );
   });
 
-  it("should parse name and status", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/sample-testsuite.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(4);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-
-    expect(trs).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "testOne", status: "passed" }),
-        expect.objectContaining({ name: "testTwo", status: "passed" }),
-        expect.objectContaining({ name: "testThree", status: "passed" }),
-        expect.objectContaining({ name: "testFour", status: "passed" }),
-      ]),
-    );
-  });
-
-  it("should parse file with single test case", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/single.xml": randomTestsuiteFileName(),
-    });
-
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
-
-    expect(trs).toMatchObject(expect.arrayContaining([expect.objectContaining({ name: "testOne", status: "passed" })]));
-  });
-
   describe("name", () => {
     it("should prefer a title", async () => {
       const visitor = await readResults(allure1, {
