@@ -1,8 +1,8 @@
 import { DropdownButton } from "@allurereport/web-components";
+import { Menu } from "@allurereport/web-components";
 import { LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";
-import { Menu } from "../../commons/Menu";
 
 const langPickerOptions = Object.entries(LANG_LOCALE).map(([key, { full }]) => ({
   key: key as LangLocale,

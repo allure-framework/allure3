@@ -1,3 +1,8 @@
+import { DropdownButton } from "@allurereport/web-components";
+import { Link } from "@allurereport/web-components";
+import { Menu } from "@allurereport/web-components";
+import { SvgIcon } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import lineChevronDownIcon from "@/assets/svg/line-arrows-chevron-down.svg";
@@ -6,11 +11,6 @@ import sortDescIcon from "@/assets/svg/line-arrows-sort-line-desc.svg";
 import switchVerticalIcon from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import { useI18n } from "@/stores/locale";
 import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
-import { DropdownButton } from "../../commons/Button";
-import { Link } from "../../commons/Link";
-import { Menu } from "../../commons/Menu";
-import { SvgIcon } from "../../commons/SvgIcon";
-import { Text } from "../../commons/Typography";
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {

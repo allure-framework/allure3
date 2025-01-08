@@ -1,17 +1,17 @@
+import alias from "@rollup/plugin-alias";
 import { babel } from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
+import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
-import svg from "rollup-plugin-svg-sprites"
+import autoprefixer from "autoprefixer";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+import postcssImport from "postcss-import";
 import { defineConfig } from "rollup";
 import copy from "rollup-plugin-copy";
 import postcss from "rollup-plugin-postcss";
-import terser from "@rollup/plugin-terser";
-import alias from "@rollup/plugin-alias";
-import * as path from "node:path";
-import {fileURLToPath} from "node:url";
-import postcssImport from "postcss-import"
-import autoprefixer from "autoprefixer"
+import svg from "rollup-plugin-svg-sprites";
 
 const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
@@ -37,8 +37,8 @@ export default defineConfig({
         {
           find: "@",
           replacement: SRC_PATH,
-        }
-      ]
+        },
+      ],
     }),
     resolve(),
     commonjs(),
@@ -57,16 +57,11 @@ export default defineConfig({
       extract: true,
       minimize: true,
       extensions: [".scss", ".css"],
-      plugins:[
-        postcssImport(),
-        autoprefixer()
-      ]
+      plugins: [postcssImport(), autoprefixer()],
     }),
     terser(),
     copy({
-      targets: [
-        { src: "src/assets/fonts/**/*", dest: "dist/fonts" },
-      ],
+      targets: [{ src: "src/assets/fonts/**/*", dest: "dist/fonts" }],
     }),
   ],
 });

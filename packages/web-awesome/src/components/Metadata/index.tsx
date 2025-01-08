@@ -10,7 +10,6 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 const { t } = useI18n("ui");
-
 export const MetadataList: FunctionalComponent<MetadataProps & { columns?: number }> = ({
   envInfo,
   size = "m",

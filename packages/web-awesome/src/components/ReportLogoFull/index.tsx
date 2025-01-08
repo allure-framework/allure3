@@ -1,7 +1,7 @@
+import { SvgIcon } from "@allurereport/web-components";
+import { Text } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import reportLogo from "@/assets/svg/report-logo.svg";
-import { SvgIcon } from "../../commons/SvgIcon";
-import { Text } from "../../commons/Typography";
 import * as styles from "./styles.scss";
 
 export const ReportLogoFull = (props: {

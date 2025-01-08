@@ -1,7 +1,7 @@
 import { type TestStatus, formatDuration } from "@allurereport/core-api";
 import { Text } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
-import TreeItemIcon from "@/Tree/TreeItemIcon";
+import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { navigateTo } from "@/index";
 import * as styles from "./styles.scss";
 

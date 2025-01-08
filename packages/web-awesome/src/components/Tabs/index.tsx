@@ -1,6 +1,6 @@
+import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
-import { Text } from "../../commons/Typography";
 import * as styles from "./styles.scss";
 
 type TabsContextT = {
