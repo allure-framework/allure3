@@ -103,6 +103,68 @@ describe("allure1 reader", () => {
     expect(trs).toMatchObject(expect.arrayContaining([expect.objectContaining({ name: "testOne", status: "passed" })]));
   });
 
+  describe("name", () => {
+    it("should prefer a title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/names/nameAndTitle.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "bar" }]);
+    });
+
+    it("should fall back to the name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/names/nameOnly.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "foo" }]);
+    });
+
+    it("should use a placeholder if not title or name defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/names/noNameNoTitle.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+
+    it("should ignore an invalid name", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/names/nameInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+
+    it("should ignore an invalid title", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/names/titleInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+  });
+
   describe("fullName", () => {
     it("should use the test case's labels", async () => {
       const visitor = await readResults(allure1, {

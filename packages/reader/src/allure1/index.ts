@@ -14,6 +14,7 @@ import * as console from "node:console";
 import { ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
+const DEFAULT_TEST_NAME = "The test's name is not defined";
 const DEFAULT_STEP_NAME = "The step's name is not defined";
 
 const TEST_CLASS_LABEL_NAME = "testClass";
@@ -159,8 +160,10 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: SuiteData, test
     labels: labelsElement,
   } = testCase;
 
-  const name = ensureString(nameElement);
-  const title: string | undefined = titleElement;
+  const testCaseName = ensureString(nameElement);
+  const testCaseTitle = ensureString(titleElement);
+
+  const name = testCaseTitle ?? testCaseName ?? DEFAULT_TEST_NAME;
   const status = convertStatus(ensureString(statusElement));
 
   const { description: testCaseDescription, descriptionHtml: testCaseDescriptionHtml } =
@@ -176,7 +179,7 @@ const parseTestCase = async (visitor: ResultsVisitor, testSuite: SuiteData, test
   const historyId = maybeFindLabelValue(allLabels, HISTORY_ID_LABEL_NAME);
 
   const testClass = resolveTestClass(testCaseLabels, suiteLabels, suiteName, suiteTitle);
-  const testMethod = resolveTestMethod(testCaseLabels, name, title);
+  const testMethod = resolveTestMethod(testCaseLabels, testCaseName, testCaseTitle);
   const fullName = getFullName(testClass, testMethod);
 
   const statusDetailLabels = findAllLabels(allLabels, STATUS_DETAILS_LABEL_NAME);
