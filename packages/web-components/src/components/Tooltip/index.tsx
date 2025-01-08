@@ -2,7 +2,7 @@ import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/d
 import type { FunctionalComponent, VNode } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Text } from "@/components/Typography";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 interface TooltipWrapperProps {
   tooltipText?: string;

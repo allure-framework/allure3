@@ -3,7 +3,7 @@ import lineChevronDownIcon from "@/assets/svg/line-arrows-chevron-down.svg";
 import { Spinner } from "@/components/Spinner";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type BaseBtnProps = {
   /**

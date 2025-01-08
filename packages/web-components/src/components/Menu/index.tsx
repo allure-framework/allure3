@@ -5,7 +5,7 @@ import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import check from "@/assets/svg/line-general-check.svg";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type MenuContextT = {
   setIsOpened: (isOpened: boolean) => void;
@@ -84,7 +84,7 @@ export const Menu = (props: {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [menuRef.current, isOpened]);
+  }, [isOpened]);
 
   useEffect(() => {
     const updatePosition = () => {

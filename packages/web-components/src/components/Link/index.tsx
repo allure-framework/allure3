@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type Props = {
   href?: string;

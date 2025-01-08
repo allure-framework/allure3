@@ -6,7 +6,7 @@ import { IconButton } from "@/components/Button";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 import { useDebouncedCallback } from "@/components/hooks/useDebouncedCallback";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type Props = {
   placeholder?: string;
@@ -40,7 +40,7 @@ export const SearchBox = (props: Props) => {
     if (localValue !== value) {
       setLocalValue(value);
     }
-  }, [value]);
+  }, [localValue, value]);
 
   // @ts-ignore
   return (

@@ -1,5 +1,5 @@
 import { Spinner } from "@/components/Spinner";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 export const PageLoader = () => {
   return (

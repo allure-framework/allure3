@@ -1,6 +1,6 @@
 import type { FunctionComponent } from "preact";
-import * as styles from "@/components/Label/styles.scss";
 import { Text } from "@/components/Typography";
+import styles from "./styles.scss";
 
 export const Label: FunctionComponent = ({ children }) => (
   <div className={styles.label}>

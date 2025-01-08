@@ -10,7 +10,7 @@
       "ES2019",
       "dom"
     ],
-    "module": "CommonJS",
+    "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./dist",
     "declarationDir": "./dist/types",
@@ -23,6 +23,8 @@
     "skipLibCheck": true,
     "target": "ESNext",
     "types": [],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "exclude": ["node_modules",".yarn","**/*.stories.tsx"],
 

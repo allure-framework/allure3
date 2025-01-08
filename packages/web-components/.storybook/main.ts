@@ -14,7 +14,8 @@ const baseDir = dirname(fileURLToPath(import.meta.url));
 const devMode = process?.mode === "development";
 
 const config: StorybookConfig = {
-  stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  // stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  stories: ["../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   addons: [
     getAbsolutePath("@storybook/addon-webpack5-compiler-swc"),
     getAbsolutePath("@storybook/addon-essentials"),

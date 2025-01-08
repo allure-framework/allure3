@@ -1,4 +1,4 @@
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type Props = {
   value: boolean;

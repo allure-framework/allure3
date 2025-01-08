@@ -1,6 +1,102 @@
 import { clsx } from "clsx";
 import type { JSX } from "preact";
-import * as styles from "./styles.scss";
+import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
+import github from "@/assets/svg/github.svg";
+import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
+import lineArrowsChevronDownDouble from "@/assets/svg/line-arrows-chevron-down-double.svg";
+import lineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
+import lineArrowsChevronRight from "@/assets/svg/line-arrows-chevron-right.svg";
+import lineArrowsChevronUpDouble from "@/assets/svg/line-arrows-chevron-up-double.svg";
+import lineArrowsChevronUp from "@/assets/svg/line-arrows-chevron-up.svg";
+import lineArrowsCornerDownRight from "@/assets/svg/line-arrows-corner-down-right.svg";
+import lineArrowsExpand3 from "@/assets/svg/line-arrows-expand-3.svg";
+import lineArrowsRefreshCcw1 from "@/assets/svg/line-arrows-refresh-ccw-1.svg";
+import lineArrowsSortLineAsc from "@/assets/svg/line-arrows-sort-line-asc.svg";
+import lineArrowsSortLineDesc from "@/assets/svg/line-arrows-sort-line-desc.svg";
+import lineArrowsSwitchVertical1 from "@/assets/svg/line-arrows-switch-vertical-1.svg";
+import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
+import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
+import lineFilesFileAttachment2 from "@/assets/svg/line-files-file-attachment-2.svg";
+import lineGeneralCheck from "@/assets/svg/line-general-check.svg";
+import lineGeneralChecklist3 from "@/assets/svg/line-general-checklist3.svg";
+import lineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
+import lineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
+import lineGeneralEqual from "@/assets/svg/line-general-equal.svg";
+import lineGeneralHomeLine from "@/assets/svg/line-general-home-line.svg";
+import lineGeneralLink1 from "@/assets/svg/line-general-link-1.svg";
+import lineGeneralLinkExternal from "@/assets/svg/line-general-link-external.svg";
+import lineGeneralSearchMd from "@/assets/svg/line-general-search-md.svg";
+import lineGeneralSettings1 from "@/assets/svg/line-general-settings-1.svg";
+import lineGeneralXClose from "@/assets/svg/line-general-x-close.svg";
+import lineGeneralZap from "@/assets/svg/line-general-zap.svg";
+import lineHelpersFlag from "@/assets/svg/line-helpers-flag.svg";
+import lineHelpersPlayCircle from "@/assets/svg/line-helpers-play-circle.svg";
+import lineImagesImage from "@/assets/svg/line-images-image.svg";
+import lineSecurityKey from "@/assets/svg/line-security-key.svg";
+import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
+import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
+import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
+import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
+import reportLogo from "@/assets/svg/report-logo.svg";
+import solidAlertCircle from "@/assets/svg/solid-alert-circle.svg";
+import solidCheckCircle from "@/assets/svg/solid-check-circle.svg";
+import solidHelpCircle from "@/assets/svg/solid-help-circle.svg";
+import solidMinusCircle from "@/assets/svg/solid-minus-circle.svg";
+import solidXCircle from "@/assets/svg/solid-x-circle.svg";
+import spinner from "@/assets/svg/spinner.svg";
+import viewOff from "@/assets/svg/view-off.svg";
+import view from "@/assets/svg/view.svg";
+import styles from "./styles.scss";
+
+// TODO: do we need to rename it?
+export const icons = {
+  arrowsChevronDown: arrowsChevronDown.id,
+  github: github.id,
+  lineAlertsNotificationBox: lineAlertsNotificationBox.id,
+  lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
+  lineArrowsChevronDown: lineArrowsChevronDown.id,
+  lineArrowsChevronRight: lineArrowsChevronRight.id,
+  lineArrowsChevronUpDouble: lineArrowsChevronUpDouble.id,
+  lineArrowsChevronUp: lineArrowsChevronUp.id,
+  lineArrowsCornerDownRight: lineArrowsCornerDownRight.id,
+  lineArrowsExpand3: lineArrowsExpand3.id,
+  lineArrowsRefreshCcw1: lineArrowsRefreshCcw1.id,
+  lineArrowsSortLineAsc: lineArrowsSortLineAsc.id,
+  lineArrowsSortLineDesc: lineArrowsSortLineDesc.id,
+  lineArrowsSwitchVertical1: lineArrowsSwitchVertical1.id,
+  lineDevBug2: lineDevBug2.id,
+  lineDevCodeSquare: lineDevCodeSquare.id,
+  lineFilesFileAttachment2: lineFilesFileAttachment2.id,
+  lineGeneralCheck: lineGeneralCheck.id,
+  lineGeneralChecklist3: lineGeneralChecklist3.id,
+  lineGeneralCopy3: lineGeneralCopy3.id,
+  lineGeneralDownloadCloud: lineGeneralDownloadCloud.id,
+  lineGeneralEqual: lineGeneralEqual.id,
+  lineGeneralHomeLine: lineGeneralHomeLine.id,
+  lineGeneralLink1: lineGeneralLink1.id,
+  lineGeneralLinkExternal: lineGeneralLinkExternal.id,
+  lineGeneralSearchMd: lineGeneralSearchMd.id,
+  lineGeneralSettings1: lineGeneralSettings1.id,
+  lineGeneralXClose: lineGeneralXClose.id,
+  lineGeneralZap: lineGeneralZap.id,
+  lineHelpersFlag: lineHelpersFlag.id,
+  lineHelpersPlayCircle: lineHelpersPlayCircle.id,
+  lineImagesImage: lineImagesImage.id,
+  lineSecurityKey: lineSecurityKey.id,
+  lineShapesDotCircle: lineShapesDotCircle.id,
+  lineShapesMoon: lineShapesMoon.id,
+  lineShapesSun: lineShapesSun.id,
+  lineTimeClockStopwatch: lineTimeClockStopwatch.id,
+  reportLogo: reportLogo.id,
+  solidAlertCircle: solidAlertCircle.id,
+  solidCheckCircle: solidCheckCircle.id,
+  solidHelpCircle: solidHelpCircle.id,
+  solidMinusCircle: solidMinusCircle.id,
+  solidXCircle: solidXCircle.id,
+  spinner: spinner.id,
+  viewOff: viewOff.id,
+  view: view.id,
+};
 
 export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
   /**

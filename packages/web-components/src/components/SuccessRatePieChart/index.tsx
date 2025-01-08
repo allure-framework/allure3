@@ -1,6 +1,6 @@
 import type { TestStatus } from "@allurereport/core-api";
 import { Heading } from "@/components/Typography";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 type Slice = {
   status: TestStatus;
@@ -13,7 +13,7 @@ type Props = {
   percentage: number;
 };
 
-function getColorFromStatus(status: TestStatus) {
+const getColorFromStatus = (status: TestStatus) => {
   switch (status) {
     case "passed":
       return "var(--bg-support-castor)";
@@ -28,7 +28,7 @@ function getColorFromStatus(status: TestStatus) {
     default:
       return "var(--bg-support-skat)";
   }
-}
+};
 
 export const SuccessRatePieChart = (props: Props) => {
   const { slices, percentage } = props;

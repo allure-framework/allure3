@@ -1,5 +1,5 @@
 import type { Preview } from "@storybook/preact";
-import "@/assets/scss/index.scss";
+import "../dist/index.css";
 
 const preview: Preview = {
   tags: ["autodocs"],
