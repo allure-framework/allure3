@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "preact/hooks";
-import { SearchBox } from "../";
+import { SearchBox } from "@allurereport/web-components";
 
 const meta: Meta<typeof SearchBox> = {
   title: "Commons/SearchBox",

@@ -1,6 +1,6 @@
 import "@/assets/scss/index.scss";
 
-export { Button, IconButton } from "@/components/Button";
+export { Button, IconButton, DropdownButton } from "@/components/Button";
 export { Spinner } from "@/components/Spinner";
 export { SvgIcon, icons } from "@/components/SvgIcon";
 export * from "@/components/Typography";

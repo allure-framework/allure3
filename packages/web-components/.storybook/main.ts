@@ -11,6 +11,7 @@ function getAbsolutePath(value: string): any {
 }
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
+// @ts-ignore
 const devMode = process?.mode === "development";
 
 const config: StorybookConfig = {
@@ -28,7 +29,8 @@ const config: StorybookConfig = {
   },
   webpackFinal: async (config) => {
     config.module!.rules = config.module!.rules!.filter(
-      (rule) => !rule!.test || !rule!.test.toString().includes("scss"),
+      // @ts-ignore
+      (rule) => !rule?.test?.toString()?.includes?.("scss"),
     );
     config!.resolve!.alias = {
       ...config.resolve!.alias,

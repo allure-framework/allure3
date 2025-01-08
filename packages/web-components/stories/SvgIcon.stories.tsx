@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { SvgIcon } from "../";
+import { SvgIcon } from "@allurereport/web-components";
 
 // Mock icons
 const mockIconId = "mock-icon-id";

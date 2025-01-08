@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "./stories",
+    "./.storybook",
+    "vitest.config.ts"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true
+  }
+}

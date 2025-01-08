@@ -13,18 +13,20 @@
   "author": "Qameta Software",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
     "./index.css": "./dist/index.css"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "prebuild": "rimraf ./dist",
-    "build": "rollup -c",
+    "build": "rimraf ./dist && rollup -c",
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0"

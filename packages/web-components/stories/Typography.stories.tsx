@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Code, Heading, Text } from "../";
+import { Code, Heading, Text } from "@allurereport/web-components";
 
 const meta: Meta<typeof Text> = {
   title: "Commons/Typography",

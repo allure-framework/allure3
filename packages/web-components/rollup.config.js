@@ -44,7 +44,7 @@ export default defineConfig({
     commonjs(),
     typescript({
       sourceMap: true,
-      declaration: true,
+      // declaration: true,
     }),
     babel({
       babelHelpers: "bundled",

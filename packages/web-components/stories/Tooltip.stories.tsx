@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Text, TooltipWrapper } from "../";
+import { Text, TooltipWrapper } from "@allurereport/web-components";
 
 const meta: Meta<typeof TooltipWrapper> = {
   title: "Commons/TooltipWrapper",

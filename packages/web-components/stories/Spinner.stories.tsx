@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Spinner } from "../";
+import { Spinner } from "@allurereport/web-components";
 
 const meta: Meta<typeof Spinner> = {
   title: "Commons/Spinner",

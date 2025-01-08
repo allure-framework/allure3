@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { PageLoader } from "../";
+import { PageLoader } from "@allurereport/web-components";
 
 const meta: Meta<typeof PageLoader> = {
   title: "Commons/PageLoader",

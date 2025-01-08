@@ -1,6 +1,6 @@
 import type { TestStatus } from "@allurereport/core-api";
 import type { Meta, StoryObj } from "@storybook/react";
-import { SuccessRatePieChart } from "../";
+import { SuccessRatePieChart } from "@allurereport/web-components";
 
 const meta: Meta<typeof SuccessRatePieChart> = {
   title: "Commons/SuccessRatePieChart",
