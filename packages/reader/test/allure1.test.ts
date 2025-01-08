@@ -6,43 +6,6 @@ import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 
 const randomTestsuiteFileName = () => `${randomUUID()}-testsuite.xml`;
 
-const failureTrace =
-  "java.lang.RuntimeException: bye-bye\n" +
-  "                    at my.company.BeforeClassFailTest.setUp(BeforeClassFailTest.java:14)\n" +
-  "                    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n" +
-  "                    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n" +
-  "                    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n" +
-  "                    at java.lang.reflect.Method.invoke(Method.java:601)\n" +
-  "                    at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)\n" +
-  "                    at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)\n" +
-  "                    at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)\n" +
-  "                    at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:24)\n" +
-  "                    at org.junit.runners.ParentRunner.run(ParentRunner.java:309)\n" +
-  "                    at org.junit.runners.Suite.runChild(Suite.java:127)\n" +
-  "                    at org.junit.runners.Suite.runChild(Suite.java:26)\n" +
-  "                    at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)\n" +
-  "                    at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)\n" +
-  "                    at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)\n" +
-  "                    at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)\n" +
-  "                    at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)\n" +
-  "                    at org.junit.runners.ParentRunner.run(ParentRunner.java:309)\n" +
-  "                    at org.junit.runner.JUnitCore.run(JUnitCore.java:160)\n" +
-  "                    at org.junit.runner.JUnitCore.run(JUnitCore.java:138)\n" +
-  "                    at\n" +
-  "                    org.apache.maven.surefire.junitcore.JUnitCoreWrapper.createReqestAndRun(JUnitCoreWrapper.java:139)\n" +
-  "                    at org.apache.maven.surefire.junitcore.JUnitCoreWrapper.executeEager(JUnitCoreWrapper.java:111)\n" +
-  "                    at org.apache.maven.surefire.junitcore.JUnitCoreWrapper.execute(JUnitCoreWrapper.java:84)\n" +
-  "                    at org.apache.maven.surefire.junitcore.JUnitCoreProvider.invoke(JUnitCoreProvider.java:141)\n" +
-  "                    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n" +
-  "                    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n" +
-  "                    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n" +
-  "                    at java.lang.reflect.Method.invoke(Method.java:601)\n" +
-  "                    at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray2(ReflectionUtils.java:208)\n" +
-  "                    at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:158)\n" +
-  "                    at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:86)\n" +
-  "                    at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:153)\n" +
-  "                    at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:95)";
-
 describe("allure1 reader", () => {
   it("should parse empty xml file", async () => {
     const visitor = mockVisitor();
@@ -140,45 +103,108 @@ describe("allure1 reader", () => {
     expect(trs).toMatchObject(expect.arrayContaining([expect.objectContaining({ name: "testOne", status: "passed" })]));
   });
 
-  it("should parse message and trace", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/failure.xml": randomTestsuiteFileName(),
+  describe("failures", () => {
+    it("should parse message and trace", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/wellDefined.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          message: "foo",
+          trace: "bar",
+        },
+      ]);
     });
 
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    it("should handle a missing message", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/messageMissing.xml": randomTestsuiteFileName(),
+      });
 
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
 
-    expect(trs).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "testOne",
-          status: "failed",
-          message: "RuntimeException: bye-bye",
-          trace: failureTrace,
-        }),
-      ]),
-    );
-  });
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
-  it("should parse trace without message", async () => {
-    const visitor = await readResults(allure1, {
-      "allure1data/trace-without-message.xml": randomTestsuiteFileName(),
+      expect(trs).toMatchObject([
+        {
+          message: undefined,
+          trace: "foo",
+        },
+      ]);
     });
 
-    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    it("should handle an ill-formed message", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/messageInvalid.xml": randomTestsuiteFileName(),
+      });
 
-    const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
 
-    expect(trs).toMatchObject(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "testOne",
-          status: "failed",
-          trace: failureTrace,
-        }),
-      ]),
-    );
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          message: undefined,
+          trace: "foo",
+        },
+      ]);
+    });
+
+    it("should handle a missing trace", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/traceMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          message: "foo",
+          trace: undefined,
+        },
+      ]);
+    });
+
+    it("should handle an ill-formed trace", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/traceInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          message: "foo",
+          trace: undefined,
+        },
+      ]);
+    });
+
+    it("should ignore an ill-formed failure", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/failures/elementInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          message: undefined,
+          trace: undefined,
+        },
+      ]);
+    });
   });
 
   describe("descriptions", () => {
