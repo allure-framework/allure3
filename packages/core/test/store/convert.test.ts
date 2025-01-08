@@ -1,6 +1,7 @@
 import { md5 } from "@allurereport/plugin-api";
 import { describe, expect, it } from "vitest";
-import { StateData, testResultRawToState } from "../../src/store/convert.js";
+import type { StateData } from "../../src/store/convert.js";
+import { testResultRawToState } from "../../src/store/convert.js";
 
 const emptyStateData: StateData = { testCases: new Map(), attachments: new Map(), visitAttachmentLink: () => {} };
 

@@ -20,7 +20,6 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import type { EventEmitter } from "node:events";
-import { extname } from "node:path";
 import type { AllureStoreEvents } from "../utils/event.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
@@ -131,7 +130,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#eventEmitter?.emit("testFixtureResult", testFixtureResult.id);
   }
 
-  async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async visitAttachmentFile(resultFile: ResultFile, context: ReaderContext): Promise<void> {
     const originalFileName = resultFile.getOriginalFileName();
     const id = md5(originalFileName);
 
@@ -143,7 +143,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
       link.missed = false;
-      link.ext = link?.ext ?? extname(originalFileName);
+      link.ext = link?.ext ?? resultFile.getExtension();
       link.contentType = link.contentType ?? resultFile.getContentType();
       link.contentLength = resultFile.getContentLength();
     } else {
@@ -152,7 +152,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         missed: false,
         id,
         originalFileName,
-        ext: extname(originalFileName),
+        ext: resultFile.getExtension(),
         contentType: resultFile.getContentType(),
         contentLength: resultFile.getContentLength(),
       });

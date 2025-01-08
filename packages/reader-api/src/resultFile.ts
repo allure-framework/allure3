@@ -1,10 +1,20 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import { lookup } from "mime-types";
-import { ReadStream, createReadStream, createWriteStream, existsSync, statSync } from "node:fs";
+import { extension, lookup } from "mime-types";
+import {
+  ReadStream,
+  closeSync,
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  openSync,
+  readSync,
+  statSync,
+} from "node:fs";
 import "node:fs/promises";
-import { basename } from "node:path";
+import { basename, extname } from "node:path";
 import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { detectContentType } from "./detect.js";
 
 export abstract class BaseResultFile implements ResultFile {
   fileName: string;
@@ -15,19 +25,40 @@ export abstract class BaseResultFile implements ResultFile {
 
   protected abstract getContent(): ReadStream | undefined;
 
+  protected abstract readMagicHeader(): Uint8Array | undefined;
+
   abstract getContentLength(): number | undefined;
 
-  // TODO rework content type detection based on magic bytes as well
   getContentType(): string | undefined {
     const res = lookup(this.getOriginalFileName());
     if (res === false) {
-      return undefined;
+      const magicHeader = this.readMagicHeader();
+      if (!magicHeader) {
+        return undefined;
+      }
+      return detectContentType(magicHeader);
     }
     return res;
   }
 
   getOriginalFileName(): string {
     return this.fileName;
+  }
+
+  getExtension(): string {
+    const ext = extname(this.getOriginalFileName());
+    if (ext !== "") {
+      return ext;
+    }
+    const contentType = this.getContentType();
+    if (contentType) {
+      const result = extension(contentType);
+      if (result === false) {
+        return "";
+      }
+      return `.${result}`;
+    }
+    return "";
   }
 
   async asJson<T>(): Promise<T | undefined> {
@@ -54,17 +85,24 @@ export abstract class BaseResultFile implements ResultFile {
   }
 }
 
-export class BufferResultFile extends BaseResultFile {
-  buffer: Buffer;
+// so far maximum offset is 512 for supported files
+const magicHeaderLength = 1024;
 
-  constructor(buffer: Buffer, fileName: string) {
+export class BufferResultFile extends BaseResultFile {
+  buffer: Uint8Array;
+
+  constructor(buffer: Uint8Array, fileName: string) {
     // basename used as an protection against complex paths
     super(basename(fileName));
     this.buffer = buffer;
   }
 
-  protected getContent(): ReadStream | undefined {
+  protected getContent(): ReadStream {
     return ReadStream.from(this.buffer, { encoding: "utf8" }) as ReadStream;
+  }
+
+  protected readMagicHeader(): Uint8Array {
+    return this.buffer.subarray(0, magicHeaderLength);
   }
 
   getContentLength(): number | undefined {
@@ -83,6 +121,27 @@ export class PathResultFile extends BaseResultFile {
   protected getContent(): ReadStream | undefined {
     if (existsSync(this.path)) {
       return createReadStream(this.path);
+    } else {
+      return undefined;
+    }
+  }
+
+  protected readMagicHeader(): Uint8Array | undefined {
+    if (existsSync(this.path)) {
+      const buf = new Uint8Array(magicHeaderLength);
+      const fd = openSync(this.path, "r");
+      try {
+        const size = readSync(fd, buf, 0, magicHeaderLength, null);
+        if (size === 0) {
+          return undefined;
+        }
+        if (size < magicHeaderLength) {
+          return buf.subarray(0, size);
+        }
+        return buf;
+      } finally {
+        closeSync(fd);
+      }
     } else {
       return undefined;
     }

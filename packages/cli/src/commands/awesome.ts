@@ -99,8 +99,8 @@ export const AwesomeCommand = createCommand({
       {
         description: "Group test results by labels. The labels should be separated by commas",
         default: "parentSuite,suite,subSuite",
-      }
-    ]
+      },
+    ],
   ],
   action: AwesomeCommandAction,
 });
