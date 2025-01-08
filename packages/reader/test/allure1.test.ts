@@ -103,6 +103,162 @@ describe("allure1 reader", () => {
     expect(trs).toMatchObject(expect.arrayContaining([expect.objectContaining({ name: "testOne", status: "passed" })]));
   });
 
+  describe("fullName", () => {
+    it("should use the test case's labels", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/allProperties.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "test-class.test-method",
+          labels: [
+            { name: "testClass", value: "test-class" },
+            { name: "testMethod", value: "test-method" },
+          ],
+        },
+      ]);
+    });
+
+    it("should use the suite's class label if no test's class defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noTestClass.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "suite-class.test-method",
+          labels: [
+            { name: "testClass", value: "suite-class" },
+            { name: "testMethod", value: "test-method" },
+          ],
+        },
+      ]);
+    });
+
+    it("should use the suite's name if no class label defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noClassLabels.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "suite-name.test-method",
+          labels: [
+            { name: "testClass", value: "suite-name" },
+            { name: "testMethod", value: "test-method" },
+          ],
+        },
+      ]);
+    });
+
+    it("should use the suite's title if no name defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noSuiteName.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "suite-title.test-method",
+          labels: [
+            { name: "testClass", value: "suite-title" },
+            { name: "testMethod", value: "test-method" },
+          ],
+        },
+      ]);
+    });
+
+    it("should not set fullName if no suite part exists", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noSuitePart.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: undefined,
+          labels: [{ name: "testMethod", value: "test-method" }],
+        },
+      ]);
+    });
+
+    it("should use the test case's name if no testMethod label defined for the test case", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noTestMethodLabel.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "test-class.test-name",
+          labels: [
+            { name: "testClass", value: "test-class" },
+            { name: "testMethod", value: "test-name" },
+          ],
+        },
+      ]);
+    });
+
+    it("should use the test case's title if no name defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noTestName.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: "test-class.test-title",
+          labels: [
+            { name: "testClass", value: "test-class" },
+            { name: "testMethod", value: "test-title" },
+          ],
+        },
+      ]);
+    });
+
+    it("should not set fullName if no test case component defined", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/fullNames/noTestPart.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([
+        {
+          fullName: undefined,
+          labels: [{ name: "testClass", value: "test-class" }],
+        },
+      ]);
+    });
+  });
+
   describe("failures", () => {
     it("should parse message and trace", async () => {
       const visitor = await readResults(allure1, {

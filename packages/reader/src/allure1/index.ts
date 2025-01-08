@@ -16,6 +16,8 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 
 const DEFAULT_STEP_NAME = "The step's name is not defined";
 
+const TEST_CLASS_LABEL_NAME = "testClass";
+const TEST_METHOD_LABEL_NAME = "testMethod";
 const TEST_ID_LABEL_NAME = "testCaseId";
 const HISTORY_ID_LABEL_NAME = "historyId";
 const STATUS_DETAILS_LABEL_NAME = "status_details";
@@ -23,7 +25,17 @@ const STATUS_DETAILS_LABEL_NAME = "status_details";
 const ISSUE_LABEL_NAME = "issue";
 const TMS_LABEL_NAME = "tms";
 
+type SuiteData = {
+  name?: string;
+  title?: string;
+  description?: string;
+  descriptionHtml?: string;
+  labels: readonly RawTestLabel[];
+};
+
 const RESERVER_LABEL_NAMES = new Set<string>([
+  TEST_CLASS_LABEL_NAME,
+  TEST_METHOD_LABEL_NAME,
   TEST_ID_LABEL_NAME,
   HISTORY_ID_LABEL_NAME,
   ISSUE_LABEL_NAME,
@@ -91,6 +103,7 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>): Promise<boolean> => {
   const {
     "name": testSuiteName,
+    "title": testSuiteTitle,
     "description": descriptionElement,
     "test-cases": testCases,
     "labels": labelsElement,
@@ -110,21 +123,29 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
   for (const tc of testCase) {
     await parseTestCase(
       visitor,
-      { name: ensureString(testSuiteName), ...parseDescription(descriptionElement), labels },
+      {
+        name: ensureString(testSuiteName),
+        title: ensureString(testSuiteTitle),
+        ...parseDescription(descriptionElement),
+        labels,
+      },
       tc,
     );
   }
   return true;
 };
 
-const parseTestCase = async (
-  visitor: ResultsVisitor,
-  testSuite: { name?: string; description?: string; descriptionHtml?: string; labels: readonly RawTestLabel[] },
-  testCase: Record<string, any>,
-) => {
-  const { description: suiteDescription, descriptionHtml: suiteDescriptionHtml, labels: suiteLabels } = testSuite;
+const parseTestCase = async (visitor: ResultsVisitor, testSuite: SuiteData, testCase: Record<string, any>) => {
+  const {
+    name: suiteName,
+    title: suiteTitle,
+    description: suiteDescription,
+    descriptionHtml: suiteDescriptionHtml,
+    labels: suiteLabels,
+  } = testSuite;
   const {
     name: nameElement,
+    title: titleElement,
     description: descriptionElement,
     status: statusElement,
     failure: failureElement,
@@ -137,6 +158,7 @@ const parseTestCase = async (
   } = testCase;
 
   const name = ensureString(nameElement);
+  const title: string | undefined = titleElement;
   const status = convertStatus(ensureString(statusElement));
 
   const { description: testCaseDescription, descriptionHtml: testCaseDescriptionHtml } =
@@ -146,17 +168,22 @@ const parseTestCase = async (
 
   const { start, stop, duration } = parseTime(startElement, stopElement);
 
-  const allure1Labels = [...suiteLabels, ...parseLabels(labelsElement)];
-  const testId = maybeFindLabelValue(allure1Labels, TEST_ID_LABEL_NAME);
-  const historyId = maybeFindLabelValue(allure1Labels, HISTORY_ID_LABEL_NAME);
+  const testCaseLabels = parseLabels(labelsElement);
+  const allLabels = [...suiteLabels, ...testCaseLabels];
+  const testId = maybeFindLabelValue(allLabels, TEST_ID_LABEL_NAME);
+  const historyId = maybeFindLabelValue(allLabels, HISTORY_ID_LABEL_NAME);
 
-  const statusDetailLabels = findAllLabels(allure1Labels, STATUS_DETAILS_LABEL_NAME);
+  const testClass = resolveTestClass(testCaseLabels, suiteLabels, suiteName, suiteTitle);
+  const testMethod = resolveTestMethod(testCaseLabels, name, title);
+  const fullName = getFullName(testClass, testMethod);
+
+  const statusDetailLabels = findAllLabels(allLabels, STATUS_DETAILS_LABEL_NAME);
   const flaky = labelValueExistsIgnoreCase(statusDetailLabels, "flaky");
   const muted = labelValueExistsIgnoreCase(statusDetailLabels, "muted");
   const known = labelValueExistsIgnoreCase(statusDetailLabels, "known");
 
-  const links = [...createLinks(allure1Labels, ISSUE_LABEL_NAME), ...createLinks(allure1Labels, TMS_LABEL_NAME)];
-  const labels = allure1Labels.filter(({ name: labelName }) => !labelName || !RESERVER_LABEL_NAMES.has(labelName));
+  const links = [...createLinks(allLabels, ISSUE_LABEL_NAME), ...createLinks(allLabels, TMS_LABEL_NAME)];
+  const labels = composeLabels(allLabels, testClass, testMethod);
 
   const { message, trace } = parseFailure(failureElement);
   const parameters = parseParameters(parametersElement);
@@ -165,6 +192,7 @@ const parseTestCase = async (
   await visitor.visitTestResult(
     {
       name,
+      fullName,
       description,
       descriptionHtml,
       testId,
@@ -186,6 +214,9 @@ const parseTestCase = async (
     { readerId },
   );
 };
+
+const getFullName = (suiteComponent: string | undefined, testCaseComponent: string | undefined) =>
+  suiteComponent && testCaseComponent ? `${suiteComponent}.${testCaseComponent}` : undefined;
 
 const parseDescription = (element: unknown): { description?: string; descriptionHtml?: string } => {
   if (typeof element === "string") {
@@ -255,6 +286,31 @@ const labelValueExistsIgnoreCase = (labels: readonly RawTestLabel[], value: stri
 
 const createLinks = (labels: readonly RawTestLabel[], type: string): RawTestLink[] =>
   findAllLabels(labels, type).map(({ name, value }) => ({ name: value, url: value, type: name }));
+
+const resolveTestClass = (
+  testCaseLabels: RawTestLabel[],
+  suiteLabels: readonly RawTestLabel[],
+  suiteName: string | undefined,
+  suiteTitle: string | undefined,
+) =>
+  maybeFindLabelValue(testCaseLabels, TEST_CLASS_LABEL_NAME) ??
+  maybeFindLabelValue(suiteLabels, TEST_CLASS_LABEL_NAME) ??
+  suiteName ??
+  suiteTitle;
+
+const resolveTestMethod = (testCaseLabels: RawTestLabel[], name: string | undefined, title: string | undefined) =>
+  maybeFindLabelValue(testCaseLabels, TEST_METHOD_LABEL_NAME) ?? name ?? title;
+
+const composeLabels = (allLabels: RawTestLabel[], testClass: string | undefined, testMethod: string | undefined) => {
+  const labels = allLabels.filter(({ name: labelName }) => !labelName || !RESERVER_LABEL_NAMES.has(labelName));
+  if (testClass) {
+    labels.push({ name: TEST_CLASS_LABEL_NAME, value: testClass });
+  }
+  if (testMethod) {
+    labels.push({ name: TEST_METHOD_LABEL_NAME, value: testMethod });
+  }
+  return labels;
+};
 
 const parseSteps = (element: unknown): RawTestStepResult[] | undefined => {
   if (!isStringAnyRecord(element)) {
