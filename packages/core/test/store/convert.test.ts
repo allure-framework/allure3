@@ -120,4 +120,38 @@ describe("testResultRawToState", () => {
       historyId: `${md5(testId)}.${md5("")}`,
     });
   });
+
+  it("should detect attachment link content type based on file extension if specified", () => {
+    const result = testResultRawToState(
+      emptyStateData,
+      { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
+      { readerId },
+    );
+
+    const [attachment] = result.steps;
+    expect(attachment).toMatchObject({
+      type: "attachment",
+      link: {
+        originalFileName: "some-file.txt",
+        contentType: "text/plain",
+      },
+    });
+  });
+
+  it("should set extension based on file name", () => {
+    const result = testResultRawToState(
+      emptyStateData,
+      { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
+      { readerId },
+    );
+
+    const [attachment] = result.steps;
+    expect(attachment).toMatchObject({
+      type: "attachment",
+      link: {
+        originalFileName: "some-file.txt",
+        ext: ".txt",
+      },
+    });
+  });
 });

@@ -491,7 +491,7 @@ class MagicMatchClause implements Clause {
     private end: number = start,
   ) {}
   eval = (data: Uint8Array): boolean => {
-    if (data.length < this.pattern.length + this.end - this.start) {
+    if (data.length < this.pattern.length + this.start) {
       return false;
     }
 

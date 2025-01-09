@@ -892,6 +892,172 @@ describe("attachments", () => {
       type: "attachment",
     });
   });
+
+  it("should use extension from original file name if any (link first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1.txt",
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitAttachmentFile(rf1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1.txt",
+      ext: ".txt"
+    });
+  });
+
+  it("should use extension from original file name if any (file first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1.txt",
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
+    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitTestResult(tr1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1.txt",
+      ext: ".txt"
+    });
+  });
+
+  it("should use extension based on content type specified in link if file without extension (link first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1",
+          contentType: "text/plain"
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1");
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitAttachmentFile(rf1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1",
+      ext: ".txt"
+    });
+  });
+
+  it("should use extension based on content type specified in link if file without extension (file first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1",
+          contentType: "text/plain"
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1");
+    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitTestResult(tr1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1",
+      ext: ".txt"
+    });
+  });
+
+  it("should use extension based on detected content type if no extension and content type is provided (link first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1",
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1");
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitAttachmentFile(rf1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1",
+      contentType: "image/svg+xml",
+      ext: ".svg"
+    });
+  });
+
+  it("should use extension based on detected content type if no extension and content type is provided (file first)", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      steps: [
+        {
+          name: "attachment 1",
+          type: "attachment",
+          originalFileName: "tr1-source1",
+        },
+      ],
+    };
+
+    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const rf1 = new BufferResultFile(buffer1, "tr1-source1");
+    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitTestResult(tr1, { readerId });
+
+    const [attachment] = await store.allAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "attachment 1",
+      originalFileName: "tr1-source1",
+      contentType: "image/svg+xml",
+      ext: ".svg"
+    });
+  });
 });
 
 describe("history", () => {

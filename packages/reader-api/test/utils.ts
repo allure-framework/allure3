@@ -12,4 +12,5 @@ export const resources = [
   ["sample.tiff", "image/tiff"],
   ["sample.jpeg", "image/jpeg"],
   ["sample.svg", "image/svg+xml"],
+  ["short.svg", "image/svg+xml"],
 ];

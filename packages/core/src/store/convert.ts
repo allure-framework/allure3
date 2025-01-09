@@ -26,9 +26,9 @@ import type {
   RawTestResult,
   ReaderContext,
 } from "@allurereport/reader-api";
+import { extension, lookupContentType } from "@allurereport/reader-api";
 import MarkdownIt from "markdown-it";
 import { randomUUID } from "node:crypto";
-import { extname } from "node:path";
 
 const defaultStatus: TestStatus = "unknown";
 
@@ -171,12 +171,14 @@ const processAttachmentLink = (
   const previous: AttachmentLink | undefined = attachments.get(id);
 
   if (!previous) {
+    const contentType: string | undefined = attach.contentType ?? lookupContentType(attach.originalFileName);
+    const ext = extension(attach.originalFileName, contentType) ?? "";
     const linkExpected: AttachmentLinkExpected = {
       id,
       originalFileName: attach.originalFileName,
-      ext: extname(attach.originalFileName),
+      ext,
       name: attach.name ?? attach.originalFileName,
-      contentType: attach.contentType,
+      contentType,
       used: true,
       missed: true,
     };
@@ -204,6 +206,9 @@ const processAttachmentLink = (
     id,
     name: attach.name ?? previous.originalFileName,
     contentType: attach.contentType ?? previous.contentType,
+    // if no extension is specified for originalFileName, we should use provided
+    // contentType in the link first, and only then rely on detected content type.
+    ext: extension(previous.originalFileName, attach.contentType) ?? previous.ext ?? "",
     contentLength: previous.contentLength,
     used: true,
     missed: false,

@@ -1,5 +1,5 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import { extension, lookup } from "mime-types";
+import { lookup } from "mime-types";
 import {
   ReadStream,
   closeSync,
@@ -11,13 +11,16 @@ import {
   statSync,
 } from "node:fs";
 import "node:fs/promises";
-import { basename, extname } from "node:path";
+import { basename } from "node:path";
 import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { detectContentType } from "./detect.js";
+import { extension } from "./utils.js";
 
 export abstract class BaseResultFile implements ResultFile {
   fileName: string;
+  extension: string | false = false;
+  contentType: string | undefined | false = false;
 
   protected constructor(fileName: string) {
     this.fileName = fileName;
@@ -30,6 +33,13 @@ export abstract class BaseResultFile implements ResultFile {
   abstract getContentLength(): number | undefined;
 
   getContentType(): string | undefined {
+    if (this.contentType === false) {
+      this.contentType = this.#detectContentType();
+    }
+    return this.contentType;
+  }
+
+  #detectContentType() {
     const res = lookup(this.getOriginalFileName());
     if (res === false) {
       const magicHeader = this.readMagicHeader();
@@ -46,19 +56,10 @@ export abstract class BaseResultFile implements ResultFile {
   }
 
   getExtension(): string {
-    const ext = extname(this.getOriginalFileName());
-    if (ext !== "") {
-      return ext;
+    if (this.extension === false) {
+      this.extension = extension(this.getOriginalFileName()) ?? extension("", this.getContentType()) ?? "";
     }
-    const contentType = this.getContentType();
-    if (contentType) {
-      const result = extension(contentType);
-      if (result === false) {
-        return "";
-      }
-      return `.${result}`;
-    }
-    return "";
+    return this.extension;
   }
 
   async asJson<T>(): Promise<T | undefined> {

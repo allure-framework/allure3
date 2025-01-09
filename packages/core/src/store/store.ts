@@ -143,7 +143,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
       link.missed = false;
-      link.ext = link?.ext ?? resultFile.getExtension();
+      link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
       link.contentType = link.contentType ?? resultFile.getContentType();
       link.contentLength = resultFile.getContentLength();
     } else {
