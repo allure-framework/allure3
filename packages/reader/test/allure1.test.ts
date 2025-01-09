@@ -1452,6 +1452,19 @@ describe("allure1 reader", () => {
       ]);
     });
 
+    it("should parse one nested step", async () => {
+      const visitor = await readResults(allure1, {
+        "allure1data/steps/oneNestedStep.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+      const tr = trs[0];
+
+      expect(tr.steps).toMatchObject([{ steps: [expect.anything()] }]);
+    });
+
     it("should ignore an invalid steps collection", async () => {
       const visitor = await readResults(allure1, {
         "allure1data/steps/collectionInvalid.xml": randomTestsuiteFileName(),
