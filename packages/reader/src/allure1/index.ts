@@ -47,16 +47,7 @@ const RESERVER_LABEL_NAMES = new Set<string>([
   STATUS_DETAILS_LABEL_NAME,
 ]);
 
-const arrayTags: Set<string> = new Set([
-  "test-suite.labels.label",
-  "test-suite.test-cases.test-case",
-  "test-suite.test-cases.test-case.labels.label",
-  "test-suite.test-cases.test-case.parameters.parameter",
-]);
-const arrayTagPatterns = [
-  /^test-suite\.test-cases\.test-case(?:\.steps\.step)+$/,
-  /^test-suite\.test-cases\.test-case(?:\.steps\.step)*\.attachments\.attachment$/,
-];
+const arrayTags: Set<string> = new Set(["attachment", "label", "parameter", "step", "test-case"]);
 
 const xmlParser = new XMLParser({
   parseTagValue: false,
@@ -64,7 +55,7 @@ const xmlParser = new XMLParser({
   attributeNamePrefix: "",
   removeNSPrefix: true,
   allowBooleanAttributes: true,
-  isArray: (tagName, jPath) => arrayTags.has(jPath) || arrayTagPatterns.some((p) => p.test(jPath)),
+  isArray: arrayTags.has.bind(arrayTags),
 });
 
 const readerId = "allure1";
