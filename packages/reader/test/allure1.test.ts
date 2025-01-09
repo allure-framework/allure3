@@ -1792,6 +1792,15 @@ describe("allure1 reader", () => {
         });
       });
 
+      it("should parse a single attachment of a nested step", async () => {
+        const visitor = await readResults(allure1, {
+          "allure1data/steps/attachments/oneAttachmentInNestedStep.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({ steps: [{ steps: [{ steps: [expect.anything()] }] }] });
+      });
+
       it("should ignore a missing title", async () => {
         const visitor = await readResults(allure1, {
           "allure1data/steps/attachments/titleMissing.xml": randomTestsuiteFileName(),

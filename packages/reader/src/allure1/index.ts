@@ -51,11 +51,12 @@ const arrayTags: Set<string> = new Set([
   "test-suite.labels.label",
   "test-suite.test-cases.test-case",
   "test-suite.test-cases.test-case.labels.label",
-  "test-suite.test-cases.test-case.attachments.attachment",
   "test-suite.test-cases.test-case.parameters.parameter",
-  "test-suite.test-cases.test-case.steps.step.attachments.attachment",
 ]);
-const arrayTagPatterns = [/^test-suite\.test-cases\.test-case(\.steps\.step)+$/];
+const arrayTagPatterns = [
+  /^test-suite\.test-cases\.test-case(?:\.steps\.step)+$/,
+  /^test-suite\.test-cases\.test-case(?:\.steps\.step)*\.attachments\.attachment$/,
+];
 
 const xmlParser = new XMLParser({
   parseTagValue: false,
