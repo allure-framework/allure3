@@ -5,15 +5,15 @@ import { useTestResultTabsContext } from "@/components/app/TestResult/TestResult
 import { SvgIcon } from "@/components/commons/SvgIcon";
 import { TooltipWrapper } from "@/components/commons/Tooltip";
 import { Text } from "@/components/commons/Typography";
+import { openInNewTab } from "@/index";
 import { useI18n } from "@/stores";
 import { capitalize } from "@/utils/capitalize";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus = ({ item }) => {
-  const { setCurrentTab } = useTestResultTabsContext();
   return (
-    <div className={styles["test-result-prev-status"]} onClick={() => setCurrentTab("history")}>
+    <div className={styles["test-result-prev-status"]} onClick={() => openInNewTab(`testresult/${item.id}`)}>
       <SvgIcon id={LineShapesDotCircle.id} className={styles[`status-${item?.status}`]} />
     </div>
   );

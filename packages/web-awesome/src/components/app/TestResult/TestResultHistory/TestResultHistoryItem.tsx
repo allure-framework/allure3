@@ -24,9 +24,19 @@ export const TestResultHistoryItem = ({ testResultItem }) => {
 
   return (
     <div>
-      <div className={styles["test-result-history-item-header"]} onClick={() => setIsOpen(!isOpened)}>
-        {Boolean(message) && <ArrowButton isOpened={isOpened} icon={arrowsChevronDown.id} />}
-        <div className={styles["test-result-history-item-wrap"]}>
+      <div className={styles["test-result-history-item-header"]}>
+        {Boolean(message) && (
+          <span onClick={() => setIsOpen(!isOpened)}>
+            <ArrowButton isOpened={isOpened} icon={arrowsChevronDown.id} />
+          </span>
+        )}
+        <div
+          className={styles["test-result-history-item-wrap"]}
+          onClick={(e) => {
+            e.stopPropagation();
+            openInNewTab(navigateUrl);
+          }}
+        >
           <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
           <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
           <div className={styles["test-result-history-item-info"]}>
