@@ -17,12 +17,12 @@ const BASE_PATH = path.dirname(fileURLToPath(import.meta.url));
 const SRC_PATH = path.resolve(BASE_PATH, "./src");
 
 export default defineConfig({
-  input: "src/index.ts", // Entry point of your design system
+  input: "src/index.ts",
   output: [
     {
       dir: "dist",
       format: "esm",
-      sourcemap: true, // Generate sourcemaps
+      sourcemap: true,
     },
     {
       dir: "dist",
@@ -30,7 +30,7 @@ export default defineConfig({
       sourcemap: true,
     },
   ],
-  external: ["preact", "preact/hooks"], // Mark Preact as external (users will provide it)
+  external: ["preact", "preact/hooks"],
   plugins: [
     alias({
       entries: [

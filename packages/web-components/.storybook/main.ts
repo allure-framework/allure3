@@ -9,19 +9,20 @@ import { dirname, join, resolve } from "path";
 function getAbsolutePath(value: string): any {
   return dirname(require.resolve(join(value, "package.json")));
 }
+
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
-// @ts-ignore
-const devMode = process?.mode === "development";
-
 const config: StorybookConfig = {
-  // stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   stories: ["../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  staticDirs: ["../src/assets"],
   addons: [
     getAbsolutePath("@storybook/addon-webpack5-compiler-swc"),
     getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@chromatic-com/storybook"),
     getAbsolutePath("@storybook/addon-interactions"),
+    // getAbsolutePath("@storybook/addon-links"),
+    // getAbsolutePath("@storybook/addon-essentials"),
+    // getAbsolutePath("@storybook/addon-interactions"),
   ],
   framework: {
     name: getAbsolutePath("@storybook/preact-webpack5"),
@@ -34,24 +35,11 @@ const config: StorybookConfig = {
     );
     config!.resolve!.alias = {
       ...config.resolve!.alias,
-      "@": join(baseDir, "../src"),
+      "@": join(baseDir, "./src"),
     };
-    // Add SCSS support
     config.module!.rules.push({
       test: /\.scss$/,
-      use: [
-        "style-loader",
-        {
-          loader: "css-loader",
-          options: {
-            modules: {
-              localIdentName: devMode ? "[path][name]__[local]" : "[hash:base64:8]",
-            },
-          },
-        },
-        "sass-loader",
-      ],
-      include: resolve(__dirname, "../"),
+      use: ["style-loader", "css-loader", "sass-loader"],
     });
 
     return config;

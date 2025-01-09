@@ -1,3 +1,5 @@
+import "@/assets/scss/index.scss";
+
 export { icons } from "@/components/SvgIcon";
 
 export { DropdownButton, Button, IconButton } from "@/components/Button";

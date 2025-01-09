@@ -1,4 +1,4 @@
-# Allure Web Commons
+# Allure Web Components
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -12,14 +12,19 @@
 
 ## Overview
 
-The package includes utilities which are used in web-implementations of Allure reports.
+The package includes Design System Components which are used in web-implementations of Allure reports and Storybook.
 
 ## Install
 
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/web-commons
-yarn add @allurereport/web-commons
-pnpm add @allurereport/web-commons
+npm add @allurereport/web-components
+yarn add @allurereport/web-components
+pnpm add @allurereport/web-components
+```
+
+Add styles to App.ts
+```shell
+import "@allurereport/web-components/index.css";
 ```
