@@ -1,3 +1,4 @@
+import { sanitizeHtml } from "@allurereport/web-commons";
 import { useState } from "preact/hooks";
 import LineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import { IconButton } from "@/components/commons/Button";
@@ -8,10 +9,12 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 const TestResultErrorTrace = ({ trace }) => {
+  const sanitizedTrace = sanitizeHtml(trace);
+
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
       <Code size={"s"} type={"ui"}>
-        <pre>{trace}</pre>
+        <pre dangerouslySetInnerHTML={{ __html: sanitizedTrace }} />
       </Code>
     </div>
   );

@@ -9,7 +9,7 @@ import TreeItemIcon from "@/components/app/Tree/TreeItemIcon";
 import { IconButton } from "@/components/commons/Button";
 import { TooltipWrapper } from "@/components/commons/Tooltip";
 import { Text } from "@/components/commons/Typography";
-import { openInNewTab } from "@/index";
+import { navigateTo, openInNewTab } from "@/index";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
@@ -34,7 +34,7 @@ export const TestResultHistoryItem = ({ testResultItem }) => {
           className={styles["test-result-history-item-wrap"]}
           onClick={(e) => {
             e.stopPropagation();
-            openInNewTab(navigateUrl);
+            navigateTo(navigateUrl);
           }}
         >
           <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
