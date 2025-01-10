@@ -1,7 +1,6 @@
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
-import lineChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import * as styles from "./styles.scss";
 
 export interface ArrowButtonProps {
@@ -17,13 +16,13 @@ export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({
   buttonSize = "m",
   iconSize = "xs",
   className,
-  icon,
+  icon = allureIcons.lineArrowsChevronDown,
   ...rest
 }) => {
   return (
     <button className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])} {...rest}>
       <SvgIcon
-        id={icon || lineChevronDown.id}
+        id={icon}
         size={iconSize}
         className={clsx(
           styles["arrow-button-icon"],

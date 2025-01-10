@@ -5,7 +5,7 @@ import closeIcon from "@/assets/svg/line-general-x-close.svg";
 import { IconButton } from "@/components/Button";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
-import { useDebouncedCallback } from "@/components/hooks/useDebouncedCallback";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import styles from "./styles.scss";
 
 type Props = {

@@ -1,10 +1,7 @@
 import { formatDuration } from "@allurereport/core-api";
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
-import { clsx } from "clsx";
 import { useState } from "preact/hooks";
-import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
-import LineGeneralLinkExternal from "@/assets/svg/line-general-link-external.svg";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
@@ -22,7 +19,7 @@ export const TestResultRetriesItem = ({ testResultItem }) => {
   return (
     <div>
       <div className={styles["test-result-retries-item-header"]} onClick={() => setIsOpen(!isOpened)}>
-        {Boolean(message) && <ArrowButton isOpened={isOpened} icon={arrowsChevronDown.id} />}
+        {Boolean(message) && <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
           <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
@@ -31,7 +28,7 @@ export const TestResultRetriesItem = ({ testResultItem }) => {
               {formattedDuration}
             </Text>
             <IconButton
-              icon={LineGeneralLinkExternal.id}
+              icon={allureIcons.lineGeneralLinkExternal}
               style={"ghost"}
               size={"s"}
               className={styles["test-result-retries-item-link"]}

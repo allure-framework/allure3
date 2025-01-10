@@ -1,8 +1,6 @@
 import { formatDuration } from "@allurereport/core-api";
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
-import LineArrowsCornerDownRight from "@/assets/svg/line-arrows-corner-down-right.svg";
-import LineFilesFileAttachment from "@/assets/svg/line-files-file-attachment-2.svg";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 export const TestResultStepInfo = ({ item }) => {
@@ -15,13 +13,13 @@ export const TestResultStepInfo = ({ item }) => {
     <div className={styles["item-info"]}>
       {Boolean(stepLength) && (
         <div className={styles["item-info-step"]}>
-          <SvgIcon id={LineArrowsCornerDownRight.id} className={styles["item-info-step-icon"]} />
+          <SvgIcon id={allureIcons.lineArrowsCornerDownRight} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{stepLength}</Text>
         </div>
       )}
       {Boolean(attachmentLength) && (
         <div className={styles["item-info-step"]}>
-          <SvgIcon id={LineFilesFileAttachment.id} className={styles["item-info-step-icon"]} />
+          <SvgIcon id={allureIcons.lineFilesFileAttachment2} className={styles["item-info-step-icon"]} />
           <Text size={"s"}>{attachmentLength}</Text>
         </div>
       )}

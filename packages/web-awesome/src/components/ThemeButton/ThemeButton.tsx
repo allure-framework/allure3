@@ -1,7 +1,5 @@
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import lineShapesMoonIcon from "@/assets/svg/line-shapes-moon.svg";
-import lineShapesSunIcon from "@/assets/svg/line-shapes-sun.svg";
 import { getTheme, themeStore, toggleTheme } from "@/stores/theme";
 
 export const ThemeButton = () => {
@@ -15,7 +13,7 @@ export const ThemeButton = () => {
     <IconButton
       onClick={toggleTheme}
       style="ghost"
-      icon={theme === "light" ? lineShapesMoonIcon.id : lineShapesSunIcon.id}
+      icon={theme === "light" ? allureIcons.lineShapesMoon : allureIcons.lineShapesSun}
       size="s"
     />
   );

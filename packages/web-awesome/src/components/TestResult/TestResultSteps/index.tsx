@@ -1,7 +1,7 @@
+import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeTestResult, AllureAwesomeTestStepResult } from "types";
-import LineHelpersPlayCircle from "@/assets/svg/line-helpers-play-circle.svg";
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
@@ -29,7 +29,7 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
   return (
     <div className={styles["test-result-steps"]}>
       <TestResultDropdown
-        icon={LineHelpersPlayCircle.id}
+        icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
         setIsOpen={setIsOpen}
         counter={steps?.length}

@@ -1,4 +1,4 @@
-import { Button, DropdownButton, IconButton, icons } from "@allurereport/web-components";
+import { Button, DropdownButton, IconButton, allureIcons } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof Button> = {
@@ -73,7 +73,7 @@ export const Outline: Story = {
 export const WithIcon: Story = {
   args: {
     text: "Button with Icon",
-    icon: icons.lineArrowsChevronDown,
+    icon: allureIcons.lineArrowsChevronDown,
     style: "primary",
   },
 };
@@ -96,7 +96,7 @@ export const Disabled: Story = {
 export const IconOnly: StoryObj<typeof IconButton> = {
   render: (args) => <IconButton {...args} />,
   args: {
-    icon: icons.lineArrowsChevronDown,
+    icon: allureIcons.lineArrowsChevronDown,
     style: "ghost",
     size: "m",
     isDisabled: false,

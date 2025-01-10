@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
-import lineChevronDownIcon from "@/assets/svg/line-arrows-chevron-down.svg";
 import { Spinner } from "@/components/Spinner";
-import { SvgIcon } from "@/components/SvgIcon";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
 
@@ -141,7 +140,9 @@ const BaseBtn = (props: BaseBtnProps) => {
       <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
         {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
         {!isIconButton && <span className={styles.text}>{text}</span>}
-        {isDropdownButton && <SvgIcon id={lineChevronDownIcon.id} size="s" className={styles.dropdownIcon} />}
+        {isDropdownButton && (
+          <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />
+        )}
         <span className={styles.spinner} aria-hidden={!isPending}>
           <Spinner />
         </span>

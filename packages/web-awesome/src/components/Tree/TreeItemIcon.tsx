@@ -1,11 +1,6 @@
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
-import AlertCircle from "@/assets/svg/solid-alert-circle.svg";
-import CheckCircle from "@/assets/svg/solid-check-circle.svg";
-import HelpCircle from "@/assets/svg/solid-help-circle.svg";
-import MinusCircle from "@/assets/svg/solid-minus-circle.svg";
-import XCircle from "@/assets/svg/solid-x-circle.svg";
 import * as styles from "./styles.scss";
 
 interface TestStatusIconProps {
@@ -14,12 +9,14 @@ interface TestStatusIconProps {
   classNameIcon?: string;
 }
 
+const { solidAlertCircle, solidCheckCircle, solidHelpCircle, solidMinusCircle, solidXCircle } = allureIcons;
+
 const icons = {
-  failed: XCircle.id,
-  broken: AlertCircle.id,
-  passed: CheckCircle.id,
-  skipped: MinusCircle.id,
-  unknown: HelpCircle.id,
+  failed: solidXCircle,
+  broken: solidAlertCircle,
+  passed: solidCheckCircle,
+  skipped: solidMinusCircle,
+  unknown: solidHelpCircle,
 };
 
 const TreeItemIcon: FunctionalComponent<TestStatusIconProps> = ({ status = "unknown", className, classNameIcon }) => {

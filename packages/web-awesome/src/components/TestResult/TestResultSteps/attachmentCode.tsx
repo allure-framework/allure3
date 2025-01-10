@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
-import "@/assets/scss/code.css";
+import "@/assets/scss/code.scss";
 
 export const AttachmentCode = ({ attachment, item }) => {
   useEffect(() => {

@@ -1,14 +1,10 @@
-import { DropdownButton } from "@allurereport/web-components";
+import { DropdownButton, allureIcons } from "@allurereport/web-components";
 import { Link } from "@allurereport/web-components";
 import { Menu } from "@allurereport/web-components";
 import { SvgIcon } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
-import lineChevronDownIcon from "@/assets/svg/line-arrows-chevron-down.svg";
-import sortAscIcon from "@/assets/svg/line-arrows-sort-line-asc.svg";
-import sortDescIcon from "@/assets/svg/line-arrows-sort-line-desc.svg";
-import switchVerticalIcon from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import { useI18n } from "@/stores/locale";
 import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -40,7 +36,7 @@ export const SortBy = () => {
                 {displayedSortByValue} {displayedDirection}
                 <SvgIcon
                   size="s"
-                  id={lineChevronDownIcon.id}
+                  id={allureIcons.lineArrowsChevronDown}
                   className={clsx(styles.sortByIcon, isOpened && styles.sortByIconReversed)}
                 />
               </Link>
@@ -54,7 +50,7 @@ export const SortBy = () => {
                 <Menu.Item
                   closeMenuOnClick={false}
                   onClick={onClick}
-                  leadingIcon={switchVerticalIcon.id}
+                  leadingIcon={allureIcons.lineArrowsSwitchVertical1}
                   rightSlot={
                     <BtnWrapper>
                       <DropdownButton
@@ -92,7 +88,9 @@ export const SortBy = () => {
                 <Menu.Item
                   closeMenuOnClick={false}
                   onClick={onClick}
-                  leadingIcon={direction === "asc" ? sortAscIcon.id : sortDescIcon.id}
+                  leadingIcon={
+                    direction === "asc" ? allureIcons.lineArrowsSortLineAsc : allureIcons.lineArrowsSortLineDesc
+                  }
                   rightSlot={
                     <BtnWrapper>
                       <DropdownButton
@@ -112,14 +110,14 @@ export const SortBy = () => {
               <Menu.Section>
                 <Menu.ItemWithCheckmark
                   onClick={() => setTreeDirection("asc")}
-                  leadingIcon={sortAscIcon.id}
+                  leadingIcon={allureIcons.lineArrowsSortLineAsc}
                   isChecked={direction === "asc"}
                 >
                   {sortByDirectionsLocale(`${sortBy}-asc`)}
                 </Menu.ItemWithCheckmark>
                 <Menu.ItemWithCheckmark
                   onClick={() => setTreeDirection("desc")}
-                  leadingIcon={sortDescIcon.id}
+                  leadingIcon={allureIcons.lineArrowsSortLineDesc}
                   isChecked={direction === "desc"}
                 >
                   {sortByDirectionsLocale(`${sortBy}-desc`)}

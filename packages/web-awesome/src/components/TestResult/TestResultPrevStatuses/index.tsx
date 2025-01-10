@@ -1,11 +1,7 @@
+import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
-import LineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
-import { useTestResultTabsContext } from "@/components/app/TestResult/TestResultTabs";
-import { SvgIcon } from "@/components/commons/SvgIcon";
-import { TooltipWrapper } from "@/components/commons/Tooltip";
-import { Text } from "@/components/commons/Typography";
-import { navigateTo, openInNewTab } from "@/index";
+import { navigateTo } from "@/index";
 import { useI18n } from "@/stores";
 import { capitalize } from "@/utils/capitalize";
 import { timestampToDate } from "@/utils/time";
@@ -14,7 +10,7 @@ import * as styles from "./styles.scss";
 const TestResultPrevStatus = ({ item }) => {
   return (
     <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`testresult/${item.id}`)}>
-      <SvgIcon id={LineShapesDotCircle.id} className={styles[`status-${item?.status}`]} />
+      <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </div>
   );
 };

@@ -18,7 +18,12 @@
       "types": "./dist/index.d.ts",
       "style": "./dist/index.css"
     },
-    "./index.css": "./dist/index.css"
+    "./index.css": "./dist/index.css",
+    "./fonts/*": {
+      "import": "./dist/fonts/*",
+      "default": "./dist/fonts/*"
+    },
+    "./mixins.scss": "./dist/mixins.scss"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -30,15 +35,15 @@
     "build": "rimraf ./dist && rollup -c",
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
-    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
+    "@floating-ui/dom": "^1.6.13",
     "@preact/signals": "^1.3.0",
     "d3-shape": "^3.2.0",
-    "i18next": "^24.0.2",
-    "md5": "^2.3.0",
     "preact": "^10.24.0",
     "prismjs": "^1.29.0",
     "reset.css": "^2.0.2"
@@ -50,7 +55,7 @@
     "@babel/preset-typescript": "^7.24.7",
     "@chromatic-com/storybook": "^3.2.3",
     "@eslint/js": "^9.10.0",
-    "@floating-ui/dom": "^1.6.12",
+    "@preact/preset-vite": "^2.9.4",
     "@preact/signals": "^1.3.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-babel": "^6.0.4",
@@ -58,10 +63,8 @@
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/addon-essentials": "~8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
-    "@storybook/addon-links": "^8.4.7",
-    "@storybook/addon-styling-webpack": "^1.0.1",
     "@storybook/addon-webpack5-compiler-swc": "^1.0.5",
     "@storybook/blocks": "^8.4.7",
     "@storybook/manager-api": "^8.4.7",
@@ -74,6 +77,8 @@
     "@storybook/types": "^8.4.7",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@svgr/rollup": "^8.1.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/preact": "^3.2.4",
     "@types/babel__core": "^7.20.5",
     "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
@@ -85,7 +90,7 @@
     "@vitest/runner": "^2.1.8",
     "@vitest/snapshot": "^2.1.8",
     "allure-js-commons": "^3.0.7",
-    "allure-vitest": "^3.0.7",
+    "allure-vitest": "^3.0.8",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
@@ -106,11 +111,9 @@
     "eslint-plugin-react": "^7.36.1",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-storybook": "^0.11.1",
-    "filesize": "^10.1.6",
     "globals": "^15.9.0",
     "html-webpack-plugin": "^5.6.3",
-    "i18next": "^24.0.2",
-    "md5": "^2.3.0",
+    "jsdom": "^26.0.0",
     "mini-css-extract-plugin": "^2.9.1",
     "npm-run-all2": "^7.0.1",
     "postcss": "^8.4.49",
@@ -131,6 +134,7 @@
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.6.0",
+    "vite": "^6.0.7",
     "vitest": "^2.1.8"
   }
 }

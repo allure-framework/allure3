@@ -1,8 +1,8 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
+import type { AllureAwesomeStatus, AllureAwesomeTree, AllureAwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
-import type {AllureAwesomeStatus, AllureAwesomeTree, AllureAwesomeTreeGroup} from "../../types";
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";

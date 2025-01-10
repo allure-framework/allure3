@@ -1,12 +1,8 @@
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeTestResult } from "types";
-import githubIcon from "@/assets/svg/github.svg";
-import Bug from "@/assets/svg/line-dev-bug-2.svg";
-import TmsLink from "@/assets/svg/line-general-checklist3.svg";
-import Link from "@/assets/svg/line-general-link-1.svg";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
@@ -22,15 +18,15 @@ const TestResultLink: FunctionalComponent<{
 }> = ({ link }) => {
   const { url, type } = link;
   const iconMap = {
-    issue: Bug.id,
-    link: Link.id,
-    tms: TmsLink.id,
-    github: githubIcon.id,
+    issue: allureIcons.lineDevBug2,
+    link: allureIcons.lineGeneralLink1,
+    tms: allureIcons.lineGeneralChecklist3,
+    github: allureIcons.github,
   };
 
   return (
     <div className={styles["test-result-link"]}>
-      <SvgIcon id={iconMap[type] ?? Link.id} />
+      <SvgIcon id={iconMap[type] ?? allureIcons.lineGeneralLink1} />
       <Text tag={"a"} href={url} target={"_blank"} size={"m"} className={styles["test-result-link-text"]}>
         {url}
       </Text>

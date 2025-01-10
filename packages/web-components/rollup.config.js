@@ -44,12 +44,12 @@ export default defineConfig({
     commonjs(),
     typescript({
       sourceMap: true,
-      // declaration: true,
+      exclude: ["**/*.test.tsx", "**/*.test.ts"],
     }),
     babel({
       babelHelpers: "bundled",
       extensions: [".js", ".jsx", ".ts", ".tsx"],
-      exclude: "**",
+      exclude: ["**", "**/*.test.tsx", "**/*.test.ts"],
     }),
     svg(),
     postcss({
@@ -61,7 +61,10 @@ export default defineConfig({
     }),
     terser(),
     copy({
-      targets: [{ src: "src/assets/fonts/**/*", dest: "dist/fonts" }],
+      targets: [
+        { src: "src/assets/fonts/**/*", dest: "dist/fonts" },
+        { src: "src/assets/scss/mixins.scss", dest: "dist/" },
+      ],
     }),
   ],
 });

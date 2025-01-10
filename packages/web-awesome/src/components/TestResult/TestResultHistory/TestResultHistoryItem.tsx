@@ -1,15 +1,14 @@
 import { formatDuration } from "@allurereport/core-api";
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import { TooltipWrapper } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
-import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
-import LineGeneralLinkExternal from "@/assets/svg/line-general-link-external.svg";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { navigateTo, openInNewTab } from "@/index";
+import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
 export const TestResultHistoryItem = ({ testResultItem }) => {
@@ -26,7 +25,7 @@ export const TestResultHistoryItem = ({ testResultItem }) => {
       <div className={styles["test-result-history-item-header"]}>
         {Boolean(message) && (
           <span onClick={() => setIsOpen(!isOpened)}>
-            <ArrowButton isOpened={isOpened} icon={arrowsChevronDown.id} />
+            <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
           </span>
         )}
         <div
@@ -44,7 +43,7 @@ export const TestResultHistoryItem = ({ testResultItem }) => {
             </Text>
             <TooltipWrapper tooltipText={t("openInNewTab")}>
               <IconButton
-                icon={LineGeneralLinkExternal.id}
+                icon={allureIcons.lineGeneralLinkExternal}
                 style={"ghost"}
                 size={"s"}
                 className={styles["test-result-history-item-link"]}

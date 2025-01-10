@@ -1,8 +1,7 @@
-import { Button, Menu, Text } from "@allurereport/web-components";
+import { Button, Menu, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import LineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
@@ -53,7 +52,12 @@ const MetadataTooltip = ({ value }) => {
       <div className={styles["metadata-tooltip-value"]}>
         <Text>{value}</Text>
       </div>
-      <Button style={"outline"} icon={LineGeneralCopy3.id} text={t("copy")} onClick={() => copyToClipboard(value)} />
+      <Button
+        style={"outline"}
+        icon={allureIcons.lineGeneralCopy3}
+        text={t("copy")}
+        onClick={() => copyToClipboard(value)}
+      />
     </div>
   );
 };

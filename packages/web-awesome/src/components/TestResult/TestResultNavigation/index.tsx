@@ -1,11 +1,9 @@
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import { Loadable } from "@allurereport/web-components";
 import { TooltipWrapper } from "@allurereport/web-components";
 import { Code } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
-import LineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
-import LineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import { navigateTo } from "@/index";
 import { useI18n } from "@/stores";
 import { testResultNavStore } from "@/stores/testResults";
@@ -28,7 +26,7 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
             data-testid="test-result-fullname-copy"
             style={"ghost"}
             size={"s"}
-            icon={LineGeneralCopy3.id}
+            icon={allureIcons.lineGeneralCopy3}
             onClick={() => copyToClipboard(fullName)}
           />
         </TooltipWrapper>
@@ -51,7 +49,7 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
               <div className={styles["test-result-navigator"]}>
                 <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={currentIndex > 1}>
                   <IconButton
-                    icon={LineArrowsChevronDown.id}
+                    icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
                     isDisabled={currentIndex === data.length}
                     data-testid="test-result-nav-prev"
@@ -68,7 +66,7 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
                 </Code>
                 <TooltipWrapper tooltipText={tooltip("nextTR")}>
                   <IconButton
-                    icon={LineArrowsChevronDown.id}
+                    icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
                     isDisabled={currentIndex <= 1}
                     data-testid="test-result-nav-next"

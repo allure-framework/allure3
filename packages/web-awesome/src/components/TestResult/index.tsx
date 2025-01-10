@@ -1,14 +1,14 @@
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
-import * as styles from "@/components/app/BaseLayout/styles.scss";
-import { TestResultAttachmentView } from "@/components/app/TestResult/TestResultAttachmentsView";
-import TestResultEmpty from "@/components/app/TestResult/TestResultEmpty";
-import { TestResultHeader } from "@/components/app/TestResult/TestResultHeader";
-import TestResultHistoryView from "@/components/app/TestResult/TestResultHistory";
-import { TestResultInfo } from "@/components/app/TestResult/TestResultInfo";
-import { TestResultOverview } from "@/components/app/TestResult/TestResultOverview";
-import { TestResultRetriesView } from "@/components/app/TestResult/TestResultRetriesView";
-import { TestResultTabs, useTestResultTabsContext } from "@/components/app/TestResult/TestResultTabs";
+import * as styles from "@/components/BaseLayout/styles.scss";
+import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
+import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
+import { TestResultHeader } from "@/components/TestResult/TestResultHeader";
+import TestResultHistoryView from "@/components/TestResult/TestResultHistory";
+import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
+import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
+import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
+import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
 
 export type TestResultViewProps = {
   testResult?: AllureAwesomeTestResult;

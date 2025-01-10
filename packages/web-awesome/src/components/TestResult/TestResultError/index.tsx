@@ -1,8 +1,7 @@
 import { sanitizeHtml } from "@allurereport/web-commons";
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { Code, Text } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
-import LineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
@@ -34,7 +33,7 @@ export const TestResultError = ({ message, trace }) => {
           <IconButton
             style={"ghost"}
             size={"s"}
-            icon={LineGeneralCopy3.id}
+            icon={allureIcons.lineGeneralCopy3}
             onClick={() => {
               copyToClipboard(message);
             }}

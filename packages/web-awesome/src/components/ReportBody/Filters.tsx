@@ -1,10 +1,6 @@
-import { Button } from "@allurereport/web-components";
+import { Button, allureIcons } from "@allurereport/web-components";
 import { Menu } from "@allurereport/web-components";
 import { Toggle } from "@allurereport/web-components";
-import notificationBoxIcon from "@/assets/svg/line-alerts-notification-box.svg";
-import refreshIcon from "@/assets/svg/line-arrows-refresh-ccw-1.svg";
-import settingsIcon from "@/assets/svg/line-general-settings-1.svg";
-import zapIcon from "@/assets/svg/line-general-zap.svg";
 import { useI18n } from "@/stores/locale";
 import { setTreeFilter, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -19,7 +15,7 @@ export const Filters = () => {
       menuTrigger={({ isOpened, onClick }) => (
         <div className={hasFilter && styles.filtersBtnWithFilters}>
           <Button
-            icon={settingsIcon.id}
+            icon={allureIcons.lineGeneralSettings1}
             text={t("more-filters")}
             size="m"
             style="outline"
@@ -37,7 +33,7 @@ export const Filters = () => {
           onClick={() => {
             setTreeFilter("flaky", !flaky);
           }}
-          leadingIcon={zapIcon.id}
+          leadingIcon={allureIcons.lineGeneralZap}
           rightSlot={
             <div className={styles.filterToggle}>
               <Toggle
@@ -56,7 +52,7 @@ export const Filters = () => {
           closeMenuOnClick={false}
           ariaLabel={t("enable-filter", { filter: t("retry") })}
           onClick={() => setTreeFilter("retry", !retry)}
-          leadingIcon={refreshIcon.id}
+          leadingIcon={allureIcons.lineArrowsRefreshCcw1}
           rightSlot={
             <div className={styles.filterToggle}>
               <Toggle
@@ -75,7 +71,7 @@ export const Filters = () => {
           closeMenuOnClick={false}
           ariaLabel={t("enable-filter", { filter: t("new") })}
           onClick={() => setTreeFilter("new", !isNew)}
-          leadingIcon={notificationBoxIcon.id}
+          leadingIcon={allureIcons.lineAlertsNotificationBox}
           rightSlot={
             <div className={styles.filterToggle}>
               <Toggle

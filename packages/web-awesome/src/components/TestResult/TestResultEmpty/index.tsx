@@ -1,6 +1,5 @@
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
-import LineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
 import * as baseStyles from "@/components/BaseLayout/styles.scss";
 import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import * as styles from "./styles.scss";
@@ -13,7 +12,7 @@ const TestResultThumb = () => {
           size={"m"}
           width={"32px"}
           height={"32px"}
-          id={LineDevCodeSquare.id}
+          id={allureIcons.lineDevCodeSquare}
           className={styles["test-result-thumb-icon"]}
         />
         <Text className={styles["test-result-thumb-text"]}>No test case results</Text>

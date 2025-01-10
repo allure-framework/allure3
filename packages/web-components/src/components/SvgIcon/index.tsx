@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import type { JSX } from "preact";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import github from "@/assets/svg/github.svg";
+import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
 import lineArrowsChevronDownDouble from "@/assets/svg/line-arrows-chevron-down-double.svg";
 import lineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
@@ -22,6 +23,7 @@ import lineGeneralChecklist3 from "@/assets/svg/line-general-checklist3.svg";
 import lineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import lineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
 import lineGeneralEqual from "@/assets/svg/line-general-equal.svg";
+import lineGeneralEye from "@/assets/svg/line-general-eye.svg";
 import lineGeneralHomeLine from "@/assets/svg/line-general-home-line.svg";
 import lineGeneralLink1 from "@/assets/svg/line-general-link-1.svg";
 import lineGeneralLinkExternal from "@/assets/svg/line-general-link-external.svg";
@@ -31,6 +33,7 @@ import lineGeneralXClose from "@/assets/svg/line-general-x-close.svg";
 import lineGeneralZap from "@/assets/svg/line-general-zap.svg";
 import lineHelpersFlag from "@/assets/svg/line-helpers-flag.svg";
 import lineHelpersPlayCircle from "@/assets/svg/line-helpers-play-circle.svg";
+import lineIconBomb2 from "@/assets/svg/line-icon-bomb-2.svg";
 import lineImagesImage from "@/assets/svg/line-images-image.svg";
 import lineSecurityKey from "@/assets/svg/line-security-key.svg";
 import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
@@ -48,16 +51,16 @@ import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";
 import styles from "./styles.scss";
 
-// TODO: do we need to rename it?
-export const icons = {
+export const allureIcons = {
   arrowsChevronDown: arrowsChevronDown.id,
   github: github.id,
+  lineAlertsAlertCircle: lineAlertsAlertCircle.id,
   lineAlertsNotificationBox: lineAlertsNotificationBox.id,
-  lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
+  lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
   lineArrowsChevronRight: lineArrowsChevronRight.id,
-  lineArrowsChevronUpDouble: lineArrowsChevronUpDouble.id,
   lineArrowsChevronUp: lineArrowsChevronUp.id,
+  lineArrowsChevronUpDouble: lineArrowsChevronUpDouble.id,
   lineArrowsCornerDownRight: lineArrowsCornerDownRight.id,
   lineArrowsExpand3: lineArrowsExpand3.id,
   lineArrowsRefreshCcw1: lineArrowsRefreshCcw1.id,
@@ -72,6 +75,7 @@ export const icons = {
   lineGeneralCopy3: lineGeneralCopy3.id,
   lineGeneralDownloadCloud: lineGeneralDownloadCloud.id,
   lineGeneralEqual: lineGeneralEqual.id,
+  lineGeneralEye: lineGeneralEye.id,
   lineGeneralHomeLine: lineGeneralHomeLine.id,
   lineGeneralLink1: lineGeneralLink1.id,
   lineGeneralLinkExternal: lineGeneralLinkExternal.id,
@@ -81,6 +85,7 @@ export const icons = {
   lineGeneralZap: lineGeneralZap.id,
   lineHelpersFlag: lineHelpersFlag.id,
   lineHelpersPlayCircle: lineHelpersPlayCircle.id,
+  lineIconBomb2: lineIconBomb2.id,
   lineImagesImage: lineImagesImage.id,
   lineSecurityKey: lineSecurityKey.id,
   lineShapesDotCircle: lineShapesDotCircle.id,
@@ -94,8 +99,8 @@ export const icons = {
   solidMinusCircle: solidMinusCircle.id,
   solidXCircle: solidXCircle.id,
   spinner: spinner.id,
-  viewOff: viewOff.id,
   view: view.id,
+  viewOff: viewOff.id,
 };
 
 export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {

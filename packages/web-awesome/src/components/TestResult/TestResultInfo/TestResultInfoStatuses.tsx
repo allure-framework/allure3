@@ -1,15 +1,12 @@
-import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
-import lineGeneralEye from "@/assets/svg/line-general-eye.svg";
-import lineIconBomb2 from "@/assets/svg/line-icon-bomb-2.svg";
-import { SvgIcon } from "@/components/commons/SvgIcon";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { useI18n } from "@/stores";
 import { capitalize } from "@/utils/capitalize";
 import * as styles from "./styles.scss";
 
 const icons = {
-  flaky: lineIconBomb2.id,
-  known: lineAlertsAlertCircle.id,
-  muted: lineGeneralEye.id,
+  flaky: allureIcons.lineIconBomb2,
+  known: allureIcons.lineAlertsAlertCircle,
+  muted: allureIcons.lineGeneralEye,
 };
 
 export const TestResultInfoStatuses = ({ statuses }) => {

@@ -1,8 +1,7 @@
 import type { DefaultTestStepResult } from "@allurereport/core-api";
-import { Code, Text } from "@allurereport/web-components";
+import { Code, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
@@ -53,7 +52,7 @@ export const TestResultStep: FunctionComponent<{
         ) : (
           <ArrowButton
             isOpened={isOpened}
-            icon={arrowsChevronDown.id}
+            icon={allureIcons.arrowsChevronDown}
             iconSize={"xs"}
             className={!hasContent ? styles["test-result-visibility-hidden"] : ""}
           />

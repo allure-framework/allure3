@@ -35,7 +35,7 @@ export const BaseLayout = ({ testResultId }) => {
       renderData={(testResult) => (
         <>
           <Modal testResult={testResult} />
-          <div className={styles.wrapper}>
+          <div className={styles.wrapper} key={testResult?.id}>
             <TestResult testResult={testResult} />
             <Footer />
           </div>

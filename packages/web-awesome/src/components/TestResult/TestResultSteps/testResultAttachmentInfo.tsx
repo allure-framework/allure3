@@ -1,12 +1,10 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { IconButton } from "@allurereport/web-components";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import { TooltipWrapper } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import LineArrowsExpand from "@/assets/svg/line-arrows-expand-3.svg";
-import LineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
 import { isModalOpen, openModal } from "@/components/Modal";
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
@@ -66,7 +64,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
               style={"ghost"}
               size={"s"}
               iconSize={"s"}
-              icon={LineArrowsExpand.id}
+              icon={allureIcons.lineArrowsExpand3}
               onClick={expandAttachment}
             />
           </TooltipWrapper>
@@ -77,7 +75,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
             size={"s"}
             iconSize={"s"}
             className={styles["item-button"]}
-            icon={LineGeneralDownloadCloud.id}
+            icon={allureIcons.lineGeneralDownloadCloud}
             onClick={(e: MouseEvent) => downloadData(e)}
           />
         </TooltipWrapper>

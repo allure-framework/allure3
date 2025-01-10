@@ -1,8 +1,7 @@
-import i18n from "i18next";
+import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeTestResult } from "types";
-import LineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
@@ -27,7 +26,7 @@ export const TestResultSetup: FunctionalComponent<TestResultSetupProps> = ({ set
   return (
     <div className={styles["test-result-steps"]}>
       <TestResultDropdown
-        icon={LineTimeClockStopwatch.id}
+        icon={allureIcons.lineTimeClockStopwatch}
         isOpened={isOpened}
         setIsOpen={setIsOpen}
         counter={setup?.length}

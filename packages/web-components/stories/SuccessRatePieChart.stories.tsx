@@ -1,4 +1,3 @@
-import type { TestStatus } from "@allurereport/core-api";
 import { SuccessRatePieChart } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
 

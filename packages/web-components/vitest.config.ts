@@ -1,12 +1,19 @@
 import { createRequire } from "node:module";
+import * as path from "node:path";
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
 
 export default defineConfig({
   test: {
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
+    environment: "jsdom",
+    include: ["./src/**/*.test.tsx"],
+    setupFiles: [require.resolve("allure-vitest/setup"), "./setup-tests.ts"],
     reporters: ["default", ["allure-vitest/reporter", { resultsDir: "../../out/allure-results" }]],
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
 });

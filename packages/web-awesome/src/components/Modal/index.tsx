@@ -1,15 +1,10 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { Button, Heading, IconButton, TooltipWrapper } from "@allurereport/web-components";
+import { Button, Heading, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
 import type { FunctionalComponent, VNode } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import type { AllureAwesomeTestResult } from "types";
-import LineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
-import LineGeneralCopy from "@/assets/svg/line-general-link-external.svg";
-import LineGeneralXClose from "@/assets/svg/line-general-x-close.svg";
-import ViewOffIcon from "@/assets/svg/view-off.svg";
-import ViewIcon from "@/assets/svg/view.svg";
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@/utils/attachments";
 import * as styles from "./styles.scss";
@@ -134,7 +129,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                 <Button
                   style={"outline"}
                   onClick={openInNewWindow}
-                  icon={LineGeneralCopy.id}
+                  icon={allureIcons.LineGeneralLinkExternal}
                   text={"Open in new tab"}
                 />
               )}
@@ -144,7 +139,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}
-                    icon={modalData.value.preview ? ViewOffIcon.id : ViewIcon.id}
+                    icon={modalData.value.preview ? allureIcons.viewOff : allureIcons.view}
                     onClick={() => {
                       modalData.value = {
                         ...modalData.value,
@@ -159,11 +154,11 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                   style={"outline"}
                   size={"m"}
                   iconSize={"s"}
-                  icon={LineGeneralDownloadCloud.id}
+                  icon={allureIcons.lineGeneralDownloadCloud}
                   onClick={(e: MouseEvent) => downloadData(e)}
                 />
               </TooltipWrapper>
-              <IconButton iconSize={"m"} style={"ghost"} onClick={closeModal} icon={LineGeneralXClose.id} />
+              <IconButton iconSize={"m"} style={"ghost"} onClick={closeModal} icon={allureIcons.lineGeneralXClose} />
             </div>
           </div>
           <div className={styles["modal-data"]}>

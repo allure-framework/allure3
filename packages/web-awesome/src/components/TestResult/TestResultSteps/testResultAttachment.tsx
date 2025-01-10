@@ -1,33 +1,32 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { SvgIcon } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { Code, Text } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
-import LineFilesFileAttachment from "@/assets/svg/line-files-file-attachment-2.svg";
-import LineImagesImage from "@/assets/svg/line-images-image.svg";
 import { ArrowButton } from "@/components/ArrowButton";
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachmentInfo } from "@/components/TestResult/TestResultSteps/testResultAttachmentInfo";
 import { attachmentType } from "@/utils/attachments";
 
+const { lineImagesImage, lineFilesFileAttachment2 } = allureIcons;
+
 const iconMap = {
-  "text/plain": LineFilesFileAttachment.id,
-  "application/xml": LineFilesFileAttachment.id,
-  "text/html": LineFilesFileAttachment.id,
-  "text/csv": LineFilesFileAttachment.id,
-  "text/tab-separated-values": LineFilesFileAttachment.id,
-  "text/css": LineFilesFileAttachment.id,
-  "text/uri-list": LineFilesFileAttachment.id,
-  "image/svg+xml": LineImagesImage.id,
-  "image/png": LineImagesImage.id,
-  "application/json": LineFilesFileAttachment.id,
-  "application/zip": LineFilesFileAttachment.id,
-  "video/webm": LineImagesImage.id,
-  "image/jpeg": LineImagesImage.id,
-  "video/mp4": LineImagesImage.id,
-  "application/vnd.allure.image.diff": LineImagesImage.id,
+  "text/plain": lineFilesFileAttachment2,
+  "application/xml": lineFilesFileAttachment2,
+  "text/html": lineFilesFileAttachment2,
+  "text/csv": lineFilesFileAttachment2,
+  "text/tab-separated-values": lineFilesFileAttachment2,
+  "text/css": lineFilesFileAttachment2,
+  "text/uri-list": lineFilesFileAttachment2,
+  "image/svg+xml": lineImagesImage,
+  "image/png": lineImagesImage,
+  "application/json": lineFilesFileAttachment2,
+  "application/zip": lineFilesFileAttachment2,
+  "video/webm": lineImagesImage,
+  "image/jpeg": lineImagesImage,
+  "video/mp4": lineImagesImage,
+  "application/vnd.allure.image.diff": lineImagesImage,
 };
 
 export const TestResultAttachment: FunctionComponent<{
@@ -50,9 +49,9 @@ export const TestResultAttachment: FunctionComponent<{
           setIsOpen((prev) => !prev);
         }}
       >
-        <ArrowButton isOpened={isOpened} icon={arrowsChevronDown.id} />
+        <ArrowButton isOpened={isOpened} />
         <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[link.contentType] || LineFilesFileAttachment.id} />
+          <SvgIcon size="s" id={iconMap[link.contentType] || lineFilesFileAttachment2} />
         </div>
 
         <Code size="s" className={styles["test-result-step-number"]}>
