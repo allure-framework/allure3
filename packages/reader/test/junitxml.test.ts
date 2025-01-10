@@ -1,9 +1,10 @@
+/* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { junitXml } from "../src";
-import { mockVisitor, readResourceAsResultFile, readResults } from "./utils";
+import { junitXml } from "../src/index.js";
+import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 
-const randomTestsuiteFileName = () => randomUUID() + ".xml";
+const randomTestsuiteFileName = () => `${randomUUID()}.xml`;
 
 describe("junit xml reader", () => {
   it("should ignore invalid root element", async () => {
