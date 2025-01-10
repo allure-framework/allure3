@@ -77,19 +77,19 @@ test.describe("commons", () => {
     await expect(treeLeaves).toHaveCount(5);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-status-passed")).toBeVisible();
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("1");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-status-failed")).toBeVisible();
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#2");
+    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("2");
     await expect(treeLeaves.nth(2).getByTestId("tree-leaf-title")).toHaveText("2 sample broken test");
     await expect(treeLeaves.nth(2).getByTestId("tree-leaf-status-broken")).toBeVisible();
-    await expect(treeLeaves.nth(2).getByTestId("tree-leaf-order")).toHaveText("#3");
+    await expect(treeLeaves.nth(2).getByTestId("tree-leaf-order")).toHaveText("3");
     await expect(treeLeaves.nth(3).getByTestId("tree-leaf-title")).toHaveText("3 sample skipped test");
     await expect(treeLeaves.nth(3).getByTestId("tree-leaf-status-skipped")).toBeVisible();
-    await expect(treeLeaves.nth(3).getByTestId("tree-leaf-order")).toHaveText("#4");
+    await expect(treeLeaves.nth(3).getByTestId("tree-leaf-order")).toHaveText("4");
     await expect(treeLeaves.nth(4).getByTestId("tree-leaf-title")).toHaveText("4 sample unknown test");
     await expect(treeLeaves.nth(4).getByTestId("tree-leaf-status-unknown")).toBeVisible();
-    await expect(treeLeaves.nth(4).getByTestId("tree-leaf-order")).toHaveText("#5");
+    await expect(treeLeaves.nth(4).getByTestId("tree-leaf-order")).toHaveText("5");
   });
 
   test("statistics in metadata renders information about the tests", async ({ page }) => {
@@ -289,9 +289,9 @@ test.describe("suites", () => {
 
     await expect(treeLeaves).toHaveCount(2);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("1");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("1");
   });
 });
 
@@ -344,9 +344,9 @@ test.describe("features", () => {
 
     await expect(treeLeaves).toHaveCount(2);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("1");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("1");
   });
 });
 
@@ -399,8 +399,8 @@ test.describe("stories", () => {
 
     await expect(treeLeaves).toHaveCount(2);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("1");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("1");
   });
 });
