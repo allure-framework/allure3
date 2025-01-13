@@ -34,7 +34,7 @@ export const fetchTestResultNav = async () => {
 };
 
 export const fetchTestResult = async (testResultId: string) => {
-  if (!testResultId || testResultStore.value.data?.[testResultId]) {
+  if (!testResultId) {
     return;
   }
 
