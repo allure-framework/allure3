@@ -1,4 +1,5 @@
 import { md5 } from "@allurereport/plugin-api";
+import { attachment } from "allure-js-commons";
 import { describe, expect, it } from "vitest";
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";
@@ -128,8 +129,8 @@ describe("testResultRawToState", () => {
       { readerId },
     );
 
-    const [attachment] = result.steps;
-    expect(attachment).toMatchObject({
+    const [attach] = result.steps;
+    expect(attach).toMatchObject({
       type: "attachment",
       link: {
         originalFileName: "some-file.txt",
@@ -138,15 +139,17 @@ describe("testResultRawToState", () => {
     });
   });
 
-  it("should set extension based on file name", () => {
+  it("should set extension based on file name", async () => {
     const result = testResultRawToState(
       emptyStateData,
       { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
       { readerId },
     );
 
-    const [attachment] = result.steps;
-    expect(attachment).toMatchObject({
+    await attachment("result", JSON.stringify(result, null, 2), "application/json");
+
+    const [attach] = result.steps;
+    expect(attach).toMatchObject({
       type: "attachment",
       link: {
         originalFileName: "some-file.txt",

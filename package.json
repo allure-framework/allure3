@@ -18,7 +18,7 @@
     "lint-staged": "lint-staged",
     "prepare": "husky",
     "prettier:format": "prettier --write './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' package.json ./packages/*/package.json",
-    "test": "yarn allure run -- yarn workspaces foreach -Avvpt run test"
+    "test": "yarn allure run -- yarn workspaces foreach -Avvp --topological-dev --exclude sandbox run test"
   },
   "lint-staged": {
     "packages/*/{src,test,features}/**/*.{js,ts,tsx}": [
