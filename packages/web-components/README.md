@@ -24,29 +24,39 @@ yarn add @allurereport/web-components
 pnpm add @allurereport/web-components
 ```
 
-## Styles 
-Add styles to App.ts
-```shell
+## Usage
+
+### Styles 
+
+Import styles right in your JavaScript or TypeScript file:
+
+```ts
 import "@allurereport/web-components/index.css";
 ```
 
-## Icon pack
-```shell
-import {  allureIcons } from "@allurereport/web-components";
+### Icon pack
 
-# somewhere in .tsx file
-{ allureIcons.reportLogo }
+Use `allureIcons` object to get available SVG icons (see entire list of the icons [here](src/assets/svg/)):
+
+```tsx
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
+
+// somewhere in .tsx file
+<SvgIcon id={allureIcons.reportLogo} />
 ```
-## Fonts
-Allure use PTRootUI and JetBrainsMono fonts and can be imported from package:
-```shell
+
+### Fonts
+
+Allure Report use `PTRootUI` and `JetBrainsMono` fonts which can be imported from package:
+
+```ts
 import "@allurereport/web-components/fonts/pt-root-ui_vf.woff";
 import "@allurereport/web-components/fonts/JetBrainsMono_vf.woff";
 ```
-or if you use SASS:
-```shell
+
+Or if you use SASS:
+
+```scss
 @import "~@allurereport/web-components/mixins.scss";
-
 @include allure-fonts;
-
 ```

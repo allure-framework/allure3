@@ -34,7 +34,6 @@
     "backbone.marionette@npm:3.5.1/underscore": "^1.13.6"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.9.4",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/eslint": "^8.56.11",

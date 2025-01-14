@@ -24,11 +24,6 @@ export default defineConfig({
       format: "esm",
       sourcemap: true,
     },
-    {
-      dir: "dist",
-      format: "cjs",
-      sourcemap: true,
-    },
   ],
   external: ["preact", "preact/hooks"],
   plugins: [

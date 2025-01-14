@@ -133,7 +133,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/monorepo@workspace:."
   dependencies:
-    "@preact/preset-vite": "npm:^2.9.4"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@trivago/prettier-plugin-sort-imports": "npm:^4.3.0"
     "@types/eslint": "npm:^8.56.11"
