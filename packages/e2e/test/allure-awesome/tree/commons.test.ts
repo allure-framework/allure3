@@ -1,17 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { layer } from "allure-js-commons";
 import { Stage, Status } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../utils/index.js";
+import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
 test.beforeEach(async ({ page }) => {
   await layer("e2e");
-  await page.goto(bootstrap.url);
+
+  if (bootstrap) {
+    await page.goto(bootstrap.url);
+  }
 });
 
 test.afterAll(async () => {
-  await bootstrap.shutdown();
+  await bootstrap?.shutdown?.();
 });
 
 test.describe("commons", () => {
@@ -77,19 +80,19 @@ test.describe("commons", () => {
     await expect(treeLeaves).toHaveCount(5);
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
     await expect(treeLeaves.nth(0).getByTestId("tree-leaf-status-passed")).toBeVisible();
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
+    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("1");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
     await expect(treeLeaves.nth(1).getByTestId("tree-leaf-status-failed")).toBeVisible();
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#2");
+    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("2");
     await expect(treeLeaves.nth(2).getByTestId("tree-leaf-title")).toHaveText("2 sample broken test");
     await expect(treeLeaves.nth(2).getByTestId("tree-leaf-status-broken")).toBeVisible();
-    await expect(treeLeaves.nth(2).getByTestId("tree-leaf-order")).toHaveText("#3");
+    await expect(treeLeaves.nth(2).getByTestId("tree-leaf-order")).toHaveText("3");
     await expect(treeLeaves.nth(3).getByTestId("tree-leaf-title")).toHaveText("3 sample skipped test");
     await expect(treeLeaves.nth(3).getByTestId("tree-leaf-status-skipped")).toBeVisible();
-    await expect(treeLeaves.nth(3).getByTestId("tree-leaf-order")).toHaveText("#4");
+    await expect(treeLeaves.nth(3).getByTestId("tree-leaf-order")).toHaveText("4");
     await expect(treeLeaves.nth(4).getByTestId("tree-leaf-title")).toHaveText("4 sample unknown test");
     await expect(treeLeaves.nth(4).getByTestId("tree-leaf-status-unknown")).toBeVisible();
-    await expect(treeLeaves.nth(4).getByTestId("tree-leaf-order")).toHaveText("#5");
+    await expect(treeLeaves.nth(4).getByTestId("tree-leaf-order")).toHaveText("5");
   });
 
   test("statistics in metadata renders information about the tests", async ({ page }) => {
@@ -224,183 +227,5 @@ test.describe("filters", () => {
 
       await expect(treeLeaves).toHaveCount(3);
     });
-  });
-});
-
-test.describe("suites", () => {
-  test.beforeAll(async () => {
-    bootstrap = await boostrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-      },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [
-            { name: "parentSuite", value: "foo" },
-            {
-              name: "suite",
-              value: "bar",
-            },
-            { name: "subSuite", value: "baz" },
-          ],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-      ],
-    });
-  });
-
-  test("suites groups are displayed", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
-
-    await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
-    await parentGroupHeader.getByTestId("tree-arrow").click();
-
-    await expect(parentGroupHeader).toHaveCount(2);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("bar");
-    await parentGroupHeader.nth(1).getByTestId("tree-arrow").click();
-
-    await expect(parentGroupHeader).toHaveCount(3);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("bar");
-    await expect(parentGroupHeader.nth(2).getByTestId("tree-header-title")).toHaveText("baz");
-    await parentGroupHeader.nth(2).getByTestId("tree-arrow").click();
-
-    await expect(treeLeaves).toHaveCount(2);
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
-  });
-});
-
-test.describe("features", () => {
-  test.beforeAll(async () => {
-    bootstrap = await boostrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-      },
-      pluginConfig: {
-        groupBy: ["feature"],
-      },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [{ name: "feature", value: "foo" }],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-      ],
-    });
-  });
-
-  test("features groups are displayed", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
-
-    await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
-    await parentGroupHeader.getByTestId("tree-arrow").click();
-
-    await page.pause();
-
-    await expect(treeLeaves).toHaveCount(2);
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
-  });
-});
-
-test.describe("stories", () => {
-  test.beforeAll(async () => {
-    bootstrap = await boostrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-      },
-      pluginConfig: {
-        groupBy: ["story"],
-      },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [{ name: "story", value: "foo" }],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-      ],
-    });
-  });
-
-  test("stories groups are displayed", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
-
-    await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
-    await parentGroupHeader.getByTestId("tree-arrow").click();
-
-    await page.pause();
-
-    await expect(treeLeaves).toHaveCount(2);
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-title")).toHaveText("0 sample passed test");
-    await expect(treeLeaves.nth(0).getByTestId("tree-leaf-order")).toHaveText("#1");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-title")).toHaveText("1 sample failed test");
-    await expect(treeLeaves.nth(1).getByTestId("tree-leaf-order")).toHaveText("#1");
   });
 });

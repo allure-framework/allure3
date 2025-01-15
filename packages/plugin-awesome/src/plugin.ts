@@ -1,5 +1,6 @@
 import { type EnvironmentItem } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
@@ -28,13 +29,13 @@ export class AllureAwesomePlugin implements Plugin {
     await generatePieChart(this.#writer!, statistic);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
-
-    await generateTree(
-      this.#writer!,
-      "tree",
-      groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    const treeLabels = preciseTreeLabels(
+      !groupBy?.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
+      ({ labels }) => labels.map(({ name }) => name),
     );
+
+    await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
 
     if (environmentItems?.length) {

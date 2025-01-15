@@ -1,5 +1,5 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { type AllureStore, type Plugin, type PluginContext, preciseTreeLabels } from "@allurereport/plugin-api";
 import { convertTestResult } from "./converters.js";
 import {
   generateAttachmentsData,
@@ -55,9 +55,17 @@ export class Allure2Plugin implements Plugin {
     await generateTestResults(writer, allTr);
 
     const displayedTr = allTr.filter((atr) => !atr.hidden);
+    const treeLabelNamesFactory = (labelNames: string[]) =>
+      preciseTreeLabels(labelNames, displayedTr, (tr) => {
+        if (tr.labels) {
+          return tr.labels.map(({ name }) => name!);
+        }
 
-    await generateTree(writer, "suites", ["parentSuite", "suite", "subSuite"], displayedTr);
-    await generateTree(writer, "behaviors", ["epic", "feature", "story"], displayedTr);
+        return [] as string[];
+      });
+
+    await generateTree(writer, "suites", treeLabelNamesFactory(["parentSuite", "suite", "subSuite"]), displayedTr);
+    await generateTree(writer, "behaviors", treeLabelNamesFactory(["epic", "feature", "story"]), displayedTr);
     await generatePackagesData(writer, displayedTr);
     await generateCategoriesData(writer, displayedTr);
     await generateTimelineData(writer, allTr);

@@ -1,7 +1,14 @@
 import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createTreeByLabels, filterTree, filterTreeLabels, sortTree, transformTree } from "../src/index.js";
+import {
+  createTreeByLabels,
+  filterTree,
+  filterTreeLabels,
+  preciseTreeLabels,
+  sortTree,
+  transformTree,
+} from "../src/index.js";
 
 const itResult = (args: Partial<TestResult>): TestResult => ({
   id: randomUUID(),
@@ -350,5 +357,80 @@ describe("filterTreeLabels", () => {
         ["parentSuite", "suite", "subSuite"],
       ),
     ).toEqual(["subSuite"]);
+  });
+});
+
+describe("preciseTreeLabels", () => {
+  it("should return labels that only exist in the given test results", () => {
+    const tr1 = itResult({
+      name: "tr1",
+      labels: [
+        { name: "parentSuite", value: "A" },
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    });
+    const tr2 = itResult({
+      name: "tr2",
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    });
+    const tr3 = itResult({
+      name: "tr3",
+      labels: [{ name: "subSuite", value: "C" }],
+    });
+
+    expect(preciseTreeLabels(["parentSuite", "suite", "subSuite"], [tr1, tr2, tr3])).toEqual([
+      "parentSuite",
+      "suite",
+      "subSuite",
+    ]);
+  });
+
+  it("should omit labels that don't exist in the given test results", () => {
+    const tr1 = itResult({
+      name: "tr1",
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    });
+    const tr2 = itResult({
+      name: "tr2",
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    });
+    const tr3 = itResult({
+      name: "tr3",
+      labels: [{ name: "subSuite", value: "C" }],
+    });
+
+    expect(preciseTreeLabels(["parentSuite", "suite", "subSuite"], [tr1, tr2, tr3])).toEqual(["suite", "subSuite"]);
+  });
+
+  it("should allow to extract labels from custom data structures via accessor function", () => {
+    const tr1 = {
+      l: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    };
+    const tr2 = {
+      l: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    };
+    const tr3 = {
+      l: [{ name: "subSuite", value: "C" }],
+    };
+
+    expect(
+      preciseTreeLabels(["parentSuite", "suite", "subSuite"], [tr1, tr2, tr3], ({ l }) => l.map(({ name }) => name)),
+    ).toEqual(["suite", "subSuite"]);
   });
 });
