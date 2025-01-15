@@ -1,15 +1,21 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { Text } from "@allurereport/web-components";
+import { useEffect, useState } from "preact/hooks";
 import type { AllureAwesomeReportOptions } from "types";
-import { currentLocale } from "@/stores";
+import { currentLocaleIso } from "@/stores";
 import * as styles from "./styles.scss";
 
 export const FooterVersion = () => {
-  const currentLang = currentLocale.value;
-  const { createdAt } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-  const locale = currentLang === "en" ? "en-US" : "ru-RU";
+  const [createdAt, setCreatedAt] = useState<number | null>(null);
 
-  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(locale, {
+  useEffect(() => {
+    const reportOptions = getReportOptions<AllureAwesomeReportOptions>();
+    if (reportOptions?.createdAt) {
+      setCreatedAt(Number(reportOptions.createdAt));
+    }
+  }, []);
+
+  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "numeric",
     day: "numeric",
     year: "numeric",

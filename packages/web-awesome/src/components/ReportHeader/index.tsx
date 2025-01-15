@@ -8,7 +8,7 @@ import * as styles from "./styles.scss";
 
 export const ReportHeader = () => {
   const { reportName, createdAt } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-  const formattedCreatedAt = new Date(createdAt).toLocaleDateString(currentLocaleIso.value as string, {
+  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "long",
     day: "numeric",
     year: "numeric",
