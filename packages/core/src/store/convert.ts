@@ -66,19 +66,21 @@ export const testFixtureResultRawToState = (
   };
 };
 
-export const testResultRawToState = (stateData: StateData, raw: RawTestResult, context: ReaderContext): TestResult => {
+export const testResultRawToState = (params: {
+  stateData: StateData;
+  raw: RawTestResult;
+  context: ReaderContext;
+  transformer?: (tr: TestResult) => TestResult;
+}): TestResult => {
+  const { stateData, raw, context, transformer = (tr) => tr } = params;
   const labels = convertLabels(raw.labels);
-
   const hostId = findByLabelName(labels, "host");
   const threadId = findByLabelName(labels, "thread");
-
   const name = raw.name || "Unknown test";
-
   const testCase = processTestCase(stateData, raw);
-
   const parameters = convertParameters(raw.parameters);
 
-  return {
+  return transformer({
     id: md5(raw.uuid || randomUUID()),
     name,
 
@@ -117,7 +119,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
       readerId: context.readerId,
       metadata: context.metadata ?? {},
     },
-  };
+  });
 };
 
 const processTestCase = ({ testCases }: StateData, raw: RawTestResult): TestCase | undefined => {

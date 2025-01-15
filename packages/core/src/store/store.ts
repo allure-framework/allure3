@@ -42,6 +42,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #history: HistoryDataPoint[];
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
+  readonly #defaultLabels: Record<string, string> = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -52,11 +53,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
-  constructor(
-    history: HistoryDataPoint[] = [],
-    known: KnownTestFailure[] = [],
-    eventEmitter?: EventEmitter<AllureStoreEvents>,
-  ) {
+  constructor(params?: {
+    history?: HistoryDataPoint[];
+    known?: KnownTestFailure[];
+    eventEmitter?: EventEmitter<AllureStoreEvents>;
+    defaultLabels?: Record<string, string>;
+  }) {
+    const { history = [], known = [], eventEmitter, defaultLabels } = params ?? {};
+
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
     this.#attachmentContents = new Map<string, ResultFile>();
@@ -67,6 +71,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
     this.#eventEmitter = eventEmitter;
+    this.#defaultLabels = defaultLabels ?? {};
   }
 
   // test methods
@@ -75,15 +80,35 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
-    const testResult = testResultRawToState(
-      {
+    const testResult = testResultRawToState({
+      stateData: {
         testCases: this.#testCases,
         attachments: this.#attachments,
         visitAttachmentLink: (link) => attachmentLinks.push(link),
       },
       raw,
       context,
-    );
+      transformer: (tr) => {
+        const defaultLabelsNames = Object.keys(this.#defaultLabels);
+
+        if (!defaultLabelsNames.length) {
+          return tr;
+        }
+
+        const newTr = { ...tr };
+
+        defaultLabelsNames.forEach((labelName) => {
+          if (!newTr.labels.find((label) => label.name === labelName)) {
+            newTr.labels.push({
+              name: labelName,
+              value: this.#defaultLabels[labelName],
+            });
+          }
+        });
+
+        return newTr;
+      },
+    });
 
     this.#testResults.set(testResult.id, testResult);
 

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { HistoryDataPoint } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
@@ -158,7 +159,6 @@ describe("attachments", () => {
 
     const testResults = await store.allTestResults();
     const r1 = testResults.find((tr) => tr.name === "test result 1")!;
-    const r2 = testResults.find((tr) => tr.name === "test result 2")!;
 
     const r1a = await store.attachmentsByTrId(r1.id);
     expect(r1a).toEqual(
@@ -523,7 +523,6 @@ describe("attachments", () => {
     await store.visitTestResult(tr1, { readerId });
 
     const buffer1 = Buffer.from("some content", "utf-8");
-    const buffer2 = Buffer.from("some other content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     const rf2 = new BufferResultFile(buffer1, "tr1-source1.txt");
     await store.visitAttachmentFile(rf1, { readerId });
@@ -906,7 +905,7 @@ describe("attachments", () => {
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     await store.visitTestResult(tr1, { readerId });
     await store.visitAttachmentFile(rf1, { readerId });
@@ -916,7 +915,7 @@ describe("attachments", () => {
     expect(attachment).toMatchObject({
       name: "attachment 1",
       originalFileName: "tr1-source1.txt",
-      ext: ".txt"
+      ext: ".txt",
     });
   });
 
@@ -933,7 +932,7 @@ describe("attachments", () => {
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     await store.visitAttachmentFile(rf1, { readerId });
     await store.visitTestResult(tr1, { readerId });
@@ -943,7 +942,7 @@ describe("attachments", () => {
     expect(attachment).toMatchObject({
       name: "attachment 1",
       originalFileName: "tr1-source1.txt",
-      ext: ".txt"
+      ext: ".txt",
     });
   });
 
@@ -956,12 +955,12 @@ describe("attachments", () => {
           name: "attachment 1",
           type: "attachment",
           originalFileName: "tr1-source1",
-          contentType: "text/plain"
+          contentType: "text/plain",
         },
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitTestResult(tr1, { readerId });
     await store.visitAttachmentFile(rf1, { readerId });
@@ -971,7 +970,7 @@ describe("attachments", () => {
     expect(attachment).toMatchObject({
       name: "attachment 1",
       originalFileName: "tr1-source1",
-      ext: ".txt"
+      ext: ".txt",
     });
   });
 
@@ -984,12 +983,12 @@ describe("attachments", () => {
           name: "attachment 1",
           type: "attachment",
           originalFileName: "tr1-source1",
-          contentType: "text/plain"
+          contentType: "text/plain",
         },
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitAttachmentFile(rf1, { readerId });
     await store.visitTestResult(tr1, { readerId });
@@ -999,7 +998,7 @@ describe("attachments", () => {
     expect(attachment).toMatchObject({
       name: "attachment 1",
       originalFileName: "tr1-source1",
-      ext: ".txt"
+      ext: ".txt",
     });
   });
 
@@ -1016,7 +1015,7 @@ describe("attachments", () => {
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitTestResult(tr1, { readerId });
     await store.visitAttachmentFile(rf1, { readerId });
@@ -1027,7 +1026,7 @@ describe("attachments", () => {
       name: "attachment 1",
       originalFileName: "tr1-source1",
       contentType: "image/svg+xml",
-      ext: ".svg"
+      ext: ".svg",
     });
   });
 
@@ -1044,7 +1043,7 @@ describe("attachments", () => {
       ],
     };
 
-    const buffer1 = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf-8");
+    const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitAttachmentFile(rf1, { readerId });
     await store.visitTestResult(tr1, { readerId });
@@ -1055,7 +1054,7 @@ describe("attachments", () => {
       name: "attachment 1",
       originalFileName: "tr1-source1",
       contentType: "image/svg+xml",
-      ext: ".svg"
+      ext: ".svg",
     });
   });
 });
@@ -1088,7 +1087,9 @@ describe("history", () => {
         metrics: {},
       },
     ];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
     const historyDataPoints = await store.allHistoryDataPoints();
 
     expect(historyDataPoints).toEqual([
@@ -1106,7 +1107,9 @@ describe("history", () => {
 
   it("should return empty history data if no history is provided", async () => {
     const history: HistoryDataPoint[] = [];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
     const historyDataPoints = await store.allHistoryDataPoints();
 
     expect(historyDataPoints).toHaveLength(0);
@@ -1129,7 +1132,9 @@ describe("history", () => {
         metrics: {},
       },
     ];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1163,7 +1168,9 @@ describe("history", () => {
         metrics: {},
       },
     ];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1232,7 +1239,9 @@ describe("history", () => {
         metrics: {},
       },
     ];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1311,7 +1320,9 @@ describe("history", () => {
         metrics: {},
       },
     ];
-    const store = new DefaultAllureStore(history);
+    const store = new DefaultAllureStore({
+      history,
+    });
 
     const tr1: RawTestResult = {
       name: "test result 1",

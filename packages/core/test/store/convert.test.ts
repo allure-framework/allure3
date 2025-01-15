@@ -35,21 +35,33 @@ describe("testResultRawToState", () => {
   });
 
   it("should set default name", async () => {
-    const result = await functionUnderTest(emptyStateData, {}, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: {},
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       name: "Unknown test",
     });
   });
 
   it("should set default status", async () => {
-    const result = await functionUnderTest(emptyStateData, {}, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: {},
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       status: "unknown",
     });
   });
 
   it("should set undefined history id for tests without testId or fullName", async () => {
-    const result = await functionUnderTest(emptyStateData, {}, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: {},
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: undefined,
     });
@@ -57,7 +69,11 @@ describe("testResultRawToState", () => {
 
   it("should calculate historyId based on testId", async () => {
     const testId = "a test id";
-    const result = await functionUnderTest(emptyStateData, { testId }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { testId },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("")}`,
     });
@@ -65,7 +81,11 @@ describe("testResultRawToState", () => {
 
   it("should calculate historyId based on fullName", async () => {
     const fullName = "a test full name";
-    const result = await functionUnderTest(emptyStateData, { fullName }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { fullName },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(fullName)}.${md5("")}`,
     });
@@ -74,7 +94,11 @@ describe("testResultRawToState", () => {
   it("should calculate historyId based on testId if both testId and fullName is present", async () => {
     const testId = "a test id";
     const fullName = "a test full name";
-    const result = await functionUnderTest(emptyStateData, { fullName, testId }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { fullName, testId },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("")}`,
     });
@@ -88,7 +112,11 @@ describe("testResultRawToState", () => {
         value: "second",
       },
     ];
-    const result = await functionUnderTest(emptyStateData, { testId, parameters }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { testId, parameters },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("first:second")}`,
     });
@@ -110,7 +138,11 @@ describe("testResultRawToState", () => {
         value: "3",
       },
     ];
-    const result = await functionUnderTest(emptyStateData, { testId, parameters }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { testId, parameters },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("a:2,b:3,c:1")}`,
     });
@@ -133,7 +165,11 @@ describe("testResultRawToState", () => {
         excluded: true,
       },
     ];
-    const result = await functionUnderTest(emptyStateData, { testId, parameters }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { testId, parameters },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("a:2,c:1")}`,
     });
@@ -141,18 +177,22 @@ describe("testResultRawToState", () => {
 
   it("should omit empty parameters array from history id calculation", async () => {
     const testId = "a test id";
-    const result = await functionUnderTest(emptyStateData, { testId, parameters: [] }, { readerId });
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { testId, parameters: [] },
+      context: { readerId },
+    });
     expect(result).toMatchObject({
       historyId: `${md5(testId)}.${md5("")}`,
     });
   });
 
   it("should detect attachment link content type based on file extension if specified", async () => {
-    const result = await functionUnderTest(
-      emptyStateData,
-      { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
-      { readerId },
-    );
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
+      context: { readerId },
+    });
 
     const [attach] = result.steps;
     expect(attach).toMatchObject({
@@ -165,11 +205,11 @@ describe("testResultRawToState", () => {
   });
 
   it("should set extension based on file name", async () => {
-    const result = await functionUnderTest(
-      emptyStateData,
-      { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
-      { readerId },
-    );
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { steps: [{ type: "attachment", originalFileName: "some-file.txt" }] },
+      context: { readerId },
+    });
 
     const [attach] = result.steps;
     expect(attach).toMatchObject({
@@ -179,5 +219,21 @@ describe("testResultRawToState", () => {
         ext: ".txt",
       },
     });
+  });
+
+  it("should apply transformer function to given test result", async () => {
+    const result = await functionUnderTest({
+      stateData: emptyStateData,
+      raw: { name: "original" },
+      context: { readerId },
+      transformer: (tr) => {
+        return {
+          ...tr,
+          name: "transformed",
+        };
+      },
+    });
+
+    expect(result.name).toBe("transformed");
   });
 });

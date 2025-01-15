@@ -14,6 +14,7 @@ export interface FullConfig {
   knownIssuesPath: string;
   known?: KnownTestFailure[];
   qualityGate?: QualityGateConfig;
+  defaultLabels?: Record<string, string>;
   // TODO: https://github.com/qameta/allure3/issues/180
   realTime?: any;
 }
