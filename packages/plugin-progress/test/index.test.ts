@@ -1,5 +1,4 @@
-import { describe, it } from "vitest";
+import { it } from "vitest";
 
-describe("dummy", () => {
-  it("a test", () => {});
-});
+it.todo("should print summary", () => {});
+

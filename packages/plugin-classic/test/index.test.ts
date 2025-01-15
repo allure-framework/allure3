@@ -1,3 +1,3 @@
 import { it } from "vitest";
 
-it("dummy", () => {});
+it.todo("should generate files", () => {});
