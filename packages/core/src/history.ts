@@ -6,7 +6,7 @@ import { isFileNotFoundError } from "./utils/misc.js";
 const createHistoryItems = (testResults: TestResult[]) => {
   return testResults
     .filter((tr) => tr.historyId)
-    .map(({ id, name, fullName, historyId, status, message, trace, start, stop, duration }) => {
+    .map(({ id, name, fullName, historyId, status, error: { message, trace } = {}, start, stop, duration }) => {
       return {
         id,
         name,

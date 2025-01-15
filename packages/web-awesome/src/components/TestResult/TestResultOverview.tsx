@@ -15,13 +15,13 @@ export type TestResultOverviewProps = {
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
-  const { message, trace, parameters, groupedLabels, links, description, setup, steps, teardown } = testResult || {};
+  const { error, parameters, groupedLabels, links, description, setup, steps, teardown } = testResult || {};
 
   return (
     <>
-      {Boolean(message) && (
+      {Boolean(error?.message) && (
         <div className={styles["test-result-errors"]}>
-          <TestResultError message={message} trace={trace} />
+          <TestResultError {...error} />
         </div>
       )}
       {Boolean(parameters?.length) && <TestResultParameters parameters={parameters} />}

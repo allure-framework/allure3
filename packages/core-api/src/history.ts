@@ -1,4 +1,4 @@
-import type { TestStatus } from "./model.js";
+import type { TestError, TestStatus } from "./model.js";
 
 /**
  * Stores basic history information for particular test result.
@@ -9,8 +9,7 @@ export interface HistoryTestResult {
   fullName?: string;
 
   status: TestStatus;
-  message?: string;
-  trace?: string;
+  error?: TestError;
 
   start?: number;
   stop?: number;

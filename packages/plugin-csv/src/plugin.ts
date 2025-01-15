@@ -18,8 +18,8 @@ const defaultFields: CsvField<TestResult>[] = [
     header: "Duration",
     accessor: (result) => formatDuration(result.duration),
   },
-  { header: "Error", accessor: "message" },
-  { header: "Stack Trace", accessor: "trace" },
+  { header: "Error", accessor: (tr) => tr.error?.message },
+  { header: "Stack Trace", accessor: (tr) => tr.error?.trace },
   { header: "Steps", accessor: formatSteps },
 
   { header: "Parent Suite", accessor: labelValue("parentSuite") },

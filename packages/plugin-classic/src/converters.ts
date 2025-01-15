@@ -60,7 +60,7 @@ const convertStep = (context: ConvertContext, step: TestStepResult): Allure2Step
     const stepsCount = steps.length;
     const parameters = step.parameters;
     const parametersCount = parameters.length;
-    const statusMessage = step.message;
+    const statusMessage = step.error?.message;
     const shouldDisplayMessage = !!statusMessage || steps.findIndex((s) => s.statusMessage === statusMessage) > 0;
     return {
       name,
@@ -71,7 +71,7 @@ const convertStep = (context: ConvertContext, step: TestStepResult): Allure2Step
       },
       status: step.status,
       statusMessage,
-      statusTrace: step.trace,
+      statusTrace: step.error?.trace,
       steps,
       attachments: [],
       parameters,
@@ -148,8 +148,8 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
   const tags = findAllLabels(test, "tag");
 
   const status = convertStatus(test.status);
-  const statusMessage = test.message;
-  const statusTrace = test.trace;
+  const statusMessage = test.error?.message;
+  const statusTrace = test.error?.trace;
   const flaky = false;
 
   const categories = matchCategories(context.categories, { statusMessage, statusTrace, status, flaky });
@@ -157,7 +157,7 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
   const retries: Allure2RetryItem[] = context.retries.map((retry) => ({
     uid: retry.id,
     status: convertStatus(retry.status),
-    statusDetails: retry.message,
+    statusDetails: retry?.error?.message,
     time: {
       start: retry.start,
       stop: retry.stop,
@@ -179,7 +179,7 @@ export const convertTestResult = (context: ConvertContext, test: TestResult): Al
     status: convertStatus(htr.status),
     // TODO fix reportUrl
     reportUrl: "unsupported",
-    statusDetails: htr.message,
+    statusDetails: htr.error?.message,
     time: {
       start: htr.start,
       stop: htr.stop,

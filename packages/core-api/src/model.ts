@@ -11,12 +11,18 @@ export interface SourceMetadata {
   metadata: { [key: string]: any };
 }
 
+export interface TestError {
+  message?: string;
+  trace?: string;
+  actual?: string;
+  expected?: string;
+}
+
 export interface TestResult {
   id: string;
   name: string;
   status: TestStatus;
-  message?: string;
-  trace?: string;
+  error?: TestError;
 
   testCase?: TestCase;
 
@@ -63,8 +69,7 @@ export interface TestFixtureResult {
   name: string;
 
   status: TestStatus;
-  message?: string;
-  trace?: string;
+  error?: TestError;
 
   start?: number;
   stop?: number;
@@ -82,8 +87,7 @@ export interface DefaultTestStepResult {
   parameters: TestParameter[];
 
   status: TestStatus;
-  message?: string;
-  trace?: string;
+  error?: TestError;
 
   start?: number;
   stop?: number;

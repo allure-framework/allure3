@@ -1,3 +1,4 @@
+import type { TestError } from "@allurereport/core-api";
 import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -15,33 +16,43 @@ const TestResultErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TestResultError: FunctionalComponent<{ message: string; trace: string }> = ({ message, trace }) => {
+export const TestResultError: FunctionalComponent<TestError> = ({ message, trace }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
+  const { t: empty } = useI18n("empty");
 
   return (
     <div data-testid="test-result-error" className={styles["test-result-error"]}>
-      <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
-        <Text tag={"p"} size={"m"} bold className={styles["test-result-error-text"]}>
-          {t("error")}
-        </Text>
-        <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
-          <IconButton
-            style={"ghost"}
-            size={"s"}
-            icon={allureIcons.lineGeneralCopy3}
-            onClick={() => {
-              copyToClipboard(message);
-            }}
-          />
-        </TooltipWrapper>
-      </div>
-      <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
-        <Code data-testid="test-result-error-message" size={"s"}>
-          <pre>{message}</pre>
-        </Code>
-      </div>
+      {message ? (
+        <>
+          <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
+            <Text tag={"p"} size={"m"} bold className={styles["test-result-error-text"]}>
+              {t("error")}
+            </Text>
+            <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>
+              <IconButton
+                style={"ghost"}
+                size={"s"}
+                icon={allureIcons.lineGeneralCopy3}
+                onClick={() => {
+                  copyToClipboard(message);
+                }}
+              />
+            </TooltipWrapper>
+          </div>
+          <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
+            <Code data-testid="test-result-error-message" size={"s"}>
+              <pre>{message}</pre>
+            </Code>
+          </div>
+        </>
+      ) : (
+        // TODO add translations
+        empty("no-message-provided")
+      )}
+
+      {/* TODO no trace? message is still clickable */}
       {isOpen && trace && <TestResultErrorTrace trace={trace} />}
     </div>
   );

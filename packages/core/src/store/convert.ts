@@ -53,8 +53,10 @@ export const testFixtureResultRawToState = (
     type: raw.type,
     name,
     status: raw.status ?? defaultStatus,
-    message: raw.message,
-    trace: raw.trace,
+    error: {
+      message: raw.message,
+      trace: raw.trace,
+    },
 
     ...processTimings(raw),
 
@@ -84,8 +86,10 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     historyId: calculateHistoryId(testCase, parameters),
 
     status: raw.status ?? defaultStatus,
-    message: raw.message,
-    trace: raw.trace,
+    error: {
+      message: raw.message,
+      trace: raw.trace,
+    },
 
     ...processTimings(raw),
 
