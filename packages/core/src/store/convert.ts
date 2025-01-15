@@ -13,8 +13,7 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
-import { notNull } from "@allurereport/core-api";
-import { findByLabelName } from "@allurereport/core-api";
+import { findByLabelName, notNull } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
