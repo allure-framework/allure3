@@ -9,7 +9,13 @@ export default defineConfig({
     environment: "jsdom",
     include: ["./src/**/*.test.tsx"],
     setupFiles: [require.resolve("allure-vitest/setup"), "./setup-tests.ts"],
-    reporters: ["default", ["allure-vitest/reporter", { resultsDir: "../../out/allure-results" }]],
+    reporters: [
+      "default",
+      [
+        "allure-vitest/reporter",
+        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-components" }] },
+      ],
+    ],
   },
   resolve: {
     alias: {

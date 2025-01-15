@@ -7,6 +7,12 @@ export default defineConfig({
   test: {
     include: ["./test/unit/**/*.test.ts"],
     setupFiles: [require.resolve("allure-vitest/setup")],
-    reporters: ["default", ["allure-vitest/reporter", { resultsDir: "./out/allure-results" }]],
+    reporters: [
+      "default",
+      [
+        "allure-vitest/reporter",
+        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "static-server" }] },
+      ],
+    ],
   },
 });

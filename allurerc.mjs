@@ -8,6 +8,7 @@ export default defineConfig({
       options: {
         singleFile: true,
         reportLanguage: "en",
+        groupBy: ["module", "parentSuite", "suite", "subSuite"],
       },
     },
     log: {

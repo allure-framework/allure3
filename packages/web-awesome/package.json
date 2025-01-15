@@ -61,7 +61,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.8",
     "@vitest/snapshot": "^2.1.8",
-    "allure-vitest": "^3.0.7",
+    "allure-vitest": "^3.0.9",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
