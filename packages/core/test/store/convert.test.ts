@@ -1,10 +1,8 @@
 import { md5 } from "@allurereport/plugin-api";
 import { attachment, step } from "allure-js-commons";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";
-
-const emptyStateData: StateData = { testCases: new Map(), attachments: new Map(), visitAttachmentLink: () => {} };
 
 const readerId = "convert.test.ts";
 
@@ -25,7 +23,17 @@ const wrap = <T extends (...args: any) => any, P extends Parameters<T>, R extend
 
 const functionUnderTest = wrap(testResultRawToState).bind(this);
 
+let emptyStateData: StateData;
+
 describe("testResultRawToState", () => {
+  beforeEach(() => {
+    emptyStateData = {
+      testCases: new Map(),
+      attachments: new Map(),
+      visitAttachmentLink: () => {},
+    };
+  });
+
   it("should set default name", async () => {
     const result = await functionUnderTest(emptyStateData, {}, { readerId });
     expect(result).toMatchObject({
