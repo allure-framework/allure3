@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import searchIcon from "@/assets/svg/line-general-search-md.svg";
 import closeIcon from "@/assets/svg/line-general-x-close.svg";
 import { IconButton } from "@/components/Button";
@@ -36,13 +36,6 @@ export const SearchBox = (props: Props) => {
   };
   const showClear = !!localValue;
 
-  useEffect(() => {
-    if (localValue !== value) {
-      setLocalValue(value);
-    }
-  }, [localValue, value]);
-
-  // @ts-ignore
   return (
     <Text className={styles.inputWrap} type="ui" size="m" tag="div">
       <SvgIcon id={searchIcon.id} size="s" className={styles.leadingIcon} />
