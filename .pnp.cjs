@@ -866,8 +866,7 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
-          ["vitest", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.1.8"],\
-          ["xss", "npm:1.0.15"]\
+          ["vitest", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.1.8"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -15917,15 +15916,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["cssfilter", [\
-      ["npm:0.0.10", {\
-        "packageLocation": "./.yarn/cache/cssfilter-npm-0.0.10-28e06ce546-1e45182f42.zip/node_modules/cssfilter/",\
-        "packageDependencies": [\
-          ["cssfilter", "npm:0.0.10"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["cssnano", [\
       ["npm:5.1.15", {\
         "packageLocation": "./.yarn/cache/cssnano-npm-5.1.15-7fc7f68f4a-8c5acbeabd.zip/node_modules/cssnano/",\
@@ -29677,17 +29667,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/xmlchars-npm-2.2.0-8b78f0f5e4-4ad5924974.zip/node_modules/xmlchars/",\
         "packageDependencies": [\
           ["xmlchars", "npm:2.2.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["xss", [\
-      ["npm:1.0.15", {\
-        "packageLocation": "./.yarn/cache/xss-npm-1.0.15-a70a62f810-074ad54bab.zip/node_modules/xss/",\
-        "packageDependencies": [\
-          ["xss", "npm:1.0.15"],\
-          ["commander", "npm:2.20.3"],\
-          ["cssfilter", "npm:0.0.10"]\
         ],\
         "linkType": "HARD"\
       }]\

@@ -1,18 +1,14 @@
-import { sanitizeHtml } from "@allurereport/web-commons";
-import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
-import { Code, Text } from "@allurereport/web-components";
+import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
 import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
-const TestResultErrorTrace = ({ trace }) => {
-  const sanitizedTrace = sanitizeHtml(trace);
-
+const TestResultErrorTrace = ({ trace }: { trace: string }) => {
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
       <Code size={"s"} type={"ui"}>
-        <pre dangerouslySetInnerHTML={{ __html: sanitizedTrace }} />
+        <pre>{trace}</pre>
       </Code>
     </div>
   );
@@ -42,7 +38,7 @@ export const TestResultError = ({ message, trace }) => {
       </div>
       <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
         <Code data-testid="test-result-error-message" size={"s"}>
-          {message}
+          <pre>{message}</pre>
         </Code>
       </div>
       {isOpen && trace && <TestResultErrorTrace trace={trace} />}

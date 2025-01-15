@@ -23,8 +23,7 @@
     "clean": "rimraf ./dist"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*",
-    "xss": "^1.0.15"
+    "@allurereport/core-api": "workspace:*"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
