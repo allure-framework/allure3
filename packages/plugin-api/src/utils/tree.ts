@@ -157,11 +157,22 @@ export const preciseTreeLabels = <T = TestResult>(
   trs: T[],
   labelNamesAccessor: (tr: T) => string[] = (tr: T) => (tr as TestResult).labels.map(({ name }) => name),
 ) => {
-  const trsLabels = trs
-    .flatMap((tr) => labelNamesAccessor(tr))
-    .reduce((acc, label) => acc.add(label), new Set<string>());
+  const result = new Set<string>();
 
-  return labelNames.filter((label) => trsLabels.has(label));
+  for (const tr of trs) {
+    // break the loop if all the labels are found
+    if (labelNames.every((label) => result.has(label))) {
+      break;
+    }
+
+    labelNamesAccessor(tr).forEach((label) => {
+      if (labelNames.includes(label)) {
+        result.add(label);
+      }
+    });
+  }
+
+  return Array.from(result);
 };
 
 /**
