@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-    <testsuite>
-        <testcase classname="foo">
-            <name>
-                <foo>bar</foo>
-            </name>
-        </testcase>
-    </testsuite>
-</testsuites>
+<testsuite>
+    <testcase classname="foo">
+        <name>
+            <foo>bar</foo>
+        </name>
+    </testcase>
+</testsuite>

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="5" failures="1" name="org.allurefw.report.junit.JunitXmlPluginTest" time="0.354" errors="0" skipped="1">
-  <testcase classname="org.allurefw.report.junit.JunitXmlPluginTest" name="shouldReadFailures" time="0.012">
-    <skipped message="Add support of retries"/>
-  </testcase>
-</testsuite>

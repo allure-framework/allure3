@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-    <testsuite>
-        <testcase classname="foo" name="bar" />
-    </testsuite>
-</testsuites>
+<testsuite>
+    <testcase classname="foo" name="bar" />
+</testsuite>
