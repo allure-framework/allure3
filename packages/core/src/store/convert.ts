@@ -66,13 +66,7 @@ export const testFixtureResultRawToState = (
   };
 };
 
-export const testResultRawToState = (params: {
-  stateData: StateData;
-  raw: RawTestResult;
-  context: ReaderContext;
-  transformer?: (tr: TestResult) => TestResult;
-}): TestResult => {
-  const { stateData, raw, context, transformer = (tr) => tr } = params;
+export const testResultRawToState = (stateData: StateData, raw: RawTestResult, context: ReaderContext): TestResult => {
   const labels = convertLabels(raw.labels);
   const hostId = findByLabelName(labels, "host");
   const threadId = findByLabelName(labels, "thread");
@@ -80,7 +74,7 @@ export const testResultRawToState = (params: {
   const testCase = processTestCase(stateData, raw);
   const parameters = convertParameters(raw.parameters);
 
-  return transformer({
+  return {
     id: md5(raw.uuid || randomUUID()),
     name,
 
@@ -119,7 +113,7 @@ export const testResultRawToState = (params: {
       readerId: context.readerId,
       metadata: context.metadata ?? {},
     },
-  });
+  };
 };
 
 const processTestCase = ({ testCases }: StateData, raw: RawTestResult): TestCase | undefined => {

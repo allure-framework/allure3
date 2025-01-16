@@ -80,40 +80,33 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
-    const testResult = testResultRawToState({
-      stateData: {
+    const testResult = testResultRawToState(
+      {
         testCases: this.#testCases,
         attachments: this.#attachments,
         visitAttachmentLink: (link) => attachmentLinks.push(link),
       },
       raw,
       context,
-      transformer: (tr) => {
-        const defaultLabelsNames = Object.keys(this.#defaultLabels);
+    );
 
-        if (!defaultLabelsNames.length) {
-          return tr;
-        }
+    const defaultLabelsNames = Object.keys(this.#defaultLabels);
 
-        const newTr = { ...tr };
+    if (defaultLabelsNames.length) {
+      defaultLabelsNames.forEach((labelName) => {
+        if (!testResult.labels.find((label) => label.name === labelName)) {
+          const defaultLabelValue = this.#defaultLabels[labelName];
 
-        defaultLabelsNames.forEach((labelName) => {
-          if (!newTr.labels.find((label) => label.name === labelName)) {
-            const defaultLabelValue = this.#defaultLabels[labelName];
-
-            // concat method works both with single value and arrays, so we can use it here in this way
-            ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
-              newTr.labels.push({
-                name: labelName,
-                value: labelValue,
-              });
+          // concat method works both with single value and arrays, so we can use it here in this way
+          ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
+            testResult.labels.push({
+              name: labelName,
+              value: labelValue,
             });
-          }
-        });
-
-        return newTr;
-      },
-    });
+          });
+        }
+      });
+    }
 
     this.#testResults.set(testResult.id, testResult);
 
