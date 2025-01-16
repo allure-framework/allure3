@@ -1,0 +1,118 @@
+{
+  "statuses": {
+    "passed": "aprovado",
+    "failed": "falhou",
+    "broken": "quebrado",
+    "skipped": "ignorado",
+    "unknown": "desconhecido",
+    "total": "total",
+    "flakyTests": "instável",
+    "newTests": "novo",
+    "retryTests": "repetir"
+  },
+  "testSummary": {
+    "all": "Todos os testes",
+    "flaky": "Testes instáveis",
+    "retry": "Testes repetidos",
+    "new": "Testes novos"
+  },
+  "tabs": {
+    "total": "Tudo"
+  },
+  "search": {
+    "search": "Pesquisar",
+    "search-placeholder": "Nome ou ID"
+  },
+  "filters": {
+    "more-filters": "Mais filtros",
+    "enable-filter": "Habilitar filtro para \"{filter}\"",
+    "flaky": "Instável",
+    "retry": "Repetir",
+    "new": "Novo"
+  },
+  "sort-by": {
+    "sort-by-text": "Ordenar por:",
+    "sort-by-category": "Ordenar por",
+    "direction-category": "Direção"
+  },
+  "sort-by.values": {
+    "order": "Ordem",
+    "alphabet": "Alfabeto",
+    "duration": "Duração",
+    "status": "Estado"
+  },
+  "sort-by.directions": {
+    "order-desc": "Mais recente – Mais antigo",
+    "order-asc": "Mais antigo – Mais recente",
+    "order-asc-short": "Antigo",
+    "order-desc-short": "Recente",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "Como na lista de filtros",
+    "status-desc": "Invertido",
+    "status-asc-short": "Regular",
+    "status-desc-short": "Invertido"
+  },
+  "empty": {
+    "no-results": "Sem resultados",
+    "no-tests-found": "Nenhum resultado encontrado",
+    "clear-filters": "Limpar filtros",
+    "no-attachments-results": "Nenhuma informação de anexos disponível",
+    "no-history-results": "Nenhuma informação de histórico disponível",
+    "no-retries-results": "Nenhuma informação de repetições disponível"
+  },
+  "severity": {
+    "blocker": "bloqueador",
+    "critical": "crítico",
+    "normal": "normal",
+    "minor": "menor",
+    "trivial": "trivial"
+  },
+  "execution": {
+    "name": "Execução",
+    "body": "Corpo do teste",
+    "setup": "Configuração",
+    "teardown": "Desmontagem"
+  },
+  "ui": {
+    "labels": "Etiquetas",
+    "metadata": "Metadados",
+    "parameters": "Parâmetros",
+    "description": "Descrição",
+    "links": "Links",
+    "overview": "Visão geral",
+    "history": "Histórico",
+    "attachments": "Anexos",
+    "retries": "Repetições",
+    "error": "Erro",
+    "goToStep": "Ir para o passo",
+    "showLess": "Mostrar menos",
+    "showMore": "Mostrar mais",
+    "copy": "Copiar",
+    "at": "em"
+  },
+  "controls": {
+    "newTabAttachment": "Abrir anexo em nova aba",
+    "nextTR": "Próximo resultado de teste",
+    "prevTR": "Resultado de teste anterior",
+    "downloadAttachment": "Baixar anexo",
+    "backto": "Voltar para",
+    "clipboard": "Copiar para a área de transferência",
+    "clipboardError": "Erro. Parece que esta funcionalidade não é suportada pelo seu navegador",
+    "clipboardSuccess": "Copiado com sucesso",
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "fullscreen": "Tela cheia",
+    "language": "Alterar idioma",
+    "openInNewTab": "Abrir em nova aba"
+  },
+  "errors": {
+    "missedAttachment": "Anexo não encontrado"
+  }
+}

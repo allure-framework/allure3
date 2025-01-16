@@ -1,0 +1,146 @@
+@import "~@allurereport/web-components/mixins.scss";
+
+.report-metadata-wrapper {
+  padding: 0 24px;
+  align-items: center;
+}
+
+.report-metadata-separator {
+  border-left: 1px solid var(--on-border-primary);
+  height: 24px;
+  margin: 11px 0;
+}
+
+.report-metadata-status {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.report-metadata-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 16px 0;
+  border-top: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--on-border-primary);
+  width: 100%;
+}
+
+.report-metadata-all-tests {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 24px;
+  margin-right: 8px;
+}
+
+.metadata-item-title {
+  color: var(--on-text-secondary);
+  margin-bottom: 6px;
+}
+
+.metadata-item-value {
+  font-weight: bold;
+}
+
+.report-metadata {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--on-border-primary);
+}
+
+.report-metadata-keyvalue {
+  display: inline-grid;
+  grid-template-columns: 30% 60%;
+  gap: 10%;
+  align-items: center;
+}
+
+.report-metadata-values {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.report-metadata-s {
+  font-size: 12px;
+}
+
+.report-metadata-keyvalue-title {
+  padding: 8px 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.report-metadata-keyvalue-wrapper {
+  background: var(--on-border-primary);
+  border-radius: 4px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 2px 4px;
+  line-height: 16px;
+}
+
+.report-metadata-keyvalue-value {
+  width: max-content;
+  height: max-content;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.report-metadata-list {
+  display: grid;
+  column-gap: 5%;
+  grid-template-columns: repeat(2, 45%);
+}
+
+.metadata-test-type {
+  display: flex;
+}
+
+.metadata-color-badge {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--on-text-secondary);
+  margin-right: 8px;
+  align-self: center;
+  @include status-bg-and-text;
+}
+
+.metadata-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.metadata-icon {
+  margin-right: 8px;
+  color: var(--on-icon-secondary);
+}
+
+.metadata-tooltip {
+  padding: 12px 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.metadata-tooltip-value {
+  flex: 1 1 auto;
+  min-width: 320px;
+  background: var(--bg-base-secondary);
+  max-height: 238px;
+  padding: 8px 16px;
+  overflow: hidden;
+  overflow-y: auto;
+  border-radius: 8px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

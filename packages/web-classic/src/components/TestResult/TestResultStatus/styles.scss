@@ -1,0 +1,36 @@
+.test-result-status {
+  padding: 2px;
+  display: flex;
+  border-radius: 100px;
+  color: var(--constant-on-text-primary);
+  height: max-content;
+}
+
+.test-result-status-text {
+  padding: 0 4px;
+}
+
+.test-result-status-icon {
+  color: var(--constant-on-text-primary);
+  padding: 0;
+}
+
+.status-passed {
+  background-color: var(--bg-support-castor);
+}
+
+.status-failed {
+  background-color: var(--bg-support-capella);
+}
+
+.status-broken {
+  background-color: var(--bg-support-atlas);
+}
+
+.status-skipped {
+  background-color: var(--bg-support-rau);
+}
+
+.status-unknown {
+  background-color: var(--bg-support-skat);
+}

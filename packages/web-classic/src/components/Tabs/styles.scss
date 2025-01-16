@@ -1,0 +1,56 @@
+.tabsList {
+  background-color: var(--bg-base-secondary);
+  padding: 2px;
+  border-radius: 8px;
+  display: flex;
+  overflow-x: auto;
+  flex-grow: 0;
+  max-width: max-content;
+}
+
+.tab {
+  background-color: var(--bg-control-flat);
+  color: var(--on-text-primary);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 2px 8px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transform: scale(1);
+  outline-offset: 1px;
+  outline: 1px solid transparent;
+  transition:
+    transform var(--interaction-transition-duration) ease-out,
+    outline var(--interaction-transition-duration) ease-out,
+    background-color var(--color-change-transition-duration),
+    border-color var(--color-change-transition-duration);
+
+  &[aria-current] {
+    background-color: var(--bg-base-modal);
+    border-color: var(--on-border-primary);
+    cursor: default;
+  }
+
+  &:hover:not([aria-current]) {
+    background-color: var(--bg-control-flat-medium);
+  }
+
+  &:active:not([aria-current]) {
+    background-color: var(--bg-control-flat-heavy);
+    transform: scale(0.94);
+  }
+
+  &:focus {
+    outline: 1px solid transparent;
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--ad-other-focus);
+
+    &:not([aria-current]) {
+      background-color: var(--bg-control-flat-medium);
+    }
+  }
+}

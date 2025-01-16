@@ -1,0 +1,29 @@
+.test-result-severity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-result-severity-text {
+  color: var(--on-text-secondary);
+}
+
+.severity-blocker {
+  color: var(--on-support-capella);
+}
+
+.severity-critical {
+  color: var(--on-support-atlas);
+}
+
+.severity-normal {
+  color: var(--on-icon-secondary);
+}
+
+.severity-minor {
+  color: var(--on-support-aldebaran);
+}
+
+.severity-trivial {
+  color: var(--on-support-castor);
+}

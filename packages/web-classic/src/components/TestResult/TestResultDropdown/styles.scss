@@ -1,0 +1,34 @@
+.test-result-dropdown {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 8px 1px 6px;
+  border-radius: 6px;
+  transition: background-color 300ms;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.test-result-step-chevron {
+  width: 12px;
+  height: 12px;
+  transform: rotate(-90deg);
+  transition: transform 200ms;
+}
+
+.test-result-step-chevron-open {
+  transform: rotate(0deg);
+}
+
+.test-result-dropdown-wrap {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+  padding: 6px 8px 6px 6px;
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--bg-control-flat-medium);
+  }
+}

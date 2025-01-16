@@ -1,0 +1,53 @@
+.report-metadata-header-arrow {
+  opacity: 1;
+  transform: rotate(-90deg);
+}
+
+.report-metadata-header-arrow-opened {
+  transform: rotate(0);
+}
+
+.report-metadata-header {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  transition:
+    background-color 200ms,
+    opacity 200ms;
+
+  margin: 6px 0;
+
+  &:after {
+    content: "";
+    padding: 6px 8px;
+    border-radius: 8px;
+    left: -8px;
+    top: -6px;
+    position: absolute;
+    width: calc(100% + 16px);
+    height: calc(100% + 12px);
+    z-index: 0;
+    background-color: transparent;
+    transition: background-color 200ms;
+  }
+
+  &:hover {
+    &:after {
+      background-color: var(--bg-control-flat-medium);
+    }
+
+    .report-metadata-header-arrow {
+      opacity: 1;
+    }
+  }
+}
+
+.report-metadata-header-opened {
+  .report-metadata-header-arrow {
+    transform: rotate(0);
+    opacity: 0;
+  }
+}

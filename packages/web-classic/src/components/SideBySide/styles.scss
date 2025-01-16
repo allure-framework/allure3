@@ -1,0 +1,59 @@
+@import "../../variables.scss";
+
+.side {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+.side-left {
+  overflow: auto;
+  flex: 0 0 auto;
+}
+
+.side-right {
+  overflow: auto;
+  flex: 1 1 auto;
+}
+
+[dir="ltr"] {
+  .side {
+    direction: ltr;
+    flex-direction: row;
+  }
+}
+
+[dir="rtl"] {
+  .side {
+    direction: ltr;
+    flex-direction: row-reverse;
+  }
+
+  .side-left {
+    direction: rtl;
+  }
+
+  .side-right {
+    direction: rtl;
+  }
+}
+
+.tree-ctrl {
+  overflow: hidden;
+}
+
+.gutter {
+  background: var(--bg-base-secondary) no-repeat 50%;
+  min-height: 100vh;
+}
+
+.gutter:hover {
+  cursor: ew-resize;
+}
+
+.gutter-horizontal {
+  //background-image: url("vertical.png");
+}

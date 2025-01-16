@@ -4,7 +4,7 @@ import MarksToggleView from "@/components/marks-toggle/MarksToggleView.js";
 import NodeSearchView from "@/components/node-search/NodeSearchView.js";
 import NodeSorterView from "@/components/node-sorter/NodeSorterView.js";
 import StatusToggleView from "@/components/status-toggle/StatusToggleView.js";
-import TreeView from "@/components/tree/TreeView.js";
+import TreeView from "@/components/tree----/TreeView.js";
 import { behavior, className, on, regions } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
 import { getSettingsForTreePlugin } from "@/utils/settingsFactory.js";

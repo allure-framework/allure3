@@ -1,0 +1,30 @@
+.test-result-links {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 24px 0;
+}
+
+.test-result-links-wrapper {
+  width: 100%;
+  border-bottom: 1px solid var(--on-border-primary);
+  padding-bottom: 12px;
+}
+
+.test-result-link {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  align-items: center;
+}
+
+.test-result-link-text {
+  color: var(--on-support-aldebaran);
+}
+
+.test-result-links-list {
+  display: grid;
+  column-gap: 32px;
+  grid-template-columns: repeat(2, 1fr);
+  width: 100%;
+}

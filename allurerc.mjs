@@ -6,7 +6,14 @@ export default defineConfig({
   plugins: {
     awesome: {
       options: {
-        singleFile: true,
+        singleFile: false,
+        reportLanguage: "en",
+        groupBy: ["module", "parentSuite", "suite", "subSuite"],
+      },
+    },
+    classic: {
+      options: {
+        singleFile: false,
         reportLanguage: "en",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
       },

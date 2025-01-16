@@ -7,14 +7,15 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  min-width: $sidebar-full-width;
 
-  &__head {
+  .head {
     margin: $gap-size 0;
     padding-bottom: 5px;
     border-bottom: 1px solid $sidebar-separator-color;
   }
 
-  &__brand {
+  .brand {
     color: $sidebar-brand-color;
     text-decoration: none;
     display: flex;
@@ -22,20 +23,14 @@
     font-size: 26px;
     font-weight: bold;
     margin-bottom: 10px;
-    margin-left: 10px;
     transition: all 0.3s;
     background-size: auto auto;
-
-    & > svg {
-      flex: 0 0 40px;
-    }
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
   }
 
-  &__brand-text {
-    padding: 0 $gap-size;
-  }
-
-  &__menu {
+  .menu {
     margin: 0;
     left: 0;
     padding: 0;
@@ -43,46 +38,43 @@
     transition: width 0.3s;
   }
 
-  &__footer {
+  .footer {
     margin-top: auto;
     margin-bottom: $footer-gap-size;
     padding-left: 0;
     padding-right: 0;
   }
 
-  &__item {
+  .item {
     display: block;
-    font-size: 14px;
+  }
+  .language-picker {
+    display: flex;
+    justify-content: center;
   }
 
-  &__link,
-  &__collapse {
-    display: block;
+  .link,
+  .collapse {
     line-height: 24px;
     color: $text-muted-color;
     text-decoration: none;
-    padding: 0.8em 0;
     position: relative;
-
-    &_active {
-      color: $sidebar-active-text-color;
-      border-right: 4px solid $sidebar-active-accent-color;
-    }
-    &:hover {
-      color: $sidebar-hover-text-color;
-    }
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0 8px 16px;
   }
 
-  &__icon {
-    position: absolute;
-    left: $gap-size;
-  }
-  &__text {
-    padding-left: 55px;
-    padding-right: 7px;
+  .link-active {
+    color: $sidebar-active-text-color;
+    border-right: 4px solid $sidebar-active-accent-color;
   }
 
-  &__language-small {
+  .link:hover {
+    color: $sidebar-hover-text-color;
+  }
+
+  .language-small {
     display: block;
     text-transform: capitalize;
     padding: 0 5px;
@@ -90,29 +82,36 @@
     max-width: 30px;
     margin: 0 auto;
   }
-  &__collapse {
+
+  .collapse {
     cursor: pointer;
-    .side-nav__icon {
-      left: $gap-size + 5px;
-      transition: transform 0.1s;
-    }
   }
-  &_collapsed {
+
+  .collapse .icon {
+    left: $gap-size + 5px;
+    transition: transform 0.1s;
+  }
+
+  &.collapsed {
     width: $sidebar-collapsed;
 
-    .side-nav__collapse .side-nav__icon {
+    .collapse .icon {
       transform: rotate(180deg);
     }
 
-    .side-nav__text,
-    .side-nav__brand-text {
+    .text,
+    .brand-text {
       visibility: hidden;
       opacity: 0;
     }
 
-    .side-nav__collapse,
-    .side-nav__link {
+    .collapse,
+    .link {
       white-space: nowrap;
     }
+  }
+
+  .strut {
+    flex: 1;
   }
 }

@@ -1,3 +1,4 @@
+import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
@@ -5,98 +6,73 @@ import { fileURLToPath } from "node:url";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
-import * as utils from "./webpack/utils.js";
 
 const { SINGLE_FILE_MODE } = env;
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
+  const devMode = argv?.mode === "development";
   const config = {
-    entry: "./src/index.js",
+    entry: "./src/index.tsx",
     output: {
-      path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[hash:8].js",
-      assetModuleFilename: `[name]-[hash:8][ext]`,
+      path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
+      filename: devMode ? "app.js" : "app-[hash:8].js",
+      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[hash:8].[ext]`,
     },
+    devtool: devMode ? "inline-source-map" : false,
     module: {
       rules: [
         {
-          test: /\.(ts|js)x?$/,
+          test: /\.tsx?$/,
           use: "babel-loader",
           exclude: /node_modules/,
         },
         {
           test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, "css-loader"]
+          use: [SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader, "css-loader"],
         },
         {
           test: /\.scss$/,
           use: [
-            MiniCssExtractPlugin.loader,
+            SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader,
             {
               loader: "css-loader",
-              // TODO: uncomment when we'll start migration to preact
-              // options: {
-              //   modules: true,
-              // },
-            },
-            {
-              loader: "sass-loader",
               options: {
-                api: "modern",
-              }
+                modules: {
+                  localIdentName: devMode ? "[path][name]__[local]" : "[hash:base64:8]",
+                },
+              },
             },
+            "sass-loader",
           ],
         },
-        {
-          test: /\.hbs$/,
-          use: {
-            loader: "handlebars-loader",
-            options: {
-              helperDirs: [
-                utils.root("src/helpers"),
-                utils.root("src/blocks"),
-              ],
-            },
-          },
-        },
-        {
-          test: /translations\/\D+\.json$/,
-          type: "asset/source",
-        },
-        // FIXME: how can we solve the problem with svg in css?
-        // {
-        //   test: /\.svg$/,
-        //   type: "asset/inline",
-        //   resourceQuery: /inline/,
-        // },
         {
           test: /\.svg$/,
           loader: "svg-sprite-loader",
         },
         {
-          test: /\.(ico)(\?.*)?$/,
-          loader: "file-loader",
-        },
-        {
-          test: /\.(png|jpe?g|gif|woff2?|otf|ttf|eot)$/i,
+          test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
           type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
         },
       ],
     },
     devServer: {
-      open: true,
       hot: true,
+      static: "./out/dev",
+      historyApiFallback: true,
+      watchFiles: ["./src"],
+      devMiddleware: {
+        index: true,
+        mimeTypes: { phtml: "text/html" },
+        serverSideRender: false,
+      },
     },
     plugins: [
       new webpack.DefinePlugin({
-        "DEVELOPMENT": argv?.mode === "development",
-        "process.env": {
-          DEBUG_INFO_ENABLED: argv?.mode === "development",
-        },
+        DEVELOPMENT: devMode,
       }),
       new MiniCssExtractPlugin({
-        filename: "styles-[hash:8].css",
+        filename: devMode ? "styles.css" : "styles-[hash:8].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
@@ -105,20 +81,25 @@ export default (env, argv) => {
     ],
     resolve: {
       modules: ["node_modules"],
-      extensions: [".js", ".json"],
+      extensions: [".js", ".ts", ".tsx"],
       alias: {
-        "@": join(__dirname, "src"),
+        "@": join(baseDir, "src"),
       },
     },
   };
 
   if (SINGLE_FILE_MODE) {
-    config.optimization = {
-      splitChunks: false,
-    }
     config.plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,
+      }),
+    );
+  }
+
+  if (devMode) {
+    config.plugins.push(
+      new HtmlWebpackPlugin({
+        template: "src/index.html",
       }),
     );
   }

@@ -5,6 +5,8 @@
   border-radius: 6px;
   padding-top: 4px;
   padding-bottom: 4px;
+  max-height: 360px;
+  overflow: scroll;
 
   &.size-s {
     width: 180px;

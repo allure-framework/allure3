@@ -1,0 +1,57 @@
+.test-result-prev-statuses {
+  display: flex;
+  align-items: center;
+}
+
+.test-result-prev-status {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+
+  &:not(:first-child) {
+    padding-left: 8px;
+
+    &:before {
+      content: "";
+      width: 8px;
+      position: absolute;
+      height: 2px;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      background: var(--on-border-medium);
+    }
+  }
+}
+
+.status-passed {
+  color: var(--bg-support-castor);
+}
+
+.status-failed {
+  color: var(--bg-support-capella);
+}
+
+.status-broken {
+  color: var(--bg-support-atlas);
+}
+
+.status-skipped {
+  color: var(--bg-support-rau);
+}
+
+.status-unknown {
+  color: var(--bg-support-skat);
+}
+
+.test-result-prev-status-tooltip {
+  text-align: center;
+  background-color: var(--constant-bg-base-modal);
+  color: var(--constant-on-text-primary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  max-width: 600px;
+  min-width: max-content;
+}
