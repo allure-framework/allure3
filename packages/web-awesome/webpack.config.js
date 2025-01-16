@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 
 const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
@@ -68,6 +69,7 @@ export default (env, argv) => {
       },
     },
     plugins: [
+      new ForkTsCheckerPlugin(),
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
       }),

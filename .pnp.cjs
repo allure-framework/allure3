@@ -739,6 +739,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-react", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.36.1"],\
           ["eslint-plugin-react-hooks", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:4.6.2"],\
           ["filesize", "npm:10.1.6"],\
+          ["fork-ts-checker-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:9.0.2"],\
           ["globals", "npm:15.9.0"],\
           ["html-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.6.3"],\
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
@@ -812,6 +813,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["file-loader", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:6.2.0"],\
           ["filesize", "npm:10.1.6"],\
+          ["fork-ts-checker-webpack-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:9.0.2"],\
           ["handlebars", "npm:4.7.8"],\
           ["handlebars-loader", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:1.7.3"],\
           ["highlight.js", "npm:10.7.3"],\
@@ -15592,6 +15594,23 @@ const RAW_RUNTIME_STATE =
           "typescript"\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["virtual:c9fabfa185376ceaab4b0b73371222b87decdb839a90030f703c79aabb96bdbaca319a633693f4e072e5a154375bea25c353c0fde838626b686b70285e80fce3#npm:8.3.6", {\
+        "packageLocation": "./.yarn/__virtual__/cosmiconfig-virtual-fbc5445c5a/0/cache/cosmiconfig-npm-8.3.6-a5566e2779-91d082baca.zip/node_modules/cosmiconfig/",\
+        "packageDependencies": [\
+          ["cosmiconfig", "virtual:c9fabfa185376ceaab4b0b73371222b87decdb839a90030f703c79aabb96bdbaca319a633693f4e072e5a154375bea25c353c0fde838626b686b70285e80fce3#npm:8.3.6"],\
+          ["@types/typescript", null],\
+          ["import-fresh", "npm:3.3.0"],\
+          ["js-yaml", "npm:4.1.0"],\
+          ["parse-json", "npm:5.2.0"],\
+          ["path-type", "npm:4.0.0"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+        ],\
+        "packagePeers": [\
+          "@types/typescript",\
+          "typescript"\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["create-require", [\
@@ -18972,6 +18991,71 @@ const RAW_RUNTIME_STATE =
           ["fork-ts-checker-webpack-plugin", "npm:8.0.0"]\
         ],\
         "linkType": "SOFT"\
+      }],\
+      ["npm:9.0.2", {\
+        "packageLocation": "./.yarn/cache/fork-ts-checker-webpack-plugin-npm-9.0.2-d9a5ac3ff8-3399ea114d.zip/node_modules/fork-ts-checker-webpack-plugin/",\
+        "packageDependencies": [\
+          ["fork-ts-checker-webpack-plugin", "npm:9.0.2"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:9.0.2", {\
+        "packageLocation": "./.yarn/__virtual__/fork-ts-checker-webpack-plugin-virtual-d25a09133c/0/cache/fork-ts-checker-webpack-plugin-npm-9.0.2-d9a5ac3ff8-3399ea114d.zip/node_modules/fork-ts-checker-webpack-plugin/",\
+        "packageDependencies": [\
+          ["fork-ts-checker-webpack-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:9.0.2"],\
+          ["@babel/code-frame", "npm:7.26.2"],\
+          ["@types/typescript", null],\
+          ["@types/webpack", null],\
+          ["chalk", "npm:4.1.2"],\
+          ["chokidar", "npm:3.6.0"],\
+          ["cosmiconfig", "virtual:77cc138b8f03e76bc81b53d7c536b91810383e8b8e9f294aac9f969daaf6fd5a72e29c2099e3025b537aac701c45d44c7e6af1647a2799c9f61d4f4f9312b7a3#npm:8.3.6"],\
+          ["deepmerge", "npm:4.3.1"],\
+          ["fs-extra", "npm:10.1.0"],\
+          ["memfs", "npm:3.5.3"],\
+          ["minimatch", "npm:3.1.2"],\
+          ["node-abort-controller", "npm:3.1.1"],\
+          ["schema-utils", "npm:3.3.0"],\
+          ["semver", "npm:7.6.0"],\
+          ["tapable", "npm:2.2.1"],\
+          ["typescript", null],\
+          ["webpack", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:5.94.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/typescript",\
+          "@types/webpack",\
+          "typescript",\
+          "webpack"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:9.0.2", {\
+        "packageLocation": "./.yarn/__virtual__/fork-ts-checker-webpack-plugin-virtual-c9fabfa185/0/cache/fork-ts-checker-webpack-plugin-npm-9.0.2-d9a5ac3ff8-3399ea114d.zip/node_modules/fork-ts-checker-webpack-plugin/",\
+        "packageDependencies": [\
+          ["fork-ts-checker-webpack-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:9.0.2"],\
+          ["@babel/code-frame", "npm:7.26.2"],\
+          ["@types/typescript", null],\
+          ["@types/webpack", null],\
+          ["chalk", "npm:4.1.2"],\
+          ["chokidar", "npm:3.6.0"],\
+          ["cosmiconfig", "virtual:c9fabfa185376ceaab4b0b73371222b87decdb839a90030f703c79aabb96bdbaca319a633693f4e072e5a154375bea25c353c0fde838626b686b70285e80fce3#npm:8.3.6"],\
+          ["deepmerge", "npm:4.3.1"],\
+          ["fs-extra", "npm:10.1.0"],\
+          ["memfs", "npm:3.5.3"],\
+          ["minimatch", "npm:3.1.2"],\
+          ["node-abort-controller", "npm:3.1.1"],\
+          ["schema-utils", "npm:3.3.0"],\
+          ["semver", "npm:7.6.0"],\
+          ["tapable", "npm:2.2.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["webpack", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:5.94.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/typescript",\
+          "@types/webpack",\
+          "typescript",\
+          "webpack"\
+        ],\
+        "linkType": "HARD"\
       }],\
       ["virtual:efe1e820f39eee1b593e4fdf26e6a5d8d4dad557c7c29453e94b3ad50fe0825ce674e8e3b34ae7a6dbefc97b26934a345c11dc9ab2b9b06a4967a970681a0bd4#npm:8.0.0", {\
         "packageLocation": "./.yarn/__virtual__/fork-ts-checker-webpack-plugin-virtual-04ba4d4348/0/cache/fork-ts-checker-webpack-plugin-npm-8.0.0-3888b57a08-49be81a780.zip/node_modules/fork-ts-checker-webpack-plugin/",\
