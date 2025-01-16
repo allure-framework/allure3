@@ -98,6 +98,44 @@ describe("junit xml reader", () => {
         expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "suite" }]) }]);
       });
     });
+
+    describe("testClass", () => {
+      it("should add a testClass label if classname is defined for a test case", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/testClasses/wellDefined.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: [{ name: "testClass", value: "foo" }] }]);
+      });
+
+      it("should not add a testClass label if classname is missing", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/testClasses/missing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "testClass" }]) }]);
+      });
+
+      it("should not add a testClass label if classname is ill-formed", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/testClasses/invalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "testClass" }]) }]);
+      });
+    });
   });
 
   it("should ignore invalid root element", async () => {

@@ -7,6 +7,7 @@ import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xm
 const DEFAULT_TEST_NAME = "The test's name is not defined";
 
 const SUITE_LABEL_NAME = "suite";
+const TEST_CLASS_LABEL_NAME = "testClass";
 
 const arrayTags: Set<string> = new Set(["testsuite.testcase", "testsuites.testsuite", "testsuites.testsuite.testcase"]);
 
@@ -105,7 +106,7 @@ const parseTestCase = async (
   { name: suiteName }: { name?: string },
   testCase: Record<string, any>,
 ) => {
-  const { name, failure, skipped } = testCase;
+  const { name, failure, skipped, classname } = testCase;
 
   const { status, message, trace } = getStatus(failure, skipped);
 
@@ -115,17 +116,23 @@ const parseTestCase = async (
       status,
       message,
       trace,
-      labels: getLabels(suiteName),
+      labels: getLabels(suiteName, ensureString(classname)),
     },
     { readerId },
   );
 };
 
-const getLabels = (suiteName?: string) => {
+const getLabels = (suiteName?: string, className?: string) => {
   const labels: RawTestLabel[] = [];
+
   if (suiteName) {
     labels.push({ name: SUITE_LABEL_NAME, value: suiteName });
   }
+
+  if (className) {
+    labels.push({ name: TEST_CLASS_LABEL_NAME, value: className });
+  }
+
   return labels;
 };
 
