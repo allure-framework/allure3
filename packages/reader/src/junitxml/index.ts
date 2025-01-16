@@ -1,10 +1,12 @@
-import type { RawTestStatus, ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
+import type { RawTestLabel, RawTestStatus, ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
 const DEFAULT_TEST_NAME = "The test's name is not defined";
+
+const SUITE_LABEL_NAME = "suite";
 
 const arrayTags: Set<string> = new Set(["testsuite.testcase", "testsuites.testsuite", "testsuites.testsuite.testcase"]);
 
@@ -98,7 +100,11 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
   }
 };
 
-const parseTestCase = async (visitor: ResultsVisitor, suite: { name?: string }, testCase: Record<string, any>) => {
+const parseTestCase = async (
+  visitor: ResultsVisitor,
+  { name: suiteName }: { name?: string },
+  testCase: Record<string, any>,
+) => {
   const { name, failure, skipped } = testCase;
 
   const { status, message, trace } = getStatus(failure, skipped);
@@ -109,9 +115,18 @@ const parseTestCase = async (visitor: ResultsVisitor, suite: { name?: string }, 
       status,
       message,
       trace,
+      labels: getLabels(suiteName),
     },
     { readerId },
   );
+};
+
+const getLabels = (suiteName?: string) => {
+  const labels: RawTestLabel[] = [];
+  if (suiteName) {
+    labels.push({ name: SUITE_LABEL_NAME, value: suiteName });
+  }
+  return labels;
 };
 
 const getStatus = (failure: unknown, skipped: unknown): { status: RawTestStatus; message?: string; trace?: string } => {

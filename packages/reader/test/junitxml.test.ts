@@ -7,7 +7,6 @@ import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 const randomTestsuiteFileName = () => `${randomUUID()}.xml`;
 
 describe("junit xml reader", () => {
-
   describe("names", () => {
     it("should parse a testcase name", async () => {
       const visitor = await readResults(junitXml, {
@@ -43,6 +42,61 @@ describe("junit xml reader", () => {
       const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
 
       expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+  });
+
+  describe("labels", () => {
+    describe("suite", () => {
+      it("should add a suite label from a suite name to a test case", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/wellDefinedWithOneTestCase.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: [{ name: "suite", value: "foo" }] }]);
+      });
+
+      it("should add a suite label from a suite name to all cases", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/wellDefinedWithTwoTestCases.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(2);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          { labels: [{ name: "suite", value: "foo" }] },
+          { labels: [{ name: "suite", value: "foo" }] },
+        ]);
+      });
+
+      it("should not add a suite label if no suite name defined", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/suiteNameMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "suite" }]) }]);
+      });
+
+      it("should not add a suite label if the suite name is ill-formed", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/suiteNameInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "suite" }]) }]);
+      });
     });
   });
 
