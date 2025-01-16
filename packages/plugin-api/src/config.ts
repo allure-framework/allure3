@@ -1,6 +1,8 @@
 import type { PluginDescriptor } from "./plugin.js";
 import type { QualityGateConfig } from "./qualityGate.js";
 
+export type DefaultLabelsConfig = Record<string, string | string[]>;
+
 export interface Config {
   name?: string;
   output?: string;
@@ -42,11 +44,12 @@ export interface Config {
    * {
    *   "defaultLabels": {
    *     "severity": "unspecified severity, set it manually",
+   *     "tag": ["foo", "bar"]
    *   }
    * }
    * ```
    */
-  defaultLabels?: Record<string, string>;
+  defaultLabels?: DefaultLabelsConfig;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

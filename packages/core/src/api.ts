@@ -1,5 +1,5 @@
 import type { HistoryDataPoint, KnownTestFailure } from "@allurereport/core-api";
-import type { Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
+import type { DefaultLabelsConfig, Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
 export interface FullConfig {
@@ -14,7 +14,7 @@ export interface FullConfig {
   knownIssuesPath: string;
   known?: KnownTestFailure[];
   qualityGate?: QualityGateConfig;
-  defaultLabels?: Record<string, string>;
+  defaultLabels?: DefaultLabelsConfig;
   // TODO: https://github.com/qameta/allure3/issues/180
   realTime?: any;
 }

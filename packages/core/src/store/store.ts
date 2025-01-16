@@ -10,7 +10,7 @@ import type {
   TestResult,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
-import type { AllureStore, ResultFile } from "@allurereport/plugin-api";
+import type { AllureStore, DefaultLabelsConfig, ResultFile } from "@allurereport/plugin-api";
 import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
@@ -42,7 +42,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #history: HistoryDataPoint[];
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
-  readonly #defaultLabels: Record<string, string> = {};
+  readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -57,7 +57,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     history?: HistoryDataPoint[];
     known?: KnownTestFailure[];
     eventEmitter?: EventEmitter<AllureStoreEvents>;
-    defaultLabels?: Record<string, string>;
+    defaultLabels?: DefaultLabelsConfig;
   }) {
     const { history = [], known = [], eventEmitter, defaultLabels } = params ?? {};
 
@@ -99,9 +99,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         defaultLabelsNames.forEach((labelName) => {
           if (!newTr.labels.find((label) => label.name === labelName)) {
-            newTr.labels.push({
-              name: labelName,
-              value: this.#defaultLabels[labelName],
+            const defaultLabelValue = this.#defaultLabels[labelName];
+
+            // concat method works both with single value and arrays, so we can use it here in this way
+            ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
+              newTr.labels.push({
+                name: labelName,
+                value: labelValue,
+              });
             });
           }
         });

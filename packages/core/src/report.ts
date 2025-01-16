@@ -31,7 +31,6 @@ export class AllureReport {
   readonly #appendHistory: boolean;
   readonly #historyPath: string;
   readonly #realTime: any;
-  readonly #defaultLabels: Record<string, string>;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -65,7 +64,6 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
-    this.#defaultLabels = defaultLabels;
 
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);

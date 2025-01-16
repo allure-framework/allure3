@@ -159,17 +159,10 @@ export const preciseTreeLabels = <T = TestResult>(
 ) => {
   const result = new Set<string>();
 
-  for (const tr of trs) {
-    // break the loop if all the labels are found
-    if (labelNames.every((label) => result.has(label))) {
-      break;
+  for (const labelName of labelNames) {
+    if (trs.some((tr) => labelNamesAccessor(tr).includes(labelName))) {
+      result.add(labelName);
     }
-
-    labelNamesAccessor(tr).forEach((label) => {
-      if (labelNames.includes(label)) {
-        result.add(label);
-      }
-    });
   }
 
   return Array.from(result);

@@ -20,7 +20,7 @@ export class AllureAwesomePlugin implements Plugin {
   constructor(readonly options: AllureAwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy } = this.options ?? {};
+    const { singleFile, groupBy = [] } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic();
     const attachments = await store.allAttachments();
@@ -30,7 +30,7 @@ export class AllureAwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
     const treeLabels = preciseTreeLabels(
-      !groupBy?.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
+      !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
       ({ labels }) => labels.map(({ name }) => name),
     );

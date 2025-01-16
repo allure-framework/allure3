@@ -2,6 +2,7 @@ import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
+  byLabels,
   createTreeByLabels,
   filterTree,
   filterTreeLabels,
@@ -432,5 +433,58 @@ describe("preciseTreeLabels", () => {
     expect(
       preciseTreeLabels(["parentSuite", "suite", "subSuite"], [tr1, tr2, tr3], ({ l }) => l.map(({ name }) => name)),
     ).toEqual(["suite", "subSuite"]);
+  });
+
+  it("shouldn't change the original labels order during processing the given test results", () => {
+    const tr1 = {
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    };
+    const tr2 = {
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    };
+    const tr3 = {
+      labels: [
+        { name: "subSuite", value: "C" },
+        { name: "parentSuite", value: "A" },
+      ],
+    };
+
+    expect(preciseTreeLabels(["parentSuite", "suite", "subSuite"], [tr1, tr2, tr3])).toEqual([
+      "parentSuite",
+      "suite",
+      "subSuite",
+    ]);
+  });
+});
+
+describe("byLabels", () => {
+  it("should return labels that only exist in the given test results", () => {
+    const tr1 = {
+      labels: [
+        { name: "parentSuite", value: "A" },
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+      ],
+    } as TestResult;
+
+    expect(byLabels(tr1, ["parentSuite", "suite", "subSuite"])).toEqual([["A"], ["B"], ["C"]]);
+  });
+
+  it("should return labels with keeping the given order", () => {
+    const tr1 = {
+      labels: [
+        { name: "suite", value: "B" },
+        { name: "subSuite", value: "C" },
+        { name: "parentSuite", value: "A" },
+      ],
+    } as TestResult;
+
+    expect(byLabels(tr1, ["parentSuite", "suite", "subSuite"])).toEqual([["A"], ["B"], ["C"]]);
   });
 });
