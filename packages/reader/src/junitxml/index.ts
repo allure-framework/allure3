@@ -108,12 +108,12 @@ const parseTestCase = async (
   { name: suiteName }: { name?: string },
   testCase: Record<string, any>,
 ) => {
-  const { name: nameAttribute, failure, skipped, classname: classNameAttribute, time } = testCase;
+  const { name: nameAttribute, failure, error, skipped, classname: classNameAttribute, time } = testCase;
 
   const name = ensureString(nameAttribute);
   const className = ensureString(classNameAttribute);
 
-  const { status, message, trace } = getStatus(failure, skipped);
+  const { status, message, trace } = getStatus(failure, error, skipped);
 
   await visitor.visitTestResult(
     {
@@ -150,20 +150,21 @@ const convertDuration = (timeAttribute: unknown) => {
   return time ? Math.round(parseFloat(time) * MS_IN_S) : undefined;
 };
 
-const getStatus = (failure: unknown, skipped: unknown): { status: RawTestStatus; message?: string; trace?: string } => {
-  if (isEmptyElement(failure)) {
-    return { status: "failed" };
+const getStatus = (failure: unknown, error: unknown, skipped: unknown) =>
+  maybeParseStatus("failed", failure) ??
+  maybeParseStatus("broken", error) ??
+  maybeParseStatus("skipped", skipped) ?? { status: "passed" };
+
+const maybeParseStatus = (
+  status: RawTestStatus,
+  element: unknown,
+): { status: RawTestStatus; message?: string; trace?: string } | undefined => {
+  if (isEmptyElement(element)) {
+    return { status };
   }
-  if (isStringAnyRecord(failure)) {
-    const { message, "#text": trace } = failure;
-    return { status: "failed", message: ensureString(message), trace: ensureString(trace) };
+
+  if (isStringAnyRecord(element)) {
+    const { message, "#text": trace } = element;
+    return { status, message: ensureString(message), trace: ensureString(trace) };
   }
-  if (isEmptyElement(skipped)) {
-    return { status: "skipped" };
-  }
-  if (isStringAnyRecord(skipped)) {
-    const { message, "#text": trace } = skipped;
-    return { status: "skipped", message: ensureString(message), trace: ensureString(trace) };
-  }
-  return { status: "passed" };
 };
