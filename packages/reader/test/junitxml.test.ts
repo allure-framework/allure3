@@ -250,6 +250,144 @@ describe("junit xml reader", () => {
     });
   });
 
+  describe("statuses", () => {
+    it("should parse a test case with no status elements as passed", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/statuses/passed.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ status: "passed" }]);
+    });
+
+    describe("failure", () => {
+      it("should parse a failure element", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/failure/wellDefined.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ status: "failed", message: "foo", trace: "bar" }]);
+      });
+
+      it("should ignore a missing message", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/failure/messageMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].message).toBeUndefined();
+      });
+
+      it("should ignore an ill-formed message", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/failure/messageInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].message).toBeUndefined();
+      });
+
+      it("should leave trace undefined if content is missing", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/failure/contentMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].trace).toBeUndefined();
+      });
+
+      it("should parse an empty element", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/failure/empty.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ status: "failed" }]);
+      });
+    });
+
+    describe("skipped", () => {
+      it("should parse a skipped element", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/skipped/wellDefined.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ status: "skipped", message: "foo", trace: "bar" }]);
+      });
+
+      it("should ignore a missing message", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/skipped/messageMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].message).toBeUndefined();
+      });
+
+      it("should ignore an ill-formed message", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/skipped/messageInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].message).toBeUndefined();
+      });
+
+      it("should leave trace undefined if content is missing", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/skipped/contentMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs[0].trace).toBeUndefined();
+      });
+
+      it("should parse an empty element", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/statuses/skipped/empty.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ status: "skipped" }]);
+      });
+    });
+  });
+
   it("should ignore invalid root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/invalid.xml", randomTestsuiteFileName());
