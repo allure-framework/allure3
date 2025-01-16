@@ -7,6 +7,45 @@ import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 const randomTestsuiteFileName = () => `${randomUUID()}.xml`;
 
 describe("junit xml reader", () => {
+
+  describe("names", () => {
+    it("should parse a testcase name", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/names/wellDefined.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "foo" }]);
+    });
+
+    it("should use a placeholder if no name provided", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/names/missing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+
+    it("should use a placeholder if the name is ill-formed", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/names/invalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ name: "The test's name is not defined" }]);
+    });
+  });
+
   it("should ignore invalid root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/invalid.xml", randomTestsuiteFileName());

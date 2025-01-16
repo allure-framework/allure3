@@ -4,6 +4,8 @@ import * as console from "node:console";
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
+const DEFAULT_TEST_NAME = "The test's name is not defined";
+
 const arrayTags: Set<string> = new Set(["testsuite.testcase", "testsuites.testsuite", "testsuites.testsuite.testcase"]);
 
 const xmlParser = new XMLParser({
@@ -103,7 +105,7 @@ const parseTestCase = async (visitor: ResultsVisitor, suite: { name?: string }, 
 
   await visitor.visitTestResult(
     {
-      name: ensureString(name),
+      name: ensureString(name) ?? DEFAULT_TEST_NAME,
       status,
       message,
       trace,
