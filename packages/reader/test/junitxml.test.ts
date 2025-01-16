@@ -188,6 +188,68 @@ describe("junit xml reader", () => {
     });
   });
 
+  describe("fullNames", () => {
+    it("should combine classname and name into a fullName", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/fullNames/wellDefined.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ fullName: "foo.bar" }]);
+    });
+
+    it("should leave fullName undefined if no classname defined", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/fullNames/classnameMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs[0].fullName).toBeUndefined();
+    });
+
+    it("should leave fullName undefined if classname is ill-formed", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/fullNames/classnameInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs[0].fullName).toBeUndefined();
+    });
+
+    it("should leave fullName undefined if no name defined", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/fullNames/nameMissing.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs[0].fullName).toBeUndefined();
+    });
+
+    it("should leave fullName undefined if name is ill-formed", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/fullNames/nameInvalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs[0].fullName).toBeUndefined();
+    });
+  });
+
   it("should ignore invalid root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/invalid.xml", randomTestsuiteFileName());

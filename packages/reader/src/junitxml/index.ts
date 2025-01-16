@@ -108,22 +108,28 @@ const parseTestCase = async (
   { name: suiteName }: { name?: string },
   testCase: Record<string, any>,
 ) => {
-  const { name, failure, skipped, classname, time } = testCase;
+  const { name: nameAttribute, failure, skipped, classname: classNameAttribute, time } = testCase;
+
+  const name = ensureString(nameAttribute);
+  const className = ensureString(classNameAttribute);
 
   const { status, message, trace } = getStatus(failure, skipped);
 
   await visitor.visitTestResult(
     {
-      name: ensureString(name) ?? DEFAULT_TEST_NAME,
+      name: name ?? DEFAULT_TEST_NAME,
+      fullName: convertFullName(className, name),
       status,
       message,
       trace,
-      labels: getLabels(suiteName, ensureString(classname)),
+      labels: getLabels(suiteName, className),
       duration: convertDuration(time),
     },
     { readerId },
   );
 };
+
+const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
 const getLabels = (suiteName?: string, className?: string) => {
   const labels: RawTestLabel[] = [];
