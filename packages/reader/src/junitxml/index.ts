@@ -16,6 +16,9 @@ const MS_IN_S = 1_000;
 
 const DEFAULT_TEST_NAME = "The test's name is not defined";
 
+const STDOUT_ATTACHMENT_NAME = "System output";
+const STDERR_ATTACHMENT_NAME = "System error";
+
 const SUITE_PACKAGE_NAME = "package";
 const SUITE_LABEL_NAME = "suite";
 const TEST_CLASS_LABEL_NAME = "testClass";
@@ -129,11 +132,13 @@ const parseTestCase = async (
     "classname": classNameAttribute,
     time,
     "system-out": systemOutAttribute,
+    "system-err": systemErrAttribute,
   } = testCase;
 
   const name = ensureString(nameAttribute);
   const className = ensureString(classNameAttribute);
   const systemOut = ensureString(systemOutAttribute);
+  const systemErr = ensureString(systemErrAttribute);
 
   const { status, message, trace } = getStatus(failure, error, skipped);
 
@@ -145,7 +150,7 @@ const parseTestCase = async (
       status,
       message,
       trace,
-      steps: await parseAttachments(visitor, systemOut),
+      steps: await parseAttachments(visitor, systemOut, systemErr),
       labels: convertLabels(suitePackage, suiteName, className),
     },
     { readerId },
@@ -154,21 +159,33 @@ const parseTestCase = async (
 
 const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
-const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string) => {
+const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string, systemErr?: string) => {
   const attachments: RawTestAttachment[] = [];
 
   if (systemOut) {
-    const fileName = randomUUID();
-    await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(systemOut), fileName), { readerId });
-    attachments.push({
-      type: "attachment",
-      contentType: "text/plain",
-      originalFileName: fileName,
-      name: "System out",
-    });
+    attachments.push(await visitPlainTextAttachment(visitor, STDOUT_ATTACHMENT_NAME, systemOut));
+  }
+
+  if (systemErr) {
+    attachments.push(await visitPlainTextAttachment(visitor, STDERR_ATTACHMENT_NAME, systemErr));
   }
 
   return attachments;
+};
+
+const visitPlainTextAttachment = async (
+  visitor: ResultsVisitor,
+  name: string,
+  content: string,
+): Promise<RawTestAttachment> => {
+  const fileName = randomUUID();
+  await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(content), fileName), { readerId });
+  return {
+    type: "attachment",
+    contentType: "text/plain",
+    originalFileName: fileName,
+    name,
+  };
 };
 
 const convertLabels = (suitePackage?: string, suiteName?: string, className?: string) => {

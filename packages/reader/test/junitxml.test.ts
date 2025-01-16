@@ -521,7 +521,7 @@ describe("junit xml reader", () => {
           steps: [
             {
               type: "attachment",
-              name: "System out",
+              name: "System output",
               contentType: "text/plain",
               originalFileName: attachment.getOriginalFileName(),
             },
@@ -543,6 +543,53 @@ describe("junit xml reader", () => {
       it("should ignore an ill-formed system-out", async () => {
         const visitor = await readResults(junitXml, {
           "junitxmldata/attachments/stdout/invalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({ steps: [] });
+      });
+    });
+
+    describe("stderr", () => {
+      it("should parse system-err", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/attachments/stderr/wellDefined.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(1);
+        const attachment = visitor.visitAttachmentFile.mock.calls[0][0];
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        const content = await attachment.asUtf8String();
+        expect(content).toEqual("Lorem Ipsum");
+        expect(test).toMatchObject({
+          steps: [
+            {
+              type: "attachment",
+              name: "System error",
+              contentType: "text/plain",
+              originalFileName: attachment.getOriginalFileName(),
+            },
+          ],
+        });
+      });
+
+      it("should ignore a missing system-err", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/attachments/stderr/missing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+        expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(0);
+        const test = visitor.visitTestResult.mock.calls[0][0];
+        expect(test).toMatchObject({ steps: [] });
+      });
+
+      it("should ignore an ill-formed system-err", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/attachments/stderr/invalid.xml": randomTestsuiteFileName(),
         });
 
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
