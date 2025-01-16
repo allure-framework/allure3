@@ -138,6 +138,56 @@ describe("junit xml reader", () => {
     });
   });
 
+  describe("durations", () => {
+    it("should convert a test case duration from seconds to milliseconds", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/durations/integer.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ duration: 4000 }]);
+    });
+
+    it("should round the duration up if it has 500 microseconds or more", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/durations/roundUp.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ duration: 1001 }]);
+    });
+
+    it("should round the duration down if it has less than 500 microseconds", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/durations/roundUp.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs).toMatchObject([{ duration: 1001 }]);
+    });
+
+    it("should ignore an ill-formed time attribute", async () => {
+      const visitor = await readResults(junitXml, {
+        "junitxmldata/durations/invalid.xml": randomTestsuiteFileName(),
+      });
+
+      expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+      const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+      expect(trs[0].duration).toBeUndefined();
+    });
+  });
+
   it("should ignore invalid root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/invalid.xml", randomTestsuiteFileName());

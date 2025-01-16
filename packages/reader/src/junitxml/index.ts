@@ -4,6 +4,8 @@ import * as console from "node:console";
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
+const MS_IN_S = 1_000;
+
 const DEFAULT_TEST_NAME = "The test's name is not defined";
 
 const SUITE_LABEL_NAME = "suite";
@@ -106,7 +108,7 @@ const parseTestCase = async (
   { name: suiteName }: { name?: string },
   testCase: Record<string, any>,
 ) => {
-  const { name, failure, skipped, classname } = testCase;
+  const { name, failure, skipped, classname, time } = testCase;
 
   const { status, message, trace } = getStatus(failure, skipped);
 
@@ -117,6 +119,7 @@ const parseTestCase = async (
       message,
       trace,
       labels: getLabels(suiteName, ensureString(classname)),
+      duration: convertDuration(time),
     },
     { readerId },
   );
@@ -134,6 +137,11 @@ const getLabels = (suiteName?: string, className?: string) => {
   }
 
   return labels;
+};
+
+const convertDuration = (timeAttribute: unknown) => {
+  const time = ensureString(timeAttribute);
+  return time ? Math.round(parseFloat(time) * MS_IN_S) : undefined;
 };
 
 const getStatus = (failure: unknown, skipped: unknown): { status: RawTestStatus; message?: string; trace?: string } => {
