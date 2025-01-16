@@ -8,6 +8,7 @@ const MS_IN_S = 1_000;
 
 const DEFAULT_TEST_NAME = "The test's name is not defined";
 
+const SUITE_PACKAGE_NAME = "package";
 const SUITE_LABEL_NAME = "suite";
 const TEST_CLASS_LABEL_NAME = "testClass";
 
@@ -92,20 +93,24 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 };
 
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>) => {
-  const { name, testcase } = testSuite;
+  const { name, package: packageAttribute, testcase } = testSuite;
 
   if (!isStringAnyRecordArray(testcase)) {
     return;
   }
 
   for (const testcaseElement of testcase) {
-    await parseTestCase(visitor, { name: ensureString(name) }, testcaseElement);
+    await parseTestCase(
+      visitor,
+      { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
+      testcaseElement,
+    );
   }
 };
 
 const parseTestCase = async (
   visitor: ResultsVisitor,
-  { name: suiteName }: { name?: string },
+  { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
   testCase: Record<string, any>,
 ) => {
   const { name: nameAttribute, failure, error, skipped, classname: classNameAttribute, time } = testCase;
@@ -122,7 +127,7 @@ const parseTestCase = async (
       status,
       message,
       trace,
-      labels: getLabels(suiteName, className),
+      labels: getLabels(suitePackage, suiteName, className),
       duration: convertDuration(time),
     },
     { readerId },
@@ -131,8 +136,12 @@ const parseTestCase = async (
 
 const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
-const getLabels = (suiteName?: string, className?: string) => {
+const getLabels = (suitePackage?: string, suiteName?: string, className?: string) => {
   const labels: RawTestLabel[] = [];
+
+  if (suitePackage) {
+    labels.push({ name: SUITE_PACKAGE_NAME, value: suitePackage });
+  }
 
   if (suiteName) {
     labels.push({ name: SUITE_LABEL_NAME, value: suiteName });

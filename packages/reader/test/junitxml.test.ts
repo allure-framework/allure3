@@ -136,6 +136,60 @@ describe("junit xml reader", () => {
         expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "testClass" }]) }]);
       });
     });
+
+    // See https://github.com/windyroad/JUnit-Schema/blob/cfa434d4b8e102a8f55b8727b552a0063ee9044e/JUnit.xsd#L28C29-L28C36
+    describe("package", () => {
+      it("should add a package label to a test case", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/packages/wellDefinedWithOneTestCase.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: [{ name: "package", value: "foo" }] }]);
+      });
+
+      it("should add a package label to all cases", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/packages/wellDefinedWithTwoTestCases.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(2);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([
+          { labels: [{ name: "package", value: "foo" }] },
+          { labels: [{ name: "package", value: "foo" }] },
+        ]);
+      });
+
+      it("should not add a label if no package defined", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/packages/suitePackageMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "package" }]) }]);
+      });
+
+      it("should not add a label if package is ill-formed", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/packages/suitePackageInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "package" }]) }]);
+      });
+    });
   });
 
   describe("durations", () => {
