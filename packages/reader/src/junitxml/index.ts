@@ -1,6 +1,14 @@
-import type { RawTestLabel, RawTestStatus, ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
+import type {
+  RawTestAttachment,
+  RawTestLabel,
+  RawTestStatus,
+  ResultsReader,
+  ResultsVisitor,
+} from "@allurereport/reader-api";
+import { BufferResultFile } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
@@ -113,10 +121,19 @@ const parseTestCase = async (
   { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
   testCase: Record<string, any>,
 ) => {
-  const { name: nameAttribute, failure, error, skipped, classname: classNameAttribute, time } = testCase;
+  const {
+    "name": nameAttribute,
+    failure,
+    error,
+    skipped,
+    "classname": classNameAttribute,
+    time,
+    "system-out": systemOutAttribute,
+  } = testCase;
 
   const name = ensureString(nameAttribute);
   const className = ensureString(classNameAttribute);
+  const systemOut = ensureString(systemOutAttribute);
 
   const { status, message, trace } = getStatus(failure, error, skipped);
 
@@ -124,11 +141,12 @@ const parseTestCase = async (
     {
       name: name ?? DEFAULT_TEST_NAME,
       fullName: convertFullName(className, name),
+      duration: convertDuration(time),
       status,
       message,
       trace,
-      labels: getLabels(suitePackage, suiteName, className),
-      duration: convertDuration(time),
+      steps: await parseAttachments(visitor, systemOut),
+      labels: convertLabels(suitePackage, suiteName, className),
     },
     { readerId },
   );
@@ -136,7 +154,24 @@ const parseTestCase = async (
 
 const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
-const getLabels = (suitePackage?: string, suiteName?: string, className?: string) => {
+const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string) => {
+  const attachments: RawTestAttachment[] = [];
+
+  if (systemOut) {
+    const fileName = randomUUID();
+    await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(systemOut), fileName), { readerId });
+    attachments.push({
+      type: "attachment",
+      contentType: "text/plain",
+      originalFileName: fileName,
+      name: "System out",
+    });
+  }
+
+  return attachments;
+};
+
+const convertLabels = (suitePackage?: string, suiteName?: string, className?: string) => {
   const labels: RawTestLabel[] = [];
 
   if (suitePackage) {
