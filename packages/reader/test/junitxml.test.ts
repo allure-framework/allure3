@@ -97,6 +97,43 @@ describe("junit xml reader", () => {
 
         expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "suite" }]) }]);
       });
+
+      // See https://github.com/windyroad/JUnit-Schema/blob/cfa434d4b8e102a8f55b8727b552a0063ee9044e/JUnit.xsd#L173
+      it("should add package as parent suite for an aggregated document", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/wellDefinedAggregated.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.arrayContaining([{ name: "parentSuite", value: "foo" }]) }]);
+      });
+
+      it("should ignore a missing package of an aggregated document", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/aggregatedPackageMissing.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "parentSuite" }]) }]);
+      });
+
+      it("should ignore an ill-formed package of an aggregated document", async () => {
+        const visitor = await readResults(junitXml, {
+          "junitxmldata/labels/suites/aggregatedPackageInvalid.xml": randomTestsuiteFileName(),
+        });
+
+        expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+
+        const trs = visitor.visitTestResult.mock.calls.map((c) => c[0]);
+
+        expect(trs).toMatchObject([{ labels: expect.not.arrayContaining([{ name: "parentSuite" }]) }]);
+      });
     });
 
     describe("testClass", () => {

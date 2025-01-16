@@ -20,6 +20,7 @@ const STDOUT_ATTACHMENT_NAME = "System output";
 const STDERR_ATTACHMENT_NAME = "System error";
 
 const SUITE_PACKAGE_NAME = "package";
+const SUITE_PARENT_LABEL_NAME = "parentSuite";
 const SUITE_LABEL_NAME = "suite";
 const TEST_CLASS_LABEL_NAME = "testClass";
 
@@ -90,7 +91,7 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
     }
 
     for (const testSuitesArrayElement of testSuitesArray) {
-      await parseTestSuite(visitor, testSuitesArrayElement);
+      await parseTestSuite(visitor, testSuitesArrayElement, true);
     }
     return true;
   }
@@ -99,11 +100,11 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
     return false;
   }
 
-  await parseTestSuite(visitor, testSuite);
+  await parseTestSuite(visitor, testSuite, false);
   return true;
 };
 
-const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>) => {
+const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>, isAggregated: boolean) => {
   const { name, package: packageAttribute, testcase } = testSuite;
 
   if (!isStringAnyRecordArray(testcase)) {
@@ -115,6 +116,7 @@ const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string,
       visitor,
       { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
       testcaseElement,
+      isAggregated,
     );
   }
 };
@@ -123,6 +125,7 @@ const parseTestCase = async (
   visitor: ResultsVisitor,
   { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
   testCase: Record<string, any>,
+  isAggregated: boolean,
 ) => {
   const {
     "name": nameAttribute,
@@ -151,7 +154,7 @@ const parseTestCase = async (
       message,
       trace,
       steps: await parseAttachments(visitor, systemOut, systemErr),
-      labels: convertLabels(suitePackage, suiteName, className),
+      labels: convertLabels({ suitePackage, suiteName, className, isAggregated }),
     },
     { readerId },
   );
@@ -188,11 +191,24 @@ const visitPlainTextAttachment = async (
   };
 };
 
-const convertLabels = (suitePackage?: string, suiteName?: string, className?: string) => {
+const convertLabels = ({
+  suitePackage,
+  suiteName,
+  className,
+  isAggregated,
+}: {
+  suitePackage: string | undefined;
+  suiteName: string | undefined;
+  className: string | undefined;
+  isAggregated: boolean;
+}) => {
   const labels: RawTestLabel[] = [];
 
   if (suitePackage) {
     labels.push({ name: SUITE_PACKAGE_NAME, value: suitePackage });
+    if (isAggregated) {
+      labels.push({ name: SUITE_PARENT_LABEL_NAME, value: suitePackage });
+    }
   }
 
   if (suiteName) {
