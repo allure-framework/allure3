@@ -135,7 +135,7 @@ const BaseBtn = (props: BaseBtnProps) => {
         !isButtonDisabled && isActive && styles.active,
         className,
       )}
-      data-testId={dataTestId}
+      data-testid={dataTestId}
       disabled={isButtonDisabled}
       onClick={onClick}
       type={type}

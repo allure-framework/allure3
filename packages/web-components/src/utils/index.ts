@@ -1,6 +1,6 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import AllureAwesomePlugin from "@allurereport/plugin-awesome";
-import type { AllureAwesomeOptions, AllureAwesomePluginOptions } from "@allurereport/plugin-awesome/dist/model";
+import type { AllureAwesomeOptions } from "@allurereport/plugin-awesome/dist/model";
 import { serve } from "@allurereport/static-server";
 import { type TestResult } from "allure-js-commons";
 // @ts-ignore
@@ -48,6 +48,7 @@ export const generateTestResults = async (payload: GeneratorParams) => {
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
   } as FullConfig);
+
   const runtime = new ReporterRuntime({
     writer: new FileSystemWriter({
       resultsDir,
