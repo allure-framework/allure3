@@ -2,31 +2,29 @@ import { useCallback, useEffect, useRef } from "preact/hooks";
 
 const DEFAULT_TIMEOUT = 300;
 
-function debounce(cb: () => void, timeout = DEFAULT_TIMEOUT) {
+const debounce = <T extends (...args: any[]) => void>(cb: T, timeout = DEFAULT_TIMEOUT) => {
   let timer: ReturnType<typeof setTimeout>;
 
-  return (...args: unknown[]) => {
+  return (...args: Parameters<T>) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      // @ts-ignore
-      cb.apply(this, args);
+      cb(...args);
     }, timeout);
   };
-}
+};
 
-export const useDebouncedCallback = <Callback extends (...args: unknown[]) => void>(
-  cb: Callback,
+export const useDebouncedCallback = <T extends (...args: Parameters<T>) => ReturnType<T>>(
+  cb: T,
   timeout = DEFAULT_TIMEOUT,
 ) => {
   const cbRef = useRef(cb);
 
-  cbRef.current = cb;
-
   useEffect(() => {
-    return () => {
-      cbRef.current = (() => {}) as Callback;
-    };
-  }, []);
+    cbRef.current = cb;
+  }, [cb]);
 
-  return useCallback<Callback>(debounce((...args) => cbRef.current(...args), timeout) as Callback, [timeout]);
+  return useCallback(
+    debounce((...args: Parameters<T>) => cbRef.current(...args), timeout),
+    [timeout],
+  );
 };

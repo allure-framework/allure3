@@ -20,15 +20,14 @@ type Props = {
 export const SearchBox = (props: Props) => {
   const { placeholder, value, onChange, changeDebounce = 300 } = props;
   const [localValue, setLocalValue] = useState(value);
-  // @ts-ignore
   const onChangeDebounced = useDebouncedCallback(onChange, changeDebounce);
   const handleChange = (e: Event) => {
     const newValue = (e.target as HTMLInputElement).value;
-
     setLocalValue(newValue);
     onChangeDebounced(newValue);
   };
-  const handleClear = (e: PointerEvent) => {
+
+  const handleClear = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setLocalValue("");
@@ -51,11 +50,7 @@ export const SearchBox = (props: Props) => {
       />
       {showClear && (
         <div className={styles.clearButton}>
-          {
-            // TODO:FIXME
-            // @ts-ignore
-            <IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" />
-          }
+          {<IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" data-testid="clear-button" />}
         </div>
       )}
     </Text>

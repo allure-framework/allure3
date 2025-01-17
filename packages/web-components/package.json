@@ -36,7 +36,9 @@
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run"
+    "test": "run-p 'test:*'",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
@@ -49,6 +51,7 @@
     "reset.css": "^2.0.2"
   },
   "devDependencies": {
+    "@allurereport/plugin-awesome": "workspace:^",
     "@babel/core": "^7.25.2",
     "@babel/plugin-transform-react-jsx": "^7.25.2",
     "@babel/preset-env": "^7.25.4",

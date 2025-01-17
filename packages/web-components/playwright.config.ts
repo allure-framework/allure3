@@ -1,15 +1,13 @@
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./test",
+  testDir: "./",
+  testMatch: "**/*.e2e.ts",
   reporter: [
     ["line"],
     [
       "allure-playwright",
-      {
-        resultsDir: "./out/allure-results",
-        globalLabels: [{ name: "module", value: "e2e" }],
-      },
+      { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "static-server" }] },
     ],
   ],
 });

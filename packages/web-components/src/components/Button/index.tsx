@@ -91,6 +91,7 @@ type BaseBtnProps = {
    */
   focusable?: boolean;
   className?: string;
+  dataTestId?: string;
 };
 
 const BaseBtn = (props: BaseBtnProps) => {
@@ -111,6 +112,7 @@ const BaseBtn = (props: BaseBtnProps) => {
     isActive = false,
     focusable = true,
     className,
+    dataTestId,
     ...rest
   } = props;
 
@@ -133,6 +135,7 @@ const BaseBtn = (props: BaseBtnProps) => {
         !isButtonDisabled && isActive && styles.active,
         className,
       )}
+      data-testId={dataTestId}
       disabled={isButtonDisabled}
       onClick={onClick}
       type={type}
