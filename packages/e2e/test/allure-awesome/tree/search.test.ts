@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, layer } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "@/utils";
+import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -42,7 +42,7 @@ test.beforeAll(async () => {
 
 test.beforeEach(async ({ page }) => {
   await layer("e2e");
-  await page.goto(bootstrap.url as string);
+  await page.goto(bootstrap.url);
 });
 
 test.afterAll(async () => {
@@ -57,9 +57,6 @@ test.describe("SearchBox component with debounce", () => {
 
     await searchInput.fill("i am input");
     await page.waitForTimeout(300);
-    await page.waitForSelector('[data-testid="clear-button"]', { state: "attached" });
-    await expect(clearButton).toBeVisible();
-    await expect(clearButton).toBeHidden();
 
     await expect(clearButton).toBeVisible();
 
