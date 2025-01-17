@@ -51,7 +51,11 @@
     "reset.css": "^2.0.2"
   },
   "devDependencies": {
-    "@allurereport/plugin-awesome": "workspace:^",
+    "@allurereport/core": "workspace:*",
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/e2e": "workspace:*",
+    "@allurereport/plugin-awesome": "workspace:*",
+    "@allurereport/static-server": "workspace:*",
     "@babel/core": "^7.25.2",
     "@babel/plugin-transform-react-jsx": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
