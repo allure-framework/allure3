@@ -70,6 +70,24 @@ export const loadConfig = async (configPath: string): Promise<Config> => {
   return (await import(normalizeImportPath(configPath))).default;
 };
 
+export const validateConfig = (config: Config) => {
+  const supportedFields: (keyof Config)[] = [
+    "name",
+    "output",
+    "historyPath",
+    "knownIssuesPath",
+    "qualityGate",
+    "plugins",
+    "defaultLabels",
+  ];
+  const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
+
+  return {
+    valid: unsupportedFields.length === 0,
+    fields: unsupportedFields,
+  };
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const name = override.name ?? config.name ?? "Allure Report";
   const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");

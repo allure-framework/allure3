@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
 import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { findConfig, getPluginId, resolvePlugin } from "../src/config.js";
+import { findConfig, getPluginId, resolvePlugin, validateConfig } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
 vi.mock("../src/utils/module.js", () => ({
@@ -65,6 +65,23 @@ describe("findConfig", () => {
 
     const found = await findConfig(fixturesDir, resolve(fixturesDir, fileName));
     expect(found).toEqual(resolve(fixturesDir, fileName));
+  });
+});
+
+describe("validateConfig", () => {
+  it("should return a positive result if the config is valid", () => {
+    expect(validateConfig({ name: "Allure" })).toEqual({
+      valid: true,
+      fields: [],
+    });
+  });
+
+  it("should return array of unsupported fields if the config contains them", () => {
+    // @ts-ignore
+    expect(validateConfig({ name: "Allure", unknownField: "value" })).toEqual({
+      valid: false,
+      fields: ["unknownField"],
+    });
   });
 });
 
