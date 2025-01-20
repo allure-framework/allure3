@@ -11,7 +11,7 @@ import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAtt
 import { type Attachments, attachmentType, fetchAttachment } from "@/utils/attachments";
 import * as styles from "./styles.scss";
 
-const componentsByAttachmentType = {
+const componentsByAttachmentType: Record<string, any> = {
   image: AttachmentImage,
   svg: AttachmentImage,
   json: AttachmentCode,
@@ -23,7 +23,7 @@ const componentsByAttachmentType = {
   text: AttachmentCode,
   video: AttachmentVideo,
 };
-const previewComponentsByAttachmentType = {
+const previewComponentsByAttachmentType: Record<string, any> = {
   html: HtmlAttachmentPreview,
 };
 
@@ -49,7 +49,7 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
       setAttachment(result);
     };
     fetchData();
-  }, [item]);
+  }, [contentType, id, ext]);
 
   if (!loaded) {
     return (

@@ -1,6 +1,6 @@
-import { formatDuration } from "@allurereport/core-api";
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { type TestResult, formatDuration } from "@allurereport/core-api";
+import { IconButton, Text, allureIcons } from "@allurereport/web-components";
+import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
@@ -9,11 +9,13 @@ import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { navigateTo } from "@/index";
 import { timestampToDate } from "@/utils/time";
 
-export const TestResultRetriesItem = ({ testResultItem }) => {
+export const TestResultRetriesItem: FunctionalComponent<{
+  testResultItem: TestResult;
+}> = ({ testResultItem }) => {
   const { id, status, message, trace, stop, duration } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration);
+  const formattedDuration = formatDuration(duration as number);
   const navigateUrl = `/testresult/${id}`;
 
   return (

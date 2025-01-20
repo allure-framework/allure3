@@ -1,10 +1,8 @@
-import type { Statistic } from "@allurereport/core-api";
-import { statusesList } from "@allurereport/core-api";
+import { type Statistic, statusesList } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import type { FunctionComponent } from "preact";
-import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";
-import MetadataItem from "@/components/ReportMetadata/MetadataItem";
+import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/MetadataItem";
 import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/ReportMetadata/styles.scss";
@@ -28,11 +26,11 @@ export const MetadataSummary: FunctionComponent = () => {
         }));
         const metaDataTests = ["flaky", "retry"]
           .map((key) => {
-            if (!stats[key]) {
+            if (!stats[key as keyof Statistic]) {
               return;
             }
             const title = testSummary(key);
-            const props = { title, count: stats[key] || 0, type: key };
+            const props = { title, count: stats[key as keyof Statistic] || 0, type: key };
 
             return (
               <div key={key}>

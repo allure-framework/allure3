@@ -26,15 +26,17 @@ const times: DurationField[] = [
   },
 ];
 
-export const formatDuration = (duration: number | undefined): string => {
+export const formatDuration = (duration?: number): string => {
   if (duration === undefined) {
     return "unknown";
   }
+
   if (duration < 0.5) {
     return "0s";
   }
 
   const res: string[] = [];
+
   for (const { accessor, suffix } of times) {
     const value = accessor(duration);
     if (res.length === 0 && !value) {

@@ -1,16 +1,18 @@
 import { SvgIcon, allureIcons } from "@allurereport/web-components";
+import { type FunctionalComponent } from "preact";
 import { useI18n } from "@/stores";
 import { capitalize } from "@/utils/capitalize";
 import * as styles from "./styles.scss";
 
-const icons = {
+const icons: Record<string, string> = {
   flaky: allureIcons.lineIconBomb2,
   known: allureIcons.lineAlertsAlertCircle,
   muted: allureIcons.lineGeneralEye,
 };
 
-export const TestResultInfoStatuses = ({ statuses }) => {
+export const TestResultInfoStatuses: FunctionalComponent<{ statuses: [string, boolean][] }> = ({ statuses }) => {
   const { t } = useI18n("filters");
+
   return (
     <div className={styles["test-result-info-statuses"]}>
       {statuses.map(([status], key: number) => {

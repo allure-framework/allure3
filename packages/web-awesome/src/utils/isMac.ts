@@ -1,7 +1,8 @@
-function testPlatform(re: RegExp) {
-  return typeof window !== "undefined" && window.navigator != null
-    ? re.test(window.navigator["userAgentData"]?.platform || window.navigator.platform)
-    : false;
-}
+export const testPlatform = (re: RegExp) => {
+  // @ts-ignore
+  const platform: string = window?.navigator?.userAgentData?.platform ?? window?.navigator?.platform;
+
+  return platform ? re.test(platform) : false;
+};
 
 export const isMac = testPlatform(/^Mac/i);

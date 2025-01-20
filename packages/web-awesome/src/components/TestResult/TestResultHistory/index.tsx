@@ -1,7 +1,7 @@
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
 import { TestResultHistoryItem } from "@/components/TestResult/TestResultHistory/TestResultHistoryItem";
 import { useI18n } from "@/stores";
+import { type AllureAwesomeTestResult } from "../../../../types";
 import * as styles from "./styles.scss";
 
 export type TestResultHistoryViewProps = {

@@ -4,11 +4,7 @@ import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 import { TestResultRetriesItem } from "@/components/TestResult/TestResultRetriesView/TestResultRetriesItem";
 import { useI18n } from "@/stores";
 
-export type TestResultRetriesViewProps = {
-  testResult?: AllureAwesomeTestResult;
-};
-
-export const TestResultRetriesView: FunctionalComponent<TestResultRetriesViewProps> = ({ testResult }) => {
+export const TestResultRetriesView: FunctionalComponent<{ testResult: AllureAwesomeTestResult }> = ({ testResult }) => {
   const { retries } = testResult ?? {};
   const { t } = useI18n("empty");
 

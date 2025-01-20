@@ -36,7 +36,7 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const ModalThumb = ({ item, children }) => {
+const ModalThumb: FunctionalComponent<{ item: AttachmentTestStepResult }> = ({ item, children }) => {
   const isActiveThumb = modalData.value.data?.link?.id === item.link?.id;
 
   const showAttach = (showedItem: AttachmentTestStepResult) => {
@@ -47,10 +47,7 @@ const ModalThumb = ({ item, children }) => {
   };
 
   return (
-    <div
-      className={`${styles["modal-thumb"]} ${isActiveThumb ? styles.active : ""}`}
-      onClick={() => showAttach(item as AttachmentTestStepResult)}
-    >
+    <div className={`${styles["modal-thumb"]} ${isActiveThumb ? styles.active : ""}`} onClick={() => showAttach(item)}>
       {children}
     </div>
   );
@@ -129,7 +126,7 @@ const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {
                 <Button
                   style={"outline"}
                   onClick={openInNewWindow}
-                  icon={allureIcons.LineGeneralLinkExternal}
+                  icon={allureIcons.lineGeneralLinkExternal}
                   text={"Open in new tab"}
                 />
               )}

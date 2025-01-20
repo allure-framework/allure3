@@ -1,11 +1,10 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { useI18n } from "@/stores/locale";
 import { capitalize } from "@/utils/capitalize";
 import * as styles from "./styles.scss";
 
-const icons = {
+const icons: Record<string, string> = {
   blocker: allureIcons.lineArrowsChevronUpDouble,
   critical: allureIcons.lineArrowsChevronUp,
   normal: allureIcons.lineGeneralEqual,

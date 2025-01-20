@@ -1,8 +1,11 @@
+import { type FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAttachment";
 
-export const AttachmentImage = ({ attachment }) => {
+export const AttachmentImage: FunctionalComponent<{
+  attachment: { img: string; originalFileName: string };
+}> = ({ attachment }) => {
   const [isValidImage, setIsValidImage] = useState(true);
 
   useEffect(() => {

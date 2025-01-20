@@ -1,13 +1,12 @@
-import { formatDuration } from "@allurereport/core-api";
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { type DefaultTestStepResult, formatDuration } from "@allurereport/core-api";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
-export const TestResultStepInfo = ({ item }) => {
-  const { steps } = item;
+export const TestResultStepInfo = (props: { item: DefaultTestStepResult }) => {
+  const { item } = props;
   const formattedDuration = formatDuration(item?.duration as number);
-  const stepLength = steps?.length;
-  const attachmentLength = steps?.filter((step) => step.type === "attachment")?.length;
+  const stepLength = item.steps?.length;
+  const attachmentLength = item.steps?.filter((step) => step.type === "attachment")?.length;
 
   return (
     <div className={styles["item-info"]}>

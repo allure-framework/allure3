@@ -4,31 +4,39 @@ import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
+import { type MetadataItem } from "@/components/ReportMetadata";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStepInfo } from "@/components/TestResult/TestResultSteps/testResultStepInfo";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 
-export const TestResultStepParameters = ({ parameters }) => {
+export const TestResultStepParameters = (props: { parameters: DefaultTestStepResult["parameters"] }) => {
+  const { parameters } = props;
+
   return (
     <div className={styles["test-result-parameters"]}>
-      <MetadataList size={"s"} envInfo={parameters} columns={1} />
+      <MetadataList size={"s"} envInfo={parameters as unknown as MetadataItem[]} columns={1} />
     </div>
   );
 };
-export const TestResultStepsContent = ({ item }) => {
-  const typeMap = {
-    step: TestResultStep,
-    attachment: TestResultAttachment,
-  };
+export const TestResultStepsContent = (props: { item: DefaultTestStepResult }) => {
+  const { item } = props;
+
   return (
     <div className={styles["test-result-step-content"]}>
       {Boolean(item?.parameters?.length) && <TestResultStepParameters parameters={item.parameters} />}
       {Boolean(item?.steps?.length) && (
         <>
           {item.steps?.map((subItem, key) => {
-            const StepComponent = typeMap[subItem.type];
-            return <StepComponent stepIndex={key + 1} key={key} item={subItem} />;
+            if (subItem.type === "step") {
+              return <TestResultStep stepIndex={key + 1} key={key} item={subItem} />;
+            }
+
+            if (subItem.type === "attachment") {
+              return <TestResultAttachment stepIndex={key + 1} key={key} item={subItem} />;
+            }
+
+            return null;
           })}
         </>
       )}

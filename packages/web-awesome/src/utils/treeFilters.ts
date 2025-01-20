@@ -90,7 +90,7 @@ export const createRecursiveTree = (payload: {
   };
 };
 
-export const isRecursiveTreeEmpty = (tree: AllureAwesomeRecursiveTree) => {
+export const isRecursiveTreeEmpty = (tree: AllureAwesomeRecursiveTree): boolean => {
   if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }

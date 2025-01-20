@@ -1,11 +1,9 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
-import { h } from "preact";
 import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";
 import * as styles from "./styles.scss";
 
-const icons = {
+const icons: Record<string, string> = {
   flaky: allureIcons.lineGeneralZap,
   retry: allureIcons.lineArrowsRefreshCcw1,
   new: allureIcons.lineAlertsNotificationBox,

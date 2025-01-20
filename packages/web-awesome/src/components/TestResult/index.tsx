@@ -16,7 +16,7 @@ export type TestResultViewProps = {
 
 const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }) => {
   const { currentTab } = useTestResultTabsContext();
-  const viewMap = {
+  const viewMap: Record<string, any> = {
     overview: TestResultOverview,
     history: TestResultHistoryView,
     attachments: TestResultAttachmentView,

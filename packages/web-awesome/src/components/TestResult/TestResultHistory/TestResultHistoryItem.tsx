@@ -1,7 +1,6 @@
-import { formatDuration } from "@allurereport/core-api";
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { TooltipWrapper } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
+import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
@@ -11,7 +10,9 @@ import { navigateTo, openInNewTab } from "@/index";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
-export const TestResultHistoryItem = ({ testResultItem }) => {
+export const TestResultHistoryItem: FunctionalComponent<{
+  testResultItem: HistoryTestResult;
+}> = ({ testResultItem }) => {
   const { status, message, trace, stop, duration, id } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);

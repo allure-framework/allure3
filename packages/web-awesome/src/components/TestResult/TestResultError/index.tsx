@@ -1,4 +1,5 @@
 import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
@@ -14,7 +15,7 @@ const TestResultErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TestResultError = ({ message, trace }) => {
+export const TestResultError: FunctionalComponent<{ message: string; trace: string }> = ({ message, trace }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");

@@ -8,7 +8,6 @@ import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
-const { t } = useI18n("ui");
 export const MetadataList: FunctionalComponent<MetadataProps & { columns?: number }> = ({
   envInfo,
   size = "m",
@@ -19,8 +18,8 @@ export const MetadataList: FunctionalComponent<MetadataProps & { columns?: numbe
       class={styles["report-metadata-list"]}
       style={{ gridTemplateColumns: `repeat(${columns}, ${100 / columns - 5}%)` }}
     >
-      {envInfo?.map((envInfo) => (
-        <MetadataKeyValue size={size} title={envInfo.name} value={envInfo.value} values={envInfo.values} />
+      {envInfo?.map(({ name, values, value }) => (
+        <MetadataKeyValue key={name} size={size} title={name} value={value} values={values} />
       ))}
     </div>
   );
@@ -30,14 +29,18 @@ export const TestResultMetadataList: FunctionalComponent<MetadataProps> = ({ gro
   return (
     <div class={styles["report-metadata-list"]}>
       {groupedLabels &&
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         Object.entries(groupedLabels)?.map(([name, values]) => (
-          <MetadataKeyValue size={size} title={name} values={values} />
+          <MetadataKeyValue key={name} size={size} title={name} values={values} />
         ))}
     </div>
   );
 };
+
 export const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo }) => {
+  const { t } = useI18n("ui");
   const [isOpened, setIsOpen] = useState(true);
+
   return (
     <div class={styles["report-metadata"]}>
       <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={envInfo.length} title={t("metadata")} />
@@ -45,8 +48,11 @@ export const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo }) => {
     </div>
   );
 };
-const MetadataTooltip = ({ value }) => {
+
+const MetadataTooltip = (props: { value: string }) => {
+  const { value } = props;
   const { t } = useI18n("ui");
+
   return (
     <div className={styles["metadata-tooltip"]}>
       <div className={styles["metadata-tooltip-value"]}>
@@ -61,6 +67,7 @@ const MetadataTooltip = ({ value }) => {
     </div>
   );
 };
+
 const MetaDataKeyLabel: FunctionalComponent<{
   size?: "s" | "m";
   value: string;
@@ -101,7 +108,7 @@ const MetadataKeyValue: FunctionalComponent<{
       {values?.length ? (
         <div className={styles["report-metadata-values"]}>
           {values.map((item) => (
-            <MetaDataKeyLabel value={item} />
+            <MetaDataKeyLabel key={item} value={item} />
           ))}
         </div>
       ) : (

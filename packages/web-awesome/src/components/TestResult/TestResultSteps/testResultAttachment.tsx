@@ -1,6 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Code, Text } from "@allurereport/web-components";
+import { Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
@@ -11,7 +10,7 @@ import { attachmentType } from "@/utils/attachments";
 
 const { lineImagesImage, lineFilesFileAttachment2 } = allureIcons;
 
-const iconMap = {
+const iconMap: Record<string, string> = {
   "text/plain": lineFilesFileAttachment2,
   "application/xml": lineFilesFileAttachment2,
   "text/html": lineFilesFileAttachment2,
@@ -51,7 +50,7 @@ export const TestResultAttachment: FunctionComponent<{
       >
         <ArrowButton isOpened={isOpened} />
         <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[link.contentType] || lineFilesFileAttachment2} />
+          <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
         </div>
 
         <Code size="s" className={styles["test-result-step-number"]}>

@@ -1,5 +1,4 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeTestResult } from "types";
@@ -13,20 +12,21 @@ interface TestResultLinkProps {
   type: string;
 }
 
+const linksIconMap: Record<string, string> = {
+  issue: allureIcons.lineDevBug2,
+  link: allureIcons.lineGeneralLink1,
+  tms: allureIcons.lineGeneralChecklist3,
+  github: allureIcons.github,
+};
+
 const TestResultLink: FunctionalComponent<{
   link: TestResultLinkProps;
 }> = ({ link }) => {
   const { url, type } = link;
-  const iconMap = {
-    issue: allureIcons.lineDevBug2,
-    link: allureIcons.lineGeneralLink1,
-    tms: allureIcons.lineGeneralChecklist3,
-    github: allureIcons.github,
-  };
 
   return (
     <div className={styles["test-result-link"]}>
-      <SvgIcon id={iconMap[type] ?? allureIcons.lineGeneralLink1} />
+      <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
       <Text tag={"a"} href={url} target={"_blank"} size={"m"} className={styles["test-result-link-text"]}>
         {url}
       </Text>

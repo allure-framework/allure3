@@ -139,6 +139,5 @@ export type AttachmentLink = AttachmentLinkFile | AttachmentLinkExpected | Attac
 
 export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
-
   type: "attachment";
 }

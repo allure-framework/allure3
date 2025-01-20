@@ -1,7 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { TooltipWrapper } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
@@ -45,7 +43,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
         component: <Attachment item={item} />,
       });
     }
-  }, []);
+  }, [item]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();

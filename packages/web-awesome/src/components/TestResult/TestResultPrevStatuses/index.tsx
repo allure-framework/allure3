@@ -1,3 +1,4 @@
+import { type HistoryTestResult } from "@allurereport/core-api";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
@@ -7,14 +8,14 @@ import { capitalize } from "@/utils/capitalize";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
-const TestResultPrevStatus = ({ item }) => {
+const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
   return (
     <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`testresult/${item.id}`)}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </div>
   );
 };
-const TestResultPrevStatusTooltip = ({ item }) => {
+const TestResultPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
   const convertedStop = item.stop && timestampToDate(item.stop);
   const { t } = useI18n("statuses");
   const status = t(item.status);
