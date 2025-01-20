@@ -1,27 +1,33 @@
 import { clsx } from "clsx";
 import type { FunctionalComponent, JSX } from "preact";
 
-export const Text: FunctionalComponent<
-  (
-    | {
-        type?: "paragraph";
-        size?: "s" | "m" | "l";
-      }
-    | {
-        type: "ui";
-        size: "s" | "m" | "l" | "xs";
-      }
-  ) & {
-    /**
-     * Additional class name
-     */
-    className?: string;
-    bold?: boolean;
-    tag?: keyof JSX.IntrinsicElements;
-  } & Omit<JSX.HTMLAttributes, "type" | "size" | "className" | "bold" | "tag">
-> = (props) => {
-  const { size = "m", tag: Tag = "span", type = "paragraph", bold = false, className, children, ...rest } = props;
+export type TextProps = (
+  | {
+      type?: "paragraph";
+      size?: "s" | "m" | "l";
+    }
+  | {
+      type: "ui";
+      size: "s" | "m" | "l" | "xs";
+    }
+) & {
+  /**
+   * Additional class name
+   */
+  className?: string;
+  bold?: boolean;
+  tag?: keyof JSX.IntrinsicElements;
+} & Omit<JSX.HTMLAttributes, "type" | "size" | "className" | "bold" | "tag">;
 
+export const Text: FunctionalComponent<TextProps> = ({
+  size = "m",
+  tag: Tag = "span",
+  type = "paragraph",
+  bold = false,
+  className,
+  children,
+  ...rest
+}) => {
   if (type === "paragraph") {
     return (
       // @ts-expect-error this is fine
@@ -43,20 +49,26 @@ export const Text: FunctionalComponent<
   return null;
 };
 
-export const Code: FunctionalComponent<
-  {
-    type?: "paragraph" | "ui";
-    size?: "s" | "m";
-    /**
-     * Additional class name
-     */
-    className?: string;
-    bold?: boolean;
-    tag?: keyof JSX.IntrinsicElements;
-  } & Omit<JSX.HTMLAttributes, "type" | "size" | "className" | "bold" | "tag">
-> = (props) => {
-  const { size = "m", tag: Tag = "span", type = "paragraph", bold = false, className, children, ...rest } = props;
+export type CodeProps = {
+  type?: "paragraph" | "ui";
+  size?: "s" | "m";
+  /**
+   * Additional class name
+   */
+  className?: string;
+  bold?: boolean;
+  tag?: keyof JSX.IntrinsicElements;
+};
 
+export const Code: FunctionalComponent<CodeProps> = ({
+  size = "m",
+  tag: Tag = "span",
+  type = "paragraph",
+  bold = false,
+  className,
+  children,
+  ...rest
+}) => {
   if (type === "paragraph") {
     return (
       // @ts-expect-error this is fine
@@ -68,7 +80,6 @@ export const Code: FunctionalComponent<
 
   if (type === "ui") {
     return (
-      // @ts-expect-error this is fine
       <Tag {...rest} className={clsx(`ui-code-${size}-ui${bold ? "-bold" : ""}`, className)}>
         {children}
       </Tag>
@@ -78,18 +89,22 @@ export const Code: FunctionalComponent<
   return null;
 };
 
-export const Heading: FunctionalComponent<
-  {
-    size?: "s" | "m" | "l";
-    /**
-     * Additional class name
-     */
-    className?: string;
-    tag?: keyof JSX.IntrinsicElements;
-  } & Omit<JSX.HTMLAttributes, "size" | "className" | "tag">
-> = (props) => {
-  const { size = "m", tag: Tag = "span", className, children, ...rest } = props;
+export type HeadingProps = {
+  size?: "s" | "m" | "l";
+  /**
+   * Additional class name
+   */
+  className?: string;
+  tag?: keyof JSX.IntrinsicElements;
+} & Omit<JSX.HTMLAttributes, "size" | "className" | "tag">;
 
+export const Heading: FunctionalComponent<HeadingProps> = ({
+  size = "m",
+  tag: Tag = "span",
+  className,
+  children,
+  ...rest
+}) => {
   return (
     // @ts-expect-error this is fine
     <Tag {...rest} className={clsx(`headings-head-${size}`, className)}>

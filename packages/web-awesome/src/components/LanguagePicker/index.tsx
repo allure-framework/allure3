@@ -1,9 +1,9 @@
-import { DropdownButton } from "@allurereport/web-components";
-import { Menu } from "@allurereport/web-components";
+import { DropdownButton, Menu } from "@allurereport/web-components";
 import { LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 const langPickerOptions = Object.entries(LANG_LOCALE).map(([key, { full }]) => ({
   key: key as LangLocale,
   value: full,
@@ -11,7 +11,6 @@ const langPickerOptions = Object.entries(LANG_LOCALE).map(([key, { full }]) => (
 
 export const LanguagePicker = () => {
   const locale = currentLocale.value;
-
   const handleSelect = (selectedOption: LangLocale) => {
     setLocale(selectedOption);
   };

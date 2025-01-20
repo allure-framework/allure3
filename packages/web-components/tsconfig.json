@@ -1,26 +1,21 @@
 {
   "extends": "../../tsconfig.json",
-  "include": [
-    "./src",
-    "global.d.ts",
-  ],
+  "include": ["./src", "global.d.ts"],
+  "exclude": ["node_modules", ".yarn", "**/*.test.tsx", "**/*.test.ts"],
   "compilerOptions": {
     "baseUrl": "./",
+    "sourceMap": true,
     "declaration": true,
+    "emitDeclarationOnly": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "lib": [
-      "ES2019",
-      "dom"
-    ],
+    "lib": ["ES2019", "dom"],
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./dist",
     "declarationDir": "./dist",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -29,10 +24,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
-  "exclude": [
-    "node_modules",
-    ".yarn"
-  ],
   "references": [
     {
       "path": "./tsconfig.node.json"

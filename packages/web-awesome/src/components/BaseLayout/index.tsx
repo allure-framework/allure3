@@ -12,7 +12,11 @@ import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/t
 import { fetchTreeData, treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
-export const BaseLayout = ({ testResultId }) => {
+export type BaseLayoutProps = {
+  testResultId?: string;
+};
+
+export const BaseLayout = ({ testResultId }: BaseLayoutProps) => {
   useEffect(() => {
     getTheme();
     getLocale();
@@ -23,7 +27,11 @@ export const BaseLayout = ({ testResultId }) => {
       fetchTestResult(testResultId);
       fetchTestResultNav();
     } else {
-      Promise.all([ensureReportDataReady(), fetchStats(), fetchPieChartData(), fetchTreeData(), fetchEnvInfo()]);
+      ensureReportDataReady();
+      fetchStats();
+      fetchPieChartData();
+      fetchTreeData();
+      fetchEnvInfo();
     }
   }, [testResultId]);
 

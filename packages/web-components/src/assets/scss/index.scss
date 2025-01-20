@@ -1,7 +1,7 @@
-@import "typography.scss";
-@import "day.scss";
-@import "night.scss";
-@import "theme.scss";
-@import "palette.scss";
-@import "common.scss";
-@import "vars.scss";
+@use "typography";
+@use "day";
+@use "night";
+@use "theme";
+@use "palette";
+@use "common";
+@use "vars";

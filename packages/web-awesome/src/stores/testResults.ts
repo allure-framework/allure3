@@ -3,13 +3,17 @@ import { signal } from "@preact/signals";
 import { type AllureAwesomeTestResult } from "../../types";
 import { type StoreSignalState } from "./types";
 
-export const testResultStore = signal<StoreSignalState<Record<string, AllureAwesomeTestResult>>>({
+export type TestResultsStoreState = Record<string, AllureAwesomeTestResult>;
+
+export type TestResultNavStoreState = string[];
+
+export const testResultStore = signal<StoreSignalState<TestResultsStoreState>>({
   loading: true,
   error: undefined,
   data: undefined,
 });
 
-export const testResultNavStore = signal<StoreSignalState<string[]>>({
+export const testResultNavStore = signal<StoreSignalState<TestResultNavStoreState>>({
   loading: true,
   error: undefined,
   data: undefined,

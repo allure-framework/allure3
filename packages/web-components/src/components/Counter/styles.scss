@@ -1,10 +1,10 @@
-@import "../../assets/scss/mixins.scss";
+@use "../../assets/scss/mixins";
 
 .counter {
   background-color: var(--bg-control-secondary);
   color: var(--on-text-primary);
   border-radius: 12px;
-  @include status-bg-and-text();
+  @include mixins.status-bg-and-text();
 
   &.size-s {
     padding-left: 8px;

@@ -6,6 +6,7 @@ export interface StoreSignalState<T> {
   loading: boolean;
   data?: T;
 }
+
 export type LoadableProps<T, K = T> = {
   source: Signal<StoreSignalState<T>>;
   transformData?: (data: T) => K;
