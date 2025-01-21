@@ -56,6 +56,16 @@ export interface ConfigOverride {
   knownIssuesPath?: string;
 }
 
+/**
+ * Validates the provided config
+ * At this moment supports unknown fields check only
+ * @example
+ * ```js
+ * validateConfig({ name: "Allure" }) // { valid: true }
+ * validateConfig({ name: "Allure", unknownField: "value" }) // { valid: false, fields: ["unknownField"] }
+ * ```
+ * @param config
+ */
 export const validateConfig = (config: Config) => {
   const supportedFields: (keyof Config)[] = [
     "name",
