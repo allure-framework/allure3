@@ -56,10 +56,10 @@ test.describe("SearchBox component with debounce", () => {
     const clearButton = page.getByTestId("clear-button");
 
     await searchInput.fill("i am input");
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(350);
 
+    await expect(searchInput).toHaveValue("i am input");
     await expect(clearButton).toBeVisible();
-
     await clearButton.click();
 
     await expect(searchInput).toHaveValue("");
