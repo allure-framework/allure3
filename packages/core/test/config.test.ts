@@ -1,9 +1,10 @@
+import type { Config } from "@allurereport/plugin-api";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
 import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { findConfig, getPluginId, resolvePlugin, validateConfig } from "../src/config.js";
+import { findConfig, getPluginId, resolveConfig, resolvePlugin, validateConfig } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
 vi.mock("../src/utils/module.js", () => ({
@@ -128,5 +129,93 @@ describe("resolvePlugin", () => {
     (importWrapper as unknown as MockInstance).mockRejectedValue(new Error("an error"));
 
     expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
+  });
+});
+
+describe("resolveConfig", () => {
+  it("should set default name if it's not provided", async () => {
+    const fixture = {} as Config;
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.name).toEqual("Allure Report");
+  });
+
+  it("should return provided report name", async () => {
+    const fixture = {
+      name: "Allure",
+    };
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.name).toEqual(fixture.name);
+  });
+
+  it("should allow to override given report name", async () => {
+    const fixture = {
+      name: "Allure",
+    };
+    const resolved = await resolveConfig(fixture, { name: "Custom" });
+
+    expect(resolved.name).toEqual("Custom");
+  });
+
+  it("should set default history path if it's not provided", async () => {
+    const fixture = {} as Config;
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.historyPath).toEqual(resolve("./.allure/history.jsonl"));
+  });
+
+  it("should return provided history path", async () => {
+    const fixture = {
+      historyPath: "./history.jsonl",
+    };
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.historyPath).toEqual(resolve("./history.jsonl"));
+  });
+
+  it("should allow to override given history path", async () => {
+    const fixture = {
+      historyPath: "./history.jsonl",
+    };
+    const resolved = await resolveConfig(fixture, { historyPath: "./custom/history.jsonl" });
+
+    expect(resolved.historyPath).toEqual(resolve("./custom/history.jsonl"));
+  });
+
+  it("should set default known issues path if it's not provided", async () => {
+    const fixture = {} as Config;
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.knownIssuesPath).toEqual(resolve("./allure/known.json"));
+  });
+
+  it("should return provided known issues path", async () => {
+    const fixture = {
+      knownIssuesPath: "./known.json",
+    };
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.knownIssuesPath).toEqual(resolve("./known.json"));
+  });
+
+  it("should allow to override given known issues path", async () => {
+    const fixture = {
+      knownIssuesPath: "./known.json",
+    };
+    const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
+
+    expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
+  });
+
+  it("should throw an error when config contains unsupported fields", async () => {
+    const fixture = {
+      name: "Allure",
+      unsupportedField: "value",
+    } as Config;
+
+    await expect(resolveConfig(fixture)).rejects.toThrow(
+      "The provided Allure config contains unsupported fields: unsupportedField",
+    );
   });
 });
