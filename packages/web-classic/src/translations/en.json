@@ -1,62 +1,108 @@
 {
-  "chart": {
-    "duration": {
-      "empty": "There is nothing to show",
-      "name": "Duration"
-    },
-    "severity": {
-      "name": "Severity"
-    },
-    "status": {
-      "name": "Status"
-    },
-    "trend": {
-      "empty": "There is nothing to show"
-    }
+  "statuses": {
+    "passed": "passed",
+    "failed": "failed",
+    "broken": "broken",
+    "skipped": "skipped",
+    "unknown": "unknown",
+    "total": "total",
+    "flakyTests": "flaky",
+    "newTests": "new",
+    "retryTests": "retry"
   },
-  "component": {
-    "markToggle": {
-      "hideCases": "Hide {{mark}} test results",
-      "showCases": "Show {{mark}} test results"
-    },
-    "statusToggle": {
-      "hideCases": "Hide test results with {{status}} status",
-      "showCases": "Show test results with {{status}} status"
-    },
-    "tree": {
-      "download": "Download CSV",
-      "empty": "There are no items",
-      "filter": "Status",
-      "filter-marks": "Marks",
-      "filtered": {
-        "shown": "{{count}} shown",
-        "total": "{{count}} test result",
-        "total_plural": "{{count}} test results"
-      },
-      "groups": "Toggle groups info",
-      "time": {
-        "max": {
-          "name": "Max",
-          "tooltip": "Longest test duration"
-        },
-        "sum": {
-          "name": "Sum",
-          "tooltip": "Sum of all tests durations"
-        },
-        "total": {
-          "name": "Total",
-          "tooltip": "Duration from first test started to last test finished"
-        }
-      },
-      "unknown": "<Empty>"
-    },
-    "widgetStatus": {
-      "showAll": "Show all",
-      "total": "{{count}} item total",
-      "total_plural": "{{count}} items total"
-    }
+  "testSummary": {
+    "all": "All Test",
+    "flaky": "Flaky test",
+    "retry": "Retry test",
+    "new": "New test"
+  },
+  "tabs": {
+    "total": "All"
+  },
+  "search": {
+    "search": "Search",
+    "search-placeholder": "Name or ID"
+  },
+  "filters": {
+    "more-filters": "More filters",
+    "enable-filter": "params('Enable \"{filter}\" filter')",
+    "flaky": "Flaky",
+    "retry": "Retry",
+    "new": "New"
+  },
+  "sort-by": {
+    "sort-by-text": "Sort by:",
+    "sort-by-category": "Sort by",
+    "direction-category": "Direction"
+  },
+  "sort-by.values": {
+    "order": "Order",
+    "alphabet": "Alphabet",
+    "duration": "Duration",
+    "status": "Status"
+  },
+  "sort-by.directions": {
+    "order-desc": "Latest – Earliest",
+    "order-asc": "Earliest – Latest",
+    "order-asc-short": "Earliest",
+    "order-desc-short": "Latest",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "As in the filter list",
+    "status-desc": "Reversed",
+    "status-asc-short": "Regular",
+    "status-desc-short": "Reversed"
+  },
+  "empty": {
+    "no-results": "No results",
+    "no-tests-found": "No results found",
+    "no-message-provided": "No message is provided",
+    "clear-filters": "Clear filters",
+    "no-attachments-results": "No attachments information available",
+    "no-history-results": "No history information available",
+    "no-retries-results": "No retries information available"
+  },
+  "severity": {
+    "blocker": "blocker",
+    "critical": "critical",
+    "normal": "normal",
+    "minor": "minor",
+    "trivial": "trivial"
+  },
+  "execution": {
+    "name": "Execution",
+    "body": "Test body",
+    "setup": "Set up",
+    "teardown": "Tear down"
+  },
+  "ui": {
+    "labels": "Labels",
+    "metadata": "Metadata",
+    "parameters": "Parameters",
+    "description": "Description",
+    "links": "Links",
+    "overview": "Overview",
+    "history": "History",
+    "attachments": "Attachments",
+    "retries": "Retries",
+    "error": "Error",
+    "goToStep": "Go to step",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "copy": "Copy",
+    "at": "at"
   },
   "controls": {
+    "newTabAttachment": "Open attachment in new tab",
+    "nextTR": "Next Test result",
+    "prevTR": "Previous Test result",
+    "downloadAttachment": "Download attachment",
     "backto": "Back to",
     "clipboard": "Copy to clipboard",
     "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",
@@ -64,159 +110,10 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "fullscreen": "Full screen",
-    "language": "Change language"
+    "language": "Change language",
+    "openInNewTab": "Open in new tab"
   },
   "errors": {
-    "missedAttachment": "Attachment not found",
-    "notFound": "Not found"
-  },
-  "marks": {
-    "flaky": "Flaky",
-    "newBroken": "New broken",
-    "newFailed": "New failed",
-    "newPassed": "New passed",
-    "retriesStatusChange": "Status changed after retry"
-  },
-  "sorter": {
-    "duration": "duration",
-    "name": "name",
-    "order": "order",
-    "status": "status"
-  },
-  "status": {
-    "broken": "Broken",
-    "failed": "Failed",
-    "passed": "Passed",
-    "skipped": "Skipped",
-    "unknown": "Unknown"
-  },
-  "tab": {
-    "categories": {
-      "name": "Categories"
-    },
-    "graph": {
-      "name": "Graphs"
-    },
-    "overview": {
-      "name": "Overview"
-    },
-    "suites": {
-      "name": "Suites"
-    },
-    "timeline": {
-      "name": "Timeline",
-      "selected": "Selected {{count}} test ({{percent}}%) with duration above {{duration}}",
-      "selected_plural": "Selected {{count}} tests ({{percent}}%) with duration above {{duration}}"
-    }
-  },
-  "testResult": {
-    "categories": {
-      "name": "Categories"
-    },
-    "description": {
-      "name": "Description"
-    },
-    "duration": {
-      "name": "Duration"
-    },
-    "execution": {
-      "body": "Test body",
-      "downloadAttachment": {
-        "tooltip": "Open attachment in new tab"
-      },
-      "name": "Execution",
-      "setup": "Set up",
-      "teardown": "Tear down"
-    },
-    "history": {
-      "empty": "No history information available.",
-      "name": "History",
-      "statistic": "{{passed}} of {{total}}",
-      "successRate": "Success rate",
-      "time": "{{date}} at {{time}}"
-    },
-    "links": {
-      "name": "Links"
-    },
-    "overview": {
-      "name": "Overview"
-    },
-    "owner": {
-      "name": "Owner"
-    },
-    "parameters": {
-      "name": "Parameters"
-    },
-    "retries": {
-      "empty": "There is no information available about test retries",
-      "name": "Retries",
-      "time": "{{date}} at {{time}}"
-    },
-    "severity": {
-      "name": "Severity",
-      "blocker": "blocker",
-      "critical": "critical",
-      "normal": "normal",
-      "minor": "minor",
-      "trivial": "trivial"
-    },
-    "stats": {
-      "count": {
-        "attachments": "{{count}} attachment",
-        "attachments_plural": "{{count}} attachments",
-        "parameters": "{{count}} parameter",
-        "parameters_plural": "{{count}} parameters",
-        "steps": "{{count}} sub-step",
-        "steps_plural": "{{count}} sub-steps"
-      }
-    },
-    "status": {
-      "empty": "Empty status details",
-      "trace": "Show trace"
-    },
-    "tags": {
-      "name": "Tags"
-    }
-  },
-  "widget": {
-    "categories": {
-      "name": "Categories"
-    },
-    "categoriesTrend": {
-      "name": "Categories trend"
-    },
-    "durationTrend": {
-      "name": "Duration trend"
-    },
-    "environment": {
-      "empty": "There are no environment variables",
-      "name": "Environment",
-      "showAll": "Show all"
-    },
-    "executors": {
-      "empty": "There is no information about tests executors",
-      "name": "Executors",
-      "unknown": "Unknown"
-    },
-    "launches": {
-      "empty": "There is no information about launches",
-      "name": "Launches"
-    },
-    "retryTrend": {
-      "name": "Retries trend"
-    },
-    "suites": {
-      "name": "Suites"
-    },
-    "summary": {
-      "aggregatedName": "Aggregated report",
-      "launches": "launch",
-      "launches_plural": "launches",
-      "testResults": "test case",
-      "testResults_plural": "test cases"
-    },
-    "trend": {
-      "name": "Trend"
-    }
+    "missedAttachment": "Attachment not found"
   }
 }

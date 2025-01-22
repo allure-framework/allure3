@@ -3,18 +3,17 @@ import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo } from "@/utils/navigate";
+import { navigateTo } from "@/stores/router";
 import * as styles from "./styles.scss";
 
 interface TreeItemProps {
   name: string;
   status: TestStatus;
   duration?: number;
-  uid: string;
-  parentUid?: string;
-  time: Allure2Time;
+  id: string;
   groupOrder: number;
-  marked?: boolean;
+  parentNodeId?: string;
+  isMarked?: boolean;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -22,22 +21,21 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   groupOrder,
   status,
   duration,
-  uid,
-  parentUid,
-  time,
-  marked,
+  id,
+  parentNodeId,
+  isMarked,
   ...rest
 }) => {
-  const formattedDuration = formatDuration(time?.duration);
+  const formattedDuration = formatDuration(duration);
 
   return (
     <div
       {...rest}
-      className={clsx(styles["tree-item"], marked && styles["tree-item-selected"])}
-      onClick={() => navigateTo(`#suites/${parentUid}/${uid}`)}
+      className={clsx(styles["tree-item"], isMarked && styles["tree-item-marked"])}
+      onClick={() => navigateTo(`#suites/${parentNodeId}/${id}`)}
     >
       <TreeItemIcon status={status} />
-      <span data-testid="tree-leaf-order" class={styles.order}>
+      <span data-testid="tree-leaf-order" className={styles.order}>
         {groupOrder}
       </span>
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>

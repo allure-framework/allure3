@@ -17,18 +17,21 @@ interface TreeProps {
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
-  const {
-    params: { id, subId },
-  } = route.value;
-  const [isOpened, setIsOpen] = useState(root || false);
+  const { params } = route.value;
+  const { id: parentId, subId } = params;
+
+  const [isOpened, setIsOpen] = useState(
+    parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken,
+  );
+  console.log(parentId, tree);
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
-  // const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
+  const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
 
-  // if (emptyTree) {
-  //   return null;
-  // }
+  if (emptyTree) {
+    return null;
+  }
 
   const treeContent = isOpened && (
     <div
@@ -38,34 +41,28 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
         [styles.root]: root,
       })}
     >
-      {tree?.children?.map?.((leaf, key) => {
-        if (leaf.children?.length) {
-          return (
-            <Tree
-              key={leaf.nodeId}
-              name={leaf.name}
-              tree={leaf}
-              statistic={leaf.statistic}
-              statusFilter={statusFilter}
-            />
-          );
-        }
-
-        return (
-          <TreeItem
-            data-testid="tree-leaf"
-            key={leaf.nodeId}
-            uid={leaf.uid}
-            time={leaf.time}
-            parentUid={leaf.parentUid}
-            name={leaf.name}
-            status={leaf.status}
-            groupOrder={leaf.groupOrder || key + 1}
-            duration={leaf.duration}
-            marked={subId === leaf.uid}
-          />
-        );
-      })}
+      {tree?.trees?.map?.((subTree) => (
+        <Tree
+          key={subTree.nodeId}
+          name={subTree.name}
+          tree={subTree}
+          statistic={subTree.statistic}
+          statusFilter={statusFilter}
+        />
+      ))}
+      {tree?.leaves?.map?.((leaf) => (
+        <TreeItem
+          data-testid="tree-leaf"
+          key={leaf.nodeId}
+          id={leaf.nodeId}
+          name={leaf.name}
+          status={leaf.status}
+          groupOrder={leaf.groupOrder}
+          duration={leaf.duration}
+          parentNodeId={tree.nodeId}
+          isMarked={leaf.nodeId === subId}
+        />
+      ))}
     </div>
   );
 

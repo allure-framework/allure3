@@ -15,15 +15,13 @@ export type TestResultOverviewProps = {
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
-  const { message, trace, parameters, groupedLabels, links, description, setup, testStage, afterStages } =
-    testResult || {};
-  console.log(testStage);
+  const { error, parameters, groupedLabels, links, description, setup, steps, teardown } = testResult || {};
 
   return (
     <>
-      {Boolean(message) && (
+      {Boolean(error?.message) && (
         <div className={styles["test-result-errors"]}>
-          <TestResultError message={message} trace={trace} />
+          <TestResultError {...error} />
         </div>
       )}
       {Boolean(parameters?.length) && <TestResultParameters parameters={parameters} />}
@@ -33,10 +31,9 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
       {Boolean(links?.length) && <TestResultLinks links={links} />}
       {Boolean(description) && <TestResultDescription description={description} />}
       <div className={styles["test-results"]}>
-        {testStage.length}
         {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
-        {Boolean(testStage.steps?.length) && <TestResultSteps steps={testStage.steps} />}
-        {Boolean(afterStages?.length) && <TestResultTeardown teardown={afterStages} />}
+        {Boolean(steps?.length) && <TestResultSteps steps={steps} />}
+        {Boolean(teardown?.length) && <TestResultTeardown teardown={teardown} />}
       </div>
     </>
   );

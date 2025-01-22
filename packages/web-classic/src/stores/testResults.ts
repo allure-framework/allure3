@@ -49,7 +49,7 @@ export const fetchTestResult = async (testResultId: string) => {
   };
 
   try {
-    const data = await fetchReportJsonData<AllureAwesomeTestResult>(`/data/test-cases/${testResultId}.json`);
+    const data = await fetchReportJsonData<AllureAwesomeTestResult>(`/data/test-results/${testResultId}.json`);
 
     testResultStore.value = {
       data: { ...testResultStore.value.data, [testResultId]: data },

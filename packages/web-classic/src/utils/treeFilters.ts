@@ -1,90 +1,87 @@
-import type { TreeFiltersState } from "@/stores/tree";
-import type { AllureAwesomeRecursiveTree, AllureAwesomeTree, AllureAwesomeTreeGroup } from "../../types";
+import type { Comparator, DefaultTreeGroup, Statistic, TestStatus, TreeLeaf } from "@allurereport/core-api";
+import {
+  alphabetically,
+  andThen,
+  byStatistic,
+  byStatus,
+  compareBy,
+  emptyStatistic,
+  incrementStatistic,
+  mergeStatistic,
+  ordinal,
+  reverse,
+} from "@allurereport/core-api";
+import type { TreeFiltersState, TreeSortBy } from "@/stores/tree";
+import type {
+  AllureAwesomeRecursiveTree,
+  AllureAwesomeTree,
+  AllureAwesomeTreeGroup,
+  AllureAwesomeTreeLeaf,
+} from "../../types";
 
-const statusOrder = {
-  failed: 1,
-  broken: 2,
-  passed: 3,
-  skipped: 4,
-  unknown: 5,
+export const isIncluded = (leaf: TreeLeaf<AllureAwesomeTreeLeaf>, filterOptions: TreeFiltersState) => {
+  const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
+  const statusMatched =
+    !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
+  const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
+  const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
+  // TODO: at this moment we don't have a new field implementation even in the generator
+  // const newMatched = !filterOptions?.filter?.new || leaf.new;
+
+  return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
+};
+
+const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<AllureAwesomeTreeLeaf>> => {
+  const typedCompareBy = compareBy<TreeLeaf<AllureAwesomeTreeLeaf>>;
+  switch (sortBy) {
+    case "order":
+      return typedCompareBy("groupOrder", ordinal());
+    case "duration":
+      return typedCompareBy("duration", ordinal());
+    case "alphabet":
+      return typedCompareBy("name", alphabetically());
+    case "status":
+      return typedCompareBy("status", byStatus());
+  }
+};
+
+const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTreeGroup> => {
+  const typedCompareBy = compareBy<DefaultTreeGroup>;
+  switch (sortBy) {
+    case "alphabet":
+      return typedCompareBy("name", alphabetically());
+    case "order":
+    case "duration":
+    case "status":
+      return typedCompareBy("statistic", byStatistic());
+  }
+};
+
+export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<AllureAwesomeTreeLeaf>> => {
+  const cmp = leafComparatorByTreeSortBy(filterOptions.sortBy);
+  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
+  // apply fallback sorting by name
+  return andThen([directional, compareBy("name", alphabetically())]);
+};
+
+export const groupComparator = (filterOptions: TreeFiltersState): Comparator<DefaultTreeGroup> => {
+  const cmp = groupComparatorByTreeSortBy(filterOptions.sortBy);
+  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
+  // apply fallback sorting by name
+  return andThen([directional, compareBy("name", alphabetically())]);
 };
 
 export const filterLeaves = (
   leaves: string[] = [],
   leavesById: AllureAwesomeTree["leavesById"],
-  filterOptions?: TreeFiltersState,
+  filterOptions: TreeFiltersState,
 ) => {
   const filteredLeaves = [...leaves]
     .map((leafId) => leavesById[leafId])
-    .filter((leaf) => {
-      const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
-      const statusMatched =
-        !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
-      const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
-      const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
-      // TODO: at this moment we don't have a new field implementation even in the generator
-      // const newMatched = !filterOptions?.filter?.new || leaf.new;
+    .filter((leaf: TreeLeaf<AllureAwesomeTreeLeaf>) => isIncluded(leaf, filterOptions));
 
-      return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
-    });
-
-  if (!filterOptions) {
-    return filteredLeaves;
-  }
-
-  return filteredLeaves.sort((a, b) => {
-    const asc = filterOptions.direction === "asc";
-
-    switch (filterOptions.sortBy) {
-      case "order":
-        return asc ? a.groupOrder - b.groupOrder : b.groupOrder - a.groupOrder;
-      case "duration":
-        return asc ? (a.duration || 0) - (b.duration || 0) : (b.duration || 0) - (a.duration || 0);
-      case "alphabet":
-        return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-      case "status": {
-        const statusA = statusOrder[a.status] || statusOrder.unknown;
-        const statusB = statusOrder[b.status] || statusOrder.unknown;
-
-        return asc ? statusA - statusB : statusB - statusA;
-      }
-      default:
-        return 0;
-    }
-  });
-};
-
-export const filterNodes = (nodes: any[] = [], filterOptions?: TreeFiltersState) => {
-  return nodes
-    .filter((node) => {
-      const queryMatched =
-        !filterOptions?.query || node.name?.toLowerCase().includes(filterOptions.query.toLowerCase());
-      const statusMatched =
-        !filterOptions?.status || filterOptions?.status === "total" || node.status === filterOptions.status;
-      const flakyMatched = !filterOptions?.filter?.flaky || node.flaky;
-      const retryMatched = !filterOptions?.filter?.retry || node.retry;
-
-      return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
-    })
-    .sort((a, b) => {
-      const asc = filterOptions?.direction === "asc";
-
-      switch (filterOptions?.sortBy) {
-        case "order":
-          return asc ? (a.groupOrder || 0) - (b.groupOrder || 0) : (b.groupOrder || 0) - (a.groupOrder || 0);
-        case "duration":
-          return asc ? (a.duration || 0) - (b.duration || 0) : (b.duration || 0) - (a.duration || 0);
-        case "alphabet":
-          return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-        case "status": {
-          const statusA = statusOrder[a.status] || statusOrder.unknown;
-          const statusB = statusOrder[b.status] || statusOrder.unknown;
-          return asc ? statusA - statusB : statusB - statusA;
-        }
-        default:
-          return 0;
-      }
-    });
+  const comparator = leafComparator(filterOptions);
+  return filteredLeaves.sort(comparator);
 };
 
 /**
@@ -92,39 +89,56 @@ export const filterNodes = (nodes: any[] = [], filterOptions?: TreeFiltersState)
  * Filters leaves when `filterOptions` property is provided
  * @param payload
  */
-export const createRecursiveTree = ({
-  node,
-  filterOptions,
-}: {
-  node: AllureAwesomeTreeGroup;
+export const createRecursiveTree = (payload: {
+  group: AllureAwesomeTreeGroup;
+  groupsById: AllureAwesomeTree["groupsById"];
+  leavesById: AllureAwesomeTree["leavesById"];
   filterOptions?: TreeFiltersState;
-}): any => {
-  if (!node) {
-    return null;
-  }
+}): AllureAwesomeRecursiveTree => {
+  const { group, groupsById, leavesById, filterOptions } = payload;
+  const groupLeaves: string[] = group.leaves ?? [];
 
-  const filteredChildren =
-    node.children
-      ?.map((child: any) => createRecursiveTree({ node: child, filterOptions }))
-      ?.filter((child: any) => child !== null) || [];
+  const leaves = filterLeaves(groupLeaves, leavesById, filterOptions);
+  const trees =
+    group.groups
+      ?.map((groupId) =>
+        createRecursiveTree({
+          group: groupsById[groupId],
+          groupsById,
+          leavesById,
+          filterOptions,
+        }),
+      )
+      ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
+
+  const statistic: Statistic = emptyStatistic();
+  trees.forEach((rt: AllureAwesomeRecursiveTree) => {
+    if (rt.statistic) {
+      const additional: Statistic = rt.statistic;
+      mergeStatistic(statistic, additional);
+    }
+  });
+  leaves.forEach((leaf) => {
+    const status: TestStatus = leaf.status;
+    incrementStatistic(statistic, status);
+  });
 
   return {
-    ...node,
-    uid: node.uid,
-    parentUid: node.parentUid,
-    name: node.name,
-    children: filterNodes(filteredChildren, filterOptions),
+    ...group,
+    statistic,
+    leaves,
+    trees: trees.sort(groupComparator(filterOptions)),
   };
 };
 
 export const isRecursiveTreeEmpty = (tree: AllureAwesomeRecursiveTree): boolean => {
-  if (!tree.children?.length) {
+  if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }
 
-  if (tree.children?.length) {
+  if (tree.leaves?.length) {
     return false;
   }
 
-  return tree.children?.every((subTree) => isRecursiveTreeEmpty(subTree));
+  return tree.trees?.every((subTree) => isRecursiveTreeEmpty(subTree));
 };

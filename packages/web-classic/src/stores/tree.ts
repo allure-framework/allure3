@@ -21,9 +21,7 @@ export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
   data: undefined,
 });
 
-export const noTests = computed(() => {
-  return !Object.keys(treeStore?.value?.data)?.length;
-});
+export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
 
 export const treeFiltersStore = signal<TreeFiltersState>({
   query: "",
@@ -38,8 +36,12 @@ export const treeFiltersStore = signal<TreeFiltersState>({
 });
 
 export const filteredTree = computed(() => {
+  const { root, leavesById, groupsById } = treeStore.value.data;
+
   return createRecursiveTree({
-    node: treeStore.value.data as AllureAwesomeTreeGroup,
+    group: root as AllureAwesomeTreeGroup,
+    leavesById,
+    groupsById,
     filterOptions: treeFiltersStore.value,
   });
 });
@@ -108,8 +110,7 @@ export const fetchTreeData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AllureAwesomeTree>("/data/suites.json");
-    // console.log(res);
+    const res = await fetchReportJsonData<AllureAwesomeTree>("widgets/tree.json");
 
     treeStore.value = {
       data: res,

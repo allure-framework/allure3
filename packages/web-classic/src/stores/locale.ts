@@ -45,7 +45,7 @@ i18next
   .use({
     type: "backend",
     async read(language: LangLocale, namespace: string, callback: (errorValue: unknown, translations: null) => void) {
-      await import(`@/i18n/locales/${language}.json`)
+      await import(`@/translations/${language}.json`)
         .then((resources) => {
           callback(null, resources[namespace]);
         })

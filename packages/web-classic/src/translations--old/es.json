@@ -1,0 +1,209 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "No hay nada para mostrar",
+      "name": "Duración"
+    },
+    "severity": {
+      "name": "Severidad"
+    },
+    "status": {
+      "name": "Estado"
+    },
+    "trend": {
+      "empty": "No hay nada para mostrar"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Ocultar {{mark}} resultados de prueba",
+      "showCases": "Mostrar {{mark}} resultados de prueba"
+    },
+    "statusToggle": {
+      "hideCases": "Ocultar resultados de pruebas con estado {{status}}",
+      "showCases": "Mostrar resultados de pruebas con estado {{status}}"
+    },
+    "tree": {
+      "download": "Descargar CSV",
+      "empty": "No hay ítems",
+      "filter": "Estado",
+      "unknown": "<Vacío>",
+      "filtered": {
+        "shown": "{{count}} mostrados",
+        "total": "{{count}} resultado",
+        "total_plural": "{{count}} resultados"
+      },
+      "groups": "Alternar información del grupo",
+      "time": {
+        "max": {
+          "name": "Max",
+          "tooltip": "Prueba con mayor duración"
+        },
+        "sum": {
+          "name": "Suma",
+          "tooltip": "Suma de todas las pruebas"
+        },
+        "total": {
+          "name": "Total",
+          "tooltip": "Duración desde el primer test iniciado hasta el último finalizado"
+        }
+      }
+    },
+    "widgetStatus": {
+      "showAll": "Mostrar todo",
+      "total": "total de ítems {{count}}",
+      "total_plural": "total de ítems {{count}}"
+    }
+  },
+  "controls": {
+    "backto": "Volver a",
+    "clipboard": "Copiar a portapapeles",
+    "clipboardError": "No es posible utilizar el portapapeles. Parece ser que esta funcionalidad no es soportada por tu navegador",
+    "clipboardSuccess": "Copiado exitosamente",
+    "collapse": "Colapsar",
+    "expand": "Expandir",
+    "fullscreen": "Pantalla completa",
+    "language": "Cambiar lenguaje"
+  },
+  "errors": {
+    "missedAttachment": "Adjunto no encontrado",
+    "notFound": "No encontrado"
+  },
+  "marks": {
+    "flaky": "Inestable",
+    "newBroken": "Nuevo roto",
+    "newFailed": "Nuevo fallido",
+    "newPassed": "Nuevo pasado",
+    "retriesStatusChange": "El estado cambió después de reintentar"
+  },
+  "sorter": {
+    "duration": "duración",
+    "name": "nombre",
+    "order": "orden",
+    "status": "estado"
+  },
+  "status": {
+    "broken": "Roto",
+    "failed": "Fallido",
+    "passed": "Exitoso",
+    "skipped": "Ignorado",
+    "unknown": "Desconocido"
+  },
+  "tab": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "graph": {
+      "name": "Gráficos"
+    },
+    "overview": {
+      "name": "Visión General"
+    },
+    "suites": {
+      "name": "Suites"
+    },
+    "timeline": {
+      "name": "Línea de Tiempo",
+      "selected": "Selecionada {{count}} prueba ({{percent}}%) con duración arriba de {{duration}}",
+      "selected_plural": "Selecionadas {{count}} pruebas ({{percent}}%) con duración arriba de {{duration}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "description": {
+      "name": "Descripción"
+    },
+    "duration": {
+      "name": "Duración"
+    },
+    "execution": {
+      "body": "Contenido de la prueba",
+      "name": "Ejecución",
+      "setup": "Pre-ejecución",
+      "teardown": "Post-ejecución"
+    },
+    "history": {
+      "name": "Histórico",
+      "successRate": "Tasa de éxito"
+    },
+    "links": {
+      "name": "Links"
+    },
+    "overview": {
+      "name": "Visión general"
+    },
+    "owner": {
+      "name": "Propietario"
+    },
+    "parameters": {
+      "name": "Parámetros"
+    },
+    "retries": {
+      "empty": "No hay información disponible sobre los reintentos de la prueba",
+      "name": "Reintentos"
+    },
+    "severity": {
+      "name": "Severidad"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} adjunto",
+        "attachments_plural": "{{count}} adjuntos",
+        "parameters": "{{count}} parámetro",
+        "parameters_plural": "{{count}} parámetros",
+        "steps": "{{count}} sub-paso",
+        "steps_plural": "{{count}} sub-pasos"
+      }
+    },
+    "status": {
+      "empty": "Detalles de estado no existente",
+      "trace": "Mostrar trace"
+    },
+    "tags": {
+      "name": "Etiquetas"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Categorías"
+    },
+    "categoriesTrend": {
+      "name": "Tendencia de categorías"
+    },
+    "durationTrend": {
+      "name": "Tendencia de duraciones"
+    },
+    "environment": {
+      "empty": "No hay variables de ambiente definidas",
+      "name": "Ambiente",
+      "showAll": "Mostrar todo"
+    },
+    "executors": {
+      "empty": "No hay información sobre los ejecutores de pruebas",
+      "name": "Ejecutores",
+      "unknown": "Desconocido"
+    },
+    "launches": {
+      "empty": "No hay información sobre ejecutores",
+      "name": "Ejecutores"
+    },
+    "retryTrend": {
+      "name": "Tendencia de reintentos"
+    },
+    "suites": {
+      "name": "Suites"
+    },
+    "summary": {
+      "aggregatedName": "Reporte agregado",
+      "launches": "ejecución",
+      "launches_plural": "ejecuciones",
+      "testResults": "caso de prueba",
+      "testResults_plural": "casos de prueba"
+    },
+    "trend": {
+      "name": "Tendencia"
+    }
+  }
+}

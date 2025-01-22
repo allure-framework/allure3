@@ -1,4 +1,4 @@
-import { Button, Heading, Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import type { AllureAwesomeStatus } from "types";
 import Tree from "@/components/Tree/Tree";
@@ -12,7 +12,7 @@ export const TreeList = () => {
 
   useEffect(() => {
     setTreeStatus(currentTab.value as AllureAwesomeStatus);
-  }, [currentTab]);
+  }, [currentTab.value]);
 
   return (
     <Loadable

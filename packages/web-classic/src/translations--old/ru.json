@@ -1,0 +1,215 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "Нет данных",
+      "name": "Длительность тестов"
+    },
+    "severity": {
+      "name": "Важность тестов"
+    },
+    "status": {
+      "name": "Статусы тестов"
+    },
+    "trend": {
+      "empty": "Нет данных"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "Скрыть {{mark}} результаты",
+      "showCases": "Показать {{mark}} результаты"
+    },
+    "statusToggle": {
+      "hideCases": "Скрыть результаты со статусом \"{{status}}\"",
+      "showCases": "Показать результаты со статусом \"{{status}}\""
+    },
+    "tree": {
+      "empty": "Нет данных",
+      "filter": "Статусы",
+      "filter-marks": "Метки",
+      "filtered": {
+        "shown_0": "{{count}} показан",
+        "shown_1": "{{count}} показано",
+        "shown_2": "{{count}} показано",
+        "total_0": "всего {{count}} тест",
+        "total_1": "всего {{count}} теста",
+        "total_2": "всего {{count}} тестов"
+      },
+      "groups": "Показывать информацию о группах",
+      "time": {
+        "max": {
+          "name": "Самый долгий",
+          "tooltip": "Длительность самого долгого теста в группе"
+        },
+        "sum": {
+          "name": "Суммарно",
+          "tooltip": "Сумма длительностей всех тестов в группе"
+        },
+        "total": {
+          "name": "Итого",
+          "tooltip": "Время с начала первого теста до конца последнего"
+        }
+      },
+      "unknown": "<Пусто>"
+    },
+    "widgetStatus": {
+      "showAll": "Показать все",
+      "total_0": "Всего {{count}} элемент",
+      "total_1": "Всего {{count}} элемента",
+      "total_2": "Всего {{count}} элементов"
+    }
+  },
+  "controls": {
+    "backto": "Вернуться на",
+    "clipboard": "Скопировать в буфер обмена",
+    "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",
+    "clipboardSuccess": "Значение успешно скопировано",
+    "collapse": "Свернуть",
+    "expand": "Развернуть",
+    "fullscreen": "На весь экран",
+    "language": "Сменить язык"
+  },
+  "errors": {
+    "missedAttachment": "Вложение не найдено",
+    "notFound": "Не найдено"
+  },
+  "marks": {
+    "flaky": "Нестабильный",
+    "newBroken": "Новый сломанный",
+    "newFailed": "Новый упавший",
+    "newPassed": "Новый пройденный",
+    "retriesStatusChange": "Изменение статуса в перезапуске"
+  },
+  "sorter": {
+    "duration": "длительность",
+    "name": "имя",
+    "order": "порядок",
+    "status": "статус"
+  },
+  "status": {
+    "broken": "Сломалось",
+    "failed": "Не прошло",
+    "passed": "Прошло",
+    "skipped": "Пропущено",
+    "unknown": "Неизвестно"
+  },
+  "tab": {
+    "categories": {
+      "name": "Категории"
+    },
+    "graph": {
+      "name": "Графики"
+    },
+    "overview": {
+      "name": "Обзор"
+    },
+    "suites": {
+      "name": "Тест сюиты"
+    },
+    "timeline": {
+      "name": "Временная шкала",
+      "selected_0": "Выбран {{count}} тест ({{percent}}%) с длительностью выше {{duration}}",
+      "selected_1": "Выбрано {{count}} теста ({{percent}}%) с длительностью выше {{duration}}",
+      "selected_2": "Выбрано {{count}} тестов ({{percent}}%) с длительностью выше {{duration}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "Категории"
+    },
+    "description": {
+      "name": "Описание"
+    },
+    "duration": {
+      "name": "Длительность"
+    },
+    "execution": {
+      "body": "Тело теста",
+      "name": "Выполнение",
+      "setup": "Подготовка",
+      "teardown": "Завершение"
+    },
+    "history": {
+      "name": "История",
+      "successRate": "Success rate"
+    },
+    "links": {
+      "name": "Ссылки"
+    },
+    "overview": {
+      "name": "Обзор"
+    },
+    "owner": {
+      "name": "Ответственный"
+    },
+    "parameters": {
+      "name": "Параметры"
+    },
+    "retries": {
+      "empty": "Нет информации о перезапусках теста",
+      "name": "Перезапуски"
+    },
+    "severity": {
+      "name": "Важность",
+      "blocker": "блокер",
+      "critical": "критическая",
+      "normal": "обычная",
+      "minor": "невысокая",
+      "trivial": "минимальная"
+    },
+    "stats": {
+      "count": {
+        "attachments_0": "{{count}} вложение",
+        "attachments_1": "{{count}} вложения",
+        "attachments_2": "{{count}} вложений",
+        "parameters_0": "{{count}} параметр",
+        "parameters_1": "{{count}} параметра",
+        "parameters_2": "{{count}} параметров",
+        "steps_0": "{{count}} вложенный шаг",
+        "steps_1": "{{count}} вложенных шага",
+        "steps_2": "{{count}} вложенных шагов"
+      }
+    },
+    "status": {
+      "empty": "Дополнительная информация о статусе отсутствует",
+      "trace": "Показать трейс"
+    },
+    "tags": {
+      "name": "Теги"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "Категории"
+    },
+    "environment": {
+      "empty": "Отсутствует информация про окружение",
+      "name": "Окружение",
+      "showAll": "Показать все"
+    },
+    "executors": {
+      "empty": "Данные о системе выполнения тестов отсутствуют",
+      "name": "Система выполнения тестов",
+      "unknown": "Неизвестно"
+    },
+    "launches": {
+      "empty": "Отсутствует информация про запуски",
+      "name": "Запуски тестов"
+    },
+    "suites": {
+      "name": "Тест сюиты"
+    },
+    "summary": {
+      "aggregatedName": "Агрегированый отчет",
+      "launches_0": "запуск тестов",
+      "launches_1": "запуска тестов",
+      "launches_2": "запусков тестов",
+      "testResults_0": "тестовый сценарий",
+      "testResults_1": "тестовых сценария",
+      "testResults_2": "тестовых сценариев"
+    },
+    "trend": {
+      "name": "Тренд"
+    }
+  }
+}

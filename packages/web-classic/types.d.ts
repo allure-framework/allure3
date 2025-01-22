@@ -60,6 +60,8 @@ export type AllureAwesomeTestResult = Omit<
   order?: number;
   groupOrder?: number;
   retry: boolean;
+  time?: Record<string, string[]>;
+  extra?: { severity: string };
 };
 
 export type AllureAwesomeTreeLeaf = Pick<

@@ -1,217 +1,118 @@
 {
-  "chart": {
-    "duration": {
-      "empty": "Il n'y a rien à montrer",
-      "name": "Durée"
-    },
-    "severity": {
-      "name": "Sévérité"
-    },
-    "status": {
-      "name": "Statut"
-    },
-    "trend": {
-      "empty": "Il n'y a rien à montrer"
-    }
+  "statuses": {
+    "passed": "réussi",
+    "failed": "échoué",
+    "broken": "cassé",
+    "skipped": "ignoré",
+    "unknown": "inconnu",
+    "total": "total",
+    "flakyTests": "instables",
+    "newTests": "nouveaux",
+    "retryTests": "réessais"
   },
-  "component": {
-    "markToggle": {
-      "hideCases": "Cacher les résultats de test marqués {{mark}}",
-      "showCases": "Montrer les résultats de test marqués {{mark}}"
-    },
-    "statusToggle": {
-      "hideCases": "Cacher les résultats de test avec le statut {{status}}",
-      "showCases": "Montrer les résultats de test avec le statut {{status}}"
-    },
-    "tree": {
-      "download": "Télécharger le fichier CSV",
-      "empty": "Il n'y a aucun article",
-      "filter": "Statut",
-      "filter-marks": "Marques",
-      "filtered": {
-        "shown": "{{count}} montré",
-        "total": "{{count}} résultat de test",
-        "total_plural": "{{count}} résultats de test"
-      },
-      "groups": "Basculer les informations des groupes",
-      "time": {
-        "max": {
-          "name": "Maximum",
-          "tooltip": "Durée la plus longue"
-        },
-        "sum": {
-          "name": "Somme",
-          "tooltip": "Somme de toutes les durées"
-        },
-        "total": {
-          "name": "Total",
-          "tooltip": "Durée depuis le premier test démarré jusqu'au dernier test terminé"
-        }
-      },
-      "unknown": "<Vide>"
-    },
-    "widgetStatus": {
-      "showAll": "Montrer tout",
-      "total": "{{count}} article au total",
-      "total_plural": "{{count}} articles au total"
-    }
+  "testSummary": {
+    "all": "Tous les tests",
+    "flaky": "Tests instables",
+    "retry": "Tests réessayés",
+    "new": "Nouveaux tests"
+  },
+  "tabs": {
+    "total": "Tous"
+  },
+  "search": {
+    "search": "Recherche",
+    "search-placeholder": "Nom ou ID"
+  },
+  "filters": {
+    "more-filters": "Plus de filtres",
+    "enable-filter": "Activer le filtre \"{filter}\"",
+    "flaky": "Instables",
+    "retry": "Réessais",
+    "new": "Nouveaux"
+  },
+  "sort-by": {
+    "sort-by-text": "Trier par :",
+    "sort-by-category": "Trier par",
+    "direction-category": "Direction"
+  },
+  "sort-by.values": {
+    "order": "Ordre",
+    "alphabet": "Alphabétique",
+    "duration": "Durée",
+    "status": "Statut"
+  },
+  "sort-by.directions": {
+    "order-desc": "Derniers – Premiers",
+    "order-asc": "Premiers – Derniers",
+    "order-asc-short": "Premiers",
+    "order-desc-short": "Derniers",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "Comme dans la liste des filtres",
+    "status-desc": "Inversé",
+    "status-asc-short": "Normal",
+    "status-desc-short": "Inversé"
+  },
+  "empty": {
+    "no-results": "Aucun résultat",
+    "no-tests-found": "Aucun résultat trouvé",
+    "clear-filters": "Effacer les filtres",
+    "no-attachments-results": "Aucune information sur les pièces jointes disponible",
+    "no-history-results": "Aucune information sur l'historique disponible",
+    "no-retries-results": "Aucune information sur les réessais disponible"
+  },
+  "severity": {
+    "blocker": "bloquant",
+    "critical": "critique",
+    "normal": "normal",
+    "minor": "mineur",
+    "trivial": "trivial"
+  },
+  "execution": {
+    "name": "Exécution",
+    "body": "Corps du test",
+    "setup": "Préparation",
+    "teardown": "Démontage"
+  },
+  "ui": {
+    "labels": "Étiquettes",
+    "metadata": "Métadonnées",
+    "parameters": "Paramètres",
+    "description": "Description",
+    "links": "Liens",
+    "overview": "Vue d'ensemble",
+    "history": "Historique",
+    "attachments": "Pièces jointes",
+    "retries": "Réessais",
+    "error": "Erreur",
+    "goToStep": "Aller à l'étape",
+    "showLess": "Montrer moins",
+    "showMore": "Montrer plus",
+    "copy": "Copier",
+    "at": "à"
   },
   "controls": {
-    "backto": "Retour vers",
+    "newTabAttachment": "Ouvrir dans un nouvel onglet",
+    "nextTR": "Résultat de test suivant",
+    "prevTR": "Résultat de test précédent",
+    "downloadAttachment": "Télécharger la pièce jointe",
+    "backto": "Retour à",
     "clipboard": "Copier dans le presse-papier",
-    "clipboardError": "Impossible de copier vers le presse-papier. Cette fonction ne semble pas être supportée par votre navigateur",
+    "clipboardError": "Erreur. Il semble que cette fonctionnalité ne soit pas prise en charge par votre navigateur",
     "clipboardSuccess": "Copié avec succès",
-    "collapse": "Plier",
-    "expand": "Déplier",
+    "collapse": "Réduire",
+    "expand": "Agrandir",
     "fullscreen": "Plein écran",
-    "language": "Changer de langue"
+    "language": "Changer la langue",
+    "openInNewTab": "Ouvrir dans un nouvel onglet"
   },
   "errors": {
-    "missedAttachment": "Pièce jointe non trouvée",
-    "notFound": "Non trouvé"
-  },
-  "marks": {
-    "flaky": "Instable",
-    "newBroken": "Cassé (nouveau)",
-    "newFailed": "Échoué (nouveau)",
-    "newPassed": "Réussi (nouveau)",
-    "retriesStatusChange": "L'état a changé après une nouvelle tentative"
-  },
-  "sorter": {
-    "duration": "durée",
-    "name": "nom",
-    "order": "ordre",
-    "status": "statut"
-  },
-  "status": {
-    "broken": "Cassé",
-    "failed": "Échoué",
-    "passed": "Passé",
-    "skipped": "Ignoré",
-    "unknown": "Inconnu"
-  },
-  "tab": {
-    "categories": {
-      "name": "Catégories"
-    },
-    "graph": {
-      "name": "Graphiques"
-    },
-    "overview": {
-      "name": "Aperçu"
-    },
-    "suites": {
-      "name": "Suites"
-    },
-    "timeline": {
-      "name": "Chronologie",
-      "selected": "{{count}} test sélectionné ({{percent}}%) avec une durée supérieure à {{duration}}",
-      "selected_plural": "{{count}} tests sélectionnés ({{percent}}%) avec une durée supérieure à {{duration}}"
-    }
-  },
-  "testResult": {
-    "categories": {
-      "name": "Catégories"
-    },
-    "description": {
-      "name": "Description"
-    },
-    "duration": {
-      "name": "Durée"
-    },
-    "execution": {
-      "body": "Contenu du test",
-      "downloadAttachment": {
-        "tooltip": "Ouvrir la pièce jointe dans un nouvel onglet"
-      },
-      "name": "Exécution",
-      "setup": "Pré exécution",
-      "teardown": "Post exécution"
-    },
-    "history": {
-      "empty": "Aucune information à propos de l'historique.",
-      "name": "Historique",
-      "statistic": "{{passed}} sur {{total}}",
-      "successRate": "Taux de succès",
-      "time": "{{date}} à {{time}}"
-    },
-    "links": {
-      "name": "Liens"
-    },
-    "overview": {
-      "name": "Aperçu"
-    },
-    "owner": {
-      "name": "Propriétaire"
-    },
-    "parameters": {
-      "name": "Paramètres"
-    },
-    "retries": {
-      "empty": "Aucune information à propos des tentatives",
-      "name": "Tentatives",
-      "time": "{{date}} à {{time}}"
-    },
-    "severity": {
-      "name": "Sévérité"
-    },
-    "stats": {
-      "count": {
-        "attachments": "{{count}} pièce jointe",
-        "attachments_plural": "{{count}} pièces jointes",
-        "parameters": "{{count}} paramètre",
-        "parameters_plural": "{{count}} paramètres",
-        "steps": "{{count}} sous-étape",
-        "steps_plural": "{{count}} sous-étapes"
-      }
-    },
-    "status": {
-      "empty": "Détails du statut vide",
-      "trace": "Afficher la trace"
-    },
-    "tags": {
-      "name": "Tags"
-    }
-  },
-  "widget": {
-    "categories": {
-      "name": "Catégories"
-    },
-    "categoriesTrend": {
-      "name": "Tendance des catégories"
-    },
-    "durationTrend": {
-      "name": "Tendance de la durée"
-    },
-    "environment": {
-      "empty": "Aucune variable d'environnement",
-      "name": "Environnement",
-      "showAll": "Afficher tout"
-    },
-    "executors": {
-      "empty": "Aucune information à propos des exécuteurs des tests",
-      "name": "Exécuteurs",
-      "unknown": "Inconnu"
-    },
-    "launches": {
-      "empty": "Aucune information à propos des lancements",
-      "name": "Lancements"
-    },
-    "retryTrend": {
-      "name": "Tendance des tentatives"
-    },
-    "suites": {
-      "name": "Suites"
-    },
-    "summary": {
-      "aggregatedName": "Rapport agrégé",
-      "launches": "lancement",
-      "launches_plural": "lancements",
-      "testResults": "cas de test",
-      "testResults_plural": "cas de test"
-    },
-    "trend": {
-      "name": "Tendance"
-    }
+    "missedAttachment": "Pièce jointe non trouvée"
   }
 }
