@@ -37,6 +37,7 @@ const Suites = () => {
       <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <div>ia</div>} />
     </div>
   );
+
   const SuitesList = () => (
     <div className={styles.suites}>
       <Heading size={"s"}>Suites</Heading>

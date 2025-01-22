@@ -10,11 +10,11 @@ import * as styles from "./styles.scss";
 const tabs = [
   { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: true },
   { tabName: "categories", title: "Categories", icon: "flag", active: false },
-  { tabName: "suites", title: "Suites", icon: "briefcase", active: false },
+  { tabName: "suites", title: "Suites", icon: "lineFilesFolder", active: false },
   { tabName: "graphs", title: "Graphs", icon: "bar-chart", active: false },
   { tabName: "timeline", title: "Timeline", icon: "clock", active: false },
   { tabName: "behaviors", title: "Behaviors", icon: "list", active: false },
-  { tabName: "packages", title: "Packages", icon: "layers", active: false },
+  { tabName: "packages", title: "Packages", icon: "lineDevDataflow3", active: false },
 ];
 const SideNav = () => {
   const { t } = useI18n("translation");
@@ -44,7 +44,7 @@ const SideNav = () => {
               <span className={styles.icon}>
                 <SvgIcon id={allureIcons[tab.icon]} />
               </span>
-              <Text className={styles.text}>{tab.title}</Text>
+              <Text className={styles.text}>{t(tab.title)}</Text>
             </a>
           </li>
         ))}

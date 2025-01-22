@@ -19,35 +19,35 @@ export const TreeList = () => {
       source={treeStore}
       renderLoader={() => <PageLoader />}
       renderData={() => {
-        // if (noTests.value) {
-        //   return (
-        //     <div className={styles["tree-list"]}>
-        //       <div className={styles["tree-empty-results"]}>
-        //         <Text className={styles["tree-empty-results-title"]}>{t("no-results")}</Text>
-        //       </div>
-        //     </div>
-        //   );
-        // }
+        if (noTests.value) {
+          return (
+            <div className={styles["tree-list"]}>
+              <div className={styles["tree-empty-results"]}>
+                <Text className={styles["tree-empty-results-title"]}>{t("no-results")}</Text>
+              </div>
+            </div>
+          );
+        }
 
-        // if (noTestsFound.value) {
-        //   return (
-        //     <div className={styles["tree-list"]}>
-        //       <div className={styles["tree-empty-results"]}>
-        //         <Text tag="p" className={styles["tree-empty-results-title"]}>
-        //           {t("no-tests-found")}
-        //         </Text>
-        //         <Button
-        //           className={styles["tree-empty-results-clear-button"]}
-        //           type="button"
-        //           text={t("clear-filters")}
-        //           size={"s"}
-        //           style={"outline"}
-        //           onClick={() => clearTreeFilters()}
-        //         />
-        //       </div>
-        //     </div>
-        //   );
-        // }
+        if (noTestsFound.value) {
+          return (
+            <div className={styles["tree-list"]}>
+              <div className={styles["tree-empty-results"]}>
+                <Text tag="p" className={styles["tree-empty-results-title"]}>
+                  {t("no-tests-found")}
+                </Text>
+                <Button
+                  className={styles["tree-empty-results-clear-button"]}
+                  type="button"
+                  text={t("clear-filters")}
+                  size={"s"}
+                  style={"outline"}
+                  onClick={() => clearTreeFilters()}
+                />
+              </div>
+            </div>
+          );
+        }
 
         return (
           <div className={styles["tree-list"]}>

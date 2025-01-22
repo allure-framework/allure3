@@ -54,50 +54,77 @@ export const filterLeaves = (
   });
 };
 
+export const filterNodes = (nodes: any[] = [], filterOptions?: TreeFiltersState) => {
+  return nodes
+    .filter((node) => {
+      const queryMatched =
+        !filterOptions?.query || node.name?.toLowerCase().includes(filterOptions.query.toLowerCase());
+      const statusMatched =
+        !filterOptions?.status || filterOptions?.status === "total" || node.status === filterOptions.status;
+      const flakyMatched = !filterOptions?.filter?.flaky || node.flaky;
+      const retryMatched = !filterOptions?.filter?.retry || node.retry;
+
+      return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
+    })
+    .sort((a, b) => {
+      const asc = filterOptions?.direction === "asc";
+
+      switch (filterOptions?.sortBy) {
+        case "order":
+          return asc ? (a.groupOrder || 0) - (b.groupOrder || 0) : (b.groupOrder || 0) - (a.groupOrder || 0);
+        case "duration":
+          return asc ? (a.duration || 0) - (b.duration || 0) : (b.duration || 0) - (a.duration || 0);
+        case "alphabet":
+          return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+        case "status": {
+          const statusA = statusOrder[a.status] || statusOrder.unknown;
+          const statusB = statusOrder[b.status] || statusOrder.unknown;
+          return asc ? statusA - statusB : statusB - statusA;
+        }
+        default:
+          return 0;
+      }
+    });
+};
+
 /**
  * Fills the given tree from generator and returns recursive tree which includes leaves data instead of their IDs
  * Filters leaves when `filterOptions` property is provided
  * @param payload
  */
-export const createRecursiveTree = (payload: {
-  group: AllureAwesomeTreeGroup;
-  groupsById: AllureAwesomeTree["groupsById"];
-  leavesById: AllureAwesomeTree["leavesById"];
+export const createRecursiveTree = ({
+  node,
+  filterOptions,
+}: {
+  node: AllureAwesomeTreeGroup;
   filterOptions?: TreeFiltersState;
-}): AllureAwesomeRecursiveTree => {
-  const { group, groupsById, leavesById, filterOptions } = payload;
-  const groupLeaves = group.leaves ?? [];
+}): any => {
+  if (!node) {
+    return null;
+  }
+
+  const filteredChildren =
+    node.children
+      ?.map((child: any) => createRecursiveTree({ node: child, filterOptions }))
+      ?.filter((child: any) => child !== null) || [];
 
   return {
-    ...group,
-    // FIXME: don't have any idea, why eslint marks next line as unsafe because it actually has a correct type
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    leaves: filterLeaves(groupLeaves, leavesById, filterOptions),
-    trees: group?.groups
-      ?.filter((groupId) => {
-        const subGroup = groupsById[groupId];
-
-        return subGroup?.leaves?.length || subGroup?.groups?.length;
-      })
-      ?.map((groupId) =>
-        createRecursiveTree({
-          group: groupsById[groupId],
-          groupsById,
-          leavesById,
-          filterOptions,
-        }),
-      ),
+    ...node,
+    uid: node.uid,
+    parentUid: node.parentUid,
+    name: node.name,
+    children: filterNodes(filteredChildren, filterOptions),
   };
 };
 
 export const isRecursiveTreeEmpty = (tree: AllureAwesomeRecursiveTree): boolean => {
-  if (!tree.trees?.length && !tree.leaves?.length) {
+  if (!tree.children?.length) {
     return true;
   }
 
-  if (tree.leaves?.length) {
+  if (tree.children?.length) {
     return false;
   }
 
-  return tree.trees?.every((subTree) => isRecursiveTreeEmpty(subTree));
+  return tree.children?.every((subTree) => isRecursiveTreeEmpty(subTree));
 };

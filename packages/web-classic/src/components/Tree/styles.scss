@@ -60,6 +60,9 @@
     border-top: 1px solid var(--on-border-muted);
   }
 }
+.tree-item-selected {
+  background: var(--ad-other-focus);
+}
 
 .item-title {
   display: flex;

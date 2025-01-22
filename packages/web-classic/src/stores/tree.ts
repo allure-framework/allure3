@@ -1,31 +1,9 @@
-import type { WithChildren } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AllureAwesomeStatus, AllureAwesomeTree, AllureAwesomeTreeGroup } from "types";
-import { flatten, get } from "underscore";
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
-const flattenChildren = (data) => {
-  const result = [];
-
-  const traverse = (node) => {
-    if (!node || typeof node !== "object") {
-      return;
-    }
-
-    // Добавляем текущий узел в результат
-    result.push(node);
-
-    // Если есть `children`, рекурсивно обходим их
-    if (Array.isArray(node.children)) {
-      node.children.forEach(traverse);
-    }
-  };
-
-  traverse(data);
-  return result;
-};
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
@@ -43,9 +21,9 @@ export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
   data: undefined,
 });
 
-export const noTests = computed(() =>
-  treeStore.value?.data?.leavesById ? !Object.keys(treeStore?.value?.data?.leavesById)?.length : true,
-);
+export const noTests = computed(() => {
+  return !Object.keys(treeStore?.value?.data)?.length;
+});
 
 export const treeFiltersStore = signal<TreeFiltersState>({
   query: "",
@@ -59,28 +37,11 @@ export const treeFiltersStore = signal<TreeFiltersState>({
   direction: "asc",
 });
 
-const getFlattenTestResults = (children: WithChildren) => {
-  return flatten(
-    children.map((child) => {
-      if (child.children) {
-        return getFlattenTestResults(child.children);
-      }
-      return child;
-    }),
-  );
-};
-
 export const filteredTree = computed(() => {
-  const { root, leavesById, groupsById } = treeStore.value.data;
-
-  return getFlattenTestResults(treeStore.value.data.children);
-
-  // return createRecursiveTree({
-  //   group: root as AllureAwesomeTreeGroup,
-  //   leavesById,
-  //   groupsById,
-  //   filterOptions: treeFiltersStore.value,
-  // });
+  return createRecursiveTree({
+    node: treeStore.value.data as AllureAwesomeTreeGroup,
+    filterOptions: treeFiltersStore.value,
+  });
 });
 
 export const noTestsFound = computed(() => {

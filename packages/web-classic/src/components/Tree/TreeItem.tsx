@@ -1,5 +1,6 @@
 import { type TestStatus, formatDuration } from "@allurereport/core-api";
 import { Text } from "@allurereport/web-components";
+import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { navigateTo } from "@/utils/navigate";
@@ -9,8 +10,11 @@ interface TreeItemProps {
   name: string;
   status: TestStatus;
   duration?: number;
-  id: string;
+  uid: string;
+  parentUid?: string;
+  time: Allure2Time;
   groupOrder: number;
+  marked?: boolean;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -20,12 +24,18 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   duration,
   uid,
   parentUid,
+  time,
+  marked,
   ...rest
 }) => {
-  const formattedDuration = formatDuration(duration);
+  const formattedDuration = formatDuration(time?.duration);
 
   return (
-    <div {...rest} className={styles["tree-item"]} onClick={() => navigateTo(`#suites/${parentUid}/${uid}`)}>
+    <div
+      {...rest}
+      className={clsx(styles["tree-item"], marked && styles["tree-item-selected"])}
+      onClick={() => navigateTo(`#suites/${parentUid}/${uid}`)}
+    >
       <TreeItemIcon status={status} />
       <span data-testid="tree-leaf-order" class={styles.order}>
         {groupOrder}

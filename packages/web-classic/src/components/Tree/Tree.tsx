@@ -4,6 +4,7 @@ import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus } from "types";
 import TreeItem from "@/components/Tree/TreeItem";
+import { route } from "@/stores/router";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
 
@@ -16,7 +17,10 @@ interface TreeProps {
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
-  const [isOpened, setIsOpen] = useState(statistic === undefined || !!statistic.failed || !!statistic.broken);
+  const {
+    params: { id, subId },
+  } = route.value;
+  const [isOpened, setIsOpen] = useState(root || false);
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };
@@ -26,7 +30,6 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   //   return null;
   // }
 
-  console.log(tree);
   const treeContent = isOpened && (
     <div
       data-testid="tree-content"
@@ -35,27 +38,34 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
         [styles.root]: root,
       })}
     >
-      {/* {tree?.map?.((subTree) => (*/}
-      {/*  <Tree*/}
-      {/*    key={subTree.nodeId}*/}
-      {/*    name={subTree.name}*/}
-      {/*    tree={subTree}*/}
-      {/*    statistic={subTree.statistic}*/}
-      {/*    statusFilter={statusFilter}*/}
-      {/*  />*/}
-      {/* ))}*/}
-      {tree?.map?.((leaf) => (
-        <TreeItem
-          data-testid="tree-leaf"
-          key={leaf.nodeId}
-          uid={leaf.uid}
-          parentUid={leaf.parentUid}
-          name={leaf.name}
-          status={leaf.status}
-          groupOrder={leaf.groupOrder}
-          duration={leaf.duration}
-        />
-      ))}
+      {tree?.children?.map?.((leaf, key) => {
+        if (leaf.children?.length) {
+          return (
+            <Tree
+              key={leaf.nodeId}
+              name={leaf.name}
+              tree={leaf}
+              statistic={leaf.statistic}
+              statusFilter={statusFilter}
+            />
+          );
+        }
+
+        return (
+          <TreeItem
+            data-testid="tree-leaf"
+            key={leaf.nodeId}
+            uid={leaf.uid}
+            time={leaf.time}
+            parentUid={leaf.parentUid}
+            name={leaf.name}
+            status={leaf.status}
+            groupOrder={leaf.groupOrder || key + 1}
+            duration={leaf.duration}
+            marked={subId === leaf.uid}
+          />
+        );
+      })}
     </div>
   );
 

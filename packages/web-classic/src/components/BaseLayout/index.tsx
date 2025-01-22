@@ -19,7 +19,7 @@ export const BaseLayout = ({ children }) => {
     //   fetchTestResultNav();
     // } else {
     ensureReportDataReady();
-    // fetchStats();
+    fetchStats();
     // fetchPieChartData();
     fetchTreeData();
     // fetchEnvInfo();

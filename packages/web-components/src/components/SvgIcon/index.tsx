@@ -17,7 +17,9 @@ import lineArrowsSortLineDesc from "@/assets/svg/line-arrows-sort-line-desc.svg"
 import lineArrowsSwitchVertical1 from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
 import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
+import lineDevDataflow3 from "@/assets/svg/line-dev-dataflow-3.svg";
 import lineFilesFileAttachment2 from "@/assets/svg/line-files-file-attachment-2.svg";
+import lineFilesFolder from "@/assets/svg/line-files-folder.svg";
 import lineGeneralCheck from "@/assets/svg/line-general-check.svg";
 import lineGeneralChecklist3 from "@/assets/svg/line-general-checklist3.svg";
 import lineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
@@ -69,7 +71,9 @@ export const allureIcons = {
   lineArrowsSwitchVertical1: lineArrowsSwitchVertical1.id,
   lineDevBug2: lineDevBug2.id,
   lineDevCodeSquare: lineDevCodeSquare.id,
+  lineDevDataflow3: lineDevDataflow3.id,
   lineFilesFileAttachment2: lineFilesFileAttachment2.id,
+  lineFilesFolder: lineFilesFolder.id,
   lineGeneralCheck: lineGeneralCheck.id,
   lineGeneralChecklist3: lineGeneralChecklist3.id,
   lineGeneralCopy3: lineGeneralCopy3.id,
