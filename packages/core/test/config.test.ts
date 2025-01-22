@@ -7,9 +7,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { findConfig, getPluginId, resolveConfig, resolvePlugin, validateConfig } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
+class PluginFixture {}
+
 vi.mock("../src/utils/module.js", () => ({
   importWrapper: vi.fn(),
 }));
+
+beforeEach(() => {
+  (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
+});
 
 describe("findConfig", () => {
   let fixturesDir: string;
@@ -206,6 +212,23 @@ describe("resolveConfig", () => {
     const resolved = await resolveConfig(fixture, { knownIssuesPath: "./custom/known.json" });
 
     expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
+  });
+
+  it("should set awesome as a default plugin if no plugins are provided", async () => {
+    (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
+
+    expect((await resolveConfig({})).plugins).toContainEqual({
+      id: "awesome",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
+    expect((await resolveConfig({ plugins: {} })).plugins).toContainEqual({
+      id: "awesome",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
   });
 
   it("should throw an error when config contains unsupported fields", async () => {

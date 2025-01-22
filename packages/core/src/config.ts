@@ -101,7 +101,15 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const history = await readHistory(historyPath);
   const known = await readKnownIssues(knownIssuesPath);
-  const pluginInstances = await resolvePlugins(config.plugins ?? {});
+  const plugins =
+    Object.keys(config?.plugins ?? {}).length === 0
+      ? {
+          awesome: {
+            options: {},
+          },
+        }
+      : config.plugins!;
+  const pluginInstances = await resolvePlugins(plugins);
 
   return {
     name,
