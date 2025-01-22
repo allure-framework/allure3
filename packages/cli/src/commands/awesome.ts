@@ -31,11 +31,13 @@ export const AwesomeCommandAction = async (resultsDir: string, options: AwesomeC
     },
   });
   const allureReport = new AllureReport(config);
+
   await allureReport.start();
   await allureReport.readDirectory(resultsDir);
   await allureReport.done();
 
   const after = new Date().getTime();
+
   console.log(`the report successfully generated (${after - before}ms)`);
 };
 
