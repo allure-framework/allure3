@@ -7986,6 +7986,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.8"
+    "@vitest/snapshot": "npm:^2.1.8"
     allure-vitest: "npm:^3.0.9"
     cac: "npm:^6.7.14"
     eslint: "npm:^8.57.0"
