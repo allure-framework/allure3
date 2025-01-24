@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Statistic, TestStatus } from "../../src/index.js";
+import { nullsDefault, nullsFirst, nullsLast } from "../../src/index.js";
 import { alphabetically, byName, byStatistic, byStatus, ordinal } from "../../src/index.js";
 
 const randomInt = (max: number = 1000): number => {
@@ -7,11 +8,11 @@ const randomInt = (max: number = 1000): number => {
 };
 
 const randomIntOrUndefined = (max: number = 1000): number | undefined => {
-  const number = randomInt(3);
-  if (number === 0) {
+  const rnd = randomInt(3);
+  if (rnd === 0) {
     return undefined;
   }
-  if (number === 1) {
+  if (rnd === 1) {
     return 0;
   }
   return randomInt(max);
@@ -70,6 +71,27 @@ describe("comparator", () => {
     it("should sort undefined last", () => {
       const result = [123, 43, 155, undefined as unknown as number, 24].sort(ordinal());
       expect(result).toEqual([24, 43, 123, 155, undefined]);
+    });
+  });
+
+  describe("nullsLast", () => {
+    it("should sort undefined last", () => {
+      const result = [123, 43, 155, null as unknown as number, 24].sort(nullsLast<number>((a, b) => a - b));
+      expect(result).toEqual([24, 43, 123, 155, null]);
+    });
+  });
+
+  describe("nullsFirst", () => {
+    it("should sort undefined first", () => {
+      const result = [123, 43, 155, null as unknown as number, 24].sort(nullsFirst<number>((a, b) => a - b));
+      expect(result).toEqual([null, 24, 43, 123, 155]);
+    });
+  });
+
+  describe("nullsDefault", () => {
+    it("should sort undefined with specified default value correctly", () => {
+      const result = [123, 43, 155, null as unknown as number, 24].sort(nullsDefault<number>((a, b) => a - b, 50));
+      expect(result).toEqual([24, 43, null, 123, 155]);
     });
   });
 
@@ -267,6 +289,20 @@ describe("comparator", () => {
       };
       const result = [statistic1, undefined as any as Statistic, statistic3, statistic2].sort(byStatistic());
       expect(result).toEqual([statistic3, statistic1, statistic2, undefined]);
+    });
+
+    it("should compare undefined with zero", () => {
+      const statistic1: Statistic = {
+        failed: 0,
+        passed: 3,
+        total: randomInt(),
+      };
+      const statistic2: Statistic = {
+        broken: 12,
+        total: randomInt(),
+      };
+      const result = [statistic1, statistic1, statistic2].sort(byStatistic());
+      expect(result).toEqual([statistic2, statistic1, statistic1]);
     });
   });
 });

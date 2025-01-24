@@ -17,11 +17,24 @@ export const nullsLast = <T extends {}>(compare: Comparator<T>): Comparator<T | 
     a === b ? 0 : a === undefined || a === null ? 1 : b === undefined || b === null ? -1 : compare(a, b);
 };
 
+export const nullsFirst = <T extends {}>(compare: Comparator<T>): Comparator<T | undefined> => {
+  return (a, b) =>
+    a === b ? 0 : a === undefined || a === null ? -1 : b === undefined || b === null ? 1 : compare(a, b);
+};
+
+export const nullsDefault = <T extends {}>(compare: Comparator<T>, defaultValue: T): Comparator<T | undefined> => {
+  return (a, b) => compare(a ?? defaultValue, b ?? defaultValue);
+};
+
 export const compareBy = <T extends Record<string, any> = {}, P extends keyof T = keyof T>(
   property: P,
   compare: Comparator<Value<T, P>>,
+  defaultValue?: T[P],
 ): Comparator<T> => {
   return nullsLast((a, b) => {
+    if (defaultValue !== undefined) {
+      return compare(a[property] ?? defaultValue, b[property] ?? defaultValue);
+    }
     if (property in a && property in b) {
       return compare(a[property], b[property]);
     }
@@ -50,7 +63,7 @@ export const byStatus: SortFunction<TestStatus | undefined> = () => {
   });
 };
 export const byStatistic: SortFunction<Statistic | undefined> = () => {
-  const compares = statusesList.map((status) => compareBy<Statistic>(status, reverse(ordinal())));
+  const compares = statusesList.map((status) => compareBy<Statistic>(status, reverse(ordinal()), 0));
   return nullsLast(andThen(compares));
 };
 
