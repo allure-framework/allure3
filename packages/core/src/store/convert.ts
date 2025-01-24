@@ -13,8 +13,7 @@ import type {
   TestStatus,
   TestStepResult,
 } from "@allurereport/core-api";
-import { notNull } from "@allurereport/core-api";
-import { findByLabelName } from "@allurereport/core-api";
+import { findByLabelName, notNull } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
@@ -53,8 +52,10 @@ export const testFixtureResultRawToState = (
     type: raw.type,
     name,
     status: raw.status ?? defaultStatus,
-    message: raw.message,
-    trace: raw.trace,
+    error: {
+      message: raw.message,
+      trace: raw.trace,
+    },
 
     ...processTimings(raw),
 
@@ -84,8 +85,10 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     historyId: calculateHistoryId(testCase, parameters),
 
     status: raw.status ?? defaultStatus,
-    message: raw.message,
-    trace: raw.trace,
+    error: {
+      message: raw.message,
+      trace: raw.trace,
+    },
 
     ...processTimings(raw),
 

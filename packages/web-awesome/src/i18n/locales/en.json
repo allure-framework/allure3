@@ -62,6 +62,7 @@
   "empty": {
     "no-results": "No results",
     "no-tests-found": "No results found",
+    "no-message-provided": "No message is provided",
     "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
     "no-history-results": "No history information available",

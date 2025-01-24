@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 import type { TestResult } from "@allurereport/core-api";
-import { MockedFunction, describe, expect, it, vi } from "vitest";
+import type { MockedFunction } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { printTest } from "../src/utils.js";
 
 const glueConsoleCalls = (calls: any[]) => calls.flatMap((args: any[]) => args[0]).join("\n");
@@ -130,7 +132,9 @@ describe("printTest", () => {
                 {
                   name: "step 1.2.1",
                   status: "failed",
-                  message: "Error message",
+                  error: {
+                    message: "Error message",
+                  },
                 },
               ],
             },
@@ -157,8 +161,10 @@ describe("printTest", () => {
         {
           name: "step 1",
           status: "failed",
-          message: "Error message",
-          trace: "Error trace",
+          error: {
+            message: "Error message",
+            trace: "Error trace",
+          },
         },
       ],
     } as TestResult;

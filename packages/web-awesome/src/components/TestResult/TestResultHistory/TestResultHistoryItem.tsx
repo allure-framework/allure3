@@ -1,7 +1,7 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
 import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
-import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+import { type FunctionalComponent } from "preact";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
@@ -12,8 +12,8 @@ import { timestampToDate } from "@/utils/time";
 
 export const TestResultHistoryItem: FunctionalComponent<{
   testResultItem: HistoryTestResult;
-}> = ({ testResultItem }) => {
-  const { status, message, trace, stop, duration, id } = testResultItem;
+}> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
+  const { status, error, stop, duration, id } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
   const formattedDuration = formatDuration(duration as number);
@@ -24,7 +24,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
   return (
     <div>
       <div className={styles["test-result-history-item-header"]}>
-        {Boolean(message) && (
+        {Boolean(error) && (
           <span onClick={() => setIsOpen(!isOpened)}>
             <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
           </span>
@@ -57,9 +57,9 @@ export const TestResultHistoryItem: FunctionalComponent<{
           </div>
         </div>
       </div>
-      {isOpened && message && (
+      {isOpened && error && (
         <div>
-          <TestResultError message={message} trace={trace} />
+          <TestResultError {...error} />
         </div>
       )}
     </div>

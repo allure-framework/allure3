@@ -70,12 +70,12 @@ export const printTest = (test: TestResult, options?: PrintFunctionOptions, inde
 
   console.info(`${indentSpaces}${title}`);
 
-  if (failedResult && test?.message) {
-    console.info(`${indentSpaces}  ${red(test.message)}`);
+  if (failedResult && test.error?.message) {
+    console.info(`${indentSpaces}  ${red(test.error.message)}`);
   }
 
-  if (options?.withTrace && failedResult && test?.trace) {
-    test.trace.split("\n").forEach((line) => {
+  if (options?.withTrace && failedResult && test.error?.trace) {
+    test.error.trace.split("\n").forEach((line) => {
       console.info(`${indentSpaces}  ${gray(line)}`);
     });
   }
@@ -98,12 +98,12 @@ export const printStep = (step: DefaultTestStepResult, options?: PrintFunctionOp
 
   console.info(`${indentSpaces}${title}`);
 
-  if (failedResult && step?.message) {
-    console.info(`  ${indentSpaces}${red(step.message)}`);
+  if (failedResult && step.error?.message) {
+    console.info(`  ${indentSpaces}${red(step.error?.message)}`);
   }
 
-  if (options?.withTrace && failedResult && step?.trace) {
-    step.trace.split("\n").forEach((line) => {
+  if (options?.withTrace && failedResult && step.error?.trace) {
+    step.error.trace.split("\n").forEach((line) => {
       console.info(`  ${indentSpaces}${gray(line)}`);
     });
   }
