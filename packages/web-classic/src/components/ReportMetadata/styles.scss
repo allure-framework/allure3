@@ -1,0 +1,99 @@
+@import "~@allurereport/web-components/mixins.scss";
+
+.report-metadata {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.report-metadata-wrapper {
+  padding: 0 24px;
+  align-items: center;
+}
+
+.report-metadata-separator {
+  border-left: 1px solid var(--on-border-primary);
+  height: 24px;
+  margin: 11px 0;
+}
+
+.report-metadata-status {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.report-metadata-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 16px 0;
+  border-top: 1px solid var(--on-border-primary);
+  border-bottom: 1px solid var(--on-border-primary);
+  width: 100%;
+}
+
+.report-metadata-all-tests {
+  display: flex;
+  gap: 24px;
+  margin-right: 8px;
+}
+
+.metadata-item-title {
+  color: var(--on-text-secondary);
+  margin-bottom: 6px;
+}
+
+.metadata-item-value {
+  font-weight: bold;
+}
+
+.report-metadata {
+  border-bottom: 1px solid var(--on-border-primary);
+}
+
+.report-metadata-keyvalue {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.report-metadata-keyvalue-title {
+  padding: 8px 0;
+}
+
+.report-metadata-keyvalue-value {
+  padding: 8px 0;
+}
+
+.report-metadata-list {
+  display: grid;
+  column-gap: 48px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(5, auto);
+  grid-auto-flow: column;
+  padding-top: 16px;
+}
+
+.metadata-test-type {
+  display: flex;
+}
+
+.metadata-color-badge {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--on-text-secondary);
+  margin-right: 8px;
+  align-self: center;
+  @include status-bg-and-text();
+}
+
+.metadata-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.metadata-icon {
+  margin-right: 8px;
+  color: var(--on-icon-secondary);
+}

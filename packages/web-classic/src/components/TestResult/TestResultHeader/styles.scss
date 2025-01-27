@@ -1,0 +1,43 @@
+.test-result-breadcrumbs {
+  margin-right: auto;
+  display: flex;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.test-result-home {
+  flex: none;
+}
+
+.test-result-breadcrumb-link {
+  color: var(--on-text-secondary);
+}
+
+.test-result-breadcrumb {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--on-text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.test-result-breadcrumb-title {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.above {
+  margin-bottom: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.test-result-breadcrumb-arrow {
+  transform: rotate(-90deg);
+}

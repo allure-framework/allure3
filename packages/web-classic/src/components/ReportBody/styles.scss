@@ -1,0 +1,64 @@
+.header {
+  padding: 24px;
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.headerRow {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  row-gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.body {
+  padding: 16px 24px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* This is a hack because button do not have this state */
+.filtersBtnWithFilters > button::after {
+  content: "";
+  background-color: var(--bg-support-aldebaran);
+  width: 6px;
+  height: 6px;
+  border-radius: 100px;
+  position: absolute;
+  top: 7px;
+  right: 3px;
+}
+
+.filterToggle {
+  padding-top: 2px;
+}
+
+.sortByText {
+  color: var(--on-text-secondary);
+}
+
+.sortByBtnWrap {
+  /*
+    Because button is 24px height it makes
+    menu item to be 24px height too
+    But design is not that
+   */
+  margin-top: -2px;
+  margin-bottom: -2px;
+}
+
+.sortByIcon {
+  transition: transform var(--interaction-transition-duration) ease-out;
+
+  &.sortByIconReversed {
+    transform: rotate(180deg);
+  }
+}

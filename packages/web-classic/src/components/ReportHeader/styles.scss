@@ -1,0 +1,49 @@
+.report-header {
+  display: flex;
+  column-gap: 12px;
+  justify-content: space-between;
+  padding: 24px;
+  align-items: flex-start;
+}
+
+.report-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.report-wrapper-text {
+  flex-grow: 1;
+  margin-bottom: 16px;
+}
+
+.report-date {
+  color: var(--on-text-secondary);
+  display: block;
+}
+
+.report-header-logo {
+  margin-right: 12px;
+}
+
+.report-header-labels {
+  display: flex;
+}
+
+.report-header-label-list {
+  display: flex;
+  width: 100%;
+  column-gap: 8px;
+}
+
+.wrapper-header {
+  margin-bottom: 2px;
+}
+
+.report-header-pie {
+  width: 88px;
+}
+
+.report-header-pie-chart {
+  width: 88px;
+}

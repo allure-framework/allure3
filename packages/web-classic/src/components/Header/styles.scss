@@ -1,0 +1,26 @@
+.above {
+  margin-bottom: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoWrapper {
+  margin-right: auto;
+  color: var(--on-text-secondary);
+}
+
+.logo {
+  margin-right: 8px;
+  color: var(--on-icon-secondary);
+  top: -2px;
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
