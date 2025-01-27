@@ -1,0 +1,34 @@
+<div>
+    <div class="attachment-row" data-uid="{{uid}}">
+        <span class="attachment-row__arrow block__arrow">{{angle}}</span>
+        <div class="attachment-row__icon">
+            <span data-tooltip="{{type}}" class="attachment-icon">
+              {{allure-icon (fileicon type) noTooltip=true width="12px" height="12px"}}
+            </span>
+        </div>
+        <div class="attachment-row__name long-line">
+            {{#if name}}
+                {{name}}
+            {{else}}
+                {{source}}
+            {{/if}}
+        </div>
+        <div class="attachment-row__control attachment-row__link">
+            <div class="link"
+                  data-download="data/attachments/{{source}}"
+                  data-download-target="_blank"
+                  data-download-type="{{type}}"
+                  data-tooltip="Open attachment in new tab">
+                {{allure-icon "save" noTooltip=true width="12px" height="12px"}} {{filesize size}}
+            </div>
+        </div>
+        <div class="attachment-row__control attachment-row__fullscreen">
+            <a class="link">
+              {{allure-icon "maximize" noTooltip=true width="12px" height="12px"}}
+            </a>
+        </div>
+    </div>
+    <div class="attachment-row__preview">
+        <div class="attachment-row__content {{b 'attachment' uid }}"></div>
+    </div>
+</div>

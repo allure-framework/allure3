@@ -1,0 +1,40 @@
+<h2 class="widget__title">
+    {{t 'widget.executors.name'}}
+</h2>
+<div class="table table_hover widget__table">
+{{#if items}}
+    {{#each items}}
+    <span class="table__row">
+        <div class="{{b 'table' 'col'}} executor">
+            <div class="executor-icon">
+              {{job-icon type width="32px" height="32px"}}
+              <span>{{name}}</span>
+            </div>
+        </div>
+        {{#if buildName}}
+            <div class="{{b 'table' 'col' right=true}} executor">
+                {{#if buildUrl}}
+                    <a class="link" href="{{buildUrl}}">
+                        {{buildName}}
+                        {{allure-icon "link" noTooltip=true width="12px" height="12px"}}
+                    </a>
+                {{else}}
+                    {{buildName}}
+                {{/if}}
+
+            </div>
+        {{else}}
+            <div class="{{b 'table' 'col' right=true}}">
+                {{t 'widget.executors.unknown'}}
+            </div>
+        {{/if}}
+    </span>
+    {{/each}}
+{{else}}
+    <div class="table__row">
+        <div class="{{b 'table' 'col' center=true}}">
+            {{t 'widget.executors.empty'}}
+        </div>
+    </div>
+{{/if}}
+</div>

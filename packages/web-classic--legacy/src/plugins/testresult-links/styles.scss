@@ -1,0 +1,19 @@
+.testresult-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 4px;
+}
+
+.testresult-link {
+  display: inline-flex;
+  align-items: center;
+
+  &:not(:last-child):after {
+    content: ",";
+  }
+
+  & .link {
+    margin-left: 4px;
+  }
+}

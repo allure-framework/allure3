@@ -1,0 +1,22 @@
+<div class="sorter">
+{{#each sorters}}
+    <div class="{{b 'sorter' 'item'}}"
+         data-name="{{name}}"
+         data-asc="{{asc}}"
+         data-ga4-event="sort_click"
+         data-ga4-param-name="{{name}}">
+        <span class="{{b 'sorter' enabled=(or asc desc)}} {{b 'sorter' 'name'}}">{{t name}}</span>
+        <svg width="16px" height="16px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0_7_44)">
+            <path class="{{b 'sorter' enabled=asc}}" data-asc="true" d="M16 28L9 21L10.41 19.59L16 25.17L21.59 19.59L23 21L16 28Z" fill="currentColor"/>
+            <path class="{{b 'sorter' enabled=desc}}" data-desc="true" d="M16 4L23 11L21.59 12.41L16 6.83L10.41 12.41L9 11L16 4Z" fill="currentColor"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_7_44">
+              <rect width="32" height="32" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+    </div>
+{{/each}}
+</div>

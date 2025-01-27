@@ -1,0 +1,34 @@
+<div class="{{b 'pane' 'title' borderless=true}}">
+    <span class="{{b 'pane' 'title-text'}}">{{t tabName}}</span>
+    {{#if filtered}}
+        <span class="{{b 'pane' 'subtitle'}}">
+        {{t 'component.tree.filtered.total' count=totalCases}},
+            {{t 'component.tree.filtered.shown' count=shownCases}}
+    </span>
+    {{/if}}
+    <div class="{{b 'pane' 'search'}}"></div>
+    <span class="pane__controls">
+        <span class="{{b cls 'control'}} {{b cls 'info'}}"
+              data-tooltip="{{t 'component.tree.groups'}}">
+          {{allure-icon "info" noTooltip=true width="18px" height="18px"}}
+        </span>
+        {{#if csvUrl}}
+            <span class="{{b cls 'control'}} {{b cls 'download'}}"
+               data-tooltip="{{t 'component.tree.download'}}"
+               data-ga4-event="csv_download_click"
+               data-download="{{csvUrl}}"
+               data-download-type="text/csv">
+              {{allure-icon "download" noTooltip=true width="18px" height="18px"}}
+            </span>
+        {{/if}}
+    </span>
+</div>
+
+<div class="{{b cls 'ctrl'}}">
+    <div class="{{b cls 'sorter'}}"></div>
+    <div class="{{b cls 'strut'}}"></div>
+    <div class="{{b cls 'filter'}}"></div>
+    <div class="{{b cls 'filter-marks'}}"></div>
+</div>
+
+<div class="{{b cls 'content'}}" ></div>

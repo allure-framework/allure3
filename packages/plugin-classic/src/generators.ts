@@ -1,9 +1,24 @@
-import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { Allure2ReportOptions } from "@allurereport/web-classic";
+import {
+  type AttachmentLink,
+  type EnvironmentItem,
+  type Statistic,
+  compareBy,
+  incrementStatistic,
+  nullsLast,
+  ordinal,
+} from "@allurereport/core-api";
+import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
+import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
+import type {
+  AllureAwesomeFixtureResult,
+  AllureAwesomeReportOptions,
+  AllureAwesomeTestResult,
+  AllureAwesomeTreeGroup,
+  AllureAwesomeTreeLeaf,
+} from "@allurereport/web-awesome";
 import {
   createBaseUrlScript,
-  createFaviconLinkTag,
+  createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
@@ -12,42 +27,28 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import type {
-  Allure2Category,
-  Allure2ExecutorInfo,
-  Allure2HistoryTrendItem,
-  Allure2TestResult,
-  GroupTime,
-  StatusChartData,
-  SummaryData,
-} from "./model.js";
-import type { Classifier, TreeLayer } from "./tree.js";
-import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
-import { updateStatistic, updateTime } from "./utils.js";
-import type { Allure2DataWriter, ReportFile } from "./writer.js";
+import { getChartData } from "./charts.js";
+import { convertFixtureResult, convertTestResult } from "./converters.js";
+import type { AllureAwesomeOptions, TemplateManifest } from "./model.js";
+import type { AllureAwesomeDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
 
-export type TemplateManifest = Record<string, string>;
-
 const template = `<!DOCTYPE html>
-<html dir="ltr" lang="{{reportLanguage}}">
+<html dir="ltr" lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{{reportName}}</title>
+    <title> {{ reportName }} </title>
+    <link rel="icon" href="favicon.ico">
     {{{ headTags }}}
 </head>
 <body>
-    <svg id="__SVG_SPRITE_NODE__" aria-hidden="true" style="position: absolute; width: 0; height: 0"></svg>
-    <div id="alert"></div>
-    <div id="content">
-        <span class="spinner">
-            <span class="spinner__circle"></span>
-        </span>
-    </div>
-    <div id="popup"></div>
-    {{{ bodyTags }}}
+    <div id="app"></div>
     ${createBaseUrlScript()}
+    <script>
+      window.allure = window.allure || {};
+    </script>
+    {{{ bodyTags }}}
     {{#if analyticsEnable}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNDJ3J7WT0"></script>
     <script>
@@ -55,15 +56,15 @@ const template = `<!DOCTYPE html>
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-LNDJ3J7WT0', {
-          'allureVersion': '{{allureVersion}}',
-          'report':'classic',
-          'reportUuid': '{{reportUuid}}',
-          'single_file': '{{singleFile}}'
+          "report": "awesome",
+          "allureVersion": "{{ allureVersion }}",
+          "reportUuid": "{{ reportUuid }}",
+          "single_file": "{{singleFile}}"
         });
     </script>
     {{/if}}
     <script>
-      window.allureReportOptions = {{{ reportOptions }}};
+      window.allureReportOptions = {{{ reportOptions }}}
     </script>
     {{{ reportFilesScript }}}
 </body>
@@ -72,105 +73,234 @@ const template = `<!DOCTYPE html>
 
 export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
   const templateManifestSource = require.resolve(
-    `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
+    `@allurereport/web-awesome/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
   );
   const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
 
   return JSON.parse(templateManifest);
 };
 
-export const readManifestEntry = async (options: {
-  fileName: string;
-  singleFile?: boolean;
-  mimeType: string;
-  reportFiles: ReportFiles;
-  inserter: (content: string) => string;
-}) => {
-  const { fileName, singleFile, mimeType, inserter, reportFiles } = options;
-  const filePath = require.resolve(join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName));
-  const scriptContentBuffer = await readFile(filePath);
+const createBreadcrumbs = (convertedTr: AllureAwesomeTestResult) => {
+  const labelsByType = convertedTr.labels.reduce(
+    (acc, label) => {
+      if (!acc[label.name]) {
+        acc[label.name] = [];
+      }
+      acc[label.name].push(label.value || "");
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
 
-  if (singleFile) {
-    return inserter(`data:${mimeType};base64,${scriptContentBuffer.toString("base64")}`);
-  }
+  const parentSuites = labelsByType.parentSuite || [""];
+  const suites = labelsByType.suite || [""];
+  const subSuites = labelsByType.subSuite || [""];
 
-  await reportFiles.addFile(fileName, scriptContentBuffer);
-
-  return inserter(fileName);
+  return parentSuites.reduce((acc, parentSuite) => {
+    suites.forEach((suite) => {
+      subSuites.forEach((subSuite) => {
+        const path = [parentSuite, suite, subSuite].filter(Boolean);
+        if (path.length > 0) {
+          acc.push(path);
+        }
+      });
+    });
+    return acc;
+  }, [] as string[][]);
 };
 
-export const generateStaticFiles = async (payload: {
-  allureVersion: string;
-  reportName: string;
-  reportLanguage: string;
-  singleFile: boolean;
-  reportFiles: ReportFiles;
-  reportDataFiles: ReportFile[];
-  reportUuid: string;
-}) => {
-  const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
+export const generateTestResults = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
+  const allTr = await store.allTestResults({ includeHidden: true });
+  let convertedTrs: AllureAwesomeTestResult[] = [];
+
+  for (const tr of allTr) {
+    const trFixtures = await store.fixturesByTrId(tr.id);
+    const convertedTrFixtures: AllureAwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTr: AllureAwesomeTestResult = convertTestResult(tr);
+
+    convertedTr.history = await store.historyByTrId(tr.id);
+    convertedTr.retries = await store.retriesByTrId(tr.id);
+    convertedTr.retry = convertedTr.retries.length > 0;
+    convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
+    convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
+    // FIXME: the type is correct, but typescript still shows an error
+    // @ts-ignore
+    convertedTr.attachments = (await store.attachmentsByTrId(tr.id)).map((attachment) => ({
+      link: attachment,
+      type: "attachment",
+    }));
+    convertedTr.breadcrumbs = createBreadcrumbs(convertedTr);
+
+    convertedTrs.push(convertedTr);
+  }
+
+  convertedTrs = convertedTrs.sort(nullsLast(compareBy("start", ordinal()))).map((tr, idx) => ({
+    ...tr,
+    order: idx + 1,
+  }));
+
+  for (const convertedTr of convertedTrs) {
+    await writer.writeTestCase(convertedTr);
+  }
+
+  await writer.writeWidget(
+    "nav.json",
+    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+  );
+
+  return convertedTrs;
+};
+
+export const generateTree = async (
+  writer: AllureAwesomeDataWriter,
+  treeName: string,
+  labels: string[],
+  tests: AllureAwesomeTestResult[],
+) => {
+  const visibleTests = tests.filter((test) => !test.hidden);
+  const tree = createTreeByLabels<AllureAwesomeTestResult, AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>(
+    visibleTests,
+    labels,
+    ({ id, name, status, duration, flaky, start, retries }) => {
+      return {
+        nodeId: id,
+        retry: !!retries?.length,
+        name,
+        status,
+        duration,
+        flaky,
+        start,
+      };
+    },
+    undefined,
+    (group, leaf) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
+  );
+
+  // @ts-ignore
+  filterTree(tree, (leaf) => !leaf.hidden);
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+
+  await writer.writeWidget(`${treeName}.json`, tree);
+};
+
+export const generateEnvironmentJson = async (writer: AllureAwesomeDataWriter, env: EnvironmentItem[]) => {
+  await writer.writeWidget("allure_environment.json", env);
+};
+
+export const generateStatistic = async (writer: AllureAwesomeDataWriter, statistic: Statistic) => {
+  await writer.writeWidget("allure_statistic.json", statistic);
+};
+
+export const generatePieChart = async (writer: AllureAwesomeDataWriter, statistic: Statistic) => {
+  const chartData = getChartData(statistic);
+
+  await writer.writeWidget("allure_pie_chart.json", chartData);
+};
+
+export const generateAttachmentsFiles = async (
+  writer: AllureAwesomeDataWriter,
+  attachmentLinks: AttachmentLink[],
+  contentFunction: (id: string) => Promise<ResultFile | undefined>,
+) => {
+  const result = new Map<string, string>();
+  for (const { id, ext, ...link } of attachmentLinks) {
+    if (link.missed) {
+      return;
+    }
+    const content = await contentFunction(id);
+    if (!content) {
+      continue;
+    }
+    const src = `${id}${ext}`;
+    await writer.writeAttachment(src, content);
+    result.set(id, src);
+  }
+  return result;
+};
+
+export const generateHistoryDataPoints = async (writer: AllureAwesomeDataWriter, store: AllureStore) => {
+  const result = new Map<string, string>();
+  const allHistoryPoints = await store.allHistoryDataPoints();
+
+  for (const historyPoint of allHistoryPoints.slice(0, 6)) {
+    const src = `history/${historyPoint.uuid}.json`;
+    await writer.writeData(src, historyPoint);
+  }
+  return result;
+};
+
+export const generateStaticFiles = async (
+  payload: AllureAwesomeOptions & {
+    allureVersion: string;
+    reportFiles: ReportFiles;
+    reportDataFiles: ReportFile[];
+    reportUuid: string;
+    reportName: string;
+  },
+) => {
+  const {
+    reportName = "Allure Report",
+    reportLanguage = "en",
+    singleFile,
+    logo = "",
+    theme = "light",
+    groupBy,
+    reportFiles,
+    reportDataFiles,
+    reportUuid,
+    allureVersion,
+  } = payload;
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest(singleFile);
+  const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
-  for (const key in manifest) {
-    const fileName = manifest[key];
-    const filePath = require.resolve(join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName));
+  if (!payload.singleFile) {
+    for (const key in manifest) {
+      const fileName = manifest[key];
+      const filePath = require.resolve(
+        join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", fileName),
+      );
 
-    if (key === "favicon.ico") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createFaviconLinkTag,
-        mimeType: "image/x-icon",
-      });
+      if (key.includes(".woff")) {
+        headTags.push(createFontLinkTag(fileName));
+      }
 
-      headTags.push(tag);
-      continue;
+      if (key === "main.css") {
+        headTags.push(createStylesLinkTag(fileName));
+      }
+      if (key === "main.js") {
+        bodyTags.push(createScriptTag(fileName));
+      }
+
+      // we don't need to handle another files in single file mode
+      if (singleFile) {
+        continue;
+      }
+
+      const fileContent = await readFile(filePath);
+
+      await reportFiles.addFile(basename(filePath), fileContent);
     }
+  } else {
+    const mainJs = manifest["main.js"];
+    const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
+    const mainJsContentBuffer = await readFile(mainJsSource);
 
-    if (key === "main.css") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createStylesLinkTag,
-        mimeType: "text/css",
-      });
-
-      headTags.push(tag);
-      continue;
-    }
-
-    if (key === "main.js") {
-      const tag = await readManifestEntry({
-        fileName,
-        singleFile,
-        reportFiles,
-        inserter: createScriptTag,
-        mimeType: "text/javascript",
-      });
-
-      bodyTags.push(tag);
-      continue;
-    }
-
-    // we don't need to handle another files in single file mode
-    if (singleFile) {
-      continue;
-    }
-
-    const fileContent = await readFile(filePath);
-
-    await reportFiles.addFile(basename(filePath), fileContent);
+    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
-  const reportOptions: Allure2ReportOptions = {
-    reportName: reportName ?? "Allure Report",
-    reportLanguage: reportLanguage ?? "en",
+  const reportOptions: AllureAwesomeReportOptions = {
+    reportName,
+    logo,
+    theme,
+    reportLanguage,
     createdAt: Date.now(),
+    reportUuid,
+    groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
   };
   const html = compile({
     headTags: headTags.join("\n"),
@@ -179,219 +309,10 @@ export const generateStaticFiles = async (payload: {
     reportOptions: JSON.stringify(reportOptions),
     analyticsEnable: true,
     allureVersion,
-    reportLanguage,
     reportUuid,
     reportName,
-    singleFile,
+    singleFile: payload.singleFile,
   });
 
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
-};
-
-export const generateTree = async (
-  writer: Allure2DataWriter,
-  name: string,
-  labelNames: string[],
-  tests: Allure2TestResult[],
-) => {
-  const fileName = `${name}.json`;
-  const data = createTree(tests, byLabels(labelNames));
-
-  await writer.writeData(fileName, data);
-
-  const widgetData = createWidget(data);
-
-  await writer.writeWidget(fileName, widgetData);
-};
-
-export const generatePackagesData = async (writer: Allure2DataWriter, tests: Allure2TestResult[]) => {
-  const classifier: Classifier = (test) => {
-    return (
-      test.labels
-        .find((label) => label.name === "package")
-        ?.value?.split(".")
-        ?.map((group) => ({
-          groups: [group],
-        })) ?? []
-    );
-  };
-  const data = createTree(tests, classifier);
-
-  const packagesData = collapseTree(data);
-  await writer.writeData("packages.json", packagesData);
-};
-
-export const generateCategoriesData = async (writer: Allure2DataWriter, tests: Allure2TestResult[]) => {
-  const classifier: Classifier = (test) => {
-    const byMessage: TreeLayer = { groups: [test.statusMessage ?? "No message"] };
-    const categories: Allure2Category[] | undefined = test.extra.categories;
-    if (!categories || categories.length === 0) {
-      // exclude from the tree
-      return undefined;
-    }
-
-    const groups = categories.map((c) => c.name);
-    return [{ groups }, byMessage];
-  };
-  const data = createTree(tests, classifier);
-
-  const fileName = "categories.json";
-  await writer.writeData(fileName, data);
-
-  const widgetData = createWidget(data);
-  await writer.writeWidget(fileName, widgetData);
-};
-
-export const generateTimelineData = async (writer: Allure2DataWriter, tests: Allure2TestResult[]) => {
-  const classifier: Classifier = (test) => {
-    return [{ groups: [test.hostId ?? "Default"] }, { groups: [test.threadId ?? "Default"] }];
-  };
-  const data = createTree(tests, classifier);
-  await writer.writeData("timeline.json", data);
-};
-
-export const generateTestResults = async (writer: Allure2DataWriter, tests: Allure2TestResult[]) => {
-  for (const test of tests) {
-    await writer.writeTestCase(test);
-  }
-};
-
-export const generateSummaryJson = async (
-  writer: Allure2DataWriter,
-  reportName: string,
-  tests: Allure2TestResult[],
-) => {
-  const statistic: Statistic = { total: 0 };
-  const time: GroupTime = {};
-
-  tests
-    .filter((test) => !test.hidden)
-    .forEach((test) => {
-      updateStatistic(statistic, test);
-      updateTime(time, test);
-    });
-
-  const data: SummaryData = {
-    reportName,
-    statistic,
-    time,
-  };
-
-  await writer.writeWidget("summary.json", data);
-};
-
-export const generateEnvironmentJson = async (
-  writer: Allure2DataWriter,
-  env: {
-    name: string;
-    values: string[];
-  }[],
-) => {
-  await writer.writeWidget("environment.json", env);
-};
-
-export const generateExecutorJson = async (writer: Allure2DataWriter, executor?: Partial<Allure2ExecutorInfo>) => {
-  await writer.writeWidget("executors.json", executor ? [executor] : []);
-};
-
-export const generateDefaultWidgetData = async (
-  writer: Allure2DataWriter,
-  tests: Allure2TestResult[],
-  ...fileNames: string[]
-) => {
-  const statusChartData = tests
-    .filter((test) => !test.hidden)
-    .map(({ uid, name, status, time, extra: { severity = "normal" } }) => {
-      return {
-        uid,
-        name,
-        status,
-        time,
-        severity,
-      } as StatusChartData;
-    });
-
-  for (const fileName of fileNames) {
-    await writer.writeWidget(fileName, statusChartData);
-  }
-};
-
-export const generateEmptyTrendData = async (writer: Allure2DataWriter, ...fileNames: string[]) => {
-  for (const fileName of fileNames) {
-    await writer.writeWidget(fileName, [
-      {
-        uid: "invalid",
-        name: "invalid",
-        statistic: { total: 0 },
-      },
-    ]);
-  }
-};
-
-export const generateTrendData = async (
-  writer: Allure2DataWriter,
-  reportName: string,
-  tests: Allure2TestResult[],
-  historyDataPoints: HistoryDataPoint[],
-) => {
-  const statistic: Statistic = { total: 0 };
-  tests
-    .filter((test) => !test.hidden)
-    .forEach((test) => {
-      updateStatistic(statistic, test);
-    });
-
-  const history = historyDataPoints.map((point) => {
-    const stat: Statistic = { total: 0 };
-
-    Object.values(point.testResults).forEach((testResult) => {
-      updateStatistic(stat, testResult);
-    });
-
-    return {
-      data: stat,
-      timestamp: point.timestamp,
-      reportName: point.name,
-    } as Allure2HistoryTrendItem & { timestamp: number };
-  });
-
-  history
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .forEach((element, index) => {
-      element.buildOrder = history.length - index;
-    });
-
-  const data = [
-    {
-      data: statistic,
-      timestamp: new Date().getTime(),
-      buildOrder: history.length + 1,
-      reportName: reportName,
-    },
-    ...history,
-  ];
-
-  await writer.writeWidget("history-trend.json", data);
-};
-
-export const generateAttachmentsData = async (
-  writer: Allure2DataWriter,
-  attachmentLinks: AttachmentLink[],
-  contentFunction: (id: string) => Promise<ResultFile | undefined>,
-): Promise<Map<string, string>> => {
-  const result = new Map<string, string>();
-  for (const { id, ext, ...link } of attachmentLinks) {
-    if (link.missed) {
-      continue;
-    }
-    const content = await contentFunction(id);
-    if (!content) {
-      continue;
-    }
-
-    const src = `${id}${ext}`;
-    await writer.writeAttachment(src, content);
-    result.set(id, src);
-  }
-  return result;
 };

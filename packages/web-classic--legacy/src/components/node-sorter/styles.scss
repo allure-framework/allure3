@@ -1,0 +1,26 @@
+@import "../../variables.scss";
+
+.sorter {
+  overflow: hidden;
+  color: $text-muted-color;
+  user-select: none;
+
+  &_enabled {
+    color: $text-color;
+  }
+
+  &__item {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding-right: $gap-size;
+  }
+
+  &__icon {
+    display: none;
+
+    &_visible {
+      display: block;
+    }
+  }
+}

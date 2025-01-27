@@ -1,0 +1,31 @@
+{{#each steps}}
+  <div class="step">
+    {{#if attachmentStep}}
+      {{#each attachments}}
+        {{> ../../blocks/attachment-row/attachment-row . baseUrl=../../baseUrl}}
+      {{/each}}
+    {{else}}
+      <div class="{{b 'step' 'header' hasContent=hasContent}} long-line">
+        {{#if hasContent}}
+          <span class="{{b 'step' 'arrow'}} text_status_{{status}} block__arrow">{{arrow status fat=true}}</span>
+        {{else}}
+          <span class="{{b 'step' 'status'}} text_status_{{status}}">{{allure-icon status}}</span>
+        {{/if}}
+        <div class="step__title">
+          <div class="step__name">{{text-with-links name}}</div>
+          {{> ../../blocks/step-stats/step-stats . baseUrl=../../baseUrl}}
+        </div>
+      </div>
+      <div class="step__content">
+        {{> ../../blocks/parameters-table/parameters-table parameters=parameters }}
+        {{~> steps-list steps=steps baseUrl=../baseUrl}}
+        {{#each attachments}}
+          {{> ../../blocks/attachment-row/attachment-row . baseUrl=../../baseUrl}}
+        {{/each}}
+        {{#if shouldDisplayMessage}}
+          {{~> ../../blocks/status-details/status-details .}}
+        {{/if}}
+      </div>
+    {{/if}}
+  </div>
+{{/each}}

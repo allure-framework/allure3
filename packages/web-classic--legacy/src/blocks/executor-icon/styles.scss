@@ -1,0 +1,15 @@
+.executor-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0 4px;
+
+  & > svg {
+    flex: 0 0 auto;
+  }
+
+  & > span {
+    flex: 1 1 auto;
+    display: inline-block;
+    margin-top: 3px;
+  }
+}

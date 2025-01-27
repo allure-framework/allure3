@@ -1,3 +1,3 @@
-import { Allure2Plugin } from "./plugin.js";
+import { AllureAwesomePlugin } from "./plugin.js";
 
-export default Allure2Plugin;
+export default AllureAwesomePlugin;

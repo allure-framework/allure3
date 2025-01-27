@@ -1,0 +1,127 @@
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { dirname, join } from "node:path";
+import { env } from "node:process";
+import { fileURLToPath } from "node:url";
+import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
+import webpack from "webpack";
+import { WebpackManifestPlugin } from "webpack-manifest-plugin";
+import * as utils from "./webpack/utils.js";
+
+const { SINGLE_FILE_MODE } = env;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export default (env, argv) => {
+  const config = {
+    entry: "./src/index.js",
+    output: {
+      path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
+      filename: "app-[hash:8].js",
+      assetModuleFilename: `[name]-[hash:8][ext]`,
+    },
+    module: {
+      rules: [
+        {
+          test: /\.(ts|js)x?$/,
+          use: "babel-loader",
+          exclude: /node_modules/,
+        },
+        {
+          test: /\.css$/,
+          use: [MiniCssExtractPlugin.loader, "css-loader"]
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            MiniCssExtractPlugin.loader,
+            {
+              loader: "css-loader",
+              // TODO: uncomment when we'll start migration to preact
+              // options: {
+              //   modules: true,
+              // },
+            },
+            {
+              loader: "sass-loader",
+              options: {
+                api: "modern",
+              }
+            },
+          ],
+        },
+        {
+          test: /\.hbs$/,
+          use: {
+            loader: "handlebars-loader",
+            options: {
+              helperDirs: [
+                utils.root("src/helpers"),
+                utils.root("src/blocks"),
+              ],
+            },
+          },
+        },
+        {
+          test: /translations\/\D+\.json$/,
+          type: "asset/source",
+        },
+        // FIXME: how can we solve the problem with svg in css?
+        // {
+        //   test: /\.svg$/,
+        //   type: "asset/inline",
+        //   resourceQuery: /inline/,
+        // },
+        {
+          test: /\.svg$/,
+          loader: "svg-sprite-loader",
+        },
+        {
+          test: /\.(ico)(\?.*)?$/,
+          loader: "file-loader",
+        },
+        {
+          test: /\.(png|jpe?g|gif|woff2?|otf|ttf|eot)$/i,
+          type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
+        },
+      ],
+    },
+    devServer: {
+      open: true,
+      hot: true,
+    },
+    plugins: [
+      new webpack.DefinePlugin({
+        "DEVELOPMENT": argv?.mode === "development",
+        "process.env": {
+          DEBUG_INFO_ENABLED: argv?.mode === "development",
+        },
+      }),
+      new MiniCssExtractPlugin({
+        filename: "styles-[hash:8].css",
+      }),
+      new SpriteLoaderPlugin(),
+      new WebpackManifestPlugin({
+        publicPath: "",
+      }),
+    ],
+    resolve: {
+      modules: ["node_modules"],
+      extensions: [".js", ".json"],
+      alias: {
+        "@": join(__dirname, "src"),
+      },
+    },
+  };
+
+  if (SINGLE_FILE_MODE) {
+    config.optimization = {
+      splitChunks: false,
+    }
+    config.plugins.push(
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1,
+      }),
+    );
+  }
+
+  return config;
+};

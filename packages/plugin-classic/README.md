@@ -1,4 +1,4 @@
-# Classic Plugin
+# Awesome Plugin
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -12,16 +12,16 @@
 
 ## Overview
 
-The plugin generates a classic Allure Report.
+The plugin generates brand new Allure Report with modern design and new features.
 
 ## Install
 
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/plugin-classic
-yarn add @allurereport/plugin-classic
-pnpm add @allurereport/plugin-classic
+npm add @allurereport/plugin-awesome
+yarn add @allurereport/plugin-awesome
+pnpm add @allurereport/plugin-awesome
 ```
 
 Then, add the plugin to the Allure configuration file:
@@ -34,7 +34,7 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-+    classic: {
++    awesome: {
 +      options: {
 +        reportName: "HelloWorld",
 +      },
@@ -51,4 +51,7 @@ The plugin accepts the following options:
 |------------------|-------------------------------------------------|--------------------------------------------------------------|-----------------|
 | `reportName`     | Name of the report                              | `string`                                                     | `Allure Report` |
 | `singleFile`     | Writes the report as a single `index.html` file | `boolean`                                                    | `false`         |
+| `logo`           | Path to the logo image                          | `string`                                                     | `null`          |
+| `theme`          | Default color theme of the report               | `light \| dark`                                              | OS theme        |
 | `reportLanguage` | Default language of the report                  | `string`                                                     | OS language     |
+| `ci`             | CI data which will be rendered in the report    | `{ type: "github" \| "jenkins", url: string, name: string }` | `undefined`     |

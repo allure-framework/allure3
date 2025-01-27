@@ -1,0 +1,71 @@
+@import "../../variables.scss";
+
+.attachment-row {
+  padding: 5px $gap-size 5px 18px;
+  cursor: pointer;
+  font-size: smaller;
+  display: flex;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  align-items: center;
+
+  &:hover {
+    background: $hover-color;
+  }
+
+  &_selected {
+    &,
+    &:hover {
+      background: $pane-bg-color;
+    }
+
+    &:hover {
+      background: $hover-color;
+    }
+  }
+
+  &_selected > &__arrow {
+    transform: rotate(90deg);
+  }
+
+  &__arrow {
+    left: 7px;
+    top: 4px;
+  }
+
+  &__name {
+    flex: 1;
+  }
+
+  &__control {
+    padding-left: $gap-size;
+    display: inline-block;
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+  }
+
+  &__preview {
+    margin-bottom: 7px;
+    margin-left: 40px;
+  }
+
+  &__content {
+    background-color: $attachment-bg;
+  }
+
+  &__content > div {
+    padding: 5px;
+  }
+}
+
+.hljs {
+  background: inherit;
+}
+
+.attachment-icon {
+  display: flex;
+}

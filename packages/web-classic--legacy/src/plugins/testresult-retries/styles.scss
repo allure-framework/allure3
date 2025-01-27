@@ -1,0 +1,11 @@
+@import "../../variables.scss";
+
+.test-result-retries {
+  &__row {
+    padding: 7px 15px 7px $gap-size;
+    cursor: pointer;
+    &:hover {
+      background-color: $hover-color;
+    }
+  }
+}

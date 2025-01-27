@@ -1,0 +1,17 @@
+{{#if links}}
+    <h3 class="pane__section-title">{{t 'testResult.links.name'}}</h3>
+    <div class="testresult-links">
+      {{#each links}}
+        <span class="testresult-link">
+          {{#if (eq type "issue")}}
+            {{allure-icon "bug" noTooltip=true width="14px" height="14px"}}
+          {{else if (eq type "tms")}}
+            {{allure-icon "task" noTooltip=true width="14px" height="14px"}}
+          {{else}}
+            {{allure-icon "link" noTooltip=true width="14px" height="14px"}}
+          {{/if}}
+            <a class="link" href="{{default url name}}" target="_blank">{{default name url 'link'}}</a>
+      </span>
+      {{/each}}
+    </div>
+{{/if}}

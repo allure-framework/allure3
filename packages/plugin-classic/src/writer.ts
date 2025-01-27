@@ -1,24 +1,24 @@
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { AllureAwesomeTestResult } from "@allurereport/web-awesome";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { Allure2TestResult } from "./model.js";
 
 export interface ReportFile {
   name: string;
   value: string;
 }
 
-export interface Allure2DataWriter {
+export interface AllureAwesomeDataWriter {
   writeData(fileName: string, data: any): Promise<void>;
 
   writeWidget(fileName: string, data: any): Promise<void>;
 
-  writeTestCase(test: Allure2TestResult): Promise<void>;
+  writeTestCase(test: AllureAwesomeTestResult): Promise<void>;
 
   writeAttachment(source: string, file: ResultFile): Promise<void>;
 }
 
-export class FileSystemReportDataWriter implements Allure2DataWriter {
+export class FileSystemReportDataWriter implements AllureAwesomeDataWriter {
   constructor(private readonly output: string) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
@@ -33,10 +33,10 @@ export class FileSystemReportDataWriter implements Allure2DataWriter {
     await writeFile(resolve(distFolder, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 
-  async writeTestCase(test: Allure2TestResult): Promise<void> {
-    const distFolder = resolve(this.output, "data", "test-cases");
+  async writeTestCase(test: AllureAwesomeTestResult): Promise<void> {
+    const distFolder = resolve(this.output, "data", "test-results");
     await mkdir(distFolder, { recursive: true });
-    await writeFile(resolve(distFolder, `${test.uid}.json`), JSON.stringify(test), { encoding: "utf-8" });
+    await writeFile(resolve(distFolder, `${test.id}.json`), JSON.stringify(test), { encoding: "utf-8" });
   }
 
   async writeAttachment(source: string, file: ResultFile): Promise<void> {
@@ -46,7 +46,7 @@ export class FileSystemReportDataWriter implements Allure2DataWriter {
   }
 }
 
-export class InMemoryReportDataWriter implements Allure2DataWriter {
+export class InMemoryReportDataWriter implements AllureAwesomeDataWriter {
   #data: Record<string, Buffer> = {};
 
   async writeData(fileName: string, data: any): Promise<void> {
@@ -61,8 +61,8 @@ export class InMemoryReportDataWriter implements Allure2DataWriter {
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
-  async writeTestCase(test: Allure2TestResult): Promise<void> {
-    const dist = join("data", "test-cases", `${test.uid}.json`);
+  async writeTestCase(test: AllureAwesomeTestResult): Promise<void> {
+    const dist = join("data", "test-results", `${test.id}.json`);
 
     this.#data[dist] = Buffer.from(JSON.stringify(test), "utf-8");
   }
@@ -77,14 +77,11 @@ export class InMemoryReportDataWriter implements Allure2DataWriter {
   }
 
   reportFiles(): ReportFile[] {
-    return Object.keys(this.#data).map((key) => ({
-      name: key,
-      value: this.#data[key].toString("base64"),
-    }));
+    return Object.keys(this.#data).map((key) => ({ name: key, value: this.#data[key].toString("base64") }));
   }
 }
 
-export class ReportFileDataWriter implements Allure2DataWriter {
+export class ReportFileDataWriter implements AllureAwesomeDataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
@@ -106,9 +103,9 @@ export class ReportFileDataWriter implements Allure2DataWriter {
     await this.reportFiles.addFile(join("data", "attachments", source), contentBuffer);
   }
 
-  async writeTestCase(test: Allure2TestResult): Promise<void> {
+  async writeTestCase(test: AllureAwesomeTestResult): Promise<void> {
     await this.reportFiles.addFile(
-      join("data", "test-cases", `${test.uid}.json`),
+      join("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),
     );
   }

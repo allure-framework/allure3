@@ -1,0 +1,19 @@
+@import "../../variables.scss";
+
+.step-stats {
+  display: contents;
+
+  &__info {
+    color: $text-muted-color;
+    font-size: small;
+    white-space: nowrap;
+
+    &_time {
+      float: right;
+    }
+  }
+
+  &__separator:last-child {
+    display: none;
+  }
+}

@@ -1,0 +1,7 @@
+{{#if time}}
+    <span data-tooltip="{{date time.start}} {{time time.start}}&nbsp;&ndash;&nbsp;{{time time.stop}}">
+        {{t 'testResult.duration.name'}}:
+        {{allure-icon "timeline" noTooltip=true width="14px" height="14px"}}
+        {{duration time.duration 2}}
+    </span>
+{{/if}}
