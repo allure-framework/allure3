@@ -21,7 +21,17 @@ describe("utils > treeFilters", () => {
           start: baseDate + 2000,
         } as AllureAwesomeTestResult,
       };
-      const result = filterLeaves(leaves, leavesById);
+      const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
+        filter: {
+          flaky: false,
+          retry: false,
+          new: false,
+        },
+        sortBy: "order",
+        direction: "asc",
+      });
 
       expect(result).toEqual([
         expect.objectContaining({ name: "a1" }),
@@ -51,7 +61,15 @@ describe("utils > treeFilters", () => {
         } as AllureAwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
         status: "passed",
+        filter: {
+          flaky: false,
+          retry: false,
+          new: false,
+        },
+        sortBy: "order",
+        direction: "asc",
       });
 
       expect(result).toEqual([expect.objectContaining({ name: "a1" }), expect.objectContaining({ name: "c3" })]);
@@ -78,9 +96,15 @@ describe("utils > treeFilters", () => {
         } as AllureAwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
+        query: "",
+        status: "total",
         filter: {
           flaky: true,
+          retry: false,
+          new: false,
         },
+        sortBy: "order",
+        direction: "asc",
       });
 
       expect(result).toEqual([expect.objectContaining({ name: "a1" }), expect.objectContaining({ name: "c3" })]);

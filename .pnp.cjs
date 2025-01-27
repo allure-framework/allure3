@@ -878,7 +878,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-components/",\
         "packageDependencies": [\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
-          ["@allurereport/core", "workspace:packages/core"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@babel/core", "npm:7.25.2"],\

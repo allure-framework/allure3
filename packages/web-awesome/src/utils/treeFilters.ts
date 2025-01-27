@@ -31,7 +31,7 @@ export const isIncluded = (leaf: TreeLeaf<AllureAwesomeTreeLeaf>, filterOptions:
   return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
 };
 
-const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<AllureAwesomeTreeLeaf>> => {
+const leafComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<TreeLeaf<AllureAwesomeTreeLeaf>> => {
   const typedCompareBy = compareBy<TreeLeaf<AllureAwesomeTreeLeaf>>;
   switch (sortBy) {
     case "order":
@@ -42,10 +42,14 @@ const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<All
       return typedCompareBy("name", alphabetically());
     case "status":
       return typedCompareBy("status", byStatus());
+    default:
+      // eslint-disable-next-line no-console
+      console.error(`unsupported comparator ${sortBy}`);
+      return () => 0;
   }
 };
 
-const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTreeGroup> => {
+const groupComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<DefaultTreeGroup> => {
   const typedCompareBy = compareBy<DefaultTreeGroup>;
   switch (sortBy) {
     case "alphabet":
@@ -54,6 +58,10 @@ const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTree
     case "duration":
     case "status":
       return typedCompareBy("statistic", byStatistic());
+    default:
+      // eslint-disable-next-line no-console
+      console.error(`unsupported comparator ${sortBy}`);
+      return () => 0;
   }
 };
 

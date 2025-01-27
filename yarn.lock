@@ -682,7 +682,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-components@workspace:packages/web-components"
   dependencies:
-    "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.25.2"
