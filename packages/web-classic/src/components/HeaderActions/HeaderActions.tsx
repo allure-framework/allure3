@@ -23,33 +23,37 @@ export const HeaderActions = () => {
 
   return (
     <div className={styles.headerActions}>
-      <Search />
-      <Filters />
-      <div>
-        <Loadable
-          source={statsStore}
-          renderData={(stats) => {
-            const allStatuses = statusesList
-              .map((status) => ({ status, value: stats[status] }))
-              .filter(({ value }) => value)
-              .map(({ status, value }) => (
-                <Tab data-testid={`tab-${status}`} key={status} id={status}>
-                  {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />
-                </Tab>
-              ));
-
-            return (
-              <>
-                <Tab data-testid="tab-all" id={ALL_TAB}>
-                  {capitalize(t("total"))} <Counter count={stats?.total ?? 0} size="s" />
-                </Tab>
-                {allStatuses}
-              </>
-            );
-          }}
-        />
+      <div className={styles["header-search"]}>
+        <Search />
+        <Filters />
       </div>
-      <SortBy />
+      <div className={styles["header-filters"]}>
+        <div className={styles["header-tabs"]}>
+          <Loadable
+            source={statsStore}
+            renderData={(stats) => {
+              const allStatuses = statusesList
+                .map((status) => ({ status, value: stats[status] }))
+                .filter(({ value }) => value)
+                .map(({ status, value }) => (
+                  <Tab data-testid={`tab-${status}`} key={status} id={status}>
+                    {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />
+                  </Tab>
+                ));
+
+              return (
+                <>
+                  <Tab data-testid="tab-all" id={ALL_TAB}>
+                    {capitalize(t("total"))} <Counter count={stats?.total ?? 0} size="s" />
+                  </Tab>
+                  {allStatuses}
+                </>
+              );
+            }}
+          />
+        </div>
+        <SortBy />
+      </div>
     </div>
   );
 };

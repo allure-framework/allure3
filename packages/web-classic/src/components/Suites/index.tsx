@@ -4,6 +4,7 @@ import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { TreeList } from "@/components/Tree";
+import { useI18n } from "@/stores";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -39,13 +40,19 @@ const Suites = () => {
     </div>
   );
 
-  const SuitesList = () => (
-    <div className={styles.suites}>
-      <Heading size={"s"}>Suites</Heading>
-      <HeaderActions />
-      <TreeList />
-    </div>
-  );
+  const SuitesList = () => {
+    const { t } = useI18n("nav");
+    return (
+      <div className={styles.suites}>
+        <Heading size={"s"} className={styles["suites-title"]}>
+          {t("suites")}
+        </Heading>
+
+        <HeaderActions />
+        <TreeList />
+      </div>
+    );
+  };
 
   return <SideBySide left={<SuitesList />} right={testResult} />;
 };

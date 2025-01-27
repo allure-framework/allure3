@@ -201,5 +201,14 @@
     "trend": {
       "name": "Tendência"
     }
+  },
+  "nav": {
+    "overview": "Visão geral",
+    "behaviors": "Comportamentos",
+    "categories": "Categorias",
+    "graphs": "Gráficos",
+    "packages": "Pacotes",
+    "suites": "Conjuntos",
+    "timeline": "Linha do tempo"
   }
 }

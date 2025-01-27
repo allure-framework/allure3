@@ -114,5 +114,15 @@
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"
+  },
+  "nav": {
+    "overview": "Übersicht",
+    "behaviors": "Verhalten",
+    "categories": "Kategorien",
+    "graphs": "Grafiken",
+    "packages": "Pakete",
+    "suites": "Suiten",
+    "timeline": "Zeitleiste"
   }
+
 }

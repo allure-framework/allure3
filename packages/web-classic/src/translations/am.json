@@ -114,5 +114,14 @@
   },
   "errors": {
     "missedAttachment": "Կցորդը չի գտնվել"
+  },
+  "nav": {
+    "overview": "Ակնարկ",
+    "behaviors": "Վարքագծեր",
+    "categories": "Կատեգորիաներ",
+    "graphs": "Գրաֆիկներ",
+    "packages": "Փաթեթներ",
+    "suites": "Հավաքածուներ",
+    "timeline": "Ժամանակացույց"
   }
 }

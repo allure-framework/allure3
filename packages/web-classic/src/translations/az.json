@@ -114,5 +114,14 @@
   },
   "errors": {
     "missedAttachment": "Əlavə tapılmadı"
+  },
+  "nav": {
+    "overview": "İcmal",
+    "behaviors": "Davranışlar",
+    "categories": "Kateqoriyalar",
+    "graphs": "Qrafiklər",
+    "packages": "Paketlər",
+    "suites": "Dəstlər",
+    "timeline": "Zaman çizelgesi"
   }
 }

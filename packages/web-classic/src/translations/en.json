@@ -115,5 +115,14 @@
   },
   "errors": {
     "missedAttachment": "Attachment not found"
+  },
+  "nav": {
+    "overview": "Overview",
+    "behaviors": "Behaviors",
+    "categories": "Categories",
+    "graphs": "Graphs",
+    "packages": "Packages",
+    "suites": "Suites",
+    "timeline": "Timeline"
   }
 }

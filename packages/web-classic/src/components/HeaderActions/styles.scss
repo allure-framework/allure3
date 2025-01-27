@@ -24,6 +24,23 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.header-search {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.header-tabs {
+  flex: 1 1 auto;
+}
+
+.header-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 /* This is a hack because button do not have this state */

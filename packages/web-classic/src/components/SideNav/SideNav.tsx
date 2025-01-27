@@ -18,7 +18,8 @@ const tabs = [
   { tabName: "timeline", title: "Timeline", icon: "lineTimeClockStopwatch", active: false },
 ];
 const SideNav = () => {
-  const { t } = useI18n("controls");
+  const { t: controls } = useI18n("controls");
+  const { t: nav } = useI18n("nav");
   const [isCollapsed, setCollapsed] = useState(localStorage.getItem("sidebarCollapsed") === "true");
 
   const toggleCollapsed = () => {
@@ -29,9 +30,9 @@ const SideNav = () => {
   return (
     <div class={clsx(styles["side-nav"], isCollapsed && styles.collapsed)}>
       <a href="#" className={styles.brand} data-ga4-event="home_click">
-        <SvgIcon id={allureIcons.reportLogo} size={"s"} />
+        <SvgIcon id={allureIcons.reportLogo} size={"s"} className={styles.icon} />
         <Text className={styles["brand-text"]} bold>
-          Allure
+          Allure Report
         </Text>
       </a>
       <ul className={styles.menu}>
@@ -51,7 +52,7 @@ const SideNav = () => {
               <span className={styles.icon}>
                 <SvgIcon id={allureIcons[tab.icon]} />
               </span>
-              <Text className={styles.text}>{t(tab.title)}</Text>
+              <Text className={styles.text}>{nav(tab.tabName)}</Text>
             </a>
           </li>
         ))}
@@ -66,7 +67,7 @@ const SideNav = () => {
             <span className={styles["collapse-icon"]}>
               <SvgIcon id={allureIcons.lineArrowsChevronDown} />
             </span>
-            <Text className={styles.text}>{t("collapse")}</Text>
+            <Text className={styles.text}>{controls("collapse")}</Text>
           </div>
         </div>
       </div>

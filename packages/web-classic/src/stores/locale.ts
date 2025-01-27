@@ -22,6 +22,7 @@ const namespaces = [
   "welcome",
   "controls",
   "errors",
+  "nav",
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);

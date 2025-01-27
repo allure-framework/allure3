@@ -1,8 +1,8 @@
 import { View } from "backbone.marionette";
 import { findWhere } from "underscore";
+import ModalView from "@/components/Modal/ModalView.js";
 import AttachmentView from "@/components/attachment/AttachmentView.js";
 import ErrorSplashView from "@/components/error-splash/ErrorSplashView.js";
-import ModalView from "@/components/modal/ModalView.js";
 import TestResultOverviewView from "@/components/testresult-overview/TestResultOverviewView.js";
 import { behavior, className, on, regions } from "@/decorators/index.js";
 import translate from "@/helpers/t.js";
