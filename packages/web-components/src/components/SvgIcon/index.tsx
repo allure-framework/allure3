@@ -15,9 +15,12 @@ import lineArrowsRefreshCcw1 from "@/assets/svg/line-arrows-refresh-ccw-1.svg";
 import lineArrowsSortLineAsc from "@/assets/svg/line-arrows-sort-line-asc.svg";
 import lineArrowsSortLineDesc from "@/assets/svg/line-arrows-sort-line-desc.svg";
 import lineArrowsSwitchVertical1 from "@/assets/svg/line-arrows-switch-vertical-1.svg";
+import lineChartsBarChartSquare from "@/assets/svg/line-charts-bar-chart-square.svg";
 import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
 import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
 import lineDevDataflow3 from "@/assets/svg/line-dev-dataflow-3.svg";
+import lineFilesClipboardCheck from "@/assets/svg/line-files-clipboard-check.svg";
+import lineFilesFile2 from "@/assets/svg/line-files-file-2.svg";
 import lineFilesFileAttachment2 from "@/assets/svg/line-files-file-attachment-2.svg";
 import lineFilesFolder from "@/assets/svg/line-files-folder.svg";
 import lineGeneralCheck from "@/assets/svg/line-general-check.svg";
@@ -69,9 +72,12 @@ export const allureIcons = {
   lineArrowsSortLineAsc: lineArrowsSortLineAsc.id,
   lineArrowsSortLineDesc: lineArrowsSortLineDesc.id,
   lineArrowsSwitchVertical1: lineArrowsSwitchVertical1.id,
+  lineChartsBarChartSquare: lineChartsBarChartSquare.id,
   lineDevBug2: lineDevBug2.id,
   lineDevCodeSquare: lineDevCodeSquare.id,
   lineDevDataflow3: lineDevDataflow3.id,
+  lineFilesClipboardCheck: lineFilesClipboardCheck.id,
+  lineFilesFile2: lineFilesFile2.id,
   lineFilesFileAttachment2: lineFilesFileAttachment2.id,
   lineFilesFolder: lineFilesFolder.id,
   lineGeneralCheck: lineGeneralCheck.id,

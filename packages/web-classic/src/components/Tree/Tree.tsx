@@ -23,7 +23,6 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
   const [isOpened, setIsOpen] = useState(
     parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken,
   );
-  console.log(parentId, tree);
   const toggleTree = () => {
     setIsOpen(!isOpened);
   };

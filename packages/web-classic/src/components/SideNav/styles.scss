@@ -87,6 +87,10 @@
     cursor: pointer;
   }
 
+  .collapse-icon {
+    transform: rotate(90deg);
+    transition: transform 200ms;
+  }
   .collapse .icon {
     left: $gap-size + 5px;
     transition: transform 0.1s;
@@ -94,9 +98,10 @@
 
   &.collapsed {
     width: $sidebar-collapsed;
+    min-width: $sidebar-collapsed;
 
-    .collapse .icon {
-      transform: rotate(180deg);
+    .collapse-icon {
+      transform: rotate(-90deg);
     }
 
     .text,

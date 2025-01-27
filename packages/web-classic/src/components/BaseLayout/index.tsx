@@ -1,6 +1,6 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
 import { useEffect } from "preact/compat";
-import SideNav from "@/components/side-nav/SideNav";
+import SideNav from "@/components/SideNav/SideNav";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";

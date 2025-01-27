@@ -1,4 +1,4 @@
-import { Button, DropdownButton, Menu } from "@allurereport/web-components";
+import { Button, Menu } from "@allurereport/web-components";
 import { LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";
@@ -21,7 +21,7 @@ export const LanguagePicker = () => {
       size="s"
       menuTrigger={({ isOpened, onClick }) => (
         <Button
-          style="flat"
+          style="raised"
           className={styles["language-picker"]}
           size="m"
           text={LANG_LOCALE[locale || "en"].short}
