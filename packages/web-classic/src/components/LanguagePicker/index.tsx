@@ -1,7 +1,7 @@
 import { Button, Menu } from "@allurereport/web-components";
-import { LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";
+import { LANG_LOCALE, type LangLocale } from "@/translations/constants";
 import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -19,13 +19,12 @@ export const LanguagePicker = () => {
   return (
     <Menu
       size="s"
-      menuTrigger={({ isOpened, onClick }) => (
+      menuTrigger={({ onClick }) => (
         <Button
           style="raised"
           className={styles["language-picker"]}
-          size="m"
+          size="s"
           text={LANG_LOCALE[locale || "en"].short}
-          isExpanded={isOpened}
           onClick={onClick}
         />
       )}

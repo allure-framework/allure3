@@ -1,21 +1,21 @@
 import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
-import { CategoriesList } from "@/components/Categories/CategoriesList";
+import { BehaviorsList } from "@/components/Behaviors/BehaviorsList";
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { fetchCategoriesData } from "@/stores/categories";
+import { fetchBehaviorsData } from "@/stores/behaviors";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 
-const Categories = () => {
+const Behaviors = () => {
   const { params } = route.value;
   const { testResultId } = params;
 
   useEffect(() => {
-    fetchCategoriesData();
+    fetchBehaviorsData();
   }, []);
 
   useEffect(() => {
@@ -40,21 +40,21 @@ const Categories = () => {
     />
   );
 
-  const CategoriesSide = () => {
+  const BehaviorsSide = () => {
     const { t } = useI18n("nav");
     return (
       <div className={styles.suites}>
         <Heading size={"s"} className={styles["suites-title"]}>
-          {t("categories")}
+          {t("behaviors")}
         </Heading>
 
         <HeaderActions />
-        <CategoriesList />
+        <BehaviorsList />
       </div>
     );
   };
 
-  return <SideBySide left={<CategoriesSide />} right={testResult} />;
+  return <SideBySide left={<BehaviorsSide />} right={testResult} />;
 };
 
-export default Categories;
+export default Behaviors;

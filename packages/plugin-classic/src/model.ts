@@ -1,3 +1,5 @@
+import type { TestStatus } from "@allurereport/core-api";
+
 export type AllureAwesomeOptions = {
   reportName?: string;
   singleFile?: boolean;
@@ -15,3 +17,13 @@ export type AllureAwesomeOptions = {
 export type TemplateManifest = Record<string, string>;
 
 export type AllureAwesomePluginOptions = AllureAwesomeOptions;
+
+export interface AllureAwesomeCategory {
+  name: string;
+  description?: string;
+  descriptionHtml?: string;
+  messageRegex?: string;
+  traceRegex?: string;
+  matchedStatuses?: TestStatus[];
+  flaky?: boolean;
+}

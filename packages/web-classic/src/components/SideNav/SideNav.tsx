@@ -9,7 +9,7 @@ import { navigateTo } from "@/utils/navigate";
 import * as styles from "./styles.scss";
 
 const tabs = [
-  { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: true },
+  { tabName: "overview", title: "Overview", icon: "lineGeneralHomeLine", active: false },
   { tabName: "behaviors", title: "Behaviors", icon: "lineFilesClipboardCheck", active: false },
   { tabName: "categories", title: "Categories", icon: "lineFilesFile2", active: false },
   { tabName: "graphs", title: "Graphs", icon: "lineChartsBarChartSquare", active: false },

@@ -1,42 +1,39 @@
+import { PageLoader } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
-import { useSignal } from "@preact/signals";
 import { render } from "preact";
-import { useEffect } from "preact/compat";
+import { useEffect, useMemo } from "preact/compat";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
-import Behavior from "@/components/Behavior";
+import Behaviors from "@/components/Behaviors";
 import Categories from "@/components/Categories";
 import Graphs from "@/components/Graphs";
 import Overview from "@/components/Overview";
 import Packages from "@/components/Packages";
 import Suites from "@/components/Suites";
+import { TestResultView } from "@/components/TestResultView";
 import Timeline from "@/components/Timeline";
+import { currentLocale, getLocale, getTheme } from "@/stores";
+import { handleHashChange, route } from "@/stores/router";
 
 const tabComponents = {
   overview: Overview,
+  behaviors: Behaviors,
   categories: Categories,
-  suites: Suites,
   graphs: Graphs,
-  timeline: Timeline,
-  behaviors: Behavior,
   packages: Packages,
+  suites: Suites,
+  timeline: Timeline,
+  testresult: TestResultView,
 };
 
 const App = () => {
-  const route = useSignal({ tabName: "overview", params: {} });
-
-  const parseHash = () => {
-    const hash = globalThis.location.hash.slice(1);
-    const [tabName, ...params] = hash.split("/");
-    return { tabName: tabName || "overview", params: { id: params[0], subId: params[1] } };
-  };
+  useEffect(() => {
+    getTheme();
+    getLocale();
+    handleHashChange();
+  }, []);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      route.value = parseHash();
-    };
-
-    handleHashChange();
     globalThis.addEventListener("hashchange", handleHashChange);
 
     return () => {
@@ -44,8 +41,15 @@ const App = () => {
     };
   }, []);
 
-  const ActiveComponent = tabComponents[route.value.tabName] || (() => <div>nav</div>);
+  console.log(route.value.tabName);
+  const ActiveComponent = useMemo(
+    () => tabComponents[route.value.tabName] || (() => <div>nav</div>),
+    [route.value.tabName],
+  );
 
+  if (!currentLocale.value) {
+    return <PageLoader />;
+  }
   return (
     <BaseLayout>
       <ActiveComponent params={route.value.params} />

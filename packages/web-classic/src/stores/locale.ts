@@ -1,7 +1,7 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
-import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
+import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/translations/constants";
 import type { AllureAwesomeReportOptions } from "../../types.js";
 
 const { reportLanguage } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
@@ -25,7 +25,7 @@ const namespaces = [
   "nav",
 ];
 
-export const currentLocale = signal<LangLocale>("en" as LangLocale);
+export const currentLocale = signal<LangLocale>("" as LangLocale);
 
 export const currentLocaleIso = computed(() => {
   const locale = currentLocale.value;
@@ -45,14 +45,17 @@ export const getLocale = () => {
 i18next
   .use({
     type: "backend",
-    async read(language: LangLocale, namespace: string, callback: (errorValue: unknown, translations: null) => void) {
-      await import(`@/translations/${language}.json`)
-        .then((resources) => {
-          callback(null, resources[namespace]);
-        })
-        .catch((error) => {
-          callback(error, null);
-        });
+    read: async (
+      language: LangLocale,
+      namespace: string,
+      callback: (errorValue: unknown, translations: Record<string, string> | null) => void,
+    ) => {
+      try {
+        const resources = await import(`@/translations/${language}.json`);
+        callback(null, (resources[namespace] as Record<string, string>) || null);
+      } catch (error) {
+        callback(error, null);
+      }
     },
   })
   .init({

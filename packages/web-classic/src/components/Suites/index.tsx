@@ -4,17 +4,20 @@ import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { TreeList } from "@/components/Tree";
-import { useI18n } from "@/stores";
+import { fetchStats, useI18n } from "@/stores";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
-import { treeStore } from "@/stores/tree";
+import { fetchTreeData, treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 const Suites = () => {
   const { params } = route.value;
-  const parentId = params.id;
-  const testResultId = params.subId;
+  const { testResultId } = params;
 
+  useEffect(() => {
+    fetchStats();
+    fetchTreeData();
+  }, []);
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
