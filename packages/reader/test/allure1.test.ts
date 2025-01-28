@@ -1798,7 +1798,9 @@ describe("allure1 reader", () => {
         });
 
         expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
-        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({ steps: [{ steps: [{ steps: [expect.anything()] }] }] });
+        expect(visitor.visitTestResult.mock.calls[0][0]).toMatchObject({
+          steps: [{ steps: [{ steps: [expect.anything()] }] }],
+        });
       });
 
       it("should ignore a missing title", async () => {

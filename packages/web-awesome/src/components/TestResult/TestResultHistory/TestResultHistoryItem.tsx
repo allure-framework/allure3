@@ -1,7 +1,7 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
 import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
-import { useState } from "preact/hooks";
 import { type FunctionalComponent } from "preact";
+import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";

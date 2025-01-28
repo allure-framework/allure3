@@ -113,10 +113,10 @@ export const RunCommandAction = async (options: RunCommandOptions) => {
   }
 
   const before = new Date().getTime();
-  process.on("exit", (code) => {
+  process.on("exit", (exitCode) => {
     const after = new Date().getTime();
 
-    console.log(`exit code ${code} (${after - before}ms)`);
+    console.log(`exit code ${exitCode} (${after - before}ms)`);
   });
 
   const command = args[0];
