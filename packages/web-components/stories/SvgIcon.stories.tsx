@@ -1,8 +1,8 @@
-import { SvgIcon, icons } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
 
 // Mock icons
-const mockIconId = icons.lineAlertsNotificationBox;
+const mockIconId = allureIcons.lineAlertsNotificationBox;
 
 const meta: Meta<typeof SvgIcon> = {
   title: "Commons/SvgIcon",
