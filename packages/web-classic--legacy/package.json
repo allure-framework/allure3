@@ -1,5 +1,5 @@
 {
-  "name": "@allurereport/web-classic",
+  "name": "@allurereport/web-classic-legacy",
   "version": "3.0.0-beta.7",
   "description": "The static files for Allure Classic Report",
   "keywords": [
