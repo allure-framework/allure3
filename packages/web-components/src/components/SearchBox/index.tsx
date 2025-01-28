@@ -50,7 +50,7 @@ export const SearchBox = (props: Props) => {
       />
       {showClear && (
         <div className={styles.clearButton}>
-          {<IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" dataTestId="clear-button" />}
+          {<IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" data-testid="clear-button" />}
         </div>
       )}
     </Text>

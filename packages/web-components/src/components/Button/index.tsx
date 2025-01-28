@@ -112,7 +112,6 @@ const BaseBtn = (props: BaseBtnProps) => {
     isActive = false,
     focusable = true,
     className,
-    dataTestId,
     ...rest
   } = props;
 
@@ -135,7 +134,6 @@ const BaseBtn = (props: BaseBtnProps) => {
         !isButtonDisabled && isActive && styles.active,
         className,
       )}
-      data-testid={dataTestId}
       disabled={isButtonDisabled}
       onClick={onClick}
       type={type}

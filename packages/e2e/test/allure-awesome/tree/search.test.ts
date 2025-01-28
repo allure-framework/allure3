@@ -52,18 +52,19 @@ test.afterAll(async () => {
 test.describe("SearchBox component with debounce", () => {
   test("should update value with debounce and clear input", async ({ page }) => {
     const searchInput = page.getByTestId("search-input");
+
     await expect(searchInput).toHaveValue("");
-    const clearButton = page.getByTestId("clear-button");
 
     await searchInput.fill("i am input");
     await page.waitForTimeout(350);
+
+    const clearButton = page.getByTestId("clear-button");
 
     await expect(searchInput).toHaveValue("i am input");
     await expect(clearButton).toBeVisible();
     await clearButton.click();
 
     await expect(searchInput).toHaveValue("");
-
     await expect(clearButton).toBeHidden();
   });
 });
