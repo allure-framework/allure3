@@ -44,6 +44,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
+    "@allurereport/plugin-classic-legacy": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
@@ -220,9 +221,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-classic-legacy@workspace:packages/plugin-classic--legacy":
+"@allurereport/plugin-classic-legacy@workspace:*, @allurereport/plugin-classic-legacy@workspace:packages/plugin-classic-legacy":
   version: 0.0.0-use.local
-  resolution: "@allurereport/plugin-classic-legacy@workspace:packages/plugin-classic--legacy"
+  resolution: "@allurereport/plugin-classic-legacy@workspace:packages/plugin-classic-legacy"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -606,9 +607,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/web-classic-legacy@workspace:packages/web-classic--legacy":
+"@allurereport/web-classic-legacy@workspace:packages/web-classic-legacy":
   version: 0.0.0-use.local
-  resolution: "@allurereport/web-classic-legacy@workspace:packages/web-classic--legacy"
+  resolution: "@allurereport/web-classic-legacy@workspace:packages/web-classic-legacy"
   dependencies:
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.26.0"

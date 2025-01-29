@@ -2,12 +2,21 @@ import {
   type AttachmentLink,
   type EnvironmentItem,
   type Statistic,
+  type TreeData,
+  type TreeGroup,
+  type TreeLeaf,
   compareBy,
   incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type ReportFiles,
+  type ResultFile,
+  createTreeByCategories,
+  filterTree,
+} from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
@@ -27,9 +36,10 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
+import { matchCategories } from "./categories.js";
 import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { AllureAwesomeOptions, TemplateManifest } from "./model.js";
+import type { AllureAwesomeCategory, AllureAwesomeOptions, TemplateManifest } from "./model.js";
 import type { AllureAwesomeDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
@@ -117,7 +127,18 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
     const trFixtures = await store.fixturesByTrId(tr.id);
     const convertedTrFixtures: AllureAwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AllureAwesomeTestResult = convertTestResult(tr);
+    const { error, status, flaky } = convertedTr;
+    const categories: AllureAwesomeCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
+    const matchedCategories = matchCategories(categories, {
+      message: error?.message,
+      trace: error?.trace,
+      status,
+      flaky,
+    });
+    console.log("categories", categories);
+    console.log("matchCategories", matchedCategories);
 
+    convertedTr.categories = matchedCategories;
     convertedTr.history = await store.historyByTrId(tr.id);
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retry = convertedTr.retries.length > 0;
@@ -315,4 +336,41 @@ export const generateStaticFiles = async (
   });
 
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+};
+
+export const generateTreeByCategories = async (
+  writer: AllureAwesomeDataWriter,
+  treeName: string,
+  tests: AllureAwesomeTestResult[],
+) => {
+  const visibleTests = tests.filter((test) => !test.hidden);
+
+  const tree = createTreeByCategories<AllureAwesomeTestResult, AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>(
+    visibleTests,
+    ({ id, name, status, duration, flaky, start, retries }): AllureAwesomeTreeLeaf => {
+      return {
+        nodeId: id,
+        retry: !!retries?.length,
+        name,
+        status,
+        duration,
+        flaky,
+        start,
+      };
+    },
+    undefined,
+    (group: TreeGroup<AllureAwesomeTreeGroup>, leaf: TreeLeaf<AllureAwesomeTreeLeaf>) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
+  );
+
+  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  filterTree(tree, (leaf: TreeLeaf<AllureAwesomeTreeLeaf>) => !leaf.hidden);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  transformTree(tree, (leaf: TreeLeaf<AllureAwesomeTreeLeaf>, idx: number) => ({ ...leaf, groupOrder: idx + 1 }));
+
+  await writer.writeWidget(`${treeName}.json`, tree as TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>);
 };

@@ -60,6 +60,7 @@ export interface TestResult {
   runSelector?: string;
 
   retries?: TestResult[];
+  categories?: any;
 }
 
 export interface TestFixtureResult {

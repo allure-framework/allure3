@@ -145,6 +145,45 @@ export const createTreeByLabels = <T = TestResult, L = DefaultTreeLeaf, G = Defa
   );
 };
 
+export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
+  return createTree<T, L, G>(
+    data,
+    (item) => byCategories(item as TestResult),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
+  );
+};
+
+export const byCategories = (item: TestResult): string[][] => {
+  return [item.categories?.map((category: any) => category.name)];
+};
+
 /**
  * Omits labels that don't exist in the given test results
  * If label is present at least in one test result, it will be included

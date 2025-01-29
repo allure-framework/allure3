@@ -1,6 +1,7 @@
 export * from "./history.js";
 export * from "./testplan.js";
 export * from "./classic.js";
+export * from "./classic-legacy.js";
 export * from "./awesome.js";
 export * from "./csv.js";
 export * from "./history.js";

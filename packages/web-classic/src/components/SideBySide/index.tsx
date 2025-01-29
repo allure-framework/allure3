@@ -20,6 +20,16 @@ const SideBySide: FunctionalComponent<SideBySideProps> = ({ left, right }) => {
       gutter: (): HTMLElement => {
         const gutter = document.createElement("div");
         gutter.className = `${styles.gutter}`;
+        gutter.addEventListener("dblclick", () => {
+          const currentSizes = splitter.getSizes();
+          if (JSON.stringify(currentSizes) === "[50,50]") {
+            splitter.setSizes([30, 70]);
+            localStorage.setItem("sideBySidePosition", JSON.stringify([30, 70]));
+            return;
+          }
+          splitter.setSizes([50, 50]);
+          localStorage.setItem("sideBySidePosition", JSON.stringify([50, 50]));
+        });
         return gutter;
       },
       onDragEnd: () => {

@@ -3,7 +3,7 @@ import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo } from "@/stores/router";
+import { navigateTo, route } from "@/stores/router";
 import * as styles from "./styles.scss";
 
 interface TreeItemProps {
@@ -26,14 +26,12 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   isMarked,
   ...rest
 }) => {
+  const { tabName } = route.value;
   const formattedDuration = formatDuration(duration);
+  const navigateToTR = () => navigateTo(`#${tabName}/${parentNodeId || "root"}/${id}`);
 
   return (
-    <div
-      {...rest}
-      className={clsx(styles["tree-item"], isMarked && styles["tree-item-marked"])}
-      onClick={() => navigateTo(`#suites/${parentNodeId}/${id}`)}
-    >
+    <div {...rest} className={clsx(styles["tree-item"], isMarked && styles["tree-item-marked"])} onClick={navigateToTR}>
       <TreeItemIcon status={status} />
       <span data-testid="tree-leaf-order" className={styles.order}>
         {groupOrder}

@@ -15,7 +15,6 @@ const Suites = () => {
   const { testResultId } = params;
 
   useEffect(() => {
-    fetchStats();
     fetchTreeData();
   }, []);
   useEffect(() => {

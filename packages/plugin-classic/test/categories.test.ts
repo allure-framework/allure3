@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchCategories } from "../src/categories";
+import { matchCategories } from "../src/categories.js";
 
 describe("categories", () => {
   it("should match by status", () => {

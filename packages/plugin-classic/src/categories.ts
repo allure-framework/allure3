@@ -13,7 +13,7 @@ const testDefects: AllureAwesomeCategory = {
 
 export const matchCategories = (
   categories: AllureAwesomeCategory[],
-  result: { statusMessage?: string; statusTrace?: string; status: TestStatus; flaky: boolean },
+  result: { message?: string; trace?: string; status: TestStatus; flaky: boolean },
 ) => {
   const matched = categories.filter((category) => categoryMatch(category, result));
 

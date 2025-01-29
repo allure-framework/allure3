@@ -5,6 +5,7 @@ import { cwd } from "node:process";
 import {
   AwesomeCommand,
   ClassicCommand,
+  ClassicLegacyCommand,
   CsvCommand,
   GenerateCommand,
   HistoryCommand,
@@ -25,6 +26,7 @@ const pkg: { name: string; description: string; version: string } = JSON.parse(
 const cli = cac(pkg.name).usage(pkg.description).help().version(pkg.version);
 const commands = [
   ClassicCommand,
+  ClassicLegacyCommand,
   AwesomeCommand,
   CsvCommand,
   GenerateCommand,

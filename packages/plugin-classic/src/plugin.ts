@@ -10,6 +10,7 @@ import {
   generateStatistic,
   generateTestResults,
   generateTree,
+  generateTreeByCategories,
 } from "./generators.js";
 import type { AllureAwesomePluginOptions } from "./model.js";
 import { type AllureAwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -29,13 +30,26 @@ export class AllureAwesomePlugin implements Plugin {
     await generatePieChart(this.#writer!, statistic);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
+
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
       ({ labels }) => labels.map(({ name }) => name),
     );
+    const behaviorLabels = preciseTreeLabels(
+      !groupBy.length ? ["epic", "feature", "story"] : groupBy,
+      convertedTrs,
+      ({ labels }) => labels.map(({ name }) => name),
+    );
+    const packagesLabels = preciseTreeLabels(!groupBy.length ? ["package"] : groupBy, convertedTrs, ({ labels }) =>
+      labels.map(({ name }) => name),
+    );
 
+    await generateTreeByCategories(this.#writer!, "categories", convertedTrs);
+    // await generateCategoriesData(this.#writer!, treeLabels, convertedTrs);
     await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
+    await generateTree(this.#writer!, "behaviors", behaviorLabels, convertedTrs);
+    await generateTree(this.#writer!, "packages", packagesLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
 
     if (environmentItems?.length) {

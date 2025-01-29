@@ -4,20 +4,14 @@ import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import { PackagesList } from "@/components/Packages/PackagesList";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
-import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
-import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAttachment";
-import { TreeList } from "@/components/Tree";
 import { useI18n } from "@/stores";
-import { fetchPackagesData, packagesStore } from "@/stores/packages";
+import { fetchPackagesData } from "@/stores/packages";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
-import { fetchTreeData } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 const Packages = () => {
-  const { params } = route.value;
-  const parentId = params.id;
-  const testResultId = params.subId;
+  const { testResultId } = route.value.params;
 
   useEffect(() => {
     fetchPackagesData();

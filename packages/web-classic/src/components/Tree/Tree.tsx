@@ -18,7 +18,7 @@ interface TreeProps {
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
   const { params } = route.value;
-  const { id: parentId, subId } = params;
+  const { id: parentId, testResultId } = params;
 
   const [isOpened, setIsOpen] = useState(
     parentId === tree.nodeId || statistic === undefined || !!statistic.failed || !!statistic.broken,
@@ -59,7 +59,7 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
           groupOrder={leaf.groupOrder}
           duration={leaf.duration}
           parentNodeId={tree.nodeId}
-          isMarked={leaf.nodeId === subId}
+          isMarked={leaf.nodeId === testResultId}
         />
       ))}
     </div>

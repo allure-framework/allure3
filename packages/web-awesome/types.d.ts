@@ -33,6 +33,15 @@ export type AllureAwesomeTestStepResult = TestStepResult;
 
 type AllureAwesomeBreadcrumbItem = string[] | string[][];
 
+export interface AllureAwesomeCategory {
+  name: string;
+  description?: string;
+  descriptionHtml?: string;
+  messageRegex?: string;
+  traceRegex?: string;
+  matchedStatuses?: TestStatus[];
+  flaky?: boolean;
+}
 export type AllureAwesomeTestResult = Omit<
   TestResult,
   | "runSelector"
@@ -54,10 +63,14 @@ export type AllureAwesomeTestResult = Omit<
   order?: number;
   groupOrder?: number;
   retry: boolean;
+  categories?: AllureAwesomeCategory[];
 };
 
-export type AllureAwesomeTreeLeaf = Pick<AllureAwesomeTestResult, "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"> & {
-  nodeId: string
+export type AllureAwesomeTreeLeaf = Pick<
+  AllureAwesomeTestResult,
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
+> & {
+  nodeId: string;
 };
 
 export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
