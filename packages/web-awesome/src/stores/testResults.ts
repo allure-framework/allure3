@@ -56,7 +56,6 @@ export const fetchTestResult = async (testResultId: string) => {
       error: undefined,
       loading: false,
     };
-    console.log(testResultStore.value);
   } catch (err) {
     testResultStore.value = {
       ...testResultStore.value,
