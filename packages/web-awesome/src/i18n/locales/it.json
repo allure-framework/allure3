@@ -65,7 +65,9 @@
     "clear-filters": "Cancella i filtri",
     "no-attachments-results": "Nessuna informazione sugli allegati disponibile",
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
-    "no-retries-results": "Nessuna informazione sui ritentativi disponibile"
+    "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
+    "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
+    "no-test-case-results": "Nessun risultato dei casi di test"
   },
   "severity": {
     "blocker": "bloccante",

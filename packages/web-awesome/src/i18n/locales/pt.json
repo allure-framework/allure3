@@ -65,7 +65,9 @@
     "clear-filters": "Limpar filtros",
     "no-attachments-results": "Nenhuma informação de anexos disponível",
     "no-history-results": "Nenhuma informação de histórico disponível",
-    "no-retries-results": "Nenhuma informação de repetições disponível"
+    "no-retries-results": "Nenhuma informação de repetições disponível",
+    "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
+    "no-test-case-results": "Nenhum resultado de caso de teste"
   },
   "severity": {
     "blocker": "bloqueador",

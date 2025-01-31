@@ -1,0 +1,25 @@
+.test-steps-empty {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-height: 320px;
+  align-items: center;
+}
+
+.test-steps-empty-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.test-steps-empty-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 16px;
+  flex: 1 1 auto;
+}
+
+.test-steps-empty-text {
+  color: var(--on-text-secondary);
+  flex: 1 1 auto;
+}

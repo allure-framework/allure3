@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
 import Modal from "@/components/Modal";
 import TestResult from "@/components/TestResult";
+import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";

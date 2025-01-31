@@ -62,7 +62,9 @@
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-history-results": "Brak dostępnych informacji o historii",
-    "no-retries-results": "Brak dostępnych informacji o ponownych próbach"
+    "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
+    "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
+    "no-test-case-results": "Brak wyników przypadków testowych"
   },
   "severity": {
     "name": "Ważność",

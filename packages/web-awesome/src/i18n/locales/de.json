@@ -65,7 +65,9 @@
     "clear-filters": "Filter löschen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
-    "no-retries-results": "Keine Wiederholungsinformationen verfügbar"
+    "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
+    "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
+    "no-test-case-results": "Keine Testergebnisse verfügbar"
   },
   "severity": {
     "blocker": "Blocker",

@@ -65,7 +65,9 @@
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
     "no-history-results": "没有历史信息",
-    "no-retries-results": "没有重试信息"
+    "no-retries-results": "没有重试信息",
+    "no-test-steps-results": "没有可用的测试步骤信息",
+    "no-test-case-results": "没有测试用例结果"
   },
   "severity": {
     "blocker": "阻断",

@@ -65,7 +65,9 @@
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
-    "no-retries-results": "Tekrar deneme bilgisi mevcut değil"
+    "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
+    "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
+    "no-test-case-results": "Test vakası sonuçları yok"
   },
   "severity": {
     "blocker": "engelleyici",

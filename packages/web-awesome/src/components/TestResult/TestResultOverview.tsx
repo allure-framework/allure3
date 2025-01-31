@@ -9,6 +9,7 @@ import { TestResultParameters } from "@/components/TestResult/TestResultParamete
 import { TestResultSetup } from "@/components/TestResult/TestResultSetup";
 import { TestResultSteps } from "@/components/TestResult/TestResultSteps";
 import { TestResultTeardown } from "@/components/TestResult/TestResultTeardown";
+import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 
 export type TestResultOverviewProps = {
   testResult?: AllureAwesomeTestResult;
@@ -16,6 +17,7 @@ export type TestResultOverviewProps = {
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
   const { error, parameters, groupedLabels, links, description, setup, steps, teardown } = testResult || {};
+  const isNoSteps = !setup?.length && !steps.length && !teardown.length;
 
   return (
     <>
@@ -31,6 +33,7 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
       {Boolean(links?.length) && <TestResultLinks links={links} />}
       {Boolean(description) && <TestResultDescription description={description} />}
       <div className={styles["test-results"]}>
+        {isNoSteps && <TestStepsEmpty />}
         {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
         {Boolean(steps?.length) && <TestResultSteps steps={steps} />}
         {Boolean(teardown?.length) && <TestResultTeardown teardown={teardown} />}

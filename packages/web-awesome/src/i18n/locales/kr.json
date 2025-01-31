@@ -65,7 +65,9 @@
     "clear-filters": "필터 지우기",
     "no-attachments-results": "첨부파일 정보를 사용할 수 없습니다",
     "no-history-results": "기록 정보를 사용할 수 없습니다",
-    "no-retries-results": "재시도 정보를 사용할 수 없습니다"
+    "no-retries-results": "재시도 정보를 사용할 수 없습니다",
+    "no-test-steps-results": "테스트 단계 정보가 없습니다",
+    "no-test-case-results": "테스트 케이스 결과가 없습니다"
   },
   "severity": {
     "blocker": "차단자",
