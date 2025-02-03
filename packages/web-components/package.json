@@ -33,6 +33,7 @@
   ],
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
+    "build:watch": "rollup -c -w",
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
