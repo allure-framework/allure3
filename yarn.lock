@@ -221,9 +221,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-classic-legacy@workspace:*, @allurereport/plugin-classic-legacy@workspace:packages/plugin-classic-legacy":
+"@allurereport/plugin-classic-legacy@workspace:*, @allurereport/plugin-classic-legacy@workspace:packages/plugin-allure2":
   version: 0.0.0-use.local
-  resolution: "@allurereport/plugin-classic-legacy@workspace:packages/plugin-classic-legacy"
+  resolution: "@allurereport/plugin-classic-legacy@workspace:packages/plugin-allure2"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -257,6 +257,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
+    "@allurereport/web-classic": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
@@ -607,9 +608,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/web-classic-legacy@workspace:packages/web-classic-legacy":
+"@allurereport/web-classic-legacy@workspace:packages/web-allure2":
   version: 0.0.0-use.local
-  resolution: "@allurereport/web-classic-legacy@workspace:packages/web-classic-legacy"
+  resolution: "@allurereport/web-classic-legacy@workspace:packages/web-allure2"
   dependencies:
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.26.0"

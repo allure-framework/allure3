@@ -33,9 +33,10 @@ export const TestResultAttachment: FunctionComponent<{
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  console.log(item);
   const [isOpened, setIsOpen] = useState(false);
-  const componentType = attachmentType(item.type);
+  const { link } = item;
+  const { missed } = link;
+  const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
 
   return (
@@ -49,15 +50,15 @@ export const TestResultAttachment: FunctionComponent<{
       >
         <ArrowButton isOpened={isOpened} />
         <div className={styles["test-result-attachment-icon"]}>
-          <SvgIcon size="s" id={iconMap[item.type] ?? lineFilesFileAttachment2} />
+          <SvgIcon size="s" id={iconMap[link.contentType] ?? lineFilesFileAttachment2} />
         </div>
 
         <Code size="s" className={styles["test-result-step-number"]}>
           {stepIndex}
         </Code>
 
-        <Text className={styles["test-result-attachment-text"]}>{item.name || item.originalFileName}</Text>
-        {item.missed && (
+        <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
+        {missed && (
           <Text size={"s"} className={styles["test-result-attachment-missed"]}>
             missed
           </Text>

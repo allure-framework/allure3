@@ -28,14 +28,12 @@ export const TestResultStepsContent = (props: { item: DefaultTestStepResult }) =
       {Boolean(item?.steps?.length) && (
         <>
           {item.steps?.map((subItem, key) => {
-            if (!subItem.attachmentStep) {
+            if (subItem.type === "step") {
               return <TestResultStep stepIndex={key + 1} key={key} item={subItem} />;
             }
 
-            if (subItem.attachmentStep) {
-              return subItem?.attachments?.map((item, key) => (
-                <TestResultAttachment stepIndex={key + 1} key={key} item={item} />
-              ));
+            if (subItem.type === "attachment") {
+              return <TestResultAttachment stepIndex={key + 1} key={key} item={subItem} />;
             }
 
             return null;

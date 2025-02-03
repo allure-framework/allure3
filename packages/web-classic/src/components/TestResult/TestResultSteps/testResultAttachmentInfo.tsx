@@ -18,10 +18,9 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
   item,
   shouldExpand,
 }) => {
-  const { uid, type: contentType } = item;
-  const type = item.source.split(".")[1];
+  const { id, ext, contentType } = item.link;
   const { t: tooltip } = useI18n("controls");
-  const contentLength = item.missed === false ? item.size : undefined;
+  const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
   const contentSize = contentLength
     ? filesize(contentLength, {
         base: 2,
@@ -48,7 +47,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();
-    await downloadAttachment(uid, type, contentType);
+    await downloadAttachment(id, ext, contentType);
   };
 
   return (

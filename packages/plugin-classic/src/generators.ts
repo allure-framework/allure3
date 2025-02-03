@@ -347,7 +347,7 @@ export const generateTreeByCategories = async (
 
   const tree = createTreeByCategories<AllureAwesomeTestResult, AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, start, retries }): AllureAwesomeTreeLeaf => {
+    ({ id, name, status, duration, flaky, start, retries }: AllureAwesomeTestResult) => {
       return {
         nodeId: id,
         retry: !!retries?.length,

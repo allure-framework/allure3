@@ -38,7 +38,8 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
           {steps?.map((item: AllureAwesomeTestStepResult, index) => {
-            const StepComponent: StepComponentProps = typeMap.step;
+            const { type } = item;
+            const StepComponent: StepComponentProps = typeMap[type];
             return StepComponent ? <StepComponent item={item} stepIndex={index + 1} key={index} /> : null;
           })}
         </div>
