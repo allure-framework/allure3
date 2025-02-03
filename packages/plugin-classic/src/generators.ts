@@ -2,7 +2,6 @@ import {
   type AttachmentLink,
   type EnvironmentItem,
   type Statistic,
-  type TreeData,
   type TreeGroup,
   type TreeLeaf,
   compareBy,
@@ -15,9 +14,11 @@ import {
   type ReportFiles,
   type ResultFile,
   createTreeByCategories,
+  createTreeByLabels,
   filterTree,
+  sortTree,
+  transformTree,
 } from "@allurereport/plugin-api";
-import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AllureAwesomeFixtureResult,
   AllureAwesomeReportOptions,
@@ -135,8 +136,6 @@ export const generateTestResults = async (writer: AllureAwesomeDataWriter, store
       status,
       flaky,
     });
-    console.log("categories", categories);
-    console.log("matchCategories", matchedCategories);
 
     convertedTr.categories = matchedCategories;
     convertedTr.history = await store.historyByTrId(tr.id);
@@ -365,12 +364,12 @@ export const generateTreeByCategories = async (
   );
 
   // @ts-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   filterTree(tree, (leaf: TreeLeaf<AllureAwesomeTreeLeaf>) => !leaf.hidden);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  transformTree(tree, (leaf: TreeLeaf<AllureAwesomeTreeLeaf>, idx: number) => ({ ...leaf, groupOrder: idx + 1 }));
+  transformTree(tree, (leaf: TreeLeaf<AllureAwesomeTreeLeaf>, idx: number) => ({
+    ...leaf,
+    groupOrder: idx + 1,
+  }));
 
-  await writer.writeWidget(`${treeName}.json`, tree as TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>);
+  await writer.writeWidget(`${treeName}.json`, tree);
 };
