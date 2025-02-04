@@ -67,7 +67,7 @@ const template = `<!DOCTYPE html>
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-LNDJ3J7WT0', {
-          "report": "awesome",
+          "report": "classic",
           "allureVersion": "{{ allureVersion }}",
           "reportUuid": "{{ reportUuid }}",
           "single_file": "{{singleFile}}"
@@ -84,7 +84,7 @@ const template = `<!DOCTYPE html>
 
 export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
   const templateManifestSource = require.resolve(
-    `@allurereport/web-awesome/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
+    `@allurereport/web-classic/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
   );
   const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
 
@@ -282,7 +282,7 @@ export const generateStaticFiles = async (
     for (const key in manifest) {
       const fileName = manifest[key];
       const filePath = require.resolve(
-        join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", fileName),
+        join("@allurereport/web-classic/dist", singleFile ? "single" : "multi", fileName),
       );
 
       if (key.includes(".woff")) {
@@ -307,7 +307,7 @@ export const generateStaticFiles = async (
     }
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
+    const mainJsSource = require.resolve(`@allurereport/web-classic/dist/single/${mainJs}`);
     const mainJsContentBuffer = await readFile(mainJsSource);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));

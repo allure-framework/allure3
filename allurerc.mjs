@@ -6,7 +6,14 @@ export default defineConfig({
   plugins: {
     awesome: {
       options: {
-        singleFile: false,
+        singleFile: true,
+        reportLanguage: "en",
+        groupBy: ["module", "parentSuite", "suite", "subSuite"],
+      },
+    },
+    allure2: {
+      options: {
+        singleFile: true,
         reportLanguage: "en",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
       },

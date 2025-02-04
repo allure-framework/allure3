@@ -5,7 +5,7 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-    "classic-legacy": {
+    "allure2": {
       options: {
         reportName: "HelloWorld",
         singleFile: false,

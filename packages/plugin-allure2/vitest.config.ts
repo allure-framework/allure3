@@ -11,7 +11,7 @@ export default defineConfig({
       "default",
       [
         "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "plugin-classic-legacy" }] },
+        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "plugin-allure2" }] },
       ],
     ],
   },

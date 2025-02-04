@@ -1,4 +1,4 @@
-# Awesome Plugin
+# Classic Plugin
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -19,9 +19,9 @@ The plugin generates brand new Allure Report with modern design and new features
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/plugin-awesome
-yarn add @allurereport/plugin-awesome
-pnpm add @allurereport/plugin-awesome
+npm add @allurereport/plugin-classic
+yarn add @allurereport/plugin-classic
+pnpm add @allurereport/plugin-classic
 ```
 
 Then, add the plugin to the Allure configuration file:
@@ -34,7 +34,7 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-+    awesome: {
++    classic: {
 +      options: {
 +        reportName: "HelloWorld",
 +      },

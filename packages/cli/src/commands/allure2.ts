@@ -20,7 +20,7 @@ export const ClassicLegacyCommandAction = async (resultsDir: string, options: Cl
     historyPath,
     knownIssuesPath,
     plugins: {
-      "@allurereport/plugin-classic-legacy": {
+      "@allurereport/plugin-allure2": {
         options: rest,
       },
     },
@@ -37,7 +37,7 @@ export const ClassicLegacyCommandAction = async (resultsDir: string, options: Cl
 };
 
 export const ClassicLegacyCommand = createCommand({
-  name: "classic-legacy <resultsDir>",
+  name: "allure2 <resultsDir>",
   description: "Generates Allure Classic report based on provided Allure Results",
   options: [
     [
