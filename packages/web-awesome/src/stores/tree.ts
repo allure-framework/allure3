@@ -8,7 +8,6 @@ import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
-
 export type TreeFiltersState = {
   query: string;
   status: AllureAwesomeStatus;
