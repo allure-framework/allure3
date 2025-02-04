@@ -1,5 +1,5 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
-import { computed, signal } from "@preact/signals";
+import { computed, effect, signal } from "@preact/signals";
 import type { AllureAwesomeStatus, AllureAwesomeTree, AllureAwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
@@ -7,12 +7,22 @@ import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
+
 export type TreeFiltersState = {
   query: string;
   status: AllureAwesomeStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
+};
+
+const loadFromLocalStorage = <T>(key: string, defaultValue: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
 };
 
 export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
@@ -23,16 +33,44 @@ export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
 
 export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
 
-export const treeFiltersStore = signal<TreeFiltersState>({
-  query: "",
-  status: "total",
-  filter: {
-    flaky: false,
-    retry: false,
-    new: false,
-  },
-  sortBy: "order",
-  direction: "asc",
+export const openTrees = signal(new Set(loadFromLocalStorage<string[]>("openTrees", [])));
+
+effect(() => {
+  localStorage.setItem("openTrees", JSON.stringify([...openTrees.value]));
+});
+
+export const toggleTree = (id: string) => {
+  const newSet = new Set(openTrees.value);
+  if (newSet.has(id)) {
+    newSet.delete(id);
+  } else {
+    newSet.add(id);
+  }
+  openTrees.value = newSet;
+};
+
+export const selectedFilters = signal(new Set(loadFromLocalStorage<string[]>("selectedFilters", [])));
+
+effect(() => {
+  localStorage.setItem("selectedFilters", JSON.stringify([...selectedFilters.value]));
+});
+
+export const treeFiltersStore = signal<TreeFiltersState>(
+  loadFromLocalStorage<TreeFiltersState>("treeFilters", {
+    query: "",
+    status: "total",
+    filter: {
+      flaky: false,
+      retry: false,
+      new: false,
+    },
+    sortBy: "order",
+    direction: "asc",
+  }),
+);
+
+effect(() => {
+  localStorage.setItem("treeFilters", JSON.stringify(treeFiltersStore.value));
 });
 
 export const filteredTree = computed(() => {

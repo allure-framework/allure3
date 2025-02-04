@@ -1,22 +1,14 @@
-import { Button } from "@allurereport/web-components";
-import { Loadable } from "@allurereport/web-components";
-import { PageLoader } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
-import { useEffect } from "preact/hooks";
+import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
 import type { AllureAwesomeStatus } from "types";
 import { useTabsContext } from "@/components/Tabs";
 import Tree from "@/components/Tree/Tree";
 import { useI18n } from "@/stores/locale";
-import { clearTreeFilters, filteredTree, noTests, noTestsFound, setTreeStatus, treeStore } from "@/stores/tree";
+import { clearTreeFilters, filteredTree, noTests, noTestsFound, treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { currentTab } = useTabsContext();
-
-  useEffect(() => {
-    setTreeStatus(currentTab as AllureAwesomeStatus);
-  }, [currentTab]);
 
   return (
     <Loadable

@@ -4,6 +4,7 @@ import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus } from "types";
 import TreeItem from "@/components/Tree/TreeItem";
+import { openTrees, toggleTree } from "@/stores/tree";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
 
@@ -16,9 +17,13 @@ interface TreeProps {
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
-  const [isOpened, setIsOpen] = useState(statistic === undefined || !!statistic.failed || !!statistic.broken);
-  const toggleTree = () => {
+  const isEarlyOpened = openTrees.value.has(tree.nodeId);
+  const [isOpened, setIsOpen] = useState(
+    statistic === undefined || !!statistic.failed || !!statistic.broken || isEarlyOpened,
+  );
+  const toggleTreeHeader = () => {
     setIsOpen(!isOpened);
+    toggleTree(tree.nodeId);
   };
   const emptyTree = !tree?.trees?.length && !tree?.leaves?.length;
 
@@ -59,7 +64,9 @@ const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, st
 
   return (
     <div className={styles.tree}>
-      {name && <TreeHeader categoryTitle={name} isOpened={isOpened} toggleTree={toggleTree} statistic={statistic} />}
+      {name && (
+        <TreeHeader categoryTitle={name} isOpened={isOpened} toggleTree={toggleTreeHeader} statistic={statistic} />
+      )}
       {treeContent}
     </div>
   );

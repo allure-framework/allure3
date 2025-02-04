@@ -1,6 +1,8 @@
 import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
+import { setTreeStatus } from "@/stores/tree";
+import type { AllureAwesomeStatus } from "../../../types";
 import * as styles from "./styles.scss";
 
 type TabsContextT = {
@@ -41,10 +43,13 @@ export const Tab = (props: { id: string; children: ComponentChildren }) => {
   const isCurrentTab = currentTab === id;
   const handleTabClick = () => {
     if (isCurrentTab) {
+      setCurrentTab("total");
+      setTreeStatus("total");
       return;
     }
 
     setCurrentTab(id);
+    setTreeStatus(id as AllureAwesomeStatus);
   };
 
   return (
