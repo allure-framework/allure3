@@ -268,6 +268,7 @@ const convertStep = (
 ): TestStepResult => {
   if (step.type === "step") {
     return {
+      stepId: md5(`${step.name}${step.start}`),
       name: step.name ?? __unknown,
       status: step.status ?? defaultStatus,
       steps: convertSteps(stateData, step.steps),

@@ -7,6 +7,7 @@ import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
 import { useI18n } from "@/stores/locale";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 
 const typeMap = {
   before: TestResultStep,
@@ -17,10 +18,20 @@ const typeMap = {
 
 export type TestResultTeardownProps = {
   teardown: AllureAwesomeTestResult["teardown"];
+  id?: string;
 };
 
-export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = ({ teardown }) => {
-  const [isOpened, setIsOpen] = useState(false);
+export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = ({ teardown, id }) => {
+  const teardownId = `${id}-teardown`;
+  const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(teardownId));
+  const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
+
+  const handleClick = () => {
+    setIsOpen(!isOpened);
+    toggleTree(teardownId);
+  };
+
+  // const [isOpened, setIsOpen] = useState(false);
   const { t } = useI18n("execution");
 
   return (
@@ -28,7 +39,7 @@ export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = 
       <TestResultDropdown
         icon={allureIcons.lineHelpersFlag}
         isOpened={isOpened}
-        setIsOpen={setIsOpen}
+        setIsOpen={handleClick}
         counter={teardown?.length}
         title={t("teardown")}
       />

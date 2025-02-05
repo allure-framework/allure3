@@ -33,20 +33,20 @@ export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
 
 export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
 
-export const openTrees = signal(new Set(loadFromLocalStorage<string[]>("openTrees", [])));
+export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
 
 effect(() => {
-  localStorage.setItem("openTrees", JSON.stringify([...openTrees.value]));
+  localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));
 });
 
 export const toggleTree = (id: string) => {
-  const newSet = new Set(openTrees.value);
+  const newSet = new Set(collapsedTrees.value);
   if (newSet.has(id)) {
     newSet.delete(id);
   } else {
     newSet.add(id);
   }
-  openTrees.value = newSet;
+  collapsedTrees.value = newSet;
 };
 
 export const selectedFilters = signal(new Set(loadFromLocalStorage<string[]>("selectedFilters", [])));

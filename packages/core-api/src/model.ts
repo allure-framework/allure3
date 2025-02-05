@@ -94,6 +94,7 @@ export interface DefaultTestStepResult {
   duration?: number;
 
   steps: TestStepResult[];
+  stepId?: string;
 
   type: "step";
 }

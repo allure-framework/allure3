@@ -6,6 +6,7 @@ import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
 import { useI18n } from "@/stores/locale";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 const typeMap = {
@@ -15,6 +16,7 @@ const typeMap = {
 
 export type TestResultStepsProps = {
   steps: AllureAwesomeTestResult["steps"];
+  id?: string;
 };
 
 type StepComponentProps = FunctionalComponent<{
@@ -22,8 +24,15 @@ type StepComponentProps = FunctionalComponent<{
   stepIndex?: number;
 }>;
 
-export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ steps }) => {
-  const [isOpened, setIsOpen] = useState(true);
+export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ steps, id }) => {
+  const stepsId = `${id}-steps`;
+  const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(stepsId));
+  const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
+
+  const handleClick = () => {
+    setIsOpen(!isOpened);
+    toggleTree(stepsId);
+  };
 
   const { t } = useI18n("execution");
   return (
@@ -31,7 +40,7 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       <TestResultDropdown
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
-        setIsOpen={setIsOpen}
+        setIsOpen={handleClick}
         counter={steps?.length}
         title={t("body")}
       />

@@ -17,9 +17,10 @@ const typeMap = {
 
 export type TestResultSetupProps = {
   setup: AllureAwesomeTestResult["setup"];
+  id?: string;
 };
 
-export const TestResultSetup: FunctionalComponent<TestResultSetupProps> = ({ setup }) => {
+export const TestResultSetup: FunctionalComponent<TestResultSetupProps> = ({ setup, id }) => {
   const [isOpened, setIsOpen] = useState(false);
   const { t } = useI18n("execution");
 

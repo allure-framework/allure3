@@ -4,7 +4,7 @@ import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus } from "types";
 import TreeItem from "@/components/Tree/TreeItem";
-import { openTrees, toggleTree } from "@/stores/tree";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 import TreeHeader from "./TreeHeader";
 import * as styles from "./styles.scss";
 
@@ -17,7 +17,7 @@ interface TreeProps {
 }
 
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
-  const isEarlyOpened = openTrees.value.has(tree.nodeId);
+  const isEarlyOpened = collapsedTrees.value.has(tree.nodeId);
   const [isOpened, setIsOpen] = useState(
     statistic === undefined || !!statistic.failed || !!statistic.broken || isEarlyOpened,
   );

@@ -9,6 +9,7 @@ import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStepInfo } from "@/components/TestResult/TestResultSteps/testResultStepInfo";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 
 export const TestResultStepParameters = (props: { parameters: DefaultTestStepResult["parameters"] }) => {
   const { parameters } = props;
@@ -49,12 +50,18 @@ export const TestResultStep: FunctionComponent<{
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  const [isOpened, setIsOpen] = useState(false);
+  const isEarlyOpened = collapsedTrees.value.has(item.stepId);
+  const [isOpened, setIsOpen] = useState(isEarlyOpened || false);
   const hasContent = Boolean(item?.steps?.length || item?.parameters?.length);
+
+  const handleClick = () => {
+    setIsOpen(!isOpened);
+    toggleTree(item.stepId);
+  };
 
   return (
     <div className={styles["test-result-step"]}>
-      <div className={styles["test-result-step-header"]} onClick={() => setIsOpen(!isOpened)}>
+      <div className={styles["test-result-step-header"]} onClick={handleClick}>
         {!hasContent ? (
           <div className={styles["test-result-strut"]} />
         ) : (
