@@ -26,8 +26,8 @@ import {
   isNumber,
   isObject,
   isString,
-} from "../parsing.js";
-import type { ShallowValid, Unvalidated } from "../parsing.js";
+} from "../validation.js";
+import type { ShallowKnown, Unknown } from "../validation.js";
 import { XcTestNodeTypeValues, XcTestResultValues } from "./model.js";
 import type {
   TestDetailsRunData,
@@ -103,7 +103,7 @@ export const xcresult: ResultsReader = {
 
 const processXcResultNode = async function* (
   ctx: XcParsingContext,
-  node: ShallowValid<XcTestResultNode>,
+  node: ShallowKnown<XcTestResultNode>,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
   const { nodeType } = node;
 
@@ -118,13 +118,13 @@ const processXcResultNode = async function* (
   }
 };
 
-const processXcBundleNode = async function* (ctx: XcParsingContext, node: ShallowValid<XcTestResultNode>) {
+const processXcBundleNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestResultNode>) {
   const { children, name } = node;
 
   yield* processXcNodes({ ...ctx, bundle: ensureString(name) ?? DEFAULT_BUNDLE_NAME }, ensureArray(children) ?? []);
 };
 
-const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: ShallowValid<XcTestResultNode>) {
+const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestResultNode>) {
   const { children, name } = node;
 
   yield* processXcNodes(
@@ -135,7 +135,7 @@ const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: Sha
 
 const processXcTestCaseNode = async function* (
   { filename, bundle, suites, attachmentsDir }: XcParsingContext,
-  node: ShallowValid<XcTestResultNode>,
+  node: ShallowKnown<XcTestResultNode>,
 ) {
   const { nodeIdentifier, name: displayName } = node;
   if (isString(nodeIdentifier)) {
@@ -153,7 +153,7 @@ const processXcTestCaseNode = async function* (
       const testCaseLabels = convertTestCaseLabels(bundle, suites, nodeIdentifier, tags);
 
       const { testRuns: activityTestRuns } = testActivities;
-      for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject)) {
+      for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject) ?? []) {
         const {
           device: activityTestRunDevice,
           arguments: activityTestRunArguments,
@@ -199,13 +199,13 @@ const processXcTestCaseNode = async function* (
 
 const convertXcActivitiesToAllureSteps = (
   attachmentsDir: string,
-  activities: Unvalidated<XcTestActivityNode[]>,
+  activities: Unknown<XcTestActivityNode[]>,
   parentActivityAttachments: Iterator<{ potentialNames: Set<string>; uuid: string }> = [].values(),
-): { steps: RawStep[]; attachmentFiles: ResultFile[] } => {
+): { steps: RawStep[] | undefined; attachmentFiles: ResultFile[] } => {
   const attachmentFiles: ResultFile[] = [];
   let nextAttachmentOfParentActivity = parentActivityAttachments.next();
   return {
-    steps: ensureArrayWithItems(activities, isObject).map<RawStep>(
+    steps: ensureArrayWithItems(activities, isObject)?.map<RawStep>(
       ({ title: unvalidatedTitle, attachments, childActivities, startTime }) => {
         const title = ensureString(unvalidatedTitle);
         const start = isNumber(startTime) ? secondsToMilliseconds(startTime) : undefined;
@@ -231,12 +231,10 @@ const convertXcActivitiesToAllureSteps = (
           } as RawTestAttachment;
         }
 
-        const stepAttachments = ensureArrayWithItems(attachments, isObject)
-          .map<{ potentialNames: Set<string>; uuid: string } | undefined>(({ name, uuid }) =>
-            isString(name) && isString(uuid)
-              ? { potentialNames: getPotentialFileNamesFromXcSuggestedName(name), uuid }
-              : undefined,
-          )
+        const stepAttachments = (ensureArrayWithItems(attachments, isObject) ?? [])
+          .map<
+            { potentialNames: Set<string>; uuid: string } | undefined
+          >(({ name, uuid }) => (isString(name) && isString(uuid) ? { potentialNames: getPotentialFileNamesFromXcSuggestedName(name), uuid } : undefined))
           .filter((entry) => typeof entry !== "undefined");
 
         const { steps: substeps, attachmentFiles: substepAttachmentFiles } = convertXcActivitiesToAllureSteps(
@@ -268,8 +266,8 @@ const convertXcActivitiesToAllureSteps = (
 const isAttachmentActivity = (
   potentialAttachmentNames: Set<string> | undefined,
   title: string,
-  childActivities: Unvalidated<XcTestActivityNode[]>,
-  attachments: Unvalidated<XcTestActivityAttachment[]>,
+  childActivities: Unknown<XcTestActivityNode[]>,
+  attachments: Unknown<XcTestActivityAttachment[]>,
 ) =>
   typeof childActivities === "undefined" &&
   typeof attachments === "undefined" &&
@@ -310,10 +308,10 @@ const pairParameterNamesWithValues = (
     })
     .filter((p) => typeof p !== "undefined");
 
-const convertActivitiesTestRunArgs = (args: Unvalidated<XcTestRunArgument[]>): (string | undefined)[] =>
+const convertActivitiesTestRunArgs = (args: Unknown<XcTestRunArgument[]>): (string | undefined)[] =>
   isArray(args) ? args.map((a) => (isObject(a) && isString(a.value) ? a.value : undefined)) : [];
 
-const createTestDetailsRunLookup = (nodes: Unvalidated<XcTestResultNode[]>) =>
+const createTestDetailsRunLookup = (nodes: Unknown<XcTestResultNode[]>) =>
   groupByMap(
     collectRunsFromTestDetails(nodes),
     ([{ device }]) => device ?? SURROGATE_DEVICE_ID,
@@ -370,10 +368,10 @@ const findNextAttemptDataFromTestDetails = (
 const getArgKey = (args: readonly (string | undefined)[]) => args.filter((v) => typeof v !== "undefined").join(", ");
 
 const collectRunsFromTestDetails = (
-  nodes: Unvalidated<XcTestResultNode[]>,
+  nodes: Unknown<XcTestResultNode[]>,
   coordinates: TestRunCoordinates = {},
 ): [TestRunCoordinates, TestDetailsRunData][] => {
-  return ensureArrayWithItems(nodes, isObject).flatMap((node) => {
+  return (ensureArrayWithItems(nodes, isObject) ?? []).flatMap((node) => {
     const { children, duration, nodeIdentifier, name: nodeName, result } = node;
     let coordinateCreated = true;
     let repetition: number | undefined;
@@ -421,11 +419,11 @@ const collectRunsFromTestDetails = (
   });
 };
 
-const extractArguments = (nodes: Unvalidated<XcTestResultNode[]>) => {
+const extractArguments = (nodes: Unknown<XcTestResultNode[]>) => {
   if (isArray(nodes)) {
     const argumentsNodeIndex = nodes.findIndex((node) => isObject(node) && isLiteral(node.nodeType, ["Arguments"]));
-    const { children } = nodes.splice(argumentsNodeIndex, 1)[0] as any as ShallowValid<XcTestResultNode>;
-    return ensureArrayWithItems(children, isObject)
+    const { children } = nodes.splice(argumentsNodeIndex, 1)[0] as any as ShallowKnown<XcTestResultNode>;
+    return (ensureArrayWithItems(children, isObject) ?? [])
       .filter(({ nodeType }) => isLiteral(nodeType, ["Test Value"]))
       .map(({ name }) => {
         if (isString(name) && name) {
@@ -449,7 +447,7 @@ const convertTestCaseLabels = (
   bundle: string | undefined,
   suites: readonly string[],
   testId: string,
-  tags: Unvalidated<string[]>,
+  tags: Unknown<string[]>,
 ) => {
   const labels: RawTestLabel[] = [];
 
@@ -483,12 +481,12 @@ const convertTestCaseLabels = (
     }
   }
 
-  labels.push(...ensureArrayWithItems(tags, isString).map((t) => ({ name: "tag", value: t })));
+  labels.push(...(ensureArrayWithItems(tags, isString)?.map((t) => ({ name: "tag", value: t })) ?? []));
 
   return labels;
 };
 
-const processActivityTestRunDevice = (device: Unvalidated<XcTestRunDevice>, showDevice: boolean) => {
+const processActivityTestRunDevice = (device: Unknown<XcTestRunDevice>, showDevice: boolean) => {
   const labels: RawTestLabel[] = [];
   const parameters: RawTestParameter[] = [];
 
@@ -500,7 +498,8 @@ const processActivityTestRunDevice = (device: Unvalidated<XcTestRunDevice>, show
     parameters.push({ name: "Device name", value: deviceName, hidden: !showDevice });
     if (showDevice) {
       const osPart = isString(platform) ? (isString(osVersion) ? `${platform} ${osVersion}` : platform) : undefined;
-      const deviceDetails = [modelName, architecture, osPart].filter(isString).join(", ");
+      const deviceDetailParts = [modelName, architecture, osPart];
+      const deviceDetails = ensureArrayWithItems(deviceDetailParts, isString)?.join(", ") ?? "";
       parameters.push({ name: "Device details", value: deviceDetails, excluded: true });
     }
   }
@@ -508,7 +507,7 @@ const processActivityTestRunDevice = (device: Unvalidated<XcTestRunDevice>, show
   return { labels, parameters, deviceId: ensureString(deviceId) };
 };
 
-const convertHost = (device: Unvalidated<XcTestRunDevice>) => {
+const convertHost = (device: Unknown<XcTestRunDevice>) => {
   if (isObject(device)) {
     const { deviceName, deviceId } = device;
     return ensureString(deviceName) ?? ensureString(deviceId);
@@ -520,7 +519,7 @@ const convertTestClassAndMethod = (testId: string) => {
   return [parts.slice(0, -1).join("."), parts.at(-1)];
 };
 
-const processXcNodes = async function* (ctx: XcParsingContext, children: readonly Unvalidated<XcTestResultNode>[]) {
+const processXcNodes = async function* (ctx: XcParsingContext, children: readonly Unknown<XcTestResultNode>[]) {
   for (const child of children) {
     if (isObject(child)) {
       yield* processXcResultNode(ctx, child);
@@ -528,7 +527,7 @@ const processXcNodes = async function* (ctx: XcParsingContext, children: readonl
   }
 };
 
-const parseDuration = (duration: Unvalidated<string>) => {
+const parseDuration = (duration: Unknown<string>) => {
   if (isString(duration)) {
     const match = DURATION_PATTERN.exec(duration);
     if (match) {

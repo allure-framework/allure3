@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import type { Unvalidated } from "./parsing.js";
+import type { Unknown } from "./validation.js";
 
 const LINE_SPLIT_PATTERN = /\r\n|\r|\n/;
 
@@ -181,7 +181,7 @@ export const invokeJsonCliTool = async <T>(
   tool: string,
   args: readonly string[],
   options: ProcessRunOptions = {},
-): Promise<Unvalidated<T>> => {
+): Promise<Unknown<T>> => {
   const lines: string[] = [];
   for await (const line of invokeStdoutCliTool(tool, args, options)) {
     lines.push(line);
