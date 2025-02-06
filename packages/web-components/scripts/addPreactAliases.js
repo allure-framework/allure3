@@ -39,4 +39,4 @@ const addPreactAliases = async () => {
   }
 };
 
-addPreactAliases();
+await addPreactAliases();
