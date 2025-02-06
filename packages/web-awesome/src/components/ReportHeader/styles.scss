@@ -4,6 +4,11 @@
   justify-content: space-between;
   padding: 24px;
   align-items: flex-start;
+  position: sticky;
+  z-index: 1;
+  background: var(--bg-base-primary);
+  top: 0;
+  border-radius: 8px;
 }
 
 .report-wrapper {

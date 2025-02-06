@@ -8,7 +8,7 @@
 }
 
 .wrapper {
-  max-width: 920px;
+  //max-width: 920px;
   width: 100%;
   flex-direction: column;
   margin: auto;
@@ -19,6 +19,9 @@
   background: var(--bg-base-primary);
   border-radius: 12px;
   width: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
+  height: 90vh;
 }
 
 .test-results {

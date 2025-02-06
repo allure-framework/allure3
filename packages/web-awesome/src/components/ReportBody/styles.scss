@@ -4,6 +4,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: sticky;
+  top: 120px;
+  background: var(--bg-base-primary);
+  z-index: 1;
 }
 
 .headerRow {
