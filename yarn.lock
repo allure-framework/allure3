@@ -674,6 +674,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.79.1"
     sass-loader: "npm:^16.0.1"
+    split.js: "npm:^1.6.5"
     style-loader: "npm:^4.0.0"
     svg-sprite-loader: "npm:^6.0.11"
     typescript: "npm:^5.6.3"
