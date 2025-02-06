@@ -57,7 +57,7 @@ export type XcReference = XcObject<"Reference"> & {
 };
 
 /**
- * `get object` without --id
+ * `xcrun xcresulttool get object` (without --id)
  */
 export type XcActionsInvocationRecord = XcObject<"ActionsInvocationRecord"> & {
   metadataRef?: XcReference;
@@ -187,7 +187,7 @@ export type XcActionPlatformRecord = XcObject<"ActionPlatformRecord"> & {
 };
 
 /**
- * `get object` with --id of XcActionsInvocationRecord.actions[number].actionResult.testsRef
+ * `xcrun xcresulttool get object --id '...'` with --id of XcActionsInvocationRecord.actions[number].actionResult.testsRef
  */
 export type XcActionTestPlanRunSummaries = XcObject<"ActionTestPlanRunSummaries"> & {
   summaries: XcArray<XcActionTestPlanRunSummary>;
@@ -197,12 +197,10 @@ export type XcActionAbstractTestSummary<Type extends string> = XcObject<Type> & 
   name?: XcString;
 };
 
-// done
 export type XcActionTestPlanRunSummary = XcActionAbstractTestSummary<"ActionTestPlanRunSummary"> & {
   testableSummaries: XcArray<XcActionTestableSummary>;
 };
 
-// done
 export type XcActionTestableSummary = XcActionAbstractTestSummary<"ActionTestableSummary"> & {
   identifierURL?: XcString;
   projectRelativePath?: XcString;
@@ -215,7 +213,6 @@ export type XcActionTestableSummary = XcActionAbstractTestSummary<"ActionTestabl
   testRegion?: XcString;
 };
 
-// cur
 export type XcActionTestSummaryIdentifiableObjectBase<Type extends string> = XcActionAbstractTestSummary<Type> & {
   identifier?: XcString;
   identifierURL?: XcString;
@@ -230,6 +227,20 @@ export type XcActionTestMetadata = XcActionTestSummaryIdentifiableObjectBase<"Ac
   activitySummariesCount?: XcInt;
 };
 
+export type XcActionTestSummaryGroup = XcActionTestSummaryIdentifiableObjectBase<"ActionTestSummaryGroup"> & {
+  duration: XcDouble;
+  subtests: XcArray<XcActionTestSummaryIdentifiableObject>;
+  skipNoticeSummary?: XcActionTestNoticeSummary;
+  summary?: XcString;
+  documentation: XcArray<XcTestDocumentation>;
+  trackedIssues: XcArray<XcIssueTrackingMetadata>;
+  tags: XcArray<XcTestTag>;
+};
+
+/**
+ * `xcrun xcresulttool get object --id '...'` with --id of
+ * XcActionTestPlanRunSummaries.summaries[number].testableSummaries[number].tests[number](.subtests[number])*.summaryRef
+ */
 export type XcActionTestSummary = XcActionTestSummaryIdentifiableObjectBase<"ActionTestSummary"> & {
   testStatus: XcString;
   duration: XcDouble;
@@ -242,16 +253,6 @@ export type XcActionTestSummary = XcActionTestSummaryIdentifiableObjectBase<"Act
   arguments: XcArray<XcTestArgument>;
   configuration?: XcActionTestConfiguration;
   warningSummaries: XcArray<XcActionTestIssueSummary>;
-  summary?: XcString;
-  documentation: XcArray<XcTestDocumentation>;
-  trackedIssues: XcArray<XcIssueTrackingMetadata>;
-  tags: XcArray<XcTestTag>;
-};
-
-export type XcActionTestSummaryGroup = XcActionTestSummaryIdentifiableObjectBase<"ActionTestSummaryGroup"> & {
-  duration: XcDouble;
-  subtests: XcArray<XcActionTestSummaryIdentifiableObject>;
-  skipNoticeSummary?: XcActionTestNoticeSummary;
   summary?: XcString;
   documentation: XcArray<XcTestDocumentation>;
   trackedIssues: XcArray<XcIssueTrackingMetadata>;
