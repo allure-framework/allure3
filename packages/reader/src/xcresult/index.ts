@@ -28,19 +28,18 @@ import {
   isString,
 } from "../validation.js";
 import type { ShallowKnown, Unknown } from "../validation.js";
-import { XcTestNodeTypeValues, XcTestResultValues } from "./model.js";
+import type { TestDetailsRunData, TestRunCoordinates } from "./model.js";
+import { exportAttachments, getTestActivities, getTestDetails, getTests } from "./xcresulttool/cli.js";
+import { XcTestNodeTypeValues, XcTestResultValues } from "./xcresulttool/model.js";
 import type {
-  TestDetailsRunData,
-  TestRunCoordinates,
+  XcActivityNode,
+  XcAttachment,
+  XcDevice,
   XcParsingContext,
-  XcTestActivityAttachment,
-  XcTestActivityNode,
+  XcTestNode,
   XcTestResult,
-  XcTestResultNode,
   XcTestRunArgument,
-  XcTestRunDevice,
-} from "./model.js";
-import { exportAttachments, getTestActivities, getTestDetails, getTests } from "./xcUtils.js";
+} from "./xcresulttool/model.js";
 
 const DEFAULT_BUNDLE_NAME = "The test bundle name is not defined";
 const DEFAULT_SUITE_NAME = "The test suite name is not defined";
@@ -103,7 +102,7 @@ export const xcresult: ResultsReader = {
 
 const processXcResultNode = async function* (
   ctx: XcParsingContext,
-  node: ShallowKnown<XcTestResultNode>,
+  node: ShallowKnown<XcTestNode>,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
   const { nodeType } = node;
 
@@ -118,13 +117,13 @@ const processXcResultNode = async function* (
   }
 };
 
-const processXcBundleNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestResultNode>) {
+const processXcBundleNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestNode>) {
   const { children, name } = node;
 
   yield* processXcNodes({ ...ctx, bundle: ensureString(name) ?? DEFAULT_BUNDLE_NAME }, ensureArray(children) ?? []);
 };
 
-const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestResultNode>) {
+const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: ShallowKnown<XcTestNode>) {
   const { children, name } = node;
 
   yield* processXcNodes(
@@ -135,7 +134,7 @@ const processXcTestSuiteNode = async function* (ctx: XcParsingContext, node: Sha
 
 const processXcTestCaseNode = async function* (
   { filename, bundle, suites, attachmentsDir }: XcParsingContext,
-  node: ShallowKnown<XcTestResultNode>,
+  node: ShallowKnown<XcTestNode>,
 ) {
   const { nodeIdentifier, name: displayName } = node;
   if (isString(nodeIdentifier)) {
@@ -199,7 +198,7 @@ const processXcTestCaseNode = async function* (
 
 const convertXcActivitiesToAllureSteps = (
   attachmentsDir: string,
-  activities: Unknown<XcTestActivityNode[]>,
+  activities: Unknown<XcActivityNode[]>,
   parentActivityAttachments: Iterator<{ potentialNames: Set<string>; uuid: string }> = [].values(),
 ): { steps: RawStep[] | undefined; attachmentFiles: ResultFile[] } => {
   const attachmentFiles: ResultFile[] = [];
@@ -266,8 +265,8 @@ const convertXcActivitiesToAllureSteps = (
 const isAttachmentActivity = (
   potentialAttachmentNames: Set<string> | undefined,
   title: string,
-  childActivities: Unknown<XcTestActivityNode[]>,
-  attachments: Unknown<XcTestActivityAttachment[]>,
+  childActivities: Unknown<XcActivityNode[]>,
+  attachments: Unknown<XcAttachment[]>,
 ) =>
   typeof childActivities === "undefined" &&
   typeof attachments === "undefined" &&
@@ -311,7 +310,7 @@ const pairParameterNamesWithValues = (
 const convertActivitiesTestRunArgs = (args: Unknown<XcTestRunArgument[]>): (string | undefined)[] =>
   isArray(args) ? args.map((a) => (isObject(a) && isString(a.value) ? a.value : undefined)) : [];
 
-const createTestDetailsRunLookup = (nodes: Unknown<XcTestResultNode[]>) =>
+const createTestDetailsRunLookup = (nodes: Unknown<XcTestNode[]>) =>
   groupByMap(
     collectRunsFromTestDetails(nodes),
     ([{ device }]) => device ?? SURROGATE_DEVICE_ID,
@@ -368,7 +367,7 @@ const findNextAttemptDataFromTestDetails = (
 const getArgKey = (args: readonly (string | undefined)[]) => args.filter((v) => typeof v !== "undefined").join(", ");
 
 const collectRunsFromTestDetails = (
-  nodes: Unknown<XcTestResultNode[]>,
+  nodes: Unknown<XcTestNode[]>,
   coordinates: TestRunCoordinates = {},
 ): [TestRunCoordinates, TestDetailsRunData][] => {
   return (ensureArrayWithItems(nodes, isObject) ?? []).flatMap((node) => {
@@ -419,10 +418,10 @@ const collectRunsFromTestDetails = (
   });
 };
 
-const extractArguments = (nodes: Unknown<XcTestResultNode[]>) => {
+const extractArguments = (nodes: Unknown<XcTestNode[]>) => {
   if (isArray(nodes)) {
     const argumentsNodeIndex = nodes.findIndex((node) => isObject(node) && isLiteral(node.nodeType, ["Arguments"]));
-    const { children } = nodes.splice(argumentsNodeIndex, 1)[0] as any as ShallowKnown<XcTestResultNode>;
+    const { children } = nodes.splice(argumentsNodeIndex, 1)[0] as any as ShallowKnown<XcTestNode>;
     return (ensureArrayWithItems(children, isObject) ?? [])
       .filter(({ nodeType }) => isLiteral(nodeType, ["Test Value"]))
       .map(({ name }) => {
@@ -486,7 +485,7 @@ const convertTestCaseLabels = (
   return labels;
 };
 
-const processActivityTestRunDevice = (device: Unknown<XcTestRunDevice>, showDevice: boolean) => {
+const processActivityTestRunDevice = (device: Unknown<XcDevice>, showDevice: boolean) => {
   const labels: RawTestLabel[] = [];
   const parameters: RawTestParameter[] = [];
 
@@ -507,7 +506,7 @@ const processActivityTestRunDevice = (device: Unknown<XcTestRunDevice>, showDevi
   return { labels, parameters, deviceId: ensureString(deviceId) };
 };
 
-const convertHost = (device: Unknown<XcTestRunDevice>) => {
+const convertHost = (device: Unknown<XcDevice>) => {
   if (isObject(device)) {
     const { deviceName, deviceId } = device;
     return ensureString(deviceName) ?? ensureString(deviceId);
@@ -519,7 +518,7 @@ const convertTestClassAndMethod = (testId: string) => {
   return [parts.slice(0, -1).join("."), parts.at(-1)];
 };
 
-const processXcNodes = async function* (ctx: XcParsingContext, children: readonly Unknown<XcTestResultNode>[]) {
+const processXcNodes = async function* (ctx: XcParsingContext, children: readonly Unknown<XcTestNode>[]) {
   for (const child of children) {
     if (isObject(child)) {
       yield* processXcResultNode(ctx, child);
