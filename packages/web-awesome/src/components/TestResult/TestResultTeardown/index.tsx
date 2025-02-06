@@ -31,7 +31,6 @@ export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = 
     toggleTree(teardownId);
   };
 
-  // const [isOpened, setIsOpen] = useState(false);
   const { t } = useI18n("execution");
 
   return (
