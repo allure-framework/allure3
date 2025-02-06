@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-const updateTsconfig = async () => {
+const addPreactAliases = async () => {
   // Determine the tsconfig.json location (assumed to be in the project root)
   const tsconfigPath = path.join(process.cwd(), "tsconfig.json");
   let tsconfig;
@@ -39,4 +39,4 @@ const updateTsconfig = async () => {
   }
 };
 
-updateTsconfig();
+addPreactAliases();
