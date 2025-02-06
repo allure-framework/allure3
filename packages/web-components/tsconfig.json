@@ -1,7 +1,15 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["./src", "global.d.ts"],
-  "exclude": ["node_modules", ".yarn", "**/*.test.tsx", "**/*.test.ts"],
+  "include": [
+    "./src",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".yarn",
+    "**/*.test.tsx",
+    "**/*.test.ts"
+  ],
   "compilerOptions": {
     "baseUrl": "./",
     "sourceMap": true,
@@ -9,17 +17,30 @@
     "emitDeclarationOnly": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "lib": ["ES2019", "dom"],
+    "lib": [
+      "ES2019",
+      "dom"
+    ],
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./dist",
     "declarationDir": "./dist",
     "paths": {
-      "@/*": ["src/*"],
-      "react": ["../../node_modules/preact/compat/"],
-      "react/jsx-runtime": ["../../node_modules/preact/jsx-runtime"],
-      "react-dom": ["../../node_modules/preact/compat/"],
-      "react-dom/*": ["../../node_modules/preact/compat/*"],
+      "@/*": [
+        "src/*"
+      ],
+      "react": [
+        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/"
+      ],
+      "react/jsx-runtime": [
+        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/jsx-runtime/"
+      ],
+      "react-dom": [
+        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/"
+      ],
+      "react-dom/*": [
+        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/*"
+      ]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,

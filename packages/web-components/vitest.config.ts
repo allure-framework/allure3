@@ -23,10 +23,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "react": path.resolve(__dirname, "../../node_modules/preact/compat"),
-      "react-dom/test-utils": path.resolve(__dirname, "../../node_modules/preact/test-utils"),
-      "react-dom": path.resolve(__dirname, "../../node_modules/preact/compat"),
-      "react/jsx-runtime": path.resolve(__dirname, "../../node_modules/preact/jsx-runtime"),
     },
   },
 });

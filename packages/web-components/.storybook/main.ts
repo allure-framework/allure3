@@ -33,10 +33,6 @@ const config: StorybookConfig = {
     config!.resolve!.alias = {
       ...config.resolve!.alias,
       "@": join(baseDir, "./src"),
-      "react": join(baseDir, "../../../node_modules/preact/compat"),
-      "react-dom/test-utils": join(baseDir, "../../../node_modules/preact/test-utils"),
-      "react-dom": join(baseDir, "../../../node_modules/preact/compat"),
-      "react/jsx-runtime": join(baseDir, "../../../node_modules/preact/jsx-runtime"),
     };
     config.module!.rules.push({
       test: /\.scss$/,
