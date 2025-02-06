@@ -5,18 +5,20 @@
   margin: 0;
   overflow: hidden;
   display: flex;
+  max-width: 1920px;
+  margin: auto;
 }
 
 .side-left {
-  padding: 8px;
+  padding: 8px 0 8px 8px;
   overflow: auto;
-  flex: 0 0 auto;
+  //flex: 0 0 auto;
 }
 
 .side-right {
   overflow: auto;
   flex: 1 1 auto;
-  padding: 8px;
+  padding: 8px 8px 8px 0;
 }
 
 [dir="ltr"] {
