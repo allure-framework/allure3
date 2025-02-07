@@ -1,4 +1,3 @@
-// StreamChart.stories.tsx
 import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig } from "@allurereport/web-components";
 import type { TrendChartDataItem } from "@allurereport/web-components";
 
