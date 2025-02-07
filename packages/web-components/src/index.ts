@@ -16,4 +16,4 @@ export { Toggle } from "./components/Toggle";
 export { Link } from "./components/Link";
 export { SuccessRatePieChart } from "./components/SuccessRatePieChart";
 export { Label } from "./components/Label";
-export * from "./components/TrendDiagram";
+export * from "./components/TrendChart";
