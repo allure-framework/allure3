@@ -18,12 +18,12 @@ const typeMap = {
 
 export type TestResultTeardownProps = {
   teardown: AllureAwesomeTestResult["teardown"];
-  id?: string;
+  id: string;
 };
 
 export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = ({ teardown, id }) => {
   const teardownId = `${id}-teardown`;
-  const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(teardownId));
+  const isEarlyCollapsed = !collapsedTrees.value.has(teardownId);
   const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
 
   const handleClick = () => {

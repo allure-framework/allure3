@@ -2,6 +2,7 @@ import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, effect, signal } from "@preact/signals";
 import type { AllureAwesomeStatus, AllureAwesomeTree, AllureAwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
+import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
@@ -16,15 +17,6 @@ export type TreeFiltersState = {
   direction: TreeDirection;
 };
 
-const loadFromLocalStorage = <T>(key: string, defaultValue: T): T => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : defaultValue;
-  } catch {
-    return defaultValue;
-  }
-};
-
 export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
   loading: true,
   error: undefined,
@@ -33,7 +25,8 @@ export const treeStore = signal<StoreSignalState<AllureAwesomeTree>>({
 
 export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
 
-export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
+const loadedFromLS = loadFromLocalStorage<string[]>("collapsedTrees", []);
+export const collapsedTrees = signal(new Set(loadedFromLS as string[]));
 
 effect(() => {
   localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));
@@ -49,7 +42,7 @@ export const toggleTree = (id: string) => {
   collapsedTrees.value = newSet;
 };
 
-export const selectedFilters = signal(new Set(loadFromLocalStorage<string[]>("selectedFilters", [])));
+export const selectedFilters = signal(new Set(loadFromLocalStorage("selectedFilters", []) as []));
 
 effect(() => {
   localStorage.setItem("selectedFilters", JSON.stringify([...selectedFilters.value]));
@@ -66,7 +59,7 @@ export const treeFiltersStore = signal<TreeFiltersState>(
     },
     sortBy: "order",
     direction: "asc",
-  }),
+  }) as TreeFiltersState,
 );
 
 effect(() => {

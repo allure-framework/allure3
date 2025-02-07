@@ -19,7 +19,7 @@ interface TreeProps {
 const Tree: FunctionComponent<TreeProps> = ({ tree, statusFilter, root, name, statistic }) => {
   const isEarlyCollapsed = collapsedTrees.value.has(tree.nodeId);
   const haveFailedSteps = statistic === undefined || !!statistic?.failed || !!statistic?.broken;
-  const [isOpened, setIsOpen] = useState(() => (isEarlyCollapsed ? !haveFailedSteps : Boolean(haveFailedSteps)));
+  const [isOpened, setIsOpen] = useState(() => (isEarlyCollapsed ? !haveFailedSteps : haveFailedSteps));
 
   const toggleTreeHeader = () => {
     setIsOpen(!isOpened);
