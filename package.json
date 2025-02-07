@@ -31,7 +31,9 @@
   },
   "resolutions": {
     "backbone.marionette@npm:3.5.1/backbone": "^1.6.0",
-    "backbone.marionette@npm:3.5.1/underscore": "^1.13.6"
+    "backbone.marionette@npm:3.5.1/underscore": "^1.13.6",
+    "react": "npm:@preact/compat@*",
+    "react-dom": "npm:@preact/compat@*"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
