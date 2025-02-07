@@ -2,6 +2,7 @@ import type { FunctionalComponent } from "preact";
 import { ResponsiveLine } from "@nivo/line";
 import type { LineSvgProps } from "@nivo/line";
 import type { LegendProps } from "@nivo/legends";
+import type { AxisProps } from "@nivo/axes";
 import type { CSSProperties } from "preact/compat";
 
 export interface TrendChartDataItem {
@@ -22,7 +23,7 @@ export interface TrendChartProps extends Partial<LineSvgProps> {
   height?: CSSProperties["height"];
 }
 
-export const defaultTrendChartLegend: LegendProps = {
+export const defaultTrendChartLegendConfig: LegendProps = {
   anchor: "right",
   direction: "column",
   justify: false,
@@ -47,22 +48,26 @@ export const defaultTrendChartLegend: LegendProps = {
   ]
 };
 
+export const defaultAxisBottomConfig: AxisProps = {
+  tickSize: 5,
+  tickPadding: 5,
+  tickRotation: 45,
+};
+
+export const defaultAxisLeftConfig: AxisProps = {
+  tickSize: 5,
+  tickPadding: 5,
+  tickRotation: 0,
+};
+
 export const defaultTrendChartConfig: Partial<LineSvgProps> = {
   margin: { top: 50, right: 110, bottom: 50, left: 60 },
   xScale: { type: "point" },
   yScale: { type: "linear", min: "auto", max: "auto", stacked: false, reverse: false },
   axisTop: null,
   axisRight: null,
-  axisBottom: {
-    tickSize: 5,
-    tickPadding: 5,
-    tickRotation: 45,
-  },
-  axisLeft: {
-    tickSize: 5,
-    tickPadding: 5,
-    tickRotation: 0,
-  },
+  axisBottom: defaultAxisBottomConfig,
+  axisLeft: defaultAxisLeftConfig,
   useMesh: true,
   enableArea: true,
 };

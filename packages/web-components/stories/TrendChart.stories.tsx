@@ -1,6 +1,6 @@
 // StreamChart.stories.tsx
-import { TrendChart, defaultTrendChartLegend } from "@allurereport/web-components";
-import type { TrendChartData } from "@allurereport/web-components";
+import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig } from "@allurereport/web-components";
+import type { TrendChartDataItem } from "@allurereport/web-components";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
@@ -11,7 +11,7 @@ const meta: Meta<typeof TrendChart> = {
 
 export default meta;
 
-const makeDaysData = (count: number, maxValue = 100): TrendChartData["data"] => {
+const makeDaysData = (count: number, maxValue = 100): TrendChartDataItem[] => {
   return Array.from({ length: count }, (_, index) => ({
     x: `#${index + 1}`,
     y: Math.floor(Math.random() * maxValue)
@@ -46,6 +46,24 @@ export const Default: Story = {
 export const WithLegend: Story = {
   args: {
     data: mockedData,
-    legends: [defaultTrendChartLegend]
+    legends: [defaultTrendChartLegendConfig]
+  }
+};
+
+export const WithAxisLegends: Story = {
+  args: {
+    data: mockedData,
+    axisBottom: {
+      ...defaultAxisBottomConfig,
+      legendOffset: 36,
+      legendPosition: "middle",
+      legend: "Day",
+    },
+    axisLeft: {
+      ...defaultAxisLeftConfig,
+      legend: "Tests executed",
+      legendOffset: -40,
+      legendPosition: "middle",
+    }
   }
 };

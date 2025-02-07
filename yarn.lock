@@ -801,6 +801,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^3.2.3"
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.13"
+    "@nivo/axes": "npm:^0.88.0"
     "@nivo/core": "npm:^0.88.0"
     "@nivo/legends": "npm:^0.88.0"
     "@nivo/line": "npm:^0.88.0"
@@ -5069,7 +5070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nivo/axes@npm:0.88.0":
+"@nivo/axes@npm:0.88.0, @nivo/axes@npm:^0.88.0":
   version: 0.88.0
   resolution: "@nivo/axes@npm:0.88.0"
   dependencies:
