@@ -4,7 +4,7 @@ import type { TrendChartDataItem } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof TrendChart> = {
-  title: "Commons/TrendChart",
+  title: "Charts/TrendChart",
   component: TrendChart,
 };
 
