@@ -1,8 +1,8 @@
-import type { FunctionalComponent } from "preact";
+import type { AxisProps } from "@nivo/axes";
+import type { LegendProps } from "@nivo/legends";
 import { ResponsiveLine } from "@nivo/line";
 import type { LineSvgProps } from "@nivo/line";
-import type { LegendProps } from "@nivo/legends";
-import type { AxisProps } from "@nivo/axes";
+import type { FunctionalComponent } from "preact";
 import type { CSSProperties } from "preact/compat";
 
 export interface TrendChartDataItem {
@@ -42,10 +42,10 @@ export const defaultTrendChartLegendConfig: LegendProps = {
       on: "hover",
       style: {
         itemBackground: "rgba(0, 0, 0, .03)",
-        itemOpacity: 1
-      }
-    }
-  ]
+        itemOpacity: 1,
+      },
+    },
+  ],
 };
 
 export const defaultAxisBottomConfig: AxisProps = {
@@ -72,15 +72,16 @@ export const defaultTrendChartConfig: Partial<LineSvgProps> = {
   enableArea: true,
 };
 
-export const TrendChart: FunctionalComponent<TrendChartProps> = ({ data, width = 600, height = 400, rootArialLabel, ...restProps }) => {
+export const TrendChart: FunctionalComponent<TrendChartProps> = ({
+  data,
+  width = 600,
+  height = 400,
+  rootArialLabel,
+  ...restProps
+}) => {
   return (
     // Accessible container for the trend diagram
-    <div
-      role="img"
-      aria-label={rootArialLabel}
-      tabIndex={0}
-      style={{ width, height }}
-    >
+    <div role="img" aria-label={rootArialLabel} tabIndex={0} style={{ width, height }}>
       <ResponsiveLine data={data} {...defaultTrendChartConfig} {...restProps} />
     </div>
   );
