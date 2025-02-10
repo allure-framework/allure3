@@ -4,7 +4,7 @@ export default defineConfig({
   name: "Allure Report 3",
   output: "./out/allure-report",
   plugins: {
-    awesome: {
+    allure2: {
       options: {
         singleFile: true,
         reportLanguage: "en",

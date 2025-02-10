@@ -8,15 +8,18 @@
   max-width: 1920px;
   margin: auto;
 }
+.wrapper {
+  //max-width: 920px;
+  width: 100%;
+  flex-direction: column;
+  margin: auto;
+}
 
 .side-left {
   padding: 8px 0 8px 8px;
-  overflow: auto;
-  //flex: 0 0 auto;
 }
 
 .side-right {
-  overflow: auto;
   flex: 1 1 auto;
   padding: 8px 8px 8px 0;
 }

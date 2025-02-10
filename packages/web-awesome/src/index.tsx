@@ -1,24 +1,40 @@
+import { ensureReportDataReady } from "@allurereport/web-commons";
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
+import { fetchStats, getLocale, getTheme } from "@/stores";
+import { fetchPieChartData } from "@/stores/chart";
+import { fetchEnvInfo } from "@/stores/envInfo";
+import { handleHashChange } from "@/stores/router";
+import { fetchTreeData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 
 const App = () => {
-  const [testResultId, setTestResultId] = useState<string>("");
-
-  const getLocationHashId = () => {
-    const hash = globalThis.location.hash;
-    const match = hash.match(/[^#/]+$/);
-    return match ? match[0] : null;
-  };
-
   useEffect(() => {
-    const handleHashChange = () => {
-      const id = getLocationHashId();
-      setTestResultId(id);
-    };
+    getTheme();
+    getLocale();
+    ensureReportDataReady();
+    fetchStats();
+    fetchPieChartData();
+    fetchTreeData();
+    fetchEnvInfo();
+  }, []);
+
+  // const [testResultId, setTestResultId] = useState<string>("");
+  //
+  // const getLocationHashId = () => {
+  //   const hash = globalThis.location.hash;
+  //   const match = hash.match(/[^#/]+$/);
+  //   return match ? match[0] : null;
+  // };
+  //
+  useEffect(() => {
+    // const handleHashChange = () => {
+    //   const id = getLocationHashId();
+    //   setTestResultId(id);
+    // };
 
     handleHashChange();
     globalThis.addEventListener("hashchange", handleHashChange);
@@ -28,13 +44,13 @@ const App = () => {
     };
   }, []);
 
-  return <BaseLayout testResultId={testResultId} />;
+  return <BaseLayout />;
 };
 
-export const navigateTo = (path: string) => {
-  globalThis.location.hash = path;
-};
-
+// export const navigateTo = (path: string) => {
+//   globalThis.location.hash = path;
+// };
+//
 export const openInNewTab = (path: string) => {
   window.open(`#${path}`, "_blank");
 };
