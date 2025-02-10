@@ -7,7 +7,7 @@ import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo } from "@/index";
+import { navigateTo } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export const TestResultRetriesItem: FunctionalComponent<{
@@ -16,7 +16,7 @@ export const TestResultRetriesItem: FunctionalComponent<{
   const { id, status, error, stop, duration } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
-  const formattedDuration = typeof duration === "number" ? formatDuration(duration as number) : undefined;
+  const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
   const navigateUrl = `/testresult/${id}`;
 
   return (

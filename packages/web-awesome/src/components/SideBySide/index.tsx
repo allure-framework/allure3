@@ -1,5 +1,5 @@
 import type { ComponentChild, FunctionalComponent } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 import Split from "split.js";
 import * as styles from "./styles.scss";
 
@@ -10,6 +10,9 @@ interface SideBySideProps {
 
 const SideBySide: FunctionalComponent<SideBySideProps> = ({ left, right }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const leftContent = useMemo(() => left, [left]);
+  const rightContent = useMemo(() => right, [right]);
 
   useEffect(() => {
     const sizes = JSON.parse(localStorage.getItem("sideBySidePosition") || "[50, 50]");
@@ -45,8 +48,8 @@ const SideBySide: FunctionalComponent<SideBySideProps> = ({ left, right }) => {
 
   return (
     <div class={styles.side} ref={containerRef}>
-      <div class={styles["side-left"]}>{left}</div>
-      <div class={styles["side-right"]}>{right}</div>
+      <div class={styles["side-left"]}>{leftContent}</div>
+      <div class={styles["side-right"]}>{rightContent}</div>
     </div>
   );
 };

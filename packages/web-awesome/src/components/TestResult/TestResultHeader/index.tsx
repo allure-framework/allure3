@@ -1,12 +1,10 @@
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { SvgIcon } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
-import { navigateTo } from "@/index";
+import { navigateTo } from "@/stores/router";
 import * as styles from "./styles.scss";
 
 export type TestResultHeaderProps = {
@@ -48,8 +46,8 @@ export const TestResultHeader: FunctionalComponent<TestResultHeaderProps> = ({ t
           </Text>
         </div>
       </div>
-      <LanguagePicker />
-      <ThemeButton />
+      {/* <LanguagePicker />*/}
+      {/* <ThemeButton />*/}
     </div>
   );
 };

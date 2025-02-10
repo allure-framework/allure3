@@ -5,6 +5,12 @@
     border-top: 1px solid var(--on-border-muted);
   }
 }
+.test-result-steps-dropdown {
+  position: sticky;
+  top: 192px;
+  background: var(--bg-base-primary);
+  z-index: 1;
+}
 
 .test-result-steps-root {
   padding-left: 30px;

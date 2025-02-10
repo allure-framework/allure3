@@ -5,7 +5,7 @@ import * as styles from "./styles.scss";
 export const Header = () => {
   return (
     <div className={styles.above}>
-      <div className={styles.right}>
+      <div className={styles.left}>
         <LanguagePicker />
         <ThemeButton />
       </div>
