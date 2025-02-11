@@ -1,7 +1,7 @@
 import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig } from "@allurereport/web-components";
-import type { TrendChartDataItem } from "@allurereport/web-components";
+import type { TrendChartProps, TrendChartDataItem, TrendChartData } from "@allurereport/web-components";
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/preact";
 
 const meta: Meta<typeof TrendChart> = {
   title: "Charts/TrendChart",
@@ -17,7 +17,7 @@ const makeDaysData = (count: number, maxValue = 100): TrendChartDataItem[] => {
   }));
 };
 
-const mockDefaultData = (count: number) => [
+const mockDefaultData = (count: number): TrendChartData[] => [
   {
     id: "Passed",
     data: makeDaysData(count, 200),
@@ -34,7 +34,7 @@ const mockDefaultData = (count: number) => [
 
 const mockedData = mockDefaultData(10);
 
-type Story = StoryObj<typeof TrendChart>;
+type Story = StoryObj<TrendChartProps>;
 
 export const Default: Story = {
   args: {
