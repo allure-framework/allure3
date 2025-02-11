@@ -37,7 +37,6 @@
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run",
     "preinstall": "node ./scripts/addPreactAliases.js"
   },
   "dependencies": {

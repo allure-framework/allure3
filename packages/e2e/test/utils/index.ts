@@ -1,11 +1,14 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import AllureAwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
-import { type TestResult } from "allure-js-commons";
+import { type TestResult, parameter } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { env } from "node:process";
+
+const { ALLURE_SINGLE_FILE } = env;
 
 export type GeneratorParams = {
   reportDir: string;
@@ -17,8 +20,13 @@ export type GeneratorParams = {
 
 export interface ReportBootstrap {
   url: string;
+  servePath: string;
   shutdown: () => Promise<void>;
 }
+
+export const setEnvParameters = async () => {
+  await parameter("singleFile", String(Boolean(ALLURE_SINGLE_FILE)));
+};
 
 export const randomNumber = (min: number, max: number) => {
   if (min > max) {
@@ -35,10 +43,11 @@ export const generateTestResults = async (payload: GeneratorParams) => {
       {
         id: "awesome",
         enabled: true,
-        plugin: new AllureAwesomePlugin(pluginConfig),
-        options: {
+        plugin: new AllureAwesomePlugin({
+          singleFile: Boolean(ALLURE_SINGLE_FILE),
           ...pluginConfig,
-        },
+        }),
+        options: {},
       },
     ],
     ...reportConfig,
@@ -75,12 +84,14 @@ export const boostrapReport = async (
     reportDir: allureReportDir,
   });
 
+  const servePath = resolve(allureReportDir, "./awesome");
   const server = await serve({
-    servePath: resolve(allureReportDir, "./awesome"),
+    servePath,
   });
 
   return {
     url: `http://localhost:${server.port}`,
+    servePath,
     shutdown: async () => {
       await server?.stop();
 

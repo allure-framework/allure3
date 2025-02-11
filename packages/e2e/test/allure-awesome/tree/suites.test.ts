@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status } from "allure-js-commons";
-import { layer } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
+import { type ReportBootstrap, boostrapReport, setEnvParameters } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
 test.describe("suites", () => {
+  test.beforeEach(async () => {
+    await setEnvParameters();
+  });
+
   test.afterEach(async () => {
     await bootstrap?.shutdown?.();
   });
@@ -52,7 +55,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
@@ -118,7 +120,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
@@ -182,7 +183,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");

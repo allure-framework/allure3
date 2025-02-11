@@ -1,6 +1,14 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./stories", "./.storybook", "vitest.config.ts", "**/*.test.tsx", "**/*.test.ts"],
+  "include": [
+    "./stories",
+    "./.storybook",
+    "vitest.config.ts",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "./src",
+    "global.d.ts"
+  ],
   "compilerOptions": {
     "composite": true
   }
