@@ -13,7 +13,7 @@ import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export const BaseLayout = () => {
-  const { id: testResultId, params } = route.value;
+  const { id: testResultId } = route.value;
 
   useEffect(() => {
     if (testResultId) {
@@ -32,7 +32,7 @@ export const BaseLayout = () => {
         </div>,
       );
     }
-  }, [cachedMain]); // Устанавливаем `cachedMain` только один раз
+  }, [cachedMain]);
 
   const testResult = testResultId ? (
     <Loadable
