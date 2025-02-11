@@ -22,35 +22,18 @@ const App = () => {
     fetchEnvInfo();
   }, []);
 
-  // const [testResultId, setTestResultId] = useState<string>("");
-  //
-  // const getLocationHashId = () => {
-  //   const hash = globalThis.location.hash;
-  //   const match = hash.match(/[^#/]+$/);
-  //   return match ? match[0] : null;
-  // };
-  //
   useEffect(() => {
-    // const handleHashChange = () => {
-    //   const id = getLocationHashId();
-    //   setTestResultId(id);
-    // };
-
     handleHashChange();
-    globalThis.addEventListener("hashchange", handleHashChange);
+    globalThis.addEventListener("hashchange", () => handleHashChange());
 
     return () => {
-      globalThis.removeEventListener("hashchange", handleHashChange);
+      globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
 
   return <BaseLayout />;
 };
 
-// export const navigateTo = (path: string) => {
-//   globalThis.location.hash = path;
-// };
-//
 export const openInNewTab = (path: string) => {
   window.open(`#${path}`, "_blank");
 };
