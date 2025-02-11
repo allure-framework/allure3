@@ -302,6 +302,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["npm-run-all2", "npm:7.0.2"],\
           ["prettier", "npm:3.3.3"],\
           ["rimraf", "npm:6.0.1"]\
         ],\
@@ -16443,6 +16444,16 @@ const RAW_RUNTIME_STATE =
           ["which", "npm:2.0.2"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.0.6", {\
+        "packageLocation": "./.yarn/cache/cross-spawn-npm-7.0.6-264bddf921-0d52657d7a.zip/node_modules/cross-spawn/",\
+        "packageDependencies": [\
+          ["cross-spawn", "npm:7.0.6"],\
+          ["path-key", "npm:3.1.1"],\
+          ["shebang-command", "npm:2.0.0"],\
+          ["which", "npm:2.0.2"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["crypt", [\
@@ -23458,6 +23469,21 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["ansi-styles", "npm:6.2.1"],\
           ["cross-spawn", "npm:7.0.3"],\
+          ["memorystream", "npm:0.3.1"],\
+          ["minimatch", "npm:9.0.5"],\
+          ["pidtree", "npm:0.6.0"],\
+          ["read-package-json-fast", "npm:4.0.0"],\
+          ["shell-quote", "npm:1.8.1"],\
+          ["which", "npm:5.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:7.0.2", {\
+        "packageLocation": "./.yarn/cache/npm-run-all2-npm-7.0.2-e992a8f1fc-46d3f7a911.zip/node_modules/npm-run-all2/",\
+        "packageDependencies": [\
+          ["npm-run-all2", "npm:7.0.2"],\
+          ["ansi-styles", "npm:6.2.1"],\
+          ["cross-spawn", "npm:7.0.6"],\
           ["memorystream", "npm:0.3.1"],\
           ["minimatch", "npm:9.0.5"],\
           ["pidtree", "npm:0.6.0"],\

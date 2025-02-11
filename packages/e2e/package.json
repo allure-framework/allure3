@@ -8,7 +8,9 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "run-s 'test:*'",
+    "test:single-file": "ALLURE_SINGLE_FILE=1 playwright test",
+    "test:multi-file": "playwright test"
   },
   "devDependencies": {
     "@allurereport/core": "workspace:*",
@@ -29,6 +31,7 @@
     "eslint-plugin-n": "^17.10.1",
     "eslint-plugin-no-null": "^1.0.2",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "npm-run-all2": "^7.0.2",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1"
   },
