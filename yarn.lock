@@ -876,6 +876,7 @@ __metadata:
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^20.17.9"
     "@types/prismjs": "npm:^1"
+    "@types/sortablejs": "npm:^1.15.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.8"
@@ -922,6 +923,7 @@ __metadata:
     rollup-plugin-svg-sprites: "npm:^1.2.5"
     sass: "npm:^1.83.1"
     sass-loader: "npm:^16.0.4"
+    sortablejs: "npm:^1.15.6"
     storybook: "npm:^8.4.7"
     style-loader: "npm:^4.0.0"
     svg-sprite-loader: "npm:^6.0.11"
@@ -7520,6 +7522,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/b4b5381122465d80ea8b158537c00bc82317222d3fb31fd7229ff25b31fa89134abfbab969118da55622236bf3d8fee75759f3959908b5688991f492008f29bc
+  languageName: node
+  linkType: hard
+
+"@types/sortablejs@npm:^1.15.8":
+  version: 1.15.8
+  resolution: "@types/sortablejs@npm:1.15.8"
+  checksum: 10/aea58b08cf45f5e9633707a8df0df1212595c731bbdfd29805487138fdd0d8c51fa5c741999738a645c1e801d43a92ba0d3fb5b45625b52e247c56588aef6c55
   languageName: node
   linkType: hard
 
@@ -19290,7 +19299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sortablejs@npm:^1.15.3":
+"sortablejs@npm:^1.15.3, sortablejs@npm:^1.15.6":
   version: 1.15.6
   resolution: "sortablejs@npm:1.15.6"
   checksum: 10/3179071352662e6cff20d7d10792a934fc892a83a01ae09c7e604d2dd51daaf07283b00a8f2b13025f27959ff68a1469959bc94ef2a7049723d4c381a368a5ac
