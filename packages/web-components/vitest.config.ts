@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
+const baseDir = path.dirname(new URL(import.meta.url).pathname);
 
 export default defineConfig({
   test: {
@@ -22,7 +23,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(baseDir, "./src"),
     },
   },
 });
