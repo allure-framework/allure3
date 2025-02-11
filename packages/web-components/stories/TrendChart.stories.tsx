@@ -1,7 +1,7 @@
 import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig } from "@allurereport/web-components";
 import type { TrendChartProps, TrendChartDataItem, TrendChartData } from "@allurereport/web-components";
 
-import type { Meta, StoryObj } from "@storybook/preact";
+import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof TrendChart> = {
   title: "Charts/TrendChart",
