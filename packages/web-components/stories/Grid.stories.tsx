@@ -1,4 +1,4 @@
-import type { Meta, StoryFn } from "@storybook/preact";
+import type { Meta, StoryFn } from "@storybook/react";
 import { useState } from "preact/hooks";
 import { Grid } from "@allurereport/web-components";
 
