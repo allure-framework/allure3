@@ -7,6 +7,8 @@ import type { XcActionsInvocationRecord, XcReference } from "./xcModel.js";
 let legacyRunSucceeded = false;
 let noLegacyApi = false;
 
+export const legacyApiUnavailable = () => !legacyRunSucceeded && noLegacyApi;
+
 export const xcresulttoolGetLegacy = async <T>(
   xcResultPath: string,
   ...args: readonly string[]

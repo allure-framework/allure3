@@ -1,6 +1,6 @@
 import console from "node:console";
 import { invokeCliTool, invokeJsonCliTool } from "../../toolRunner.js";
-import type { XcActivities, XcTestDetails, XcTests } from "./model.js";
+import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
 export const xcrun = async <T>(utilityName: string, ...args: readonly string[]) => {
   try {
