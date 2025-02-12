@@ -43,7 +43,6 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
         setIsOpen={handleClick}
         counter={steps?.length}
         title={t("body")}
-        className={styles["test-result-steps-dropdown"]}
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
