@@ -1,7 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "jsx": "react",
     "moduleResolution": "NodeNext",
     "strict": true,
     "sourceMap": false,
