@@ -1,8 +1,8 @@
 import console from "node:console";
 import type { Unknown } from "../../../validation.js";
 import { xcresulttool } from "../cli.js";
-import type { XcActionsInvocationRecord, XcReference } from "./model.js";
 import { getRef } from "./parsing.js";
+import type { XcActionsInvocationRecord, XcReference } from "./xcModel.js";
 
 let legacyRunSucceeded = false;
 let noLegacyApi = false;
@@ -33,5 +33,5 @@ export const getRoot = async (xcResultPath: string) =>
 
 export const getById = async <T>(xcResultPath: string, ref: Unknown<XcReference>) => {
   const id = getRef(ref);
-  return id ? await xcresulttoolGetLegacy<T>("--id", id) : undefined;
+  return id ? await xcresulttoolGetLegacy<T>(xcResultPath, "--id", id) : undefined;
 };

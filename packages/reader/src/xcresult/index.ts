@@ -28,7 +28,16 @@ import {
   isString,
 } from "../validation.js";
 import type { ShallowKnown, Unknown } from "../validation.js";
-import type { TestDetailsRunData, TestRunCoordinates } from "./model.js";
+import type { TestDetailsRunData, TestRunCoordinates, TestRunSelector } from "./model.js";
+import {
+  DEFAULT_BUNDLE_NAME,
+  DEFAULT_SUITE_NAME,
+  DEFAULT_TEST_NAME,
+  createTestRunLookup,
+  getTargetDetails,
+  lookupNextTestAttempt,
+  secondsToMilliseconds,
+} from "./utils.js";
 import { exportAttachments, getTestActivities, getTestDetails, getTests } from "./xcresulttool/cli.js";
 import { XcTestNodeTypeValues, XcTestResultValues } from "./xcresulttool/model.js";
 import type {
@@ -41,15 +50,6 @@ import type {
   XcTestRunArgument,
 } from "./xcresulttool/model.js";
 
-const DEFAULT_BUNDLE_NAME = "The test bundle name is not defined";
-const DEFAULT_SUITE_NAME = "The test suite name is not defined";
-const DEFAULT_TEST_NAME = "The test name is not defined";
-
-const SURROGATE_DEVICE_ID = randomUUID();
-const SURROGATE_TEST_PLAN_ID = randomUUID();
-const SURROGATE_ARGS_ID = randomUUID();
-
-const MS_IN_S = 1_000;
 const DURATION_PATTERN = /\d+\.\d+/;
 const ATTACHMENT_NAME_INFIX_PATTERN = /_\d+_[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12}/g;
 
@@ -171,7 +171,11 @@ const processXcTestCaseNode = async function* (
           duration,
           parameters = [],
           result = "unknown",
-        } = findNextAttemptDataFromTestDetails(detailsRunLookup, deviceId, ensureString(configurationId), args) ?? {};
+        } = findNextAttemptDataFromTestDetails(detailsRunLookup, {
+          device: deviceId,
+          testPlan: ensureString(configurationId),
+          args,
+        }) ?? {};
 
         const { steps, attachmentFiles } = convertXcActivitiesToAllureSteps(attachmentsDir, activities);
 
@@ -311,60 +315,18 @@ const convertActivitiesTestRunArgs = (args: Unknown<XcTestRunArgument[]>): (stri
   isArray(args) ? args.map((a) => (isObject(a) && isString(a.value) ? a.value : undefined)) : [];
 
 const createTestDetailsRunLookup = (nodes: Unknown<XcTestNode[]>) =>
-  groupByMap(
-    collectRunsFromTestDetails(nodes),
-    ([{ device }]) => device ?? SURROGATE_DEVICE_ID,
-    (deviceRuns) =>
-      groupByMap(
-        deviceRuns,
-        ([{ testPlan: configuration }]) => configuration ?? SURROGATE_TEST_PLAN_ID,
-        (configRuns) =>
-          groupByMap(
-            configRuns,
-            ([{ args }]) => (args && args.length ? getArgKey(args.map((arg) => arg?.value)) : SURROGATE_ARGS_ID),
-            (argRuns) => {
-              // Make sure retries are ordered by the repetition index
-              argRuns.sort(([{ attempt: attemptA }], [{ attempt: attemptB }]) => (attemptA ?? 0) - (attemptB ?? 0));
-              return argRuns.map(([, data]) => data);
-            },
-          ),
-      ),
-  );
-
-const groupBy = <T, K>(values: T[], keyFn: (v: T) => K): Map<K, T[]> =>
-  values.reduce((m, v) => {
-    const key = keyFn(v);
-    if (!m.get(key)?.push(v)) {
-      m.set(key, [v]);
-    }
-    return m;
-  }, new Map<K, T[]>());
-
-const groupByMap = <T, K, G>(values: T[], keyFn: (v: T) => K, groupMapFn: (group: T[]) => G): Map<K, G> =>
-  new Map<K, G>(
-    groupBy(values, keyFn)
-      .entries()
-      .map(([k, g]) => [k, groupMapFn(g)]),
-  );
+  createTestRunLookup(collectRunsFromTestDetails(nodes));
 
 const findNextAttemptDataFromTestDetails = (
   lookup: Map<string, Map<string, Map<string, TestDetailsRunData[]>>>,
-  device: string | undefined,
-  testPlan: string | undefined,
-  args: readonly (string | undefined)[] | undefined,
+  selector: TestRunSelector,
 ) => {
-  const attempt = lookup
-    .get(device ?? SURROGATE_DEVICE_ID)
-    ?.get(testPlan ?? SURROGATE_TEST_PLAN_ID)
-    ?.get(args && args.length ? getArgKey(args) : SURROGATE_ARGS_ID)
-    ?.find(({ emitted }) => !emitted);
+  const attempt = lookupNextTestAttempt(lookup, selector, ({ emitted }) => !emitted);
   if (attempt) {
     attempt.emitted = true;
   }
   return attempt;
 };
-
-const getArgKey = (args: readonly (string | undefined)[]) => args.filter((v) => typeof v !== "undefined").join(", ");
 
 const collectRunsFromTestDetails = (
   nodes: Unknown<XcTestNode[]>,
@@ -410,7 +372,7 @@ const collectRunsFromTestDetails = (
             coordinates,
             {
               duration: parseDuration(duration),
-              parameters: coordinates.args?.map((arg) => arg?.name) ?? [],
+              parameters: coordinates.args?.map((arg) => arg?.parameter) ?? [],
               result: ensureLiteral(result, XcTestResultValues) ?? "unknown",
             },
           ]
@@ -429,7 +391,7 @@ const extractArguments = (nodes: Unknown<XcTestNode[]>) => {
           const colonIndex = name.indexOf(":");
           if (colonIndex !== -1) {
             return {
-              name: name.slice(0, colonIndex).trim(),
+              parameter: name.slice(0, colonIndex).trim(),
               value: name.slice(colonIndex + 1).trim(),
             };
           }
@@ -494,12 +456,17 @@ const processActivityTestRunDevice = (device: Unknown<XcDevice>, showDevice: boo
   const host = convertHost(device);
   if (isString(deviceName) && deviceName) {
     labels.push({ name: "host", value: host });
-    parameters.push({ name: "Device name", value: deviceName, hidden: !showDevice });
+    parameters.push({ name: "Target", value: deviceName, hidden: !showDevice });
     if (showDevice) {
-      const osPart = isString(platform) ? (isString(osVersion) ? `${platform} ${osVersion}` : platform) : undefined;
-      const deviceDetailParts = [modelName, architecture, osPart];
-      const deviceDetails = ensureArrayWithItems(deviceDetailParts, isString)?.join(", ") ?? "";
-      parameters.push({ name: "Device details", value: deviceDetails, excluded: true });
+      const targetDetails = getTargetDetails({
+        architecture: ensureString(architecture),
+        model: ensureString(modelName),
+        platform: ensureString(platform),
+        osVersion: ensureString(osVersion),
+      });
+      if (targetDetails) {
+        parameters.push({ name: "Target details", value: targetDetails, excluded: true });
+      }
     }
   }
 
@@ -534,5 +501,3 @@ const parseDuration = (duration: Unknown<string>) => {
     }
   }
 };
-
-const secondsToMilliseconds = (seconds: number) => Math.round(seconds * MS_IN_S);
