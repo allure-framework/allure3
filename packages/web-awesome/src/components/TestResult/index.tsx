@@ -1,6 +1,6 @@
+import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
-import * as styles from "@/components/BaseLayout/styles.scss";
 import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
 import { TestResultHeader } from "@/components/TestResult/TestResultHeader";
@@ -9,6 +9,8 @@ import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
+import { layoutStore } from "@/stores/layout";
+import * as styles from "./styles.scss";
 
 export type TestResultViewProps = {
   testResult?: AllureAwesomeTestResult;
@@ -44,13 +46,16 @@ export type TestResultProps = {
   testResult?: AllureAwesomeTestResult;
 };
 
-const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => (
-  <>
-    <TestResultHeader testResult={testResult} />
-    <div className={styles.content}>
-      {testResult ? <TestResultContent testResult={testResult} /> : <TestResultEmpty />}
-    </div>
-  </>
-);
+const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {
+  const isSplitMode = layoutStore.value === "split";
+  return (
+    <>
+      <TestResultHeader testResult={testResult} />
+      <div className={clsx(styles.content, isSplitMode && styles["scroll-inside"])}>
+        {testResult ? <TestResultContent testResult={testResult} /> : <TestResultEmpty />}
+      </div>
+    </>
+  );
+};
 
 export default TestResult;

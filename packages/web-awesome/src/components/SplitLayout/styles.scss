@@ -8,7 +8,7 @@
 }
 
 .wrapper {
-  max-width: 920px;
+  //max-width: 920px;
   width: 100%;
   flex-direction: column;
   margin: auto;
@@ -19,6 +19,9 @@
   background: var(--bg-base-primary);
   border-radius: 12px;
   width: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
+  height: 90vh;
 }
 
 .test-results {
@@ -50,11 +53,28 @@
 .below {
   display: flex;
   justify-content: space-between;
+  //padding-top: 16px;
   align-items: center;
+  margin: auto;
+  width: 100%;
   padding: 16px 8px;
 }
 
 .test-result-errors {
   padding: 0 24px;
   margin-top: 12px;
+}
+
+.side-by-side {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: space-between;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }

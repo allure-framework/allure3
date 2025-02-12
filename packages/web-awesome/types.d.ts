@@ -18,6 +18,7 @@ export type AllureAwesomeReportOptions = {
   reportLanguage?: "en" | "ru";
   createdAt: number;
   reportUuid: string;
+  layout?: "base" | "split";
 };
 
 export type AllureAwesomeFixtureResult = Omit<

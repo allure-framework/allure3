@@ -1,15 +1,14 @@
 .side {
-  height: 100vh;
   width: 100%;
   padding: 0;
   margin: 0;
   overflow: hidden;
   display: flex;
   max-width: 1920px;
-  margin: auto;
+  justify-content: space-between;
+  height: 100%;
 }
 .wrapper {
-  //max-width: 920px;
   width: 100%;
   flex-direction: column;
   margin: auto;
@@ -17,11 +16,17 @@
 
 .side-left {
   padding: 8px 0 8px 8px;
+  margin-right: auto;
+  transition: width 50ms;
+  will-change: width;
 }
 
 .side-right {
   flex: 1 1 auto;
   padding: 8px 8px 8px 0;
+  margin-left: auto;
+  transition: width 200ms;
+  will-change: width, height;
 }
 
 [dir="ltr"] {
