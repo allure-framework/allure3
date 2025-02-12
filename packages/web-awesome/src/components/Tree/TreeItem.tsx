@@ -31,6 +31,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       {...rest}
       className={clsx(styles["tree-item"], marked ? styles["tree-item-marked"] : "")}
       onClick={() => navigateTo(id)}
+      id={id}
     >
       <TreeItemIcon status={status} />
       <span data-testid="tree-leaf-order" class={styles.order}>

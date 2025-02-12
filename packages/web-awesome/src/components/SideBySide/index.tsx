@@ -1,14 +1,9 @@
-import type { ComponentChild, FunctionalComponent } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import Split from "split.js";
 import * as styles from "./styles.scss";
 
-interface SideBySideProps {
-  left: ComponentChild;
-  right?: ComponentChild;
-}
-
-const SideBySide: FunctionalComponent<SideBySideProps> = ({ left, right }) => {
+const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const leftContent = useMemo(() => left, [left]);

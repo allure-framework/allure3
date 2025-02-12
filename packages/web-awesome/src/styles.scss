@@ -1,0 +1,16 @@
+.main {
+  position: relative;
+  max-width: 1920px;
+  margin: 0 auto;
+  &:hover {
+    .split {
+      opacity: 1;
+    }
+  }
+}
+.split {
+  opacity: 0;
+  position: absolute;
+  left: 128px;
+  top: 8px;
+}
