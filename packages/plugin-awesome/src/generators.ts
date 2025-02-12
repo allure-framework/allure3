@@ -252,6 +252,7 @@ export const generateStaticFiles = async (
     reportDataFiles,
     reportUuid,
     allureVersion,
+    layout = "base",
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -301,6 +302,7 @@ export const generateStaticFiles = async (
     createdAt: Date.now(),
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    layout,
   };
   const html = compile({
     headTags: headTags.join("\n"),
