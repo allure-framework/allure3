@@ -1,15 +1,13 @@
 import type { ResultFile } from "@allurereport/plugin-api";
 import type {
+  RawStep,
   RawTestAttachment,
   RawTestLink,
   RawTestParameter,
   RawTestResult,
-  RawTestStatus,
   RawTestStepResult,
 } from "@allurereport/reader-api";
-import { PathResultFile } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import type { ShallowKnown, Unknown } from "../../../validation.js";
 import { ensureObject, ensureString, isDefined, isObject } from "../../../validation.js";
 import {
@@ -27,14 +25,18 @@ import {
   secondsToMilliseconds,
   toSortedSteps,
 } from "../../utils.js";
+import type { ApiParseFunction, AttachmentFileFactory, ParsingContext } from "../model.js";
 import { getById, getRoot } from "./cli.js";
 import type {
   ActionParametersInputData,
   ActivityProcessingResult,
+  FailureMap,
+  FailureMapValue,
+  FailureOverrides,
   LegacyActionDiscriminator,
   LegacyDestinationData,
-  LegacyParsingContext,
   LegacyParsingState,
+  ResolvedStepFailure,
 } from "./model.js";
 import {
   getBool,
@@ -82,8 +84,8 @@ import { XcActionTestSummaryIdentifiableObjectTypes } from "./xcModel.js";
 const IDENTIFIER_URL_PREFIX = "test://com.apple.xcode/";
 const ACTIVITY_TYPE_ATTACHMENT = "com.apple.dt.xctest.activity-type.attachmentContainer";
 
-export default async function* (
-  context: LegacyParsingContext,
+const parse: ApiParseFunction = async function* (
+  context: ParsingContext,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
   const { xcResultPath } = context;
   const root = await getRoot(xcResultPath);
@@ -115,7 +117,9 @@ export default async function* (
       }
     }
   }
-}
+};
+
+export default parse;
 
 const parseActionDiscriminators = (actions: ShallowKnown<XcActionRecord>[]): LegacyActionDiscriminator[] => {
   return actions.map(({ runDestination, testPlanName }) => ({
@@ -181,7 +185,7 @@ const parsePlatform = (element: Unknown<XcActionPlatformRecord>) => {
 };
 
 const traverseActionTestSummaries = async function* (
-  context: LegacyParsingContext,
+  context: ParsingContext,
   array: Unknown<XcArray<XcActionTestSummaryIdentifiableObject>>,
   state: LegacyParsingState,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
@@ -201,7 +205,7 @@ const traverseActionTestSummaries = async function* (
 };
 
 const visitActionTestMetadata = async function* (
-  context: LegacyParsingContext,
+  context: ParsingContext,
   { summaryRef }: ShallowKnown<XcActionTestMetadata>,
   state: LegacyParsingState,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
@@ -213,7 +217,7 @@ const visitActionTestMetadata = async function* (
 };
 
 const visitActionTestSummary = async function* (
-  { attachmentsDir }: LegacyParsingContext,
+  { createAttachmentFile }: ParsingContext,
   {
     arguments: args,
     duration,
@@ -246,12 +250,12 @@ const visitActionTestSummary = async function* (
     tags: parseTestTags(tags),
   });
   const parameters = getAllTestResultParameters(state, args, repetitionPolicySummary);
-  const failures = processFailures(attachmentsDir, failureSummaries, expectedFailures);
+  const failures = await processFailures(createAttachmentFile, failureSummaries, expectedFailures);
   const {
     steps: activitySteps,
     files,
     apiCalls,
-  } = processActivities(attachmentsDir, failures, getObjectArray(activitySummaries));
+  } = await processActivities(createAttachmentFile, failures, getObjectArray(activitySummaries));
   const { message, trace, steps: failureSteps } = resolveTestFailures(failures);
   const steps = toSortedSteps(activitySteps, failureSteps);
   const testResult: RawTestResult = {
@@ -289,37 +293,58 @@ const parseTrackedIssues = (issues: Unknown<XcArray<XcIssueTrackingMetadata>>): 
     })
     .filter(isDefined);
 
-type FailureMapValue = {
-  step: RawTestStepResult;
-  files: ResultFile[];
-  isTopLevel?: boolean;
-};
-
-type FailureMap = Map<string, FailureMapValue>;
-
-const processFailures = (
-  attachmentsDir: string,
+const processFailures = async (
+  createAttachmentFile: AttachmentFileFactory,
   failures: Unknown<XcArray<XcActionTestFailureSummary>>,
   expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
-): FailureMap => {
-  const failureEntries = getObjectArray(failures).map((summary) => toFailureMapEntry(attachmentsDir, summary));
-  const expectedFailureEntries = getObjectArray(expectedFailures).map(({ uuid, failureReason, failureSummary }) =>
-    isObject(failureSummary)
-      ? toFailureMapEntry(attachmentsDir, failureSummary, {
-          uuid,
-          status: "passed",
-          mapMessage: (message) => {
-            const prefix = getString(failureReason) ?? DEFAULT_EXPECTED_FAILURE_REASON;
-            return message ? `${prefix}:\n  ${message}` : prefix;
-          },
-        })
-      : undefined,
-  );
-  return new Map([...failureEntries, ...expectedFailureEntries].filter(isDefined));
+): Promise<FailureMap> => {
+  const failureEntries = await parseFailureEntries(createAttachmentFile, failures);
+  const expectedFailureEntries = await parseExpectedFailureEntries(createAttachmentFile, expectedFailures);
+  return new Map([...failureEntries, ...expectedFailureEntries]);
 };
 
-const toFailureMapEntry = (
-  attachmentsDir: string,
+const parseFailureEntries = async (
+  createAttachmentFile: AttachmentFileFactory,
+  failures: Unknown<XcArray<XcActionTestFailureSummary>>,
+) => {
+  const entries: [string, FailureMapValue][] = [];
+  for (const summary of getObjectArray(failures)) {
+    const entry = await toFailureMapEntry(createAttachmentFile, summary);
+    if (entry) {
+      entries.push(entry);
+    }
+  }
+  return entries;
+};
+
+const parseExpectedFailureEntries = async (
+  createAttachmentFile: AttachmentFileFactory,
+  expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
+) => {
+  const entries: [string, FailureMapValue][] = [];
+  for (const { uuid, failureReason, failureSummary } of getObjectArray(expectedFailures)) {
+    if (isObject(failureSummary)) {
+      const mapMessage = (message: string | undefined) => {
+        const prefix = getString(failureReason) ?? DEFAULT_EXPECTED_FAILURE_REASON;
+        return message ? `${prefix}:\n  ${message}` : prefix;
+      };
+
+      const entry = await toFailureMapEntry(createAttachmentFile, failureSummary, {
+        uuid,
+        status: "passed",
+        mapMessage,
+      });
+
+      if (entry) {
+        entries.push(entry);
+      }
+    }
+  }
+  return entries;
+};
+
+const toFailureMapEntry = async (
+  createAttachmentFile: AttachmentFileFactory,
   {
     attachments,
     message: rawMessage,
@@ -329,13 +354,9 @@ const toFailureMapEntry = (
     isTopLevelFailure,
     issueType,
   }: ShallowKnown<XcActionTestFailureSummary>,
-  {
-    uuid: explicitUuid,
-    mapMessage,
-    status: explicitStatus,
-  }: { uuid?: Unknown<XcString>; mapMessage?: (message: string | undefined) => string; status?: RawTestStatus } = {},
+  { uuid: explicitUuid, mapMessage, status: explicitStatus }: FailureOverrides = {},
 ) => {
-  const { steps, files } = parseAttachments(attachmentsDir, getObjectArray(attachments));
+  const { steps, files } = await parseAttachments(createAttachmentFile, getObjectArray(attachments));
   const message = getString(rawMessage);
   const status = explicitStatus ?? resolveFailureStepStatus(getString(issueType));
   const trace = convertStackTrace(sourceCodeContext);
@@ -378,83 +399,77 @@ const convertStackTrace = (sourceCodeContext: Unknown<XcSourceCodeContext>) => {
   }
 };
 
-const processActivities = (
-  attachmentsDir: string,
+const processActivities = async (
+  createAttachmentFile: AttachmentFileFactory,
   failures: FailureMap,
   activities: readonly ShallowKnown<XcActionTestActivitySummary>[],
-): ActivityProcessingResult =>
-  mergeActivityProcessingResults(
-    ...activities.map(
-      ({
-        activityType,
-        title,
-        start,
-        finish,
-        attachments: rawAttachments,
-        subactivities: rawSubactivities,
-        failureSummaryIDs,
-      }) => {
-        const attachments = getObjectArray(rawAttachments);
-        const subactivities = getObjectArray(rawSubactivities);
-        const failureIds = getStringArray(failureSummaryIDs);
+): Promise<ActivityProcessingResult> => {
+  const results: ActivityProcessingResult[] = [];
+  for (const {
+    activityType,
+    title,
+    start,
+    finish,
+    attachments: rawAttachments,
+    subactivities: rawSubactivities,
+    failureSummaryIDs,
+  } of activities) {
+    const attachments = getObjectArray(rawAttachments);
+    const subactivities = getObjectArray(rawSubactivities);
+    const failureIds = getStringArray(failureSummaryIDs);
 
-        const parsedAttachments = parseAttachments(attachmentsDir, attachments);
-        if (getString(activityType) === ACTIVITY_TYPE_ATTACHMENT) {
-          return parsedAttachments;
-        }
+    const parsedAttachments = await parseAttachments(createAttachmentFile, attachments);
+    if (getString(activityType) === ACTIVITY_TYPE_ATTACHMENT) {
+      return parsedAttachments;
+    }
 
-        const name = getString(title);
+    const name = getString(title);
 
-        if (attachments.length === 0 && subactivities.length === 0 && failureIds.length === 0) {
-          const parsedAllureApiCall = parseAsAllureApiActivity(name);
-          if (isDefined(parsedAllureApiCall)) {
-            return {
-              steps: [],
-              files: [],
-              apiCalls: [parsedAllureApiCall],
-            };
-          }
-        }
-
-        const { steps: thisStepAttachmentSteps, files: thisStepFiles } = parsedAttachments;
-        const {
-          steps: substeps,
-          files: substepFiles,
-          apiCalls,
-        } = processActivities(attachmentsDir, failures, subactivities);
-
-        const failureSteps = failureIds.map((uuid) => failures.get(uuid)).filter(isDefined);
-        const { steps: nestedFailureSteps, message, trace } = resolveFailuresOfStep(failureIds, failureSteps);
-
-        const steps = toSortedSteps(thisStepAttachmentSteps, substeps, nestedFailureSteps);
-
+    if (attachments.length === 0 && subactivities.length === 0 && failureIds.length === 0) {
+      const parsedAllureApiCall = parseAsAllureApiActivity(name);
+      if (isDefined(parsedAllureApiCall)) {
         return {
-          steps: [
-            {
-              type: "step",
-              name: name ?? DEFAULT_STEP_NAME,
-              start: getDate(start),
-              stop: getDate(finish),
-              status: getWorstStatus(steps) ?? "passed",
-              message,
-              trace,
-              steps,
-            } as RawTestStepResult,
-          ],
-          files: [...thisStepFiles, ...substepFiles],
-          apiCalls,
+          steps: [],
+          files: [],
+          apiCalls: [parsedAllureApiCall],
         };
-      },
-    ),
-  );
+      }
+    }
 
-type StepFailure = {
-  message?: string;
-  trace?: string;
-  steps: RawTestStepResult[];
+    const { steps: thisStepAttachmentSteps, files: thisStepFiles } = parsedAttachments;
+    const {
+      steps: substeps,
+      files: substepFiles,
+      apiCalls,
+    } = await processActivities(createAttachmentFile, failures, subactivities);
+
+    const failureSteps = failureIds.map((uuid) => failures.get(uuid)).filter(isDefined);
+    const { steps: nestedFailureSteps, message, trace } = resolveFailuresOfStep(failureIds, failureSteps);
+
+    const steps = toSortedSteps(thisStepAttachmentSteps, substeps, nestedFailureSteps);
+
+    const result = {
+      steps: [
+        {
+          type: "step",
+          name: name ?? DEFAULT_STEP_NAME,
+          start: getDate(start),
+          stop: getDate(finish),
+          status: getWorstStatus(steps) ?? "passed",
+          message,
+          trace,
+          steps,
+        } as RawTestStepResult,
+      ],
+      files: [...thisStepFiles, ...substepFiles],
+      apiCalls,
+    };
+    results.push(result);
+  }
+  return mergeActivityProcessingResults(...results);
 };
 
-const resolveFailuresOfStep = (failureUids: string[], failures: readonly FailureMapValue[]): StepFailure =>
+const resolveFailuresOfStep = (failureUids: string[], failures: readonly FailureMapValue[]): ResolvedStepFailure =>
   resolveFailures(
     failureUids.length > failures.length
       ? [
@@ -472,10 +487,10 @@ const resolveFailuresOfStep = (failureUids: string[], failures: readonly Failure
       : failures,
   );
 
-const resolveTestFailures = (failures: FailureMap): StepFailure =>
+const resolveTestFailures = (failures: FailureMap): ResolvedStepFailure =>
   resolveFailures(Array.from(failures.values()).filter(({ isTopLevel }) => isTopLevel));
 
-const resolveFailures = (failures: readonly FailureMapValue[]): StepFailure => {
+const resolveFailures = (failures: readonly FailureMapValue[]): ResolvedStepFailure => {
   switch (failures.length) {
     case 0:
       return { steps: [] };
@@ -490,13 +505,13 @@ const prepareOneFailure = ([
   {
     step: { message, trace },
   },
-]: readonly [FailureMapValue]): StepFailure => ({
+]: readonly [FailureMapValue]): ResolvedStepFailure => ({
   message,
   trace,
   steps: [],
 });
 
-const prepareMultipleFailures = (failures: readonly [FailureMapValue, ...FailureMapValue[]]): StepFailure => {
+const prepareMultipleFailures = (failures: readonly [FailureMapValue, ...FailureMapValue[]]): ResolvedStepFailure => {
   const [
     {
       step: { message, trace },
@@ -523,35 +538,38 @@ const mergeActivityProcessingResults = (...results: readonly ActivityProcessingR
   );
 };
 
-const parseAttachments = (attachmentsDir: string, attachments: readonly ShallowKnown<XcActionTestAttachment>[]) =>
-  attachments
-    .map(({ name: rawName, timestamp, uuid: rawUuid }) => {
-      const uuid = getString(rawUuid);
-      if (uuid) {
-        const start = getDate(timestamp);
-        const fileName = randomUUID();
-        return {
-          step: {
-            type: "attachment",
-            originalFileName: fileName,
-            name: getString(rawName) ?? DEFAULT_ATTACHMENT_NAME,
-            start,
-            stop: start,
-          } as RawTestAttachment,
-          file: new PathResultFile(path.join(attachmentsDir, uuid), fileName),
-        };
-      }
-    })
-    .filter(isDefined)
-    .reduce<ActivityProcessingResult>(
-      (parsedAttachments, { step, file }) => {
-        const { steps, files } = parsedAttachments;
-        steps.push(step);
+const parseAttachments = async (
+  createAttachmentFile: AttachmentFileFactory,
+  attachments: readonly ShallowKnown<XcActionTestAttachment>[],
+) => {
+  const steps: RawStep[] = [];
+  const files: ResultFile[] = [];
+
+  for (const { name: rawName, timestamp, uuid: rawUuid, filename: rawFileName } of attachments) {
+    const uuid = getString(rawUuid);
+    if (uuid) {
+      const start = getDate(timestamp);
+      const name = getString(rawName) ?? DEFAULT_ATTACHMENT_NAME;
+      const fileName = ensureUniqueFileName(rawFileName, name);
+      const step: RawTestAttachment = {
+        type: "attachment",
+        originalFileName: fileName,
+        name,
+        start,
+        stop: start,
+      };
+      const file = await createAttachmentFile(uuid, fileName);
+      steps.push(step);
+      if (file) {
         files.push(file);
-        return parsedAttachments;
-      },
-      { steps: [], files: [], apiCalls: [] },
-    );
+      }
+    }
+  }
+  return { steps, files, apiCalls: [] };
+};
+
+const ensureUniqueFileName = (byXc: Unknown<XcString>, byUser: string) =>
+  getString(byXc) ?? `${randomUUID()}-${byUser}`;
 
 const getAllTestResultParameters = (
   context: LegacyParsingState,
@@ -630,7 +648,7 @@ const parseTestTags = (tags: Unknown<XcArray<XcTestTag>>): string[] =>
     .filter(isDefined);
 
 const visitActionTestSummaryGroup = async function* (
-  context: LegacyParsingContext,
+  context: ParsingContext,
   { name, identifierURL, summary, subtests }: ShallowKnown<XcActionTestSummaryGroup>,
   state: LegacyParsingState,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {

@@ -1,6 +1,8 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import type { RawStep } from "@allurereport/reader-api";
+import type { RawStep, RawTestStatus, RawTestStepResult } from "@allurereport/reader-api";
+import type { Unknown } from "../../../validation.js";
 import type { AllureApiCall } from "../../model.js";
+import type { XcString } from "./xcModel.js";
 
 export type LegacyTestResultData = {
   issues: LegacyIssueTrackingMetadata[];
@@ -40,11 +42,6 @@ export type Suite = {
   uri: string | undefined;
 };
 
-export type LegacyParsingContext = {
-  xcResultPath: string;
-  attachmentsDir: string;
-};
-
 export type LegacyParsingState = {
   bundle?: string;
   suites: Suite[];
@@ -59,3 +56,23 @@ export type ActionParametersInputData = Pick<
   LegacyParsingState,
   "destination" | "testPlan" | "multiTarget" | "multiTestPlan"
 >;
+
+export type ResolvedStepFailure = {
+  message?: string;
+  trace?: string;
+  steps: RawTestStepResult[];
+};
+
+export type FailureMapValue = {
+  step: RawTestStepResult;
+  files: ResultFile[];
+  isTopLevel?: boolean;
+};
+
+export type FailureMap = Map<string, FailureMapValue>;
+
+export type FailureOverrides = {
+  uuid?: Unknown<XcString>;
+  mapMessage?: (message: string | undefined) => string;
+  status?: RawTestStatus;
+};

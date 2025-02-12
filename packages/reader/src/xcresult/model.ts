@@ -1,5 +1,5 @@
 import type { RawTestLabel, RawTestLink, RawTestParameter } from "@allurereport/reader-api";
-import type { XcTestResult } from "./xcresulttool/model.js";
+import type { XcTestResult } from "./xcresulttool/xcModel.js";
 
 export type XcAttachments = Map<string, XcAttachmentMetadata[]>;
 
