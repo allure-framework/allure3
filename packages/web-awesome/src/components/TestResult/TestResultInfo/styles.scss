@@ -1,6 +1,12 @@
 .test-result-info {
   padding: 20px 24px 0;
 }
+.sticky {
+  position: sticky;
+  top: 0;
+  background: var(--bg-base-primary);
+  z-index: 1;
+}
 
 .test-result-info-data {
   display: flex;

@@ -6,8 +6,8 @@ import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo, openInNewTab } from "@/index";
 import { useI18n } from "@/stores";
+import { navigateTo, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export const TestResultHistoryItem: FunctionalComponent<{

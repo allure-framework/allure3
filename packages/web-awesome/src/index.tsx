@@ -1,38 +1,59 @@
+import { ensureReportDataReady } from "@allurereport/web-commons";
+import { IconButton, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
+import { SplitLayout } from "@/components/SplitLayout";
+import { fetchStats, getLocale, getTheme } from "@/stores";
+import { fetchPieChartData } from "@/stores/chart";
+import { fetchEnvInfo } from "@/stores/envInfo";
+import { getLayout, layoutStore, toggleLayout } from "@/stores/layout";
+import { handleHashChange, route } from "@/stores/router";
+import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
+import { fetchTreeData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
+import * as styles from "./styles.scss";
 
 const App = () => {
-  const [testResultId, setTestResultId] = useState<string>("");
-
-  const getLocationHashId = () => {
-    const hash = globalThis.location.hash;
-    const match = hash.match(/[^#/]+$/);
-    return match ? match[0] : null;
-  };
+  const { id: testResultId } = route.value;
+  const isSplitMode = layoutStore.value === "split";
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const id = getLocationHashId();
-      setTestResultId(id);
-    };
-
-    handleHashChange();
-    globalThis.addEventListener("hashchange", handleHashChange);
-
-    return () => {
-      globalThis.removeEventListener("hashchange", handleHashChange);
-    };
+    if (testResultId) {
+      fetchTestResult(testResultId);
+      fetchTestResultNav();
+    }
+    getLayout();
+    getTheme();
+    getLocale();
+    ensureReportDataReady();
+    fetchStats();
+    fetchPieChartData();
+    fetchTreeData();
+    fetchEnvInfo();
   }, []);
 
-  return <BaseLayout testResultId={testResultId} />;
-};
+  useEffect(() => {
+    handleHashChange();
+    globalThis.addEventListener("hashchange", () => handleHashChange());
 
-export const navigateTo = (path: string) => {
-  globalThis.location.hash = path;
+    return () => {
+      globalThis.removeEventListener("hashchange", () => handleHashChange());
+    };
+  }, []);
+  return (
+    <div className={styles.main}>
+      <IconButton
+        className={styles.split}
+        icon={allureIcons.reportLogo}
+        style={"ghost"}
+        onClick={() => toggleLayout()}
+      />
+      {isSplitMode ? <SplitLayout /> : <BaseLayout testResultId={testResultId} />}
+    </div>
+  );
 };
 
 export const openInNewTab = (path: string) => {

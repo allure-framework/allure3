@@ -1,11 +1,8 @@
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { Loadable } from "@allurereport/web-components";
-import { TooltipWrapper } from "@allurereport/web-components";
-import { Code } from "@allurereport/web-components";
+import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
-import { navigateTo } from "@/index";
 import { useI18n } from "@/stores";
+import { navigateTo } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
