@@ -48,7 +48,7 @@ export type Narrow<SuperType, SubType> = [SubType] extends [never]
 /**
  * Infers the element type of an array. This type is distributive.
  */
-export type ArrayElement<T> = T extends readonly (infer E)[] ? (E[] extends T ? E : never) : never;
+export type ArrayElement<T> = T extends readonly (infer E)[] ? E : never;
 
 /**
  * Returns the argument as is if it's an object (but not array), all properties of which are of the same type.
@@ -96,6 +96,16 @@ export type HomogeneousObjectItem<T> = T extends object
  * arguments respectively.
  */
 export type ConditionalUnion<CA, A, CB, B> = [CA] extends [never] ? B : [CB] extends [never] ? A : A | B;
+
+/**
+ * A type guard to check possibly undefined values.
+ * @example
+ * ```ts
+ * const withUndefined: (string | undefined)[] = ["foo", undefined, "bar"];
+ * const withoudUndefined = withUndefined.filter(isDefined);
+ * ```
+ */
+export const isDefined = <T>(value: T | undefined): value is T => typeof value !== "undefined";
 
 /**
  * A type guard to check string values.
@@ -236,7 +246,7 @@ export const ensureInt = <T>(value: Unknown<T>): number | undefined => {
 };
 
 /**
- * If the value is an array or tuple, marks it as `ShallowKnown` and returns as is. Otherwise, returns `undefined`.
+ * If the value is an array or a tuple, marks it as `ShallowKnown` and returns as is. Otherwise, returns `undefined`.
  * @example
  * ```ts
  * const raw: Unknown<number[]> = JSON.parse("[1, 2, 3]");
