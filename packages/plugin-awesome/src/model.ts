@@ -5,6 +5,7 @@ export type AllureAwesomeOptions = {
   theme?: "light" | "dark";
   reportLanguage?: "en" | "ru";
   groupBy?: string[];
+  layout?: "base" | "split";
   ci?: {
     type: "github" | "jenkins";
     url: string;
