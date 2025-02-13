@@ -1,9 +1,11 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
+import { useEffect } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
 import Modal from "@/components/Modal";
 import TestResult from "@/components/TestResult";
-import { testResultStore } from "@/stores/testResults";
+import { route } from "@/stores/router";
+import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
@@ -11,7 +13,15 @@ export type BaseLayoutProps = {
   testResultId?: string;
 };
 
-export const BaseLayout = ({ testResultId }: BaseLayoutProps) => {
+export const BaseLayout = () => {
+  const { id: testResultId } = route.value;
+  useEffect(() => {
+    if (testResultId) {
+      fetchTestResult(testResultId);
+      fetchTestResultNav();
+    }
+  }, []);
+
   const content = testResultId ? (
     <Loadable
       source={testResultStore}

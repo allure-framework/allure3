@@ -43,17 +43,7 @@ const App = () => {
       globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
-  return (
-    <div className={styles.main}>
-      <IconButton
-        className={styles.split}
-        icon={allureIcons.reportLogo}
-        style={"ghost"}
-        onClick={() => toggleLayout()}
-      />
-      {isSplitMode ? <SplitLayout /> : <BaseLayout testResultId={testResultId} />}
-    </div>
-  );
+  return <div className={styles.main}>{isSplitMode ? <SplitLayout /> : <BaseLayout />}</div>;
 };
 
 export const openInNewTab = (path: string) => {
