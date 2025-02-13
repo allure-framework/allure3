@@ -17,15 +17,20 @@ const addPreactAliases = async () => {
   const preactCompatFile = require.resolve("preact/compat");
   const preactJsxRuntimeFile = require.resolve("preact/jsx-runtime");
 
+  const preactCompatDir = path.relative(
+    process.cwd(),
+    path.dirname(preactCompatFile)
+  );
+  const preactJsxRuntimeDir = path.relative(
+    process.cwd(),
+    path.dirname(preactJsxRuntimeFile)
+  );
 
-  const preactCompatDir = path.relative(process.cwd(), path.join(path.dirname(preactCompatFile), ".."));
-  const preactJsxRuntimeDir = path.relative(process.cwd(), path.join(path.dirname(preactJsxRuntimeFile), ".."));
-
-  // Update the tsconfig paths with trailing separator so TypeScript treats them as directories
-  tsconfig.compilerOptions.paths.react = [ preactCompatDir + path.sep ];
-  tsconfig.compilerOptions.paths["react/jsx-runtime"] = [ preactJsxRuntimeDir + path.sep ];
-  tsconfig.compilerOptions.paths["react-dom"] = [ preactCompatDir + path.sep ];
-  tsconfig.compilerOptions.paths["react-dom/*"] = [ `${preactCompatDir + path.sep  }*` ];
+  // Update the tsconfig paths
+  tsconfig.compilerOptions.paths.react = [preactCompatDir];
+  tsconfig.compilerOptions.paths["react/jsx-runtime"] = [preactJsxRuntimeDir];
+  tsconfig.compilerOptions.paths["react-dom"] = [preactCompatDir];
+  tsconfig.compilerOptions.paths["react-dom/*"] = [path.join(preactCompatDir, "*")];
 
   await writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), "utf8");
 };
