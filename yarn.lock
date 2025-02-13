@@ -872,6 +872,8 @@ __metadata:
     postcss-import: "npm:^16.1.0"
     preact: "npm:^10.24.0"
     prismjs: "npm:^1.29.0"
+    react: "npm:@preact/compat@*"
+    react-dom: "npm:@preact/compat@*"
     reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.30.1"

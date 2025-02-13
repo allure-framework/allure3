@@ -39,10 +39,6 @@
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run"
   },
-  "resolutions": {
-    "react": "@preact/compat",
-    "react-dom": "@preact/compat"
-  },
   "dependencies": {
     "@allurereport/web-commons": "workspace:*",
     "@floating-ui/dom": "^1.6.13",
@@ -52,6 +48,8 @@
     "d3-shape": "^3.2.0",
     "preact": "^10.24.0",
     "prismjs": "^1.29.0",
+    "react": "npm:@preact/compat@*",
+    "react-dom": "npm:@preact/compat@*",
     "reset.css": "^2.0.2"
   },
   "devDependencies": {

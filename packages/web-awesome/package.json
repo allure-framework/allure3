@@ -30,10 +30,6 @@
     "> 1%",
     "IE 11"
   ],
-  "resolutions": {
-    "react": "@preact/compat",
-    "react-dom": "@preact/compat"
-  },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
