@@ -28,18 +28,6 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "react": [
-        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/"
-      ],
-      "react/jsx-runtime": [
-        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/jsx-runtime/"
-      ],
-      "react-dom": [
-        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/"
-      ],
-      "react-dom/*": [
-        "../../.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/compat/*"
       ]
     },
     "resolveJsonModule": true,

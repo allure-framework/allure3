@@ -627,6 +627,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.24.7"
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.12"
+    "@preact/compat": "npm:^18.3.1"
     "@preact/signals": "npm:^1.3.0"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
@@ -806,6 +807,7 @@ __metadata:
     "@nivo/core": "npm:^0.88.0"
     "@nivo/legends": "npm:^0.88.0"
     "@nivo/line": "npm:^0.88.0"
+    "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.9.4"
     "@preact/signals": "npm:^1.3.0"
     "@rollup/plugin-alias": "npm:^5.1.1"
@@ -5422,6 +5424,15 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: 10/8557f9d60b93b9a60b66599d46f991b56df26b691f9285e8755298dabd9f42d1421c330a7d7578b76445fdd56040fe790d3f1081daa80e5e89a380170e0fd217
+  languageName: node
+  linkType: hard
+
+"@preact/compat@npm:^18.3.1, react-dom@npm:@preact/compat@*, react@npm:@preact/compat@*":
+  version: 18.3.1
+  resolution: "@preact/compat@npm:18.3.1"
+  peerDependencies:
+    preact: "*"
+  checksum: 10/c3a457a5496672207a276f89961ae725ca811c42a37865bac66fe636473805ac4bf6bcf333b2745fe4da874ccd8a5293020a5b353b027bc532ca74b3610dac37
   languageName: node
   linkType: hard
 
@@ -17540,15 +17551,6 @@ __metadata:
   peerDependencies:
     react: ^16.3.0 || ^17.0.1 || ^18.0.0
   checksum: 10/33423767c42362b29e0c8fd09f60bcf40d64aeb721fd63564f85c61357706a6080563ec40f33435d210d5b5b1af7277aef4545deccf771d08785a3cb19749470
-  languageName: node
-  linkType: hard
-
-"react-dom@npm:@preact/compat@*, react@npm:@preact/compat@*":
-  version: 18.3.1
-  resolution: "@preact/compat@npm:18.3.1"
-  peerDependencies:
-    preact: "*"
-  checksum: 10/c3a457a5496672207a276f89961ae725ca811c42a37865bac66fe636473805ac4bf6bcf333b2745fe4da874ccd8a5293020a5b353b027bc532ca74b3610dac37
   languageName: node
   linkType: hard
 
