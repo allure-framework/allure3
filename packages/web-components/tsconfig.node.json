@@ -6,7 +6,6 @@
     "vitest.config.ts",
     "**/*.test.tsx",
     "**/*.test.ts",
-    "./src",
     "global.d.ts"
   ],
   "compilerOptions": {
