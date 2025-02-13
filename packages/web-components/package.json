@@ -37,8 +37,11 @@
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run",
-    "preinstall": "node ./scripts/addPreactAliases.js"
+    "test": "vitest run"
+  },
+  "resolutions": {
+    "react": "@preact/compat",
+    "react-dom": "@preact/compat"
   },
   "dependencies": {
     "@allurereport/web-commons": "workspace:*",
@@ -49,8 +52,6 @@
     "d3-shape": "^3.2.0",
     "preact": "^10.24.0",
     "prismjs": "^1.29.0",
-    "react": "npm:@preact/compat@*",
-    "react-dom": "npm:@preact/compat@*",
     "reset.css": "^2.0.2"
   },
   "devDependencies": {
@@ -63,6 +64,7 @@
     "@eslint/js": "^9.10.0",
     "@nivo/axes": "^0.88.0",
     "@nivo/legends": "^0.88.0",
+    "@preact/compat": "^18.3.1",
     "@preact/preset-vite": "^2.9.4",
     "@preact/signals": "^1.3.0",
     "@rollup/plugin-alias": "^5.1.1",

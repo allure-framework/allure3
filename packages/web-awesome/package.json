@@ -30,6 +30,10 @@
     "> 1%",
     "IE 11"
   ],
+  "resolutions": {
+    "react": "@preact/compat",
+    "react-dom": "@preact/compat"
+  },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
@@ -50,6 +54,7 @@
     "@babel/preset-typescript": "^7.24.7",
     "@eslint/js": "^9.10.0",
     "@floating-ui/dom": "^1.6.12",
+    "@preact/compat": "^18.3.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/babel__core": "^7.20.5",
     "@types/d3-shape": "^3.1.6",

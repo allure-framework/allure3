@@ -86,6 +86,8 @@ export default (env, argv) => {
       extensions: [".js", ".ts", ".tsx"],
       alias: {
         "@": join(baseDir, "src"),
+        "react": "@preact/compat",
+        "react-dom": "@preact/compat",
       },
     },
   };
