@@ -2,9 +2,11 @@ import type { ResultFile } from "@allurereport/plugin-api";
 import type { DirectoryResultsReader, FileResultsReader, ResultsVisitor } from "@allurereport/reader-api";
 import { PathResultFile } from "@allurereport/reader-api";
 import { attachment, step } from "allure-js-commons";
+import archiver from "archiver";
 import { existsSync } from "fs";
 import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
+import { Writable } from "stream";
 import type { Mocked } from "vitest";
 import { expect, vi } from "vitest";
 
@@ -34,7 +36,7 @@ export const resolveResourceDirectory = async (path: string) => {
     throw new Error(`Resource ${resourcePath} not found`);
   }
 
-  return path;
+  return resourcePath;
 };
 
 export const mockVisitor: () => Mocked<ResultsVisitor> = () => ({
@@ -81,6 +83,26 @@ export const attachResultFile = async (resultFile: ResultFile) => {
   }
 };
 
-export const attachResultDir = async (path: string) => {
-  await attachment(basename(path), "", "application/zip");
+export const attachResultDir = async (resultDir: string) => {
+  const compressedFolder = await zipFolder(resultDir);
+  await attachment(`${basename(resultDir)}.zip`, compressedFolder, "application/zip");
+};
+
+export const zipFolder = async (dirPath: string) => {
+  const chunks: Uint8Array[] = [];
+
+  // see https://nodejs.org/api/stream.html#implementing-a-writable-stream
+  const writable = new Writable();
+  // eslint-disable-next-line no-underscore-dangle
+  writable._write = (chunk: Uint8Array, encoding, callback) => {
+    chunks.push(chunk);
+    callback();
+  };
+
+  const archive = archiver("zip", { zlib: { level: 9 } });
+  archive.pipe(writable);
+  archive.directory(dirPath, basename(dirPath));
+  await archive.finalize();
+
+  return Buffer.concat(chunks);
 };
