@@ -18,6 +18,7 @@ export const xcresult: ResultsReader = {
 
           try {
             tryApi(visitor, legacyApi, context);
+            return;
           } catch (e) {
             if (!legacyApiUnavailable()) {
               throw e;
