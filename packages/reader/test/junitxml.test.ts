@@ -640,7 +640,7 @@ describe("junit xml reader", () => {
   it("should ignore invalid root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/invalid.xml", randomTestsuiteFileName());
-    const read = await junitXml.read(visitor, resultFile);
+    const read = await junitXml.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });
@@ -648,7 +648,7 @@ describe("junit xml reader", () => {
   it("should parse empty root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/empty.xml", randomTestsuiteFileName());
-    const read = await junitXml.read(visitor, resultFile);
+    const read = await junitXml.readFile(visitor, resultFile);
 
     expect(read).toBeTruthy();
   });
@@ -656,7 +656,7 @@ describe("junit xml reader", () => {
   it("should parse test-suites element with invalid type", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("junitxmldata/wrong-type.xml", randomTestsuiteFileName());
-    const read = await junitXml.read(visitor, resultFile);
+    const read = await junitXml.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });

@@ -10,7 +10,7 @@ describe("allure1 reader", () => {
   it("should parse empty xml file", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("allure1data/empty-file.xml", randomTestsuiteFileName());
-    const read = await allure1.read(visitor, resultFile);
+    const read = await allure1.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });
@@ -18,7 +18,7 @@ describe("allure1 reader", () => {
   it("should parse empty xml correct xml heading", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("allure1data/empty-xml.xml", randomTestsuiteFileName());
-    const read = await allure1.read(visitor, resultFile);
+    const read = await allure1.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });
@@ -26,7 +26,7 @@ describe("allure1 reader", () => {
   it("should parse empty root element", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("allure1data/empty-root.xml", randomTestsuiteFileName());
-    const read = await allure1.read(visitor, resultFile);
+    const read = await allure1.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });
@@ -34,7 +34,7 @@ describe("allure1 reader", () => {
   it("should parse test-suites element with invalid type", async () => {
     const visitor = mockVisitor();
     const resultFile = await readResourceAsResultFile("allure1data/invalid-root.xml", randomTestsuiteFileName());
-    const read = await allure1.read(visitor, resultFile);
+    const read = await allure1.readFile(visitor, resultFile);
 
     expect(read).toBeFalsy();
   });
