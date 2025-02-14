@@ -1,4 +1,5 @@
 import { notNull } from "@allurereport/core-api";
+import type { ResultFile } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawStep,
@@ -8,9 +9,9 @@ import type {
   RawTestParameter,
   RawTestResult,
   RawTestStatus,
-  ResultsReader,
   ResultsVisitor,
 } from "@allurereport/reader-api";
+import { FileResultsReader } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -42,14 +43,16 @@ const xmlParser = new XMLParser({
   isArray: (tagName, jPath) => arrayTags.has(jPath),
 });
 
-const readerId = "allure2";
+class Allure2Reader extends FileResultsReader {
+  constructor() {
+    super("allure2");
+  }
 
-export const allure2: ResultsReader = {
-  read: async (visitor, data) => {
+  override async readFile(visitor: ResultsVisitor, data: ResultFile) {
     // this is essential in case we need to attach valid result files
     // e.g. like in allure2.test.ts
     if (data.getOriginalFileName().match(/.*-attachment(\..+)?/)) {
-      await visitor.visitAttachmentFile(data, { readerId });
+      await visitor.visitAttachmentFile(data, { readerId: this.readerId() });
       return true;
     }
     if (data.getOriginalFileName().endsWith("-result.json")) {
@@ -57,7 +60,7 @@ export const allure2: ResultsReader = {
         const parsed = await data.asJson<unknown>();
 
         if (parsed && isStringAnyRecord(parsed)) {
-          await processTestResult(visitor, parsed, data.getOriginalFileName());
+          await this.#processTestResult(visitor, parsed, data.getOriginalFileName());
         }
 
         return true;
@@ -71,7 +74,7 @@ export const allure2: ResultsReader = {
       const parsed = await data.asJson<Partial<TestResultContainer>>();
 
       if (parsed) {
-        await processTestResultContainer(visitor, parsed);
+        await this.#processTestResultContainer(visitor, parsed);
       }
 
       return true;
@@ -81,7 +84,7 @@ export const allure2: ResultsReader = {
       try {
         const parsed = await data.asJson<unknown>();
         if (parsed && isStringAnyRecord(parsed)) {
-          await processExecutor(visitor, parsed);
+          await this.#processExecutor(visitor, parsed);
         }
         return true;
       } catch (e) {
@@ -94,7 +97,7 @@ export const allure2: ResultsReader = {
       try {
         const parsed = await data.asJson<unknown>();
         if (parsed && isStringAnyRecordArray(parsed)) {
-          await processCategories(visitor, parsed);
+          await this.#processCategories(visitor, parsed);
         }
         return true;
       } catch (e) {
@@ -109,7 +112,7 @@ export const allure2: ResultsReader = {
         if (raw) {
           const parsed = parseProperties(raw);
           if (parsed && isStringAnyRecord(parsed)) {
-            await processEnvironment(visitor, parsed);
+            await this.#processEnvironment(visitor, parsed);
           }
         }
         return true;
@@ -128,7 +131,7 @@ export const allure2: ResultsReader = {
         const content = cleanBadXmlCharacters(asBuffer).toString("utf-8");
         const parsed = xmlParser.parse(content);
         if (isStringAnyRecord(parsed)) {
-          await processEnvironmentXml(visitor, parsed);
+          await this.#processEnvironmentXml(visitor, parsed);
         }
         return true;
       } catch (e) {
@@ -138,245 +141,245 @@ export const allure2: ResultsReader = {
     }
 
     return false;
-  },
+  }
 
-  readerId: () => readerId,
-};
+  #processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
+    const dest: RawTestResult = {
+      uuid: ensureString(result.uuid),
+      fullName: ensureString(result.fullName),
+      name: ensureString(result.name),
+      testId: ensureString(result.testCaseId),
+      historyId: ensureString(result.historyId),
 
-const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
-  const dest: RawTestResult = {
-    uuid: ensureString(result.uuid),
-    fullName: ensureString(result.fullName),
-    name: ensureString(result.name),
-    testId: ensureString(result.testCaseId),
-    historyId: ensureString(result.historyId),
+      start: ensureInt(result.start),
+      stop: ensureInt(result.stop),
 
-    start: ensureInt(result.start),
-    stop: ensureInt(result.stop),
+      description: ensureString(result.description),
+      descriptionHtml: ensureString(result.descriptionHtml),
 
-    description: ensureString(result.description),
-    descriptionHtml: ensureString(result.descriptionHtml),
+      status: this.#convertStatus(result.status),
+      message: ensureString(result?.statusDetails?.message),
+      trace: ensureString(result?.statusDetails?.trace),
+      flaky: ensureBoolean(result?.statusDetails?.flaky),
+      known: ensureBoolean(result?.statusDetails?.known),
+      muted: ensureBoolean(result?.statusDetails?.muted),
 
-    status: convertStatus(result.status),
-    message: ensureString(result?.statusDetails?.message),
-    trace: ensureString(result?.statusDetails?.trace),
-    flaky: ensureBoolean(result?.statusDetails?.flaky),
-    known: ensureBoolean(result?.statusDetails?.known),
-    muted: ensureBoolean(result?.statusDetails?.muted),
+      parameters: result?.parameters?.filter(notNull)?.map(this.#convertParameter),
+      steps: [
+        ...(result?.steps?.filter(notNull)?.map(this.#convertStep) ?? []),
+        ...(result?.attachments?.filter(notNull)?.map(this.#convertAttachment) ?? []),
+      ],
+      links: result?.links?.filter(notNull)?.map(this.#convertLink),
+      labels: result.labels?.filter(notNull)?.map(this.#convertLabel),
+    };
 
-    parameters: result?.parameters?.filter(notNull)?.map(convertParameter),
-    steps: [
-      ...(result?.steps?.filter(notNull)?.map(convertStep) ?? []),
-      ...(result?.attachments?.filter(notNull)?.map(convertAttachment) ?? []),
-    ],
-    links: result?.links?.filter(notNull)?.map(convertLink),
-    labels: result.labels?.filter(notNull)?.map(convertLabel),
+    await visitor.visitTestResult(dest, { readerId: this.readerId(), metadata: { originalFileName } });
   };
 
-  await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
-};
-
-const processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
-  await visitor.visitMetadata(
-    {
-      allure2_executor: {
-        name: ensureString(result.name),
-        type: ensureString(result.type),
-        url: ensureString(result.url),
-        buildOrder: ensureInt(result.buildOrder),
-        buildName: ensureString(result.buildName),
-        buildUrl: ensureString(result.buildUrl),
-        reportName: ensureString(result.reportName),
-        reportUrl: ensureString(result.reportUrl),
+  #processExecutor = async (visitor: ResultsVisitor, result: Partial<ExecutorInfo>) => {
+    await visitor.visitMetadata(
+      {
+        allure2_executor: {
+          name: ensureString(result.name),
+          type: ensureString(result.type),
+          url: ensureString(result.url),
+          buildOrder: ensureInt(result.buildOrder),
+          buildName: ensureString(result.buildName),
+          buildUrl: ensureString(result.buildUrl),
+          reportName: ensureString(result.reportName),
+          reportUrl: ensureString(result.reportUrl),
+        },
       },
-    },
-    { readerId },
-  );
-};
+      { readerId: this.readerId() },
+    );
+  };
 
-const processCategories = async (visitor: ResultsVisitor, result: Partial<Category>[]) => {
-  const data = result.map((value) => ({
-    name: ensureString(value.name),
-    description: ensureString(value.description),
-    descriptionHtml: ensureString(value.descriptionHtml),
-    messageRegex: ensureString(value.messageRegex),
-    traceRegex: ensureString(value.traceRegex),
-    matchedStatuses: Array.isArray(value.matchedStatuses)
-      ? value.matchedStatuses.map((v) => ensureString(v)).filter(notNull)
-      : [],
-    flaky: ensureBoolean(value.flaky),
-  }));
+  #processCategories = async (visitor: ResultsVisitor, result: Partial<Category>[]) => {
+    const data = result.map((value) => ({
+      name: ensureString(value.name),
+      description: ensureString(value.description),
+      descriptionHtml: ensureString(value.descriptionHtml),
+      messageRegex: ensureString(value.messageRegex),
+      traceRegex: ensureString(value.traceRegex),
+      matchedStatuses: Array.isArray(value.matchedStatuses)
+        ? value.matchedStatuses.map((v) => ensureString(v)).filter(notNull)
+        : [],
+      flaky: ensureBoolean(value.flaky),
+    }));
 
-  await visitor.visitMetadata(
-    {
-      allure2_categories: data,
-    },
-    { readerId },
-  );
-};
+    await visitor.visitMetadata(
+      {
+        allure2_categories: data,
+      },
+      { readerId: this.readerId() },
+    );
+  };
 
-const processEnvironmentXml = async (visitor: ResultsVisitor, result: Record<string, any>) => {
-  const { environment } = result;
-  if (!isStringAnyRecord(environment)) {
-    return;
-  }
-  const { parameter: parameters } = environment;
-  if (!isStringAnyRecordArray(parameters)) {
-    return;
-  }
-  const data: { name: string; values: string[] }[] = [];
-  parameters.forEach((param) => {
-    const { key, value } = param;
-    const stringKey = ensureString(key);
-    const stringValue = ensureString(value);
-    if (stringKey && stringValue) {
-      data.push({ name: stringKey, values: [stringValue] });
+  #processEnvironmentXml = async (visitor: ResultsVisitor, result: Record<string, any>) => {
+    const { environment } = result;
+    if (!isStringAnyRecord(environment)) {
+      return;
     }
-  });
-
-  await visitor.visitMetadata(
-    {
-      allure_environment: data,
-    },
-    {
-      readerId,
-    },
-  );
-};
-
-const processEnvironment = async (visitor: ResultsVisitor, result: Record<string, any>) => {
-  const data = Object.keys(result).map((key: string) => {
-    const rawValue = result[key];
-    const value = typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue);
-    return {
-      name: key,
-      values: [value],
-    };
-  });
-
-  await visitor.visitMetadata(
-    {
-      allure_environment: data,
-    },
-    {
-      readerId,
-    },
-  );
-};
-
-const processFixtures = async (
-  visitor: ResultsVisitor,
-  fixtures: FixtureResult[] | undefined,
-  type: RawFixtureResult["type"],
-  children: string[],
-) => {
-  if (fixtures) {
-    for (const fixture of fixtures) {
-      const dist = convertFixture(type, children, fixture);
-      await visitor.visitTestFixtureResult(dist, { readerId });
+    const { parameter: parameters } = environment;
+    if (!isStringAnyRecordArray(parameters)) {
+      return;
     }
-  }
-};
+    const data: { name: string; values: string[] }[] = [];
+    parameters.forEach((param) => {
+      const { key, value } = param;
+      const stringKey = ensureString(key);
+      const stringValue = ensureString(value);
+      if (stringKey && stringValue) {
+        data.push({ name: stringKey, values: [stringValue] });
+      }
+    });
 
-const processTestResultContainer = async (visitor: ResultsVisitor, result: Partial<TestResultContainer>) => {
-  if (result.children && result.children.length > 0) {
-    await processFixtures(visitor, result.befores, "before", result.children);
-    await processFixtures(visitor, result.afters, "after", result.children);
-  }
-};
-
-const convertStatus = (status: Status | string | null | undefined): RawTestStatus => {
-  switch ((status ?? "unknown").toLowerCase()) {
-    case "failed":
-      return "failed";
-    case "broken":
-      return "broken";
-    case "passed":
-      return "passed";
-    case "skipped":
-      return "skipped";
-    default:
-      return "unknown";
-  }
-};
-
-const convertFixture = (type: "before" | "after", children: string[], fixture: FixtureResult): RawFixtureResult => {
-  return {
-    uuid: randomUUID(),
-    testResults: children,
-    type,
-    name: fixture.name,
-    start: ensureInt(fixture.start),
-    stop: ensureInt(fixture.stop),
-    status: convertStatus(fixture.status),
-    message: ensureString(fixture?.statusDetails?.message),
-    trace: ensureString(fixture?.statusDetails?.trace),
-    steps: [
-      ...(fixture?.steps?.filter(notNull)?.map(convertStep) ?? []),
-      ...(fixture?.attachments?.filter(notNull)?.map(convertAttachment) ?? []),
-    ],
+    await visitor.visitMetadata(
+      {
+        allure_environment: data,
+      },
+      {
+        readerId: this.readerId(),
+      },
+    );
   };
-};
 
-const convertStep = (step: StepResult): RawStep => {
-  const steps = step?.steps ?? [];
-  const attachments = step?.attachments ?? [];
+  #processEnvironment = async (visitor: ResultsVisitor, result: Record<string, any>) => {
+    const data = Object.keys(result).map((key: string) => {
+      const rawValue = result[key];
+      const value = typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue);
+      return {
+        name: key,
+        values: [value],
+      };
+    });
 
-  // support for attachment meta steps https://github.com/allure-framework/allure2/pull/2107
-  if (steps.length === 0 && attachments.length === 1 && step.name === attachments[0].name) {
+    await visitor.visitMetadata(
+      {
+        allure_environment: data,
+      },
+      {
+        readerId: this.readerId(),
+      },
+    );
+  };
+
+  #processFixtures = async (
+    visitor: ResultsVisitor,
+    fixtures: FixtureResult[] | undefined,
+    type: RawFixtureResult["type"],
+    children: string[],
+  ) => {
+    if (fixtures) {
+      for (const fixture of fixtures) {
+        const dist = this.#convertFixture(type, children, fixture);
+        await visitor.visitTestFixtureResult(dist, { readerId: this.readerId() });
+      }
+    }
+  };
+
+  #processTestResultContainer = async (visitor: ResultsVisitor, result: Partial<TestResultContainer>) => {
+    if (result.children && result.children.length > 0) {
+      await this.#processFixtures(visitor, result.befores, "before", result.children);
+      await this.#processFixtures(visitor, result.afters, "after", result.children);
+    }
+  };
+
+  #convertStatus = (status: Status | string | null | undefined): RawTestStatus => {
+    switch ((status ?? "unknown").toLowerCase()) {
+      case "failed":
+        return "failed";
+      case "broken":
+        return "broken";
+      case "passed":
+        return "passed";
+      case "skipped":
+        return "skipped";
+      default:
+        return "unknown";
+    }
+  };
+
+  #convertFixture = (type: "before" | "after", children: string[], fixture: FixtureResult): RawFixtureResult => {
     return {
-      ...convertAttachment(attachments[0]),
-      start: step.start,
-      stop: step.stop,
+      uuid: randomUUID(),
+      testResults: children,
+      type,
+      name: fixture.name,
+      start: ensureInt(fixture.start),
+      stop: ensureInt(fixture.stop),
+      status: this.#convertStatus(fixture.status),
+      message: ensureString(fixture?.statusDetails?.message),
+      trace: ensureString(fixture?.statusDetails?.trace),
+      steps: [
+        ...(fixture?.steps?.filter(notNull)?.map(this.#convertStep) ?? []),
+        ...(fixture?.attachments?.filter(notNull)?.map(this.#convertAttachment) ?? []),
+      ],
     };
-  }
-
-  return {
-    name: ensureString(step.name),
-    parameters: step?.parameters?.filter(notNull)?.map(convertParameter),
-    status: convertStatus(step.status),
-    message: ensureString(step?.statusDetails?.message),
-    trace: ensureString(step?.statusDetails?.trace),
-    steps: [
-      ...(steps.filter(notNull)?.map(convertStep) ?? []),
-      ...(attachments.filter(notNull)?.map(convertAttachment) ?? []),
-    ],
-    start: ensureInt(step.start),
-    stop: ensureInt(step.stop),
-    type: "step",
   };
-};
 
-const convertParameter = ({ mode, name, value, excluded }: Parameter): RawTestParameter => {
-  return {
-    name: ensureString(name),
-    value: ensureString(value),
-    excluded: ensureBoolean(excluded),
-    hidden: mode === ParameterMode.HIDDEN,
-    masked: mode === ParameterMode.MASKED,
-  };
-};
+  #convertStep = (step: StepResult): RawStep => {
+    const steps = step?.steps ?? [];
+    const attachments = step?.attachments ?? [];
 
-const convertAttachment = ({ name, type, source }: Attachment): RawTestAttachment => {
-  return {
-    name: ensureString(name),
-    contentType: ensureString(type),
-    originalFileName: ensureString(source),
-    type: "attachment",
-  };
-};
+    // support for attachment meta steps https://github.com/allure-framework/allure2/pull/2107
+    if (steps.length === 0 && attachments.length === 1 && step.name === attachments[0].name) {
+      return {
+        ...this.#convertAttachment(attachments[0]),
+        start: step.start,
+        stop: step.stop,
+      };
+    }
 
-const convertLabel = ({ name, value }: Label): RawTestLabel => {
-  return {
-    name: ensureString(name),
-    value: ensureString(value),
+    return {
+      name: ensureString(step.name),
+      parameters: step?.parameters?.filter(notNull)?.map(this.#convertParameter),
+      status: this.#convertStatus(step.status),
+      message: ensureString(step?.statusDetails?.message),
+      trace: ensureString(step?.statusDetails?.trace),
+      steps: [
+        ...(steps.filter(notNull)?.map(this.#convertStep) ?? []),
+        ...(attachments.filter(notNull)?.map(this.#convertAttachment) ?? []),
+      ],
+      start: ensureInt(step.start),
+      stop: ensureInt(step.stop),
+      type: "step",
+    };
   };
-};
 
-const convertLink = ({ name, url, type }: Link): RawTestLink => {
-  return {
-    name: ensureString(name),
-    url: ensureString(url),
-    type: ensureString(type),
+  #convertParameter = ({ mode, name, value, excluded }: Parameter): RawTestParameter => {
+    return {
+      name: ensureString(name),
+      value: ensureString(value),
+      excluded: ensureBoolean(excluded),
+      hidden: mode === ParameterMode.HIDDEN,
+      masked: mode === ParameterMode.MASKED,
+    };
   };
-};
+
+  #convertAttachment = ({ name, type, source }: Attachment): RawTestAttachment => {
+    return {
+      name: ensureString(name),
+      contentType: ensureString(type),
+      originalFileName: ensureString(source),
+      type: "attachment",
+    };
+  };
+
+  #convertLabel = ({ name, value }: Label): RawTestLabel => {
+    return {
+      name: ensureString(name),
+      value: ensureString(value),
+    };
+  };
+
+  #convertLink = ({ name, url, type }: Link): RawTestLink => {
+    return {
+      name: ensureString(name),
+      url: ensureString(url),
+      type: ensureString(type),
+    };
+  };
+}
+
+export const allure2 = new Allure2Reader();

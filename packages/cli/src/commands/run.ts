@@ -7,7 +7,6 @@ import {
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
 import AllureAwesome from "@allurereport/plugin-awesome";
-import { PathResultFile } from "@allurereport/reader-api";
 import * as console from "node:console";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -39,7 +38,7 @@ const runTests = async (
 
   const processWatcher = delayedFileProcessingWatcher(
     async (path) => {
-      await allureReport.readResult(new PathResultFile(path));
+      await allureReport.readResult(path);
     },
     {
       indexDelay: 200,

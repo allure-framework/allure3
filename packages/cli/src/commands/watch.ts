@@ -3,7 +3,6 @@ import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import AllureAwesome from "@allurereport/plugin-awesome";
 import ProgressPlugin from "@allurereport/plugin-progress";
 import ServerReloadPlugin from "@allurereport/plugin-server-reload";
-import { PathResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import * as console from "node:console";
 import { rm } from "node:fs/promises";
@@ -82,7 +81,7 @@ export const WatchCommandAction = async (resultsDir: string, options: WatchComma
 
   const input = resolve(resultsDir);
   const { abort } = newFilesInDirectoryWatcher(input, async (path) => {
-    await allureReport.readResult(new PathResultFile(path));
+    await allureReport.readResult(path);
   });
 
   const pluginIdToOpen = config.plugins?.find((plugin) => !!plugin.options.open)?.id;

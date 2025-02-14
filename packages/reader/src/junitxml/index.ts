@@ -1,11 +1,6 @@
-import type {
-  RawTestAttachment,
-  RawTestLabel,
-  RawTestStatus,
-  ResultsReader,
-  ResultsVisitor,
-} from "@allurereport/reader-api";
-import { BufferResultFile } from "@allurereport/reader-api";
+import type { ResultFile } from "@allurereport/plugin-api";
+import type { RawTestAttachment, RawTestLabel, RawTestStatus, ResultsVisitor } from "@allurereport/reader-api";
+import { BufferResultFile, FileResultsReader } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
 import * as console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -37,8 +32,12 @@ const xmlParser = new XMLParser({
 
 const readerId = "junit";
 
-export const junitXml: ResultsReader = {
-  read: async (visitor, data) => {
+class JunitXmlReader extends FileResultsReader {
+  constructor() {
+    super("junit");
+  }
+
+  override async readFile(visitor: ResultsVisitor, data: ResultFile) {
     if (data.getOriginalFileName().endsWith(".xml")) {
       try {
         const content = await data.asUtf8String();
@@ -50,198 +49,198 @@ export const junitXml: ResultsReader = {
           return false;
         }
 
-        return await parseRootElement(visitor, parsed);
+        return await this.#parseRootElement(visitor, parsed);
       } catch (e) {
         console.error("error parsing", data.getOriginalFileName(), e);
         return false;
       }
     }
     return false;
-  },
-
-  readerId: () => readerId,
-};
-
-const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any>): Promise<boolean> => {
-  const { testsuite: testSuite } = xml;
-
-  if (isEmptyElement(testSuite)) {
-    return true;
   }
 
-  if (testSuite === undefined) {
-    const { testsuites: testSuites } = xml;
+  #parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any>): Promise<boolean> => {
+    const { testsuite: testSuite } = xml;
 
-    if (isEmptyElement(testSuites)) {
+    if (isEmptyElement(testSuite)) {
       return true;
     }
 
-    if (!isStringAnyRecord(testSuites)) {
-      return false;
-    }
+    if (testSuite === undefined) {
+      const { testsuites: testSuites } = xml;
 
-    const { testsuite: testSuitesArray } = testSuites;
+      if (isEmptyElement(testSuites)) {
+        return true;
+      }
 
-    if (isEmptyElement(testSuitesArray)) {
+      if (!isStringAnyRecord(testSuites)) {
+        return false;
+      }
+
+      const { testsuite: testSuitesArray } = testSuites;
+
+      if (isEmptyElement(testSuitesArray)) {
+        return true;
+      }
+
+      if (!isStringAnyRecordArray(testSuitesArray)) {
+        return false;
+      }
+
+      for (const testSuitesArrayElement of testSuitesArray) {
+        await this.#parseTestSuite(visitor, testSuitesArrayElement, true);
+      }
       return true;
     }
 
-    if (!isStringAnyRecordArray(testSuitesArray)) {
+    if (!isStringAnyRecord(testSuite)) {
       return false;
     }
 
-    for (const testSuitesArrayElement of testSuitesArray) {
-      await parseTestSuite(visitor, testSuitesArrayElement, true);
-    }
+    await this.#parseTestSuite(visitor, testSuite, false);
     return true;
-  }
-
-  if (!isStringAnyRecord(testSuite)) {
-    return false;
-  }
-
-  await parseTestSuite(visitor, testSuite, false);
-  return true;
-};
-
-const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>, isAggregated: boolean) => {
-  const { name, package: packageAttribute, testcase } = testSuite;
-
-  if (!isStringAnyRecordArray(testcase)) {
-    return;
-  }
-
-  for (const testcaseElement of testcase) {
-    await parseTestCase(
-      visitor,
-      { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
-      testcaseElement,
-      isAggregated,
-    );
-  }
-};
-
-const parseTestCase = async (
-  visitor: ResultsVisitor,
-  { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
-  testCase: Record<string, any>,
-  isAggregated: boolean,
-) => {
-  const {
-    "name": nameAttribute,
-    failure,
-    error,
-    skipped,
-    "classname": classNameAttribute,
-    time,
-    "system-out": systemOutAttribute,
-    "system-err": systemErrAttribute,
-  } = testCase;
-
-  const name = ensureString(nameAttribute);
-  const className = ensureString(classNameAttribute);
-  const systemOut = ensureString(systemOutAttribute);
-  const systemErr = ensureString(systemErrAttribute);
-
-  const { status, message, trace } = getStatus(failure, error, skipped);
-
-  await visitor.visitTestResult(
-    {
-      name: name ?? DEFAULT_TEST_NAME,
-      fullName: convertFullName(className, name),
-      duration: convertDuration(time),
-      status,
-      message,
-      trace,
-      steps: await parseAttachments(visitor, systemOut, systemErr),
-      labels: convertLabels({ suitePackage, suiteName, className, isAggregated }),
-    },
-    { readerId },
-  );
-};
-
-const convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
-
-const parseAttachments = async (visitor: ResultsVisitor, systemOut?: string, systemErr?: string) => {
-  const attachments: RawTestAttachment[] = [];
-
-  if (systemOut) {
-    attachments.push(await visitPlainTextAttachment(visitor, STDOUT_ATTACHMENT_NAME, systemOut));
-  }
-
-  if (systemErr) {
-    attachments.push(await visitPlainTextAttachment(visitor, STDERR_ATTACHMENT_NAME, systemErr));
-  }
-
-  return attachments;
-};
-
-const visitPlainTextAttachment = async (
-  visitor: ResultsVisitor,
-  name: string,
-  content: string,
-): Promise<RawTestAttachment> => {
-  const fileName = randomUUID();
-  await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(content), fileName), { readerId });
-  return {
-    type: "attachment",
-    contentType: "text/plain",
-    originalFileName: fileName,
-    name,
   };
-};
 
-const convertLabels = ({
-  suitePackage,
-  suiteName,
-  className,
-  isAggregated,
-}: {
-  suitePackage: string | undefined;
-  suiteName: string | undefined;
-  className: string | undefined;
-  isAggregated: boolean;
-}) => {
-  const labels: RawTestLabel[] = [];
+  #parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>, isAggregated: boolean) => {
+    const { name, package: packageAttribute, testcase } = testSuite;
 
-  if (suitePackage) {
-    labels.push({ name: SUITE_PACKAGE_NAME, value: suitePackage });
-    if (isAggregated) {
-      labels.push({ name: SUITE_PARENT_LABEL_NAME, value: suitePackage });
+    if (!isStringAnyRecordArray(testcase)) {
+      return;
     }
-  }
 
-  if (suiteName) {
-    labels.push({ name: SUITE_LABEL_NAME, value: suiteName });
-  }
+    for (const testcaseElement of testcase) {
+      await this.#parseTestCase(
+        visitor,
+        { name: ensureString(name), suitePackage: ensureString(packageAttribute) },
+        testcaseElement,
+        isAggregated,
+      );
+    }
+  };
 
-  if (className) {
-    labels.push({ name: TEST_CLASS_LABEL_NAME, value: className });
-  }
+  #parseTestCase = async (
+    visitor: ResultsVisitor,
+    { name: suiteName, suitePackage }: { name?: string; suitePackage?: string },
+    testCase: Record<string, any>,
+    isAggregated: boolean,
+  ) => {
+    const {
+      "name": nameAttribute,
+      failure,
+      error,
+      skipped,
+      "classname": classNameAttribute,
+      time,
+      "system-out": systemOutAttribute,
+      "system-err": systemErrAttribute,
+    } = testCase;
 
-  return labels;
-};
+    const name = ensureString(nameAttribute);
+    const className = ensureString(classNameAttribute);
+    const systemOut = ensureString(systemOutAttribute);
+    const systemErr = ensureString(systemErrAttribute);
 
-const convertDuration = (timeAttribute: unknown) => {
-  const time = ensureString(timeAttribute);
-  return time ? Math.round(parseFloat(time) * MS_IN_S) : undefined;
-};
+    const { status, message, trace } = this.#getStatus(failure, error, skipped);
 
-const getStatus = (failure: unknown, error: unknown, skipped: unknown) =>
-  maybeParseStatus("failed", failure) ??
-  maybeParseStatus("broken", error) ??
-  maybeParseStatus("skipped", skipped) ?? { status: "passed" };
+    await visitor.visitTestResult(
+      {
+        name: name ?? DEFAULT_TEST_NAME,
+        fullName: this.#convertFullName(className, name),
+        duration: this.#convertDuration(time),
+        status,
+        message,
+        trace,
+        steps: await this.#parseAttachments(visitor, systemOut, systemErr),
+        labels: this.#convertLabels({ suitePackage, suiteName, className, isAggregated }),
+      },
+      { readerId },
+    );
+  };
 
-const maybeParseStatus = (
-  status: RawTestStatus,
-  element: unknown,
-): { status: RawTestStatus; message?: string; trace?: string } | undefined => {
-  if (isEmptyElement(element)) {
-    return { status };
-  }
+  #convertFullName = (className?: string, name?: string) => (className && name ? `${className}.${name}` : undefined);
 
-  if (isStringAnyRecord(element)) {
-    const { message, "#text": trace } = element;
-    return { status, message: ensureString(message), trace: ensureString(trace) };
-  }
-};
+  #parseAttachments = async (visitor: ResultsVisitor, systemOut?: string, systemErr?: string) => {
+    const attachments: RawTestAttachment[] = [];
+
+    if (systemOut) {
+      attachments.push(await this.#visitPlainTextAttachment(visitor, STDOUT_ATTACHMENT_NAME, systemOut));
+    }
+
+    if (systemErr) {
+      attachments.push(await this.#visitPlainTextAttachment(visitor, STDERR_ATTACHMENT_NAME, systemErr));
+    }
+
+    return attachments;
+  };
+
+  #visitPlainTextAttachment = async (
+    visitor: ResultsVisitor,
+    name: string,
+    content: string,
+  ): Promise<RawTestAttachment> => {
+    const fileName = randomUUID();
+    await visitor.visitAttachmentFile(new BufferResultFile(Buffer.from(content), fileName), { readerId });
+    return {
+      type: "attachment",
+      contentType: "text/plain",
+      originalFileName: fileName,
+      name,
+    };
+  };
+
+  #convertLabels = ({
+    suitePackage,
+    suiteName,
+    className,
+    isAggregated,
+  }: {
+    suitePackage: string | undefined;
+    suiteName: string | undefined;
+    className: string | undefined;
+    isAggregated: boolean;
+  }) => {
+    const labels: RawTestLabel[] = [];
+
+    if (suitePackage) {
+      labels.push({ name: SUITE_PACKAGE_NAME, value: suitePackage });
+      if (isAggregated) {
+        labels.push({ name: SUITE_PARENT_LABEL_NAME, value: suitePackage });
+      }
+    }
+
+    if (suiteName) {
+      labels.push({ name: SUITE_LABEL_NAME, value: suiteName });
+    }
+
+    if (className) {
+      labels.push({ name: TEST_CLASS_LABEL_NAME, value: className });
+    }
+
+    return labels;
+  };
+
+  #convertDuration = (timeAttribute: unknown) => {
+    const time = ensureString(timeAttribute);
+    return time ? Math.round(parseFloat(time) * MS_IN_S) : undefined;
+  };
+
+  #getStatus = (failure: unknown, error: unknown, skipped: unknown) =>
+    this.#maybeParseStatus("failed", failure) ??
+    this.#maybeParseStatus("broken", error) ??
+    this.#maybeParseStatus("skipped", skipped) ?? { status: "passed" };
+
+  #maybeParseStatus = (
+    status: RawTestStatus,
+    element: unknown,
+  ): { status: RawTestStatus; message?: string; trace?: string } | undefined => {
+    if (isEmptyElement(element)) {
+      return { status };
+    }
+
+    if (isStringAnyRecord(element)) {
+      const { message, "#text": trace } = element;
+      return { status, message: ensureString(message), trace: ensureString(trace) };
+    }
+  };
+}
+
+export const junitXml = new JunitXmlReader();

@@ -1,6 +1,6 @@
-import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { Plugin, PluginContext, PluginState, ReportFiles } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml } from "@allurereport/reader";
-import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import type { ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
@@ -91,12 +91,14 @@ export class AllureReport {
     const dir = await opendir(resultsDirPath);
 
     try {
-      for await (const dirent of dir) {
-        if (dirent.isFile()) {
-          const path = await realpath(join(dirent.parentPath, dirent.name));
+      const processed = await this.readResult(resultsDir);
+      if (processed) {
+        return;
+      }
 
-          await this.readResult(new PathResultFile(path, dirent.name));
-        }
+      for await (const dirent of dir) {
+        const path = await realpath(join(dirent.parentPath, dirent.name));
+        await this.readResult(path);
       }
     } catch (e) {
       console.error("can't read directory", e);
@@ -107,23 +109,25 @@ export class AllureReport {
     if (this.#stage !== "running") {
       throw new Error(initRequired);
     }
-    await this.readResult(new PathResultFile(resultsFile));
+    await this.readResult(resultsFile);
   };
 
-  readResult = async (data: ResultFile) => {
+  readResult = async (resultPath: string) => {
     if (this.#stage !== "running") {
       throw new Error(initRequired);
     }
 
     for (const reader of this.#readers) {
       try {
-        const processed = await reader.read(this.#store, data);
+        const processed = await reader.read(this.#store, resultPath);
 
         if (processed) {
-          return;
+          return true;
         }
       } catch (ignored) {}
     }
+
+    return false;
   };
 
   start = async (): Promise<void> => {
