@@ -1,5 +1,5 @@
 import type { Plugin } from "@allurereport/plugin-api";
-import { BufferResultFile } from "@allurereport/reader-api";
+import type { ResultsReader } from "@allurereport/reader-api";
 import type { Mocked } from "vitest";
 import { describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "../src/index.js";
@@ -17,6 +17,13 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     enabled,
     options,
     plugin,
+  };
+};
+
+const createReader = (id: string, shouldRead: boolean) => {
+  return {
+    read: vi.fn<ResultsReader["read"]>(() => Promise.resolve(shouldRead)),
+    readerId: vi.fn<ResultsReader["readerId"]>(() => id),
   };
 };
 
@@ -71,8 +78,7 @@ describe("report", () => {
     });
 
     const allureReport = new AllureReport(config);
-    const resultFile = new BufferResultFile(Buffer.from("some content", "utf-8"), "some-name.txt");
-    await expect(() => allureReport.readResult(resultFile)).rejects.toThrowError(
+    await expect(() => allureReport.readResult("some-name.txt")).rejects.toThrowError(
       "report is not initialised. Call the start() method first",
     );
   });
@@ -155,5 +161,25 @@ describe("report", () => {
     expect(p3.plugin.done).toBeCalledTimes(1);
 
     expect(p1.plugin.done.mock.invocationCallOrder[0]).toBeLessThan(p3.plugin.done.mock.invocationCallOrder[0]);
+  });
+
+  it("should not traverse directory if a reader returns true", async () => {
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const r1 = createReader("r1", false);
+    const r2 = createReader("r1", true);
+    const r3 = createReader("r1", false);
+    config.readers = [r1, r2, r3];
+    const allureReport = new AllureReport(config);
+    await allureReport.start();
+
+    await allureReport.readDirectory("./allure-results");
+
+    expect(r1.read).toHaveBeenCalledOnce();
+    expect(r1.read).toHaveBeenCalledWith(expect.anything(), "./allure-results");
+    expect(r2.read).toHaveBeenCalledOnce();
+    expect(r2.read).toHaveBeenCalledWith(expect.anything(), "./allure-results");
+    expect(r3.read).not.toHaveBeenCalled();
   });
 });
