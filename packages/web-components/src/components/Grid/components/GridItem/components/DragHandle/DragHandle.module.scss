@@ -1,0 +1,14 @@
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  color: currentColor;
+  height: 100%;
+
+  &:hover {
+    opacity: 1;
+  }
+} 
