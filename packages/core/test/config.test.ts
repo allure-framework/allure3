@@ -2,8 +2,7 @@ import type { Config } from "@allurereport/plugin-api";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
-import { afterEach } from "vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { findConfig, getPluginId, resolveConfig, resolvePlugin, validateConfig } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
