@@ -50,6 +50,7 @@ export const Modal = ({ data, isModalOpen, closeModal, preview, component, attac
       await downloadAttachment(id, ext, contentType);
     }
   };
+
   const openInNewWindow = async () => {
     const { id, ext, contentType } = (link as AttachmentLinkExpected) || {};
     await openAttachmentInNewTab(id, ext, contentType as string);
