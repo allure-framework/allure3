@@ -29,6 +29,7 @@ const defaultItemStyle = {
   padding: "4px 0 4px 4px",
 };
 
+// This on is actually not needed, because the grid component already has a default sortable behavior
 const handleGridSort = <T,>(items: T[], event: SortableEvent): T[] => {
   const { oldIndex, newIndex } = event;
 
