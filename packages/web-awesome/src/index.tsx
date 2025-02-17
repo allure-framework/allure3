@@ -1,5 +1,4 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
-import { IconButton, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
 import { useEffect } from "preact/hooks";
@@ -9,7 +8,7 @@ import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
-import { getLayout, layoutStore, toggleLayout } from "@/stores/layout";
+import { getLayout, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchTreeData } from "@/stores/tree";
@@ -18,7 +17,6 @@ import * as styles from "./styles.scss";
 
 const App = () => {
   const { id: testResultId } = route.value;
-  const isSplitMode = layoutStore.value === "split";
 
   useEffect(() => {
     if (testResultId) {
@@ -43,7 +41,7 @@ const App = () => {
       globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
-  return <div className={styles.main}>{isSplitMode ? <SplitLayout /> : <BaseLayout />}</div>;
+  return <div className={styles.main}>{isSplitMode.value ? <SplitLayout /> : <BaseLayout />}</div>;
 };
 
 export const openInNewTab = (path: string) => {

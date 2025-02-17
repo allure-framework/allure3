@@ -1,9 +1,9 @@
-import { Loadable, PageLoader } from "@allurereport/web-components";
+import { Loadable, Modal, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
-import Modal from "@/components/Modal";
 import TestResult from "@/components/TestResult";
+import { modalData } from "@/stores/modal";
 import { route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -29,7 +29,7 @@ export const BaseLayout = () => {
       transformData={(data) => data[testResultId]}
       renderData={(testResult) => (
         <>
-          <Modal testResult={testResult} />
+          <Modal {...modalData.value} />
           <div className={styles.wrapper} key={testResult?.id}>
             <TestResult testResult={testResult} />
             <Footer />

@@ -4,7 +4,8 @@ import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
-import { layoutStore, toggleLayout } from "@/stores/layout";
+import ToggleLayout from "@/components/ToggleLayout";
+import { isSplitMode } from "@/stores/layout";
 import { navigateTo } from "@/stores/router";
 import * as styles from "./styles.scss";
 
@@ -47,14 +48,12 @@ export const TestResultHeader: FunctionalComponent<TestResultHeaderProps> = ({ t
           </Text>
         </div>
       </div>
-      {layoutStore.value === "base" ? (
+      {!isSplitMode.value && (
         <>
-          <IconButton size={"s"} icon={allureIcons.reportLogo} style={"ghost"} onClick={() => toggleLayout()} />
           <LanguagePicker />
+          <ToggleLayout />
           <ThemeButton />
         </>
-      ) : (
-        ""
       )}
     </div>
   );

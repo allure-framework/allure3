@@ -9,7 +9,7 @@ import { TestResultPrevStatuses } from "@/components/TestResult/TestResultPrevSt
 import { TestResultSeverity } from "@/components/TestResult/TestResultSeverity";
 import { TestResultStatus } from "@/components/TestResult/TestResultStatus";
 import { TestResultTab, TestResultTabsList } from "@/components/TestResult/TestResultTabs";
-import { layoutStore } from "@/stores/layout";
+import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
@@ -19,7 +19,6 @@ export type TestResultInfoProps = {
 };
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
-  const isSplitMode = layoutStore.value === "split";
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);
@@ -74,7 +73,7 @@ export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testR
   };
 
   return (
-    <div className={clsx(styles["test-result-info"], isSplitMode && styles.sticky)}>
+    <div className={clsx(styles["test-result-info"], isSplitMode.value && styles.sticky)}>
       <TestResultNavigation testResult={testResult} />
       {testResult && <Content />}
     </div>

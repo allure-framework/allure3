@@ -303,6 +303,7 @@ export const generateStaticFiles = async (
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     layout,
+    allureVersion,
   };
   const html = compile({
     headTags: headTags.join("\n"),

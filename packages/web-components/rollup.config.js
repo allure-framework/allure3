@@ -55,6 +55,11 @@ export default defineConfig([
         minimize: true,
         extensions: [".scss", ".css"],
         plugins: [postcssImport(), autoprefixer()],
+        use: {
+          sass: {
+            silenceDeprecations: ["legacy-js-api"],
+          },
+        },
       }),
       terser(),
       copy({

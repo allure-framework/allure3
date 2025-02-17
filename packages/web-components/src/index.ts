@@ -11,6 +11,8 @@ export { Loadable } from "./components/Loadable";
 export { PageLoader } from "./components/PageLoader";
 export { SearchBox } from "./components/SearchBox";
 export { Menu } from "./components/Menu";
+export * from "./components/Modal";
+export * from "./components/Attachment";
 export { Counter } from "./components/Counter";
 export { Toggle } from "./components/Toggle";
 export { Link } from "./components/Link";

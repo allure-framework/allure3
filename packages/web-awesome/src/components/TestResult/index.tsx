@@ -9,7 +9,7 @@ import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
-import { layoutStore } from "@/stores/layout";
+import { isSplitMode } from "@/stores/layout";
 import * as styles from "./styles.scss";
 
 export type TestResultViewProps = {
@@ -47,11 +47,12 @@ export type TestResultProps = {
 };
 
 const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {
-  const isSplitMode = layoutStore.value === "split";
+  const splitModeClass = isSplitMode.value ? styles["scroll-inside"] : "";
+
   return (
     <>
       <TestResultHeader testResult={testResult} />
-      <div className={clsx(styles.content, isSplitMode && styles["scroll-inside"])}>
+      <div className={clsx(styles.content, splitModeClass)}>
         {testResult ? <TestResultContent testResult={testResult} /> : <TestResultEmpty />}
       </div>
     </>

@@ -11,6 +11,7 @@ import type {
 } from "@allurereport/core-api";
 
 export type AllureAwesomeReportOptions = {
+  allureVersion: string;
   reportName?: string;
   logo?: string;
   theme?: "light" | "dark";
@@ -43,6 +44,7 @@ export interface AllureAwesomeCategory {
   matchedStatuses?: TestStatus[];
   flaky?: boolean;
 }
+
 export type AllureAwesomeTestResult = Omit<
   TestResult,
   | "runSelector"

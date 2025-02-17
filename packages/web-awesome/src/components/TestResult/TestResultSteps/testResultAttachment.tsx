@@ -1,12 +1,11 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { attachmentType } from "@allurereport/web-commons";
+import { Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
-import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachmentInfo } from "@/components/TestResult/TestResultSteps/testResultAttachmentInfo";
-import { attachmentType } from "@/utils/attachments";
 
 const { lineImagesImage, lineFilesFileAttachment2 } = allureIcons;
 

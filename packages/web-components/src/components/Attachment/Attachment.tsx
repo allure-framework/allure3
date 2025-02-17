@@ -1,14 +1,13 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { Spinner } from "@allurereport/web-components";
+import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
+import type { Attachments } from "@allurereport/web-commons/";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { modalData } from "@/components/Modal";
-import { HtmlAttachmentPreview } from "@/components/TestResult/TestResultSteps/HtmlAttachmentPreview";
-import { AttachmentCode } from "@/components/TestResult/TestResultSteps/attachmentCode";
-import { AttachmentImage } from "@/components/TestResult/TestResultSteps/attachmentImage";
-import { AttachmentVideo } from "@/components/TestResult/TestResultSteps/attachmentVideo";
-import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAttachment";
-import { type Attachments, attachmentType, fetchAttachment } from "@/utils/attachments";
+import { AttachmentCode } from "@/components/Attachment/AttachmentCode";
+import { AttachmentImage } from "@/components/Attachment/AttachmentImage";
+import { AttachmentVideo } from "@/components/Attachment/AttachmentVideo";
+import { HtmlPreview } from "@/components/Attachment/HtmlPreview";
+import { Spinner } from "@/components/Spinner";
 import * as styles from "./styles.scss";
 
 const componentsByAttachmentType: Record<string, any> = {
@@ -23,8 +22,9 @@ const componentsByAttachmentType: Record<string, any> = {
   text: AttachmentCode,
   video: AttachmentVideo,
 };
+
 const previewComponentsByAttachmentType: Record<string, any> = {
-  html: HtmlAttachmentPreview,
+  html: HtmlPreview,
 };
 
 export interface AttachmentTestStepResultProps {
@@ -36,15 +36,15 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
   const {
     link: { contentType, id, ext },
   } = item;
-  const [attachment, setAttachment] = useState<Attachments>(null);
+  const [attachment, setAttachment] = useState<Attachments | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const attachmentComponent = attachmentType(contentType);
-  const CurrentComponent = componentsByAttachmentType[attachmentComponent.type];
-  const CurrentPreviewComponent = previewComponentsByAttachmentType[attachmentComponent.type];
+  const attachmentComponent = attachmentType(contentType as string);
+  const CurrentComponent = componentsByAttachmentType[attachmentComponent.type as string];
+  const CurrentPreviewComponent = previewComponentsByAttachmentType[attachmentComponent.type as string];
 
   useEffect(() => {
     const fetchData = async () => {
-      const result: Attachments = await fetchAttachment(id, ext, contentType);
+      const result = (await fetchAttachment(id, ext, contentType as string)) || null;
       setLoaded(true);
       setAttachment(result);
     };
@@ -60,9 +60,9 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
   }
 
   // temp solution before modal component refactoring
-  if (CurrentPreviewComponent && previewable && modalData.value.preview) {
+  if (CurrentPreviewComponent && previewable) {
     return <CurrentPreviewComponent attachment={attachment} item={item} />;
   }
 
-  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : <EmptyComponent />;
+  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : <></>;
 };

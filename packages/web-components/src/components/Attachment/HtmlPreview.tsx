@@ -6,7 +6,7 @@ export type HtmlAttachmentPreviewProps = {
   attachment: { text: string };
 };
 
-export const HtmlAttachmentPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ attachment }) => {
+export const HtmlPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ attachment }) => {
   // eslint-disable-next-line react/no-danger
   return <div className={styles["html-attachment-preview"]} dangerouslySetInnerHTML={{ __html: attachment?.text }} />;
 };

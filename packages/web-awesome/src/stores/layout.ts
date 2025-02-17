@@ -1,5 +1,5 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { signal } from "@preact/signals";
+import { computed, signal } from "@preact/signals";
 import type { AllureAwesomeReportOptions } from "../../types.js";
 
 type Layout = "base" | "split";
@@ -17,6 +17,8 @@ export const setLayout = (newTheme: Layout): void => {
 export const toggleLayout = () => {
   setLayout(layoutStore.value === "base" ? "split" : "base");
 };
+
+export const isSplitMode = computed(() => layoutStore.value === "split");
 
 export const getLayout = () => {
   const layoutFromLS = (window.localStorage.getItem("layout") as Layout | null) || (layout as Layout);

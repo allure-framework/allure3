@@ -1,9 +1,8 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import type { JSX } from "preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
-import Modal from "@/components/Modal";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { route } from "@/stores/router";
@@ -43,7 +42,7 @@ export const SplitLayout = () => {
       transformData={(allResults) => allResults[testResultId]}
       renderData={(tr) => (
         <>
-          <Modal testResult={tr} />
+          {/* <Modal />*/}
           <div className={styles.wrapper}>
             <TestResult testResult={tr} />
           </div>

@@ -1,7 +1,6 @@
 import { type FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
-import { EmptyComponent } from "@/components/TestResult/TestResultSteps/wrongAttachment";
+import * as styles from "./styles.scss";
 
 export const AttachmentImage: FunctionalComponent<{
   attachment: { img: string; originalFileName: string };
@@ -18,11 +17,7 @@ export const AttachmentImage: FunctionalComponent<{
   }, [attachment?.img]);
 
   if (!attachment?.img || !isValidImage) {
-    return (
-      <div className={styles["test-result-attachment-error"]}>
-        <EmptyComponent />
-      </div>
-    );
+    return <div className={styles["test-result-attachment-error"]}>something went wrong</div>;
   }
   return (
     <div className={styles["test-result-attachment-image"]}>

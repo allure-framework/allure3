@@ -7,11 +7,15 @@ import * as styles from "./styles.scss";
 
 export const FooterVersion = () => {
   const [createdAt, setCreatedAt] = useState<number | null>(null);
+  const [currentVersion, setCurrentVersion] = useState<string>();
 
   useEffect(() => {
     const reportOptions = getReportOptions<AllureAwesomeReportOptions>();
     if (reportOptions?.createdAt) {
       setCreatedAt(Number(reportOptions.createdAt));
+    }
+    if (reportOptions?.allureVersion) {
+      setCurrentVersion(reportOptions.allureVersion as string);
     }
   }, []);
 
@@ -27,7 +31,7 @@ export const FooterVersion = () => {
   return (
     <Text type="paragraph" size="m" className={styles.version}>
       {formattedCreatedAt}
-      <span> Ver: 3.0.0</span>
+      <span> Ver: {currentVersion}</span>
     </Text>
   );
 };
