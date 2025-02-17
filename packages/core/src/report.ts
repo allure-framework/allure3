@@ -88,13 +88,14 @@ export class AllureReport {
     }
 
     const resultsDirPath = resolve(resultsDir);
-    const dir = await opendir(resultsDirPath);
 
     try {
       const processed = await this.readResult(resultsDir);
       if (processed) {
         return;
       }
+
+      const dir = await opendir(resultsDirPath);
 
       for await (const dirent of dir) {
         const path = await realpath(join(dirent.parentPath, dirent.name));
