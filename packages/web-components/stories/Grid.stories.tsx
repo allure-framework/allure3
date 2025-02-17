@@ -152,3 +152,34 @@ export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
     </Grid>
   );
 };
+
+/**
+ * Story demonstrating grid usage with swap mode enabled.
+ */
+export const WithSwapMode: StoryFn<typeof Grid> = (args) => {
+  return (
+    <Grid {...args} kind="swap" className="gridLayout">
+      <style>{`
+        .gridLayout {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(150px, 1fr));
+          gap: 1rem;
+        }
+      `}</style>
+      {Array.from({ length: 9 }, (_, index) => (
+        <GridItem
+          key={index}
+          isDndDisabled={index % 3 === 0}
+          style={{
+            border: "1px solid #ccc",
+            backgroundColor: "#f0f0f0",
+            padding: "4px 0 4px 4px",
+          }}
+        >
+          Grid Item {index + 1}
+          {index % 3 === 0 && " (Disabled DnD)"}
+        </GridItem>
+      ))}
+    </Grid>
+  );
+};

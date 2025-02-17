@@ -2,3 +2,11 @@
   display: grid;
   width: 100%;
 }
+
+:global(.dnd-drag-swap-highlight) {
+  opacity: 0.8;
+  transition: all 150ms ease;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  z-index: 1;
+}
