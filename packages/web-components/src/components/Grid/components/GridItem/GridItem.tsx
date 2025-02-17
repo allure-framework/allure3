@@ -2,8 +2,9 @@ import type { FunctionComponent, ComponentChildren } from "preact";
 import { clsx } from "clsx";
 import styles from "./GridItem.module.scss";
 import { DragHandle } from "./components";
+import type { HTMLAttributes } from "preact/compat";
 
-export interface GridItemProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Child elements to render within the grid item.
    */
@@ -33,10 +34,12 @@ export const GridItem: FunctionComponent<GridItemProps> = ({
   isDndDisabled = false,
   ...restProps
 }) => {
+  const isDndEnabled = !isDndDisabled;
+
   return (
-    <div className={clsx(styles.gridItem, className)} {...restProps}>
+    <div className={clsx(styles.gridItem, { "dnd-drag-enabled": isDndEnabled }, className)} {...restProps}>
       <div className={styles.gridItemContent}>{children}</div>
-      {!isDndDisabled && <DragHandle className={styles.gridItemHandle} />}
+      {isDndEnabled && <DragHandle className={styles.gridItemHandle} />}
     </div>
   );
 };
