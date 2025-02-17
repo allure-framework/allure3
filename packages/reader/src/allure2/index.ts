@@ -48,7 +48,7 @@ export const allure2: ResultsReader = {
   read: async (visitor, data) => {
     // this is essential in case we need to attach valid result files
     // e.g. like in allure2.test.ts
-    if (data.getOriginalFileName().match(/.*-attachment(\..+)?/)) {
+    if (data.getOriginalFileName().match(/-attachment(?:\..+)?/)) {
       await visitor.visitAttachmentFile(data, { readerId });
       return true;
     }
