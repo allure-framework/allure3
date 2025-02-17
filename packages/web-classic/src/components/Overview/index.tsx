@@ -1,9 +1,19 @@
-import { Loadable, PageLoader } from "@allurereport/web-components";
+import { Loadable, PageLoader, Grid } from "@allurereport/web-components";
 import * as styles from "@/components/BaseLayout/styles.scss";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 
 const Overview = () => {
-  const testResultId = "";
+  return (
+    <Loadable
+      source={treeStore}
+      renderLoader={() => <PageLoader />}
+      renderData={(data) => {
+        console.log(data);
+
+        return (<Grid><div key={1}>Widget</div><div key={2}>Widget2</div></Grid>);
+      }}
+    />
+  );
 };
 export default Overview;

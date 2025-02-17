@@ -1098,6 +1098,7 @@ const RAW_RUNTIME_STATE =
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.17.9"],\
           ["@types/prismjs", "npm:1.26.4"],\
+          ["@types/sortablejs", "npm:1.15.8"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.8"],\
@@ -1150,6 +1151,7 @@ const RAW_RUNTIME_STATE =
           ["rollup-plugin-svg-sprites", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.2.5"],\
           ["sass", "npm:1.83.1"],\
           ["sass-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.0.4"],\
+          ["sortablejs", "npm:1.15.6"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.4.7"],\
           ["style-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:4.0.0"],\
           ["svg-sprite-loader", "npm:6.0.11"],\
@@ -12797,6 +12799,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@types/sockjs", "npm:0.3.36"],\
           ["@types/node", "npm:20.11.21"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/sortablejs", [\
+      ["npm:1.15.8", {\
+        "packageLocation": "./.yarn/cache/@types-sortablejs-npm-1.15.8-72981d09e4-aea58b08cf.zip/node_modules/@types/sortablejs/",\
+        "packageDependencies": [\
+          ["@types/sortablejs", "npm:1.15.8"]\
         ],\
         "linkType": "HARD"\
       }]\

@@ -1,6 +1,6 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import { useState } from "preact/hooks";
-import { Grid } from "@allurereport/web-components";
+import { Grid, GridItem } from "@allurereport/web-components";
 
 const meta: Meta<typeof Grid> = {
   title: "Commons/Grid",
@@ -10,7 +10,7 @@ const meta: Meta<typeof Grid> = {
 export default meta;
 
 /**
- * Default story demonstrating a uniform widget layout.
+ * Default story demonstrating a uniform widget layout with drag-and-drop functionality.
  */
 export const Default: StoryFn<typeof Grid> = (args) => {
   const [widgets, setWidgets] = useState<string[]>([
@@ -37,16 +37,16 @@ export const Default: StoryFn<typeof Grid> = (args) => {
       }}
     >
       {widgets.map((widget, index) => (
-        <div
+        <GridItem
           key={index}
           style={{
-            padding: "8px",
             border: "1px solid #ccc",
             backgroundColor: "#f9f9f9",
+            padding: "4px 0 4px 4px",
           }}
         >
           {widget}
-        </div>
+        </GridItem>
       ))}
     </Grid>
   );
@@ -69,23 +69,26 @@ export const SizeVariations: StoryFn<typeof Grid> = (args) => {
 
   const widgetSizeStyles = {
     small: {
-      padding: "4px",
-      border: "1px solid #ccc",
-      backgroundColor: "#e0e0e0",
       fontSize: "12px",
+      backgroundColor: "#e0e0e0",
+      padding: "4px 0 4px 4px",
     },
     medium: {
-      padding: "8px",
-      border: "1px solid #ccc",
-      backgroundColor: "#d0d0d0",
       fontSize: "16px",
+      backgroundColor: "#d0d0d0",
+      padding: "6px 0 4px 4px",
     },
     big: {
-      padding: "16px",
-      border: "1px solid #ccc",
-      backgroundColor: "#c0c0c0",
       fontSize: "20px",
+      backgroundColor: "#c0c0c0",
+      padding: "8px 0 4px 4px",
     },
+  };
+
+  const widgetSizePadding = {
+    small: "4px 0",
+    medium: "8px 0",
+    big: "16px 0",
   };
 
   return (
@@ -105,9 +108,46 @@ export const SizeVariations: StoryFn<typeof Grid> = (args) => {
       }}
     >
       {widgets.map((widget) => (
-        <div key={widget.id} style={widgetSizeStyles[widget.size]}>
-          {widget.label}
-        </div>
+        <GridItem
+          key={widget.id}
+          style={{
+            border: "1px solid #ccc",
+            ...widgetSizeStyles[widget.size],
+          }}
+        >
+          <span style={{ padding: widgetSizePadding[widget.size] }}>{widget.label}</span>
+        </GridItem>
+      ))}
+    </Grid>
+  );
+};
+
+/**
+ * Story demonstrating grid usage for widget layout with disabled items.
+ */
+export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
+  return (
+    <Grid {...args} className="gridLayout">
+      <style>{`
+        .gridLayout {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(150px, 1fr));
+          gap: 1rem;
+        }
+      `}</style>
+      {Array.from({ length: 9 }, (_, index) => (
+        <GridItem
+          key={index}
+          isDndDisabled={index % 3 === 0}
+          style={{
+            border: "1px solid #ccc",
+            backgroundColor: "#f0f0f0",
+            padding: "4px 0 4px 4px",
+          }}
+        >
+          Grid Item {index + 1}
+          {index % 3 === 0 && " (Disabled DnD)"}
+        </GridItem>
       ))}
     </Grid>
   );
