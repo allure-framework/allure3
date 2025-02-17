@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 export default defineConfig({
   test: {
     environment: "jsdom",
+    fileParallelism: false,
     include: ["./src/**/*.test.tsx", "./src/**/*.test.ts"],
     setupFiles: [require.resolve("allure-vitest/setup")],
     reporters: [
