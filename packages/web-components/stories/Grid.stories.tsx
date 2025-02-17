@@ -1,6 +1,7 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import { useState } from "preact/hooks";
 import { Grid, GridItem } from "@allurereport/web-components";
+import type { SortableEvent } from "sortablejs";
 
 const meta: Meta<typeof Grid> = {
   title: "Commons/Grid",
@@ -8,6 +9,38 @@ const meta: Meta<typeof Grid> = {
 };
 
 export default meta;
+
+const gridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(150px, 1fr))",
+  gap: "1rem",
+};
+
+const listStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.5rem",
+  maxWidth: "400px",
+};
+
+const defaultItemStyle = {
+  border: "1px solid #ccc",
+  backgroundColor: "#f9f9f9",
+  padding: "4px 0 4px 4px",
+};
+
+const handleGridSort = <T,>(items: T[], event: SortableEvent): T[] => {
+  const { oldIndex, newIndex } = event;
+
+  if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
+    const newItems = [...items];
+    const [moved] = newItems.splice(oldIndex, 1);
+    newItems.splice(newIndex, 0, moved);
+    return newItems;
+  }
+
+  return items;
+};
 
 /**
  * Default story demonstrating a uniform widget layout with drag-and-drop functionality.
@@ -23,28 +56,13 @@ export const Default: StoryFn<typeof Grid> = (args) => {
   return (
     <Grid
       {...args}
+      style={listStyle}
       options={{
-        onEnd: (event) => {
-          const { oldIndex, newIndex } = event;
-
-          if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
-            const newWidgets = [...widgets];
-            const [moved] = newWidgets.splice(oldIndex, 1);
-            newWidgets.splice(newIndex, 0, moved);
-            setWidgets(newWidgets);
-          }
-        },
+        onEnd: (event) => setWidgets(handleGridSort(widgets, event)),
       }}
     >
       {widgets.map((widget, index) => (
-        <GridItem
-          key={index}
-          style={{
-            border: "1px solid #ccc",
-            backgroundColor: "#f9f9f9",
-            padding: "4px 0 4px 4px",
-          }}
-        >
+        <GridItem key={index} style={defaultItemStyle}>
           {widget}
         </GridItem>
       ))}
@@ -69,53 +87,33 @@ export const SizeVariations: StoryFn<typeof Grid> = (args) => {
 
   const widgetSizeStyles = {
     small: {
+      ...defaultItemStyle,
       fontSize: "12px",
       backgroundColor: "#e0e0e0",
-      padding: "4px 0 4px 4px",
     },
     medium: {
+      ...defaultItemStyle,
       fontSize: "16px",
       backgroundColor: "#d0d0d0",
-      padding: "6px 0 4px 4px",
     },
     big: {
+      ...defaultItemStyle,
       fontSize: "20px",
       backgroundColor: "#c0c0c0",
-      padding: "8px 0 4px 4px",
     },
-  };
-
-  const widgetSizePadding = {
-    small: "4px 0",
-    medium: "8px 0",
-    big: "16px 0",
   };
 
   return (
     <Grid
       {...args}
+      style={listStyle}
       options={{
-        onEnd: (event) => {
-          const { oldIndex, newIndex } = event;
-
-          if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
-            const newWidgets = [...widgets];
-            const [moved] = newWidgets.splice(oldIndex, 1);
-            newWidgets.splice(newIndex, 0, moved);
-            setWidgets(newWidgets);
-          }
-        },
+        onEnd: (event) => setWidgets(handleGridSort(widgets, event)),
       }}
     >
       {widgets.map((widget) => (
-        <GridItem
-          key={widget.id}
-          style={{
-            border: "1px solid #ccc",
-            ...widgetSizeStyles[widget.size],
-          }}
-        >
-          <span style={{ padding: widgetSizePadding[widget.size] }}>{widget.label}</span>
+        <GridItem key={widget.id} style={widgetSizeStyles[widget.size]}>
+          {widget.label}
         </GridItem>
       ))}
     </Grid>
@@ -127,23 +125,12 @@ export const SizeVariations: StoryFn<typeof Grid> = (args) => {
  */
 export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
   return (
-    <Grid {...args} className="gridLayout">
-      <style>{`
-        .gridLayout {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(150px, 1fr));
-          gap: 1rem;
-        }
-      `}</style>
+    <Grid {...args} style={gridStyle}>
       {Array.from({ length: 9 }, (_, index) => (
         <GridItem
           key={index}
           isDndDisabled={index % 3 === 0}
-          style={{
-            border: "1px solid #ccc",
-            backgroundColor: "#f0f0f0",
-            padding: "4px 0 4px 4px",
-          }}
+          style={defaultItemStyle}
         >
           Grid Item {index + 1}
           {index % 3 === 0 && " (Disabled DnD)"}
@@ -158,23 +145,12 @@ export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
  */
 export const WithSwapMode: StoryFn<typeof Grid> = (args) => {
   return (
-    <Grid {...args} kind="swap" className="gridLayout">
-      <style>{`
-        .gridLayout {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(150px, 1fr));
-          gap: 1rem;
-        }
-      `}</style>
+    <Grid {...args} kind="swap" style={gridStyle}>
       {Array.from({ length: 9 }, (_, index) => (
         <GridItem
           key={index}
           isDndDisabled={index % 3 === 0}
-          style={{
-            border: "1px solid #ccc",
-            backgroundColor: "#f0f0f0",
-            padding: "4px 0 4px 4px",
-          }}
+          style={defaultItemStyle}
         >
           Grid Item {index + 1}
           {index % 3 === 0 && " (Disabled DnD)"}
