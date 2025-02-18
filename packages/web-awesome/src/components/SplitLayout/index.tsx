@@ -2,6 +2,7 @@ import { Loadable, Modal, PageLoader, Text } from "@allurereport/web-components"
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
@@ -62,7 +63,8 @@ export const SplitLayout = () => {
   }, [cachedMain]);
 
   return (
-    <div className={styles["side-by-side"]}>
+    <div className={styles["side-by-side"]} data-testId={"split-layout"}>
+      <Header className={styles.header} />
       <SideBySide left={cachedMain} right={testResult} />
       <Modal {...modalData.value} isModalOpen={isModalOpen.value} closeModal={() => (isModalOpen.value = false)} />
       <Footer />

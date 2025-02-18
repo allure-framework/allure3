@@ -17,10 +17,14 @@ export const setLayout = (newTheme: Layout): void => {
 
 export const toggleLayout = () => {
   isLayoutLoading.value = true;
+
   setTimeout(() => {
-    isLayoutLoading.value = false;
-  }, 600);
-  setLayout(layoutStore.value === "base" ? "split" : "base");
+    setLayout(layoutStore.value === "base" ? "split" : "base");
+
+    setTimeout(() => {
+      isLayoutLoading.value = false;
+    }, 300);
+  }, 200);
 };
 
 export const isSplitMode = computed(() => layoutStore.value === "split");

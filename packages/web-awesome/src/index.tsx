@@ -19,7 +19,7 @@ import * as styles from "./styles.scss";
 
 const Loader = () => {
   return (
-    <div className={clsx(styles.loader, isLayoutLoading.value ? styles.loading : "")}>
+    <div className={clsx(styles.loader, isLayoutLoading.value ? styles.loading : "")} data-testid="loader">
       <SvgIcon id={allureIcons.reportLogo} size={"m"} />
       <Spinner />
     </div>

@@ -21,6 +21,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  align-items: center;
 }
 
 .test-result-breadcrumb-title {
@@ -35,6 +36,11 @@
   width: 100%;
   justify-content: space-between;
   align-items: center;
+  gap: 4px;
+}
+.right {
+  margin-left: auto;
+  display: flex;
   gap: 4px;
 }
 .test-result-breadcrumb-arrow {

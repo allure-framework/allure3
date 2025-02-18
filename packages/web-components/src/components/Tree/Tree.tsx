@@ -1,4 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
+import type { Signal } from "@preact/signals";
 import cx from "clsx";
 import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus, TreeFiltersState } from "global";
 import type { FunctionComponent } from "preact";
@@ -18,8 +19,8 @@ interface TreeProps {
   toggleTree: (id: string) => void;
   navigateTo: (id: string) => void;
   routeId?: string;
-  statsStore: StoreSignalState<Statistic>;
-  treeFiltersStore: TreeFiltersState;
+  statsStore: Signal<StoreSignalState<Statistic>>;
+  treeFiltersStore: Signal<TreeFiltersState>;
 }
 
 export const Tree: FunctionComponent<TreeProps> = ({
@@ -92,7 +93,7 @@ export const Tree: FunctionComponent<TreeProps> = ({
     <div className={styles.tree}>
       {name && (
         <TreeHeader
-          treeFiltersStore={treeFiltersStore}
+          treeFiltersStore={treeFiltersStore.value}
           statsStore={statsStore}
           categoryTitle={name}
           isOpened={isOpened}

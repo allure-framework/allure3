@@ -1,60 +1,21 @@
-import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
-import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import type { TestResultProps } from "@/components/TestResult";
+import { TestResultBreadcrumbs } from "@/components/TestResult/TestResultHeader/TestResultBreadcrumbs";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
 import ToggleLayout from "@/components/ToggleLayout";
 import { isSplitMode } from "@/stores/layout";
-import { navigateTo } from "@/stores/router";
 import * as styles from "./styles.scss";
 
-export type TestResultHeaderProps = {
-  testResult?: AllureAwesomeTestResult;
-};
-
-export const TestResultHeader: FunctionalComponent<TestResultHeaderProps> = ({ testResult }) => {
-  const { breadcrumbs, name } = testResult || {};
-
+export const TestResultHeader: FunctionalComponent<TestResultProps> = ({ testResult }) => {
   return (
     <div className={styles.above}>
-      <div className={styles["test-result-breadcrumbs"]}>
-        <div className={clsx(styles["test-result-breadcrumb"], styles["test-result-home"])}>
-          <IconButton
-            icon={allureIcons.lineGeneralHomeLine}
-            size={"s"}
-            style={"ghost"}
-            className={styles["test-result-breadcrumb-link"]}
-            onClick={() => navigateTo("/")}
-          />
-        </div>
-        {Boolean(breadcrumbs?.length) &&
-          breadcrumbs?.[0]?.map((item, key) => {
-            return (
-              <div className={styles["test-result-breadcrumb"]} key={key}>
-                <SvgIcon id={allureIcons.lineArrowsChevronDown} className={styles["test-result-breadcrumb-arrow"]} />
-                <Text size={"s"} bold className={styles["test-result-breadcrumb-title"]}>
-                  {item}
-                </Text>
-              </div>
-            );
-          })}
-        <div className={styles["test-result-breadcrumb"]}>
-          {name && (
-            <SvgIcon id={allureIcons.lineArrowsChevronDown} className={styles["test-result-breadcrumb-arrow"]} />
-          )}
-          <Text size={"s"} bold className={styles["test-result-breadcrumb-title"]}>
-            {name}
-          </Text>
-        </div>
+      {!isSplitMode.value ? <TestResultBreadcrumbs testResult={testResult} /> : ""}
+      <div className={styles.right}>
+        <LanguagePicker />
+        <ToggleLayout />
+        <ThemeButton />
       </div>
-      {!isSplitMode.value && (
-        <>
-          <LanguagePicker />
-          <ToggleLayout />
-          <ThemeButton />
-        </>
-      )}
     </div>
   );
 };

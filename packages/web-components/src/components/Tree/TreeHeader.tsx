@@ -1,8 +1,10 @@
 import { type Statistic, statusesList } from "@allurereport/core-api";
+import type { Signal } from "@preact/signals";
 import { clsx } from "clsx";
 import type { TreeFiltersState } from "global";
 import { type FunctionComponent } from "preact";
 import { ArrowButton } from "@/components/ArrowButton";
+import type { StoreSignalState } from "@/components/Loadable";
 import { Loadable } from "@/components/Loadable";
 import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
@@ -12,7 +14,7 @@ interface TreeHeaderProps {
   categoryTitle: string;
   isOpened: boolean;
   toggleTree: () => void;
-  statsStore: any;
+  statsStore: Signal<StoreSignalState<Statistic>>;
   treeFiltersStore: TreeFiltersState;
 }
 
@@ -50,10 +52,9 @@ export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({
         const treeHeaderBar = statistic
           ? statusesList
               .map((status) => ({ status, value: statistic[status] }))
-              .filter(
-                ({ status, value }) =>
-                  value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0)),
-              )
+              .filter(({ status, value }) => {
+                return value !== undefined && (statusFilter === "total" || (statusFilter === status && value > 0));
+              })
               .map(({ status, value }) => {
                 const className = clsx(styles["tree-header-bar-item"], styles[status]);
                 const style = { flexGrow: value };

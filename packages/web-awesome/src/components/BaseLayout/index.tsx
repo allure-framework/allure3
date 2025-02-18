@@ -15,12 +15,13 @@ export type BaseLayoutProps = {
 
 export const BaseLayout = () => {
   const { id: testResultId } = route.value;
+
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
       fetchTestResultNav();
     }
-  }, []);
+  }, [testResultId]);
 
   const content = testResultId ? (
     <Loadable
@@ -44,7 +45,7 @@ export const BaseLayout = () => {
   );
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.layout} data-testid="base-layout">
       {content}
       <Modal {...modalData.value} isModalOpen={isModalOpen.value} closeModal={() => (isModalOpen.value = false)} />
     </div>

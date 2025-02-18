@@ -51,7 +51,7 @@ const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {
 
   return (
     <>
-      <TestResultHeader testResult={testResult} />
+      {!isSplitMode.value && <TestResultHeader testResult={testResult} />}
       <div className={clsx(styles.content, splitModeClass)}>
         {testResult ? <TestResultContent testResult={testResult} /> : <TestResultEmpty />}
       </div>
