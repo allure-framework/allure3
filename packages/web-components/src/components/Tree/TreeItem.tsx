@@ -1,10 +1,9 @@
 import { type TestStatus, formatDuration } from "@allurereport/core-api";
-import { Code, Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
-import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo } from "@/stores/router";
-import * as styles from "./styles.scss";
+import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
+import { Code, Text } from "@/components/Typography";
+import styles from "./styles.scss";
 
 interface TreeItemProps {
   name: string;
@@ -13,6 +12,7 @@ interface TreeItemProps {
   id: string;
   groupOrder: number;
   marked?: boolean;
+  navigateTo: (id: string) => void;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -22,6 +22,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   duration,
   id,
   marked,
+  navigateTo,
   ...rest
 }) => {
   const formattedDuration = formatDuration(duration);
@@ -46,5 +47,3 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
     </div>
   );
 };
-
-export default TreeItem;

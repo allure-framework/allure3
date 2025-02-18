@@ -1,0 +1,35 @@
+.arrow-button {
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--on-icon-secondary);
+
+  &:hover {
+    background: var(--bg-control-flat-medium);
+    color: var(--on-icon-primary);
+  }
+}
+
+.arrow-button-s {
+  padding: 0 4px;
+}
+
+.arrow-button-m {
+  padding: 6px 6px;
+}
+
+.icon-size-m {
+  width: 15px;
+  height: 15px;
+}
+
+.arrow-button-icon {
+  transform: rotate(-90deg);
+  transition: transform 200ms;
+}
+
+.arrow-button-icon--opened {
+  transform: rotate(0);
+}

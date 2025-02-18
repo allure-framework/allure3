@@ -1,9 +1,19 @@
-import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
 import type { AllureAwesomeStatus } from "types";
 import { useTabsContext } from "@/components/Tabs";
-import Tree from "@/components/Tree/Tree";
+import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { clearTreeFilters, filteredTree, noTests, noTestsFound, treeStore } from "@/stores/tree";
+import { navigateTo } from "@/stores/router";
+import {
+  clearTreeFilters,
+  collapsedTrees,
+  filteredTree,
+  noTests,
+  noTestsFound,
+  toggleTree,
+  treeFiltersStore,
+  treeStore,
+} from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
@@ -47,7 +57,16 @@ export const TreeList = () => {
 
         return (
           <div className={styles["tree-list"]}>
-            <Tree tree={filteredTree.value} statusFilter={currentTab as AllureAwesomeStatus} root />
+            <Tree
+              collapsedTrees={collapsedTrees.value}
+              toggleTree={toggleTree}
+              treeFiltersStore={treeFiltersStore}
+              navigateTo={navigateTo}
+              statsStore={statsStore}
+              tree={filteredTree.value}
+              statusFilter={currentTab as AllureAwesomeStatus}
+              root
+            />
           </div>
         );
       }}
