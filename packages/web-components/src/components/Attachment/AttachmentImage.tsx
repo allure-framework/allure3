@@ -1,6 +1,6 @@
 import { type FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 export const AttachmentImage: FunctionalComponent<{
   attachment: { img: string; originalFileName: string };

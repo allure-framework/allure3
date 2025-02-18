@@ -4,7 +4,7 @@ import type { FunctionalComponent } from "preact";
 import { Attachment } from "@/components/Attachment";
 import ModalThumb from "@/components/Modal/Thumb";
 import type { ModalGalleryProps } from "@/components/Modal/index";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 const Gallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) => {
   const filteredAttachments = attachments?.filter(({ link: { contentType } }: AttachmentTestStepResult) => {

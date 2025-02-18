@@ -1,5 +1,7 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
+import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
+import clsx from "clsx";
 import { render } from "preact";
 import { useEffect } from "preact/hooks";
 import "@/assets/scss/index.scss";
@@ -8,13 +10,21 @@ import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
-import { getLayout, isSplitMode } from "@/stores/layout";
+import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchTreeData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
+const Loader = () => {
+  return (
+    <div className={clsx(styles.loader, isLayoutLoading.value ? styles.loading : "")}>
+      <SvgIcon id={allureIcons.reportLogo} size={"m"} />
+      <Spinner />
+    </div>
+  );
+};
 const App = () => {
   const { id: testResultId } = route.value;
 
@@ -41,7 +51,12 @@ const App = () => {
       globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
-  return <div className={styles.main}>{isSplitMode.value ? <SplitLayout /> : <BaseLayout />}</div>;
+  return (
+    <div className={styles.main}>
+      <Loader />
+      {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+    </div>
+  );
 };
 
 export const openInNewTab = (path: string) => {

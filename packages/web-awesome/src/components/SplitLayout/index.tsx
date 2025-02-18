@@ -1,10 +1,11 @@
-import { Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { Loadable, Modal, PageLoader, Text } from "@allurereport/web-components";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
+import { isModalOpen, modalData } from "@/stores/modal";
 import { route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -42,7 +43,6 @@ export const SplitLayout = () => {
       transformData={(allResults) => allResults[testResultId]}
       renderData={(tr) => (
         <>
-          {/* <Modal />*/}
           <div className={styles.wrapper}>
             <TestResult testResult={tr} />
           </div>
@@ -64,6 +64,7 @@ export const SplitLayout = () => {
   return (
     <div className={styles["side-by-side"]}>
       <SideBySide left={cachedMain} right={testResult} />
+      <Modal {...modalData.value} isModalOpen={isModalOpen.value} closeModal={() => (isModalOpen.value = false)} />
       <Footer />
     </div>
   );

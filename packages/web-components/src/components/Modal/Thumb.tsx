@@ -1,7 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { JSXInternal } from "preact/src/jsx";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 import Element = JSXInternal.Element;
 

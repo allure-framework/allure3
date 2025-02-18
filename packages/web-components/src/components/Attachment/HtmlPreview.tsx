@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 // TODO: use proper type here
 export type HtmlAttachmentPreviewProps = {

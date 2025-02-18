@@ -3,7 +3,7 @@ import { useEffect } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
-import { modalData } from "@/stores/modal";
+import { isModalOpen, modalData } from "@/stores/modal";
 import { route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -29,7 +29,6 @@ export const BaseLayout = () => {
       transformData={(data) => data[testResultId]}
       renderData={(testResult) => (
         <>
-          <Modal {...modalData.value} />
           <div className={styles.wrapper} key={testResult?.id}>
             <TestResult testResult={testResult} />
             <Footer />
@@ -44,5 +43,10 @@ export const BaseLayout = () => {
     </div>
   );
 
-  return <div className={styles.layout}>{content}</div>;
+  return (
+    <div className={styles.layout}>
+      {content}
+      <Modal {...modalData.value} isModalOpen={isModalOpen.value} closeModal={() => (isModalOpen.value = false)} />
+    </div>
+  );
 };

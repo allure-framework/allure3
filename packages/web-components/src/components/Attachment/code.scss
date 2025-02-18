@@ -6,6 +6,9 @@ code[class*="language-"] {
   color: var(--on-text-primary);
   text-shadow: none !important;
   margin: 0;
+  width: max-content;
+  display: block;
+  padding: 8px;
 }
 
 .toolbar {

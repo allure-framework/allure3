@@ -8,7 +8,7 @@ import { AttachmentImage } from "@/components/Attachment/AttachmentImage";
 import { AttachmentVideo } from "@/components/Attachment/AttachmentVideo";
 import { HtmlPreview } from "@/components/Attachment/HtmlPreview";
 import { Spinner } from "@/components/Spinner";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 const componentsByAttachmentType: Record<string, any> = {
   image: AttachmentImage,

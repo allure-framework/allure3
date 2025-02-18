@@ -8,7 +8,7 @@ import Gallery from "@/components/Modal/Gallery";
 import { allureIcons } from "@/components/SvgIcon";
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Heading } from "@/components/Typography";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 
 export type ModalGalleryProps = {
   attachments: AttachmentTestStepResult[] | undefined;
@@ -23,7 +23,7 @@ export interface ModalDataProps {
   attachments?: AttachmentTestStepResult[];
 }
 
-export const Modal = ({ data, isModalOpen, closeModal, preview, component, attachments }: ModalDataProps) => {
+export const Modal = ({ data, isModalOpen, preview, component, attachments, closeModal }: ModalDataProps) => {
   const { link } = data || {};
   const attachName = link?.name ? `${link?.name}` : `${link?.id}${link?.ext}`;
 

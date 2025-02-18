@@ -7,6 +7,7 @@ type Layout = "base" | "split";
 const { layout } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
 
 export const layoutStore = signal<Layout>("base");
+export const isLayoutLoading = signal(false);
 
 export const setLayout = (newTheme: Layout): void => {
   layoutStore.value = newTheme;
@@ -15,6 +16,10 @@ export const setLayout = (newTheme: Layout): void => {
 };
 
 export const toggleLayout = () => {
+  isLayoutLoading.value = true;
+  setTimeout(() => {
+    isLayoutLoading.value = false;
+  }, 600);
   setLayout(layoutStore.value === "base" ? "split" : "base");
 };
 

@@ -6,7 +6,7 @@ import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { useI18n } from "@/stores";
-import { isModalOpen, openModal } from "@/stores/modal";
+import { isModalOpen, modalData, openModal } from "@/stores/modal";
 
 interface TestResultAttachmentInfoProps {
   item?: AttachmentTestStepResult;
@@ -38,6 +38,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
   useEffect(() => {
     if (isModalOpen.value) {
       openModal({
+        isModalOpen: true,
         data: item,
         component: <Attachment item={item} />,
       });
