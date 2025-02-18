@@ -1,5 +1,5 @@
 import { type TestStatus, formatDuration } from "@allurereport/core-api";
-import { Text } from "@allurereport/web-components";
+import { Code, Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
@@ -34,9 +34,9 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       id={id}
     >
       <TreeItemIcon status={status} />
-      <span data-testid="tree-leaf-order" class={styles.order}>
+      <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
         {groupOrder}
-      </span>
+      </Code>
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}
       </Text>
