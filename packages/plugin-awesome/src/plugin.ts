@@ -1,4 +1,4 @@
-import { type EnvironmentItem } from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
@@ -10,6 +10,7 @@ import {
   generateStatistic,
   generateTestResults,
   generateTree,
+  generateTrendData,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -24,6 +25,7 @@ export class AwesomePlugin implements Plugin {
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic();
     const attachments = await store.allAttachments();
+    const historyDataPoints = await store.allHistoryDataPoints();
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
@@ -45,6 +47,20 @@ export class AwesomePlugin implements Plugin {
     if (attachments?.length) {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
+
+    // Trend data generation
+    const historyPoints = historyDataPoints.map(point => ({
+      name: point.name,
+      statistic: Object.values(point.testResults).reduce((stat: Statistic, test) => {
+        if (test.status) {
+          stat[test.status] = (stat[test.status] || 0) + 1;
+          stat.total = (stat.total || 0) + 1;
+        }
+
+        return stat;
+      }, { total: 0 } as Statistic)
+    }));
+    await generateTrendData(this.#writer!, context.reportName, statistic, historyPoints);
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
