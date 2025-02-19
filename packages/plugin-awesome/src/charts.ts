@@ -13,6 +13,16 @@ export type TestResultChartData = {
   slices: TestResultSlice[];
 };
 
+export type TrendItem = {
+  buildOrder: number;
+  reportName: string;
+  data: Statistic;
+};
+
+export type TrendData = {
+  items: TrendItem[];
+};
+
 export const d3Arc = arc<PieArcDatum<TestResultSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
 export const d3Pie = pie<TestResultSlice>()
@@ -39,5 +49,13 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
   return {
     slices,
     percentage,
+  };
+};
+
+export const getTrendData = (stats: Statistic, reportName: string, buildOrder: number): TrendItem => {
+  return {
+    buildOrder,
+    reportName,
+    data: stats,
   };
 };

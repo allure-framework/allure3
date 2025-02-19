@@ -26,7 +26,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getPieChartData } from "./charts.js";
+import { getChartData, getTrendData, type TrendData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -370,4 +370,22 @@ export const generateStaticFiles = async (
   });
 
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+};
+
+export const generateTrendData = async (
+  writer: AllureAwesomeDataWriter,
+  reportName: string,
+  statistic: Statistic,
+  historyDataPoints: { name: string; statistic: Statistic }[],
+) => {
+  const trendData: TrendData = {
+    items: [
+      getTrendData(statistic, reportName, historyDataPoints.length + 1),
+      ...historyDataPoints
+        .sort((a, b) => b.statistic.total - a.statistic.total)
+        .map((point, index) => getTrendData(point.statistic, point.name, historyDataPoints.length - index)),
+    ],
+  };
+
+  await writer.writeWidget("history-trend.json", trendData);
 };
