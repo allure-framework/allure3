@@ -59,7 +59,7 @@ export const Default: StoryFn<typeof Grid> = (args) => {
       {...args}
       style={listStyle}
       options={{
-        onEnd: (event) => setWidgets(handleGridSort(widgets, event)),
+        onEnd: (event: SortableEvent) => setWidgets(handleGridSort(widgets, event)),
       }}
     >
       {widgets.map((widget, index) => (
@@ -109,7 +109,7 @@ export const SizeVariations: StoryFn<typeof Grid> = (args) => {
       {...args}
       style={listStyle}
       options={{
-        onEnd: (event) => setWidgets(handleGridSort(widgets, event)),
+        onEnd: (event: SortableEvent) => setWidgets(handleGridSort(widgets, event)),
       }}
     >
       {widgets.map((widget) => (
