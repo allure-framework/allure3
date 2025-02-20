@@ -90,7 +90,7 @@ export class AllureReport {
     const resultsDirPath = resolve(resultsDir);
 
     try {
-      const processed = await this.readResult(resultsDir);
+      const processed = await this.readResult(resultsDirPath);
       if (processed) {
         return;
       }
