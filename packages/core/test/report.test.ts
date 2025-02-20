@@ -1,5 +1,6 @@
 import type { Plugin } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
+import { resolve } from "node:path";
 import type { Mocked } from "vitest";
 import { describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "../src/index.js";
@@ -177,9 +178,9 @@ describe("report", () => {
     await allureReport.readDirectory("./allure-results");
 
     expect(r1.read).toHaveBeenCalledOnce();
-    expect(r1.read).toHaveBeenCalledWith(expect.anything(), "./allure-results");
+    expect(r1.read).toHaveBeenCalledWith(expect.anything(), resolve("./allure-results"));
     expect(r2.read).toHaveBeenCalledOnce();
-    expect(r2.read).toHaveBeenCalledWith(expect.anything(), "./allure-results");
+    expect(r2.read).toHaveBeenCalledWith(expect.anything(), resolve("./allure-results"));
     expect(r3.read).not.toHaveBeenCalled();
   });
 });
