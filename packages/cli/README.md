@@ -15,8 +15,6 @@ The **Allure 3 CLI** provides a comprehensive suite of commands designed to stre
 - 📢 [Official annoucements](https://github.com/orgs/allure-framework/discussions/categories/announcements) – be in touch with the latest updates
 - 💬 [General Discussion ](https://github.com/orgs/allure-framework/discussions/categories/general-discussion) – engage in casual conversations, share insights and ideas with the community
 
----
-
 ## Key Features
 
 Allure 3 introduces several notable improvements. The framework has been entirely rewritten in **TypeScript**, making it more extensible and easier to maintain. Its **plugin system** allows you to customize and extend reporting functionality to fit your specific needs. Configuration has been simplified with a **single file** managing all report settings, making it more convenient to handle multiple reports.
@@ -24,8 +22,6 @@ Allure 3 introduces several notable improvements. The framework has been entirel
 One of the standout features is **real-time reporting**, which lets you view live updates during test execution using the `watch` command. The report interface itself has been redesigned to enhance usability and clarity. Moreover, Allure 3 maintains **compatibility with the entire Allure ecosystem**, supporting all major test frameworks.
 
 > 🚧 Please note that **official CI/CD integrations and IDE plugins are not yet available** for Allure 3.
-
----
 
 ## Installation
 
@@ -42,8 +38,6 @@ npx allure run -- <test_command>
 ```
 
 This approach ensures you always use the latest version without managing global dependencies.
-
----
 
 ## Commands
 
@@ -65,8 +59,6 @@ To successfully generate a report, ensure that your test setup outputs results i
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
 
----
-
 ### Generating Reports Manually
 
 If you already have test results and wish to generate a report manually, use the `generate` command:
@@ -76,8 +68,6 @@ npx allure generate <resultsDir>
 ```
 
 By default, this command produces an **Allure 3 Awesome** report. You can customize output settings, such as the destination directory, through the configuration file. If you prefer a **Classic** or **Allure 2-style** report, or need to disable certain plugins, these adjustments can also be made via configuration.
-
----
 
 ### Viewing Reports
 
@@ -93,8 +83,6 @@ If you’ve defined the output directory in your configuration file, specifying 
 npx allure open allure-report/awesome
 ```
 
----
-
 ### Real-time Report Monitoring
 
 When you need to monitor test execution live, the `watch` command provides dynamic report updates. It continuously monitors the specified results directory for changes and refreshes the report automatically:
@@ -104,8 +92,6 @@ npx allure watch <allureResultsDir>
 ```
 
 This command is ideal for iterative development and debugging, allowing you to see immediate feedback as you modify and rerun tests. The browser tab updates seamlessly whenever new results are detected.
-
----
 
 ### Command-line Options
 
@@ -122,7 +108,6 @@ To check your installed version of Allure 3, use:
 npx allure --version
 ```
 
----
 
 ## Configuration
 
@@ -152,8 +137,6 @@ export default defineConfig({
 
 In this example, the generated report is named *Allure Report Example* and saved to the `./out/allure-report` directory. The **Awesome** plugin is enabled with options to produce a single-file HTML report in English.
 
----
-
 ### Configuration Options
 
 The configuration file allows you to fine-tune report generation. Key options include:
@@ -161,8 +144,6 @@ The configuration file allows you to fine-tune report generation. Key options in
 - **`name`**: Specifies the report’s display name.
 - **`output`**: Defines the directory where the report will be saved.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
-
----
 
 ### Awesome Plugin Options
 
@@ -176,8 +157,6 @@ The **Awesome** plugin offers several customizable options:
   `az`, `br`, `de`, `en`, `es`, `fr`, `he`, `ja`, `kr`, `nl`, `pl`, `ru`, `sv`, `tr`, `zh`.
 
 For example, setting `"reportLanguage": "fr"` will render the report interface in French.
-
----
 
 ## Final Notes
 
