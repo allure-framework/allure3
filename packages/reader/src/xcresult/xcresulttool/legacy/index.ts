@@ -9,7 +9,7 @@ import type {
 } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
 import type { ShallowKnown, Unknown } from "../../../validation.js";
-import { ensureObject, ensureString, isDefined, isObject } from "../../../validation.js";
+import { ensureObject, isDefined, isObject } from "../../../validation.js";
 import {
   DEFAULT_ATTACHMENT_NAME,
   DEFAULT_BUNDLE_NAME,
@@ -665,7 +665,7 @@ const visitActionTestSummaryGroup = async function* (
 };
 
 const getParameterName = (parameter: Unknown<XcTestParameter>) =>
-  isObject(parameter) ? ensureString(parameter.name) : undefined;
+  isObject(parameter) ? getString(parameter.name) : undefined;
 
 const getArgumentValue = (parameter: Unknown<XcTestValue>) =>
-  isObject(parameter) ? ensureString(parameter.description) : undefined;
+  isObject(parameter) ? getString(parameter.description) : undefined;
