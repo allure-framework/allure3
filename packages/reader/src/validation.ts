@@ -295,7 +295,7 @@ export const ensureArrayWithItems = <T, R extends ShallowKnown<ArrayElement<T>>>
 
 /**
  * If the value is an object (but not an array; for arrays, see `ensureArrayWithItems`), returns a new object of
- * the same shape as the original one but with only proeprties that confirms to the provided type guard.
+ * the same shape as the original one but with only those properties that conform to a type guard.
  * @example
  * ```ts
  * const raw: Unknown<{ name: string }> = JSON.parse('{ "name": "foo" }');
