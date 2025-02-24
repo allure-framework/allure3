@@ -589,9 +589,9 @@ const convertActionParameters = ({ destination, testPlan, multiTarget, multiTest
   if (destination) {
     const { name, targetDetails } = destination;
     if (isDefined(name)) {
-      parameters.push({ name: "Target", value: name });
+      parameters.push({ name: "Device", value: name });
       if (multiTarget && targetDetails) {
-        parameters.push({ name: "Target details", value: targetDetails, excluded: true });
+        parameters.push({ name: "Device details", value: targetDetails, excluded: true });
       }
     }
   }
