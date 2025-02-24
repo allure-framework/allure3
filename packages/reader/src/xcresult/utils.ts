@@ -52,15 +52,15 @@ export const getArgsKeyByValues = (values: readonly (string | undefined)[]) => v
 export const getArgsKey = (args: TestRunArgs) => getArgsKeyByValues(args.map((arg) => arg?.value));
 
 export const createTestRunLookup = <T>(entries: readonly (readonly [TestRunCoordinates, T])[]): TestRunLookup<T> =>
-  groupByMap(
+  mappedGroupBy(
     entries,
     ([{ device }]) => device ?? SURROGATE_DEVICE_ID,
     (deviceRuns) =>
-      groupByMap(
+      mappedGroupBy(
         deviceRuns,
         ([{ testPlan }]) => testPlan ?? SURROGATE_TEST_PLAN_ID,
         (configRuns) =>
-          groupByMap(
+          mappedGroupBy(
             configRuns,
             ([{ args }]) => (args && args.length ? getArgsKey(args) : SURROGATE_ARGS_ID),
             (argRuns) => {
@@ -102,16 +102,17 @@ export const groupBy = <T, K>(values: readonly T[], keyFn: (v: T) => K): Map<K, 
     return m;
   }, new Map<K, T[]>());
 
-export const groupByMap = <T, K, G>(
+export const mappedGroupBy = <T, K, G>(
   values: readonly T[],
   keyFn: (v: T) => K,
   groupMapFn: (group: T[]) => G,
-): Map<K, G> =>
-  new Map<K, G>(
-    groupBy(values, keyFn)
-      .entries()
-      .map(([k, g]) => [k, groupMapFn(g)]),
-  );
+): Map<K, G> => {
+  const result = new Map<K, G>();
+  for (const [k, g] of groupBy(values, keyFn)) {
+    result.set(k, groupMapFn(g));
+  }
+  return result;
+};
 
 export const getTargetDetails = ({ architecture, model, platform, osVersion }: TargetDescriptor = {}) => {
   const osPart = platform ? (osVersion ? `${platform} ${osVersion}` : platform) : undefined;
@@ -164,14 +165,17 @@ export const parseAsAllureApiActivity = (title: string | undefined): AllureApiCa
   }
 };
 
-export const applyApiCalls = (testResult: RawTestResult, apiCalls: readonly AllureApiCall[]) =>
-  groupByMap(
+export const applyApiCalls = (testResult: RawTestResult, apiCalls: readonly AllureApiCall[]) => {
+  const groupedApiCalls = mappedGroupBy(
     apiCalls,
     (v) => v.type,
     (g) => g.map(({ value }) => value),
-  )
-    .entries()
-    .forEach(([type, values]) => applyApiCallGroup(testResult, type, values));
+  );
+
+  for (const [type, values] of groupedApiCalls) {
+    applyApiCallGroup(testResult, type, values);
+  }
+};
 
 const applyApiCallGroup = (
   testResult: RawTestResult,
