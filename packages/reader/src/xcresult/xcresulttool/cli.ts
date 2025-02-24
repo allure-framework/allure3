@@ -1,5 +1,5 @@
 import console from "node:console";
-import { invokeCliTool, invokeJsonCliTool } from "../../toolRunner.js";
+import { invokeCliTool, invokeJsonCliTool, invokeStdoutCliTool } from "../../toolRunner.js";
 import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
 export const xcrun = async <T>(utilityName: string, ...args: readonly string[]) => {
@@ -11,6 +11,15 @@ export const xcrun = async <T>(utilityName: string, ...args: readonly string[]) 
 };
 
 export const xcresulttool = async <T>(...args: readonly string[]) => await xcrun<T>("xcresulttool", ...args);
+
+export const version = async () => {
+  const stdout = invokeStdoutCliTool("xcrun", ["xcresulttool", "--version"], { timeout: 1000 });
+  const lines: string[] = [];
+  for await (const line of stdout) {
+    lines.push(line);
+  }
+  return lines.join("\n");
+};
 
 export const getTests = async (xcResultPath: string) =>
   await xcresulttool<XcTests>("get", "test-results", "tests", "--path", xcResultPath);
