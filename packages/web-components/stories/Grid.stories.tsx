@@ -24,7 +24,6 @@ const listStyle = {
 };
 
 const defaultItemStyle = {
-  border: "1px solid #ccc",
   backgroundColor: "#f9f9f9",
   padding: "4px 0 4px 4px",
 };
