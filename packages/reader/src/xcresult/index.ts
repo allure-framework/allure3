@@ -1,6 +1,6 @@
-import type { ResultFile } from "@allurereport/plugin-api";
-import type { ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
+import type { ResultsVisitor } from "@allurereport/reader-api";
 import console from "node:console";
+import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
 import { version } from "./xcresulttool/cli.js";
 import newApi from "./xcresulttool/index.js";
 import { legacyApiUnavailable } from "./xcresulttool/legacy/cli.js";
@@ -10,20 +10,26 @@ import { parseWithExportedAttachments } from "./xcresulttool/utils.js";
 
 const readerId = "xcresult";
 
-export const xcresult: ResultsReader = {
-  read: async (visitor: ResultsVisitor, data: ResultFile): Promise<boolean> => {
-    const resultDir = data.getOriginalFileName();
+export const readXcResultBundle = async (visitor: ResultsVisitor, directory: string) => {
+  if (await isXcResultBundle(directory)) {
+    if (!IS_MAC) {
+      console.warn(
+        `It looks like ${directory} is a Mac OS bundle. Allure 3 can only parse such bundles on a Mac OS machine.`,
+      );
 
-    // TODO: move the check to core; replace with structural check
-    if (resultDir.endsWith(".xcresult")) {
-      if (await xcResultToolAvailable()) {
-        return await parseBundleWithXcResultTool(visitor, resultDir);
-      }
+      // There is a small chance we're dealing with a proper allure results directory here.
+      // In such a case, allow the directory to be read (if it's really a bundle, the user will see an empty report).
+      return false;
     }
-    return false;
-  },
 
-  readerId: () => readerId,
+    if (await xcResultToolAvailable()) {
+      return await parseBundleWithXcResultTool(visitor, directory);
+    }
+
+    return true;
+  }
+
+  return false;
 };
 
 const xcResultToolAvailable = async () => {
@@ -31,10 +37,7 @@ const xcResultToolAvailable = async () => {
     await version();
     return true;
   } catch (e) {
-    console.error(
-      "xcresulttool is unavailable on this machine. Please, make sure XCode is installed. The original error:",
-      e,
-    );
+    console.error(XCRESULTTOOL_MISSING_MESSAGE, e);
   }
 
   return false;
