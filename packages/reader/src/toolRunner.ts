@@ -49,7 +49,7 @@ export const invokeCliTool = async (
       return;
     }
 
-    if (typeof expectedExitCode === "number" ? code === expectedExitCode : expectedExitCode(code!)) {
+    if (typeof expectedExitCode === "number" ? code !== expectedExitCode : expectedExitCode(code!)) {
       onError(new Error(`${executable} finished with an unexpected exit code ${code}`));
       return;
     }
