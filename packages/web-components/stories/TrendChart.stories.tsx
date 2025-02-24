@@ -20,7 +20,7 @@ const makeDaysData = (count: number, maxValue = 100): TrendChartDataItem[] => {
 const mockDefaultData = (count: number): TrendChartData[] => [
   {
     id: "Passed",
-    data: makeDaysData(count, 200),
+    data: makeDaysData(count, 150),
   },
   {
     id: "Not Passed",
@@ -64,5 +64,23 @@ export const WithAxisLegends: Story = {
       legendOffset: -40,
       legendPosition: "middle",
     }
+  }
+};
+
+export const WithLogarithmicScale: Story = {
+  args: {
+    data: mockedData,
+    axisLeft: {
+      ...defaultAxisLeftConfig,
+      legend: "Tests executed (symlog scale)",
+      legendOffset: -40,
+      legendPosition: "middle",
+    },
+    yScale: {
+      type: "symlog",
+      constant: 48,
+      min: mockedData.flatMap(series => series.data).reduce((acc, point) => Math.min(acc, point.y), Infinity),
+      max: mockedData.flatMap(series => series.data).reduce((acc, point) => Math.max(acc, point.y), -Infinity),
+    },
   }
 };
