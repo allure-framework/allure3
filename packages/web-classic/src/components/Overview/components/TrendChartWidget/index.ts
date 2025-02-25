@@ -1,0 +1,1 @@
+export { TrendChartWidget } from "./TrendChartWidget";
