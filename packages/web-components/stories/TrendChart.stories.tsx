@@ -33,6 +33,7 @@ const mockDefaultData = (count: number): TrendChartData[] => [
 ];
 
 const mockedData = mockDefaultData(10);
+const flattenedYData = mockedData.flatMap(series => series.data).map<number>(point => point.y);
 
 type Story = StoryObj<TrendChartProps>;
 
@@ -86,8 +87,8 @@ export const WithLogarithmicScale: Story = {
     yScale: {
       type: "symlog",
       constant: 48,
-      min: mockedData.flatMap(series => series.data).reduce((acc, point) => Math.min(acc, point.y), Infinity),
-      max: mockedData.flatMap(series => series.data).reduce((acc, point) => Math.max(acc, point.y), -Infinity),
+      min: Math.min(...flattenedYData),
+      max: Math.max(...flattenedYData),
     },
   }
 };
