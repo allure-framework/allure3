@@ -1,4 +1,9 @@
 .overview {
   padding: 24px;
   width: 100%;
-} 
+}
+
+.overview__grid {
+  display: grid;
+  gap: 24px;
+}
