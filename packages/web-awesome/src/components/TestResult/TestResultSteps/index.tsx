@@ -27,6 +27,7 @@ type StepComponentProps = FunctionalComponent<{
 export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ steps, id }) => {
   const stepsId = `${id}-steps`;
   const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(stepsId));
+  const [traceVisible, setTraceVisible] = useState(false);
   const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
 
   const handleClick = () => {
@@ -37,6 +38,20 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
   const { t } = useI18n("execution");
   return (
     <div className={styles["test-result-steps"]}>
+      <button type="button" onClick={() => setTraceVisible(!traceVisible)}>
+        open trace
+      </button>
+      {traceVisible && (
+        <div class={styles.modal}>
+          <header>
+            <p>Some text</p>
+            <button type="button" onClick={() => setTraceVisible(false)}>
+              Close
+            </button>
+          </header>
+          <iframe src="https://trace.playwright.dev/?trace=https://demo.playwright.dev/reports/todomvc/data/cb0fa77ebd9487a5c899f3ae65a7ffdbac681182.zip" />
+        </div>
+      )}
       <TestResultDropdown
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}

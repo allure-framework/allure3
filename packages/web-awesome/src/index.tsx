@@ -1,5 +1,6 @@
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
+import "preact/debug";
 import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";

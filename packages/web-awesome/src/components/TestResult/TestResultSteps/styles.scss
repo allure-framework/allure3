@@ -223,3 +223,35 @@
 .html-attachment-preview {
   padding: 0 16px;
 }
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #fff;
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 4px 8px;
+
+    p {
+      font-weight: bold;
+    }
+  }
+
+  iframe {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
