@@ -1,4 +1,4 @@
-import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig } from "@allurereport/web-components";
+import { TrendChart, defaultTrendChartLegendConfig, defaultAxisBottomConfig, defaultAxisLeftConfig, TrendChartKind } from "@allurereport/web-components";
 import type { TrendChartProps, TrendChartDataItem, TrendChartData } from "@allurereport/web-components";
 
 import type { Meta, StoryObj } from "@storybook/react";
@@ -46,6 +46,13 @@ export const WithLegend: Story = {
   args: {
     data: mockedData,
     legends: [defaultTrendChartLegendConfig]
+  }
+};
+
+export const WithSlices: Story = {
+  args: {
+    data: mockedData,
+    kind: TrendChartKind.slicesX,
   }
 };
 
