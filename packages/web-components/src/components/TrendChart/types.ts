@@ -11,11 +11,18 @@ export interface TrendChartData {
   data: TrendChartDataItem[];
 }
 
-export interface TrendChartProps extends Partial<LineSvgProps> {
+type BaseLineSvgProps = Omit<LineSvgProps, "data" | "useMesh" | "enableSlices">;
+
+export enum TrendChartKind {
+  mesh = "mesh",
+  slicesX = "slicesX",
+  slicesY = "slicesY"
+}
+
+export interface TrendChartProps extends Partial<BaseLineSvgProps> {
   data: TrendChartData[];
   rootArialLabel: string;
+  kind?: TrendChartKind;
   width?: CSSProperties["width"];
   height?: CSSProperties["height"];
-  useLogarithmicScale?: boolean;
-  logarithmBase?: number;
 }
