@@ -1,0 +1,110 @@
+/*
+  Copyright (c) Microsoft Corporation.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+.network-request-details-tab {
+  width: 100%;
+  height: 100%;
+  user-select: text;
+  line-height: 24px;
+  margin-left: 10px;
+  overflow: auto;
+}
+
+.network-request-details-url {
+  white-space: normal;
+  word-wrap: break-word;
+  margin-left: 10px;
+}
+
+.network-request-details-headers {
+  white-space: pre;
+  overflow: hidden;
+  margin-left: 10px;
+}
+
+.network-request-details-header {
+  margin: 3px 0;
+  font-weight: bold;
+}
+
+.network-request-details-general {
+  white-space: pre;
+  margin-left: 10px;
+}
+
+.network-request-details-tab .cm-wrapper {
+  overflow: hidden;
+}
+
+.network-request-details-copy {
+  display: flex;
+  margin: 8px 10px;
+  gap: 8px;
+}
+
+.network-font-preview {
+  font-family: font-preview;
+  font-size: 30px;
+  line-height: 40px;
+  padding: 16px;
+  padding-left: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.network-font-preview-error {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.tab-network .toolbar {
+  min-height: 30px !important;
+  background-color: initial !important;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.tab-network .toolbar::after {
+  box-shadow: none !important;
+}
+
+.tab-network .tabbed-pane-tab.selected {
+  font-weight: bold;
+}
+
+.green-circle::before,
+.red-circle::before,
+.yellow-circle::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  margin-right: 2px;
+  align-self: center;
+}
+
+.green-circle::before {
+  background-color: var(--vscode-charts-green);
+}
+
+.red-circle::before {
+  background-color: var(--vscode-charts-red);
+}
+
+.yellow-circle::before {
+  background-color: var(--vscode-charts-yellow);
+}
