@@ -42,7 +42,6 @@ export const fetchTestResult = async (testResultId: string) => {
     return;
   }
 
-  console.log("loaded");
   testResultStore.value = {
     ...testResultStore.value,
     loading: true,
