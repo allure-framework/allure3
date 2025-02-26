@@ -7,6 +7,5 @@
 
 .scroll-inside {
   overflow: auto;
-  --footer-header-sizes: 105px;
   height: calc(100vh - var(--footer-header-sizes));
 }

@@ -23,7 +23,26 @@ export interface ModalDataProps {
   attachments?: AttachmentTestStepResult[];
 }
 
-export const Modal = ({ data, isModalOpen, preview, component, attachments, closeModal }: ModalDataProps) => {
+export interface ModalTranslations {
+  tooltipPreview: string;
+  tooltipDownload: string;
+  openInNewTabButton: string;
+}
+
+export interface ModalTranslationsProps {
+  translations: ModalTranslations;
+}
+
+export const Modal = ({
+  data,
+  isModalOpen,
+  preview,
+  component,
+  attachments,
+  closeModal,
+  translations,
+}: ModalDataProps & ModalTranslationsProps) => {
+  const { tooltipPreview, tooltipDownload, openInNewTabButton } = translations;
   const { link } = data || {};
   const attachName = link?.name ? `${link?.name}` : `${link?.id}${link?.ext}`;
 
@@ -72,11 +91,11 @@ export const Modal = ({ data, isModalOpen, preview, component, attachments, clos
                   style={"outline"}
                   onClick={openInNewWindow}
                   icon={allureIcons.lineGeneralLinkExternal}
-                  text={"Open in new tab"}
+                  text={openInNewTabButton}
                 />
               )}
               {isHtmlAttachment && (
-                <TooltipWrapper tooltipText={"Preview attachment"}>
+                <TooltipWrapper tooltipText={tooltipPreview}>
                   <IconButton
                     style={"outline"}
                     size={"m"}
@@ -85,7 +104,7 @@ export const Modal = ({ data, isModalOpen, preview, component, attachments, clos
                   />
                 </TooltipWrapper>
               )}
-              <TooltipWrapper tooltipText={"Download attachment"}>
+              <TooltipWrapper tooltipText={tooltipDownload}>
                 <IconButton
                   style={"outline"}
                   size={"m"}

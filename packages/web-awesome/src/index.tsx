@@ -6,6 +6,7 @@ import { render } from "preact";
 import { useEffect } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
+import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
@@ -29,10 +30,7 @@ const App = () => {
   const { id: testResultId } = route.value;
 
   useEffect(() => {
-    if (testResultId) {
-      fetchTestResult(testResultId);
-      fetchTestResultNav();
-    }
+    fetchTestResultNav();
     getLayout();
     getTheme();
     getLocale();
@@ -44,6 +42,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    if (testResultId) {
+      fetchTestResult(testResultId);
+    }
+  }, [testResultId]);
+
+  useEffect(() => {
     handleHashChange();
     globalThis.addEventListener("hashchange", () => handleHashChange());
 
@@ -51,10 +55,12 @@ const App = () => {
       globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
+
   return (
     <div className={styles.main}>
       <Loader />
       {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+      <ModalComponent />
     </div>
   );
 };

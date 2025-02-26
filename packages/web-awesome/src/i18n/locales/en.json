@@ -113,7 +113,9 @@
     "expand": "Expand",
     "fullscreen": "Full screen",
     "language": "Change language",
-    "openInNewTab": "Open in new tab"
+    "openInNewTab": "Open in new tab",
+    "openPreview": "Open preview",
+    "noSelectedTR": "No selected Test result"
   },
   "errors": {
     "missedAttachment": "Attachment not found"

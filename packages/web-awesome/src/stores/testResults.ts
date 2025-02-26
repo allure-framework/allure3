@@ -38,10 +38,11 @@ export const fetchTestResultNav = async () => {
 };
 
 export const fetchTestResult = async (testResultId: string) => {
-  if (!testResultId) {
+  if (!testResultId || (testResultStore.value.data && testResultId in testResultStore.value.data)) {
     return;
   }
 
+  console.log("loaded");
   testResultStore.value = {
     ...testResultStore.value,
     loading: true,

@@ -1,5 +1,6 @@
 import type { ModalDataProps } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
+import { useI18n } from "@/stores/locale";
 
 export const isModalOpen = signal(false);
 

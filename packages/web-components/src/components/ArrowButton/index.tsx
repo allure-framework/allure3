@@ -1,4 +1,4 @@
-import { clsx } from "clsx";
+import cx, { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import styles from "./styles.scss";
@@ -20,13 +20,15 @@ export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({
   ...rest
 }) => {
   return (
-    <button className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])} {...rest}>
+    <button type="button" {...rest} className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])}>
       <SvgIcon
         id={icon}
         size={iconSize}
         className={clsx(
+          {
+            [styles["arrow-button-icon--opened"]]: isOpened,
+          },
           styles["arrow-button-icon"],
-          isOpened && styles["arrow-button-icon--opened"],
           styles[`icon-size-${iconSize}`],
           className,
         )}

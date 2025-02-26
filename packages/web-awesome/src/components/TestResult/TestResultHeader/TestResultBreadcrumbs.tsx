@@ -9,7 +9,6 @@ interface TestResultBreadcrumbsProps {
 }
 
 export const TestResultBreadcrumbs = ({ testResult }: TestResultBreadcrumbsProps) => {
-  console.log(testResult);
   const { breadcrumbs, name } = testResult || {};
 
   return (

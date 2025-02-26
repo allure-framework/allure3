@@ -10,6 +10,8 @@ import type {
   WithChildren,
 } from "@allurereport/core-api";
 
+export type Layout = "base" | "split";
+
 export type AllureAwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
@@ -19,7 +21,7 @@ export type AllureAwesomeReportOptions = {
   reportLanguage?: "en" | "ru";
   createdAt: number;
   reportUuid: string;
-  layout?: "base" | "split";
+  layout?: Layout;
 };
 
 export type AllureAwesomeFixtureResult = Omit<
@@ -79,7 +81,6 @@ export type AllureAwesomeTreeLeaf = Pick<
 export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
 export type AllureAwesomeTree = TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>;
-
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */

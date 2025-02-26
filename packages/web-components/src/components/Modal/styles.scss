@@ -97,6 +97,7 @@
   width: 100%;
   position: absolute;
   bottom: 0;
+  left: 0;
   color: var(--gray-neutral-0);
 }
 
@@ -118,12 +119,12 @@
 }
 
 .modal-gallery {
+  align-items: center;
   display: flex;
   width: 100%;
   gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
-  align-items: center;
 }
 
 .test-result-steps {
@@ -241,11 +242,13 @@
   width: 12px;
   height: 12px;
   transform: rotate(-90deg);
+  transform-origin: center;
   transition: transform 200ms;
 }
 
 .test-result-step-chevron-open {
   transform: rotate(0deg);
+  transform-origin: center;
 }
 
 .test-result-attachment-header {
@@ -264,6 +267,7 @@
 .test-result-attachment-arrow {
   transform: rotate(-90deg);
   transition: transform 200ms;
+  transform-origin: center;
 }
 
 .test-result-attachment-arrow-opened {

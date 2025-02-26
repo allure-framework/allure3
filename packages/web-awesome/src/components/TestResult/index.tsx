@@ -10,6 +10,7 @@ import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
 import { isSplitMode } from "@/stores/layout";
+import { testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 
 export type TestResultViewProps = {

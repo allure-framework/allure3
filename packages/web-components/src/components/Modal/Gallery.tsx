@@ -15,8 +15,8 @@ const Gallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) =
 
   return (
     <div className={styles["modal-gallery"]}>
-      {filteredAttachments?.map((item, index) => (
-        <ModalThumb item={item} key={index}>
+      {filteredAttachments?.map((item) => (
+        <ModalThumb item={item} key={item?.link?.id}>
           <Attachment item={item} />
         </ModalThumb>
       ))}

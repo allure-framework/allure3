@@ -1,8 +1,11 @@
+import type { ModalTranslations } from "@allurereport/web-components";
 import { Loadable, Modal, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
+import { ModalComponent } from "@/components/Modal";
 import TestResult from "@/components/TestResult";
+import { useI18n } from "@/stores";
 import { isModalOpen, modalData } from "@/stores/modal";
 import { route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
@@ -47,7 +50,6 @@ export const BaseLayout = () => {
   return (
     <div className={styles.layout} data-testid="base-layout">
       {content}
-      <Modal {...modalData.value} isModalOpen={isModalOpen.value} closeModal={() => (isModalOpen.value = false)} />
     </div>
   );
 };

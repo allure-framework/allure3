@@ -11,6 +11,7 @@
   width: 100%;
   flex-direction: column;
   margin: auto;
+  position: relative;
 }
 
 .content {
@@ -20,7 +21,8 @@
   width: 100%;
   overflow: hidden;
   overflow-y: scroll;
-  height: 90vh;
+  height: calc(100vh - var(--footer-header-sizes));
+  position: relative;
 }
 
 .test-results {
@@ -55,7 +57,7 @@
   align-items: center;
   margin: auto;
   width: 100%;
-  padding: 16px 8px;
+  padding: 8px 8px;
 }
 
 .test-result-errors {

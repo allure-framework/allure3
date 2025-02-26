@@ -64,5 +64,5 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
     return <CurrentPreviewComponent attachment={attachment} item={item} />;
   }
 
-  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : <></>;
+  return CurrentComponent ? <CurrentComponent attachment={attachment} item={item} /> : null;
 };

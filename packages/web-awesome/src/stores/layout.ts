@@ -1,18 +1,16 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { AllureAwesomeReportOptions } from "../../types.js";
-
-type Layout = "base" | "split";
+import type { AllureAwesomeReportOptions, Layout } from "types";
 
 const { layout } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
 
 export const layoutStore = signal<Layout>("base");
 export const isLayoutLoading = signal(false);
 
-export const setLayout = (newTheme: Layout): void => {
-  layoutStore.value = newTheme;
-  document.documentElement.setAttribute("data-layout", newTheme);
-  window.localStorage.setItem("layout", newTheme);
+export const setLayout = (newLayout: Layout): void => {
+  layoutStore.value = newLayout;
+  document.documentElement.setAttribute("data-layout", newLayout as string);
+  window.localStorage.setItem("layout", newLayout as string);
 };
 
 export const toggleLayout = () => {
