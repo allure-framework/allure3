@@ -1,0 +1,36 @@
+/*
+  Copyright (c) Microsoft Corporation.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+.network-request-status-route {
+  color: var(--vscode-statusBar-foreground);
+  background-color: var(--vscode-statusBar-background);
+}
+
+.network-request-status-route.api {
+  color: var(--vscode-statusBar-foreground);
+  background-color: var(--vscode-statusBarItem-remoteBackground);
+}
+
+.network-grid-view .grid-view-column-method,
+.network-grid-view .grid-view-column-status {
+  text-align: center;  
+}
+
+.network-grid-view .grid-view-column-duration,
+.network-grid-view .grid-view-column-size,
+.network-grid-view .grid-view-column-start {
+  text-align: end;
+}
