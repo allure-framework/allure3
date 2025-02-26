@@ -1,5 +1,6 @@
 import type { LineSvgProps } from "@nivo/line";
 import type { CSSProperties } from "preact/compat";
+import type { ScaleSymlogSpec } from "@nivo/scales";
 
 export interface TrendChartDataItem {
   x: string | number | Date;
@@ -18,6 +19,10 @@ export enum TrendChartKind {
   slicesX = "slicesX",
   slicesY = "slicesY"
 }
+
+export type TrendChartKindConfig = Pick<LineSvgProps, "useMesh" | "enableSlices">;
+
+export type SymlogScaleOptions = Pick<ScaleSymlogSpec, "constant" | "reverse">;
 
 export interface TrendChartProps extends Partial<BaseLineSvgProps> {
   data: TrendChartData[];
