@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
+import { preact } from "@preact/preset-vite"
 import { bundle } from "./bundle.js";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "",
-  plugins: [react(), bundle()],
+  plugins: [preact(), bundle()],
   define: {
     "process.env": {},
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react": "preact/compat",
+      "react-dom": "preact/compat",
     },
   },
   build: {

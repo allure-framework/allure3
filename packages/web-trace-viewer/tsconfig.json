@@ -13,22 +13,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "jsxImportSource": "preact",
     "baseUrl": ".",
     "types": ["react", "react-dom"],
     "paths": {
       "@/*": ["./src/*"],
-//      "@injected/*": ["../playwright-core/src/server/injected/*"],
-//      "@isomorphic/*": ["../playwright-core/src/utils/isomorphic/*"],
-//      "@protocol/*": ["../protocol/src/*"],
-//      "@recorder/*": ["../recorder/src/*"],
-//      "@/utils/isomorphic/*": ["../playwright/src/isomorphic/*"],
-//      "@trace/*": ["../trace/src/*"],
-//      "@web/*": ["../web/src/*"],
-      // Resolving type dependencies will start processing types in @playwright/test
-      // which in turn will start parsing the files and hence stumble upon the core
-      // imports.
-//      "playwright-core/lib/*": ["../playwright-core/src/*"],
     },
     "useUnknownInCatchVariables": false,
   },

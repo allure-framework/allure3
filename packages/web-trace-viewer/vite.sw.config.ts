@@ -25,11 +25,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // '@isomorphic': path.resolve(__dirname, '../playwright-core/src/utils/isomorphic'),
-      // '@protocol': path.resolve(__dirname, '../protocol/src'),
-      // '@testIsomorphic': path.resolve(__dirname, '../playwright-core/src/utils/testIsomorphic'),
-      // '@trace': path.resolve(__dirname, '../trace/src'),
-      // '@web': path.resolve(__dirname, '../web/src'),
     },
   },
   publicDir: false,
