@@ -29,33 +29,33 @@ export const defaultTrendChartLegendConfig: LegendProps = {
   ],
 };
 
-export const defaultAxisBottomConfig: AxisProps = {
+export const defaultTrendChartAxisBottomConfig: AxisProps = {
   tickSize: 5,
   tickPadding: 5,
   tickRotation: 45,
   ticksPosition: "before",
 };
 
-export const defaultAxisLeftConfig: AxisProps = {
+export const defaultTrendChartAxisLeftConfig: AxisProps = {
   tickSize: 5,
   tickPadding: 5,
   tickRotation: 0,
 };
 
-export const defaultMarginConfig: Margin = { top: 50, right: 100, bottom: 50, left: 60 };
+export const defaultTrendChartMarginConfig: Margin = { top: 50, right: 100, bottom: 50, left: 60 };
 
-export const defaultXScaleConfig: ScaleSpec = { type: "point" };
+export const defaultTrendChartXScaleConfig: ScaleSpec = { type: "point" };
 
-export const defaultYScaleConfig: ScaleSpec = { type: "linear", min: "auto", max: "auto", reverse: false };
+export const defaultTrendChartYScaleConfig: ScaleSpec = { type: "linear", min: "auto", max: "auto", reverse: false };
 
 export const defaultTrendChartConfig: Partial<LineSvgProps> = {
-  margin: defaultMarginConfig,
-  xScale: defaultXScaleConfig,
-  yScale: defaultYScaleConfig,
+  margin: defaultTrendChartMarginConfig,
+  xScale: defaultTrendChartXScaleConfig,
+  yScale: defaultTrendChartYScaleConfig,
   axisTop: null,
   axisRight: null,
-  axisBottom: defaultAxisBottomConfig,
-  axisLeft: defaultAxisLeftConfig,
+  axisBottom: defaultTrendChartAxisBottomConfig,
+  axisLeft: defaultTrendChartAxisLeftConfig,
   useMesh: true,
   enableArea: true,
 };

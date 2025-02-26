@@ -1,6 +1,6 @@
-import { TrendChart, TrendChartData, defaultAxisBottomConfig } from "@allurereport/web-components";
-import type { ScaleSymlogSpec } from "@nivo/scales";
+import { TrendChart, TrendChartData, makeSymlogScale } from "@allurereport/web-components";
 import { Widget } from "../Widget";
+import { useMemo } from "preact/hooks";
 
 const Y_SCALE_CONSTANT = 8;
 
@@ -9,27 +9,20 @@ interface TrendChartWidgetProps {
 }
 
 export const TrendChartWidget = ({ data }: TrendChartWidgetProps) => {
-  const maxValue = data.flatMap(series => series.data).reduce((acc, point) => Math.max(acc, point.y), -Infinity);
-  const trendDataAsPercentage: TrendChartData[] = data.map(series => ({
+  const ys = useMemo(() => data.flatMap(series => series.data).map<number>(point => point.y), [data]);
+  const min = useMemo(() => Math.min(...ys), [ys]);
+  const max = useMemo(() => Math.max(...ys), [ys]);
+
+  const trendDataAsPercentage: TrendChartData[] = useMemo(() => data.map(series => ({
     ...series,
     data: series.data.map(point => ({
       ...point,
-      x: `xxx.yyy.zzzz-${point.x}`,
-      y: point.y / maxValue * 100,
+      y: point.y / max * 100,
     })),
-  }));
+  })),
+  [data, max]);
 
-  const { min, max } = trendDataAsPercentage.flatMap(series => series.data).reduce<{min: number; max: number}>((acc, point) => ({
-    min: Math.min(acc.min, point.y),
-    max: Math.max(acc.max, point.y),
-  }), { min: Infinity, max: -Infinity });
-
-  const yScaleConfig: ScaleSymlogSpec = {
-    type: "symlog",
-    constant: Y_SCALE_CONSTANT,
-    min,
-    max,
-  };
+  const yScale = useMemo(() => makeSymlogScale(min, max, { constant: Y_SCALE_CONSTANT }), [min, max]);
 
   return (
     <Widget title="Test Results Trend">
@@ -39,12 +32,8 @@ export const TrendChartWidget = ({ data }: TrendChartWidgetProps) => {
         height={400}
         width="100%"
         colors={({ color }) => color}
-        yScale={yScaleConfig}
-        axisBottom={{
-          ...defaultAxisBottomConfig,
-          truncateTickAt: 16,
-        }}
+        yScale={yScale}
       />
     </Widget>
   );
-}; 
+};
