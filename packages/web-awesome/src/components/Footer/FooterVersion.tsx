@@ -31,7 +31,7 @@ export const FooterVersion = () => {
   return (
     <Text type="paragraph" size="m" className={styles.version}>
       {formattedCreatedAt}
-      <span> Ver: {currentVersion}</span>
+      {currentVersion && <span> Ver: {currentVersion}</span>}
     </Text>
   );
 };

@@ -1,5 +1,4 @@
 .content {
-  //max-width: 920px;
   box-shadow: var(--shadow-small);
   background: var(--bg-base-primary);
   border-radius: 12px;
@@ -8,5 +7,6 @@
 
 .scroll-inside {
   overflow: auto;
-  height: calc(100vh - 105px);
+  --footer-header-sizes: 105px;
+  height: calc(100vh - var(--footer-header-sizes));
 }

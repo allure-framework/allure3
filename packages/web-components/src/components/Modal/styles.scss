@@ -64,6 +64,7 @@
   display: flex;
   gap: 8px;
   margin-left: auto;
+  align-items: center;
 }
 
 .modal-data {
@@ -73,13 +74,15 @@
   pointer-events: none;
   display: flex;
   position: relative;
+  align-items: center;
 }
 
 .modal-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: calc(100% - 32px);
+  --modal-padding: 32px;
+  width: calc(100% - var(--modal-padding));
   position: absolute;
   top: 16px;
   left: 16px;
@@ -120,6 +123,7 @@
   gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .test-result-steps {

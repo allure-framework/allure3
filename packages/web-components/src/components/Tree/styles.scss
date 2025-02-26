@@ -63,6 +63,7 @@
 
 .item-title {
   display: flex;
+  align-items: flex-start;
 }
 
 .item-time {
@@ -74,6 +75,7 @@
 .test-count {
   display: flex;
   margin-left: auto;
+  align-items: flex-start;
 }
 
 .tree-content:not(.root) {
@@ -178,7 +180,6 @@
   box-sizing: content-box;
   padding-top: 2px;
   line-height: 16px;
-  //width: 24px;
 }
 
 .tree-item-marked {

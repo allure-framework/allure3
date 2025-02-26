@@ -1,11 +1,11 @@
 .header {
-  padding: 24px;
-  padding-bottom: 0;
+  padding: 24px 24px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   position: sticky;
   top: 0;
+  left: 0;
   background: var(--bg-base-primary);
   z-index: 1;
 }
