@@ -1,4 +1,4 @@
-import type { LineSvgProps } from "@nivo/line";
+import type { LineSvgProps, Point } from "@nivo/line";
 import type { CSSProperties } from "preact/compat";
 import type { ScaleSymlogSpec } from "@nivo/scales";
 
@@ -24,10 +24,37 @@ export type TrendChartKindConfig = Pick<LineSvgProps, "useMesh" | "enableSlices"
 
 export type SymlogScaleOptions = Pick<ScaleSymlogSpec, "constant" | "reverse">;
 
-export interface TrendChartProps extends Partial<BaseLineSvgProps> {
+export interface Slice {
+  id: string;
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+  x0: number;
+  y0: number;
+  points: Point[];
+}
+
+export type TrendChartSliceClickHandler = (slice: Slice, event: MouseEvent) => void;
+export type TrendChartSliceTouchHandler = (slice: Slice, event: TouchEvent) => void;
+
+interface BaseTrendChartProps extends Omit<BaseLineSvgProps, "onClick" | "onTouchEnd"> {
   data: TrendChartData[];
   rootArialLabel: string;
-  kind?: TrendChartKind;
   width?: CSSProperties["width"];
   height?: CSSProperties["height"];
 }
+
+export interface MeshTrendChartProps extends BaseTrendChartProps {
+  kind: TrendChartKind.mesh;
+  onClick?: (point: Point, event: MouseEvent) => void;
+  onTouchEnd?: (point: Point, event: TouchEvent) => void;
+}
+
+export interface SlicesTrendChartProps extends BaseTrendChartProps {
+  kind: TrendChartKind.slicesX | TrendChartKind.slicesY;
+  onSliceClick?: TrendChartSliceClickHandler;
+  onSliceTouchEnd?: TrendChartSliceTouchHandler;
+}
+
+export type TrendChartProps = MeshTrendChartProps | SlicesTrendChartProps;
