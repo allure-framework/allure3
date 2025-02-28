@@ -1,5 +1,5 @@
 import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import { allure1, allure2, attachments, cucumberjson, junitXml } from "@allurereport/reader";
+import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -88,6 +88,11 @@ export class AllureReport {
     }
 
     const resultsDirPath = resolve(resultsDir);
+
+    if (await readXcResultBundle(this.#store, resultsDirPath)) {
+      return;
+    }
+
     const dir = await opendir(resultsDirPath);
 
     try {
