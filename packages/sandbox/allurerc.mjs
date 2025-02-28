@@ -25,6 +25,7 @@ export default defineConfig({
         singleFile: false,
         reportLanguage: "en",
         open: false,
+        layout:'split'
       },
     },
     csv: {

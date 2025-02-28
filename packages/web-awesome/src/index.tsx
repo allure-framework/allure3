@@ -30,15 +30,17 @@ const App = () => {
   const { id: testResultId } = route.value;
 
   useEffect(() => {
-    fetchTestResultNav();
-    getLayout();
-    getTheme();
-    getLocale();
+    if (globalThis) {
+      getLayout();
+      getTheme();
+      getLocale();
+    }
     ensureReportDataReady();
+    fetchTestResultNav();
     fetchStats();
+    fetchEnvInfo();
     fetchPieChartData();
     fetchTreeData();
-    fetchEnvInfo();
   }, []);
 
   useEffect(() => {

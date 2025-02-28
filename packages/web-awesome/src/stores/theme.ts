@@ -4,8 +4,6 @@ import type { AllureAwesomeReportOptions } from "../../types.js";
 
 type Theme = "light" | "dark";
 
-const { theme } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-
 export const themeStore = signal<Theme>("light");
 
 export const setTheme = (newTheme: Theme): void => {
@@ -19,6 +17,7 @@ export const toggleTheme = () => {
 };
 
 export const getTheme = () => {
+  const { theme } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
   const themeFromLS = (window.localStorage.getItem("theme") as Theme | null) || (theme as Theme);
 
   if (themeFromLS) {

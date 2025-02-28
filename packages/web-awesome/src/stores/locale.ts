@@ -4,8 +4,6 @@ import i18next, { type TOptions } from "i18next";
 import type { AllureAwesomeReportOptions } from "types";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 
-const { reportLanguage } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-
 const namespaces = [
   "empty",
   "execution",
@@ -39,6 +37,7 @@ export const currentLocaleIsRTL = computed(() => {
 });
 
 export const getLocale = () => {
+  const { reportLanguage } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
   const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
   setLocale(locale as LangLocale);
 };

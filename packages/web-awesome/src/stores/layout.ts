@@ -2,8 +2,6 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AllureAwesomeReportOptions, Layout } from "types";
 
-const { layout } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
-
 export const layoutStore = signal<Layout>("base");
 export const isLayoutLoading = signal(false);
 
@@ -28,10 +26,11 @@ export const toggleLayout = () => {
 export const isSplitMode = computed(() => layoutStore.value === "split");
 
 export const getLayout = () => {
-  const layoutFromLS = (window.localStorage.getItem("layout") as Layout | null) || (layout as Layout);
+  const { layout } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
+  const layoutFromLS = window.localStorage.getItem("layout") || (layout as Layout) || "base";
 
   if (layoutFromLS) {
-    setLayout(layoutFromLS);
+    setLayout(layoutFromLS as Layout);
     return;
   }
 };
