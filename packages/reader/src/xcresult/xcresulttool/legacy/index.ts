@@ -1,3 +1,4 @@
+/* eslint max-lines: 0 */
 import type { ResultFile } from "@allurereport/plugin-api";
 import type {
   RawStep,
@@ -10,8 +11,8 @@ import type {
 import { randomUUID } from "node:crypto";
 import type { ShallowKnown, Unknown } from "../../../validation.js";
 import { ensureObject, isDefined, isObject } from "../../../validation.js";
+import type { AllureApiCall } from "../../model.js";
 import {
-  DEFAULT_ATTACHMENT_NAME,
   DEFAULT_BUNDLE_NAME,
   DEFAULT_EXPECTED_FAILURE_REASON,
   DEFAULT_STEP_NAME,
@@ -19,9 +20,12 @@ import {
   DEFAULT_TEST_NAME,
   applyApiCalls,
   createTestLabels,
+  getDefaultAttachmentName,
+  getMediaTypeByUti,
   getTargetDetails,
   getWorstStatus,
   parseAsAllureApiActivity,
+  prependTitle,
   secondsToMilliseconds,
   toSortedSteps,
 } from "../../utils.js";
@@ -65,6 +69,7 @@ import type {
   XcActionTestExpectedFailure,
   XcActionTestFailureSummary,
   XcActionTestMetadata,
+  XcActionTestNoticeSummary,
   XcActionTestPlanRunSummaries,
   XcActionTestRepetitionPolicySummary,
   XcActionTestSummary,
@@ -231,15 +236,18 @@ const visitActionTestSummary = async function* (
     expectedFailures,
     testStatus,
     repetitionPolicySummary,
+    skipNoticeSummary,
   }: ShallowKnown<XcActionTestSummary>,
   state: LegacyParsingState,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
   const { bundle, className, suites, destination: { hostName } = {} } = state;
+
   const fullName = getString(identifierURL) ?? randomUUID();
   const projectName = parseProjectName(fullName);
   const functionName = getString(rawName);
   const name = getString(summary) ?? functionName ?? DEFAULT_TEST_NAME;
   const status = getString(testStatus);
+
   const labels = createTestLabels({
     hostName,
     projectName,
@@ -249,15 +257,25 @@ const visitActionTestSummary = async function* (
     suites: suites.map(({ name: suite }) => suite),
     tags: parseTestTags(tags),
   });
+
   const parameters = getAllTestResultParameters(state, args, repetitionPolicySummary);
   const failures = await processFailures(createAttachmentFile, failureSummaries, expectedFailures);
+
   const {
     steps: activitySteps,
     files,
     apiCalls,
   } = await processActivities(createAttachmentFile, failures, getObjectArray(activitySummaries));
-  const { message, trace, steps: failureSteps } = resolveTestFailures(failures);
+
+  const {
+    message,
+    trace,
+    steps: failureSteps,
+    status: worstFailedStepStatus,
+  } = resolveTestFailures(failures, skipNoticeSummary);
+
   const steps = toSortedSteps(activitySteps, failureSteps);
+
   const testResult: RawTestResult = {
     uuid: randomUUID(),
     fullName,
@@ -268,9 +286,10 @@ const visitActionTestSummary = async function* (
     steps,
     links: parseTrackedIssues(trackedIssues),
     message,
-    status: resolveTestStatus(status, steps),
+    status: resolveTestStatus(status, worstFailedStepStatus),
     trace,
   };
+
   applyApiCalls(testResult, apiCalls);
 
   yield* files;
@@ -322,16 +341,17 @@ const parseExpectedFailureEntries = async (
   expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
 ) => {
   const entries: [string, FailureMapValue][] = [];
-  for (const { uuid, failureReason, failureSummary } of getObjectArray(expectedFailures)) {
+  for (const { uuid, failureReason, failureSummary, isTopLevelFailure } of getObjectArray(expectedFailures)) {
     if (isObject(failureSummary)) {
       const mapMessage = (message: string | undefined) => {
         const prefix = getString(failureReason) ?? DEFAULT_EXPECTED_FAILURE_REASON;
-        return message ? `${prefix}:\n  ${message}` : prefix;
+        return message ? prependTitle(`${prefix}:`, message, 2) : prefix;
       };
 
       const entry = await toFailureMapEntry(createAttachmentFile, failureSummary, {
         uuid,
         status: "passed",
+        isTopLevel: getBool(isTopLevelFailure),
         mapMessage,
       });
 
@@ -354,7 +374,7 @@ const toFailureMapEntry = async (
     isTopLevelFailure,
     issueType,
   }: ShallowKnown<XcActionTestFailureSummary>,
-  { uuid: explicitUuid, mapMessage, status: explicitStatus }: FailureOverrides = {},
+  { uuid: explicitUuid, mapMessage, status: explicitStatus, isTopLevel: explicitTopLevelFlag }: FailureOverrides = {},
 ) => {
   const { steps, files } = await parseAttachments(createAttachmentFile, getObjectArray(attachments));
   const message = getString(rawMessage);
@@ -378,7 +398,7 @@ const toFailureMapEntry = async (
             trace,
           },
           files,
-          isTopLevel: getBool(isTopLevelFailure),
+          isTopLevel: explicitTopLevelFlag ?? getBool(isTopLevelFailure),
         },
       ] as [string, FailureMapValue])
     : undefined;
@@ -404,7 +424,9 @@ const processActivities = async (
   failures: FailureMap,
   activities: readonly ShallowKnown<XcActionTestActivitySummary>[],
 ): Promise<ActivityProcessingResult> => {
-  const results: ActivityProcessingResult[] = [];
+  const steps: RawStep[] = [];
+  const files: ResultFile[] = [];
+  const apiCalls: AllureApiCall[] = [];
   for (const {
     activityType,
     title,
@@ -413,14 +435,21 @@ const processActivities = async (
     attachments: rawAttachments,
     subactivities: rawSubactivities,
     failureSummaryIDs,
+    expectedFailureIDs,
   } of activities) {
     const attachments = getObjectArray(rawAttachments);
     const subactivities = getObjectArray(rawSubactivities);
     const failureIds = getStringArray(failureSummaryIDs);
+    const expectedFailureIds = getStringArray(expectedFailureIDs);
 
-    const parsedAttachments = await parseAttachments(createAttachmentFile, attachments);
+    const { steps: thisStepAttachmentSteps, files: thisStepFiles } = await parseAttachments(
+      createAttachmentFile,
+      attachments,
+    );
     if (getString(activityType) === ACTIVITY_TYPE_ATTACHMENT) {
-      return parsedAttachments;
+      files.push(...thisStepFiles);
+      steps.push(...thisStepAttachmentSteps);
+      continue;
     }
 
     const name = getString(title);
@@ -428,114 +457,131 @@ const processActivities = async (
     if (attachments.length === 0 && subactivities.length === 0 && failureIds.length === 0) {
       const parsedAllureApiCall = parseAsAllureApiActivity(name);
       if (isDefined(parsedAllureApiCall)) {
-        return {
-          steps: [],
-          files: [],
-          apiCalls: [parsedAllureApiCall],
-        };
+        apiCalls.push(parsedAllureApiCall);
+        continue;
       }
     }
 
-    const { steps: thisStepAttachmentSteps, files: thisStepFiles } = parsedAttachments;
     const {
-      steps: substeps,
+      steps: activitySubsteps,
       files: substepFiles,
-      apiCalls,
+      apiCalls: substepApiCalls,
     } = await processActivities(createAttachmentFile, failures, subactivities);
 
-    const failureSteps = failureIds.map((uuid) => failures.get(uuid)).filter(isDefined);
-    const { steps: nestedFailureSteps, message, trace } = resolveFailuresOfStep(failureIds, failureSteps);
+    const {
+      steps: nestedFailureSteps,
+      message,
+      trace,
+      status,
+    } = resolveStepFailures(failureIds, expectedFailureIds, failures);
 
-    const steps = toSortedSteps(thisStepAttachmentSteps, substeps, nestedFailureSteps);
+    const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, nestedFailureSteps);
 
-    const result = {
-      steps: [
-        {
-          type: "step",
-          name: name ?? DEFAULT_STEP_NAME,
-          start: getDate(start),
-          stop: getDate(finish),
-          status: getWorstStatus(steps) ?? "passed",
-          message,
-          trace,
-          steps,
-        } as RawTestStepResult,
-      ],
-      files: [...thisStepFiles, ...substepFiles],
-      apiCalls,
+    console.log(substeps);
+
+    steps.push({
+      type: "step",
+      name: name ?? DEFAULT_STEP_NAME,
+      start: getDate(start),
+      stop: getDate(finish),
+      status: status ?? "passed",
+      message,
+      trace,
+      steps: substeps,
+    });
+    files.push(...thisStepFiles, ...substepFiles);
+    apiCalls.push(...substepApiCalls);
+  }
+
+  fillDefaultAttachmentNames(steps);
+
+  return { steps, files, apiCalls };
+};
+
+const fillDefaultAttachmentNames = (steps: readonly RawStep[]) => {
+  const attachmentSteps = steps.filter((s) => s.type === "attachment");
+  const totalAttachments = attachmentSteps.length;
+  attachmentSteps.forEach((s, i) => {
+    s.name ??= getDefaultAttachmentName(i, totalAttachments);
+  });
+};
+
+const resolveStepFailures = (
+  failureUids: readonly string[],
+  expectedFailureUids: readonly string[],
+  failures: FailureMap,
+): ResolvedStepFailure => {
+  const stepFailures = [...failureUids, ...expectedFailureUids].map((uuid) => failures.get(uuid));
+
+  const steps = resolveStepFailureSubsteps(stepFailures);
+  const message = resolveFailureMessageBySteps(steps);
+  const trace = steps[0]?.trace;
+  const status = getWorstStatus(steps);
+
+  return { status, message, trace, steps };
+};
+
+const resolveTestFailures = (
+  failures: FailureMap,
+  skipNoticeSummary: Unknown<XcActionTestNoticeSummary>,
+): ResolvedStepFailure => {
+  const allFailures = Array.from(failures.values());
+
+  const steps = resolveTestFailureSteps(allFailures);
+  const message = resolveFailureMessage(allFailures);
+  const trace = resolveFailureTrace(allFailures);
+  const status = getWorstFailureStatus(allFailures);
+
+  if (!message && !trace && isObject(skipNoticeSummary)) {
+    const { fileName, lineNumber, message: skipMessage } = skipNoticeSummary;
+    return {
+      steps,
+      status,
+      message: getString(skipMessage),
+      trace: convertTraceLine(undefined, getString(fileName), getInt(lineNumber)),
     };
-    results.push(result);
   }
-  return mergeActivityProcessingResults(...results);
+  return { status, message, trace, steps };
 };
 
-const resolveFailuresOfStep = (failureUids: string[], failures: readonly FailureMapValue[]): ResolvedStepFailure =>
-  resolveFailures(
-    failureUids.length > failures.length
-      ? [
-          ...failures,
-          ...new Array<FailureMapValue>(failureUids.length - failures.length).fill({
-            files: [],
-            step: {
-              type: "step",
-              duration: 0,
-              message: "Un unknown failure has occured",
-              status: "broken",
-            },
-          }),
-        ]
-      : failures,
+const resolveTestFailureSteps = (failures: readonly FailureMapValue[]) =>
+  failures.filter(({ isTopLevel }) => isTopLevel).map(({ step }) => step);
+
+const resolveStepFailureSubsteps = (stepFailures: readonly (FailureMapValue | undefined)[]) => {
+  return stepFailures.map(
+    (failure) =>
+      failure?.step ??
+      ({
+        type: "step",
+        duration: 0,
+        message: "An unknown failure has occured",
+        status: "broken",
+      } as RawTestStepResult),
   );
+};
 
-const resolveTestFailures = (failures: FailureMap): ResolvedStepFailure =>
-  resolveFailures(Array.from(failures.values()).filter(({ isTopLevel }) => isTopLevel));
+const resolveFailureTrace = (failures: readonly FailureMapValue[]): string | undefined => failures[0]?.step.trace;
 
-const resolveFailures = (failures: readonly FailureMapValue[]): ResolvedStepFailure => {
-  switch (failures.length) {
+const getWorstFailureStatus = (failures: readonly FailureMapValue[]) =>
+  getWorstStatus(failures.map(({ step }) => step));
+
+const resolveFailureMessage = (failures: readonly FailureMapValue[]) =>
+  aggregateFailureMessages(failures.map(({ step: { message } }) => message!));
+
+const resolveFailureMessageBySteps = (failureSteps: readonly RawTestStepResult[]) =>
+  aggregateFailureMessages(failureSteps.map(({ message }) => message!));
+
+const aggregateFailureMessages = (messages: readonly (string | undefined)[]) => {
+  switch (messages.length) {
     case 0:
-      return { steps: [] };
+      return undefined;
     case 1:
-      return prepareOneFailure(failures as [FailureMapValue]);
+      return messages[0];
     default:
-      return prepareMultipleFailures(failures as [FailureMapValue, ...FailureMapValue[]]);
+      return messages[0]
+        ? prependTitle(`${messages.length} assertions have failed. The first one is:`, messages[0], 2)
+        : `${messages.length} assertions have failed`;
   }
-};
-
-const prepareOneFailure = ([
-  {
-    step: { message, trace },
-  },
-]: readonly [FailureMapValue]): ResolvedStepFailure => ({
-  message,
-  trace,
-  steps: [],
-});
-
-const prepareMultipleFailures = (failures: readonly [FailureMapValue, ...FailureMapValue[]]): ResolvedStepFailure => {
-  const [
-    {
-      step: { message, trace },
-    },
-  ] = failures;
-  const steps = failures.map(({ step }) => step);
-  return {
-    message: `${failures.length} failures has occured. The first one is:\n  ${message}`,
-    trace,
-    steps,
-  };
-};
-
-const mergeActivityProcessingResults = (...results: readonly ActivityProcessingResult[]) => {
-  return results.reduce(
-    (target, { steps, files, apiCalls }) => {
-      const { steps: targetSteps, files: targetFiles, apiCalls: targetApiCalls } = target;
-      targetSteps.push(...steps);
-      targetFiles.push(...files);
-      targetApiCalls.push(...apiCalls);
-      return target;
-    },
-    { steps: [], files: [], apiCalls: [] },
-  );
 };
 
 const parseAttachments = async (
@@ -544,19 +590,19 @@ const parseAttachments = async (
 ) => {
   const steps: RawStep[] = [];
   const files: ResultFile[] = [];
-
-  for (const { name: rawName, timestamp, uuid: rawUuid, filename: rawFileName } of attachments) {
+  for (const { name: rawName, timestamp, uuid: rawUuid, filename: rawFileName, uniformTypeIdentifier } of attachments) {
     const uuid = getString(rawUuid);
     if (uuid) {
       const start = getDate(timestamp);
-      const name = getString(rawName) ?? DEFAULT_ATTACHMENT_NAME;
-      const fileName = ensureUniqueFileName(rawFileName, name);
+      const name = getString(rawName);
+      const fileName = ensureUniqueFileName(rawFileName);
       const step: RawTestAttachment = {
         type: "attachment",
         originalFileName: fileName,
         name,
         start,
         stop: start,
+        contentType: getMediaTypeByUti(getString(uniformTypeIdentifier)),
       };
       const file = await createAttachmentFile(uuid, fileName);
       steps.push(step);
@@ -565,11 +611,11 @@ const parseAttachments = async (
       }
     }
   }
-  return { steps, files, apiCalls: [] };
+
+  return { steps, files };
 };
 
-const ensureUniqueFileName = (byXc: Unknown<XcString>, byUser: string) =>
-  getString(byXc) ?? `${randomUUID()}-${byUser}`;
+const ensureUniqueFileName = (fileName: Unknown<XcString>) => getString(fileName) ?? randomUUID();
 
 const getAllTestResultParameters = (
   context: LegacyParsingState,

@@ -1,19 +1,21 @@
-import type { RawStep, RawTestStatus } from "@allurereport/reader-api";
+import type { RawTestStatus } from "@allurereport/reader-api";
 import { isDefined } from "../../../validation.js";
-import { getWorstStatus } from "../../utils.js";
 import type { Suite } from "./model.js";
 
 export const withNewSuite = (suites: Suite[], uri: string | undefined, name: string) => {
   return [...suites.filter(({ uri: parentUri }) => !parentUri || !uri || uri.startsWith(parentUri)), { uri, name }];
 };
 
-export const resolveTestStatus = (status: string | undefined, steps: readonly RawStep[]): RawTestStatus => {
+export const resolveTestStatus = (
+  status: string | undefined,
+  worstStepStatus: RawTestStatus | undefined,
+): RawTestStatus => {
   switch (status) {
     case "Success":
     case "Expected Failure":
       return "passed";
     case "Failure":
-      return getWorstStatus(steps) === "broken" ? "broken" : "failed";
+      return worstStepStatus === "broken" ? "broken" : "failed";
     case "Skipped":
       return "skipped";
     default:

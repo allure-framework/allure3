@@ -60,6 +60,7 @@ export type ActionParametersInputData = Pick<
 export type ResolvedStepFailure = {
   message?: string;
   trace?: string;
+  status?: RawTestStatus;
   steps: RawTestStepResult[];
 };
 
@@ -75,4 +76,5 @@ export type FailureOverrides = {
   uuid?: Unknown<XcString>;
   mapMessage?: (message: string | undefined) => string;
   status?: RawTestStatus;
+  isTopLevel?: boolean;
 };
