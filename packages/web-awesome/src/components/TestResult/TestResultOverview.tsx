@@ -1,6 +1,7 @@
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
+import { TRQuickActions } from "@/components/TestResult/TRQuickActions";
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
 import { TestResultMetadata } from "@/components/TestResult/TestResultMetadata";
@@ -26,6 +27,7 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
           <TrError {...error} />
         </div>
       )}
+      <TRQuickActions />
       {Boolean(parameters?.length) && <TestResultParameters parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
         <TestResultMetadata testResult={testResult} />

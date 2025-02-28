@@ -98,7 +98,8 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "copy": "Copy",
-    "at": "at"
+    "at": "at",
+    "quickActions": "Quick Actions"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",
