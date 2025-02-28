@@ -2,10 +2,9 @@
 import type { ShallowKnown, Unknown } from "../../../validation.js";
 import {
   ensureArray,
-  ensureBoolean,
+  ensureFloat,
   ensureInt,
   ensureLiteral,
-  ensureNumber,
   ensureObject,
   ensureString,
   isDefined,
@@ -32,28 +31,37 @@ export const getUnionType = <Type extends string, const L extends readonly strin
   options: L,
 ) => (isObject(_type) ? ensureLiteral(_type._name, options) : undefined);
 
-export const getValue = <Type extends string, Result>(
-  value: Unknown<XcValue<Type, Result>>,
-  ensure: (v: Unknown<Result>) => Result | undefined,
-) => {
+export const getValue = <Type extends string>(value: Unknown<XcValue<Type>>) => {
   const obj = ensureObject(value);
-  return obj ? ensure(obj._value) : undefined;
+  return obj ? ensureString(obj._value) : undefined;
 };
 
-export const getBool = (value: Unknown<XcBool>) => getValue(value, ensureBoolean);
+export const getBool = (value: Unknown<XcBool>) => {
+  const text = getValue(value);
+  return text === "true";
+};
 
-export const getInt = (value: Unknown<XcInt>) => getValue(value, ensureInt);
+export const getInt = (value: Unknown<XcInt>) => {
+  const text = getValue(value);
+  return text ? ensureInt(text) : undefined;
+};
 
-export const getDouble = (value: Unknown<XcDouble>) => getValue(value, ensureNumber);
+export const getDouble = (value: Unknown<XcDouble>) => {
+  const text = getValue(value);
+  return text ? ensureFloat(text) : undefined;
+};
 
-export const getString = (value: Unknown<XcString>) => getValue(value, ensureString);
+export const getString = (value: Unknown<XcString>) => getValue(value);
 
 export const getDate = (value: Unknown<XcDate>) => {
-  const text = getValue(value, ensureString);
-  return text ? Date.parse(text) : undefined;
+  const text = getValue(value);
+  if (text) {
+    const parsed = Date.parse(text);
+    return isNaN(parsed) ? undefined : parsed;
+  }
 };
 
-export const getURL = (value: Unknown<XcURL>) => getValue(value, ensureString);
+export const getURL = (value: Unknown<XcURL>) => getValue(value);
 
 export const getRef = (ref: Unknown<XcReference>) => {
   const obj = ensureObject(ref);
@@ -65,7 +73,7 @@ export const getArray = <Type extends string, Element extends XcObject<Type>>(ar
   return arrayObject ? (ensureArray(arrayObject._values) ?? []) : [];
 };
 
-const getValueArray = <Type extends string, Result, Element extends XcValue<Type, Result>>(
+const getValueArray = <Type extends string, Result, Element extends XcValue<Type>>(
   array: Unknown<XcArray<Element>>,
   getElement: (v: Unknown<Element>) => Result | undefined,
 ) => getArray(array).map(getElement).filter(isDefined);

@@ -31,6 +31,100 @@ export const statusPriorities = new Map<RawTestStatus, number>([
   ["passed", 4],
 ]);
 
+/**
+ * See https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
+ */
+export const utiToMediaType: Record<string, string> = {
+  "public.plain-text": "text/plain",
+  "public.utf8-plain-text": "text/plain",
+  "public.utf16-external-plain-text": "text/plain",
+  "public.utf16-plain-text": "text/plain",
+  "public.rtf": "text/rtf",
+  "public.html": "text/html",
+  "public.xml": "text/xml",
+  "public.source-code": "text/plain",
+  "public.c-source": "text/plain",
+  "public.objective-c-source": "text/plain",
+  "public.c-plus-plus-source": "text/plain",
+  "public.objective-c-plus-​plus-source": "text/plain",
+  "public.c-header": "text/plain",
+  "public.c-plus-plus-header": "text/plain",
+  "com.sun.java-source": "text/plain",
+  "public.script": "text/plain",
+  "public.assembly-source": "text/plain",
+  "com.apple.rez-source": "text/plain",
+  "public.mig-source": "text/plain",
+  "com.apple.symbol-export": "text/plain",
+  "com.netscape.javascript-​source": "text/plain",
+  "public.shell-script": "text/plain",
+  "public.csh-script": "text/plain",
+  "public.perl-script": "text/plain",
+  "public.python-script": "text/plain",
+  "public.ruby-script": "text/plain",
+  "public.php-script": "text/plain",
+  "com.sun.java-web-start": "text/plain",
+  "com.apple.applescript.text": "text/plain",
+  "com.microsoft.windows-​executable": "application/x-msdownload",
+  "com.microsoft.windows-​dynamic-link-library": "application/x-msdownload",
+  "com.sun.java-archive": "application/java-archive",
+  "com.apple.quartz-​composer-composition": "application/x-quartzcomposer",
+  "org.gnu.gnu-tar-archive": "application/x-gtar",
+  "public.tar-archive": "application/x-tar",
+  "org.gnu.gnu-zip-archive": "application/gzip",
+  "org.gnu.gnu-zip-tar-archive": "application/gzip",
+  "com.apple.binhex-archive": "application/mac-binhex40",
+  "com.apple.macbinary-​archive": "application/x-macbinary",
+  "public.jpeg": "image/jpeg",
+  "public.jpeg-2000": "image/jp2",
+  "public.tiff": "image/tiff",
+  "com.apple.pict": "image/x-pict",
+  "public.png": "image/png",
+  "public.xbitmap-image": "image/x-quicktime",
+  "com.apple.quicktime-image": "image/x-quicktime",
+  "com.apple.quicktime-movie": "video/quicktime",
+  "public.avi": "video/x-msvideo",
+  "public.mpeg": "video/mpeg",
+  "public.mpeg-4": "video/mp4",
+  "public.3gpp": "video/3gpp",
+  "public.3gpp2": "video/3gpp2",
+  "public.mp3": "audio/mpeg",
+  "public.mpeg-4-audio": "audio/mp4",
+  "public.ulaw-audio": "audio/basic",
+  "public.aifc-audio": "audio/x-aiff",
+  "public.aiff-audio": "audio/x-aiff",
+  "com.pkware.zip-archive": "application/zip",
+  "com.adobe.pdf": "application/pdf",
+  "com.adobe.photoshop-image": "image/vnd.adobe.photoshop",
+  "com.compuserve.gif": "image/gif",
+  "com.microsoft.bmp": "image/bmp",
+  "com.microsoft.ico": "image/vnd.microsoft.icon",
+  "com.microsoft.word.doc": "application/msword",
+  "com.microsoft.excel.xls": "application/vnd.ms-excel",
+  "com.microsoft.powerpoint.ppt": "application/vnd.ms-powerpoint",
+  "com.microsoft.waveform-audio": "audio/x-wav",
+  "com.microsoft.advanced-systems-format": "video/x-ms-asf",
+  "com.microsoft.windows-media-wm": "video/x-ms-wm",
+  "com.microsoft.windows-media-wmv": "video/x-ms-wmv",
+  "com.microsoft.windows-media-wmp": "video/x-ms-wmp",
+  "com.microsoft.windows-media-wma": "video/x-ms-wma",
+  "com.microsoft.advanced-stream-redirector": "video/x-ms-asx",
+  "com.microsoft.windows-media-wmx": "video/x-ms-wmx",
+  "com.microsoft.windows-media-wvx": "video/x-ms-wvx",
+  "com.microsoft.windows-media-wax": "video/x-ms-wax",
+  "com.truevision.tga-image": "image/x-tga",
+  "com.sgi.sgi-image": "image/x-sgi",
+  "com.kodak.flashpix.image": "image/vnd.fpx",
+  "com.real.realmedia": "application/vnd.rn-realmedia",
+  "com.real.realaudio": "audio/vnd.rn-realaudio",
+  "com.real.smil": "application/smil",
+  "com.allume.stuffit-archive": "application/x-stuffit",
+};
+
+export const getMediaTypeByUti = (uti: string | undefined) => (uti ? utiToMediaType[uti] : undefined);
+
+export const prependTitle = (title: string, text: string, spaces: number) =>
+  [title, ...text.split("\n").map((l) => `${" ".repeat(spaces)}${l}`)].join("\n");
+
 export const getWorstStatus = (steps: readonly RawStep[]): RawTestStatus | undefined => {
   const statuses = steps.filter((s): s is RawTestStepResult => "status" in s).map(({ status }) => status ?? "unknown");
   return statuses.sort((a, b) => statusPriorities.get(a)! - statusPriorities.get(b)!)[0];
@@ -120,14 +214,17 @@ export const getTargetDetails = ({ architecture, model, platform, osVersion }: T
   return [model, architecture, osPart].filter(isDefined).join(", ") || undefined; // coerce empty string to undefined
 };
 
-export const compareByStart = ({ start: startA }: RawStep, { start: startB }: RawStep) => (startA ?? 0) - (startB ?? 0);
+export const compareChronologically = (
+  { start: startA, stop: stopA }: RawStep,
+  { start: startB, stop: stopB }: RawStep,
+) => (startA ?? 0) - (startB ?? 0) || (stopA ?? 0) - (stopB ?? 0);
 
 export const toSortedSteps = (...stepArrays: readonly (readonly RawStep[])[]) => {
   const allSteps = stepArrays.reduce<RawStep[]>((result, steps) => {
     result.push(...steps);
     return result;
   }, []);
-  allSteps.sort(compareByStart);
+  allSteps.sort(compareChronologically);
   return allSteps;
 };
 
@@ -260,6 +357,10 @@ export const createTestLabels = ({
   labels.push(...tags.map((value) => ({ name: "tag", value })));
 
   return labels;
+};
+
+export const getDefaultAttachmentName = (index: number, length: number) => {
+  return length > 1 ? `${DEFAULT_ATTACHMENT_NAME} ${index + 1}` : DEFAULT_ATTACHMENT_NAME;
 };
 
 const mergeMarkdownBlocks = (...blocks: readonly (string | undefined)[]) =>

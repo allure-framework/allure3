@@ -4,8 +4,8 @@ export type XcObject<T extends string> = {
   };
 };
 
-export type XcValue<Type extends string, Value> = XcObject<Type> & {
-  _value: Value;
+export type XcValue<Type extends string> = XcObject<Type> & {
+  _value: string;
 };
 
 export type XcArray<Element> = XcObject<"Array"> & {
@@ -21,35 +21,35 @@ export type XcSortedKeyValueArray = XcObject<"SortedKeyValueArray"> & {
   storage: XcArray<XcSortedKeyValueArrayPair>;
 };
 
-export type XcBool = XcValue<"Bool", boolean>;
+export type XcBool = XcValue<"Bool">;
 
-export type XcData = XcValue<"Data", string>;
+export type XcData = XcValue<"Data">;
 
-export type XcDate = XcValue<"Date", string>;
+export type XcDate = XcValue<"Date">;
 
-export type XcDouble = XcValue<"Double", number>;
+export type XcDouble = XcValue<"Double">;
 
-export type XcInt = XcValue<"Int", number>;
+export type XcInt = XcValue<"Int">;
 
-export type XcInt16 = XcValue<"Int16", number>;
+export type XcInt16 = XcValue<"Int16">;
 
-export type XcInt32 = XcValue<"Int32", number>;
+export type XcInt32 = XcValue<"Int32">;
 
-export type XcInt64 = XcValue<"Int64", number>;
+export type XcInt64 = XcValue<"Int64">;
 
-export type XcInt8 = XcValue<"Int8", number>;
+export type XcInt8 = XcValue<"Int8">;
 
-export type XcString = XcValue<"String", string>;
+export type XcString = XcValue<"String">;
 
-export type XcUInt16 = XcValue<"UInt16", number>;
+export type XcUInt16 = XcValue<"UInt16">;
 
-export type XcUInt32 = XcValue<"UInt32", number>;
+export type XcUInt32 = XcValue<"UInt32">;
 
-export type XcUInt64 = XcValue<"UInt64", number>;
+export type XcUInt64 = XcValue<"UInt64">;
 
-export type XcUInt8 = XcValue<"UInt8", number>;
+export type XcUInt8 = XcValue<"UInt8">;
 
-export type XcURL = XcValue<"URL", string>;
+export type XcURL = XcValue<"URL">;
 
 export type XcReference = XcObject<"Reference"> & {
   id: XcString;
