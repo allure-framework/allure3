@@ -246,6 +246,28 @@ export const ensureInt = <T>(value: Unknown<T>): number | undefined => {
 };
 
 /**
+ * If the value is a number, returns it as is. Otherwise, if the value is a string, parses it as a float.
+ * If the parsing succeeds, returns the parsed result. Otherwise, returns `undefined`.
+ * @example
+ * ```ts
+ * const raw: Unknown<string | number> = JSON.parse('"12.5"');
+ * const value: number = ensureFloat(raw) ?? 1.2;
+ * ```
+ */
+export const ensureFloat = <T>(value: Unknown<T>): number | undefined => {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed)) {
+      return parsed;
+    }
+  }
+};
+
+/**
  * If the value is an array or a tuple, marks it as `ShallowKnown` and returns as is. Otherwise, returns `undefined`.
  * @example
  * ```ts
