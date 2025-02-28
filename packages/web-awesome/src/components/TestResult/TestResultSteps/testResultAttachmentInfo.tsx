@@ -1,13 +1,12 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { downloadAttachment } from "@allurereport/web-commons";
+import { Attachment, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import { isModalOpen, openModal } from "@/components/Modal";
-import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { useI18n } from "@/stores";
-import { downloadAttachment } from "@/utils/attachments";
+import { isModalOpen, modalData, openModal } from "@/stores/modal";
 
 interface TestResultAttachmentInfoProps {
   item?: AttachmentTestStepResult;
@@ -39,6 +38,7 @@ export const TestResultAttachmentInfo: FunctionalComponent<TestResultAttachmentI
   useEffect(() => {
     if (isModalOpen.value) {
       openModal({
+        isModalOpen: true,
         data: item,
         component: <Attachment item={item} />,
       });

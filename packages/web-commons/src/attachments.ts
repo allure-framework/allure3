@@ -1,9 +1,12 @@
-import { fetchReportAttachment } from "@allurereport/web-commons";
+import { fetchReportAttachment } from "./data.js";
 
 export interface Attachments {
   id?: string;
   ext?: string;
   contentType?: string;
+  text?: string;
+  src?: string;
+  img?: string;
 }
 
 const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
@@ -12,9 +15,9 @@ const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
   return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
 };
 
-export const fetchAttachment = async (id: string, ext: string, contentType: string) => {
+export const fetchAttachment = async (id: string, ext: string, contentType?: string): Promise<Attachments | null> => {
   if (!id && !ext) {
-    return;
+    return null;
   }
   const response = await fetchFromUrl({ id, ext, contentType });
   const fileType = attachmentType(contentType);
@@ -40,7 +43,7 @@ export const fetchAttachment = async (id: string, ext: string, contentType: stri
       return { src, id, contentType };
     }
     default:
-      return;
+      return null;
   }
 };
 
@@ -73,7 +76,7 @@ export const openAttachmentInNewTab = async (id: string, ext: string, contentTyp
   globalThis.open(linkUrl, "_blank");
 };
 
-export const attachmentType = (type: string) => {
+export const attachmentType = (type?: string) => {
   switch (type) {
     case "image/bmp":
     case "image/gif":

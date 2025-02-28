@@ -1,5 +1,5 @@
-import { Spinner } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
+import { Spinner } from "@/components/Spinner";
 
 export const AttachmentVideo: FunctionalComponent<{
   attachment: { src: string; contentType?: string };

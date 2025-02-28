@@ -41,7 +41,7 @@
 
 .test-result-step-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   transition: background-color 300ms;
   cursor: pointer;

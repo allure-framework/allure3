@@ -17,11 +17,11 @@
 .test-result-breadcrumb {
   display: flex;
   gap: 4px;
-  align-items: center;
   color: var(--on-text-secondary);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  align-items: center;
 }
 
 .test-result-breadcrumb-title {
@@ -36,7 +36,12 @@
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
+}
+.right {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
 }
 .test-result-breadcrumb-arrow {
   transform: rotate(-90deg);

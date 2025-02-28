@@ -48,6 +48,7 @@
   --on-text-hint: var(--on-text-hint-day);
   --on-text-primary: var(--on-text-primary-day);
   --on-text-secondary: var(--on-text-secondary-day);
+  --scrollbar-color: var(--gray-300);
 
   color-scheme: light;
 }
@@ -113,5 +114,6 @@
   --on-text-primary: var(--on-text-primary-night);
   --on-text-secondary: var(--on-text-secondary-night);
 
+  --scrollbar-color: var(--gray-400);
   color-scheme: dark;
 }

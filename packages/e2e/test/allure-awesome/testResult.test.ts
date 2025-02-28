@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { layer } from "allure-js-commons";
-import { Stage, Status } from "allure-js-commons";
+import { Stage, Status, layer } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport, randomNumber } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -82,7 +81,6 @@ test.describe("allure-awesome", () => {
       const randomLeaf = page.getByTestId("tree-leaf").nth(randomNumber(0, 4));
 
       await randomLeaf.click();
-
       const testTitleText = await page.getByTestId("test-result-info-title").textContent();
       const navCounterText = await page.getByTestId("test-result-nav-current").textContent();
       const pressPrevArrow = await page.getByTestId("test-result-nav-next").isDisabled();
@@ -133,6 +131,36 @@ test.describe("allure-awesome", () => {
       await expect(page.getByTestId("test-result-error-trace")).not.toBeVisible();
       await page.getByTestId("test-result-error-message").click();
       await expect(page.getByTestId("test-result-error-trace")).toHaveText("broken test trace");
+    });
+  });
+
+  test.describe("Layout switching", () => {
+    test.beforeEach(async ({ page }) => {
+      await expect(page.getByTestId("base-layout")).toBeVisible();
+    });
+
+    test("should toggle from BaseLayout to SplitLayout with loader displayed correctly", async ({ page }) => {
+      await page.getByTestId("toggle-layout-button").click();
+
+      await expect(page.getByTestId("loader")).toBeVisible();
+
+      await expect(page.getByTestId("loader")).toBeHidden({ timeout: 1000 });
+
+      await expect(page.getByTestId("split-layout")).toBeVisible();
+      await expect(page.getByTestId("base-layout")).toBeHidden();
+    });
+
+    test("should toggle back from SplitLayout to BaseLayout with loader displayed correctly", async ({ page }) => {
+      await page.getByTestId("toggle-layout-button").click();
+      await expect(page.getByTestId("split-layout")).toBeVisible();
+
+      await page.getByTestId("toggle-layout-button").click();
+
+      await expect(page.getByTestId("loader")).toBeVisible();
+      await expect(page.getByTestId("loader")).toBeHidden({ timeout: 1000 });
+
+      await expect(page.getByTestId("base-layout")).toBeVisible();
+      await expect(page.getByTestId("split-layout")).toBeHidden();
     });
   });
 });

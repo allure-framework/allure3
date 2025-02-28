@@ -1,38 +1,28 @@
-import { ensureReportDataReady } from "@allurereport/web-commons";
-import { Loadable, PageLoader } from "@allurereport/web-components";
-import { useEffect } from "preact/compat";
+import type { ModalTranslations } from "@allurereport/web-components";
+import { Loadable, Modal, PageLoader } from "@allurereport/web-components";
+import { useEffect } from "preact/hooks";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
-import Modal from "@/components/Modal";
+import { ModalComponent } from "@/components/Modal";
 import TestResult from "@/components/TestResult";
-import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
-import { fetchStats, getLocale, getTheme } from "@/stores";
-import { fetchPieChartData } from "@/stores/chart";
-import { fetchEnvInfo } from "@/stores/envInfo";
+import { useI18n } from "@/stores";
+import { isModalOpen, modalData } from "@/stores/modal";
+import { route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
-import { fetchTreeData, treeStore } from "@/stores/tree";
+import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 export type BaseLayoutProps = {
   testResultId?: string;
 };
 
-export const BaseLayout = ({ testResultId }: BaseLayoutProps) => {
-  useEffect(() => {
-    getTheme();
-    getLocale();
-  }, []);
+export const BaseLayout = () => {
+  const { id: testResultId } = route.value;
 
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
       fetchTestResultNav();
-    } else {
-      ensureReportDataReady();
-      fetchStats();
-      fetchPieChartData();
-      fetchTreeData();
-      fetchEnvInfo();
     }
   }, [testResultId]);
 
@@ -43,7 +33,6 @@ export const BaseLayout = ({ testResultId }: BaseLayoutProps) => {
       transformData={(data) => data[testResultId]}
       renderData={(testResult) => (
         <>
-          <Modal testResult={testResult} />
           <div className={styles.wrapper} key={testResult?.id}>
             <TestResult testResult={testResult} />
             <Footer />
@@ -58,5 +47,9 @@ export const BaseLayout = ({ testResultId }: BaseLayoutProps) => {
     </div>
   );
 
-  return <div className={styles.layout}>{content}</div>;
+  return (
+    <div className={styles.layout} data-testid="base-layout">
+      {content}
+    </div>
+  );
 };
