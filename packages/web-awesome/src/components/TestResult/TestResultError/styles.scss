@@ -49,3 +49,29 @@
     background: var(--bg-alpha-capella);
   }
 }
+
+.diff {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  line-height: 1.28;
+
+  div {
+    flex: 1 1 auto;
+    gap: 4px;
+  }
+
+  .diff-screen {
+    background: var(--bg-base-primary);
+  }
+}
+
+.diff-green {
+  color: var(--on-support-castor);
+  background: #09933729;
+}
+
+.diff-red {
+  color: var(--on-support-capella);
+  background: var(--bg-alpha-capella);
+}
