@@ -23,21 +23,34 @@ export type TrendData = {
   items: TrendItem[];
 };
 
-export type TrendItemMetadata = {
-  createdAt: number;
-  updatedAt: number;
+// Type aliases for meaningful string keys
+export type TrendPointId = string; // X-axis value
+
+export type BaseTrendItemMetadata = {
+  // Unique identifier for this test execution instance (e.g. "build-2023-05-12-001")
+  runExecutionId: string;
+  // Human readable name for this test execution (e.g. "Nightly Build #123" or "Sprint 45 Regression")
+  runExecutionName: string;
 };
 
-export type TrendPointId = string; // TestRunId
+export type TrendItemMetadata = BaseTrendItemMetadata & {
+  // Unix timestamp when this test execution started (e.g. 1683900000000)
+  startTime: number;
+  // Unix timestamp when this test execution completed (e.g. 1683900120000)
+  endTime: number;
+};
 
-export type TrendPoint = {
-  id: TrendPointId; // x
-  value: number; // y
+export type StatusTrendPoint = {
+  // Y-axis value
+  value: number;
+  // Metadata about this test execution
   metadata: TrendItemMetadata;
 };
 
-export type TrendChartData = {
-  points: Record<TrendPointId, TrendPoint>;
+export type StatusTrendChartData = {
+  // Raw values for all series containing x (id) and y (value) coordinates
+  points: Record<TrendPointId, StatusTrendPoint>;
+  // Grouping by series, containing array of point IDs for each status
   series: Record<TestStatus, TrendPointId[]>;
 };
 
