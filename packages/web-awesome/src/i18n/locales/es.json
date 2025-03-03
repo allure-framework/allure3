@@ -112,7 +112,9 @@
     "expand": "Expandir",
     "fullscreen": "Pantalla completa",
     "language": "Cambiar idioma",
-    "openInNewTab": "Abrir en nueva pestaña"
+    "openInNewTab": "Abrir en nueva pestaña",
+    "openPreview": "Abrir vista previa",
+    "noSelectedTR": "Ningún resultado de prueba seleccionado"
   },
   "errors": {
     "missedAttachment": "Adjunto no encontrado"

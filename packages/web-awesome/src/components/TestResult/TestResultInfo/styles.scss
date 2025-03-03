@@ -2,6 +2,15 @@
   padding: 20px 24px 0;
 }
 
+.sticky {
+  position: sticky;
+  left: 0;
+  top: 0;
+  width: 100%;
+  background: var(--bg-base-primary);
+  z-index: 1;
+}
+
 .test-result-info-data {
   display: flex;
   gap: 12px;

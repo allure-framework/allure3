@@ -1,7 +1,7 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
-import * as styles from "./styles.scss";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
+import styles from "./styles.scss";
 
 interface TestStatusIconProps {
   status?: "failed" | "broken" | "passed" | "skipped" | "unknown";
@@ -19,7 +19,11 @@ const icons = {
   unknown: solidHelpCircle,
 };
 
-const TreeItemIcon: FunctionalComponent<TestStatusIconProps> = ({ status = "unknown", className, classNameIcon }) => {
+export const TreeItemIcon: FunctionalComponent<TestStatusIconProps> = ({
+  status = "unknown",
+  className,
+  classNameIcon,
+}) => {
   const statusClass = clsx(styles[`status-${status}`], classNameIcon);
 
   return (
@@ -28,5 +32,3 @@ const TreeItemIcon: FunctionalComponent<TestStatusIconProps> = ({ status = "unkn
     </div>
   );
 };
-
-export default TreeItemIcon;

@@ -18,9 +18,16 @@
   top: -2px;
 }
 
+.left {
+  margin-right: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .right {
   margin-left: auto;
   display: flex;
-  gap: 12px;
+  gap: 4px;
   align-items: center;
 }

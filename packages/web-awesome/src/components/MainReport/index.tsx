@@ -1,14 +1,16 @@
-import * as styles from "@/components/BaseLayout/styles.scss";
+import clsx from "clsx";
 import { Header } from "@/components/Header";
 import { ReportBody } from "@/components/ReportBody";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportMetadata } from "@/components/ReportMetadata";
+import { isSplitMode } from "@/stores/layout";
+import * as styles from "./styles.scss";
 
 const MainReport = () => {
   return (
     <>
-      <Header />
-      <div className={styles.content}>
+      {!isSplitMode.value && <Header />}
+      <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
         <ReportHeader />
         <ReportMetadata />
         <ReportBody />

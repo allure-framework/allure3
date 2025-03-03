@@ -110,7 +110,9 @@
     "expand": "Poszerzyć",
     "fullscreen": "Pełny ekran",
     "language": "Zmień język",
-    "openInNewTab": "Otwórz w nowej karcie"
+    "openInNewTab": "Otwórz w nowej karcie",
+    "openPreview": "Otwórz podgląd",
+    "noSelectedTR": "Brak wybranego wyniku testu"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"

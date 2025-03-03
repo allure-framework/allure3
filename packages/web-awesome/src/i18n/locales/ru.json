@@ -110,7 +110,9 @@
     "expand": "Развернуть",
     "fullscreen": "На весь экран",
     "language": "Сменить язык",
-    "openInNewTab": "Открыть в новой вкладке"
+    "openInNewTab": "Открыть в новой вкладке",
+    "openPreview": "Открыть предпросмотр",
+    "noSelectedTR": "Нет выбранного результата теста"
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"

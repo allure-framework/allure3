@@ -1,5 +1,6 @@
 import type { TestError } from "@allurereport/core-api";
 import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import AnsiToHtml from "ansi-to-html";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { useI18n } from "@/stores/locale";
@@ -7,10 +8,12 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 const TestResultErrorTrace = ({ trace }: { trace: string }) => {
+  const ansiTrace = new AnsiToHtml().toHtml(trace);
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
       <Code size={"s"} type={"ui"}>
-        <pre>{trace}</pre>
+        {/* eslint-disable-next-line react/no-danger */}
+        <pre dangerouslySetInnerHTML={{ __html: ansiTrace }}>{ansiTrace}</pre>
       </Code>
     </div>
   );

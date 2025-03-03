@@ -112,7 +112,9 @@
     "expand": "Uitvouwen",
     "fullscreen": "Volledig scherm",
     "language": "Taal wijzigen",
-    "openInNewTab": "Openen in een nieuw tabblad"
+    "openInNewTab": "Openen in een nieuw tabblad",
+    "openPreview": "Voorbeeld openen",
+    "noSelectedTR": "Geen geselecteerd testresultaat"
   },
   "errors": {
     "missedAttachment": "Bijlage niet gevonden"

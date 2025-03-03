@@ -1,13 +1,12 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
-import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
-import TreeItemIcon from "@/components/Tree/TreeItemIcon";
-import { navigateTo, openInNewTab } from "@/index";
 import { useI18n } from "@/stores";
+import { navigateTo, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export const TestResultHistoryItem: FunctionalComponent<{
@@ -19,7 +18,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
 
-  const navigateUrl = `/testresult/${id}`;
+  const navigateUrl = `/${id}`;
 
   return (
     <div>

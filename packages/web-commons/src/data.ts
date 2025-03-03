@@ -98,7 +98,7 @@ export const fetchReportJsonData = async <T>(path: string) => {
   return data as T;
 };
 
-export const fetchReportAttachment = async (path: string, contentType: string) => {
+export const fetchReportAttachment = async (path: string, contentType?: string) => {
   const url = await reportDataUrl(path, contentType);
 
   return globalThis.fetch(url);

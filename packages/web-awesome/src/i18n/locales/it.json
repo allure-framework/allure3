@@ -112,7 +112,9 @@
     "expand": "Espandi",
     "fullscreen": "Schermo intero",
     "language": "Cambia lingua",
-    "openInNewTab": "Apri in una nuova scheda"
+    "openInNewTab": "Apri in una nuova scheda",
+    "openPreview": "Apri anteprima",
+    "noSelectedTR": "Nessun risultato del test selezionato"
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"

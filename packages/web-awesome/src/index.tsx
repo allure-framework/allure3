@@ -1,38 +1,70 @@
+import { ensureReportDataReady } from "@allurereport/web-commons";
+import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
+import clsx from "clsx";
 import { render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
+import { ModalComponent } from "@/components/Modal";
+import { SplitLayout } from "@/components/SplitLayout";
+import { fetchStats, getLocale, getTheme } from "@/stores";
+import { fetchPieChartData } from "@/stores/chart";
+import { fetchEnvInfo } from "@/stores/envInfo";
+import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
+import { handleHashChange, route } from "@/stores/router";
+import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
+import { fetchTreeData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
+import * as styles from "./styles.scss";
 
+const Loader = () => {
+  return (
+    <div className={clsx(styles.loader, isLayoutLoading.value ? styles.loading : "")} data-testid="loader">
+      <SvgIcon id={allureIcons.reportLogo} size={"m"} />
+      <Spinner />
+    </div>
+  );
+};
 const App = () => {
-  const [testResultId, setTestResultId] = useState<string>("");
-
-  const getLocationHashId = () => {
-    const hash = globalThis.location.hash;
-    const match = hash.match(/[^#/]+$/);
-    return match ? match[0] : null;
-  };
+  const { id: testResultId } = route.value;
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const id = getLocationHashId();
-      setTestResultId(id);
-    };
+    if (globalThis) {
+      getLayout();
+      getTheme();
+      getLocale();
+    }
+    ensureReportDataReady();
+    fetchStats();
+    fetchEnvInfo();
+    fetchPieChartData();
+    fetchTreeData();
+  }, []);
 
+  useEffect(() => {
+    if (testResultId) {
+      fetchTestResult(testResultId);
+      fetchTestResultNav();
+    }
+  }, [testResultId]);
+
+  useEffect(() => {
     handleHashChange();
-    globalThis.addEventListener("hashchange", handleHashChange);
+    globalThis.addEventListener("hashchange", () => handleHashChange());
 
     return () => {
-      globalThis.removeEventListener("hashchange", handleHashChange);
+      globalThis.removeEventListener("hashchange", () => handleHashChange());
     };
   }, []);
 
-  return <BaseLayout testResultId={testResultId} />;
-};
-
-export const navigateTo = (path: string) => {
-  globalThis.location.hash = path;
+  return (
+    <div className={styles.main}>
+      <Loader />
+      {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+      <ModalComponent />
+    </div>
+  );
 };
 
 export const openInNewTab = (path: string) => {

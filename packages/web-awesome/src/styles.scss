@@ -1,0 +1,45 @@
+.main {
+  position: relative;
+  max-width: 1920px;
+  margin: 0 auto;
+
+  &:hover {
+    .split {
+      opacity: 1;
+    }
+  }
+}
+
+.split {
+  opacity: 0;
+  position: absolute;
+  left: 128px;
+  top: 8px;
+}
+
+.loader {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base-secondary);
+  background-blend-mode: saturation;
+  flex-direction: column;
+  gap: 16px;
+  transition:
+    opacity 100ms,
+    background-color 200ms;
+
+  visibility: hidden;
+  opacity: 0;
+
+  &.loading {
+    z-index: 10;
+    visibility: visible;
+    opacity: 1;
+  }
+}

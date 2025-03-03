@@ -112,7 +112,9 @@
     "expand": "Genişlet",
     "fullscreen": "Tam ekran",
     "language": "Dili değiştir",
-    "openInNewTab": "Yeni sekmede aç"
+    "openInNewTab": "Yeni sekmede aç",
+    "openPreview": "Önizlemeyi aç",
+    "noSelectedTR": "Seçilen test sonucu yok"
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"

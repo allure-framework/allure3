@@ -1,0 +1,11 @@
+.content {
+  box-shadow: var(--shadow-small);
+  background: var(--bg-base-primary);
+  border-radius: 12px;
+  width: 100%;
+}
+
+.scroll-inside {
+  overflow: auto;
+  height: calc(100vh - var(--footer-header-sizes));
+}

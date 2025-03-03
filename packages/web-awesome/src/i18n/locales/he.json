@@ -112,7 +112,9 @@
     "expand": "הרחב",
     "fullscreen": "מסך מלא",
     "language": "שנה שפה",
-    "openInNewTab": "פתח בכרטיסייה חדשה"
+    "openInNewTab": "פתח בכרטיסייה חדשה",
+    "openPreview": "פתח תצוגה מקדימה",
+    "noSelectedTR": "אין תוצאת בדיקה נבחרת"
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"

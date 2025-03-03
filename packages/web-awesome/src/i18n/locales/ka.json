@@ -112,7 +112,9 @@
     "expand": "გახსნა",
     "fullscreen": "სრულ ეკრანზე",
     "language": "ენის შეცვლა",
-    "openInNewTab": "გახსნა ახალ ჩანართში"
+    "openInNewTab": "გახსნა ახალ ჩანართში",
+    "openPreview": "გახსენი წინასწარი დათვალიერება",
+    "noSelectedTR": "არჩეული ტესტის შედეგი არ არის"
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"

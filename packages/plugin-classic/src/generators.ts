@@ -321,6 +321,7 @@ export const generateStaticFiles = async (
     createdAt: Date.now(),
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    allureVersion,
   };
   const html = compile({
     headTags: headTags.join("\n"),

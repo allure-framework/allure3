@@ -112,7 +112,9 @@
     "expand": "Ausklappen",
     "fullscreen": "Vollbild",
     "language": "Sprache ändern",
-    "openInNewTab": "In neuem Tab öffnen"
+    "openInNewTab": "In neuem Tab öffnen",
+    "openPreview": "Vorschau öffnen",
+    "noSelectedTR": "Kein ausgewähltes Testergebnis"
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"
