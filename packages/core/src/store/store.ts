@@ -1,16 +1,18 @@
 import type {
+  AllureStore,
   AttachmentLink,
   AttachmentLinkLinked,
+  DefaultLabelsConfig,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  ResultFile,
   Statistic,
   TestCase,
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
-import type { AllureStore, DefaultLabelsConfig, ResultFile } from "@allurereport/plugin-api";
 import { md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,

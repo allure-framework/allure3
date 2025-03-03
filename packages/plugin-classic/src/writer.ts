@@ -1,4 +1,5 @@
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ResultFile } from "@allurereport/core-api";
+import type { ReportFiles } from "@allurereport/plugin-api";
 import type { AllureAwesomeTestResult } from "@allurereport/web-awesome";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -77,7 +78,10 @@ export class InMemoryReportDataWriter implements AllureAwesomeDataWriter {
   }
 
   reportFiles(): ReportFile[] {
-    return Object.keys(this.#data).map((key) => ({ name: key, value: this.#data[key].toString("base64") }));
+    return Object.keys(this.#data).map((key) => ({
+      name: key,
+      value: this.#data[key].toString("base64"),
+    }));
   }
 }
 

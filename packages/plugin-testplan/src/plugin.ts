@@ -1,5 +1,5 @@
-import { type TestResult, createTestPlan, filterUnsuccessful } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { type AllureStore, type TestResult, createTestPlan, filterUnsuccessful } from "@allurereport/core-api";
+import type { Plugin, PluginContext } from "@allurereport/plugin-api";
 import console from "node:console";
 
 interface TestPlanPluginOptions {

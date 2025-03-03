@@ -1,5 +1,5 @@
-import { type EnvironmentItem } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import type { AllureStore, EnvironmentItem } from "@allurereport/core-api";
+import type { Plugin, PluginContext } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
