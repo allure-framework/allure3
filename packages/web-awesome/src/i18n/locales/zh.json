@@ -112,7 +112,9 @@
     "expand": "展开",
     "fullscreen": "全屏",
     "language": "更改语言",
-    "openInNewTab": "在新标签页中打开"
+    "openInNewTab": "在新标签页中打开",
+    "openPreview": "打开预览",
+    "noSelectedTR": "没有选择的测试结果"
   },
   "errors": {
     "missedAttachment": "未找到附件"

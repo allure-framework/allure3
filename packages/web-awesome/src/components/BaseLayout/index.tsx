@@ -1,14 +1,9 @@
-import type { ModalTranslations } from "@allurereport/web-components";
-import { Loadable, Modal, PageLoader } from "@allurereport/web-components";
-import { useEffect } from "preact/hooks";
+import { Loadable, PageLoader } from "@allurereport/web-components";
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
-import { ModalComponent } from "@/components/Modal";
 import TestResult from "@/components/TestResult";
-import { useI18n } from "@/stores";
-import { isModalOpen, modalData } from "@/stores/modal";
 import { route } from "@/stores/router";
-import { fetchTestResult, fetchTestResultNav, testResultStore } from "@/stores/testResults";
+import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
@@ -18,13 +13,6 @@ export type BaseLayoutProps = {
 
 export const BaseLayout = () => {
   const { id: testResultId } = route.value;
-
-  useEffect(() => {
-    if (testResultId) {
-      fetchTestResult(testResultId);
-      fetchTestResultNav();
-    }
-  }, [testResultId]);
 
   const content = testResultId ? (
     <Loadable

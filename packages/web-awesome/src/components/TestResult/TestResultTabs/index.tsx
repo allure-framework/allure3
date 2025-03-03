@@ -1,7 +1,6 @@
 import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useEffect, useState } from "preact/hooks";
-import { ac } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 import { activeTab, navigateTo, route } from "@/stores/router";
 import * as styles from "./styles.scss";
 

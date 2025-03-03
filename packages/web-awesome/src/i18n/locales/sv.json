@@ -112,7 +112,9 @@
     "expand": "Expandera",
     "fullscreen": "Helskärm",
     "language": "Byt språk",
-    "openInNewTab": "Öppna i ny flik"
+    "openInNewTab": "Öppna i ny flik",
+    "openPreview": "Öppna förhandsgranskning",
+    "noSelectedTR": "Inget valt testresultat"
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"

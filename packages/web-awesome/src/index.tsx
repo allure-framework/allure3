@@ -36,7 +36,6 @@ const App = () => {
       getLocale();
     }
     ensureReportDataReady();
-    fetchTestResultNav();
     fetchStats();
     fetchEnvInfo();
     fetchPieChartData();
@@ -46,6 +45,7 @@ const App = () => {
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
+      fetchTestResultNav();
     }
   }, [testResultId]);
 

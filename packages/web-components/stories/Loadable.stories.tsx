@@ -1,6 +1,6 @@
+import { Loadable } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Loadable } from "@allurereport/web-components";
 
 type StoreSignalState<T> = {
   loading: boolean;

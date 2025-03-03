@@ -112,7 +112,9 @@
     "expand": "展開",
     "fullscreen": "全画面",
     "language": "言語を変更",
-    "openInNewTab": "新しいタブで開く"
+    "openInNewTab": "新しいタブで開く",
+    "openPreview": "プレビューを開く",
+    "noSelectedTR": "選択されたテスト結果はありません"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"

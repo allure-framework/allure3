@@ -112,7 +112,9 @@
     "expand": "Expandir",
     "fullscreen": "Tela cheia",
     "language": "Alterar idioma",
-    "openInNewTab": "Abrir em nova aba"
+    "openInNewTab": "Abrir em nova aba",
+    "openPreview": "Abrir pré-visualização",
+    "noSelectedTR": "Nenhum resultado de teste selecionado"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"

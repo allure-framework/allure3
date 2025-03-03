@@ -112,7 +112,9 @@
     "expand": "Agrandir",
     "fullscreen": "Plein écran",
     "language": "Changer la langue",
-    "openInNewTab": "Ouvrir dans un nouvel onglet"
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "openPreview": "Ouvrir l'aperçu",
+    "noSelectedTR": "Aucun résultat de test sélectionné"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"

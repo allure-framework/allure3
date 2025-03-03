@@ -112,7 +112,9 @@
     "expand": "Genişləndir",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
-    "openInNewTab": "Yeni tabda aç"
+    "openInNewTab": "Yeni tabda aç",
+    "openPreview": "Önizləməni aç",
+    "noSelectedTR": "Seçilmiş Test nəticəsi yoxdur"
   },
   "errors": {
     "missedAttachment": "Əlavə tapılmadı"

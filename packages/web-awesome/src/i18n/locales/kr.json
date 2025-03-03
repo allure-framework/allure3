@@ -112,7 +112,9 @@
     "expand": "펼치기",
     "fullscreen": "전체 화면",
     "language": "언어 변경",
-    "openInNewTab": "새 탭에서 열기"
+    "openInNewTab": "새 탭에서 열기",
+    "openPreview": "미리보기 열기",
+    "noSelectedTR": "선택된 테스트 결과 없음"
   },
   "errors": {
     "missedAttachment": "첨부파일을 찾을 수 없습니다"

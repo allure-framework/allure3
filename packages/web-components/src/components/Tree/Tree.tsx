@@ -1,7 +1,7 @@
 import type { Statistic } from "@allurereport/core-api";
 import type { Signal } from "@preact/signals";
 import cx from "clsx";
-import type { AllureAwesomeRecursiveTree, AllureAwesomeStatus, TreeFiltersState } from "global";
+import type { RecursiveTree, Status, TreeFiltersState } from "global";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { StoreSignalState } from "@/components/Loadable";
@@ -11,10 +11,10 @@ import styles from "./styles.scss";
 
 interface TreeProps {
   statistic?: Statistic;
-  tree: AllureAwesomeRecursiveTree;
+  tree: RecursiveTree;
   name?: string;
   root?: boolean;
-  statusFilter?: AllureAwesomeStatus;
+  statusFilter?: Status;
   collapsedTrees: Set<string>;
   toggleTree: (id: string) => void;
   navigateTo: (id: string) => void;

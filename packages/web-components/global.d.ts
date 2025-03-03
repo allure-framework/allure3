@@ -1,88 +1,14 @@
-// import "@testing-library/jest-dom";
-import type {
-  AttachmentTestStepResult,
-  DefaultTreeGroup,
-  HistoryTestResult,
-  TestFixtureResult,
-  TestResult,
-  TestStatus,
-  TestStepResult,
-  TreeData,
-  WithChildren,
-} from "@allurereport/core-api";
+import type { DefaultTreeGroup, TestStatus } from "@allurereport/core-api";
 
-export type Allure2ReportOptions = {
-  reportName?: string;
-  reportLanguage?: string;
-  createdAt: number;
-};
-
-export type AllureAwesomeReportOptions = {
-  reportName?: string;
-  logo?: string;
-  theme?: "light" | "dark";
-  groupBy?: string[];
-  reportLanguage?: "en" | "ru";
-  createdAt: number;
-  reportUuid: string;
-};
-
-export type AllureAwesomeFixtureResult = Omit<
-  TestFixtureResult,
-  "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
-> & {
-  steps: AllureAwesomeTestStepResult[];
-};
-
-export type AllureAwesomeStatus = TestStatus | "total";
-
-export type AllureAwesomeTestStepResult = TestStepResult;
-
-type AllureAwesomeBreadcrumbItem = string[] | string[][];
-
-export type AllureAwesomeTestResult = Omit<
-  TestResult,
-  | "runSelector"
-  | "sourceMetadata"
-  | "expectedResult"
-  | "expectedResultHtml"
-  | "precondition"
-  | "preconditionHtml"
-  | "steps"
-> & {
-  setup: AllureAwesomeFixtureResult[];
-  teardown: AllureAwesomeFixtureResult[];
-  steps: AllureAwesomeTestStepResult[];
-  history: HistoryTestResult[];
-  retries?: TestResult[];
-  groupedLabels: Record<string, string[]>;
-  attachments?: AttachmentTestStepResult[];
-  breadcrumbs: AllureAwesomeBreadcrumbItem[];
-  order?: number;
-  groupOrder?: number;
-  retry: boolean;
-  time?: Record<string, string[]>;
-  extra?: { severity: string };
-};
-
-export type AllureAwesomeTreeLeaf = Pick<
-  AllureAwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
-> & {
-  nodeId: string;
-};
-
-export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
-
-export type AllureAwesomeTree = TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>;
+export type Status = TestStatus | "total";
 
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */
-export type AllureAwesomeRecursiveTree = DefaultTreeGroup & {
+export type RecursiveTree = DefaultTreeGroup & {
   nodeId: string;
-  leaves: AllureAwesomeTreeLeaf[];
-  trees: AllureAwesomeRecursiveTree[];
+  leaves: TreeLeaf[];
+  trees: RecursiveTree[];
 };
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
@@ -90,7 +16,7 @@ export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
 export type TreeFiltersState = {
   query: string;
-  status: AllureAwesomeStatus;
+  status: Status;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
