@@ -69,6 +69,7 @@ export type AwesomeTestResult = Omit<
   groupOrder?: number;
   retry: boolean;
   categories?: AwesomeCategory[];
+  environment?: string | "default";
 };
 
 export type AwesomeTreeLeaf = Pick<
@@ -89,3 +90,9 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
   leaves: AwesomeTreeLeaf[];
   trees: AwesomeRecursiveTree[];
 };
+
+// TODO: maybe it should call `TestCase` instead of Group
+// TODO: add worst status
+export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
+  testResults: AwesomeTestResult[];
+}

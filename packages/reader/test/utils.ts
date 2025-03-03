@@ -1,10 +1,10 @@
-import { ResultFile } from "@allurereport/plugin-api";
-import { PathResultFile, ResultsReader, ResultsVisitor } from "@allurereport/reader-api";
+import type { ResultFile } from "@allurereport/core-api";
+import { PathResultFile, type ResultsReader, type ResultsVisitor } from "@allurereport/reader-api";
 import { attachment, step } from "allure-js-commons";
 import { existsSync } from "fs";
 import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
-import { Mocked, expect, vi } from "vitest";
+import { type Mocked, expect, vi } from "vitest";
 
 export const buildResourcePath = (path: string) => resolve(__dirname, "./resources", path);
 

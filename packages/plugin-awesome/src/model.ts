@@ -1,3 +1,5 @@
+import type { TestResult } from "@allurereport/core-api";
+
 export type AwesomeOptions = {
   reportName?: string;
   singleFile?: boolean;
@@ -6,6 +8,7 @@ export type AwesomeOptions = {
   reportLanguage?: "en" | "ru";
   groupBy?: string[];
   layout?: "base" | "split";
+  environments?: Record<string, (tr: TestResult) => boolean>;
   ci?: {
     type: "github" | "jenkins";
     url: string;

@@ -1,5 +1,4 @@
-import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
-import type { AllureStore } from "@allurereport/plugin-api";
+import type { AllureStore, KnownTestFailure, TestStatus } from "@allurereport/core-api";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { isFileNotFoundError } from "./utils/misc.js";

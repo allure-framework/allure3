@@ -78,7 +78,10 @@ export class InMemoryReportDataWriter implements AwesomeDataWriter {
   }
 
   reportFiles(): ReportFile[] {
-    return Object.keys(this.#data).map((key) => ({ name: key, value: this.#data[key].toString("base64") }));
+    return Object.keys(this.#data).map((key) => ({
+      name: key,
+      value: this.#data[key].toString("base64"),
+    }));
   }
 }
 

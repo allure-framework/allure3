@@ -2,8 +2,6 @@
   "extends": "../../tsconfig.json",
   "include": ["./src"],
   "compilerOptions": {
-    "outDir": "./dist",
-    // node types should not be used in core-api
-    "types": []
+    "outDir": "./dist"
   }
 }
