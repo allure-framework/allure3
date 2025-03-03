@@ -23,6 +23,24 @@ export type TrendData = {
   items: TrendItem[];
 };
 
+export type TrendItemMetadata = {
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type TrendPointId = string; // TestRunId
+
+export type TrendPoint = {
+  id: TrendPointId; // x
+  value: number; // y
+  metadata: TrendItemMetadata;
+};
+
+export type TrendChartData = {
+  points: Record<TrendPointId, TrendPoint>;
+  series: Record<TestStatus, TrendPointId[]>;
+};
+
 export const d3Arc = arc<PieArcDatum<TestResultSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
 export const d3Pie = pie<TestResultSlice>()
