@@ -64,6 +64,7 @@ export type AllureAwesomeTestResult = Omit<
   groupOrder?: number;
   retry: boolean;
   categories?: AllureAwesomeCategory[];
+  environment?: string | "default";
 };
 
 export type AllureAwesomeTreeLeaf = Pick<
@@ -85,3 +86,9 @@ export type AllureAwesomeRecursiveTree = DefaultTreeGroup & {
   leaves: AllureAwesomeTreeLeaf[];
   trees: AllureAwesomeRecursiveTree[];
 };
+
+// TODO: maybe it should call `TestCase` instead of Group
+// TODO: add worst status
+export type AllureAwesomeTestResultGroup = Pick<AllureAwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
+  testResults: AllureAwesomeTestResult[];
+}

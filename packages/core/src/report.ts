@@ -1,4 +1,5 @@
-import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { ResultFile } from "@allurereport/core-api";
+import type { Plugin, PluginContext, PluginState, ReportFiles } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
