@@ -1,4 +1,5 @@
 /* eslint max-lines: 0 */
+import type { RawTestStepResult } from "@allurereport/reader-api";
 import { step } from "allure-js-commons";
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
@@ -712,6 +713,52 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           ],
         },
       ]);
+    });
+
+    it("should set timing properties", async () => {
+      const result = await readXcResultResource("activities/sixNestedActivities.xcresult");
+
+      const [
+        {
+          duration,
+          steps: [
+            {
+              start: step1Start,
+              stop: step1Stop,
+              steps: [{ start: step11Start, stop: step11Stop }, { start: step12Start, stop: step12Stop }] = [],
+            },
+            {
+              start: step2Start,
+              stop: step2Stop,
+              steps: [{ start: step21Start, stop: step21Stop }, { start: step22Start, stop: step22Stop }] = [],
+            },
+          ] = [],
+        },
+      ] =
+        (result.visitTestResult.mock.calls.map((t) => t[0]) as {
+          duration?: number;
+          steps?: { start?: number; stop?: number; steps?: RawTestStepResult[] }[];
+        }[]) ?? [];
+
+      const expectedTimestampSequence = [
+        step1Start,
+        step11Start,
+        step11Stop,
+        step12Start,
+        step12Stop,
+        step1Stop,
+        step2Start,
+        step21Start,
+        step21Stop,
+        step22Start,
+        step22Stop,
+        step2Stop,
+      ];
+      const actualTimestampSequence = [...expectedTimestampSequence];
+      actualTimestampSequence.sort();
+
+      expect(actualTimestampSequence).toEqual(expectedTimestampSequence);
+      expect(duration).toBeGreaterThan(0);
     });
   });
 });
