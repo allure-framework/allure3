@@ -17,7 +17,8 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
         `It looks like ${directory} is a Mac OS bundle. Allure 3 can only parse such bundles on a Mac OS machine.`,
       );
 
-      // There is a small chance we're dealing with a proper allure results directory here.
+      // There is a small chance we're dealing with a proper allure results directory that just by accident has a
+      // bundle-like layout.
       // In such a case, allow the directory to be read (if it's really a bundle, the user will see an empty report).
       return false;
     }
