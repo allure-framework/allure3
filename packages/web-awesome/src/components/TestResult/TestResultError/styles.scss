@@ -27,6 +27,7 @@
   margin-bottom: 8px;
   padding-left: 8px;
   color: var(--on-support-capella);
+  margin-right: auto;
 }
 
 .test-result-error-trace {
@@ -48,4 +49,53 @@
   &:hover {
     background: var(--bg-alpha-capella);
   }
+}
+
+.diff {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  line-height: 1.28;
+  padding: 0 24px;
+
+  .side {
+    flex: 1 1 auto;
+    gap: 4px;
+  }
+
+  .diff-screen {
+    min-height: 320px;
+  }
+}
+
+.diff-green {
+  color: var(--on-support-castor);
+  background: #09933729;
+}
+
+.diff-red {
+  color: var(--on-support-capella);
+  background: var(--bg-alpha-capella);
+}
+
+.diff-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+  line-height: 24px;
+  margin-bottom: 4px;
+}
+
+.expected {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  line-height: 24px;
+}
+.side-title {
+  line-height: 24px;
+  margin-bottom: 4px;
+  display: block;
 }

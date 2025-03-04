@@ -835,6 +835,7 @@ const RAW_RUNTIME_STATE =
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/diff", "npm:7.0.1"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.17.9"],\
@@ -851,6 +852,7 @@ const RAW_RUNTIME_STATE =
           ["clsx", "npm:2.1.1"],\
           ["css-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:7.1.2"],\
           ["d3-shape", "npm:3.2.0"],\
+          ["diff", "npm:7.0.0"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.5.0"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
@@ -12214,6 +12216,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/diff", [\
+      ["npm:7.0.1", {\
+        "packageLocation": "./.yarn/cache/@types-diff-npm-7.0.1-be057a37e5-ef8c5fe0ea.zip/node_modules/@types/diff/",\
+        "packageDependencies": [\
+          ["@types/diff", "npm:7.0.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/eslint", [\
       ["npm:8.56.10", {\
         "packageLocation": "./.yarn/cache/@types-eslint-npm-8.56.10-957cc305f5-0cdd914b94.zip/node_modules/@types/eslint/",\
@@ -17695,6 +17706,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/diff-npm-4.0.2-73133c7102-ec09ec2101.zip/node_modules/diff/",\
         "packageDependencies": [\
           ["diff", "npm:4.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:7.0.0", {\
+        "packageLocation": "./.yarn/cache/diff-npm-7.0.0-dcfd888f89-e9b8e48d05.zip/node_modules/diff/",\
+        "packageDependencies": [\
+          ["diff", "npm:7.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\

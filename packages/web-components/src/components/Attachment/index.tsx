@@ -4,3 +4,4 @@ export { HtmlPreview } from "@/components/Attachment/HtmlPreview";
 export { AttachmentImage } from "@/components/Attachment/AttachmentImage";
 export { AttachmentVideo } from "@/components/Attachment/AttachmentVideo";
 export { AttachmentEmpty } from "@/components/Attachment/AttachmentEmpty";
+export { CodeViewer } from "@/components/Attachment/CodeViewer";
