@@ -35,6 +35,7 @@ export type ActivityProcessingResult = {
   steps: RawStep[];
   files: ResultFile[];
   apiCalls: AllureApiCall[];
+  failureSteps: RawTestStepResult[];
 };
 
 export type Suite = {
@@ -57,11 +58,19 @@ export type ActionParametersInputData = Pick<
   "destination" | "testPlan" | "multiTarget" | "multiTestPlan"
 >;
 
-export type ResolvedStepFailure = {
+export type ResolvedFailureBase = {
   message?: string;
   trace?: string;
   status?: RawTestStatus;
+};
+
+export type ResolvedTestFailure = ResolvedFailureBase & {
   steps: RawTestStepResult[];
+};
+
+export type ResolvedStepFailure = ResolvedFailureBase & {
+  directFailureSteps: RawTestStepResult[];
+  transitiveFailureSteps: RawTestStepResult[];
 };
 
 export type FailureMapValue = {
