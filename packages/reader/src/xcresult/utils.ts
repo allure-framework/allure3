@@ -280,32 +280,35 @@ export const secondsToMilliseconds = (seconds: Unknown<number>) =>
 export const parseAsAllureApiActivity = (title: string | undefined): AllureApiCall | undefined => {
   if (isPotentialAllureApiActivity(title)) {
     const maybeApiCall = title.slice(ALLURE_API_ACTIVITY_PREFIX.length);
-    const apiValueSeparatorIndex = indexOfAny(maybeApiCall, ":", "=");
-    if (apiValueSeparatorIndex !== -1) {
-      const apiCall = maybeApiCall.slice(0, apiValueSeparatorIndex).trim();
-      const value = maybeApiCall.slice(apiValueSeparatorIndex + 1);
-      switch (apiCall) {
-        case "id":
-          return { type: "label", value: { name: "ALLURE_ID", value } };
-        case "name":
-          return { type: "name", value };
-        case "description":
-          return { type: "description", value };
-        case "precondition":
-          return { type: "precondition", value };
-        case "expectedResult":
-          return { type: "expectedResult", value };
-        case "flaky":
-          return { type: "flaky", value: parseBooleanApiArg(value) };
-        case "muted":
-          return { type: "muted", value: parseBooleanApiArg(value) };
-        case "known":
-          return { type: "known", value: parseBooleanApiArg(value) };
-        default:
-          return parseComplexAllureApiCall(apiCall, value);
-      }
+    const { apiCall, value } = splitApiCallAndValue(maybeApiCall);
+    switch (apiCall) {
+      case "id":
+        return { type: "label", value: { name: "ALLURE_ID", value } };
+      case "name":
+        return { type: "name", value };
+      case "description":
+        return { type: "description", value };
+      case "precondition":
+        return { type: "precondition", value };
+      case "expectedResult":
+        return { type: "expectedResult", value };
+      case "flaky":
+        return { type: "flaky", value: parseBooleanApiArg(value) };
+      case "muted":
+        return { type: "muted", value: parseBooleanApiArg(value) };
+      case "known":
+        return { type: "known", value: parseBooleanApiArg(value) };
+      default:
+        return parseComplexAllureApiCall(apiCall, value);
     }
   }
+};
+
+export const splitApiCallAndValue = (text: string) => {
+  const apiValueSeparatorIndex = indexOfAny(text, ":", "=");
+  return apiValueSeparatorIndex === -1
+    ? { apiCall: text, value: "" }
+    : { apiCall: text.slice(0, apiValueSeparatorIndex).trim(), value: text.slice(apiValueSeparatorIndex + 1) };
 };
 
 export const applyApiCalls = (testResult: RawTestResult, apiCalls: readonly AllureApiCall[]) => {
@@ -416,27 +419,39 @@ const isPotentialAllureApiActivity = (title: string | undefined): title is `allu
   isDefined(title) && title.startsWith(ALLURE_API_ACTIVITY_PREFIX);
 
 const parseComplexAllureApiCall = (apiCall: string, value: string): AllureApiCall | undefined => {
-  const apiFnEnd = apiCall.indexOf(".");
-  if (apiFnEnd !== -1) {
-    const apiFn = apiCall.slice(0, apiFnEnd);
-    const { primary: primaryOption, secondary: secondaryOptions } = parseAllureApiCallOptions(
-      apiCall.slice(apiFnEnd + 1),
-    );
-    switch (apiFn) {
-      case "label":
-        return parseAllureLabelApiCall(primaryOption, value);
-      case "link":
-        return parseAllureLinkApiCall(primaryOption, secondaryOptions, value);
-      case "parameter":
-        return parseAllureParameterApiCall(primaryOption, secondaryOptions, value);
-    }
+  const { apiFn, primaryOption, secondaryOptions } = splitApiFnAndOptions(apiCall);
+  switch (apiFn) {
+    case "label":
+      return primaryOption ? parseAllureLabelApiCall(primaryOption, value) : undefined;
+    case "link":
+      return parseAllureLinkApiCall(primaryOption, secondaryOptions, value);
+    case "issue":
+      return parseAllureLinkApiCall(primaryOption, ["issue"], value);
+    case "tms":
+      return parseAllureLinkApiCall(primaryOption, ["tms"], value);
+    case "parameter":
+      return primaryOption ? parseAllureParameterApiCall(primaryOption, secondaryOptions, value) : undefined;
   }
+};
+
+const splitApiFnAndOptions = (apiCall: string) => {
+  const apiFnEnd = apiCall.indexOf(".");
+
+  if (apiFnEnd === -1) {
+    const { primaryOption: apiFn, secondaryOptions } = parseAllureApiCallOptions(apiCall);
+    return { apiFn, primaryOption: undefined, secondaryOptions };
+  }
+
+  return {
+    apiFn: apiCall.slice(0, apiFnEnd),
+    ...parseAllureApiCallOptions(apiCall.slice(apiFnEnd + 1)),
+  };
 };
 
 const parseAllureLabelApiCall = (name: string, value: string): AllureApiCall | undefined =>
   name ? { type: "label", value: { name, value } } : undefined;
 
-const parseAllureLinkApiCall = (name: string, [type]: string[], url: string): AllureApiCall | undefined => {
+const parseAllureLinkApiCall = (name: string | undefined, [type]: string[], url: string): AllureApiCall | undefined => {
   return { type: "link", value: { name, type, url } };
 };
 
@@ -458,30 +473,35 @@ const parseAllureParameterApiCall = (name: string, options: string[], value: str
   return { type: "parameter", value: parameter };
 };
 
-const parseAllureApiCallOptions = (options: string): { primary: string; secondary: string[] } => {
+const parseAllureApiCallOptions = (options: string): { primaryOption: string; secondaryOptions: string[] } => {
   const primaryEnd = options.indexOf("[");
   if (primaryEnd !== -1) {
-    const primary = decodeURIComponentSafe(options.slice(0, primaryEnd));
-    const secondaryEnd = options.indexOf("]");
-    if (secondaryEnd === options.length) {
+    const primaryOption = decodeURIComponentSafe(options.slice(0, primaryEnd));
+    if (options.indexOf("]") === options.length - 1) {
       return {
-        primary,
-        secondary: options
+        primaryOption,
+        secondaryOptions: options
           .slice(primaryEnd + 1, -1)
           .split(",")
           .map((v) => decodeURIComponentSafe(v.trim())),
       };
     }
-    return { primary, secondary: [] };
+    return { primaryOption, secondaryOptions: [] };
   }
-  return { primary: decodeURIComponentSafe(options), secondary: [] };
+  return { primaryOption: decodeURIComponentSafe(options), secondaryOptions: [] };
 };
 
-const indexOfAny = (input: string, ...searchStrings: readonly string[]) =>
-  searchStrings.reduce((a, e) => {
-    const indexOfE = input.indexOf(e);
-    return a === -1 ? indexOfE : Math.min(a, indexOfE);
-  }, 0);
+const indexOfAny = (input: string, ...searchStrings: readonly string[]) => {
+  const indices = searchStrings.map((search) => input.indexOf(search)).filter((i) => i !== -1);
+  switch (indices.length) {
+    case 0:
+      return -1;
+    case 1:
+      return indices[0];
+    default:
+      return Math.min(...indices);
+  }
+};
 
 const parseBooleanApiArg = (value: string) => !value || value.toLowerCase() === "true";
 
