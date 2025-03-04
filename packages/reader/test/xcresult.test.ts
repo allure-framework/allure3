@@ -760,5 +760,490 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       expect(actualTimestampSequence).toEqual(expectedTimestampSequence);
       expect(duration).toBeGreaterThan(0);
     });
+
+    describe("Allure API", () => {
+      it("should support the Allure ID activity API", async () => {
+        const result = await readXcResultResource("activities/allureApi/allureId.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "test()",
+            labels: expect.arrayContaining([{ name: "ALLURE_ID", value: "1004" }]),
+            steps: [],
+          },
+        ]);
+      });
+
+      it("should support the test name activity API", async () => {
+        const result = await readXcResultResource("activities/allureApi/testName.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "bar",
+            steps: [],
+          },
+        ]);
+      });
+
+      describe("description", () => {
+        it("should set the description", async () => {
+          const result = await readXcResultResource("activities/allureApi/description/single.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              description: "Lorem Ipsum",
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should merge multiple descriptions", async () => {
+          const result = await readXcResultResource("activities/allureApi/description/multiple.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              description: "Lorem Ipsum\n\nDolor Sit Amet",
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("precondition", () => {
+        it("should set the precondition", async () => {
+          const result = await readXcResultResource("activities/allureApi/precondition/single.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              precondition: "Lorem Ipsum",
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should merge multiple preconditions", async () => {
+          const result = await readXcResultResource("activities/allureApi/precondition/multiple.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              precondition: "Lorem Ipsum\n\nDolor Sit Amet",
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("expectedResult", () => {
+        it("should set the expected result", async () => {
+          const result = await readXcResultResource("activities/allureApi/expectedResult/single.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              expectedResult: "Lorem Ipsum",
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should merge multiple expected results", async () => {
+          const result = await readXcResultResource("activities/allureApi/expectedResult/multiple.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              expectedResult: "Lorem Ipsum\n\nDolor Sit Amet",
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("flaky", () => {
+        it("should support implicit flaky value", async () => {
+          const result = await readXcResultResource("activities/allureApi/flaky/implicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              flaky: true,
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should support explicit flaky value", async () => {
+          const result = await readXcResultResource("activities/allureApi/flaky/explicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              flaky: true,
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("muted", () => {
+        it("should support implicit muted value", async () => {
+          const result = await readXcResultResource("activities/allureApi/muted/implicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              muted: true,
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should support explicit muted value", async () => {
+          const result = await readXcResultResource("activities/allureApi/muted/explicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              muted: true,
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("known", () => {
+        it("should support implicit known value", async () => {
+          const result = await readXcResultResource("activities/allureApi/known/implicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              known: true,
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should support explicit known value", async () => {
+          const result = await readXcResultResource("activities/allureApi/known/explicit.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              known: true,
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("label", () => {
+        it("should add a label", async () => {
+          const result = await readXcResultResource("activities/allureApi/label/single.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              labels: expect.arrayContaining([{ name: "foo", value: "Lorem Ipsum" }]),
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("link", () => {
+        it("should add a nameless link with no type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/noNameNoType.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: undefined, type: undefined }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a named link with no type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/namedNoType.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "foo", type: undefined }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a nameless link with a type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/noNameTyped.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: undefined, type: "foo" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a named link with a type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/namedTyped.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "foo", type: "bar" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a nameless issue", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/noNameIssue.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: undefined, type: "issue" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a named issue", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/namedIssue.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "ISSUE-1", type: "issue" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a nameless tms link", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/noNameTms.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: undefined, type: "tms" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a named tms link", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/namedTms.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "TMS-1", type: "tms" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should decode a url name", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/encodedName.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "foo.bar[baz]", type: undefined }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should decode a type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/encodedType.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: undefined, type: "foo.bar[baz]" }],
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should decode a name and a type", async () => {
+          const result = await readXcResultResource("activities/allureApi/link/encodedNameAndType.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              links: [{ url: "https://allurereport.org", name: "foo.bar[baz]", type: "qux.qox[zte]" }],
+              steps: [],
+            },
+          ]);
+        });
+      });
+
+      describe("parameter", () => {
+        it("should add a parameter", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/plain.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                { name: "foo", value: "bar", exclude: undefined, hidden: undefined, masked: undefined },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add an excluded parameter", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/excluded.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                { name: "foo", value: "bar", excluded: true, hidden: undefined, masked: undefined },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a masked parameter", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/masked.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                { name: "foo", value: "bar", excluded: undefined, hidden: undefined, masked: true },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add an excluded hidden parameter", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/excludedHidden.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                { name: "foo", value: "bar", excluded: true, hidden: true, masked: undefined },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should add a hidden parameter", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/hidden.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                { name: "foo", value: "bar", excluded: undefined, hidden: true, masked: undefined },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+
+        it("should decode a name", async () => {
+          const result = await readXcResultResource("activities/allureApi/parameter/encodedName.xcresult");
+
+          const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+          expect(testResults).toMatchObject([
+            {
+              name: "test()",
+              parameters: expect.arrayContaining([
+                {
+                  name: "foo.bar[baz]:qux",
+                  value: "Lorem Ipsum",
+                  excluded: undefined,
+                  hidden: undefined,
+                  masked: undefined,
+                },
+              ]),
+              steps: [],
+            },
+          ]);
+        });
+      });
+    });
   });
 });
