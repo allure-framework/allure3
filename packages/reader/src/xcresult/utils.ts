@@ -125,9 +125,55 @@ export const getMediaTypeByUti = (uti: string | undefined) => (uti ? utiToMediaT
 export const prependTitle = (title: string, text: string, spaces: number) =>
   [title, ...text.split("\n").map((l) => `${" ".repeat(spaces)}${l}`)].join("\n");
 
-export const getWorstStatus = (steps: readonly RawStep[]): RawTestStatus | undefined => {
-  const statuses = steps.filter((s): s is RawTestStepResult => "status" in s).map(({ status }) => status ?? "unknown");
-  return statuses.sort((a, b) => statusPriorities.get(a)! - statusPriorities.get(b)!)[0];
+export const getWorstStatusWithDetails = (
+  failureSteps: readonly RawTestStepResult[],
+): Pick<RawTestStepResult, "status" | "message" | "trace"> => {
+  const sortedFailureSteps = [...failureSteps];
+  sortedFailureSteps.sort(
+    ({ status: statusA }, { status: statusB }) =>
+      statusPriorities.get(statusA ?? "unknown")! - statusPriorities.get(statusB ?? "unknown")!,
+  );
+
+  if (!sortedFailureSteps.length) {
+    return {};
+  }
+
+  const { status, trace, message: worstStepMessage } = sortedFailureSteps[0];
+
+  const totalFailuresCount = failureSteps.length;
+  const expectedFailuresCount = countExpectedFailures(failureSteps);
+  const message = resolveFailureMessage(worstStepMessage, totalFailuresCount, expectedFailuresCount);
+
+  return { status, message, trace };
+};
+
+export const countExpectedFailures = (failureSteps: readonly RawTestStepResult[]) =>
+  failureSteps.reduce((a, { status }) => (status === "passed" ? a + 1 : a), 0);
+
+export const resolveFailureMessage = (
+  firstFailureMessage: string | undefined,
+  failuresCount: number,
+  expectedFailuresCount: number,
+) => {
+  switch (failuresCount) {
+    case 0:
+      return undefined;
+    case 1:
+      return firstFailureMessage;
+    default:
+      return getAggregatedFailureMessage(firstFailureMessage, failuresCount, expectedFailuresCount);
+  }
+};
+
+export const getAggregatedFailureMessage = (message: string | undefined, failures: number, expected: number) => {
+  const [summary, prefix] =
+    failures === expected
+      ? [`${failures} expected failures have occured`, "The first one is"]
+      : expected === 0
+        ? [`${failures} failures have occured`, "The first one is"]
+        : [`${failures} failures have occured (${expected} expected)`, "The first unexpected one is"];
+
+  return message ? prependTitle(`${summary}. ${prefix}:`, message, 2) : summary;
 };
 
 export const DEFAULT_BUNDLE_NAME = "The test bundle name is not defined";
@@ -219,8 +265,8 @@ export const compareChronologically = (
   { start: startB, stop: stopB }: RawStep,
 ) => (startA ?? 0) - (startB ?? 0) || (stopA ?? 0) - (stopB ?? 0);
 
-export const toSortedSteps = (...stepArrays: readonly (readonly RawStep[])[]) => {
-  const allSteps = stepArrays.reduce<RawStep[]>((result, steps) => {
+export const toSortedSteps = <T extends RawStep>(...stepArrays: readonly (readonly T[])[]) => {
+  const allSteps = stepArrays.reduce<T[]>((result, steps) => {
     result.push(...steps);
     return result;
   }, []);

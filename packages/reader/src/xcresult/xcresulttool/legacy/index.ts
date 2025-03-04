@@ -23,7 +23,7 @@ import {
   getDefaultAttachmentName,
   getMediaTypeByUti,
   getTargetDetails,
-  getWorstStatus,
+  getWorstStatusWithDetails,
   parseAsAllureApiActivity,
   prependTitle,
   secondsToMilliseconds,
@@ -41,6 +41,7 @@ import type {
   LegacyDestinationData,
   LegacyParsingState,
   ResolvedStepFailure,
+  ResolvedTestFailure,
 } from "./model.js";
 import {
   getBool,
@@ -427,6 +428,7 @@ const processActivities = async (
   const steps: RawStep[] = [];
   const files: ResultFile[] = [];
   const apiCalls: AllureApiCall[] = [];
+  const failureSteps: RawTestStepResult[] = [];
   for (const {
     activityType,
     title,
@@ -466,16 +468,17 @@ const processActivities = async (
       steps: activitySubsteps,
       files: substepFiles,
       apiCalls: substepApiCalls,
+      failureSteps: substepFailureSteps,
     } = await processActivities(createAttachmentFile, failures, subactivities);
 
-    const {
-      steps: nestedFailureSteps,
-      message,
-      trace,
-      status,
-    } = resolveStepFailures(failureIds, expectedFailureIds, failures);
+    const { directFailureSteps, transitiveFailureSteps, message, trace, status } = resolveStepFailures(
+      failureIds,
+      expectedFailureIds,
+      failures,
+      substepFailureSteps,
+    );
 
-    const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, nestedFailureSteps);
+    const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, directFailureSteps);
 
     steps.push({
       type: "step",
@@ -489,11 +492,12 @@ const processActivities = async (
     });
     files.push(...thisStepFiles, ...substepFiles);
     apiCalls.push(...substepApiCalls);
+    failureSteps.push(...transitiveFailureSteps);
   }
 
   fillDefaultAttachmentNames(steps);
 
-  return { steps, files, apiCalls };
+  return { steps, files, apiCalls, failureSteps };
 };
 
 const fillDefaultAttachmentNames = (steps: readonly RawStep[]) => {
@@ -508,27 +512,27 @@ const resolveStepFailures = (
   failureUids: readonly string[],
   expectedFailureUids: readonly string[],
   failures: FailureMap,
+  failureStepsOfSubsteps: RawTestStepResult[],
 ): ResolvedStepFailure => {
   const stepFailures = [...failureUids, ...expectedFailureUids].map((uuid) => failures.get(uuid));
 
-  const steps = resolveStepFailureSubsteps(stepFailures);
-  const message = resolveFailureMessageBySteps(steps);
-  const trace = steps[0]?.trace;
-  const status = getWorstStatus(steps);
+  const directFailureSteps = resolveStepFailureSubsteps(stepFailures);
+  const transitiveFailureSteps = toSortedSteps(directFailureSteps, failureStepsOfSubsteps);
+  const { status, trace, message } = getWorstStatusWithDetails(transitiveFailureSteps) ?? {};
 
-  return { status, message, trace, steps };
+  return { status, message, trace, directFailureSteps, transitiveFailureSteps };
 };
 
 const resolveTestFailures = (
   failures: FailureMap,
   skipNoticeSummary: Unknown<XcActionTestNoticeSummary>,
-): ResolvedStepFailure => {
+): ResolvedTestFailure => {
   const allFailures = Array.from(failures.values());
+  const transitiveFailureSteps = allFailures.map(({ step }) => step);
+
+  const { status, trace, message } = getWorstStatusWithDetails(transitiveFailureSteps) ?? {};
 
   const steps = resolveTestFailureSteps(allFailures);
-  const message = resolveFailureMessage(allFailures);
-  const trace = resolveFailureTrace(allFailures);
-  const status = getWorstFailureStatus(allFailures);
 
   if (!message && !trace && isObject(skipNoticeSummary)) {
     const { fileName, lineNumber, message: skipMessage } = skipNoticeSummary;
@@ -556,30 +560,6 @@ const resolveStepFailureSubsteps = (stepFailures: readonly (FailureMapValue | un
         status: "broken",
       } as RawTestStepResult),
   );
-};
-
-const resolveFailureTrace = (failures: readonly FailureMapValue[]): string | undefined => failures[0]?.step.trace;
-
-const getWorstFailureStatus = (failures: readonly FailureMapValue[]) =>
-  getWorstStatus(failures.map(({ step }) => step));
-
-const resolveFailureMessage = (failures: readonly FailureMapValue[]) =>
-  aggregateFailureMessages(failures.map(({ step: { message } }) => message!));
-
-const resolveFailureMessageBySteps = (failureSteps: readonly RawTestStepResult[]) =>
-  aggregateFailureMessages(failureSteps.map(({ message }) => message!));
-
-const aggregateFailureMessages = (messages: readonly (string | undefined)[]) => {
-  switch (messages.length) {
-    case 0:
-      return undefined;
-    case 1:
-      return messages[0];
-    default:
-      return messages[0]
-        ? prependTitle(`${messages.length} assertions have failed. The first one is:`, messages[0], 2)
-        : `${messages.length} assertions have failed`;
-  }
 };
 
 const parseAttachments = async (

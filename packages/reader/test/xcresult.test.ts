@@ -1,3 +1,4 @@
+/* eslint max-lines: 0 */
 import { step } from "allure-js-commons";
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
@@ -172,7 +173,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
         {
           name: "test()",
           status: "failed",
-          message: '2 assertions have failed. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+          message: '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
           trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/),
           steps: [
             {
@@ -238,7 +239,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           name: "test()",
           status: "passed",
           message:
-            '2 assertions have failed. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
+            '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
           trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/),
           steps: [
             {
@@ -377,8 +378,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           {
             name: "test()",
             status: "failed",
-            message:
-              '2 assertions have failed. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+            message: '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
               /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
             ),
@@ -388,7 +388,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
                 name: "bar",
                 status: "failed",
                 message:
-                  '2 assertions have failed. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+                  '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
                   /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
                 ),
@@ -470,7 +470,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
             name: "test()",
             status: "passed",
             message:
-              '2 assertions have failed. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
+              '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
               /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
             ),
@@ -480,7 +480,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
                 name: "bar",
                 status: "passed",
                 message:
-                  '2 assertions have failed. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
+                  '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
                   /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
                 ),
@@ -521,8 +521,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           {
             name: "test()",
             status: "failed",
-            message:
-              '3 assertions have failed. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+            message: '3 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
               /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
             ),
@@ -542,7 +541,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
                 name: "1",
                 status: "failed",
                 message:
-                  '2 assertions have failed. The first one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
+                  '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
                 trace: expect.stringMatching(
                   /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
                 ),
@@ -573,6 +572,82 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
                         message: 'XCTAssertEqual failed: ("5") is not equal to ("6")',
                         trace: expect.stringMatching(
                           /closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:14\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:12\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                        ),
+                        steps: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+      });
+
+      it("should prefer failures over expected failures", async () => {
+        const result = await readXcResultResource(
+          "activities/threeActivitiesWithExpectedAndUnexpectedFailures.xcresult",
+        );
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "test()",
+            status: "failed",
+            message:
+              '2 failures have occured (1 expected). The first unexpected one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
+            trace: expect.stringMatching(
+              /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+            ),
+            steps: [
+              {
+                type: "step",
+                name: "1",
+                status: "failed",
+                message:
+                  '2 failures have occured (1 expected). The first unexpected one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
+                trace: expect.stringMatching(
+                  /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                ),
+                steps: [
+                  {
+                    type: "step",
+                    name: "1.1",
+                    status: "passed",
+                    message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+                    trace: expect.stringMatching(
+                      /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                    ),
+                    steps: [
+                      {
+                        type: "step",
+                        name: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
+                        status: "passed",
+                        message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
+                        trace: expect.stringMatching(
+                          /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                        ),
+                        steps: [],
+                      },
+                    ],
+                  },
+                  {
+                    type: "step",
+                    name: "1.2",
+                    status: "failed",
+                    message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
+                    trace: expect.stringMatching(
+                      /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                    ),
+                    steps: [
+                      {
+                        type: "step",
+                        name: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
+                        status: "failed",
+                        message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
+                        trace: expect.stringMatching(
+                          /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
                         ),
                         steps: [],
                       },
