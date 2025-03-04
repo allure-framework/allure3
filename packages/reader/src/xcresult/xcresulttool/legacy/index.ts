@@ -477,8 +477,6 @@ const processActivities = async (
 
     const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, nestedFailureSteps);
 
-    console.log(substeps);
-
     steps.push({
       type: "step",
       name: name ?? DEFAULT_STEP_NAME,
