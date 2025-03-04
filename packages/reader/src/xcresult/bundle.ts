@@ -43,16 +43,22 @@ export const isXcResultBundle = async (directory: string) => {
 /**
  * Returns `true` if and only if the path points to an item that has the specified uniform type identifier in its
  * content type tree.
- * Requires Mac OS.
+ * Requires Mac OS with Spotlight.
  */
 export const checkUniformTypeIdentifier = async (itemPath: string, uti: string) => {
   const mdlsArgs = ["-raw", "-attr", "kMDItemContentTypeTree", itemPath];
   const stringToSearch = `"${uti}"`;
 
-  for await (const line of invokeStdoutCliTool("mdls", mdlsArgs)) {
-    if (line.indexOf(stringToSearch) !== -1) {
-      return true;
+  try {
+    for await (const line of invokeStdoutCliTool("mdls", mdlsArgs)) {
+      if (line.indexOf(stringToSearch) !== -1) {
+        return true;
+      }
     }
+  } catch {
+    // If mdls fails for some reason, resort to heuristics.
+    // We don't show messages here as there might be circumstances where a well-formed results directory (not a bundle)
+    // is parsed on a machine without Spotlight.
   }
 
   return false;
@@ -64,20 +70,23 @@ export const isMostProbablyXcResultBundle = (directory: string) =>
 export const followsXcResultNaming = (directory: string) => directory.endsWith(".xcresult");
 
 /**
- * If the provided directory contains an Info.plist file in one of the well-known locations, returns the absolute path
- * of that file. Otherwise, returns `undefined`.
- * Directories with such files are most probably Mac OS bundles and should be treated accordingly.
+ * If the provided directory contains an Info.plist file in one of the well-known locations, the function returns the
+ * absolute path of that file. Otherwise, it returns `undefined`.
+ * If such a directory is fed to Allure, it's most probably a Mac OS bundle and should be treated accordingly.
  *
- * NOTE: not all bundles contain an Info.plist file. But the ones we're interested in (XCResult bundles, specifically)
- * does.
+ * NOTE: Not all bundles contain an Info.plist file. But the ones we're interested in (XCResult bundles, specifically)
+ * certainly do.
  */
 export const findBundleInfoFile = async (directory: string) => {
   for (const infoFilePath of bundleInfoFilePaths) {
     const infoFileAbsPath = path.join(directory, infoFilePath);
-    const stat = await lstat(infoFileAbsPath);
 
-    if (stat.isFile()) {
-      return infoFileAbsPath;
-    }
+    try {
+      const stat = await lstat(infoFileAbsPath);
+
+      if (stat.isFile()) {
+        return infoFileAbsPath;
+      }
+    } catch {}
   }
 };
