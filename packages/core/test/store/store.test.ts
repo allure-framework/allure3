@@ -1348,3 +1348,218 @@ describe("history", () => {
     ]);
   });
 });
+
+describe("environments", () => {
+  it("should return all environments with test results when they are specified", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const result = await store.allEnvironments();
+
+    expect(result).toEqual({
+      foo: {
+        variables: {},
+        testResults: [
+          expect.objectContaining({
+            name: tr1.name,
+          }),
+        ],
+      },
+      default: {
+        variables: {},
+        testResults: [
+          expect.objectContaining({
+            name: tr2.name,
+          }),
+        ],
+      },
+    });
+  });
+
+  it("should return an array with default environment object when no environments are specified", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const result = await store.allEnvironments();
+
+    expect(result).toEqual({
+      default: {
+        variables: {},
+        testResults: [
+          expect.objectContaining({
+            name: tr1.name,
+          }),
+          expect.objectContaining({
+            name: tr2.name,
+          }),
+        ],
+      },
+    });
+  });
+
+  it("should return an environment by it's id", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    expect(await store.environmentById("foo")).toEqual({
+      variables: {},
+      testResults: [
+        expect.objectContaining({
+          name: tr1.name,
+        }),
+      ],
+    });
+    expect(await store.environmentById("default")).toEqual({
+      variables: {},
+      testResults: [
+        expect.objectContaining({
+          name: tr2.name,
+        }),
+      ],
+    });
+  });
+
+  it("should return undefined when an environment with the specified id is not found", async () => {
+    const store = new DefaultAllureStore();
+    const result = await store.environmentById("foo");
+
+    expect(result).toBeUndefined();
+  });
+
+  it("adds report-wide variables to each environment", async () => {
+    const store = new DefaultAllureStore({
+      reportVariables: {
+        hello: "earth",
+        goodbye: "moon",
+      },
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+          variables: {
+            hello: "mars",
+          },
+        },
+      },
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const result = await store.allEnvironments();
+
+    expect(result).toEqual({
+      foo: {
+        variables: {
+          hello: "mars",
+          goodbye: "moon",
+        },
+        testResults: [
+          expect.objectContaining({
+            name: tr1.name,
+          }),
+        ],
+      },
+      default: {
+        variables: {
+          hello: "earth",
+          goodbye: "moon",
+        },
+        testResults: [
+          expect.objectContaining({
+            name: tr2.name,
+          }),
+        ],
+      },
+    });
+  });
+});

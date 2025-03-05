@@ -3,9 +3,12 @@ import type {
   AttachmentLink,
   AttachmentLinkLinked,
   DefaultLabelsConfig,
+  EnvironmentsConfig,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  ReportEnvironment,
+  ReportVariables,
   ResultFile,
   Statistic,
   TestCase,
@@ -45,6 +48,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
+  readonly #environmentsConfig: EnvironmentsConfig = {};
+  readonly #reportVariables: ReportVariables = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -60,8 +65,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     known?: KnownTestFailure[];
     eventEmitter?: EventEmitter<AllureStoreEvents>;
     defaultLabels?: DefaultLabelsConfig;
+    environmentsConfig?: EnvironmentsConfig;
+    reportVariables?: ReportVariables;
   }) {
-    const { history = [], known = [], eventEmitter, defaultLabels } = params ?? {};
+    const {
+      history = [],
+      known = [],
+      eventEmitter,
+      defaultLabels = {},
+      environmentsConfig = {},
+      reportVariables = {},
+    } = params ?? {};
 
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
@@ -73,7 +87,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
     this.#eventEmitter = eventEmitter;
-    this.#defaultLabels = defaultLabels ?? {};
+    this.#defaultLabels = defaultLabels;
+    this.#environmentsConfig = environmentsConfig;
+    this.#reportVariables = reportVariables;
   }
 
   // test methods
@@ -354,5 +370,55 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       },
       { total: all.length } as Statistic,
     );
+  }
+
+  // environments
+
+  async allEnvironments() {
+    const envEntries = Object.entries(this.#environmentsConfig);
+    const allTr = await this.allTestResults({ includeHidden: true });
+    const results: Record<string, ReportEnvironment> = envEntries.reduce(
+      (acc, [name, { variables = {} }]) => ({
+        ...acc,
+        [name]: {
+          testResults: [],
+          // TODO: add report variables here and to every other env variables
+          variables: {
+            ...this.#reportVariables,
+            ...variables,
+          },
+        } as ReportEnvironment,
+      }),
+      {},
+    );
+
+    results.default = {
+      testResults: [],
+      // TODO: add report variables here and to every other env variables
+      variables: {
+        ...this.#reportVariables,
+      },
+    };
+
+    for (const tr of allTr) {
+      const envs = envEntries.filter(([, { matcher }]) => matcher({ labels: tr.labels }));
+
+      if (envs.length === 0) {
+        results.default.testResults.push(tr);
+        continue;
+      }
+
+      envs.forEach(([name]) => {
+        results[name].testResults.push(tr);
+      });
+    }
+
+    return results;
+  }
+
+  async environmentById(id: string) {
+    const allEnvs = await this.allEnvironments();
+
+    return allEnvs[id];
   }
 }
