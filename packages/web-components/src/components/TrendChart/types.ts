@@ -1,18 +1,17 @@
-import type { LineSvgProps, Point } from "@nivo/line";
+import type { LineSvgProps, Point, Serie as OriginalSerie, Datum as OriginalDatum } from "@nivo/line";
 import type { CSSProperties } from "preact/compat";
 import type { ScaleSymlogSpec } from "@nivo/scales";
 
-export interface TrendChartDataItem {
+export type Datum = Omit<OriginalDatum, "x" | "y"> & {
   x: string | number | Date;
   y: number;
-}
+};
 
-export interface TrendChartData {
-  id: string;
-  data: TrendChartDataItem[];
-}
+export type Serie = Omit<OriginalSerie, "data"> & {
+  data: Datum[];
+};
 
-type BaseLineSvgProps = Omit<LineSvgProps, "data" | "useMesh" | "enableSlices">;
+type BaseLineSvgProps = Omit<LineSvgProps, "useMesh" | "enableSlices">;
 
 export enum TrendChartKind {
   mesh = "mesh",
@@ -39,7 +38,6 @@ export type TrendChartSliceClickHandler = (slice: Slice, event: MouseEvent) => v
 export type TrendChartSliceTouchHandler = (slice: Slice, event: TouchEvent) => void;
 
 interface BaseTrendChartProps extends Omit<BaseLineSvgProps, "onClick" | "onTouchEnd"> {
-  data: TrendChartData[];
   rootArialLabel: string;
   width?: CSSProperties["width"];
   height?: CSSProperties["height"];
