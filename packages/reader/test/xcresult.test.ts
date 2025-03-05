@@ -1464,6 +1464,22 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
         expect(labels).toContainEqual({ name: "testClass", value: "Foo.Bar.Baz" });
       });
     });
+
+    describe("tags", () => {
+      it("should parse test tags", async () => {
+        const result = await readXcResultResource("tags.xcresult");
+
+        const [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+        expect(labels).toEqual(
+          expect.arrayContaining([
+            { name: "tag", value: "foo" },
+            { name: "tag", value: "bar" },
+            { name: "tag", value: "baz" },
+          ]),
+        );
+      });
+    });
   });
 
   describe("named test", () => {
