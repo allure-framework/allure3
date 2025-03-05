@@ -4,8 +4,8 @@ import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AllureAwesomeTestResult } from "types";
 import { ArrowButton } from "@/components/ArrowButton";
-import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
+import { TrError } from "@/components/TestResult/TrError";
 import { navigateTo } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
@@ -43,7 +43,7 @@ export const TestResultRetriesItem: FunctionalComponent<{
       </div>
       {isOpened && error && (
         <div className={styles["test-result-retries-item-content"]}>
-          <TestResultError {...error} />
+          <TrError {...error} />
         </div>
       )}
     </div>

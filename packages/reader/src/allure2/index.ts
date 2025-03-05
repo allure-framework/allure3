@@ -160,6 +160,8 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     status: convertStatus(result.status),
     message: ensureString(result?.statusDetails?.message),
     trace: ensureString(result?.statusDetails?.trace),
+    actual: ensureString(result?.statusDetails?.actual, ""),
+    expected: ensureString(result?.statusDetails?.expected, ""),
     flaky: ensureBoolean(result?.statusDetails?.flaky),
     known: ensureBoolean(result?.statusDetails?.known),
     muted: ensureBoolean(result?.statusDetails?.muted),
@@ -172,6 +174,7 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     links: result?.links?.filter(notNull)?.map(convertLink),
     labels: result.labels?.filter(notNull)?.map(convertLabel),
   };
+  console.log("ressssssssssssssssssssss", result.statusDetails?.actual, dest.actual);
 
   await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
 };

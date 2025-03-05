@@ -2,7 +2,6 @@ import type { FunctionalComponent } from "preact";
 import type { AllureAwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
-import { TestResultError } from "@/components/TestResult/TestResultError";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
 import { TestResultMetadata } from "@/components/TestResult/TestResultMetadata";
 import { TestResultParameters } from "@/components/TestResult/TestResultParameters";
@@ -10,6 +9,7 @@ import { TestResultSetup } from "@/components/TestResult/TestResultSetup";
 import { TestResultSteps } from "@/components/TestResult/TestResultSteps";
 import { TestResultTeardown } from "@/components/TestResult/TestResultTeardown";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
+import { TrError } from "@/components/TestResult/TrError";
 
 export type TestResultOverviewProps = {
   testResult?: AllureAwesomeTestResult;
@@ -23,7 +23,7 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
     <>
       {Boolean(error?.message) && (
         <div className={styles["test-result-errors"]}>
-          <TestResultError {...error} />
+          <TrError {...error} />
         </div>
       )}
       {Boolean(parameters?.length) && <TestResultParameters parameters={parameters} />}

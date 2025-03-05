@@ -51,6 +51,8 @@ export interface StatusDetails {
   known?: boolean;
   muted?: boolean;
   flaky?: boolean;
+  actual?: string;
+  expected?: string;
 }
 
 interface ExecutableItem {

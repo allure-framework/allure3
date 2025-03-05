@@ -3,8 +3,8 @@ import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@al
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
-import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
+import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { navigateTo, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
@@ -58,7 +58,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
       </div>
       {isOpened && error && (
         <div>
-          <TestResultError {...error} />
+          <TrError {...error} />
         </div>
       )}
     </div>

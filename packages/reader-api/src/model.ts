@@ -16,6 +16,8 @@ export interface RawFixtureResult {
   status?: RawTestStatus;
   message?: string;
   trace?: string;
+  expected?: string;
+  actual?: string;
 
   steps?: RawStep[];
 }
@@ -43,6 +45,8 @@ export interface RawTestResult {
 
   message?: string;
   trace?: string;
+  expected?: string;
+  actual?: string;
 
   flaky?: boolean;
   muted?: boolean;
@@ -86,6 +90,8 @@ export interface RawTestStepResult {
   status?: RawTestStatus;
   message?: string;
   trace?: string;
+  actual?: string;
+  expected?: string;
 
   start?: number;
   stop?: number;

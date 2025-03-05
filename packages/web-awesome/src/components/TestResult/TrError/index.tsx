@@ -3,13 +3,13 @@ import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@al
 import AnsiToHtml from "ansi-to-html";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import { TRDiff } from "@/components/TestResult/TestResultError/TRDiff";
+import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
-const TestResultErrorTrace = ({ trace }: { trace: string }) => {
+const TrErrorTrace = ({ trace }: { trace: string }) => {
   const ansiTrace = new AnsiToHtml().toHtml(trace);
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
@@ -21,17 +21,18 @@ const TestResultErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TestResultError: FunctionalComponent<TestError> = ({ message, trace, actual, expected }) => {
+export const TrError: FunctionalComponent<TestError> = ({ message, trace, actual, expected }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
+  const isActualExpectedAreStrings = typeof expected === "string" && typeof actual === "string";
 
   const openDiff = () =>
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
-      component: <TRDiff actual={actual} expected={expected} />,
+      component: <TrDiff actual={actual} expected={expected} />,
     });
 
   return (
@@ -60,13 +61,13 @@ export const TestResultError: FunctionalComponent<TestError> = ({ message, trace
           </div>
         </>
       ) : (
-        // TODO add translations
         empty("no-message-provided")
       )}
 
-      {actual && expected && <Button style={"flat"} size={"s"} text={"Show diff"} onClick={openDiff} />}
-      {/* TODO no trace? message is still clickable */}
-      {isOpen && Boolean(trace.length) && <TestResultErrorTrace trace={trace} />}
+      {Boolean(actual && expected && isActualExpectedAreStrings) && (
+        <Button style={"flat"} size={"s"} text={tooltip("showDiff")} onClick={openDiff} />
+      )}
+      {isOpen && Boolean(trace.length) && <TrErrorTrace trace={trace} />}
     </div>
   );
 };
