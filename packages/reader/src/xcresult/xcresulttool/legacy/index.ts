@@ -146,12 +146,7 @@ const isMultiTarget = (discriminators: LegacyActionDiscriminator[]) =>
   ).size > 1;
 
 const isMultiTestPlan = (discriminators: LegacyActionDiscriminator[]) =>
-  new Set(
-    discriminators
-      .map(({ testPlan }) => testPlan)
-      .filter(isDefined)
-      .filter(isDefined),
-  ).size > 1;
+  new Set(discriminators.map(({ testPlan }) => testPlan).filter(isDefined)).size > 1;
 
 const parseDestination = (element: Unknown<XcActionRunDestinationRecord>): LegacyDestinationData | undefined => {
   if (isObject(element)) {
@@ -611,14 +606,14 @@ const convertActionParameters = ({ destination, testPlan, multiTarget, multiTest
   const parameters: RawTestParameter[] = [];
   if (multiTestPlan && testPlan) {
     // Doesn't affect the history. Only illustrates what test plan caused the test to be run
-    parameters.push({ name: "Test plan", value: testPlan, excluded: true });
+    parameters.push({ name: "Test Plan", value: testPlan, excluded: true });
   }
   if (destination) {
     const { name, targetDetails } = destination;
     if (isDefined(name)) {
       parameters.push({ name: "Device", value: name });
       if (multiTarget && targetDetails) {
-        parameters.push({ name: "Device details", value: targetDetails, excluded: true });
+        parameters.push({ name: "Device Details", value: targetDetails, excluded: true });
       }
     }
   }
@@ -688,7 +683,7 @@ const visitActionTestSummaryGroup = async function* (
 };
 
 const getParameterName = (parameter: Unknown<XcTestParameter>) =>
-  isObject(parameter) ? getString(parameter.name) : undefined;
+  isObject(parameter) ? (getString(parameter.name) ?? getString(parameter.label)) : undefined;
 
 const getArgumentValue = (parameter: Unknown<XcTestValue>) =>
   isObject(parameter) ? getString(parameter.description) : undefined;
