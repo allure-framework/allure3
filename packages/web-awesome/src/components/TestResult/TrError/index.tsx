@@ -26,7 +26,6 @@ export const TrError: FunctionalComponent<TestError> = ({ message, trace, actual
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
-  const isActualExpectedAreStrings = typeof expected === "string" && typeof actual === "string";
 
   const openDiff = () =>
     openModal({
