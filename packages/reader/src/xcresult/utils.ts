@@ -177,6 +177,7 @@ export const getAggregatedFailureMessage = (message: string | undefined, failure
 };
 
 export const DEFAULT_BUNDLE_NAME = "The test bundle name is not defined";
+export const DEFAULT_SUITE_ID = "__unknown__";
 export const DEFAULT_SUITE_NAME = "The test suite name is not defined";
 export const DEFAULT_TEST_NAME = "The test name is not defined";
 export const DEFAULT_STEP_NAME = "The test name is not defined";

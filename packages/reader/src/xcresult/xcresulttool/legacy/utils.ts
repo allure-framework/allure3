@@ -2,9 +2,11 @@ import type { RawTestStatus } from "@allurereport/reader-api";
 import { isDefined } from "../../../validation.js";
 import type { Suite } from "./model.js";
 
-export const withNewSuite = (suites: Suite[], uri: string | undefined, name: string) => {
-  return [...suites.filter(({ uri: parentUri }) => !parentUri || !uri || uri.startsWith(parentUri)), { uri, name }];
+export const withNewSuite = (suites: readonly Suite[], id: string, uri: string | undefined, name: string) => {
+  return [...suites.filter(({ uri: parentUri }) => !parentUri || !uri || uri.startsWith(parentUri)), { id, uri, name }];
 };
+
+export const getTestClassFromSuites = (suites: readonly Suite[]) => suites.map(({ id }) => id).join(".");
 
 export const resolveTestStatus = (
   status: string | undefined,
