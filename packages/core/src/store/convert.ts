@@ -46,7 +46,6 @@ export const testFixtureResultRawToState = (
   context: ReaderContext,
 ): TestFixtureResult => {
   const name = raw.name || "Unknown test";
-  console.log("FIXTURE", raw.actual, raw.expected);
   return {
     id: md5(raw.uuid || randomUUID()),
     testResultIds: raw.testResults?.filter(notNull).map(md5) ?? [],
@@ -76,8 +75,6 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
   const name = raw.name || "Unknown test";
   const testCase = processTestCase(stateData, raw);
   const parameters = convertParameters(raw.parameters);
-
-  console.log("testResultRawToState", raw.uuid, raw.actual, raw.expected);
 
   return {
     id: md5(raw.uuid || randomUUID()),
