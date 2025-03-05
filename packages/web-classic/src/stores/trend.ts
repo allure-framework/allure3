@@ -4,26 +4,20 @@ import type { StoreSignalState } from "@/stores/types";
 import type { TestStatus } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
 
-interface TrendItem {
-  buildOrder: number;
-  reportName: string;
-  data: {
-    total: number;
-    failed?: number;
-    broken?: number;
-    passed?: number;
-    skipped?: number;
-    unknown?: number;
-  };
+interface Point {
+  x: Date | string | number;
+  y: number;
 }
 
-interface TrendResponse {
-  items: TrendItem[];
+interface NewTrendResponse {
+  series: Record<TestStatus, string[]>;
+  points: Record<string, Point>;
+  slices: Record<string, { points: string[]; metadata: { runExecutionId: string; runExecutionName: string } }>;
 }
 
 interface TrendChartItem {
   id: string;
-  data: { x: Date | number; y: number }[];
+  data: Point[];
   color: string;
 }
 
@@ -53,25 +47,20 @@ export const fetchTrendData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<TrendResponse>("widgets/history-trend.json");
-    const sortedItems = [...res.items].sort((a, b) => a.buildOrder - b.buildOrder);
+    const res = await fetchReportJsonData<NewTrendResponse>("widgets/history-trend.json");
 
     const chartData = statusesList.reduce<TrendChartItem[]>((acc, status) => {
-      const hasStatus = sortedItems.some(item => item.data[status]);
+      const pointIdsByStatus = res.series[status];
+      const pointsByStatus = pointIdsByStatus.map(pointId => res.points[pointId]);
 
-      if (hasStatus) {
-        acc.push({
-          id: status.charAt(0).toUpperCase() + status.slice(1),
-          data: sortedItems.map(item => ({
-            x: item.buildOrder,
-            y: item.data[status] ?? 0
-          })),
-          color: statusColors[status]
-        });
-      }
+      acc.push({
+        id: status.charAt(0).toUpperCase() + status.slice(1),
+        data: pointsByStatus,
+        color: statusColors[status]
+      });
 
       return acc;
-    }, []);
+    }, [] as TrendChartItem[]);
 
     trendStore.value = {
       data: { data: chartData },
