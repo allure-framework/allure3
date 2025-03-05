@@ -2,7 +2,6 @@ import type { ResultsVisitor } from "@allurereport/reader-api";
 import console from "node:console";
 import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
 import { version } from "./xcresulttool/cli.js";
-import newApi from "./xcresulttool/index.js";
 import { legacyApiUnavailable } from "./xcresulttool/legacy/cli.js";
 import legacyApi from "./xcresulttool/legacy/index.js";
 import type { ApiParseFunction, ParsingContext } from "./xcresulttool/model.js";
@@ -23,8 +22,10 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
       return false;
     }
 
-    if (await xcResultToolAvailable()) {
-      return await parseBundleWithXcResultTool(visitor, directory);
+    const xcResultToolVersion = await maybeGetXcResultToolVersion();
+
+    if (xcResultToolVersion) {
+      return await parseBundleWithXcResultTool(visitor, directory, xcResultToolVersion);
     }
 
     return true;
@@ -33,18 +34,19 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
   return false;
 };
 
-const xcResultToolAvailable = async () => {
+const maybeGetXcResultToolVersion = async () => {
   try {
-    await version();
-    return true;
+    return await version();
   } catch (e) {
     console.error(XCRESULTTOOL_MISSING_MESSAGE, e);
   }
-
-  return false;
 };
 
-const parseBundleWithXcResultTool = async (visitor: ResultsVisitor, xcResultPath: string) => {
+const parseBundleWithXcResultTool = async (
+  visitor: ResultsVisitor,
+  xcResultPath: string,
+  xcResultToolVersion: string,
+) => {
   try {
     await parseWithExportedAttachments(xcResultPath, async (createAttachmentFile) => {
       const context = { xcResultPath: xcResultPath, createAttachmentFile };
@@ -61,10 +63,12 @@ const parseBundleWithXcResultTool = async (visitor: ResultsVisitor, xcResultPath
         }
       }
 
-      // The legacy API is not available. Fallback to the new API (as paradoxical as it may sound; the new API is
-      // much less convenient to consume, lacks some important information, and hides test results that share the
-      // same test id.
-      await tryApi(visitor, newApi, context);
+      // TODO: fallback to the new API here. See https://github.com/allure-framework/allure3/issues/110
+      throw new Error(
+        `The legacy xcresulttool API can't be accessed in ${xcResultToolVersion}. ` +
+          "The new API usage is not implemented yet. " +
+          "Please, see https://github.com/allure-framework/allure3/issues/110 for more details",
+      );
     });
 
     return true;
