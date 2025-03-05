@@ -1,4 +1,4 @@
-import { type EnvironmentItem, type Statistic } from "@allurereport/core-api";
+import type { EnvironmentItem} from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
@@ -15,7 +15,7 @@ import {
   generateTestEnvGroups,
   generateTestResults,
   generateTree,
-  generateTrendData,
+  generateStatusTrendData
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -70,18 +70,7 @@ export class AwesomePlugin implements Plugin {
     }
 
     // Trend data generation
-    const historyPoints = historyDataPoints.map(point => ({
-      name: point.name,
-      statistic: Object.values(point.testResults).reduce((stat: Statistic, test) => {
-        if (test.status) {
-          stat[test.status] = (stat[test.status] || 0) + 1;
-          stat.total = (stat.total || 0) + 1;
-        }
-
-        return stat;
-      }, { total: 0 } as Statistic)
-    }));
-    await generateTrendData(this.#writer!, context.reportName, statistic, historyPoints);
+    await generateStatusTrendData(this.#writer!, context.reportName, statistic, historyDataPoints);
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
