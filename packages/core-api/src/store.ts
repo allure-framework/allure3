@@ -1,4 +1,5 @@
 import type { Statistic } from "./aggregate.js";
+import type { ReportEnvironment } from "./environment.js";
 import type { HistoryDataPoint, HistoryTestResult } from "./history.js";
 import type { KnownTestFailure } from "./known.js";
 import type { AttachmentLink, TestFixtureResult, TestResult } from "./model.js";
@@ -33,4 +34,7 @@ export interface AllureStore {
     [x: string]: TestResult[];
   }>;
   testsStatistic: (filter?: (testResult: TestResult) => boolean) => Promise<Statistic>;
+  // environments
+  allEnvironments: () => Promise<Record<string, ReportEnvironment>>;
+  environmentById: (id: string) => Promise<ReportEnvironment | undefined>;
 }
