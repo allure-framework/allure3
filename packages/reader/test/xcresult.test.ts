@@ -1283,7 +1283,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       ]);
       expect(testResults).toMatchObject([
         {
-          parameters: expect.not.arrayContaining([expect.objectContaining({ name: "Device details" })]),
+          parameters: expect.not.arrayContaining([expect.objectContaining({ name: "Device Details" })]),
         },
       ]);
     });
@@ -1299,7 +1299,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           parameters: expect.arrayContaining([
             { name: "Device", value: "My Mac", excluded: undefined, hidden: undefined, masked: undefined },
             {
-              name: "Device details",
+              name: "Device Details",
               value: "MacBook Air, arm64, macOS 15.3.1",
               excluded: true,
               hidden: undefined,
@@ -1312,7 +1312,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           parameters: expect.arrayContaining([
             { name: "Device", value: "iPhone 16", excluded: undefined, hidden: undefined, masked: undefined },
             {
-              name: "Device details",
+              name: "Device Details",
               value: "iPhone 16, arm64, iOS Simulator 18.2",
               excluded: true,
               hidden: undefined,
@@ -1518,6 +1518,90 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
 
       expect(links).toMatchObject([{ url: "1", name: "Issue 1", type: "issue" }]);
+    });
+  });
+
+  describe("parameters", () => {
+    it("should support parameters", async () => {
+      const result = await readXcResultResource("parameters/twoParameters.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toHaveLength(4);
+      expect(testResults).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "test(arg1:arg2:)",
+            parameters: expect.arrayContaining([
+              { name: "arg1", value: '"foo"' },
+              { name: "arg2", value: "1" },
+            ]),
+          }),
+          expect.objectContaining({
+            name: "test(arg1:arg2:)",
+            parameters: expect.arrayContaining([
+              { name: "arg1", value: '"foo"' },
+              { name: "arg2", value: "2" },
+            ]),
+          }),
+          expect.objectContaining({
+            name: "test(arg1:arg2:)",
+            parameters: expect.arrayContaining([
+              { name: "arg1", value: '"bar"' },
+              { name: "arg2", value: "1" },
+            ]),
+          }),
+          expect.objectContaining({
+            name: "test(arg1:arg2:)",
+            parameters: expect.arrayContaining([
+              { name: "arg1", value: '"bar"' },
+              { name: "arg2", value: "2" },
+            ]),
+          }),
+        ]),
+      );
+    });
+
+    it("should use parameter names if labels are specified", async () => {
+      const result = await readXcResultResource("parameters/withLabel.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toHaveLength(2);
+      expect(testResults).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "test(argLbl:)",
+            parameters: expect.arrayContaining([{ name: "arg", value: '"foo"' }]),
+          }),
+          expect.objectContaining({
+            name: "test(argLbl:)",
+            parameters: expect.arrayContaining([{ name: "arg", value: '"bar"' }]),
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe("multiple test plans", () => {
+    it("should add a parameter to report the test plan", async () => {
+      const result = await readXcResultResource("twoTestPlans.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toHaveLength(2);
+      expect(testResults).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "test()",
+            parameters: expect.arrayContaining([{ name: "Test Plan", value: "xcresult-examples", excluded: true }]),
+          }),
+          expect.objectContaining({
+            name: "test()",
+            parameters: expect.arrayContaining([{ name: "Test Plan", value: "xcresult-examples2", excluded: true }]),
+          }),
+        ]),
+      );
     });
   });
 });
