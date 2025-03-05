@@ -16,6 +16,7 @@ import {
   DEFAULT_BUNDLE_NAME,
   DEFAULT_EXPECTED_FAILURE_REASON,
   DEFAULT_STEP_NAME,
+  DEFAULT_SUITE_ID,
   DEFAULT_SUITE_NAME,
   DEFAULT_TEST_NAME,
   applyApiCalls,
@@ -56,9 +57,10 @@ import {
 } from "./parsing.js";
 import {
   convertTraceLine,
-  withNewSuite as ensureSuiteNesting,
+  getTestClassFromSuites,
   resolveFailureStepStatus,
   resolveTestStatus,
+  withNewSuite,
 } from "./utils.js";
 import type {
   XcActionDeviceRecord,
@@ -241,7 +243,7 @@ const visitActionTestSummary = async function* (
   }: ShallowKnown<XcActionTestSummary>,
   state: LegacyParsingState,
 ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { bundle, className, suites, destination: { hostName } = {} } = state;
+  const { bundle, suites, destination: { hostName } = {} } = state;
 
   const fullName = getString(identifierURL) ?? randomUUID();
   const projectName = parseProjectName(fullName);
@@ -253,9 +255,9 @@ const visitActionTestSummary = async function* (
     hostName,
     projectName,
     bundle,
-    className,
     functionName,
     suites: suites.map(({ name: suite }) => suite),
+    className: getTestClassFromSuites(suites),
     tags: parseTestTags(tags),
   });
 
@@ -680,13 +682,9 @@ const visitActionTestSummaryGroup = async function* (
   const suiteId = getString(name);
   const suiteName = getString(summary) ?? suiteId ?? DEFAULT_SUITE_NAME;
   const suiteUri = getString(identifierURL);
-  const { suites, className } = state;
-  state = {
-    ...state,
-    suites: ensureSuiteNesting(suites, suiteUri, suiteName),
-    className: className ?? suiteId,
-  };
-  yield* traverseActionTestSummaries(context, subtests, state);
+  const { suites: parentSuites } = state;
+  const suites = withNewSuite(parentSuites, suiteId ?? DEFAULT_SUITE_ID, suiteUri, suiteName);
+  yield* traverseActionTestSummaries(context, subtests, { ...state, suites });
 };
 
 const getParameterName = (parameter: Unknown<XcTestParameter>) =>

@@ -39,6 +39,7 @@ export type ActivityProcessingResult = {
 };
 
 export type Suite = {
+  id: string;
   name: string;
   uri: string | undefined;
 };
@@ -46,7 +47,6 @@ export type Suite = {
 export type LegacyParsingState = {
   bundle?: string;
   suites: Suite[];
-  className?: string;
   destination?: LegacyDestinationData;
   testPlan?: string;
   multiTarget: boolean;

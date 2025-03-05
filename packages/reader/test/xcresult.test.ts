@@ -1367,9 +1367,16 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
         expect(labels).toContainEqual({ name: "parentSuite", value: "xcresult-examplesTests" });
       });
 
-      it("should not have suite and subSuite", () => {
+      it("should not have suite", () => {
         expect(labels).not.toContainEqual(expect.objectContaining({ name: "suite" }));
+      });
+
+      it("should not have subSuite", () => {
         expect(labels).not.toContainEqual(expect.objectContaining({ name: "subSuite" }));
+      });
+
+      it("should not have testClass", () => {
+        expect(labels).not.toContainEqual(expect.objectContaining({ name: "testClass" }));
       });
     });
 
@@ -1382,6 +1389,10 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
 
       it("should have a suite", () => {
         expect(labels).toContainEqual({ name: "suite", value: "Foo" });
+      });
+
+      it("should have a testClass", () => {
+        expect(labels).toContainEqual({ name: "testClass", value: "Foo" });
       });
 
       it("should not have a subSuite", () => {
@@ -1403,6 +1414,10 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       it("should have a subSuite", () => {
         expect(labels).toContainEqual({ name: "subSuite", value: "Bar" });
       });
+
+      it("should join both suites to form a testClass", () => {
+        expect(labels).toContainEqual({ name: "testClass", value: "Foo.Bar" });
+      });
     });
 
     describe("a test nested within three suites", () => {
@@ -1414,6 +1429,10 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
 
       it("should have two suites merged into subSuite", () => {
         expect(labels).toContainEqual({ name: "subSuite", value: "Bar > Baz" });
+      });
+
+      it("should join all three suites to form a testClass", () => {
+        expect(labels).toContainEqual({ name: "testClass", value: "Foo.Bar.Baz" });
       });
     });
 
@@ -1430,6 +1449,10 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
 
       it("should use the explicit name for subSuite", () => {
         expect(labels).toContainEqual({ name: "subSuite", value: "Suite 2 > Suite 3" });
+      });
+
+      it("should use original suite identifiers for testClass", () => {
+        expect(labels).toContainEqual({ name: "testClass", value: "Foo.Bar.Baz" });
       });
     });
   });
