@@ -7,8 +7,9 @@ export type Datum = Omit<OriginalDatum, "x" | "y"> & {
   y: number;
 };
 
-export type Serie = Omit<OriginalSerie, "data"> & {
-  data: Datum[];
+export type Serie = Omit<OriginalSerie, "id" | "data"> & {
+  id: string | number;
+  data: readonly Datum[];
 };
 
 type BaseLineSvgProps = Omit<LineSvgProps, "useMesh" | "enableSlices">;
