@@ -1,9 +1,9 @@
 /* eslint max-lines: 0 */
-import type { RawTestStepResult } from "@allurereport/reader-api";
+import type { RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
 import { step } from "allure-js-commons";
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { IS_MAC } from "../src/xcresult/bundle.js";
 import { readXcResultBundle } from "../src/xcresult/index.js";
 import { attachResultDir, buildResourcePath, mockVisitor } from "./utils.js";
@@ -1289,7 +1289,7 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
     });
 
     it("should add the ENV details if more than one device", async () => {
-      const result = await readXcResultResource("twoDevices.xcresult");
+      const result = await readXcResultResource("devices/twoDevices.xcresult");
 
       const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
 
@@ -1321,6 +1321,180 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
           ]),
         },
       ]);
+    });
+
+    describe("iOS simulator", () => {
+      let testResult: RawTestResult | undefined;
+
+      beforeAll(async () => {
+        const result = await readXcResultResource("devices/iphone16.xcresult");
+        [testResult] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should set the host label from the OS simulator host machine", async () => {
+        expect(testResult).toMatchObject({
+          name: "test()",
+          parameters: expect.arrayContaining([
+            { name: "Device", value: "iPhone 16", excluded: undefined, hidden: undefined, masked: undefined },
+          ]),
+          labels: expect.arrayContaining([{ name: "host", value: "My Mac" }]),
+        });
+      });
+    });
+  });
+
+  describe("labels", () => {
+    describe("a test with no suites", () => {
+      let labels: RawTestLabel[] | undefined = [];
+      beforeAll(async () => {
+        const result = await readXcResultResource("suites/noSuites.xcresult");
+        [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should set package to project and bundle", () => {
+        expect(labels).toContainEqual({ name: "package", value: "xcresult-examples.xcresult-examplesTests" });
+      });
+
+      it("should set host", () => {
+        expect(labels).toContainEqual({ name: "host", value: "My Mac" });
+      });
+
+      it("should set testMethod", () => {
+        expect(labels).toContainEqual({ name: "testMethod", value: "test()" });
+      });
+
+      it("should set parentSuite to bundle", () => {
+        expect(labels).toContainEqual({ name: "parentSuite", value: "xcresult-examplesTests" });
+      });
+
+      it("should not have suite and subSuite", () => {
+        expect(labels).not.toContainEqual(expect.objectContaining({ name: "suite" }));
+        expect(labels).not.toContainEqual(expect.objectContaining({ name: "subSuite" }));
+      });
+    });
+
+    describe("a test with a suite", () => {
+      let labels: RawTestLabel[] | undefined = [];
+      beforeAll(async () => {
+        const result = await readXcResultResource("suites/oneSuite.xcresult");
+        [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should have a suite", () => {
+        expect(labels).toContainEqual({ name: "suite", value: "Foo" });
+      });
+
+      it("should not have a subSuite", () => {
+        expect(labels).not.toContainEqual(expect.objectContaining({ name: "subSuite" }));
+      });
+    });
+
+    describe("a test nested within two suites", () => {
+      let labels: RawTestLabel[] | undefined = [];
+      beforeAll(async () => {
+        const result = await readXcResultResource("suites/twoSuites.xcresult");
+        [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should have a suite", () => {
+        expect(labels).toContainEqual({ name: "suite", value: "Foo" });
+      });
+
+      it("should have a subSuite", () => {
+        expect(labels).toContainEqual({ name: "subSuite", value: "Bar" });
+      });
+    });
+
+    describe("a test nested within three suites", () => {
+      let labels: RawTestLabel[] | undefined = [];
+      beforeAll(async () => {
+        const result = await readXcResultResource("suites/threeSuites.xcresult");
+        [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should have two suites merged into subSuite", () => {
+        expect(labels).toContainEqual({ name: "subSuite", value: "Bar > Baz" });
+      });
+    });
+
+    describe("named suites and test", () => {
+      let labels: RawTestLabel[] | undefined = [];
+      beforeAll(async () => {
+        const result = await readXcResultResource("suites/threeNamedSuites.xcresult");
+        [{ labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+      });
+
+      it("should use the explicit name for suite", () => {
+        expect(labels).toContainEqual({ name: "suite", value: "Suite 1" });
+      });
+
+      it("should use the explicit name for subSuite", () => {
+        expect(labels).toContainEqual({ name: "subSuite", value: "Suite 2 > Suite 3" });
+      });
+    });
+  });
+
+  describe("named test", () => {
+    let testResult: RawTestResult | undefined;
+    beforeAll(async () => {
+      const result = await readXcResultResource("namedTest.xcresult");
+      [testResult] = result.visitTestResult.mock.calls.map((t) => t[0]);
+    });
+
+    it("should use explicit name as the title", async () => {
+      expect(testResult).toMatchObject({ name: "Test" });
+    });
+
+    it("should use the original function name as the testMethod label", async () => {
+      expect(testResult).toMatchObject({ labels: expect.arrayContaining([{ name: "testMethod", value: "test()" }]) });
+    });
+
+    it("should use the original function name in fullName", async () => {
+      expect(testResult).toMatchObject({
+        fullName: "test://com.apple.xcode/xcresult-examples/xcresult-examplesTests/test()",
+      });
+    });
+  });
+
+  describe("bug links", () => {
+    it("should add a link from a bug with URL", async () => {
+      const result = await readXcResultResource("bugs/urlOnly.xcresult");
+
+      const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(links).toMatchObject([{ url: "https://allurereport.org", name: undefined, type: "issue" }]);
+    });
+
+    it("should add a link from a bug with URL and name", async () => {
+      const result = await readXcResultResource("bugs/urlAndName.xcresult");
+
+      const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(links).toMatchObject([{ url: "https://allurereport.org", name: "ISSUE-1", type: "issue" }]);
+    });
+
+    it("should ignore ID if URL and name are set", async () => {
+      const result = await readXcResultResource("bugs/urlNameAndId.xcresult");
+
+      const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(links).toMatchObject([{ url: "https://allurereport.org", name: "ISSUE-1", type: "issue" }]);
+    });
+
+    it("should set the link's name if ID is set and the name don't", async () => {
+      const result = await readXcResultResource("bugs/urlAndId.xcresult");
+
+      const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(links).toMatchObject([{ url: "https://allurereport.org", name: "Issue 1", type: "issue" }]);
+    });
+
+    it("should set the link's URL to ID if URL is missing", async () => {
+      const result = await readXcResultResource("bugs/idOnly.xcresult");
+
+      const [{ links }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(links).toMatchObject([{ url: "1", name: "Issue 1", type: "issue" }]);
     });
   });
 });
