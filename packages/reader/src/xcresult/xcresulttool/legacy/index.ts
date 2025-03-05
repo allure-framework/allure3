@@ -307,8 +307,9 @@ const iterateFailureFiles = function* (failures: FailureMap) {
 const parseTrackedIssues = (issues: Unknown<XcArray<XcIssueTrackingMetadata>>): RawTestLink[] =>
   getObjectArray(issues)
     .map(({ comment, identifier, url: rawUrl }) => {
-      const name = getString(comment);
-      const url = getURL(rawUrl) ?? getString(identifier);
+      const issueId = getString(identifier);
+      const name = getString(comment) ?? (issueId ? `Issue ${issueId}` : undefined);
+      const url = getURL(rawUrl) ?? issueId;
       return url ? { type: "issue", name, url } : undefined;
     })
     .filter(isDefined);
@@ -596,11 +597,11 @@ const parseAttachments = async (
 const ensureUniqueFileName = (fileName: Unknown<XcString>) => getString(fileName) ?? randomUUID();
 
 const getAllTestResultParameters = (
-  context: LegacyParsingState,
+  state: LegacyParsingState,
   args: Unknown<XcArray<XcTestArgument>>,
   repetition: Unknown<XcActionTestRepetitionPolicySummary>,
 ) =>
-  [...convertActionParameters(context), convertRepetitionParameter(repetition), ...convertTestParameters(args)].filter(
+  [...convertActionParameters(state), convertRepetitionParameter(repetition), ...convertTestParameters(args)].filter(
     isDefined,
   );
 
