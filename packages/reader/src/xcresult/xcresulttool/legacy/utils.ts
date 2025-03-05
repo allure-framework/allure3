@@ -2,6 +2,11 @@ import type { RawTestStatus } from "@allurereport/reader-api";
 import { isDefined } from "../../../validation.js";
 import type { Suite } from "./model.js";
 
+/**
+ * This function allows to ignore suites that are not parents of a new one. Eventually, it will filter out all suites
+ * that doesn't exist in the test's URI. This is necessary for some tests (e.g., UI XCTests) where extra suites are
+ * created, which doesn't exist in the source code.
+ */
 export const withNewSuite = (suites: readonly Suite[], id: string, uri: string | undefined, name: string) => {
   return [...suites.filter(({ uri: parentUri }) => !parentUri || !uri || uri.startsWith(parentUri)), { id, uri, name }];
 };

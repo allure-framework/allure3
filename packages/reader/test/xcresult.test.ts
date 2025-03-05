@@ -1604,4 +1604,27 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       );
     });
   });
+
+  describe("a UI test with messy summary groups", () => {
+    it("should ignore groups not in the test's URI", async () => {
+      const result = await readXcResultResource("selectedTestsGroup.xcresult");
+
+      const [{ fullName, labels }] = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(fullName).toEqual(
+        "test://com.apple.xcode/xcresult-examples/xcresult-examplesUITests/xcresult_examplesUITests/testExample",
+      );
+      // This UI test bundle contains an extra summary group 'Selected tests', which is missing in the source code.
+      // The reader should ignore it
+      expect(labels).not.toContain({ value: expect.stringContaining("Selected tests") });
+      expect(labels).not.toContain({ name: "subSuite" });
+      expect(labels).toEqual(
+        expect.arrayContaining([
+          { name: "parentSuite", value: "xcresult-examplesUITests" },
+          { name: "suite", value: "xcresult_examplesUITests" },
+          { name: "package", value: "xcresult-examples.xcresult-examplesUITests" },
+        ]),
+      );
+    });
+  });
 });
