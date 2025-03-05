@@ -1,6 +1,6 @@
 import type { ScaleSymlogSpec } from "@nivo/scales";
 import { TrendChartKind } from "./types";
-import type { TrendChartData, TrendChartKindConfig, SymlogScaleOptions } from "./types";
+import type { TrendChartKindConfig, SymlogScaleOptions, Serie } from "./types";
 import { SymlogScaleConstant } from "./constants";
 
 export const getKindConfig = (kind: TrendChartKind): TrendChartKindConfig => {
@@ -27,8 +27,8 @@ export const makeSymlogScale = (min: number, max: number, options?: SymlogScaleO
     };
 };
 
-export const makeSymlogScaleByData = (data: TrendChartData[], options?: SymlogScaleOptions): ScaleSymlogSpec => {
-    const flattenedData = data.flatMap(series => series.data);
+export const makeSymlogScaleBySeries = (series: Serie[], options?: SymlogScaleOptions): ScaleSymlogSpec => {
+    const flattenedData = series.flatMap(serie => serie.data);
     const ys = flattenedData.map<number>(point => point.y);
     const min = Math.min(...ys);
     const max = Math.max(...ys);
