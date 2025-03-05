@@ -112,7 +112,18 @@
     "language": "Zmień język",
     "openInNewTab": "Otwórz w nowej karcie",
     "openPreview": "Otwórz podgląd",
-    "noSelectedTR": "Brak wybranego wyniku testu"
+    "noSelectedTR": "Brak wybranego wyniku testu",
+    "comparison": "Porównanie",
+    "showDiff": "Pokaż różnicę",
+    "viewMode": "Tryb widoku",
+    "unified": "Zunifikowany",
+    "side-by-side": "Obok siebie",
+    "compareBy": "Porównaj według",
+    "chars": "znaki",
+    "words": "słowa",
+    "lines": "linie",
+    "actual": "Rzeczywisty",
+    "expected": "Oczekiwany"
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"

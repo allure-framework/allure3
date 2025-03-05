@@ -52,15 +52,17 @@
 }
 
 .diff {
-  display: flex;
-  gap: 8px;
   width: 100%;
   line-height: 1.28;
-  padding: 0 24px;
+  padding: 0 16px 16px;
 
   .side {
     flex: 1 1 auto;
     gap: 4px;
+  }
+
+  .unified {
+    flex: 1 1 auto;
   }
 
   .diff-screen {
@@ -73,6 +75,11 @@
   background: #09933729;
 }
 
+.diff-grey {
+  color: var(--on-text-secondary);
+  margin-bottom: 4px;
+}
+
 .diff-red {
   color: var(--on-support-capella);
   background: var(--bg-alpha-capella);
@@ -82,7 +89,6 @@
   display: flex;
   gap: 4px;
   align-items: center;
-  margin-left: auto;
   line-height: 24px;
   margin-bottom: 4px;
 }
@@ -94,8 +100,33 @@
   align-items: center;
   line-height: 24px;
 }
+
 .side-title {
   line-height: 24px;
   margin-bottom: 4px;
   display: block;
+}
+
+.diff-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 4px;
+  justify-content: space-between;
+}
+
+.diff-view {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.side-by-side {
+  display: flex;
+  gap: 4px;
+}
+
+.diff-buttons-title {
+  color: var(--on-text-secondary);
+  margin-right: 8px;
 }

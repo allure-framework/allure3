@@ -21,6 +21,7 @@ export interface ModalDataProps<T = any> {
   isModalOpen?: boolean;
   closeModal?: () => void;
   attachments?: AttachmentTestStepResult[];
+  title?: string;
 }
 
 export interface ModalTranslations {
@@ -41,10 +42,16 @@ export const Modal = ({
   attachments,
   closeModal,
   translations,
+  title,
 }: ModalDataProps & ModalTranslationsProps) => {
   const { tooltipPreview, tooltipDownload, openInNewTabButton } = translations;
   const { link } = data || {};
-  const attachName = link?.name ? `${link?.name}` : link?.id && link?.ext ? `${link?.id}${link?.ext}` : "";
+
+  const isImageAttachment = link?.contentType?.startsWith("image");
+  const isHtmlAttachment = link?.contentType === "text/html";
+  const isAttachment = link?.id && link?.ext && link?.contentType;
+  const attachmentName = link?.name || (link?.id && link?.ext && `${link.id}${link.ext}`) || "";
+  const modalName = title || attachmentName;
 
   useEffect(() => {
     Prism.highlightAll();
@@ -59,10 +66,6 @@ export const Modal = ({
       document.body.style.overflow = "";
     };
   }, []);
-
-  const isImageAttachment = link?.contentType?.startsWith("image");
-  const isHtmlAttachment = link?.contentType === "text/html";
-  const isAttachment = link?.id && link?.ext && link?.contentType;
 
   const downloadData = async (e: Event) => {
     e.stopPropagation();
@@ -86,7 +89,7 @@ export const Modal = ({
       <div className={styles["modal-content"]} onClick={(e) => e.stopPropagation()}>
         <div className={`${styles["modal-wrapper"]}`}>
           <div className={styles["modal-top"]}>
-            <Heading size={"s"}>{attachName}</Heading>
+            <Heading size={"s"}>{modalName}</Heading>
             <div className={styles["modal-buttons"]}>
               {isImageAttachment && (
                 <Button

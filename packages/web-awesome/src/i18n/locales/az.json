@@ -114,7 +114,18 @@
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
     "openPreview": "Önizləməni aç",
-    "noSelectedTR": "Seçilmiş Test nəticəsi yoxdur"
+    "noSelectedTR": "Seçilmiş Test nəticəsi yoxdur",
+    "comparison": "Müqayisə",
+    "showDiff": "Fərqi göstər",
+    "viewMode": "Baxış rejimi",
+    "unified": "Birləşdirilmiş",
+    "side-by-side": "Yan-yana",
+    "compareBy": "Müqayisə üsulu",
+    "chars": "simvollar",
+    "words": "sözlər",
+    "lines": "sətirlər",
+    "actual": "Faktiki",
+    "expected": "Gözlənilən"
   },
   "errors": {
     "missedAttachment": "Əlavə tapılmadı"

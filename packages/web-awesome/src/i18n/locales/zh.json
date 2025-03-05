@@ -114,7 +114,18 @@
     "language": "更改语言",
     "openInNewTab": "在新标签页中打开",
     "openPreview": "打开预览",
-    "noSelectedTR": "没有选择的测试结果"
+    "noSelectedTR": "没有选择的测试结果",
+    "comparison": "对比",
+    "showDiff": "显示差异",
+    "viewMode": "查看模式",
+    "unified": "统一",
+    "side-by-side": "并排",
+    "compareBy": "比较方式",
+    "chars": "字符",
+    "words": "单词",
+    "lines": "行",
+    "actual": "实际",
+    "expected": "预期"
   },
   "errors": {
     "missedAttachment": "未找到附件"

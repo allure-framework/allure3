@@ -114,7 +114,18 @@
     "language": "언어 변경",
     "openInNewTab": "새 탭에서 열기",
     "openPreview": "미리보기 열기",
-    "noSelectedTR": "선택된 테스트 결과 없음"
+    "noSelectedTR": "선택된 테스트 결과 없음",
+    "comparison": "비교",
+    "showDiff": "차이점 보기",
+    "viewMode": "보기 모드",
+    "unified": "통합",
+    "side-by-side": "나란히",
+    "compareBy": "비교 기준",
+    "chars": "문자",
+    "words": "단어",
+    "lines": "줄",
+    "actual": "실제",
+    "expected": "예상"
   },
   "errors": {
     "missedAttachment": "첨부파일을 찾을 수 없습니다"

@@ -114,7 +114,18 @@
     "language": "Sprache ändern",
     "openInNewTab": "In neuem Tab öffnen",
     "openPreview": "Vorschau öffnen",
-    "noSelectedTR": "Kein ausgewähltes Testergebnis"
+    "noSelectedTR": "Kein ausgewähltes Testergebnis",
+    "comparison": "Vergleich",
+    "showDiff": "Unterschied anzeigen",
+    "viewMode": "Ansichtsmodus",
+    "unified": "Einheitlich",
+    "side-by-side": "Nebeneinander",
+    "compareBy": "Vergleichen nach",
+    "chars": "Zeichen",
+    "words": "Wörter",
+    "lines": "Zeilen",
+    "actual": "Tatsächlich",
+    "expected": "Erwartet"
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"

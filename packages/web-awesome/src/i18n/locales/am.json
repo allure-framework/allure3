@@ -114,7 +114,18 @@
     "language": "Փոխել լեզուն",
     "openInNewTab": "Բացել նոր ներդիրում",
     "openPreview": "Բացել նախադիտումը",
-    "noSelectedTR": "Ընտրված թեստի արդյունք չկա"
+    "noSelectedTR": "Ընտրված թեստի արդյունք չկա",
+    "comparison": "Համեմատություն",
+    "showDiff": "Ցուցադրել տարբերությունը",
+    "viewMode": "Դիտման ռեժիմ",
+    "unified": "Միավորված",
+    "side-by-side": "Կողք կողքի",
+    "compareBy": "Համեմատել ըստ",
+    "chars": "սիմվոլներ",
+    "words": "բառեր",
+    "lines": "տողեր",
+    "actual": "Իրական",
+    "expected": "Սպասվող"
   },
   "errors": {
     "missedAttachment": "Կցորդը չի գտնվել"

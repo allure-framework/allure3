@@ -114,7 +114,18 @@
     "language": "Taal wijzigen",
     "openInNewTab": "Openen in een nieuw tabblad",
     "openPreview": "Voorbeeld openen",
-    "noSelectedTR": "Geen geselecteerd testresultaat"
+    "noSelectedTR": "Geen geselecteerd testresultaat",
+    "comparison": "Vergelijking",
+    "showDiff": "Toon verschil",
+    "viewMode": "Weergavemodus",
+    "unified": "Gecombineerd",
+    "side-by-side": "Naast elkaar",
+    "compareBy": "Vergelijken op",
+    "chars": "tekens",
+    "words": "woorden",
+    "lines": "regels",
+    "actual": "Actueel",
+    "expected": "Verwacht"
   },
   "errors": {
     "missedAttachment": "Bijlage niet gevonden"

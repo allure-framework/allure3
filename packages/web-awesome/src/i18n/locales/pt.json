@@ -114,7 +114,18 @@
     "language": "Alterar idioma",
     "openInNewTab": "Abrir em nova aba",
     "openPreview": "Abrir pré-visualização",
-    "noSelectedTR": "Nenhum resultado de teste selecionado"
+    "noSelectedTR": "Nenhum resultado de teste selecionado",
+    "comparison": "Comparação",
+    "showDiff": "Mostrar diferença",
+    "viewMode": "Modo de exibição",
+    "unified": "Unificado",
+    "side-by-side": "Lado a lado",
+    "compareBy": "Comparar por",
+    "chars": "caracteres",
+    "words": "palavras",
+    "lines": "linhas",
+    "actual": "Real",
+    "expected": "Esperado"
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"

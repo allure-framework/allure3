@@ -114,7 +114,18 @@
     "language": "Byt språk",
     "openInNewTab": "Öppna i ny flik",
     "openPreview": "Öppna förhandsgranskning",
-    "noSelectedTR": "Inget valt testresultat"
+    "noSelectedTR": "Inget valt testresultat",
+    "comparison": "Jämförelse",
+    "showDiff": "Visa skillnad",
+    "viewMode": "Visningsläge",
+    "unified": "Enhetligt",
+    "side-by-side": "Sida vid sida",
+    "compareBy": "Jämför efter",
+    "chars": "tecken",
+    "words": "ord",
+    "lines": "rader",
+    "actual": "Faktisk",
+    "expected": "Förväntad"
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"

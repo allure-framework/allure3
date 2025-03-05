@@ -114,7 +114,18 @@
     "language": "言語を変更",
     "openInNewTab": "新しいタブで開く",
     "openPreview": "プレビューを開く",
-    "noSelectedTR": "選択されたテスト結果はありません"
+    "noSelectedTR": "選択されたテスト結果はありません",
+    "comparison": "比較",
+    "showDiff": "違いを表示",
+    "viewMode": "表示モード",
+    "unified": "統一",
+    "side-by-side": "並列",
+    "compareBy": "比較基準",
+    "chars": "文字",
+    "words": "単語",
+    "lines": "行",
+    "actual": "実際",
+    "expected": "予想"
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"

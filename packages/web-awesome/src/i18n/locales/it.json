@@ -114,7 +114,18 @@
     "language": "Cambia lingua",
     "openInNewTab": "Apri in una nuova scheda",
     "openPreview": "Apri anteprima",
-    "noSelectedTR": "Nessun risultato del test selezionato"
+    "noSelectedTR": "Nessun risultato del test selezionato",
+    "comparison": "Confronto",
+    "showDiff": "Mostra differenza",
+    "viewMode": "Modalità di visualizzazione",
+    "unified": "Unificato",
+    "side-by-side": "Affiancato",
+    "compareBy": "Confronta per",
+    "chars": "caratteri",
+    "words": "parole",
+    "lines": "righe",
+    "actual": "Attuale",
+    "expected": "Previsto"
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"

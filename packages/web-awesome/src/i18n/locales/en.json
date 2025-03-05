@@ -115,7 +115,18 @@
     "language": "Change language",
     "openInNewTab": "Open in new tab",
     "openPreview": "Open preview",
-    "noSelectedTR": "No selected Test result"
+    "noSelectedTR": "No selected Test result",
+    "comparison": "Comparison",
+    "showDiff": "Show difference",
+    "viewMode": "View mode",
+    "unified": "Unified",
+    "side-by-side": "Side by Side",
+    "compareBy": "Compare by",
+    "chars": "chars",
+    "words": "words",
+    "lines": "lines",
+    "actual": "Actual",
+    "expected": "Expected"
   },
   "errors": {
     "missedAttachment": "Attachment not found"

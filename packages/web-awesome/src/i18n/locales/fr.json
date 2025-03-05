@@ -114,7 +114,18 @@
     "language": "Changer la langue",
     "openInNewTab": "Ouvrir dans un nouvel onglet",
     "openPreview": "Ouvrir l'aperçu",
-    "noSelectedTR": "Aucun résultat de test sélectionné"
+    "noSelectedTR": "Aucun résultat de test sélectionné",
+    "comparison": "Comparaison",
+    "showDiff": "Afficher la différence",
+    "viewMode": "Mode d'affichage",
+    "unified": "Unifié",
+    "side-by-side": "Côte à côte",
+    "compareBy": "Comparer par",
+    "chars": "caractères",
+    "words": "mots",
+    "lines": "lignes",
+    "actual": "Réel",
+    "expected": "Attendu"
   },
   "errors": {
     "missedAttachment": "Pièce jointe non trouvée"

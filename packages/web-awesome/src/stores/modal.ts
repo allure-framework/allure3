@@ -9,14 +9,11 @@ export const modalData = signal<ModalDataProps>({
   component: null,
   isModalOpen: isModalOpen.value,
   closeModal: null,
+  title: "",
 });
 
-export const openModal = ({ data, component, preview }: ModalDataProps) => {
-  modalData.value = {
-    data,
-    component,
-    preview,
-  };
+export const openModal = (props: ModalDataProps) => {
+  modalData.value = { ...props };
   isModalOpen.value = true;
 };
 

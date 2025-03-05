@@ -114,7 +114,18 @@
     "language": "שנה שפה",
     "openInNewTab": "פתח בכרטיסייה חדשה",
     "openPreview": "פתח תצוגה מקדימה",
-    "noSelectedTR": "אין תוצאת בדיקה נבחרת"
+    "noSelectedTR": "אין תוצאת בדיקה נבחרת",
+    "comparison": "השוואה",
+    "showDiff": "הצג הבדל",
+    "viewMode": "מצב תצוגה",
+    "unified": "מאוחד",
+    "side-by-side": "זה לצד זה",
+    "compareBy": "השוואה לפי",
+    "chars": "תווים",
+    "words": "מילים",
+    "lines": "שורות",
+    "actual": "מצב נוכחי",
+    "expected": "מצופה"
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"

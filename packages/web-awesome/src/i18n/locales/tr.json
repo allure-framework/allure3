@@ -114,7 +114,18 @@
     "language": "Dili değiştir",
     "openInNewTab": "Yeni sekmede aç",
     "openPreview": "Önizlemeyi aç",
-    "noSelectedTR": "Seçilen test sonucu yok"
+    "noSelectedTR": "Seçilen test sonucu yok",
+    "comparison": "Karşılaştırma",
+    "showDiff": "Farkı göster",
+    "viewMode": "Görünüm modu",
+    "unified": "Birleştirilmiş",
+    "side-by-side": "Yan yana",
+    "compareBy": "Karşılaştırma ölçütü",
+    "chars": "karakterler",
+    "words": "kelimeler",
+    "lines": "satırlar",
+    "actual": "Gerçek",
+    "expected": "Beklenen"
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"
