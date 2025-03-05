@@ -1,5 +1,5 @@
-import { TrendChart, defaultTrendChartLegendConfig, defaultTrendChartAxisBottomConfig, defaultTrendChartAxisLeftConfig, makeSymlogScaleByData, TrendChartKind } from "@allurereport/web-components";
-import type { TrendChartProps, TrendChartDataItem, TrendChartData } from "@allurereport/web-components";
+import { TrendChart, defaultTrendChartLegendConfig, defaultTrendChartAxisBottomConfig, defaultTrendChartAxisLeftConfig, makeSymlogScaleBySeries, TrendChartKind } from "@allurereport/web-components";
+import type { TrendChartProps, Datum, Serie } from "@allurereport/web-components";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
@@ -10,12 +10,12 @@ const meta: Meta<typeof TrendChart> = {
 
 export default meta;
 
-const makeDaysData = (count: number, maxValue = 100): TrendChartDataItem[] => Array.from({ length: count }, (_, index) => ({
+const makeDaysData = (count: number, maxValue = 100): Datum[] => Array.from({ length: count }, (_, index) => ({
   x: `#${index + 1}`,
   y: Math.floor(Math.random() * maxValue)
 }));
 
-const mockDefaultData = (count: number): TrendChartData[] => [
+const mockDefaultData = (count: number): Serie[] => [
   {
     id: "Passed",
     data: makeDaysData(count, 150),
@@ -81,6 +81,6 @@ export const WithLogarithmicScale: Story = {
       legendOffset: -40,
       legendPosition: "middle",
     },
-    yScale: makeSymlogScaleByData(mockedData, { constant: 48 }),
+    yScale: makeSymlogScaleBySeries(mockedData, { constant: 48 }),
   }
 };
