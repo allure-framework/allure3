@@ -64,7 +64,7 @@ export const TrError: FunctionalComponent<TestError> = ({ message, trace, actual
         empty("no-message-provided")
       )}
 
-      {Boolean(actual && expected && isActualExpectedAreStrings) && (
+      {Boolean(actual && expected) && (
         <Button style={"flat"} size={"s"} text={tooltip("showDiff")} onClick={openDiff} />
       )}
       {isOpen && Boolean(trace.length) && <TrErrorTrace trace={trace} />}

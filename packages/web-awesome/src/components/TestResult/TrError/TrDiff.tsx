@@ -2,6 +2,7 @@ import { Button, Code, CodeViewer } from "@allurereport/web-components";
 import type { BaseOptions, Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";
+import { ac } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 import * as styles from "@/components/TestResult/TrError/styles.scss";
 import { useI18n } from "@/stores";
 
@@ -15,9 +16,11 @@ type DiffType = keyof typeof diffFunctions;
 type ViewMode = "unified" | "side-by-side";
 
 export const TrDiff = ({ expected, actual }: { expected: string; actual: string }) => {
+  const stringifiedExpected = JSON.stringify(expected);
+  const stringifiedActual = JSON.stringify(actual);
   const [diffType, setDiffType] = useState<DiffType>("lines");
   const [viewMode, setViewMode] = useState<ViewMode>("unified");
-  const [diff, setDiff] = useState<Change[]>(() => diffLines(String(expected), String(actual)));
+  const [diff, setDiff] = useState<Change[]>(() => diffLines(stringifiedExpected, stringifiedActual));
   const { t } = useI18n("controls");
 
   const DiffCode = () => {
@@ -34,8 +37,8 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
   const changeTypeDiff = (type: DiffType = "chars") => {
     const diffFn = diffFunctions[type];
     const result = (diffFn as (oldStr: string, newStr: string, options?: BaseOptions) => Change[])(
-      String(expected),
-      String(actual),
+      stringifiedExpected,
+      stringifiedActual,
       {},
     );
 
