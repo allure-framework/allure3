@@ -17,7 +17,7 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
       );
 
       // There is a small chance we're dealing with a proper allure results directory that just by accident has a
-      // bundle-like layout.
+      // bundle-like layout (e.g., an attachment named `Info.plist`).
       // In such a case, allow the directory to be read (if it's really a bundle, the user will see an empty report).
       return false;
     }
@@ -38,7 +38,8 @@ const maybeGetXcResultToolVersion = async () => {
   try {
     return await version();
   } catch (e) {
-    console.error(XCRESULTTOOL_MISSING_MESSAGE, e);
+    console.error(XCRESULTTOOL_MISSING_MESSAGE);
+    console.error(e);
   }
 };
 

@@ -1,4 +1,4 @@
-/* eslint max-lines: 0 */
+/* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
 import { step } from "allure-js-commons";
 import { existsSync, lstatSync } from "fs";
@@ -36,7 +36,16 @@ const readXcResultResource = async (resourcePath: string, expectedResult: boolea
   });
 };
 
-describe.skipIf(!IS_MAC)("on MAC", () => {
+describe.skipIf(IS_MAC)("Not a MAC machine", () => {
+  it("should ignore xcresult bundles", async () => {
+    const result = await readXcResultResource("outcomes/passed.xcresult", false);
+
+    expect(result.visitAttachmentFile).not.toBeCalled();
+    expect(result.visitTestResult).not.toBeCalled();
+  });
+});
+
+describe.skipIf(!IS_MAC)("A MAC machine", () => {
   describe("attachments", () => {
     it("should parse a nameless test attachment", async () => {
       const result = await readXcResultResource("attachments/nameless.xcresult");

@@ -9,17 +9,20 @@ const XCODE_INSTALL_URL =
 
 const XCODE_SWITCH_COMMAND = "sudo xcode-select -s /Applications/Xcode.app/Contents/Developer";
 
-export const XCRESULTTOOL_MISSING_MESSAGE = `xcresulttool is required to parse Xcode Result bundles, but we can't access it on this machine.
-This tool is a part of Xcode. Please make sure Xcode is installed. Visit this page to learn more about the installation:\n
+export const XCRESULTTOOL_MISSING_MESSAGE = `'xcresulttool' is required to parse Xcode Result bundles, but we can't \
+access it on this machine. This tool is a part of Xcode. Please make sure Xcode is installed. Visit this page to learn \
+more about the installation:
 
     ${XCODE_INSTALL_URL}
 
-Note that xcresulttool doesn't come with Command Line Tools for Xcode. You need the full Xcode package to get it. If you have both
-installed, make sure the full installation is selected. If it's not, switch it with xcode-select. For example:
+Note that 'xcresulttool' doesn't come with Command Line Tools for Xcode. You need to install the full Xcode package to \
+get it. If you have both installed, make sure the full installation is selected. Switch to it with xcode-select if \
+necessary (the path to Xcode's Developer directory might be different on your machine):
 
     ${XCODE_SWITCH_COMMAND}
 
-The original error:`;
+The original error that led to this message is shown below.
+`;
 
 const bundleInfoFilePaths = new Set([
   "Info.plist",
