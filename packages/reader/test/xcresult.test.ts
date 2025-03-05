@@ -1246,4 +1246,81 @@ describe.skipIf(!IS_MAC)("on MAC", () => {
       });
     });
   });
+
+  describe("repetitions", () => {
+    it("should add repetition parameter", async () => {
+      const result = await readXcResultResource("twoRepetitions.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toMatchObject([
+        {
+          name: "test()",
+          parameters: expect.arrayContaining([{ name: "Repetition", value: "Repetition 1 of 2", excluded: true }]),
+        },
+        {
+          name: "test()",
+          parameters: expect.arrayContaining([{ name: "Repetition", value: "Repetition 2 of 2", excluded: true }]),
+        },
+      ]);
+    });
+  });
+
+  // TODO: revisit after we implement ENVS properly
+  describe("destinations", () => {
+    it("should add the ENV discriminator", async () => {
+      const result = await readXcResultResource("outcomes/passed.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toMatchObject([
+        {
+          name: "test()",
+          parameters: expect.arrayContaining([
+            { name: "Device", value: "My Mac", excluded: undefined, hidden: undefined, masked: undefined },
+          ]),
+        },
+      ]);
+      expect(testResults).toMatchObject([
+        {
+          parameters: expect.not.arrayContaining([expect.objectContaining({ name: "Device details" })]),
+        },
+      ]);
+    });
+
+    it("should add the ENV details if more than one device", async () => {
+      const result = await readXcResultResource("twoDevices.xcresult");
+
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+
+      expect(testResults).toMatchObject([
+        {
+          name: "test()",
+          parameters: expect.arrayContaining([
+            { name: "Device", value: "My Mac", excluded: undefined, hidden: undefined, masked: undefined },
+            {
+              name: "Device details",
+              value: "MacBook Air, arm64, macOS 15.3.1",
+              excluded: true,
+              hidden: undefined,
+              masked: undefined,
+            },
+          ]),
+        },
+        {
+          name: "test()",
+          parameters: expect.arrayContaining([
+            { name: "Device", value: "iPhone 16", excluded: undefined, hidden: undefined, masked: undefined },
+            {
+              name: "Device details",
+              value: "iPhone 16, arm64, iOS Simulator 18.2",
+              excluded: true,
+              hidden: undefined,
+              masked: undefined,
+            },
+          ]),
+        },
+      ]);
+    });
+  });
 });
