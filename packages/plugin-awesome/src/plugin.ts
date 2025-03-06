@@ -4,13 +4,11 @@ import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
-  generateEnvironments,
   generateHistoryDataPoints,
   generatePieChart,
   generateStaticFiles,
   generateStatistic,
   generateTestResults,
-  generateTestResultsGroups,
   generateTree,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
@@ -31,11 +29,6 @@ export class AwesomePlugin implements Plugin {
     await generatePieChart(this.#writer!, statistic);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
-
-    // TODO:
-    await generateEnvironments(this.#writer!, this.options.environments);
-    await generateTestResultsGroups(this.#writer!, store, this.options.environments);
-
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
