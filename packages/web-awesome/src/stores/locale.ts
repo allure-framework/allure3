@@ -25,24 +25,17 @@ const namespaces = [
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
+export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value].iso);
+export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value));
 
-export const currentLocaleIso = computed(() => {
-  const locale = currentLocale.value;
-
-  return LANG_LOCALE[locale].iso;
-});
-
-export const currentLocaleIsRTL = computed(() => {
-  return ["ar", "he", "fa"].includes(currentLocale.value as string);
-});
-
-export const getLocale = () => {
+export const getLocale = async () => {
   const { reportLanguage } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
   const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
-  setLocale(locale as LangLocale);
+
+  await setLocale(locale as LangLocale);
 };
 
-i18next
+export const waitForI18next = i18next
   .use({
     type: "backend",
     read: async (
@@ -63,9 +56,7 @@ i18next
     lng: currentLocale.value,
     fallbackLng: "en",
     ns: namespaces,
-    interpolation: {
-      escapeValue: false,
-    },
+    interpolation: { escapeValue: false },
   });
 
 export const useI18n = (namespace?: string) => {

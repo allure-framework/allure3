@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
-const generateTestResultName = () => randomUUID() + "-result.json";
+const generateTestResultName = () => `${randomUUID()}-result.json`;
 
 describe("allure2 reader", () => {
   it("should parse simple result", async () => {
@@ -637,6 +637,32 @@ describe("allure2 reader", () => {
     });
   });
 
+  it("should parse actual", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/status-details-actual.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    const tr = visitor.visitTestResult.mock.calls[0][0];
+
+    expect(tr).toMatchObject({
+      actual: "some actual",
+    });
+  });
+
+  it("should parse expected", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/status-details-expected.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitTestResult).toHaveBeenCalledTimes(1);
+    const tr = visitor.visitTestResult.mock.calls[0][0];
+
+    expect(tr).toMatchObject({
+      expected: "some expected",
+    });
+  });
+
   it("should parse flaky status detail", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/status-details-flaky.json": generateTestResultName(),
@@ -685,7 +711,7 @@ describe("allure2 reader", () => {
   });
 
   it("should add attachments with extension", async () => {
-    const fileName = randomUUID() + "-attachment.json";
+    const fileName = `${randomUUID()}-attachment.json`;
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": fileName,
     });
@@ -706,7 +732,7 @@ describe("allure2 reader", () => {
   });
 
   it("should add attachments without extension", async () => {
-    const fileName = randomUUID() + "-attachment";
+    const fileName = `${randomUUID()}-attachment`;
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": fileName,
     });
@@ -727,7 +753,7 @@ describe("allure2 reader", () => {
   });
 
   it("should add attachments with complex extension", async () => {
-    const fileName = randomUUID() + "-attachment.tar.gz";
+    const fileName = `${randomUUID()}-attachment.tar.gz`;
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": fileName,
     });

@@ -174,7 +174,6 @@ const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestRe
     links: result?.links?.filter(notNull)?.map(convertLink),
     labels: result.labels?.filter(notNull)?.map(convertLabel),
   };
-  console.log("ressssssssssssssssssssss", result.statusDetails?.actual, dest.actual);
 
   await visitor.visitTestResult(dest, { readerId, metadata: { originalFileName } });
 };

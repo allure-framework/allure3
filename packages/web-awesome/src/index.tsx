@@ -8,7 +8,7 @@ import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
-import { fetchStats, getLocale, getTheme } from "@/stores";
+import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
@@ -31,9 +31,9 @@ const App = () => {
 
   useEffect(() => {
     if (globalThis) {
+      getLocale();
       getLayout();
       getTheme();
-      getLocale();
     }
     ensureReportDataReady();
     fetchStats();
@@ -80,5 +80,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 (async () => {
+  await waitForI18next;
+  if (globalThis) {
+    await getLocale();
+    getLayout();
+    getTheme();
+  }
+  await ensureReportDataReady();
+  await fetchStats();
+  await fetchEnvInfo();
+  await fetchPieChartData();
+  await fetchTreeData();
+
   render(<App />, rootElement);
 })();
