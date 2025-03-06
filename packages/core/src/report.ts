@@ -48,6 +48,8 @@ export class AllureReport {
       appendHistory,
       historyPath,
       defaultLabels = {},
+      variables = {},
+      environments,
     } = opts;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
@@ -57,9 +59,11 @@ export class AllureReport {
     this.#appendHistory = appendHistory ?? true;
     this.#historyPath = historyPath;
     this.#store = new DefaultAllureStore({
+      eventEmitter: this.#eventEmitter,
+      reportVariables: variables,
+      environmentsConfig: environments,
       history,
       known,
-      eventEmitter: this.#eventEmitter,
       defaultLabels,
     });
     this.#readers = [...readers];
