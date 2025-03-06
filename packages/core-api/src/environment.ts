@@ -21,3 +21,8 @@ export type EnvironmentsConfig = Record<string, EnvironmentDescriptor>;
 export type ReportEnvironment = Omit<EnvironmentDescriptor, "matcher"> & {
   testResults: TestResult[];
 };
+
+export type EnvTestGroup = Pick<TestResult, "fullName" | "name" | "status"> & {
+  id: string;
+  testResultsByEnv: Record<string, TestResult>;
+};
