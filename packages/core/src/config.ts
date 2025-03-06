@@ -75,6 +75,8 @@ export const validateConfig = (config: Config) => {
     "qualityGate",
     "plugins",
     "defaultLabels",
+    "variables",
+    "environments",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
 
@@ -101,6 +103,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const history = await readHistory(historyPath);
   const known = await readKnownIssues(knownIssuesPath);
+  const variables = config.variables ?? {};
+  const environments = config.environments ?? {};
   const plugins =
     Object.keys(config?.plugins ?? {}).length === 0
       ? {
@@ -113,13 +117,15 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   return {
     name,
-    reportFiles: new FileSystemReportFiles(output),
-    plugins: pluginInstances,
     output,
     history,
     historyPath,
     knownIssuesPath,
     known,
+    variables,
+    environments,
+    reportFiles: new FileSystemReportFiles(output),
+    plugins: pluginInstances,
     qualityGate: config.qualityGate,
   };
 };
