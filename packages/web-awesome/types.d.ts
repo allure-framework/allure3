@@ -56,6 +56,7 @@ export type AllureAwesomeTestResult = Omit<
   | "precondition"
   | "preconditionHtml"
   | "steps"
+  | "environment"
 > & {
   setup: AllureAwesomeFixtureResult[];
   teardown: AllureAwesomeFixtureResult[];

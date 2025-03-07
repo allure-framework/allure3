@@ -1,12 +1,12 @@
 import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
-import type {
-  AllureStore,
-  QualityGateConfig,
-  QualityGateRules,
-  QualityGateRulesMeta,
-  QualityGateValidationResult,
-  QualityGateValidator,
-  QualityGateValidatorConstructor,
+import {
+  type AllureStore,
+  type QualityGateConfig,
+  type QualityGateRules,
+  type QualityGateRulesMeta,
+  type QualityGateValidationResult,
+  type QualityGateValidator,
+  type QualityGateValidatorConstructor,
 } from "@allurereport/plugin-api";
 
 // TODO replace abstraction with a helper method

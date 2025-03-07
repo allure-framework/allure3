@@ -1348,3 +1348,115 @@ describe("history", () => {
     ]);
   });
 });
+
+describe("environments", () => {
+  it("should set environment to test result on visit when they are specified", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const rawTr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const rawTr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(rawTr1, { readerId });
+    await store.visitTestResult(rawTr2, { readerId });
+
+    const [tr1, tr2] = await store.allTestResults();
+
+    expect(tr1).toMatchObject({
+      name: rawTr1.name,
+      environment: "foo",
+    });
+    expect(tr2).toMatchObject({
+      name: rawTr2.name,
+      environment: "default",
+    });
+  });
+
+  it("should return all environments", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: () => true,
+        },
+      },
+    });
+    const result = await store.allEnvironments();
+
+    expect(result).toEqual(["default", "foo"]);
+  });
+
+  it("should return test results for given environment", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const rawTr1: RawTestResult = {
+      name: "test result 1",
+      labels: [
+        {
+          name: "env",
+          value: "foo",
+        },
+      ],
+    };
+    const rawTr2: RawTestResult = {
+      name: "test result 2",
+      labels: [
+        {
+          name: "env",
+          value: "bar",
+        },
+      ],
+    };
+
+    await store.visitTestResult(rawTr1, { readerId });
+    await store.visitTestResult(rawTr2, { readerId });
+
+    expect(await store.testResultsByEnvironment("foo")).toEqual([
+      expect.objectContaining({
+        name: rawTr1.name,
+      }),
+    ]);
+    expect(await store.testResultsByEnvironment("default")).toEqual([
+      expect.objectContaining({
+        name: rawTr2.name,
+      }),
+    ]);
+  });
+
+  it("should return an empty array for unknown environment", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: () => true,
+        },
+      },
+    });
+    const result = await store.testResultsByEnvironment("unknown");
+
+    expect(result).toEqual([]);
+  });
+});

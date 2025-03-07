@@ -9,12 +9,12 @@ import {
 } from "@allurereport/core-api";
 import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
-import type {
-  AllureAwesomeFixtureResult,
-  AllureAwesomeReportOptions,
-  AllureAwesomeTestResult,
-  AllureAwesomeTreeGroup,
-  AllureAwesomeTreeLeaf,
+import {
+  type AllureAwesomeFixtureResult,
+  type AllureAwesomeReportOptions,
+  type AllureAwesomeTestResult,
+  type AllureAwesomeTreeGroup,
+  type AllureAwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
 import {
   createBaseUrlScript,

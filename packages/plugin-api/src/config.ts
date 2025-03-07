@@ -1,14 +1,15 @@
+import type { DefaultLabelsConfig, EnvironmentsConfig, ReportVariables } from "@allurereport/core-api";
 import type { PluginDescriptor } from "./plugin.js";
 import type { QualityGateConfig } from "./qualityGate.js";
-
-export type DefaultLabelsConfig = Record<string, string | string[]>;
 
 export interface Config {
   name?: string;
   output?: string;
   historyPath?: string;
   knownIssuesPath?: string;
-  qualityGate?: QualityGateConfig;
+  defaultLabels?: DefaultLabelsConfig;
+  environments?: EnvironmentsConfig;
+  variables?: ReportVariables;
   /**
    * You can specify plugins by their package name:
    * @example
@@ -36,20 +37,7 @@ export interface Config {
    * Both examples above will do the same thing
    */
   plugins?: Record<string, PluginDescriptor>;
-  /**
-   * You can specify default labels for tests which don't have them at all
-   * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
-   * @example
-   * ```json
-   * {
-   *   "defaultLabels": {
-   *     "severity": "unspecified severity, set it manually",
-   *     "tag": ["foo", "bar"]
-   *   }
-   * }
-   * ```
-   */
-  defaultLabels?: DefaultLabelsConfig;
+  qualityGate?: QualityGateConfig;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

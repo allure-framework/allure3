@@ -1,27 +1,47 @@
-import type { HistoryDataPoint, KnownTestFailure } from "@allurereport/core-api";
-import type { DefaultLabelsConfig, Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
+import type {
+  DefaultLabelsConfig,
+  EnvironmentsConfig,
+  HistoryDataPoint,
+  KnownTestFailure,
+  ReportVariables,
+} from "@allurereport/core-api";
+import type { Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
-
-export interface FullConfig {
-  name: string;
-  output: string;
-  reportFiles: ReportFiles;
-  readers?: ResultsReader[];
-  plugins?: PluginInstance[];
-  history: HistoryDataPoint[];
-  historyPath: string;
-  appendHistory?: boolean;
-  knownIssuesPath: string;
-  known?: KnownTestFailure[];
-  qualityGate?: QualityGateConfig;
-  defaultLabels?: DefaultLabelsConfig;
-  // TODO: https://github.com/qameta/allure3/issues/180
-  realTime?: any;
-}
 
 export interface PluginInstance {
   id: string;
   enabled: boolean;
   plugin: Plugin;
   options: Record<string, any>;
+}
+
+export interface FullConfig {
+  name: string;
+  output: string;
+  historyPath: string;
+  knownIssuesPath: string;
+  qualityGate?: QualityGateConfig;
+  defaultLabels?: DefaultLabelsConfig;
+  environments?: EnvironmentsConfig;
+  variables?: ReportVariables;
+  reportFiles: ReportFiles;
+  readers?: ResultsReader[];
+  plugins?: PluginInstance[];
+  history: HistoryDataPoint[];
+  appendHistory?: boolean;
+  known?: KnownTestFailure[];
+  /**
+   * You can specify default labels for tests which don't have them at all
+   * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
+   * @example
+   * ```json
+   * {
+   *   "defaultLabels": {
+   *     "severity": "unspecified severity, set it manually",
+   *     "tag": ["foo", "bar"]
+   *   }
+   * }
+   * ```
+   */
+  realTime?: any;
 }

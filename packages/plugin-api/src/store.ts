@@ -38,4 +38,7 @@ export interface AllureStore {
     [x: string]: TestResult[];
   }>;
   testsStatistic: (filter?: (testResult: TestResult) => boolean) => Promise<Statistic>;
+  // environments
+  allEnvironments: () => Promise<string[]>;
+  testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
 }

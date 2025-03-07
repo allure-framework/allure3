@@ -1,17 +1,20 @@
-import type {
-  AttachmentLink,
-  AttachmentLinkLinked,
-  HistoryDataPoint,
-  HistoryTestResult,
-  KnownTestFailure,
-  Statistic,
-  TestCase,
-  TestFixtureResult,
-  TestResult,
+import {
+  type AttachmentLink,
+  type AttachmentLinkLinked,
+  type DefaultLabelsConfig,
+  type EnvironmentsConfig,
+  type HistoryDataPoint,
+  type HistoryTestResult,
+  type KnownTestFailure,
+  type ReportVariables,
+  type Statistic,
+  type TestCase,
+  type TestFixtureResult,
+  type TestResult,
+  matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
-import type { AllureStore, DefaultLabelsConfig, ResultFile } from "@allurereport/plugin-api";
-import { md5 } from "@allurereport/plugin-api";
+import { type AllureStore, type ResultFile, md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawMetadata,
@@ -43,6 +46,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
+  readonly #environmentsConfig: EnvironmentsConfig = {};
+  readonly #reportVariables: ReportVariables = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -58,8 +63,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     known?: KnownTestFailure[];
     eventEmitter?: EventEmitter<AllureStoreEvents>;
     defaultLabels?: DefaultLabelsConfig;
+    environmentsConfig?: EnvironmentsConfig;
+    reportVariables?: ReportVariables;
   }) {
-    const { history = [], known = [], eventEmitter, defaultLabels } = params ?? {};
+    const {
+      history = [],
+      known = [],
+      eventEmitter,
+      defaultLabels = {},
+      environmentsConfig = {},
+      reportVariables = {},
+    } = params ?? {};
 
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
@@ -71,7 +85,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
     this.#eventEmitter = eventEmitter;
-    this.#defaultLabels = defaultLabels ?? {};
+    this.#defaultLabels = defaultLabels;
+    this.#environmentsConfig = environmentsConfig;
+    this.#reportVariables = reportVariables;
   }
 
   // test methods
@@ -106,6 +122,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           });
         }
       });
+    }
+
+    const env = matchEnvironment(this.#environmentsConfig, testResult);
+
+    if (env) {
+      testResult.environment = env;
     }
 
     this.#testResults.set(testResult.id, testResult);
@@ -352,5 +374,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       },
       { total: all.length } as Statistic,
     );
+  }
+
+  // environments
+
+  async allEnvironments() {
+    return Array.from(new Set(["default", ...Object.keys(this.#environmentsConfig)]));
+  }
+
+  async testResultsByEnvironment(
+    env: string,
+    options: {
+      includeHidden: boolean;
+    } = { includeHidden: false },
+  ) {
+    const allTrs = await this.allTestResults(options);
+
+    return allTrs.filter((tr) => tr.environment === env);
   }
 }
