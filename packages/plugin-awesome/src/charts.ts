@@ -17,41 +17,49 @@ export type TestResultChartData = {
 export type TrendPointId = string;
 export type TrendSliceId = string;
 
-export type BaseTrendItemMetadata = {
+// Base type for metadata
+export type BaseMetadata = Record<string, unknown>;
+
+export type BaseTrendSliceMetadata = {
   // Unique identifier for this test execution instance (e.g. "build-2023-05-12-001")
   executionId: string;
   // Human readable name for this test execution (e.g. "Nightly Build #123" or "Sprint 45 Regression")
   executionName: string;
 };
 
-export type StatusTrendSliceMetadata = BaseTrendItemMetadata;
+export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
 
 export type TrendPoint = {
   x: string;
   y: number;
 };
 
-export type StatusTrendSlice = {
+export type TrendSlice<Metadata extends BaseMetadata> = {
   // Minimum value on Y-axis of the trend chart slice
   min: number;
   // Maximum value on Y-axis of the trend chart slice
   max: number;
   // Metadata about this test execution
-  metadata: StatusTrendSliceMetadata;
+  metadata: TrendSliceMetadata<Metadata>;
 };
 
-export type StatusTrendChartData = {
+export type TrendChartData<Metadata extends BaseMetadata, SeriesType extends string> = {
   // Points for all series
   points: Record<TrendPointId, TrendPoint>;
   // Slices for all series
-  slices: Record<TrendSliceId, StatusTrendSlice>;
+  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
   // Grouping by series, containing array of point IDs for each status
-  series: Record<TestStatus, TrendPointId[]>;
+  series: Record<SeriesType, TrendPointId[]>;
   // Minimum value on Y-axis of the trend chart
   min: number;
   // Maximum value on Y-axis of the trend chart
   max: number;
 };
+
+export type StatusMetadata = {};
+export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
+export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
+export type StatusTrendChartData = TrendChartData<StatusTrendSliceMetadata, TestStatus>;
 
 export const d3Arc = arc<PieArcDatum<TestResultSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
@@ -87,7 +95,7 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
  *
  * @param stats - Statistic object
  * @param reportName - Name of the report
- * @param buildOrder - Order of the build
+ * @param executionOrder - Order of the execution in the historical data
  * @returns StatusTrendChartData object
  */
 export const getTrendData = (statistic: Statistic, reportName: string, executionOrder: number): StatusTrendChartData => {
