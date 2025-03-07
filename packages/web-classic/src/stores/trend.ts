@@ -9,10 +9,18 @@ interface Point {
   y: number;
 }
 
-interface NewTrendResponse {
-  series: Record<TestStatus, string[]>;
+interface Slice {
+  min: number;
+  max: number;
+  metadata: { executionId: string };
+}
+
+interface TrendResponse {
+  min: number;
+  max: number;
   points: Record<string, Point>;
-  slices: Record<string, { points: string[]; metadata: { runExecutionId: string; runExecutionName: string } }>;
+  slices: Record<string, Slice>;
+  series: Record<TestStatus, string[]>;
 }
 
 interface TrendChartItem {
@@ -21,8 +29,11 @@ interface TrendChartItem {
   color: string;
 }
 
-interface TrendData {
-  data: TrendChartItem[];
+interface TrendChartData {
+  min: number;
+  max: number;
+  items: TrendChartItem[];
+  slices: Slice[];
 }
 
 const statusColors: Record<TestStatus, string> = {
@@ -33,7 +44,7 @@ const statusColors: Record<TestStatus, string> = {
   unknown: "var(--bg-support-skat)"
 };
 
-export const trendStore = signal<StoreSignalState<TrendData>>({
+export const trendStore = signal<StoreSignalState<TrendChartData>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -47,9 +58,9 @@ export const fetchTrendData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<NewTrendResponse>("widgets/history-trend.json");
+    const res = await fetchReportJsonData<TrendResponse>("widgets/history-trend.json");
 
-    const chartData = statusesList.reduce<TrendChartItem[]>((acc, status) => {
+    const items = statusesList.reduce<TrendChartItem[]>((acc, status) => {
       const pointIdsByStatus = res.series[status];
       const pointsByStatus = pointIdsByStatus.map(pointId => res.points[pointId]);
 
@@ -63,7 +74,7 @@ export const fetchTrendData = async () => {
     }, [] as TrendChartItem[]);
 
     trendStore.value = {
-      data: { data: chartData },
+      data: { items, slices: Object.values(res.slices), min: res.min, max: res.max },
       error: undefined,
       loading: false,
     };
