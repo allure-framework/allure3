@@ -1,5 +1,4 @@
 import {
-  type AllureStore,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -10,7 +9,6 @@ import {
   type KnownTestFailure,
   type ReportEnvironment,
   type ReportVariables,
-  type ResultFile,
   type Statistic,
   type TestCase,
   type TestFixtureResult,
@@ -19,7 +17,7 @@ import {
   matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
+import { type AllureStore, type ResultFile, md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawMetadata,

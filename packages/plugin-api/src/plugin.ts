@@ -1,4 +1,4 @@
-import type { AllureStore } from "@allurereport/core-api";
+import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
   import?: string;

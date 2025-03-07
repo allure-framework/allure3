@@ -1,5 +1,5 @@
-import { type AllureStore, type TestResult, formatDuration } from "@allurereport/core-api";
-import type { Plugin, PluginContext } from "@allurereport/plugin-api";
+import { type TestResult, formatDuration } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { generateCsv } from "./csv.js";
 import type { CsvField, CsvPluginOptions } from "./model.js";
 import { formatSteps, labelValue } from "./utils.js";

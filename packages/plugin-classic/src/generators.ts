@@ -1,8 +1,6 @@
 import {
-  type AllureStore,
   type AttachmentLink,
   type EnvironmentItem,
-  type ResultFile,
   type Statistic,
   type TreeGroup,
   type TreeLeaf,
@@ -12,7 +10,9 @@ import {
   ordinal,
 } from "@allurereport/core-api";
 import {
+  type AllureStore,
   type ReportFiles,
+  type ResultFile,
   createTreeByCategories,
   createTreeByLabels,
   filterTree,

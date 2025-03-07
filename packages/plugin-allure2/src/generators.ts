@@ -1,5 +1,5 @@
-import type { AttachmentLink, HistoryDataPoint, ResultFile, Statistic } from "@allurereport/core-api";
-import type { ReportFiles } from "@allurereport/plugin-api";
+import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
+import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import {
   createBaseUrlScript,

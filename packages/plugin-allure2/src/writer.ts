@@ -1,5 +1,4 @@
-import type { ResultFile } from "@allurereport/core-api";
-import type { ReportFiles } from "@allurereport/plugin-api";
+import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { Allure2TestResult } from "./model.js";
