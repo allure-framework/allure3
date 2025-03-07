@@ -1,6 +1,7 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
+  HistoryDataPoint,
   type Statistic,
   type TestStatus,
   compareBy,
@@ -403,7 +404,7 @@ export const generateStatusTrendData = async (
   writer: AllureAwesomeDataWriter,
   reportName: string,
   statistic: Statistic,
-  historyDataPoints: { name: string; testResults: Record<string, { status?: TestStatus }> }[]
+  historyDataPoints: HistoryDataPoint[]
 ) => {
   // Convert history data points to statistic that will be applicable to getTrendData function
   const historyPoints = historyDataPoints.map(point => ({
