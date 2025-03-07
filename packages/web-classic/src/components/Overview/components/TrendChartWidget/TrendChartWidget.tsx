@@ -1,40 +1,39 @@
 import { TrendChart, makeSymlogScale, TrendChartKind } from "@allurereport/web-components";
-import type { TrendChartData } from "@allurereport/web-components";
+import type { Serie, Slice } from "@allurereport/web-components";
 import { Widget} from "../Widget";
 import { useCallback, useMemo, useState } from "preact/hooks";
 
-interface TrendChartWidgetProps {
-  data: TrendChartData[];
+interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
+  items: readonly Serie[];
+  slices: readonly TSlice[];
+  min: number;
+  max: number;
 }
 
-export const TrendChartWidget = ({ data }: TrendChartWidgetProps) => {
-  const [selectedSliceId, setSelectedSliceId] = useState<string | null>(null);
-  const ys = useMemo(() => data.flatMap(series => series.data).map<number>(point => point.y), [data]);
-  const max = useMemo(() => Math.max(...ys), [ys]);
+export const TrendChartWidget = ({ items, slices, min, max }: TrendChartWidgetProps) => {
+  const [selectedSliceIds, setSelectedSliceIds] = useState<string[]>([]);
 
-  const trendDataAsPercentage: TrendChartData[] = useMemo(() => data.map(series => ({
-    ...series,
-    data: series.data.map(point => ({
-      ...point,
-      y: point.y / max * 100,
-    })),
-  })),
-  [data, max]);
+  const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
 
-  const yScale = useMemo(() => makeSymlogScale(0, 100, { constant: 8 }), []);
+  const handleSliceClick = useCallback((slice: Slice) => {
+    const executionIds = slice.points.reduce((acc, point) => {
+      acc.push(point.data.x as string);
 
-  const handleSliceClick = useCallback(() => {
-    setSelectedSliceId(null);
+      return acc;
+    }, [] as string[]);
+
+    setSelectedSliceIds(() => executionIds);
   }, []);
 
-  console.log("selectedSliceId", selectedSliceId);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const selectedSlices = slices.filter((slice) => selectedSliceIds.includes(slice.metadata.executionId));
 
   return (
     <Widget title="Test Results Trend">
       <div>
           <TrendChart
             kind={TrendChartKind.slicesX}
-            data={trendDataAsPercentage}
+            data={items}
             rootArialLabel="Test Results Trend"
             height={400}
             width="100%"
