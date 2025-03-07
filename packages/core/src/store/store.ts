@@ -2,18 +2,15 @@ import {
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
-  type EnvTestGroup,
   type EnvironmentsConfig,
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
-  type ReportEnvironment,
   type ReportVariables,
   type Statistic,
   type TestCase,
   type TestFixtureResult,
   type TestResult,
-  getWorstStatus,
   matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
@@ -125,6 +122,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           });
         }
       });
+    }
+
+    const env = matchEnvironment(this.#environmentsConfig, testResult);
+
+    if (env) {
+      testResult.environment = env;
     }
 
     this.#testResults.set(testResult.id, testResult);
@@ -376,99 +379,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // environments
 
   async allEnvironments() {
-    const envEntries = Object.entries(this.#environmentsConfig);
-    const allTr = await this.allTestResults({ includeHidden: true });
-    const results: Record<string, ReportEnvironment> = envEntries.reduce(
-      (acc, [name, { variables = {} }]) => ({
-        ...acc,
-        [name]: {
-          testResults: [],
-          variables: {
-            ...this.#reportVariables,
-            ...variables,
-          },
-        } as ReportEnvironment,
-      }),
-      {},
-    );
-
-    results.default = {
-      testResults: [],
-      variables: {
-        ...this.#reportVariables,
-      },
-    };
-
-    for (const tr of allTr) {
-      const envs = envEntries.filter(([, { matcher }]) => matcher({ labels: tr.labels }));
-
-      if (envs.length === 0) {
-        results.default.testResults.push(tr);
-        continue;
-      }
-
-      envs.forEach(([name]) => {
-        results[name].testResults.push(tr);
-      });
-    }
-
-    return results;
+    return Array.from(new Set(["default", ...Object.keys(this.#environmentsConfig)]));
   }
 
-  async environmentById(id: string) {
-    const allEnvs = await this.allEnvironments();
+  async testResultsByEnvironment(
+    env: string,
+    options: {
+      includeHidden: boolean;
+    } = { includeHidden: false },
+  ) {
+    const allTrs = await this.allTestResults(options);
 
-    return allEnvs[id];
-  }
-
-  async allEnvTestGroups() {
-    const allTr = await this.allTestResults({ includeHidden: true });
-    const trByTestCaseId = allTr.reduce(
-      (acc, tr) => {
-        const testCaseId = tr?.testCase?.id;
-
-        if (!testCaseId) {
-          return acc;
-        }
-
-        if (acc[testCaseId]) {
-          acc[testCaseId].push(tr);
-        } else {
-          acc[testCaseId] = [tr];
-        }
-
-        return acc;
-      },
-      {} as Record<string, TestResult[]>,
-    );
-
-    return Object.entries(trByTestCaseId).reduce((acc, [testCaseId, trs]) => {
-      if (trs.length === 0) {
-        return acc;
-      }
-
-      const { fullName, name } = trs[0];
-      const envGroup: EnvTestGroup = {
-        id: testCaseId,
-        fullName,
-        name,
-        status: getWorstStatus(trs, ({ status }) => status) ?? "passed",
-        testResultsByEnv: {},
-      };
-
-      trs.forEach((tr) => {
-        const env = matchEnvironment(this.#environmentsConfig, tr);
-
-        envGroup.testResultsByEnv[env] = tr;
-      });
-
-      return acc.concat(envGroup);
-    }, [] as EnvTestGroup[]);
-  }
-
-  async envTestGroupById(id: string) {
-    const allEnvGroups = await this.allEnvTestGroups();
-
-    return allEnvGroups.find((group) => group.id === id);
+    return allTrs.filter((tr) => tr.environment === env);
   }
 }

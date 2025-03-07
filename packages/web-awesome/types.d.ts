@@ -56,6 +56,7 @@ export type AwesomeTestResult = Omit<
   | "precondition"
   | "preconditionHtml"
   | "steps"
+  | "environment"
 > & {
   setup: AwesomeFixtureResult[];
   teardown: AwesomeFixtureResult[];

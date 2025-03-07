@@ -26,6 +26,8 @@ export interface TestResult {
 
   testCase?: TestCase;
 
+  environment?: string;
+
   fullName?: string;
   historyId?: string;
 
