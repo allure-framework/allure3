@@ -15,7 +15,7 @@ import {
   generateTestEnvGroups,
   generateTestResults,
   generateTree,
-  generateStatusTrendData
+  generateHistoryTrendData
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -70,7 +70,7 @@ export class AwesomePlugin implements Plugin {
     }
 
     // Trend data generation
-    await generateStatusTrendData(this.#writer!, context.reportName, statistic, historyDataPoints);
+    await generateHistoryTrendData(this.#writer!, context.reportName, statistic, historyDataPoints);
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 

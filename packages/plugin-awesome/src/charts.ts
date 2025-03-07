@@ -1,5 +1,5 @@
-import type { Statistic, TestStatus } from "@allurereport/core-api";
-import { statusesList } from "@allurereport/core-api";
+import type { HistoryDataPoint, Statistic, SeverityLevel, TestStatus } from "@allurereport/core-api";
+import { statusesList, severityLevels } from "@allurereport/core-api";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
 
@@ -61,6 +61,17 @@ export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
 export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
 export type StatusTrendChartData = TrendChartData<StatusTrendSliceMetadata, TestStatus>;
 
+export type SeverityStatisticMetadata = {
+  severity: string;
+  count: number;
+  percentage: number;
+};
+
+export type SeverityStatisticData = {
+  total: number;
+  items: SeverityStatisticMetadata[];
+};
+
 export const d3Arc = arc<PieArcDatum<TestResultSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
 export const d3Pie = pie<TestResultSlice>()
@@ -90,14 +101,31 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
   };
 };
 
-/**
- * Transform statistic to trend data for a single history point
- *
- * @param stats - Statistic object
- * @param reportName - Name of the report
- * @param executionOrder - Order of the execution in the historical data
- * @returns StatusTrendChartData object
- */
+const mergeTrendData = (trendData: StatusTrendChartData, trendDataPart: StatusTrendChartData): StatusTrendChartData => {
+  return {
+    points: {
+      ...trendData.points,
+      ...trendDataPart.points
+    },
+    slices: {
+      ...trendData.slices,
+      ...trendDataPart.slices
+    },
+    series: Object.entries(trendDataPart.series).reduce((series, [group, pointIds]) => {
+      if (Array.isArray(pointIds)) {
+        return {
+          ...series,
+          [group]: [...(trendData.series?.[group as TestStatus] || []), ...pointIds]
+        };
+      }
+
+      return series;
+    }, trendData.series || {} as Record<TestStatus, string[]>),
+    min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
+    max: Math.max(trendData.max ?? -Infinity, trendDataPart.max)
+  };
+};
+
 export const getTrendData = (statistic: Statistic, reportName: string, executionOrder: number): StatusTrendChartData => {
   const points: Record<TrendPointId, TrendPoint> = {};
   const slices: Record<TrendSliceId, StatusTrendSlice> = {};
@@ -143,5 +171,87 @@ export const getTrendData = (statistic: Statistic, reportName: string, execution
     series,
     min,
     max,
+  };
+};
+
+/**
+ * Generate status trend data from current statistic and history points
+ *
+ * @param currentStatistic - Current test run statistics
+ * @param reportName - Name of the current report
+ * @param historyPoints - Array of history data points
+ * @returns StatusTrendChartData object with merged current and historical data
+ */
+export const getStatusTrendData = (
+  currentStatistic: Statistic,
+  reportName: string,
+  historyPoints: HistoryDataPoint[]
+): StatusTrendChartData => {
+  // Convert history points to statistics
+  const convertedHistoryPoints = historyPoints.map(point => ({
+    name: point.name,
+    statistic: Object.values(point.testResults).reduce((stat: Statistic, test) => {
+      if (test.status) {
+        stat[test.status] = (stat[test.status] ?? 0) + 1;
+        stat.total = (stat.total ?? 0) + 1;
+      }
+      return stat;
+    }, { total: 0 } as Statistic)
+  }));
+
+  // Get current report data
+  const currentTrendData = getTrendData(currentStatistic, reportName, convertedHistoryPoints.length + 1);
+
+  // Process historical data
+  const historicalTrendData = convertedHistoryPoints.reduceRight((acc, historyPoint, index) => {
+    const trendDataPart = getTrendData(historyPoint.statistic, historyPoint.name, convertedHistoryPoints.length - index);
+    return mergeTrendData(acc, trendDataPart);
+  }, {
+    points: {},
+    slices: {},
+    series: {},
+    min: Infinity,
+    max: -Infinity
+  } as StatusTrendChartData);
+
+  // Add current report data as the last item
+  return mergeTrendData(historicalTrendData, currentTrendData);
+};
+
+/**
+ * Generate severity statistics data from test results
+ *
+ * @param tests - Array of test results containing severity information
+ * @returns SeverityStatisticData object with statistics by severity level
+ */
+export const getSeverityStatisticData = (tests: { severity?: SeverityLevel }[]): SeverityStatisticData => {
+  const severityCounts = tests.reduce((acc, test) => {
+    const severity = test.severity || "normal";
+
+    acc[severity] = (acc[severity] || 0) + 1;
+
+    return acc;
+  }, {} as Record<SeverityLevel, number>);
+
+  const total = Object.values(severityCounts).reduce((sum, count) => sum + count, 0);
+
+  const items: SeverityStatisticMetadata[] = severityLevels
+    .reduce((acc, severity) => {
+      const count = severityCounts[severity] ?? 0;
+
+      if (count > 0) {
+        acc.push({
+          severity,
+          count,
+          percentage: getPercentage(count, total),
+        });
+      }
+
+      return acc;
+    }, [] as SeverityStatisticMetadata[]);
+
+  return {
+    total,
+    items
   };
 };

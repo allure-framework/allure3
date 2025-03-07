@@ -19,17 +19,21 @@ const Overview = () => {
         // eslint-disable-next-line no-console
         console.log("TREND DATA", trendData);
 
+        const TrendChartGridItems = Object.entries(trendData.charts).map(([key, value]) => (
+          <GridItem key={key} style={{ padding: "12px", width: "100%" }}>
+            <TrendChartWidget
+              items={value.items}
+              slices={value.slices}
+              min={value.min}
+              max={value.max}
+            />
+          </GridItem>
+        ));
+
         return (
           <div className={styles.overview}>
             <Grid kind="swap" className={styles.overview__grid}>
-                  <GridItem style={{ padding: "12px", width: "100%" }}>
-                    <TrendChartWidget
-                      items={trendData.items}
-                      slices={trendData.slices}
-                      min={trendData.min}
-                      max={trendData.max}
-                    />
-                  </GridItem>
+                  {TrendChartGridItems}
                   <GridItem style={{ padding: "12px", width: "100%" }}>
                     <Widget title="Test Results Trend">
                       PIE_CHART_PLACEHOLDER

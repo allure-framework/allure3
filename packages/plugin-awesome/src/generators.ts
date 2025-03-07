@@ -3,7 +3,6 @@ import {
   type EnvironmentItem,
   type HistoryDataPoint,
   type Statistic,
-  type TestStatus,
   compareBy,
   incrementStatistic,
   nullsLast,
@@ -29,7 +28,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getChartData, getTrendData, type StatusTrendChartData } from "./charts.js";
+import { getChartData, getStatusTrendData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -375,68 +374,18 @@ export const generateStaticFiles = async (
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
 };
 
-const mergeTrendData = (trendData: StatusTrendChartData, trendDataPart: StatusTrendChartData): StatusTrendChartData => {
-  return {
-    points: {
-      ...trendData.points,
-      ...trendDataPart.points
-    },
-    slices: {
-      ...trendData.slices,
-      ...trendDataPart.slices
-    },
-    series: Object.entries(trendDataPart.series).reduce((series, [group, pointIds]) => {
-      if (Array.isArray(pointIds)) {
-        return {
-          ...series,
-          [group]: [...(trendData.series?.[group as TestStatus] || []), ...pointIds]
-        };
-      }
-
-      return series;
-    }, trendData.series || {} as Record<TestStatus, string[]>),
-    min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
-    max: Math.max(trendData.max ?? -Infinity, trendDataPart.max)
-  };
-};
-
-export const generateStatusTrendData = async (
+export const generateHistoryTrendData = async (
   writer: AllureAwesomeDataWriter,
   reportName: string,
   statistic: Statistic,
-  historyDataPoints: HistoryDataPoint[]
+  historyDataPoints: HistoryDataPoint[],
 ) => {
-  // Convert history data points to statistic that will be applicable to getTrendData function
-  const historyPoints = historyDataPoints.map(point => ({
-    name: point.name,
-    statistic: Object.values(point.testResults).reduce((stat: Statistic, test) => {
-      if (test.status) {
-        stat[test.status] = (stat[test.status] ?? 0) + 1;
-        stat.total = (stat.total ?? 0) + 1;
-      }
+  // Put chart generators here
+  const statusTrendData = getStatusTrendData(statistic, reportName, historyDataPoints);
 
-      return stat;
-    }, { total: 0 } as Statistic)
-  }));
-
-  // Get current report data
-  const currentTrendData = getTrendData(statistic, reportName, historyPoints.length + 1);
-
-  // Process historical data
-  const historicalTrendData = historyPoints.reduceRight((acc, historyPoint, index) => {
-    const trendDataPart = getTrendData(historyPoint.statistic, historyPoint.name, historyPoints.length - index);
-
-    return mergeTrendData(acc, trendDataPart);
-  }, {
-    points: {},
-    slices: {},
-    series: {},
-    min: Infinity,
-    max: -Infinity
-  } as StatusTrendChartData);
-
-  // Add current report data as the last item
-  const finalTrendData = mergeTrendData(historicalTrendData, currentTrendData);
-
-  await writer.writeWidget("history-trend.json", finalTrendData);
+  await writer.writeWidget("history-trend.json", {
+    charts: {
+      status: statusTrendData,
+    }
+  });
 };
