@@ -16,11 +16,19 @@ const Overview = () => {
       source={trendStore}
       renderLoader={() => <PageLoader />}
       renderData={(trendData) => {
+        // eslint-disable-next-line no-console
+        console.log("TREND DATA", trendData);
+
         return (
           <div className={styles.overview}>
             <Grid kind="swap" className={styles.overview__grid}>
                   <GridItem style={{ padding: "12px", width: "100%" }}>
-                    <TrendChartWidget data={trendData.data} />
+                    <TrendChartWidget
+                      items={trendData.items}
+                      slices={trendData.slices}
+                      min={trendData.min}
+                      max={trendData.max}
+                    />
                   </GridItem>
                   <GridItem style={{ padding: "12px", width: "100%" }}>
                     <Widget title="Test Results Trend">
