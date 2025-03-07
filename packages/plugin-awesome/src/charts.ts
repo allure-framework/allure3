@@ -13,43 +13,36 @@ export type TestResultChartData = {
   slices: TestResultSlice[];
 };
 
-export type TrendItem = {
-  buildOrder: number;
-  reportName: string;
-  data: Statistic;
-};
-
-export type TrendData = {
-  items: TrendItem[];
-};
-
 // Type aliases for meaningful string keys
 export type TrendPointId = string;
 export type TrendSliceId = string;
 
 export type BaseTrendItemMetadata = {
   // Unique identifier for this test execution instance (e.g. "build-2023-05-12-001")
-  runExecutionId: string;
+  executionId: string;
   // Human readable name for this test execution (e.g. "Nightly Build #123" or "Sprint 45 Regression")
-  runExecutionName: string;
+  executionName: string;
 };
 
 export type StatusTrendSliceMetadata = BaseTrendItemMetadata;
 
-export type StatusTrendPoint = {
+export type TrendPoint = {
   x: string;
   y: number;
 };
 
 export type StatusTrendSlice = {
-  points: TrendPointId[];
+  // Minimum value on Y-axis of the trend chart slice
+  min: number;
+  // Maximum value on Y-axis of the trend chart slice
+  max: number;
   // Metadata about this test execution
   metadata: StatusTrendSliceMetadata;
 };
 
 export type StatusTrendChartData = {
   // Points for all series
-  points: Record<TrendPointId, StatusTrendPoint>;
+  points: Record<TrendPointId, TrendPoint>;
   // Slices for all series
   slices: Record<TrendSliceId, StatusTrendSlice>;
   // Grouping by series, containing array of point IDs for each status
@@ -97,24 +90,24 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
  * @param buildOrder - Order of the build
  * @returns StatusTrendChartData object
  */
-export const getTrendData = (statistic: Statistic, reportName: string, buildOrder: number): StatusTrendChartData => {
-  const points: Record<TrendPointId, StatusTrendPoint> = {};
+export const getTrendData = (statistic: Statistic, reportName: string, executionOrder: number): StatusTrendChartData => {
+  const points: Record<TrendPointId, TrendPoint> = {};
   const slices: Record<TrendSliceId, StatusTrendSlice> = {};
   const series: Record<TestStatus, TrendPointId[]> = statusesList.reduce((acc, status) => ({
     ...acc,
     [status]: [],
   }), {} as Record<TestStatus, TrendPointId[]>);
 
-  const buildId = `build-${buildOrder}`;
+  const executionId = `execution-${executionOrder}`;
 
   // Create points and populate series
   statusesList.forEach(status => {
-    const pointId = `${buildId}-${status}`;
+    const pointId = `${executionId}-${status}`; // Some unique identifier across all points
 
     if (statistic[status]) {
       points[pointId] = {
-        x: buildId,
-        y: statistic[status] ?? 0
+        x: executionId,
+        y: statistic[status] ?? 0,
       };
 
       series[status].push(pointId);
@@ -122,26 +115,25 @@ export const getTrendData = (statistic: Statistic, reportName: string, buildOrde
   });
 
   // Create slice
-  const sliceId = `slice-${buildId}`;
-
-  slices[sliceId] = {
-    points: Object.keys(points),
-    metadata: {
-      runExecutionId: buildId,
-      runExecutionName: reportName,
-    }
-  };
-
   // Calculate min and max values from points
   const values = Object.values(points).map(point => point.y);
   const min = values.length ? Math.min(...values) : 0;
   const max = values.length ? Math.max(...values) : 0;
+
+  slices[executionId] = {
+    min,
+    max,
+    metadata: {
+      executionId,
+      executionName: reportName,
+    }
+  };
 
   return {
     points,
     slices,
     series,
     min,
-    max
+    max,
   };
 };

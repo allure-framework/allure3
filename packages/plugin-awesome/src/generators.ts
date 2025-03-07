@@ -28,7 +28,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getChartData, getTrendData, StatusTrendChartData } from "./charts.js";
+import { getChartData, getTrendData, type StatusTrendChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -374,27 +374,28 @@ export const generateStaticFiles = async (
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
 };
 
-const mergeTrendData = (acc: StatusTrendChartData, pointTrendData: StatusTrendChartData): StatusTrendChartData => {
+const mergeTrendData = (trendData: StatusTrendChartData, trendDataPart: StatusTrendChartData): StatusTrendChartData => {
   return {
     points: {
-      ...acc.points,
-      ...pointTrendData.points
+      ...trendData.points,
+      ...trendDataPart.points
     },
     slices: {
-      ...acc.slices,
-      ...pointTrendData.slices
+      ...trendData.slices,
+      ...trendDataPart.slices
     },
-    series: Object.entries(pointTrendData.series).reduce((series, [status, pointIds]) => {
+    series: Object.entries(trendDataPart.series).reduce((series, [group, pointIds]) => {
       if (Array.isArray(pointIds)) {
         return {
           ...series,
-          [status]: [...(acc.series?.[status as TestStatus] || []), ...pointIds]
+          [group]: [...(trendData.series?.[group as TestStatus] || []), ...pointIds]
         };
       }
+
       return series;
-    }, acc.series || {} as Record<TestStatus, string[]>),
-    min: Math.min(acc.min ?? Infinity, pointTrendData.min),
-    max: Math.max(acc.max ?? -Infinity, pointTrendData.max)
+    }, trendData.series || {} as Record<TestStatus, string[]>),
+    min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
+    max: Math.max(trendData.max ?? -Infinity, trendDataPart.max)
   };
 };
 
@@ -416,11 +417,14 @@ export const generateStatusTrendData = async (
     }, { total: 0 } as Statistic)
   }));
 
-  // Process historical data points
-  const trendData = historyPoints.reduceRight((acc, historyPoint, index) => {
-    const pointTrendData = getTrendData(historyPoint.statistic, historyPoint.name, historyPoints.length - index);
+  // Get current report data
+  const currentTrendData = getTrendData(statistic, reportName, historyPoints.length + 1);
 
-    return mergeTrendData(acc, pointTrendData);
+  // Process historical data
+  const historicalTrendData = historyPoints.reduceRight((acc, historyPoint, index) => {
+    const trendDataPart = getTrendData(historyPoint.statistic, historyPoint.name, historyPoints.length - index);
+
+    return mergeTrendData(acc, trendDataPart);
   }, {
     points: {},
     slices: {},
@@ -430,8 +434,7 @@ export const generateStatusTrendData = async (
   } as StatusTrendChartData);
 
   // Add current report data as the last item
-  const currentTrendData = getTrendData(statistic, reportName, historyPoints.length + 1);
-  const finalTrendData = mergeTrendData(trendData, currentTrendData);
+  const finalTrendData = mergeTrendData(historicalTrendData, currentTrendData);
 
   await writer.writeWidget("history-trend.json", finalTrendData);
 };
