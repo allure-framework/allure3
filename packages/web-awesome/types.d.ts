@@ -56,6 +56,7 @@ export type AllureAwesomeTestResult = Omit<
   | "precondition"
   | "preconditionHtml"
   | "steps"
+  | "environment"
 > & {
   setup: AllureAwesomeFixtureResult[];
   teardown: AllureAwesomeFixtureResult[];
@@ -69,7 +70,6 @@ export type AllureAwesomeTestResult = Omit<
   groupOrder?: number;
   retry: boolean;
   categories?: AllureAwesomeCategory[];
-  environment?: string | "default";
 };
 
 export type AllureAwesomeTreeLeaf = Pick<

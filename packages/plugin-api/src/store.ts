@@ -1,10 +1,8 @@
 import type {
   AttachmentLink,
-  EnvTestGroup,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
-  ReportEnvironment,
   Statistic,
   TestCase,
   TestFixtureResult,
@@ -41,8 +39,6 @@ export interface AllureStore {
   }>;
   testsStatistic: (filter?: (testResult: TestResult) => boolean) => Promise<Statistic>;
   // environments
-  allEnvironments: () => Promise<Record<string, ReportEnvironment>>;
-  environmentById: (id: string) => Promise<ReportEnvironment | undefined>;
-  allEnvTestGroups: () => Promise<EnvTestGroup[]>;
-  envTestGroupById: (id: string) => Promise<EnvTestGroup | undefined>;
+  allEnvironments: () => Promise<string[]>;
+  testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
 }
