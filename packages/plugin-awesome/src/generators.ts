@@ -1,15 +1,13 @@
 import {
-  type AllureStore,
   type AttachmentLink,
   type EnvironmentItem,
-  type ResultFile,
   type Statistic,
   compareBy,
   incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import { type ReportFiles, filterTree } from "@allurereport/plugin-api";
+import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AwesomeFixtureResult,

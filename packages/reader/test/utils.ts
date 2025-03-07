@@ -1,4 +1,4 @@
-import type { ResultFile } from "@allurereport/core-api";
+import type { ResultFile } from "@allurereport/plugin-api";
 import { PathResultFile, type ResultsReader, type ResultsVisitor } from "@allurereport/reader-api";
 import { attachment, step } from "allure-js-commons";
 import { existsSync } from "fs";

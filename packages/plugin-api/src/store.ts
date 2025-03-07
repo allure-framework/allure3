@@ -1,10 +1,16 @@
-import type { Statistic } from "./aggregate.js";
-import type { EnvTestGroup, ReportEnvironment } from "./environment.js";
-import type { HistoryDataPoint, HistoryTestResult } from "./history.js";
-import type { KnownTestFailure } from "./known.js";
-import type { AttachmentLink, TestFixtureResult, TestResult } from "./model.js";
+import type {
+  AttachmentLink,
+  EnvTestGroup,
+  HistoryDataPoint,
+  HistoryTestResult,
+  KnownTestFailure,
+  ReportEnvironment,
+  Statistic,
+  TestCase,
+  TestFixtureResult,
+  TestResult,
+} from "@allurereport/core-api";
 import type { ResultFile } from "./resultFile.js";
-import type { TestCase } from "./testCase.js";
 
 export interface AllureStore {
   // base state

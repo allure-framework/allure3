@@ -1,15 +1,15 @@
-import { type BaseConfig } from "@allurereport/core-api";
+import type { DefaultLabelsConfig, EnvironmentsConfig, ReportVariables } from "@allurereport/core-api";
 import type { PluginDescriptor } from "./plugin.js";
+import type { QualityGateConfig } from "./qualityGate.js";
 
 export interface Config {
-  name?: BaseConfig["name"];
-  output?: BaseConfig["output"];
-  historyPath?: BaseConfig["historyPath"];
-  knownIssuesPath?: BaseConfig["knownIssuesPath"];
-  qualityGate?: BaseConfig["qualityGate"];
-  defaultLabels?: BaseConfig["defaultLabels"];
-  environments?: BaseConfig["environments"];
-  variables?: BaseConfig["variables"];
+  name?: string;
+  output?: string;
+  historyPath?: string;
+  knownIssuesPath?: string;
+  defaultLabels?: DefaultLabelsConfig;
+  environments?: EnvironmentsConfig;
+  variables?: ReportVariables;
   /**
    * You can specify plugins by their package name:
    * @example
@@ -37,6 +37,7 @@ export interface Config {
    * Both examples above will do the same thing
    */
   plugins?: Record<string, PluginDescriptor>;
+  qualityGate?: QualityGateConfig;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {
