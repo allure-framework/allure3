@@ -1,11 +1,17 @@
-import console from "node:console";
 import type { Unknown } from "../../../validation.js";
 import { xcresulttool } from "../cli.js";
+import type { LegacyApiOptions } from "./model.js";
 import { getRef } from "./parsing.js";
 import type { XcActionsInvocationRecord, XcReference } from "./xcModel.js";
 
 let legacyRunSucceeded = false;
 let noLegacyApi = false;
+
+let legacyFlagRequired = true;
+
+export const setLegacyApiOptions = ({ legacyFlag }: LegacyApiOptions) => {
+  legacyFlagRequired = legacyFlag;
+};
 
 export const legacyApiUnavailable = () => !legacyRunSucceeded && noLegacyApi;
 
@@ -17,11 +23,12 @@ export const xcresulttoolGetLegacy = async <T>(
     return undefined;
   }
 
-  const result = await xcresulttool<T>("get", "--legacy", "--format", "json", "--path", xcResultPath, ...args);
+  const legacyFlagArgs = legacyFlagRequired ? ["--legacy"] : [];
+
+  const result = await xcresulttool<T>("get", ...legacyFlagArgs, "--format", "json", "--path", xcResultPath, ...args);
   if (typeof result === "undefined") {
     if (!legacyRunSucceeded) {
       noLegacyApi = true;
-      console.warn("The legacy API of xcresulttool is unavailable");
     }
     return undefined;
   }

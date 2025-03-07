@@ -4,6 +4,10 @@ import type { Unknown } from "../../../validation.js";
 import type { AllureApiCall } from "../../model.js";
 import type { XcString } from "./xcModel.js";
 
+export type LegacyApiOptions = {
+  legacyFlag: boolean;
+};
+
 export type LegacyTestResultData = {
   issues: LegacyIssueTrackingMetadata[];
   trace?: string;

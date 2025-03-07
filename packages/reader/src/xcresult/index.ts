@@ -2,7 +2,7 @@ import type { ResultsVisitor } from "@allurereport/reader-api";
 import console from "node:console";
 import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
 import { version } from "./xcresulttool/cli.js";
-import { legacyApiUnavailable } from "./xcresulttool/legacy/cli.js";
+import { legacyApiUnavailable, setLegacyApiOptions } from "./xcresulttool/legacy/cli.js";
 import legacyApi from "./xcresulttool/legacy/index.js";
 import type { ApiParseFunction, ParsingContext } from "./xcresulttool/model.js";
 import { parseWithExportedAttachments } from "./xcresulttool/utils.js";
@@ -53,6 +53,7 @@ const parseBundleWithXcResultTool = async (
       const context = { xcResultPath: xcResultPath, createAttachmentFile };
 
       try {
+        setupLegacyApi(xcResultToolVersion);
         await tryApi(visitor, legacyApi, context);
         return;
       } catch (e) {
@@ -89,4 +90,18 @@ const tryApi = async (visitor: ResultsVisitor, generator: ApiParseFunction, cont
       visitor.visitTestResult(x, { readerId, metadata: { originalFileName } });
     }
   }
+};
+
+const setupLegacyApi = (versionText: string) => {
+  let legacyFlag = true;
+
+  const versionMatch = versionText.match(/xcresulttool version (\d+)/);
+  if (versionMatch) {
+    const xcResultToolVersion = parseInt(versionMatch[1], 10);
+    if (xcResultToolVersion < 23000) {
+      legacyFlag = false;
+    }
+  }
+
+  setLegacyApiOptions({ legacyFlag });
 };
