@@ -414,6 +414,7 @@ export const generateStatusTrendData = async (
         stat[test.status] = (stat[test.status] ?? 0) + 1;
         stat.total = (stat.total ?? 0) + 1;
       }
+
       return stat;
     }, { total: 0 } as Statistic)
   }));
