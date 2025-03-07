@@ -34,6 +34,8 @@ test.beforeAll(async () => {
         statusDetails: {
           message: "Assertion error: Expected 1 to be 2",
           trace: "failed test trace",
+          actual: "some actual result",
+          expected: "some expected result",
         },
       },
       {
@@ -125,6 +127,15 @@ test.describe("allure-awesome", () => {
       await expect(page.getByTestId("test-result-error-trace")).toHaveText("failed test trace");
     });
 
+    test("failed test contains error actual/expected comparison", async ({ page }) => {
+      await page.getByTestId("tree-leaf-status-failed").click();
+      await expect(page.getByTestId("test-result-error-message")).toHaveText("Assertion error: Expected 1 to be 2");
+      await expect(page.getByTestId("test-result-error-trace")).not.toBeVisible();
+      await expect(page.getByTestId("test-result-diff-button")).toBeVisible();
+      await page.getByTestId("test-result-diff-button").click();
+      await expect(page.getByTestId("test-result-diff")).toBeVisible();
+    });
+
     test("broken test contains error message and stack", async ({ page }) => {
       await page.getByTestId("tree-leaf-status-broken").click();
       await expect(page.getByTestId("test-result-error-message")).toHaveText("An unexpected error");
@@ -163,4 +174,5 @@ test.describe("allure-awesome", () => {
       await expect(page.getByTestId("split-layout")).toBeHidden();
     });
   });
+  test.describe("Error tracing", () => {});
 });

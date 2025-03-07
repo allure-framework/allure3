@@ -83,7 +83,7 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
   };
 
   return (
-    <div className={styles.diff}>
+    <div className={styles.diff} data-testId={"test-result-diff"}>
       <div className={styles["diff-controls"]}>
         <div className={styles["diff-buttons"]}>
           <Code size={"s"} className={styles["diff-buttons-title"]}>
