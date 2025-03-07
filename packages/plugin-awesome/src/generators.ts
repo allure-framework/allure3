@@ -1,7 +1,7 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
-  HistoryDataPoint,
+  type HistoryDataPoint,
   type Statistic,
   type TestStatus,
   compareBy,
