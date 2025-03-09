@@ -4,13 +4,14 @@ import { Widget} from "../Widget";
 import { useCallback, useMemo, useState } from "preact/hooks";
 
 interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
+  title: string;
   items: readonly Serie[];
   slices: readonly TSlice[];
   min: number;
   max: number;
 }
 
-export const TrendChartWidget = ({ items, slices, min, max }: TrendChartWidgetProps) => {
+export const TrendChartWidget = ({ title, items, slices, min, max }: TrendChartWidgetProps) => {
   const [selectedSliceIds, setSelectedSliceIds] = useState<string[]>([]);
 
   const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
@@ -29,7 +30,7 @@ export const TrendChartWidget = ({ items, slices, min, max }: TrendChartWidgetPr
   const selectedSlices = slices.filter((slice) => selectedSliceIds.includes(slice.metadata.executionId));
 
   return (
-    <Widget title="Test Results Trend">
+    <Widget title={title}>
       <div>
           <TrendChart
             kind={TrendChartKind.slicesX}
