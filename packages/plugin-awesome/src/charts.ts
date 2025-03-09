@@ -1,4 +1,4 @@
-import type { HistoryDataPoint, Statistic, SeverityLevel, TestStatus } from "@allurereport/core-api";
+import type { HistoryDataPoint, HistoryTestResult, Statistic, SeverityLevel, TestStatus, TestResult } from "@allurereport/core-api";
 import { statusesList, severityLevels } from "@allurereport/core-api";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
@@ -61,6 +61,11 @@ export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
 export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
 export type StatusTrendChartData = TrendChartData<StatusTrendSliceMetadata, TestStatus>;
 
+export type SeverityMetadata = {};
+export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
+export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
+export type SeverityTrendChartData = TrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
+
 export type SeverityStatisticMetadata = {
   severity: string;
   count: number;
@@ -120,7 +125,7 @@ const mergeTrendData = (trendData: StatusTrendChartData, trendDataPart: StatusTr
       }
 
       return series;
-    }, trendData.series || {} as Record<TestStatus, string[]>),
+    }, trendData.series || {} as Record<TestStatus, TrendPointId[]>),
     min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
     max: Math.max(trendData.max ?? -Infinity, trendDataPart.max)
   };
@@ -253,5 +258,130 @@ export const getSeverityStatisticData = (tests: { severity?: SeverityLevel }[]):
   return {
     total,
     items
+  };
+};
+
+const mergeSeverityTrendData = (trendData: SeverityTrendChartData, trendDataPart: SeverityTrendChartData): SeverityTrendChartData => {
+  return {
+    points: {
+      ...trendData.points,
+      ...trendDataPart.points
+    },
+    slices: {
+      ...trendData.slices,
+      ...trendDataPart.slices
+    },
+    series: Object.entries(trendDataPart.series).reduce((series, [group, pointIds]) => {
+      if (Array.isArray(pointIds)) {
+        return {
+          ...series,
+          [group]: [...(trendData.series?.[group as SeverityLevel] || []), ...pointIds]
+        };
+      }
+      return series;
+    }, trendData.series || {} as Record<SeverityLevel, string[]>),
+    min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
+    max: Math.max(trendData.max ?? -Infinity, trendDataPart.max)
+  };
+};
+
+interface StatisticWithTestResults extends Statistic {
+  testResults?: TestResult[];
+}
+
+const createEmptySeverityStats = (): Record<SeverityLevel, number> =>
+  severityLevels.reduce((acc, severity) => ({ ...acc, [severity]: 0 }), {} as Record<SeverityLevel, number>);
+
+const createEmptySeveritySeries = (): Record<SeverityLevel, string[]> =>
+  severityLevels.reduce((acc, severity) => ({ ...acc, [severity]: [] }), {} as Record<SeverityLevel, string[]>);
+
+export const getSeverityTrendData = (
+  currentStatistic: StatisticWithTestResults,
+  reportName: string,
+  historyPoints: HistoryDataPoint[]
+): SeverityTrendChartData => {
+  // Convert history points to statistics by severity
+  const convertedHistoryPoints = historyPoints.map(point => ({
+    name: point.name,
+    statistic: Object.values(point.testResults).reduce((stat, test: HistoryTestResult) => {
+      const severity = (test as unknown as { severity?: SeverityLevel }).severity || "normal";
+      stat[severity] = (stat[severity] ?? 0) + 1;
+      return stat;
+    }, createEmptySeverityStats())
+  }));
+
+  // Get current severity statistics
+  const currentSeverityStats = (currentStatistic.testResults || []).reduce((acc, test) => {
+    const severity = (test as unknown as { severity?: SeverityLevel }).severity || "normal";
+    acc[severity] = (acc[severity] ?? 0) + 1;
+    return acc;
+  }, createEmptySeverityStats());
+
+  const currentTrendData = getTrendDataBySeverity(currentSeverityStats, reportName, convertedHistoryPoints.length + 1);
+
+  // Process historical data
+  const historicalTrendData = convertedHistoryPoints.reduceRight((acc, historyPoint, index) => {
+    const trendDataPart = getTrendDataBySeverity(historyPoint.statistic, historyPoint.name, convertedHistoryPoints.length - index);
+    return mergeSeverityTrendData(acc, trendDataPart);
+  }, {
+    points: {},
+    slices: {},
+    series: createEmptySeveritySeries(),
+    min: Infinity,
+    max: -Infinity
+  } as SeverityTrendChartData);
+
+  // Add current report data as the last item
+  return mergeSeverityTrendData(historicalTrendData, currentTrendData);
+};
+
+const getTrendDataBySeverity = (
+  severityStats: Record<SeverityLevel, number>,
+  reportName: string,
+  executionOrder: number
+): SeverityTrendChartData => {
+  const points: Record<TrendPointId, TrendPoint> = {};
+  const slices: Record<TrendSliceId, SeverityTrendSlice> = {};
+  const series: Record<SeverityLevel, TrendPointId[]> = severityLevels.reduce((acc, severity) => ({
+    ...acc,
+    [severity]: [],
+  }), {} as Record<SeverityLevel, TrendPointId[]>);
+
+  const executionId = `execution-${executionOrder}`;
+
+  // Create points and populate series
+  severityLevels.forEach(severity => {
+    const pointId = `${executionId}-${severity}`;
+
+    if (severityStats[severity]) {
+      points[pointId] = {
+        x: executionId,
+        y: severityStats[severity] ?? 0,
+      };
+
+      series[severity].push(pointId);
+    }
+  });
+
+  // Create slice
+  const values = Object.values(points).map(point => point.y);
+  const min = values.length ? Math.min(...values) : 0;
+  const max = values.length ? Math.max(...values) : 0;
+
+  slices[executionId] = {
+    min,
+    max,
+    metadata: {
+      executionId,
+      executionName: reportName,
+    }
+  };
+
+  return {
+    points,
+    slices,
+    series,
+    min,
+    max,
   };
 };
