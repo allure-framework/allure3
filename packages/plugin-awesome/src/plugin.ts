@@ -31,6 +31,7 @@ export class AwesomePlugin implements Plugin {
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
     const historyDataPoints = await store.allHistoryDataPoints();
+    const testResults = await store.allTestResults();
 
     await generateStatistic(this.#writer!, store);
     await generatePieChart(this.#writer!, store);
@@ -70,7 +71,7 @@ export class AwesomePlugin implements Plugin {
     }
 
     // Trend data generation
-    await generateHistoryTrendData(this.#writer!, context.reportName, statistic, historyDataPoints);
+    await generateHistoryTrendData(this.#writer!, context.reportName, statistic, testResults, historyDataPoints);
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 

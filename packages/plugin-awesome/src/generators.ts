@@ -379,12 +379,13 @@ export const generateStaticFiles = async (
 export const generateHistoryTrendData = async (
   writer: AllureAwesomeDataWriter,
   reportName: string,
-  statistic: Statistic & { testResults?: TestResult[] },
+  statistic: Statistic,
+  testResults: TestResult[],
   historyDataPoints: HistoryDataPoint[],
 ) => {
   // Put chart generators here
   const statusTrendData = getStatusTrendData(statistic, reportName, historyDataPoints);
-  const severityTrendData = getSeverityTrendData(statistic, reportName, historyDataPoints);
+  const severityTrendData = getSeverityTrendData({ ...statistic, testResults }, reportName, historyDataPoints);
 
   await writer.writeWidget("history-trend.json", {
     charts: {
