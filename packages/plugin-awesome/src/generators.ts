@@ -13,7 +13,6 @@ import type {
   AwesomeFixtureResult,
   AwesomeReportOptions,
   AwesomeTestResult,
-  AwesomeTestResultGroup,
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
@@ -150,71 +149,6 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
   );
 
   return convertedTrs;
-};
-
-/**
- * Generates `environments.json` file with environments keys which can be used in the report filters
- * when user wants to display test results only for specific environment.
- * @param writer
- * @param environments
- */
-export const generateEnvironments = async (
-  writer: AwesomeDataWriter,
-  environments: AwesomeOptions["environments"],
-) => {
-  const envKeys = Object.keys(environments ?? {});
-
-  if (envKeys.length === 0) {
-    return;
-  }
-
-  envKeys.unshift("default");
-
-  await writer.writeWidget("environments.json", JSON.stringify(envKeys));
-};
-
-// TODO:
-export const generateTestResultsGroups = async (
-  writer: AwesomeDataWriter,
-  store: AllureStore,
-  environments: AwesomeOptions["environments"],
-) => {
-  if (!environments || Object.keys(environments).length === 0) {
-    return;
-  }
-
-  const allTr = await store.allTestResults({ includeHidden: true });
-  const trGroups: AwesomeTestResultGroup[] = [];
-
-  for (const tr of allTr) {
-    // TODO: add default group
-
-    const [environment = "default"] = Object.entries(environments).find(([, filter]) => filter(tr)) ?? [];
-    const convertedTr = {
-      ...convertTestResult(tr),
-      environment,
-    };
-
-    const group = trGroups.find(({ fullName }) => fullName === tr.fullName);
-
-    if (!group) {
-      trGroups.push({
-        name: tr.name,
-        fullName: tr.fullName,
-        testResults: [convertedTr],
-      });
-      continue;
-    }
-
-    if (group?.testResults?.find(({ historyId }) => historyId === convertedTr.historyId)) {
-      continue;
-    }
-
-    group.testResults.push(convertedTr);
-  }
-
-  // eslint-disable-next-line no-console
-  console.log("tr groups", JSON.stringify(trGroups, null, 2));
 };
 
 export const generateTree = async (
