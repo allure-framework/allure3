@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestResult, TestStatus } from "../../src/model.js";
+import type { TestStatus } from "../../src/model.js";
 import { getWorstStatus, statusToPriority } from "../../src/utils/status.js";
 
 describe("statusToPriority", () => {
@@ -20,10 +20,7 @@ describe("statusToPriority", () => {
 
 describe("getWorstStatus", () => {
   it("should return worst status", () => {
-    const result = getWorstStatus(
-      [{ status: "passed" }, { status: "failed" }, { status: "skipped" }] as TestResult[],
-      (item) => item.status,
-    );
+    const result = getWorstStatus(["passed", "failed", "skipped"]);
 
     expect(result).toEqual("failed");
   });
@@ -35,7 +32,7 @@ describe("getWorstStatus", () => {
   });
 
   it("should return undefined when no items are given", () => {
-    const result = getWorstStatus([] as TestResult[], (item) => item.status);
+    const result = getWorstStatus([]);
 
     expect(result).toBeUndefined();
   });

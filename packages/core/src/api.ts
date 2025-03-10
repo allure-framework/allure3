@@ -21,15 +21,6 @@ export interface FullConfig {
   historyPath: string;
   knownIssuesPath: string;
   qualityGate?: QualityGateConfig;
-  defaultLabels?: DefaultLabelsConfig;
-  environments?: EnvironmentsConfig;
-  variables?: ReportVariables;
-  reportFiles: ReportFiles;
-  readers?: ResultsReader[];
-  plugins?: PluginInstance[];
-  history: HistoryDataPoint[];
-  appendHistory?: boolean;
-  known?: KnownTestFailure[];
   /**
    * You can specify default labels for tests which don't have them at all
    * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
@@ -43,5 +34,14 @@ export interface FullConfig {
    * }
    * ```
    */
+  defaultLabels?: DefaultLabelsConfig;
+  environments?: EnvironmentsConfig;
+  variables?: ReportVariables;
+  reportFiles: ReportFiles;
+  readers?: ResultsReader[];
+  plugins?: PluginInstance[];
+  history: HistoryDataPoint[];
+  appendHistory?: boolean;
+  known?: KnownTestFailure[];
   realTime?: any;
 }
