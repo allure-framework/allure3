@@ -32,6 +32,25 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
     }
   }, [kind, restProps]);
 
+  // Check if data is empty
+  if (!restProps.data || restProps.data.length === 0 || restProps.data.every(series => !series.data?.length)) {
+    return (
+      <div
+        role="img"
+        aria-label="Empty chart"
+        style={{
+          width,
+          height,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        No data available
+      </div>
+    );
+  }
+
   return (
     // Accessible container for the trend diagram
     <div role="img" aria-label={rootArialLabel} tabIndex={0} style={{ width, height }}>
