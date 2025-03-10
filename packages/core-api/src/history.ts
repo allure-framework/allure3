@@ -1,3 +1,4 @@
+import type { TestLabel } from "./metadata.js";
 import type { TestError, TestStatus } from "./model.js";
 
 /**
@@ -14,6 +15,8 @@ export interface HistoryTestResult {
   start?: number;
   stop?: number;
   duration?: number;
+
+  labels?: TestLabel[];
 
   // TODO url
 }
