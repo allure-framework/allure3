@@ -38,6 +38,15 @@ describe("BufferResultFile", () => {
     const result = resultFile.getExtension();
     expect(result).toEqual(".mp4");
   });
+
+  it("should return the same bytes when read as buffer", async () => {
+    const inputBuffer = await readResource("sample.png");
+    const resultFile = new BufferResultFile(inputBuffer, "sample.png");
+
+    const outputBuffer = await resultFile.asBuffer();
+
+    expect(outputBuffer?.equals(inputBuffer)).toBeTruthy();
+  });
 });
 
 describe("PathResultFile", () => {

@@ -99,7 +99,7 @@ export class BufferResultFile extends BaseResultFile {
   }
 
   protected getContent(): ReadStream {
-    return ReadStream.from(this.buffer, { encoding: "utf8" }) as ReadStream;
+    return ReadStream.from(this.buffer) as ReadStream;
   }
 
   protected readMagicHeader(): Uint8Array {
