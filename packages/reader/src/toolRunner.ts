@@ -6,6 +6,7 @@ const LINE_SPLIT_PATTERN = /\r\n|\r|\n/;
 export type ProcessRunOptions = {
   exitCode?: number | ((code: number) => boolean);
   encoding?: BufferEncoding;
+  stderrEncoding?: BufferEncoding;
   timeout?: number;
   timeoutSignal?: NodeJS.Signals;
   ignoreStderr?: boolean;
@@ -60,31 +61,46 @@ export const invokeCliTool = async (
   return await resultPromise;
 };
 
-export const invokeStdoutCliTool = async function* (
+type ResolveCliOutput<T> = T extends { encoding: BufferEncoding } ? string : Buffer;
+
+export const invokeStdoutCliTool = async function* <T extends ProcessRunOptions | undefined>(
   executable: string,
   args: readonly string[],
-  { timeout, timeoutSignal, encoding, exitCode: expectedExitCode = 0, ignoreStderr }: ProcessRunOptions = {},
-) {
-  const emitChunk = (chunk: string) => {
+  options?: T,
+): AsyncGenerator<ResolveCliOutput<T>, void, unknown> {
+  const {
+    timeout,
+    timeoutSignal,
+    encoding,
+    stderrEncoding,
+    exitCode: expectedExitCode = 0,
+    ignoreStderr,
+  } = options ?? {};
+  const emitTextChunk = (chunk: string) => {
     const lines = (unfinishedLineBuffer + chunk).split(LINE_SPLIT_PATTERN);
     if (lines.length) {
       unfinishedLineBuffer = lines.at(-1)!;
-      bufferedLines.push(...lines.slice(0, -1));
+      stdoutChunks.push(...(lines.slice(0, -1) as ResolveCliOutput<T>[]));
       maybeContinueConsumption();
     }
   };
 
-  const emitFinalChunk = () => {
+  const emitFinalTextChunk = () => {
     if (unfinishedLineBuffer) {
-      bufferedLines.push(unfinishedLineBuffer);
+      stdoutChunks.push(unfinishedLineBuffer as ResolveCliOutput<T>);
       unfinishedLineBuffer = "";
       maybeContinueConsumption();
     }
   };
 
+  const emitBinaryChunk = (chunk: Buffer) => {
+    stdoutChunks.push(chunk as ResolveCliOutput<T>);
+    maybeContinueConsumption();
+  };
+
   const emitError = (message: string) => {
-    if (stderr.length) {
-      message = `${message}\n\nStandard error:\n\n${stderr.join("\n")}`;
+    if (stderrChunks.length) {
+      message = `${message}\n\nStandard error:\n\n${stderrChunks.join("")}`;
     }
     bufferedError = new Error(message);
     maybeContinueConsumption();
@@ -106,13 +122,12 @@ export const invokeStdoutCliTool = async function* (
     }
   };
 
-  const stdIoEncoding = encoding ?? "utf-8";
-  const bufferedLines: string[] = [];
+  const stdoutChunks: ResolveCliOutput<T>[] = [];
   let unfinishedLineBuffer = "";
   let done = false;
   let bufferedError: Error | undefined;
 
-  const stderr: string[] = [];
+  const stderrChunks: string[] = [];
 
   let continueConsumption: (() => void) | undefined;
 
@@ -123,16 +138,21 @@ export const invokeStdoutCliTool = async function* (
     killSignal: timeoutSignal,
   });
 
-  toolProcess.stdout?.setEncoding(stdIoEncoding).on("data", (chunk) => {
-    emitChunk(String(chunk));
-  });
+  const { stdout, stderr } = toolProcess;
+  if (stdout) {
+    if (encoding) {
+      stdout.setEncoding(encoding).on("data", emitTextChunk);
+    } else {
+      stdout.on("data", emitBinaryChunk);
+    }
+  }
 
-  toolProcess.stderr?.setEncoding(stdIoEncoding).on("data", (chunk) => {
-    stderr.push(String(chunk));
-  });
+  if (stderr) {
+    stderr.setEncoding(stderrEncoding ?? encoding ?? "utf-8").on("data", stderrChunks.push.bind(stderrChunks));
+  }
 
   toolProcess.on("exit", (code, signal) => {
-    emitFinalChunk();
+    emitFinalTextChunk();
 
     done = true;
 
@@ -158,9 +178,9 @@ export const invokeStdoutCliTool = async function* (
   });
 
   while (true) {
-    if (bufferedLines.length) {
-      yield* bufferedLines;
-      bufferedLines.splice(0);
+    if (stdoutChunks.length) {
+      yield* stdoutChunks;
+      stdoutChunks.splice(0);
     }
 
     if (bufferedError) {
@@ -177,13 +197,21 @@ export const invokeStdoutCliTool = async function* (
   }
 };
 
+export const invokeTextStdoutCliTool = async function* (
+  executable: string,
+  args: readonly string[],
+  options: ProcessRunOptions = {},
+) {
+  yield* invokeStdoutCliTool(executable, args, { encoding: "utf-8", ...options });
+};
+
 export const invokeJsonCliTool = async <T>(
   tool: string,
   args: readonly string[],
   options: ProcessRunOptions = {},
 ): Promise<Unknown<T>> => {
   const lines: string[] = [];
-  for await (const line of invokeStdoutCliTool(tool, args, options)) {
+  for await (const line of invokeTextStdoutCliTool(tool, args, options)) {
     lines.push(line);
   }
   return JSON.parse(lines.join(""));
