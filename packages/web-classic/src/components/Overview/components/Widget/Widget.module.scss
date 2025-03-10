@@ -1,0 +1,38 @@
+.widget {
+  background: var(--bg-base-modal);
+  border-radius: 8px;
+  box-shadow: var(--shadow-small);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--on-border-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dragArea {
+  width: 24px;
+  height: 24px;
+  margin-left: -8px;
+}
+
+.title {
+  color: var(--on-text-primary);
+  font-size: var(--font-size-l);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-m);
+  margin: 0;
+}
+
+.content {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+} 
