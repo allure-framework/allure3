@@ -1,4 +1,4 @@
-import type { HistoryDataPoint, HistoryTestResult, Statistic, SeverityLevel, TestStatus, TestResult } from "@allurereport/core-api";
+import type { HistoryDataPoint, Statistic, SeverityLevel, TestStatus, TestResult } from "@allurereport/core-api";
 import { statusesList, severityLevels } from "@allurereport/core-api";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
@@ -265,9 +265,10 @@ export const getStatusTrendData = (
  * @param tests - Array of test results containing severity information
  * @returns SeverityStatisticData object with statistics by severity level
  */
-export const getSeverityStatisticData = (tests: { severity?: SeverityLevel }[]): SeverityStatisticData => {
+export const getSeverityStatisticData = (tests: TestResult[]): SeverityStatisticData => {
   const severityCounts = tests.reduce((acc, test) => {
-    const severity = test.severity || "normal";
+    const severityLabel = test.labels.find(label => label.name === "severity");
+    const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
     acc[severity] = (acc[severity] || 0) + 1;
 
@@ -287,42 +288,48 @@ export const getSeverityStatisticData = (tests: { severity?: SeverityLevel }[]):
           percentage: getPercentage(count, total),
         });
       }
-
       return acc;
     }, [] as SeverityStatisticMetadata[]);
 
   return {
     total,
-    items
+    items,
   };
 };
 
 export const getSeverityTrendData = (
-  currentStatistic: StatisticWithTestResults,
+  testResults: TestResult[],
   reportName: string,
-  historyPoints: HistoryDataPoint[]
+  historyPoints: HistoryDataPoint[],
 ): SeverityTrendChartData => {
   // Convert history points to statistics by severity
   const convertedHistoryPoints = historyPoints.map(point => ({
     name: point.name,
-    statistic: Object.values(point.testResults).reduce((stat, test: HistoryTestResult) => {
-      const severity = (test as unknown as { severity?: SeverityLevel }).severity || "normal";
+    statistic: Object.values(point.testResults).reduce((stat, test) => {
+      const severityLabel = test.labels?.find(label => label.name === "severity");
+      const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
-      stat[severity] = (stat[severity] ?? 0) + 1;
+      if (severity) {
+        stat[severity] = (stat[severity] ?? 0) + 1;
+      }
 
       return stat;
     }, createEmptyStats(SEVERITY_LIST))
   }));
 
   // Get current severity statistics
-  const currentSeverityStats = (currentStatistic.testResults || []).reduce((acc, test) => {
-    const severity = (test as unknown as { severity?: SeverityLevel }).severity || "normal";
+  const currentSeverityStats = testResults.reduce((acc, test) => {
+    const severityLabel = test.labels.find(label => label.name === "severity");
+    const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
-    acc[severity] = (acc[severity] ?? 0) + 1;
+    if (severity) {
+      acc[severity] = (acc[severity] ?? 0) + 1;
+    }
 
     return acc;
   }, createEmptyStats(SEVERITY_LIST));
 
+  // Get current report data
   const currentTrendData = getTrendDataGeneric<SeverityMetadata, SeverityLevel>(
     currentSeverityStats,
     reportName,
@@ -345,9 +352,8 @@ export const getSeverityTrendData = (
     slices: {},
     series: createEmptySeries(SEVERITY_LIST),
     min: Infinity,
-    max: -Infinity
+    max: -Infinity,
   } as SeverityTrendChartData);
 
-  // Add current report data as the last item
   return mergeTrendDataGeneric(historicalTrendData, currentTrendData, SEVERITY_LIST);
 };
