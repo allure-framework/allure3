@@ -1,5 +1,5 @@
 import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
-import type { AllureAwesomeStatus } from "types";
+import type { AwesomeStatus } from "types";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
@@ -64,7 +64,7 @@ export const TreeList = () => {
               navigateTo={navigateTo}
               statsStore={statsStore}
               tree={filteredTree.value}
-              statusFilter={currentTab as AllureAwesomeStatus}
+              statusFilter={currentTab as AwesomeStatus}
               root
             />
           </div>

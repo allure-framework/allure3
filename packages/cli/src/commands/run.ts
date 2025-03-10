@@ -6,7 +6,7 @@ import {
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
-import AllureAwesome from "@allurereport/plugin-awesome";
+import Awesome from "@allurereport/plugin-awesome";
 import { PathResultFile } from "@allurereport/reader-api";
 import * as console from "node:console";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
@@ -148,7 +148,7 @@ export const RunCommandAction = async (options: RunCommandOptions) => {
               id: "awesome",
               enabled: true,
               options: {},
-              plugin: new AllureAwesome({
+              plugin: new Awesome({
                 reportName: config.name,
               }),
             },

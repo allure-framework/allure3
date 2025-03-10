@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
 import { TestResultHeader } from "@/components/TestResult/TestResultHeader";
@@ -10,11 +10,10 @@ import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
 import { isSplitMode } from "@/stores/layout";
-import { testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 
 export type TestResultViewProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }) => {
@@ -31,7 +30,7 @@ const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }
 };
 
 export type TestResultContentProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 const TestResultContent: FunctionalComponent<TestResultContentProps> = ({ testResult }) => {
@@ -44,7 +43,7 @@ const TestResultContent: FunctionalComponent<TestResultContentProps> = ({ testRe
 };
 
 export type TestResultProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {

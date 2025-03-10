@@ -1,11 +1,11 @@
 import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/TestResult/TestResultHeader/styles.scss";
 import { navigateTo } from "@/stores/router";
 
 interface TestResultBreadcrumbsProps {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 }
 
 export const TestResultBreadcrumbs = ({ testResult }: TestResultBreadcrumbsProps) => {

@@ -2,7 +2,7 @@ import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
 import { setTreeStatus } from "@/stores/tree";
-import type { AllureAwesomeStatus } from "../../../types";
+import type { AwesomeStatus } from "../../../types";
 import * as styles from "./styles.scss";
 
 type TabsContextT = {
@@ -49,7 +49,7 @@ export const Tab = (props: { id: string; children: ComponentChildren }) => {
     }
 
     setCurrentTab(id);
-    setTreeStatus(id as AllureAwesomeStatus);
+    setTreeStatus(id as AwesomeStatus);
   };
 
   return (

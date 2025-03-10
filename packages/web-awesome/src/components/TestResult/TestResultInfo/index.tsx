@@ -2,7 +2,7 @@ import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { TestResultInfoStatuses } from "@/components/TestResult/TestResultInfo/TestResultInfoStatuses";
 import { TestResultNavigation } from "@/components/TestResult/TestResultNavigation";
 import { TestResultPrevStatuses } from "@/components/TestResult/TestResultPrevStatuses";
@@ -15,7 +15,7 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 export type TestResultInfoProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {

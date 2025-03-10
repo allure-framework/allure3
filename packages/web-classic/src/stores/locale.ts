@@ -2,9 +2,9 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/translations/constants";
-import type { AllureAwesomeReportOptions } from "../../types.js";
+import type { AwesomeReportOptions } from "../../types.js";
 
-const { reportLanguage } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
+const { reportLanguage } = getReportOptions<AwesomeReportOptions>() ?? {};
 
 const namespaces = [
   "empty",

@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
@@ -12,7 +12,7 @@ import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrError } from "@/components/TestResult/TrError";
 
 export type TestResultOverviewProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {

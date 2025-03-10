@@ -1,10 +1,10 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import type { AllureAwesomeReportOptions } from "../../types.js";
+import type { AwesomeReportOptions } from "../../types.js";
 
 type Theme = "light" | "dark";
 
-const { theme } = getReportOptions<AllureAwesomeReportOptions>() ?? {};
+const { theme } = getReportOptions<AwesomeReportOptions>() ?? {};
 
 export const themeStore = signal<Theme>("light");
 

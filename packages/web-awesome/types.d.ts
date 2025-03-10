@@ -12,7 +12,7 @@ import type {
 
 export type Layout = "base" | "split";
 
-export type AllureAwesomeReportOptions = {
+export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
   logo?: string;
@@ -24,20 +24,20 @@ export type AllureAwesomeReportOptions = {
   layout?: Layout;
 };
 
-export type AllureAwesomeFixtureResult = Omit<
+export type AwesomeFixtureResult = Omit<
   TestFixtureResult,
   "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
 > & {
-  steps: AllureAwesomeTestStepResult[];
+  steps: AwesomeTestStepResult[];
 };
 
-export type AllureAwesomeStatus = TestStatus | "total";
+export type AwesomeStatus = TestStatus | "total";
 
-export type AllureAwesomeTestStepResult = TestStepResult;
+export type AwesomeTestStepResult = TestStepResult;
 
-type AllureAwesomeBreadcrumbItem = string[] | string[][];
+type AwesomeBreadcrumbItem = string[] | string[][];
 
-export interface AllureAwesomeCategory {
+export interface AwesomeCategory {
   name: string;
   description?: string;
   descriptionHtml?: string;
@@ -47,7 +47,7 @@ export interface AllureAwesomeCategory {
   flaky?: boolean;
 }
 
-export type AllureAwesomeTestResult = Omit<
+export type AwesomeTestResult = Omit<
   TestResult,
   | "runSelector"
   | "sourceMetadata"
@@ -57,35 +57,35 @@ export type AllureAwesomeTestResult = Omit<
   | "preconditionHtml"
   | "steps"
 > & {
-  setup: AllureAwesomeFixtureResult[];
-  teardown: AllureAwesomeFixtureResult[];
-  steps: AllureAwesomeTestStepResult[];
+  setup: AwesomeFixtureResult[];
+  teardown: AwesomeFixtureResult[];
+  steps: AwesomeTestStepResult[];
   history: HistoryTestResult[];
   retries?: TestResult[];
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
-  breadcrumbs: AllureAwesomeBreadcrumbItem[];
+  breadcrumbs: AwesomeBreadcrumbItem[];
   order?: number;
   groupOrder?: number;
   retry: boolean;
-  categories?: AllureAwesomeCategory[];
+  categories?: AwesomeCategory[];
 };
 
-export type AllureAwesomeTreeLeaf = Pick<
-  AllureAwesomeTestResult,
+export type AwesomeTreeLeaf = Pick<
+  AwesomeTestResult,
   "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
 > & {
   nodeId: string;
 };
 
-export type AllureAwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
+export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
-export type AllureAwesomeTree = TreeData<AllureAwesomeTreeLeaf, AllureAwesomeTreeGroup>;
+export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */
-export type AllureAwesomeRecursiveTree = DefaultTreeGroup & {
+export type AwesomeRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
-  leaves: AllureAwesomeTreeLeaf[];
-  trees: AllureAwesomeRecursiveTree[];
+  leaves: AwesomeTreeLeaf[];
+  trees: AwesomeRecursiveTree[];
 };

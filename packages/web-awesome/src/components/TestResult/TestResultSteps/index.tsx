@@ -1,7 +1,7 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AllureAwesomeTestResult, AllureAwesomeTestStepResult } from "types";
+import type { AwesomeTestResult, AwesomeTestStepResult } from "types";
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
@@ -15,12 +15,12 @@ const typeMap = {
 } as const;
 
 export type TestResultStepsProps = {
-  steps: AllureAwesomeTestResult["steps"];
+  steps: AwesomeTestResult["steps"];
   id?: string;
 };
 
 type StepComponentProps = FunctionalComponent<{
-  item?: AllureAwesomeTestStepResult;
+  item?: AwesomeTestStepResult;
   stepIndex?: number;
 }>;
 
@@ -46,7 +46,7 @@ export const TestResultSteps: FunctionalComponent<TestResultStepsProps> = ({ ste
       />
       {isOpened && (
         <div className={styles["test-result-steps-root"]}>
-          {steps?.map((item: AllureAwesomeTestStepResult, index) => {
+          {steps?.map((item: AwesomeTestStepResult, index) => {
             const { type } = item;
             const StepComponent: StepComponentProps = typeMap[type];
             return StepComponent ? <StepComponent item={item} stepIndex={index + 1} key={index} /> : null;

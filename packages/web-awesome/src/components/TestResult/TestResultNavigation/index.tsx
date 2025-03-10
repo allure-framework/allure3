@@ -1,6 +1,6 @@
 import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
 import { navigateTo } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
@@ -8,7 +8,7 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 export type TestResultNavigationProps = {
-  testResult?: AllureAwesomeTestResult;
+  testResult?: AwesomeTestResult;
 };
 
 export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps> = ({ testResult }) => {

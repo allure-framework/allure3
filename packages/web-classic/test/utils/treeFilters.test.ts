@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
-import type { AllureAwesomeTestResult } from "../../types.js";
+import type { AwesomeTestResult } from "../../types.js";
 
 describe("utils > treeFilters", () => {
   describe("filterLeaves", () => {
@@ -11,15 +11,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -48,17 +48,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           status: "passed",
           start: baseDate,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           status: "failed",
           start: baseDate + 1000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           status: "passed",
           start: baseDate + 2000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -83,17 +83,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate,
           flaky: true,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           flaky: false,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
           flaky: true,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         query: "",
@@ -118,17 +118,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate,
           retry: true,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           retry: false,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
           retry: false,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         filter: {
@@ -145,15 +145,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -173,15 +173,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           duration: 1000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           duration: 2000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           duration: 3000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -200,13 +200,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -225,13 +225,13 @@ describe("utils > treeFilters", () => {
       const leavesById = {
         a1: {
           name: "a1",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -251,23 +251,23 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -289,23 +289,23 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           status: "passed",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           status: "failed",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           status: "broken",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         d4: {
           name: "d4",
           status: "unknown",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         e5: {
           name: "e5",
           status: "skipped",
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -329,17 +329,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "asc",
@@ -361,17 +361,17 @@ describe("utils > treeFilters", () => {
           name: "a1",
           start: baseDate + 2000,
           groupOrder: 3,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
           groupOrder: 2,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate,
           groupOrder: 1,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById, {
         direction: "desc",
@@ -397,15 +397,15 @@ describe("utils > treeFilters", () => {
         a1: {
           name: "a1",
           start: baseDate,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         b2: {
           name: "b2",
           start: baseDate + 1000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
         c3: {
           name: "c3",
           start: baseDate + 2000,
-        } as AllureAwesomeTestResult,
+        } as AwesomeTestResult,
       };
       const groupsById = {
         a1: {

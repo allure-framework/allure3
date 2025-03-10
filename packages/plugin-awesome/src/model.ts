@@ -1,4 +1,4 @@
-export type AllureAwesomeOptions = {
+export type AwesomeOptions = {
   reportName?: string;
   singleFile?: boolean;
   logo?: string;
@@ -15,4 +15,4 @@ export type AllureAwesomeOptions = {
 
 export type TemplateManifest = Record<string, string>;
 
-export type AllureAwesomePluginOptions = AllureAwesomeOptions;
+export type AwesomePluginOptions = AwesomeOptions;

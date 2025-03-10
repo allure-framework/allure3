@@ -1,9 +1,5 @@
 import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
-import type {
-  AllureAwesomeFixtureResult,
-  AllureAwesomeTestResult,
-  AllureAwesomeTestStepResult,
-} from "@allurereport/web-awesome";
+import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
 
 const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   return labels.reduce<Record<string, string[]>>((acc, { name, value }: TestLabel) => {
@@ -17,7 +13,7 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, {});
 };
 
-export const convertTestResult = (tr: TestResult): AllureAwesomeTestResult => {
+export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
   return {
     id: tr.id,
     name: tr.name,
@@ -46,11 +42,11 @@ export const convertTestResult = (tr: TestResult): AllureAwesomeTestResult => {
   };
 };
 
-export const convertTestStepResult = (tsr: TestStepResult): AllureAwesomeTestStepResult => {
+export const convertTestStepResult = (tsr: TestStepResult): AwesomeTestStepResult => {
   return tsr;
 };
 
-export const convertFixtureResult = (fr: TestFixtureResult): AllureAwesomeFixtureResult => {
+export const convertFixtureResult = (fr: TestFixtureResult): AwesomeFixtureResult => {
   return {
     id: fr.id,
     type: fr.type,

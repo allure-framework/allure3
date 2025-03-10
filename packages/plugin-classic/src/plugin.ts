@@ -12,13 +12,13 @@ import {
   generateTree,
   generateTreeByCategories,
 } from "./generators.js";
-import type { AllureAwesomePluginOptions } from "./model.js";
-import { type AllureAwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
+import type { AwesomePluginOptions } from "./model.js";
+import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
-export class AllureAwesomePlugin implements Plugin {
-  #writer: AllureAwesomeDataWriter | undefined;
+export class AwesomePlugin implements Plugin {
+  #writer: AwesomeDataWriter | undefined;
 
-  constructor(readonly options: AllureAwesomePluginOptions = {}) {}
+  constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [] } = this.options ?? {};

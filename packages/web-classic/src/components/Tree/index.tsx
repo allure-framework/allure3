@@ -1,6 +1,6 @@
 import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import type { AllureAwesomeStatus } from "types";
+import type { AwesomeStatus } from "types";
 import Tree from "@/components/Tree/Tree";
 import { useI18n } from "@/stores/locale";
 import { currentTab } from "@/stores/tabs";
@@ -11,7 +11,7 @@ export const TreeList = () => {
   const { t } = useI18n("empty");
 
   useEffect(() => {
-    setTreeStatus(currentTab.value as AllureAwesomeStatus);
+    setTreeStatus(currentTab.value as AwesomeStatus);
   }, [currentTab.value]);
 
   return (
@@ -51,7 +51,7 @@ export const TreeList = () => {
 
         return (
           <div className={styles["tree-list"]}>
-            <Tree tree={filteredTree.value} statusFilter={currentTab.value as AllureAwesomeStatus} root />
+            <Tree tree={filteredTree.value} statusFilter={currentTab.value as AwesomeStatus} root />
           </div>
         );
       }}

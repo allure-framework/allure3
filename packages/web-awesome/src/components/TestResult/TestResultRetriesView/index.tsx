@@ -1,11 +1,11 @@
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 import { TestResultRetriesItem } from "@/components/TestResult/TestResultRetriesView/TestResultRetriesItem";
 import { useI18n } from "@/stores";
 
 export const TestResultRetriesView: FunctionalComponent<{
-  testResult: AllureAwesomeTestResult;
+  testResult: AwesomeTestResult;
 }> = ({ testResult }) => {
   const { retries } = testResult ?? {};
   const { t } = useI18n("empty");
@@ -14,7 +14,7 @@ export const TestResultRetriesView: FunctionalComponent<{
     <div className={styles["test-result-history"]}>
       {retries.length ? (
         retries?.map((item, key) => (
-          <TestResultRetriesItem testResultItem={item as unknown as AllureAwesomeTestResult} key={key} />
+          <TestResultRetriesItem testResultItem={item as unknown as AwesomeTestResult} key={key} />
         ))
       ) : (
         <div className={styles["test-result-empty"]}>{t("no-retries-results")}</div>

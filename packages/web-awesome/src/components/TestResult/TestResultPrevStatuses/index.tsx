@@ -1,7 +1,7 @@
 import { type HistoryTestResult } from "@allurereport/core-api";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
 import { navigateTo } from "@/stores/router";
 import { capitalize } from "@/utils/capitalize";
@@ -31,7 +31,7 @@ const TestResultPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult
 };
 
 export type TestResultPrevStatusesProps = {
-  history: AllureAwesomeTestResult["history"];
+  history: AwesomeTestResult["history"];
 };
 
 export const TestResultPrevStatuses: FunctionalComponent<TestResultPrevStatusesProps> = ({ history }) => {

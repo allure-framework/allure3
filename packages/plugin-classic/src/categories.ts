@@ -1,18 +1,18 @@
 import type { TestStatus } from "@allurereport/core-api";
-import type { AllureAwesomeCategory } from "./model.js";
+import type { AwesomeCategory } from "./model.js";
 
-const productDefects: AllureAwesomeCategory = {
+const productDefects: AwesomeCategory = {
   name: "Product defects",
   matchedStatuses: ["failed"],
 };
 
-const testDefects: AllureAwesomeCategory = {
+const testDefects: AwesomeCategory = {
   name: "Test defects",
   matchedStatuses: ["broken"],
 };
 
 export const matchCategories = (
-  categories: AllureAwesomeCategory[],
+  categories: AwesomeCategory[],
   result: { message?: string; trace?: string; status: TestStatus; flaky: boolean },
 ) => {
   const matched = categories.filter((category) => categoryMatch(category, result));
@@ -27,7 +27,7 @@ export const matchCategories = (
 };
 
 const categoryMatch = (
-  category: AllureAwesomeCategory,
+  category: AwesomeCategory,
   result: { statusMessage?: string; statusTrace?: string; status: TestStatus; flaky: boolean },
 ): boolean => {
   const { status, statusMessage, statusTrace, flaky } = result;

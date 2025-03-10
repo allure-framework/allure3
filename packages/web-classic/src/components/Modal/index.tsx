@@ -4,7 +4,7 @@ import { signal } from "@preact/signals";
 import type { FunctionalComponent, VNode } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@/utils/attachments";
 import * as styles from "./styles.scss";
@@ -76,7 +76,7 @@ const ModalGallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = []
 };
 
 export type ModalProps = {
-  testResult: AllureAwesomeTestResult;
+  testResult: AwesomeTestResult;
 };
 
 const Modal: FunctionalComponent<ModalProps> = ({ testResult }) => {

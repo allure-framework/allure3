@@ -1,6 +1,6 @@
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
-import AllureAwesome from "@allurereport/plugin-awesome";
+import Awesome from "@allurereport/plugin-awesome";
 import ProgressPlugin from "@allurereport/plugin-progress";
 import ServerReloadPlugin from "@allurereport/plugin-server-reload";
 import { PathResultFile } from "@allurereport/reader-api";
@@ -56,7 +56,7 @@ export const WatchCommandAction = async (resultsDir: string, options: WatchComma
               id: "awesome",
               enabled: true,
               options: {},
-              plugin: new AllureAwesome({
+              plugin: new Awesome({
                 reportName: config.name,
               }),
             },

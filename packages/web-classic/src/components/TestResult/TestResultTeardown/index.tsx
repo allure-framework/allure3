@@ -1,7 +1,7 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AllureAwesomeTestResult } from "types";
+import type { AwesomeTestResult } from "types";
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
@@ -16,7 +16,7 @@ const typeMap = {
 };
 
 export type TestResultTeardownProps = {
-  teardown: AllureAwesomeTestResult["teardown"];
+  teardown: AwesomeTestResult["teardown"];
 };
 
 export const TestResultTeardown: FunctionalComponent<TestResultTeardownProps> = ({ teardown }) => {

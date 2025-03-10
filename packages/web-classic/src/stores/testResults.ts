@@ -1,9 +1,9 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import { type AllureAwesomeTestResult } from "types";
+import { type AwesomeTestResult } from "types";
 import { type StoreSignalState } from "./types";
 
-export type TestResultsStoreState = Record<string, AllureAwesomeTestResult>;
+export type TestResultsStoreState = Record<string, AwesomeTestResult>;
 
 export type TestResultNavStoreState = string[];
 
@@ -49,7 +49,7 @@ export const fetchTestResult = async (testResultId: string) => {
   };
 
   try {
-    const data = await fetchReportJsonData<AllureAwesomeTestResult>(`data/test-results/${testResultId}.json`);
+    const data = await fetchReportJsonData<AwesomeTestResult>(`data/test-results/${testResultId}.json`);
 
     testResultStore.value = {
       data: { ...testResultStore.value.data, [testResultId]: data },
