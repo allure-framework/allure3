@@ -3,7 +3,6 @@ import {
   type EnvironmentItem,
   type HistoryDataPoint,
   type Statistic,
-  type SeverityLevel,
   type TestResult,
   compareBy,
   incrementStatistic,
@@ -385,7 +384,7 @@ export const generateHistoryTrendData = async (
 ) => {
   // Put chart generators here
   const statusTrendData = getStatusTrendData(statistic, reportName, historyDataPoints);
-  const severityTrendData = getSeverityTrendData({ ...statistic, testResults }, reportName, historyDataPoints);
+  const severityTrendData = getSeverityTrendData(testResults, reportName, historyDataPoints);
 
   await writer.writeWidget("history-trend.json", {
     charts: {
