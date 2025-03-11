@@ -1392,6 +1392,30 @@ describe("environments", () => {
     });
   });
 
+  it("should set default environment event when environments are not specified", async () => {
+    const store = new DefaultAllureStore();
+    const rawTr1: RawTestResult = {
+      name: "test result 1",
+    };
+    const rawTr2: RawTestResult = {
+      name: "test result 2",
+    };
+
+    await store.visitTestResult(rawTr1, { readerId });
+    await store.visitTestResult(rawTr2, { readerId });
+
+    const [tr1, tr2] = await store.allTestResults();
+
+    expect(tr1).toMatchObject({
+      name: rawTr1.name,
+      environment: "default",
+    });
+    expect(tr2).toMatchObject({
+      name: rawTr2.name,
+      environment: "default",
+    });
+  });
+
   it("should return all environments", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {

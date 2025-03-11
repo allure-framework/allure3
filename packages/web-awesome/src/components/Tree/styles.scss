@@ -187,3 +187,9 @@
 .tree-item-marked {
   background: var(--bg-base-secondary);
 }
+
+.tree-section {
+  &:not(:last-child) {
+    margin-bottom: 8px;
+  }
+}

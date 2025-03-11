@@ -8,7 +8,10 @@ export default defineConfig({
       "allure-playwright",
       {
         resultsDir: "./out/allure-results",
-        globalLabels: [{ name: "module", value: "e2e" }],
+        globalLabels: [
+          { name: "module", value: "e2e" },
+          { name: "env", value: "browser" },
+        ],
       },
     ],
   ],

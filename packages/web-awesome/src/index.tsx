@@ -3,13 +3,14 @@ import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import clsx from "clsx";
 import { render } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
+import { environments, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
@@ -26,20 +27,27 @@ const Loader = () => {
     </div>
   );
 };
+
 const App = () => {
+  const [prefetched, setPrefetched] = useState(false);
   const { id: testResultId } = route.value;
+  const prefetchData = async () => {
+    // fetchEnvInfo,
+    const fns = [ensureReportDataReady, fetchStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
+
+    if (globalThis) {
+      fns.unshift(getLocale, getLayout as () => Promise<void>, getTheme as () => Promise<void>);
+    }
+
+    await waitForI18next;
+    await Promise.all(fns.map((fn) => fn()));
+    await fetchTreeData(environments.value.data);
+
+    setPrefetched(true);
+  };
 
   useEffect(() => {
-    if (globalThis) {
-      getLocale();
-      getLayout();
-      getTheme();
-    }
-    ensureReportDataReady();
-    fetchStats();
-    fetchEnvInfo();
-    fetchPieChartData();
-    fetchTreeData();
+    prefetchData();
   }, []);
 
   useEffect(() => {
@@ -60,9 +68,13 @@ const App = () => {
 
   return (
     <div className={styles.main}>
-      <Loader />
-      {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
-      <ModalComponent />
+      {!prefetched && <Loader />}
+      {prefetched && (
+        <>
+          {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+          <ModalComponent />
+        </>
+      )}
     </div>
   );
 };
@@ -79,18 +91,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-(async () => {
-  await waitForI18next;
-  if (globalThis) {
-    await getLocale();
-    getLayout();
-    getTheme();
-  }
-  await ensureReportDataReady();
-  await fetchStats();
-  await fetchEnvInfo();
-  await fetchPieChartData();
-  await fetchTreeData();
-
-  render(<App />, rootElement);
-})();
+render(<App />, rootElement);
