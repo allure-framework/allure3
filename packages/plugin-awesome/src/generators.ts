@@ -143,12 +143,20 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     await writer.writeTestCase(convertedTr);
   }
 
-  await writer.writeWidget(
-    "nav.json",
-    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
-  );
-
   return convertedTrs;
+};
+
+export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[]) => {
+  for (const tr of trs) {
+    await writer.writeTestCase(tr);
+  }
+};
+
+export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
+  await writer.writeWidget(
+    filename,
+    trs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+  );
 };
 
 export const generateTree = async (
@@ -188,6 +196,12 @@ export const generateTree = async (
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);
+};
+
+export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("environments.json", environments);
 };
 
 export const generateStatistic = async (writer: AwesomeDataWriter, statistic: Statistic) => {
