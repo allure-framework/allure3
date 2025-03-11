@@ -4,10 +4,13 @@ import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
+  generateEnvirontmentsList,
   generateHistoryDataPoints,
+  generateNav,
   generatePieChart,
   generateStaticFiles,
   generateStatistic,
+  generateTestCases,
   generateTestResults,
   generateTree,
 } from "./generators.js";
@@ -22,6 +25,7 @@ export class AwesomePlugin implements Plugin {
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [] } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
+    const reportEnvironments = await store.allEnvironments();
     const statistic = await store.testsStatistic();
     const attachments = await store.allAttachments();
 
@@ -29,14 +33,28 @@ export class AwesomePlugin implements Plugin {
     await generatePieChart(this.#writer!, statistic);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
+
+    await generateTestCases(this.#writer!, convertedTrs);
+    await generateNav(this.#writer!, convertedTrs);
+
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
       ({ labels }) => labels.map(({ name }) => name),
     );
 
-    await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
+    // await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
+
+    for (const reportEnvironment of reportEnvironments) {
+      const envTrs = await store.testResultsByEnvironment(reportEnvironment);
+      const envTrsIds = envTrs.map(({ id }) => id);
+      const envConvertedTrs = convertedTrs.filter(({ id }) => envTrsIds.includes(id));
+
+      await generateTree(this.#writer!, `${reportEnvironment}_tree`, treeLabels, envConvertedTrs);
+    }
+
+    await generateEnvirontmentsList(this.#writer!, store);
 
     if (environmentItems?.length) {
       await generateEnvironmentJson(this.#writer!, environmentItems);

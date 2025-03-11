@@ -1,4 +1,5 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
+import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeStatus, AwesomeTree, AwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
@@ -16,13 +17,17 @@ export type TreeFiltersState = {
   direction: TreeDirection;
 };
 
-export const treeStore = signal<StoreSignalState<AwesomeTree>>({
+export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
   loading: true,
   error: undefined,
   data: undefined,
 });
 
-export const noTests = computed(() => !Object.keys(treeStore?.value?.data?.leavesById).length);
+export const noTests = computed(() => {
+  return Object.values(treeStore?.value?.data ?? {}).every(
+    ({ leavesById }) => !leavesById || !Object.keys(leavesById).length,
+  );
+});
 
 const loadedFromLS = loadFromLocalStorage<string[]>("collapsedTrees", []);
 export const collapsedTrees = signal(new Set(loadedFromLS as string[]));
@@ -66,18 +71,26 @@ effect(() => {
 });
 
 export const filteredTree = computed(() => {
-  const { root, leavesById, groupsById } = treeStore.value.data;
+  return Object.entries(treeStore.value.data).reduce(
+    (acc, [key, value]) => {
+      const { root, leavesById, groupsById } = value;
+      const tree = createRecursiveTree({
+        group: root as AwesomeTreeGroup,
+        leavesById,
+        groupsById,
+        filterOptions: treeFiltersStore.value,
+      });
 
-  return createRecursiveTree({
-    group: root as AwesomeTreeGroup,
-    leavesById,
-    groupsById,
-    filterOptions: treeFiltersStore.value,
-  });
+      return Object.assign(acc, {
+        [key]: tree,
+      });
+    },
+    {} as Record<string, RecursiveTree>,
+  );
 });
 
 export const noTestsFound = computed(() => {
-  return isRecursiveTreeEmpty(filteredTree.value);
+  return Object.values(filteredTree.value).every(isRecursiveTreeEmpty);
 });
 
 export const clearTreeFilters = () => {
@@ -132,7 +145,7 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
   };
 };
 
-export const fetchTreeData = async () => {
+export const fetchTreeData = async (environments: string[]) => {
   treeStore.value = {
     ...treeStore.value,
     loading: true,
@@ -140,12 +153,22 @@ export const fetchTreeData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/tree.json");
+    for (const environment of environments) {
+      const res = await fetchReportJsonData<AwesomeTree>(`widgets/${environment}_tree.json`);
+
+      treeStore.value = {
+        ...treeStore.value,
+        data: {
+          ...treeStore.value.data,
+          [environment]: res,
+        },
+      };
+    }
 
     treeStore.value = {
-      data: res,
-      error: undefined,
+      ...treeStore.value,
       loading: false,
+      error: undefined,
     };
   } catch (e) {
     treeStore.value = {
