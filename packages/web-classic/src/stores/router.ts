@@ -43,8 +43,6 @@ export const navigateTo = (path: NavigateToString | NavigateToObject) => {
     newHash = `${tabName}/${id || ""}/${testResultId || ""}`;
   }
 
-  console.log("Navigating to:", newHash);
-
   history.pushState(null, "", `#${newHash}`);
 
   handleHashChange();

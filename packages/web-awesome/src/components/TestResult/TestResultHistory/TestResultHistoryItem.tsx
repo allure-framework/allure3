@@ -18,7 +18,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
 
-  const navigateUrl = `/${id}`;
+  const navigateUrl = `${id}`;
 
   return (
     <div>

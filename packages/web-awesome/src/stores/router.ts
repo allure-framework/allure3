@@ -9,7 +9,7 @@ type NavigateToObject = {
 };
 
 const parseHash = () => {
-  const hash = globalThis.location.hash.slice(2);
+  const hash = globalThis.location.hash.slice(1);
   const [id, params] = hash.split("/");
   return {
     id: id || null,
@@ -31,18 +31,18 @@ export const navigateTo = (path: NavigateToString | NavigateToObject) => {
   let newHash = "";
 
   if (typeof path === "string") {
-    newHash = path.startsWith("/#") ? path.slice(1) : path;
+    newHash = path.startsWith("#") ? path.slice(1) : path;
   } else {
     const { id, params = {} } = path;
 
     newHash = `${id}/${params.tabName ?? ""}`;
   }
-  history.pushState(null, "", `/#/${newHash}`);
+  history.pushState(null, "", `#${newHash}`);
   handleHashChange();
 };
 
 export const openInNewTab = (path: string) => {
-  window.open(`/#/${path}`, "_blank");
+  window.open(`#${path}`, "_blank");
 };
 
 export const activeTab = computed(() => route.value.params?.tabName || "overview");

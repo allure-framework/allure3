@@ -10,7 +10,7 @@ import * as styles from "./styles.scss";
 
 const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
   return (
-    <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`testresult/${item.id}`)}>
+    <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`${item.id}`)}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </div>
   );

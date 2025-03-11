@@ -19,7 +19,7 @@ export const TestResultBreadcrumbs = ({ testResult }: TestResultBreadcrumbsProps
           size={"s"}
           style={"ghost"}
           className={styles["test-result-breadcrumb-link"]}
-          onClick={() => navigateTo("/")}
+          onClick={() => navigateTo("")}
         />
       </div>
       {Boolean(breadcrumbs?.length) &&

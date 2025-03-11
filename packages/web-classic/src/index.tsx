@@ -41,11 +41,7 @@ const App = () => {
     };
   }, []);
 
-  console.log(route.value.tabName);
-  const ActiveComponent = useMemo(
-    () => tabComponents[route.value.tabName] || (() => <div>nav</div>),
-    [route.value.tabName],
-  );
+  const ActiveComponent = useMemo(() => tabComponents[route.value.tabName] || (() => <div />), [route.value.tabName]);
 
   if (!currentLocale.value) {
     return <PageLoader />;
