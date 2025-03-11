@@ -1,8 +1,2 @@
 test-results/
 *storybook.log
-
-# Cursor IDE ignore
-.cursor/
-.cursorrules
-.cursorignore
-.cursorindexingignore
