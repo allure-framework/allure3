@@ -64,17 +64,6 @@ export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
 export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
 export type SeverityTrendChartData = TrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
 
-export type SeverityStatisticMetadata = {
-  severity: string;
-  count: number;
-  percentage: number;
-};
-
-export type SeverityStatisticData = {
-  total: number;
-  items: SeverityStatisticMetadata[];
-};
-
 export const d3Arc = arc<PieArcDatum<TestResultSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
 export const d3Pie = pie<TestResultSlice>()
@@ -257,44 +246,6 @@ export const getStatusTrendData = (
 
   // Add current report data as the last item
   return mergeTrendDataGeneric(historicalTrendData, currentTrendData, STATUS_LIST);
-};
-
-/**
- * Generate severity statistics data from test results
- *
- * @param tests - Array of test results containing severity information
- * @returns SeverityStatisticData object with statistics by severity level
- */
-export const getSeverityStatisticData = (tests: TestResult[]): SeverityStatisticData => {
-  const severityCounts = tests.reduce((acc, test) => {
-    const severityLabel = test.labels.find(label => label.name === "severity");
-    const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
-
-    acc[severity] = (acc[severity] || 0) + 1;
-
-    return acc;
-  }, {} as Record<SeverityLevel, number>);
-
-  const total = Object.values(severityCounts).reduce((sum, count) => sum + count, 0);
-
-  const items: SeverityStatisticMetadata[] = severityLevels
-    .reduce((acc, severity) => {
-      const count = severityCounts[severity] ?? 0;
-
-      if (count > 0) {
-        acc.push({
-          severity,
-          count,
-          percentage: getPercentage(count, total),
-        });
-      }
-      return acc;
-    }, [] as SeverityStatisticMetadata[]);
-
-  return {
-    total,
-    items,
-  };
 };
 
 export const getSeverityTrendData = (
