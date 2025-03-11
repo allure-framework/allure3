@@ -6,6 +6,9 @@ import path from "node:path";
 import { exportAttachments } from "./cli.js";
 import type { AttachmentFileFactory } from "./model.js";
 
+const AUTO_VIDEO_CAPTURE_NAME = "kXCTAttachmentScreenRecording";
+const AUTO_SCREENSHOT_CAPTURE_NAME = "kXCTAttachmentLegacyScreenImageData";
+
 export const parseWithExportedAttachments = async (
   xcResultPath: string,
   fn: (createAttachmentFile: AttachmentFileFactory) => Promise<void>,
@@ -24,6 +27,30 @@ export const parseWithExportedAttachments = async (
       }
     }
   }
+};
+
+export const mapWellKnownAttachmentName = (name: string | undefined, timestamp: number | undefined) => {
+  switch (name) {
+    case AUTO_VIDEO_CAPTURE_NAME:
+      return "Screen Recording";
+    case AUTO_SCREENSHOT_CAPTURE_NAME:
+      return timestamp ? `Screenshot at ${timestampToString(timestamp)}` : "Screenshot";
+    default:
+      return name;
+  }
+};
+
+const timestampToString = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    fractionalSecondDigits: 3,
+  });
 };
 
 const createAttachmentFileFactoryFn =

@@ -1,5 +1,5 @@
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
-import type { RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
+import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
 import { step } from "allure-js-commons";
 import { existsSync, lstatSync } from "fs";
 import path from "node:path";
@@ -131,6 +131,70 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           ],
         },
       ]);
+    });
+
+    it("should parse screenshots at test level", async () => {
+      const result = await readXcResultResource("attachments/screenshots.xcresult");
+      const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+      const expectedSizes = new Map([
+        ["1-1", 65210],
+        ["1-4", 45916],
+        ["2-1", 65623],
+        ["2-4", 45916],
+      ]);
+      const attachmentSizes = new Map(
+        result.visitAttachmentFile.mock.calls.map((t) => [t[0].getOriginalFileName(), t[0].getContentLength()]),
+      );
+
+      const actualSizes = new Map(
+        testResults.map(({ steps, parameters }) => {
+          const theme = parameters?.find(({ name }) => name === "XCUIAppearanceMode")?.value;
+          const orientation = parameters?.find(({ name }) => name === "XCUIDeviceOrientation")?.value;
+          const key = `${theme}-${orientation}`;
+          const fileName = steps?.find(
+            (s): s is RawTestAttachment => s.type === "attachment" && s.name === "Launch Screen",
+          )?.originalFileName;
+          return [key, attachmentSizes.get(fileName!)];
+        }),
+      );
+
+      expect(testResults).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "attachment",
+                contentType: "image/png",
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "attachment",
+                contentType: "image/png",
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "attachment",
+                contentType: "image/png",
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "attachment",
+                contentType: "image/png",
+              }),
+            ]),
+          }),
+        ]),
+      );
+      expect(actualSizes).toEqual(expectedSizes);
     });
   });
 
@@ -1252,6 +1316,183 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             },
           ]);
         });
+      });
+    });
+
+    describe("attachments", () => {
+      it("should parse a text attachment of an activity", async () => {
+        const result = await readXcResultResource("activities/textAttachment.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+        const attachments = result.visitAttachmentFile.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "test()",
+            steps: [
+              {
+                type: "step",
+                name: "Foo",
+                steps: [
+                  {
+                    type: "attachment",
+                    name: "Bar",
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+        const attachment = attachments.find(
+          (a) => a.getOriginalFileName() === (testResults as any)[0].steps[0].steps[0].originalFileName,
+        );
+        expect(await attachment?.asUtf8String()).toEqual("Lorem Ipsum");
+      });
+
+      it("should parse a binary attachment of an activity", async () => {
+        const result = await readXcResultResource("activities/screenshot.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+        const attachments = result.visitAttachmentFile.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "testLaunch()",
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "step",
+                name: "Foo",
+                steps: expect.arrayContaining([
+                  expect.objectContaining({
+                    type: "attachment",
+                    name: "Launch Screen",
+                    contentType: "image/png",
+                  }),
+                ]),
+              }),
+            ]),
+          },
+        ]);
+        const attachment = attachments.find(
+          (a) =>
+            a.getOriginalFileName() ===
+            (testResults[0] as any).steps.find(({ name }) => name === "Foo").steps[1].originalFileName,
+        );
+        expect(attachment?.getContentLength()).toEqual(1654817);
+      });
+
+      it("should parse an automatic video capture", async () => {
+        const result = await readXcResultResource("activities/videoCapture.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+        const attachments = result.visitAttachmentFile.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "testLaunch()",
+            steps: expect.arrayContaining([
+              expect.objectContaining({
+                type: "step",
+                name: expect.stringMatching(/^Start Test at /),
+                steps: expect.arrayContaining([
+                  expect.objectContaining({
+                    type: "attachment",
+                    name: "Screen Recording",
+                    contentType: "video/mp4",
+                  }),
+                ]),
+              }),
+            ]),
+          },
+        ]);
+        const attachment = attachments.find(
+          (a) => a.getOriginalFileName() === (testResults[0] as any).steps[0].steps[0].originalFileName,
+        );
+        expect(attachment?.getContentLength()).toEqual(992181);
+      });
+
+      it("should parse an automatic screenshot capture", async () => {
+        const result = await readXcResultResource("activities/screenshotCapture.xcresult");
+
+        const testResults = result.visitTestResult.mock.calls.map((t) => t[0]);
+        const attachments = result.visitAttachmentFile.mock.calls.map((t) => t[0]);
+
+        expect(testResults).toMatchObject([
+          {
+            name: "testLaunch()",
+            steps: [
+              expect.objectContaining({
+                type: "step",
+                name: expect.stringMatching(/^Start Test at /),
+                steps: [
+                  expect.objectContaining({
+                    type: "attachment",
+                    name: expect.stringMatching(/^Screenshot at /),
+                    contentType: "image/heic",
+                  }),
+                ],
+              }),
+              expect.objectContaining({ type: "step", name: "Set Up" }),
+              expect.objectContaining({
+                type: "step",
+                name: "Open my-org.xcresult-examples",
+                steps: [
+                  expect.objectContaining({
+                    type: "attachment",
+                    name: expect.stringMatching(/^Screenshot at /),
+                    contentType: "image/heic",
+                  }),
+                  expect.objectContaining({
+                    type: "step",
+                    name: "Launch my-org.xcresult-examples",
+                    steps: [
+                      expect.objectContaining({ type: "step", name: "Wait for accessibility to load" }),
+                      expect.objectContaining({ type: "step", name: "Setting up automation session" }),
+                      expect.objectContaining({
+                        type: "step",
+                        name: "Wait for my-org.xcresult-examples to idle",
+                        steps: [
+                          expect.objectContaining({
+                            type: "attachment",
+                            name: expect.stringMatching(/^Screenshot at /),
+                            contentType: "image/heic",
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              expect.objectContaining({ type: "step", name: "Tear Down" }),
+            ],
+          },
+        ]);
+
+        const attachmentSteps = (
+          [
+            (testResults as any)[0].steps[0].steps[0],
+            (testResults as any)[0].steps[2].steps[0],
+            (testResults as any)[0].steps[2].steps[1].steps[2].steps[0],
+          ] as RawTestAttachment[]
+        ).map(({ start, name, originalFileName }) => ({
+          actualTimestampInName: Date.parse(name!.slice("Screenshot at ".length)),
+          expectedTimestamp: start,
+          actualLength: attachments.find((a) => a.getOriginalFileName() === originalFileName)?.getContentLength(),
+        }));
+
+        expect(attachmentSteps[0].actualTimestampInName)
+          .to.be.greaterThan(0)
+          .and.equal(attachmentSteps[0].expectedTimestamp);
+        expect(attachmentSteps[1].actualTimestampInName)
+          .to.be.greaterThan(0)
+          .and.equal(attachmentSteps[1].expectedTimestamp);
+        expect(attachmentSteps[2].actualTimestampInName)
+          .to.be.greaterThan(0)
+          .and.equal(attachmentSteps[2].expectedTimestamp);
+
+        expect(attachmentSteps[0].actualLength).toEqual(248488);
+        expect(attachmentSteps[1].actualLength).toEqual(249823);
+        expect(attachmentSteps[2].actualLength).toEqual(220419);
       });
     });
   });

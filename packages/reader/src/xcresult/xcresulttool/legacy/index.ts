@@ -33,6 +33,7 @@ import {
 } from "../../utils.js";
 import { xcresulttool, xcresulttoolBinary } from "../cli.js";
 import { XcresultParser } from "../model.js";
+import { mapWellKnownAttachmentName } from "../utils.js";
 import type {
   ActionParametersInputData,
   ActivityProcessingResult,
@@ -260,16 +261,18 @@ export default class LegacyApiParser extends XcresultParser {
     const files: ResultFile[] = [];
     const apiCalls: AllureApiCall[] = [];
     const failureSteps: RawTestStepResult[] = [];
-    for (const {
-      activityType,
-      title,
-      start,
-      finish,
-      attachments: rawAttachments,
-      subactivities: rawSubactivities,
-      failureSummaryIDs,
-      expectedFailureIDs,
-    } of activities) {
+    for (const activity of activities) {
+      const {
+        activityType,
+        title,
+        start,
+        finish,
+        attachments: rawAttachments,
+        subactivities: rawSubactivities,
+        failureSummaryIDs,
+        expectedFailureIDs,
+      } = activity;
+
       const attachments = getObjectArray(rawAttachments);
       const subactivities = getObjectArray(rawSubactivities);
       const failureIds = getStringArray(failureSummaryIDs);
@@ -413,16 +416,18 @@ export default class LegacyApiParser extends XcresultParser {
   };
 
   #parseAttachments = async (attachments: readonly ShallowKnown<XcActionTestAttachment>[]) => {
-    const steps: RawStep[] = [];
+    const steps: RawTestAttachment[] = [];
     const files: ResultFile[] = [];
-    for (const {
-      name: rawName,
-      timestamp,
-      uuid: rawUuid,
-      filename: rawFileName,
-      uniformTypeIdentifier,
-      payloadRef,
-    } of attachments) {
+    for (const attachment of attachments) {
+      const {
+        name: rawName,
+        timestamp,
+        uuid: rawUuid,
+        filename: rawFileName,
+        uniformTypeIdentifier,
+        payloadRef,
+      } = attachment;
+
       const uuid = getString(rawUuid);
       if (uuid) {
         const start = getDate(timestamp);
@@ -431,14 +436,17 @@ export default class LegacyApiParser extends XcresultParser {
         const step: RawTestAttachment = {
           type: "attachment",
           originalFileName: fileName,
-          name,
+          name: mapWellKnownAttachmentName(name, start),
           start,
           stop: start,
           contentType: getMediaTypeByUti(getString(uniformTypeIdentifier)),
         };
+
         const file =
           (await this.createAttachmentFile?.(uuid, fileName)) ?? (await this.#getFileById(payloadRef, fileName));
+
         steps.push(step);
+
         if (file) {
           files.push(file);
         }

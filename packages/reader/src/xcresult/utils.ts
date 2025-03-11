@@ -74,6 +74,8 @@ export const utiToMediaType: Record<string, string> = {
   "org.gnu.gnu-zip-tar-archive": "application/gzip",
   "com.apple.binhex-archive": "application/mac-binhex40",
   "com.apple.macbinary-​archive": "application/x-macbinary",
+  "public.heic": "image/heic",
+  "public.heif": "image/heif",
   "public.jpeg": "image/jpeg",
   "public.jpeg-2000": "image/jp2",
   "public.tiff": "image/tiff",
