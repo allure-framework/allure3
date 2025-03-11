@@ -2,10 +2,11 @@ import type { ResultFile } from "@allurereport/plugin-api";
 import type { RawStep, RawTestStatus, RawTestStepResult } from "@allurereport/reader-api";
 import type { Unknown } from "../../../validation.js";
 import type { AllureApiCall } from "../../model.js";
+import type { ParsingOptions } from "../model.js";
 import type { XcString } from "./xcModel.js";
 
-export type LegacyApiOptions = {
-  legacyFlag: boolean;
+export type LegacyApiParsingOptions = ParsingOptions & {
+  xcode16Plus: boolean;
 };
 
 export type LegacyTestResultData = {

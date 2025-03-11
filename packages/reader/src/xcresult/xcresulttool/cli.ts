@@ -1,8 +1,8 @@
 import console from "node:console";
-import { invokeCliTool, invokeJsonCliTool, invokeTextStdoutCliTool } from "../../toolRunner.js";
+import { invokeCliTool, invokeJsonCliTool, invokeStdoutCliTool, invokeTextStdoutCliTool } from "../../toolRunner.js";
 import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
-export const xcrun = async <T>(utilityName: string, ...args: readonly string[]) => {
+export const xcrunJson = async <T>(utilityName: string, ...args: readonly string[]) => {
   try {
     return await invokeJsonCliTool<T>("xcrun", [utilityName, ...args], { timeout: 1000 });
   } catch (e) {
@@ -10,7 +10,21 @@ export const xcrun = async <T>(utilityName: string, ...args: readonly string[]) 
   }
 };
 
-export const xcresulttool = async <T>(...args: readonly string[]) => await xcrun<T>("xcresulttool", ...args);
+export const xcrunBinary = async (utilityName: string, ...args: readonly string[]) => {
+  try {
+    const chunks: Buffer[] = [];
+    for await (const chunk of invokeStdoutCliTool("xcrun", [utilityName, ...args], { timeout: 60000 })) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+export const xcresulttool = async <T>(...args: readonly string[]) => await xcrunJson<T>("xcresulttool", ...args);
+
+export const xcresulttoolBinary = async (...args: readonly string[]) => await xcrunBinary("xcresulttool", ...args);
 
 export const version = async () => {
   const stdout = invokeTextStdoutCliTool("xcrun", ["xcresulttool", "version"], { timeout: 1000 });

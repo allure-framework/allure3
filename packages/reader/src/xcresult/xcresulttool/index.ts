@@ -34,137 +34,138 @@ import {
   secondsToMilliseconds,
 } from "../utils.js";
 import { getTestActivities, getTestDetails, getTests } from "./cli.js";
-import type { ApiParseFunction, AttachmentFileFactory, ParsingContext, ParsingState } from "./model.js";
+import type { AttachmentFileFactory, ParsingState } from "./model.js";
+import { XcresultParser } from "./model.js";
 import { XcTestNodeTypeValues, XcTestResultValues } from "./xcModel.js";
 import type { XcActivityNode, XcAttachment, XcDevice, XcTestNode, XcTestResult, XcTestRunArgument } from "./xcModel.js";
 
 const DURATION_PATTERN = /\d+\.\d+/;
 const ATTACHMENT_NAME_INFIX_PATTERN = /_\d+_[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12}/g;
 
-const parse: ApiParseFunction = async function* (
-  context: ParsingContext,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { xcResultPath } = context;
-  const tests = await getTests(xcResultPath);
-  if (isObject(tests)) {
-    const { testNodes } = tests;
-    if (isArray(testNodes)) {
-      yield* processXcNodes(context, testNodes, { suites: [] });
-    }
-  }
-};
-
-export default parse;
-
-const processXcResultNode = async function* (
-  ctx: ParsingContext,
-  node: ShallowKnown<XcTestNode>,
-  state: ParsingState,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { nodeType } = node;
-
-  switch (ensureLiteral(nodeType, XcTestNodeTypeValues)) {
-    case "Unit test bundle":
-    case "UI test bundle":
-      yield* processXcBundleNode(ctx, node, state);
-    case "Test Suite":
-      yield* processXcTestSuiteNode(ctx, node, state);
-    case "Test Case":
-      yield* processXcTestCaseNode(ctx, node, state);
-  }
-};
-
-const processXcBundleNode = async function* (ctx: ParsingContext, node: ShallowKnown<XcTestNode>, state: ParsingState) {
-  const { children, name } = node;
-
-  yield* processXcNodes(ctx, ensureArray(children) ?? [], {
-    ...state,
-    bundle: ensureString(name) ?? DEFAULT_BUNDLE_NAME,
-  });
-};
-
-const processXcTestSuiteNode = async function* (
-  ctx: ParsingContext,
-  node: ShallowKnown<XcTestNode>,
-  state: ParsingState,
-) {
-  const { children, name } = node;
-  const { suites } = state;
-
-  yield* processXcNodes(ctx, ensureArray(children) ?? [], {
-    ...state,
-    suites: [...suites, ensureString(name) ?? DEFAULT_SUITE_NAME],
-  });
-};
-
-const processXcTestCaseNode = async function* (
-  { xcResultPath, createAttachmentFile }: ParsingContext,
-  node: ShallowKnown<XcTestNode>,
-  { bundle, suites }: ParsingState,
-) {
-  const { nodeIdentifier, name: displayName } = node;
-  if (isString(nodeIdentifier)) {
-    const testDetails = await getTestDetails(xcResultPath, nodeIdentifier);
-    const testActivities = await getTestActivities(xcResultPath, nodeIdentifier);
-
-    if (isObject(testDetails) && isObject(testActivities)) {
-      const { testName, tags, testRuns: detailsTestRuns, devices: testDetailsDevices } = testDetails;
-
-      const crossDeviceTesting = isArray(testDetailsDevices) && testDetailsDevices.length > 1;
-      const detailsRunLookup = createTestDetailsRunLookup(detailsTestRuns);
-
-      const name = ensureString(displayName) ?? ensureString(testName) ?? DEFAULT_TEST_NAME;
-      const fullName = convertFullName(nodeIdentifier, bundle);
-      const testCaseLabels = convertTestCaseLabels(bundle, suites, nodeIdentifier, tags);
-
-      const { testRuns: activityTestRuns } = testActivities;
-      for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject) ?? []) {
-        const {
-          device: activityTestRunDevice,
-          arguments: activityTestRunArguments,
-          testPlanConfiguration: activityTestRunTestPlan,
-          activities,
-        } = activityTestRun;
-        const {
-          labels: deviceLabels,
-          parameters: deviceParameters,
-          deviceId,
-        } = processActivityTestRunDevice(activityTestRunDevice, crossDeviceTesting);
-        const { configurationId } = ensureObject(activityTestRunTestPlan) ?? {};
-        const args = convertActivitiesTestRunArgs(activityTestRunArguments);
-
-        const {
-          duration,
-          parameters = [],
-          result = "unknown",
-        } = findNextAttemptDataFromTestDetails(detailsRunLookup, {
-          device: deviceId,
-          testPlan: ensureString(configurationId),
-          args,
-        }) ?? {};
-
-        const { steps, attachmentFiles } = await convertXcActivitiesToAllureSteps(createAttachmentFile, activities);
-
-        yield* attachmentFiles;
-
-        yield {
-          uuid: randomUUID(),
-          fullName,
-          name,
-          start: 0,
-          duration: duration,
-          status: convertXcResultToAllureStatus(result),
-          message: "",
-          trace: "",
-          steps,
-          labels: [...testCaseLabels, ...deviceLabels],
-          links: [],
-          parameters: [...deviceParameters, ...pairParameterNamesWithValues(parameters, args)],
-        } as RawTestResult;
+export default class extends XcresultParser {
+  async *parse(): AsyncGenerator<ResultFile | RawTestResult, void, unknown> {
+    const tests = await getTests(this.xcResultPath);
+    if (isObject(tests)) {
+      const { testNodes } = tests;
+      if (isArray(testNodes)) {
+        yield* this.#processXcNodes(testNodes, { suites: [] });
       }
     }
   }
-};
+
+  async *#processXcNodes(children: readonly Unknown<XcTestNode>[], state: ParsingState) {
+    for (const child of children) {
+      if (isObject(child)) {
+        yield* this.#processXcResultNode(child, state);
+      }
+    }
+  }
+
+  async *#processXcResultNode(
+    node: ShallowKnown<XcTestNode>,
+    state: ParsingState,
+  ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
+    const { nodeType } = node;
+
+    switch (ensureLiteral(nodeType, XcTestNodeTypeValues)) {
+      case "Unit test bundle":
+      case "UI test bundle":
+        yield* this.#processXcBundleNode(node, state);
+      case "Test Suite":
+        yield* this.#processXcTestSuiteNode(node, state);
+      case "Test Case":
+        yield* this.#processXcTestCaseNode(node, state);
+    }
+  }
+
+  async *#processXcBundleNode(node: ShallowKnown<XcTestNode>, state: ParsingState) {
+    const { children, name } = node;
+
+    yield* this.#processXcNodes(ensureArray(children) ?? [], {
+      ...state,
+      bundle: ensureString(name) ?? DEFAULT_BUNDLE_NAME,
+    });
+  }
+
+  async *#processXcTestSuiteNode(node: ShallowKnown<XcTestNode>, state: ParsingState) {
+    const { children, name } = node;
+    const { suites } = state;
+
+    yield* this.#processXcNodes(ensureArray(children) ?? [], {
+      ...state,
+      suites: [...suites, ensureString(name) ?? DEFAULT_SUITE_NAME],
+    });
+  }
+
+  async *#processXcTestCaseNode(node: ShallowKnown<XcTestNode>, { bundle, suites }: ParsingState) {
+    const { nodeIdentifier, name: displayName } = node;
+    if (isString(nodeIdentifier)) {
+      const testDetails = await getTestDetails(this.xcResultPath, nodeIdentifier);
+      const testActivities = await getTestActivities(this.xcResultPath, nodeIdentifier);
+
+      if (isObject(testDetails) && isObject(testActivities)) {
+        const { testName, tags, testRuns: detailsTestRuns, devices: testDetailsDevices } = testDetails;
+
+        const crossDeviceTesting = isArray(testDetailsDevices) && testDetailsDevices.length > 1;
+        const detailsRunLookup = createTestDetailsRunLookup(detailsTestRuns);
+
+        const name = ensureString(displayName) ?? ensureString(testName) ?? DEFAULT_TEST_NAME;
+        const fullName = convertFullName(nodeIdentifier, bundle);
+        const testCaseLabels = convertTestCaseLabels(bundle, suites, nodeIdentifier, tags);
+
+        const { testRuns: activityTestRuns } = testActivities;
+        for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject) ?? []) {
+          const {
+            device: activityTestRunDevice,
+            arguments: activityTestRunArguments,
+            testPlanConfiguration: activityTestRunTestPlan,
+            activities,
+          } = activityTestRun;
+          const {
+            labels: deviceLabels,
+            parameters: deviceParameters,
+            deviceId,
+          } = processActivityTestRunDevice(activityTestRunDevice, crossDeviceTesting);
+          const { configurationId } = ensureObject(activityTestRunTestPlan) ?? {};
+          const args = convertActivitiesTestRunArgs(activityTestRunArguments);
+
+          const {
+            duration,
+            parameters = [],
+            result = "unknown",
+          } = findNextAttemptDataFromTestDetails(detailsRunLookup, {
+            device: deviceId,
+            testPlan: ensureString(configurationId),
+            args,
+          }) ?? {};
+
+          const createAttachmentFile = this.createAttachmentFile;
+
+          const { steps, attachmentFiles } = createAttachmentFile
+            ? await convertXcActivitiesToAllureSteps(this.createAttachmentFile, activities)
+            : { attachmentFiles: [] };
+
+          yield* attachmentFiles;
+
+          yield {
+            uuid: randomUUID(),
+            fullName,
+            name,
+            start: 0,
+            duration: duration,
+            status: convertXcResultToAllureStatus(result),
+            message: "",
+            trace: "",
+            steps,
+            labels: [...testCaseLabels, ...deviceLabels],
+            links: [],
+            parameters: [...deviceParameters, ...pairParameterNamesWithValues(parameters, args)],
+          } as RawTestResult;
+        }
+      }
+    }
+  }
+}
 
 const convertXcActivitiesToAllureSteps = async (
   createAttachmentFile: AttachmentFileFactory,
@@ -459,18 +460,6 @@ const convertHost = (device: Unknown<XcDevice>) => {
 const convertTestClassAndMethod = (testId: string) => {
   const parts = testId.split("/");
   return [parts.slice(0, -1).join("."), parts.at(-1)];
-};
-
-const processXcNodes = async function* (
-  ctx: ParsingContext,
-  children: readonly Unknown<XcTestNode>[],
-  state: ParsingState,
-) {
-  for (const child of children) {
-    if (isObject(child)) {
-      yield* processXcResultNode(ctx, child, state);
-    }
-  }
 };
 
 const parseDuration = (duration: Unknown<string>) => {

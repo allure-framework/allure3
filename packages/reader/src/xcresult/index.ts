@@ -2,9 +2,8 @@ import type { ResultsVisitor } from "@allurereport/reader-api";
 import console from "node:console";
 import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
 import { version } from "./xcresulttool/cli.js";
-import { legacyApiUnavailable, setLegacyApiOptions } from "./xcresulttool/legacy/cli.js";
-import legacyApi from "./xcresulttool/legacy/index.js";
-import type { ApiParseFunction, ParsingContext } from "./xcresulttool/model.js";
+import LegacyApiParser from "./xcresulttool/legacy/index.js";
+import type { XcresultParser } from "./xcresulttool/model.js";
 import { parseWithExportedAttachments } from "./xcresulttool/utils.js";
 
 const readerId = "xcresult";
@@ -49,30 +48,11 @@ const parseBundleWithXcResultTool = async (
   xcResultToolVersion: string,
 ) => {
   try {
-    await parseWithExportedAttachments(xcResultPath, async (createAttachmentFile) => {
-      const context = { xcResultPath: xcResultPath, createAttachmentFile };
-
-      try {
-        setupLegacyApi(xcResultToolVersion);
-        await tryApi(visitor, legacyApi, context);
-        return;
-      } catch (e) {
-        console.error(e);
-        if (!legacyApiUnavailable()) {
-          // The legacy API available but some other error has occured. We should not attempt using the new API in
-          // that case because the results may've been partially created.
-          throw e;
-        }
-      }
-
-      // TODO: fallback to the new API here. See https://github.com/allure-framework/allure3/issues/110
-      throw new Error(
-        `The legacy xcresulttool API can't be accessed in ${xcResultToolVersion}. ` +
-          "The new API usage is not implemented yet. " +
-          "Please, see https://github.com/allure-framework/allure3/issues/110 for more details",
-      );
-    });
-
+    if (isXcode16OrNewer(xcResultToolVersion)) {
+      await parseWithXcode16OrNewer(visitor, xcResultPath, xcResultToolVersion);
+    } else {
+      await parseWithXcode15OrOlder(visitor, xcResultPath);
+    }
     return true;
   } catch (e) {
     console.error("error parsing", xcResultPath, e);
@@ -81,9 +61,46 @@ const parseBundleWithXcResultTool = async (
   return false;
 };
 
-const tryApi = async (visitor: ResultsVisitor, generator: ApiParseFunction, context: ParsingContext) => {
-  const { xcResultPath: originalFileName } = context;
-  for await (const x of generator(context)) {
+const parseWithXcode15OrOlder = async (visitor: ResultsVisitor, xcResultPath: string) => {
+  const legacyApiParser = new LegacyApiParser({
+    xcResultPath,
+    xcode16Plus: false,
+  });
+
+  await tryApi(visitor, xcResultPath, legacyApiParser);
+};
+
+const parseWithXcode16OrNewer = async (visitor: ResultsVisitor, xcResultPath: string, xcResultToolVersion: string) => {
+  await parseWithExportedAttachments(xcResultPath, async (createAttachmentFile) => {
+    const legacyApiParser = new LegacyApiParser({
+      xcResultPath,
+      createAttachmentFile,
+      xcode16Plus: true,
+    });
+
+    try {
+      await tryApi(visitor, xcResultPath, legacyApiParser);
+      return;
+    } catch (e) {
+      console.error(e);
+      if (legacyApiParser.legacyApiSucceeded()) {
+        // The legacy API available but some other error has occured. We should not attempt using the new API in
+        // that case because the results may've been partially created.
+        throw e;
+      }
+    }
+
+    // TODO: fallback to the new API here. See https://github.com/allure-framework/allure3/issues/110
+    throw new Error(
+      `The legacy xcresulttool API can't be accessed in ${xcResultToolVersion}. ` +
+        "The new API is not yet supported by the reader. " +
+        "Please, see https://github.com/allure-framework/allure3/issues/110 for more details",
+    );
+  });
+};
+
+const tryApi = async (visitor: ResultsVisitor, originalFileName: string, apiParser: XcresultParser) => {
+  for await (const x of apiParser.parse()) {
     if ("readContent" in x) {
       await visitor.visitAttachmentFile(x, { readerId });
     } else {
@@ -92,16 +109,12 @@ const tryApi = async (visitor: ResultsVisitor, generator: ApiParseFunction, cont
   }
 };
 
-const setupLegacyApi = (versionText: string) => {
-  let legacyFlag = true;
-
+const isXcode16OrNewer = (versionText: string) => {
   const versionMatch = versionText.match(/xcresulttool version (\d+)/);
   if (versionMatch) {
     const xcResultToolVersion = parseInt(versionMatch[1], 10);
-    if (xcResultToolVersion < 23000) {
-      legacyFlag = false;
-    }
+    return xcResultToolVersion >= 23000;
   }
 
-  setLegacyApiOptions({ legacyFlag });
+  return false;
 };

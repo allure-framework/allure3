@@ -1,12 +1,13 @@
 /* eslint max-lines: 0 */
 import type { ResultFile } from "@allurereport/plugin-api";
-import type {
-  RawStep,
-  RawTestAttachment,
-  RawTestLink,
-  RawTestParameter,
-  RawTestResult,
-  RawTestStepResult,
+import {
+  BufferResultFile,
+  type RawStep,
+  type RawTestAttachment,
+  type RawTestLink,
+  type RawTestParameter,
+  type RawTestResult,
+  type RawTestStepResult,
 } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
 import type { ShallowKnown, Unknown } from "../../../validation.js";
@@ -30,8 +31,8 @@ import {
   secondsToMilliseconds,
   toSortedSteps,
 } from "../../utils.js";
-import type { ApiParseFunction, AttachmentFileFactory, ParsingContext } from "../model.js";
-import { getById, getRoot } from "./cli.js";
+import { xcresulttool, xcresulttoolBinary } from "../cli.js";
+import { XcresultParser } from "../model.js";
 import type {
   ActionParametersInputData,
   ActivityProcessingResult,
@@ -39,6 +40,7 @@ import type {
   FailureMapValue,
   FailureOverrides,
   LegacyActionDiscriminator,
+  LegacyApiParsingOptions,
   LegacyDestinationData,
   LegacyParsingState,
   ResolvedStepFailure,
@@ -50,6 +52,7 @@ import {
   getDouble,
   getInt,
   getObjectArray,
+  getRef,
   getString,
   getStringArray,
   getURL,
@@ -78,8 +81,10 @@ import type {
   XcActionTestSummary,
   XcActionTestSummaryGroup,
   XcActionTestSummaryIdentifiableObject,
+  XcActionsInvocationRecord,
   XcArray,
   XcIssueTrackingMetadata,
+  XcReference,
   XcSourceCodeContext,
   XcString,
   XcTestArgument,
@@ -92,42 +97,408 @@ import { XcActionTestSummaryIdentifiableObjectTypes } from "./xcModel.js";
 const IDENTIFIER_URL_PREFIX = "test://com.apple.xcode/";
 const ACTIVITY_TYPE_ATTACHMENT = "com.apple.dt.xctest.activity-type.attachmentContainer";
 
-const parse: ApiParseFunction = async function* (
-  context: ParsingContext,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { xcResultPath } = context;
-  const root = await getRoot(xcResultPath);
-  if (isObject(root)) {
-    const actions = getObjectArray(root.actions);
-    const actionDescriminators = parseActionDiscriminators(actions);
-    const multiTarget = isMultiTarget(actionDescriminators);
-    const multiTestPlan = isMultiTestPlan(actionDescriminators);
-    for (const { actionResult } of actions) {
-      const { destination, testPlan } = actionDescriminators.shift()!;
-      if (isObject(actionResult)) {
-        const { testsRef } = actionResult;
-        const summaries = await getById<XcActionTestPlanRunSummaries>(xcResultPath, testsRef);
-        if (isObject(summaries)) {
-          for (const { testableSummaries } of getObjectArray(summaries.summaries)) {
-            for (const { name, tests } of getObjectArray(testableSummaries)) {
-              const bundle = getString(name) ?? DEFAULT_BUNDLE_NAME;
-              yield* traverseActionTestSummaries(context, tests, {
-                bundle,
-                suites: [],
-                destination,
-                testPlan,
-                multiTarget,
-                multiTestPlan,
-              });
+export default class extends XcresultParser {
+  #xcode16Plus: boolean;
+  #legacyCliSucceeded = false;
+  #noLegacyApi = false;
+
+  constructor(options: LegacyApiParsingOptions) {
+    super(options);
+    this.#xcode16Plus = options.xcode16Plus;
+  }
+
+  legacyApiSucceeded = () => this.#legacyCliSucceeded || !this.#noLegacyApi;
+
+  async *parse(): AsyncGenerator<ResultFile | RawTestResult, void, unknown> {
+    const root = await this.#getRoot();
+    if (isObject(root)) {
+      const actions = getObjectArray(root.actions);
+      const actionDescriminators = parseActionDiscriminators(actions);
+      const multiTarget = isMultiTarget(actionDescriminators);
+      const multiTestPlan = isMultiTestPlan(actionDescriminators);
+      for (const { actionResult } of actions) {
+        const { destination, testPlan } = actionDescriminators.shift()!;
+        if (isObject(actionResult)) {
+          const { testsRef } = actionResult;
+          const summaries = await this.#getById<XcActionTestPlanRunSummaries>(testsRef);
+          if (isObject(summaries)) {
+            for (const { testableSummaries } of getObjectArray(summaries.summaries)) {
+              for (const { name, tests } of getObjectArray(testableSummaries)) {
+                const bundle = getString(name) ?? DEFAULT_BUNDLE_NAME;
+                yield* this.#traverseActionTestSummaries(tests, {
+                  bundle,
+                  suites: [],
+                  destination,
+                  testPlan,
+                  multiTarget,
+                  multiTestPlan,
+                });
+              }
             }
           }
         }
       }
     }
   }
-};
 
-export default parse;
+  async *#traverseActionTestSummaries(
+    array: Unknown<XcArray<XcActionTestSummaryIdentifiableObject>>,
+    state: LegacyParsingState,
+  ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
+    for (const obj of getObjectArray(array)) {
+      switch (getUnionType(obj, XcActionTestSummaryIdentifiableObjectTypes)) {
+        case "ActionTestMetadata":
+          yield* this.#visitActionTestMetadata(obj as ShallowKnown<XcActionTestMetadata>, state);
+          break;
+        case "ActionTestSummary":
+          yield* this.#visitActionTestSummary(obj as ShallowKnown<XcActionTestSummary>, state);
+          break;
+        case "ActionTestSummaryGroup":
+          yield* this.#visitActionTestSummaryGroup(obj as ShallowKnown<XcActionTestSummaryGroup>, state);
+          break;
+      }
+    }
+  }
+
+  async *#visitActionTestMetadata(
+    { summaryRef }: ShallowKnown<XcActionTestMetadata>,
+    state: LegacyParsingState,
+  ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
+    const summary = await this.#getById<XcActionTestSummary>(summaryRef);
+    if (isObject(summary)) {
+      yield* this.#visitActionTestSummary(summary, state);
+    }
+  }
+
+  async *#visitActionTestSummary(
+    {
+      arguments: args,
+      duration,
+      identifierURL,
+      name: rawName,
+      summary,
+      activitySummaries,
+      tags,
+      trackedIssues,
+      failureSummaries,
+      expectedFailures,
+      testStatus,
+      repetitionPolicySummary,
+      skipNoticeSummary,
+    }: ShallowKnown<XcActionTestSummary>,
+    state: LegacyParsingState,
+  ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
+    const { bundle, suites, destination: { hostName } = {} } = state;
+
+    const fullName = getString(identifierURL) ?? randomUUID();
+    const projectName = parseProjectName(fullName);
+    const functionName = getString(rawName);
+    const name = getString(summary) ?? functionName ?? DEFAULT_TEST_NAME;
+    const status = getString(testStatus);
+
+    const labels = createTestLabels({
+      hostName,
+      projectName,
+      bundle,
+      functionName,
+      suites: suites.map(({ name: suite }) => suite),
+      className: getTestClassFromSuites(suites),
+      tags: parseTestTags(tags),
+    });
+
+    const parameters = getAllTestResultParameters(state, args, repetitionPolicySummary);
+    const failures = await this.#processFailures(failureSummaries, expectedFailures);
+
+    const {
+      steps: activitySteps,
+      files,
+      apiCalls,
+    } = await this.#processActivities(failures, getObjectArray(activitySummaries));
+
+    const {
+      message,
+      trace,
+      steps: failureSteps,
+      status: worstFailedStepStatus,
+    } = resolveTestFailures(failures, skipNoticeSummary);
+
+    const steps = toSortedSteps(activitySteps, failureSteps);
+
+    const testResult: RawTestResult = {
+      uuid: randomUUID(),
+      fullName,
+      name,
+      duration: secondsToMilliseconds(getDouble(duration)),
+      labels,
+      parameters,
+      steps,
+      links: parseTrackedIssues(trackedIssues),
+      message,
+      status: resolveTestStatus(status, worstFailedStepStatus),
+      trace,
+    };
+
+    applyApiCalls(testResult, apiCalls);
+
+    yield* files;
+    yield* iterateFailureFiles(failures);
+    yield testResult;
+  }
+
+  async *#visitActionTestSummaryGroup(
+    { name, identifierURL, summary, subtests }: ShallowKnown<XcActionTestSummaryGroup>,
+    state: LegacyParsingState,
+  ): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
+    const suiteId = getString(name);
+    const suiteName = getString(summary) ?? suiteId ?? DEFAULT_SUITE_NAME;
+    const suiteUri = getString(identifierURL);
+    const { suites: parentSuites } = state;
+    const suites = withNewSuite(parentSuites, suiteId ?? DEFAULT_SUITE_ID, suiteUri, suiteName);
+    yield* this.#traverseActionTestSummaries(subtests, { ...state, suites });
+  }
+
+  #processActivities = async (
+    failures: FailureMap,
+    activities: readonly ShallowKnown<XcActionTestActivitySummary>[],
+  ): Promise<ActivityProcessingResult> => {
+    const steps: RawStep[] = [];
+    const files: ResultFile[] = [];
+    const apiCalls: AllureApiCall[] = [];
+    const failureSteps: RawTestStepResult[] = [];
+    for (const {
+      activityType,
+      title,
+      start,
+      finish,
+      attachments: rawAttachments,
+      subactivities: rawSubactivities,
+      failureSummaryIDs,
+      expectedFailureIDs,
+    } of activities) {
+      const attachments = getObjectArray(rawAttachments);
+      const subactivities = getObjectArray(rawSubactivities);
+      const failureIds = getStringArray(failureSummaryIDs);
+      const expectedFailureIds = getStringArray(expectedFailureIDs);
+
+      const { steps: thisStepAttachmentSteps, files: thisStepFiles } = await this.#parseAttachments(attachments);
+      if (getString(activityType) === ACTIVITY_TYPE_ATTACHMENT) {
+        files.push(...thisStepFiles);
+        steps.push(...thisStepAttachmentSteps);
+        continue;
+      }
+
+      const name = getString(title);
+
+      if (attachments.length === 0 && subactivities.length === 0 && failureIds.length === 0) {
+        const parsedAllureApiCall = parseAsAllureApiActivity(name);
+        if (isDefined(parsedAllureApiCall)) {
+          apiCalls.push(parsedAllureApiCall);
+          continue;
+        }
+      }
+
+      const {
+        steps: activitySubsteps,
+        files: substepFiles,
+        apiCalls: substepApiCalls,
+        failureSteps: substepFailureSteps,
+      } = await this.#processActivities(failures, subactivities);
+
+      const { directFailureSteps, transitiveFailureSteps, message, trace, status } = resolveStepFailures(
+        failureIds,
+        expectedFailureIds,
+        failures,
+        substepFailureSteps,
+      );
+
+      const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, directFailureSteps);
+
+      steps.push({
+        type: "step",
+        name: name ?? DEFAULT_STEP_NAME,
+        start: getDate(start),
+        stop: getDate(finish),
+        status: status ?? "passed",
+        message,
+        trace,
+        steps: substeps,
+      });
+      files.push(...thisStepFiles, ...substepFiles);
+      apiCalls.push(...substepApiCalls);
+      failureSteps.push(...transitiveFailureSteps);
+    }
+
+    fillDefaultAttachmentNames(steps);
+
+    return { steps, files, apiCalls, failureSteps };
+  };
+
+  #processFailures = async (
+    failures: Unknown<XcArray<XcActionTestFailureSummary>>,
+    expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
+  ): Promise<FailureMap> => {
+    const failureEntries = await this.#parseFailureEntries(failures);
+    const expectedFailureEntries = await this.#parseExpectedFailureEntries(expectedFailures);
+    return new Map([...failureEntries, ...expectedFailureEntries]);
+  };
+
+  #parseFailureEntries = async (failures: Unknown<XcArray<XcActionTestFailureSummary>>) => {
+    const entries: [string, FailureMapValue][] = [];
+    for (const summary of getObjectArray(failures)) {
+      const entry = await this.#toFailureMapEntry(summary);
+      if (entry) {
+        entries.push(entry);
+      }
+    }
+    return entries;
+  };
+
+  #parseExpectedFailureEntries = async (expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>) => {
+    const entries: [string, FailureMapValue][] = [];
+    for (const { uuid, failureReason, failureSummary, isTopLevelFailure } of getObjectArray(expectedFailures)) {
+      if (isObject(failureSummary)) {
+        const mapMessage = (message: string | undefined) => {
+          const prefix = getString(failureReason) ?? DEFAULT_EXPECTED_FAILURE_REASON;
+          return message ? prependTitle(`${prefix}:`, message, 2) : prefix;
+        };
+
+        const entry = await this.#toFailureMapEntry(failureSummary, {
+          uuid,
+          status: "passed",
+          isTopLevel: getBool(isTopLevelFailure),
+          mapMessage,
+        });
+
+        if (entry) {
+          entries.push(entry);
+        }
+      }
+    }
+    return entries;
+  };
+
+  #toFailureMapEntry = async (
+    {
+      attachments,
+      message: rawMessage,
+      sourceCodeContext,
+      timestamp,
+      uuid: rawUuid,
+      isTopLevelFailure,
+      issueType,
+    }: ShallowKnown<XcActionTestFailureSummary>,
+    { uuid: explicitUuid, mapMessage, status: explicitStatus, isTopLevel: explicitTopLevelFlag }: FailureOverrides = {},
+  ) => {
+    const { steps, files } = await this.#parseAttachments(getObjectArray(attachments));
+    const message = getString(rawMessage);
+    const status = explicitStatus ?? resolveFailureStepStatus(getString(issueType));
+    const trace = convertStackTrace(sourceCodeContext);
+    const start = getDate(timestamp);
+    const uuid = getString(explicitUuid) ?? getString(rawUuid);
+    return uuid
+      ? ([
+          uuid,
+          {
+            step: {
+              type: "step",
+              start,
+              stop: start,
+              duration: 0,
+              message: mapMessage?.(message) ?? message,
+              name: message,
+              status,
+              steps,
+              trace,
+            },
+            files,
+            isTopLevel: explicitTopLevelFlag ?? getBool(isTopLevelFailure),
+          },
+        ] as [string, FailureMapValue])
+      : undefined;
+  };
+
+  #parseAttachments = async (attachments: readonly ShallowKnown<XcActionTestAttachment>[]) => {
+    const steps: RawStep[] = [];
+    const files: ResultFile[] = [];
+    for (const {
+      name: rawName,
+      timestamp,
+      uuid: rawUuid,
+      filename: rawFileName,
+      uniformTypeIdentifier,
+      payloadRef,
+    } of attachments) {
+      const uuid = getString(rawUuid);
+      if (uuid) {
+        const start = getDate(timestamp);
+        const name = getString(rawName);
+        const fileName = ensureUniqueFileName(rawFileName);
+        const step: RawTestAttachment = {
+          type: "attachment",
+          originalFileName: fileName,
+          name,
+          start,
+          stop: start,
+          contentType: getMediaTypeByUti(getString(uniformTypeIdentifier)),
+        };
+        const file =
+          (await this.createAttachmentFile?.(uuid, fileName)) ?? (await this.#getFileById(payloadRef, fileName));
+        steps.push(step);
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+
+    return { steps, files };
+  };
+
+  #getRoot = async () => await this.#xcresulttoolGetLegacy<XcActionsInvocationRecord>([]);
+
+  #getById = async <T>(ref: Unknown<XcReference>) => {
+    const id = getRef(ref);
+    return id ? await this.#xcresulttoolGetLegacy<T>(["--id", id]) : undefined;
+  };
+
+  #getFileById = async (ref: Unknown<XcReference>, uniqueFileName: string) => {
+    const id = getRef(ref);
+    if (id) {
+      const legacyFlagArgs = this.#xcode16Plus ? ["--legacy"] : [];
+      const content = await xcresulttoolBinary("get", ...legacyFlagArgs, "--path", this.xcResultPath, "--id", id);
+
+      if (content) {
+        return new BufferResultFile(content, uniqueFileName);
+      }
+    }
+  };
+
+  #xcresulttoolGetLegacy = async <T>(args: readonly string[] = []): Promise<Unknown<T>> => {
+    if (this.#noLegacyApi) {
+      return undefined;
+    }
+
+    const legacyFlagArgs = this.#xcode16Plus ? ["--legacy"] : [];
+
+    const result = await xcresulttool<T>(
+      "get",
+      ...legacyFlagArgs,
+      "--format",
+      "json",
+      "--path",
+      this.xcResultPath,
+      ...args,
+    );
+    if (typeof result === "undefined") {
+      if (!this.#legacyCliSucceeded) {
+        this.#noLegacyApi = true;
+      }
+      return undefined;
+    }
+
+    this.#legacyCliSucceeded = true;
+    return result;
+  };
+}
 
 const parseActionDiscriminators = (actions: ShallowKnown<XcActionRecord>[]): LegacyActionDiscriminator[] => {
   return actions.map(({ runDestination, testPlanName }) => ({
@@ -187,114 +558,6 @@ const parsePlatform = (element: Unknown<XcActionPlatformRecord>) => {
   }
 };
 
-const traverseActionTestSummaries = async function* (
-  context: ParsingContext,
-  array: Unknown<XcArray<XcActionTestSummaryIdentifiableObject>>,
-  state: LegacyParsingState,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  for (const obj of getObjectArray(array)) {
-    switch (getUnionType(obj, XcActionTestSummaryIdentifiableObjectTypes)) {
-      case "ActionTestMetadata":
-        yield* visitActionTestMetadata(context, obj as ShallowKnown<XcActionTestMetadata>, state);
-        break;
-      case "ActionTestSummary":
-        yield* visitActionTestSummary(context, obj as ShallowKnown<XcActionTestSummary>, state);
-        break;
-      case "ActionTestSummaryGroup":
-        yield* visitActionTestSummaryGroup(context, obj as ShallowKnown<XcActionTestSummaryGroup>, state);
-        break;
-    }
-  }
-};
-
-const visitActionTestMetadata = async function* (
-  context: ParsingContext,
-  { summaryRef }: ShallowKnown<XcActionTestMetadata>,
-  state: LegacyParsingState,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { xcResultPath } = context;
-  const summary = await getById<XcActionTestSummary>(xcResultPath, summaryRef);
-  if (isObject(summary)) {
-    yield* visitActionTestSummary(context, summary, state);
-  }
-};
-
-const visitActionTestSummary = async function* (
-  { createAttachmentFile }: ParsingContext,
-  {
-    arguments: args,
-    duration,
-    identifierURL,
-    name: rawName,
-    summary,
-    activitySummaries,
-    tags,
-    trackedIssues,
-    failureSummaries,
-    expectedFailures,
-    testStatus,
-    repetitionPolicySummary,
-    skipNoticeSummary,
-  }: ShallowKnown<XcActionTestSummary>,
-  state: LegacyParsingState,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const { bundle, suites, destination: { hostName } = {} } = state;
-
-  const fullName = getString(identifierURL) ?? randomUUID();
-  const projectName = parseProjectName(fullName);
-  const functionName = getString(rawName);
-  const name = getString(summary) ?? functionName ?? DEFAULT_TEST_NAME;
-  const status = getString(testStatus);
-
-  const labels = createTestLabels({
-    hostName,
-    projectName,
-    bundle,
-    functionName,
-    suites: suites.map(({ name: suite }) => suite),
-    className: getTestClassFromSuites(suites),
-    tags: parseTestTags(tags),
-  });
-
-  const parameters = getAllTestResultParameters(state, args, repetitionPolicySummary);
-  const failures = await processFailures(createAttachmentFile, failureSummaries, expectedFailures);
-
-  const {
-    steps: activitySteps,
-    files,
-    apiCalls,
-  } = await processActivities(createAttachmentFile, failures, getObjectArray(activitySummaries));
-
-  const {
-    message,
-    trace,
-    steps: failureSteps,
-    status: worstFailedStepStatus,
-  } = resolveTestFailures(failures, skipNoticeSummary);
-
-  const steps = toSortedSteps(activitySteps, failureSteps);
-
-  const testResult: RawTestResult = {
-    uuid: randomUUID(),
-    fullName,
-    name,
-    duration: secondsToMilliseconds(getDouble(duration)),
-    labels,
-    parameters,
-    steps,
-    links: parseTrackedIssues(trackedIssues),
-    message,
-    status: resolveTestStatus(status, worstFailedStepStatus),
-    trace,
-  };
-
-  applyApiCalls(testResult, apiCalls);
-
-  yield* files;
-  yield* iterateFailureFiles(failures);
-  yield testResult;
-};
-
 const iterateFailureFiles = function* (failures: FailureMap) {
   for (const { files } of failures.values()) {
     yield* files;
@@ -311,98 +574,6 @@ const parseTrackedIssues = (issues: Unknown<XcArray<XcIssueTrackingMetadata>>): 
     })
     .filter(isDefined);
 
-const processFailures = async (
-  createAttachmentFile: AttachmentFileFactory,
-  failures: Unknown<XcArray<XcActionTestFailureSummary>>,
-  expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
-): Promise<FailureMap> => {
-  const failureEntries = await parseFailureEntries(createAttachmentFile, failures);
-  const expectedFailureEntries = await parseExpectedFailureEntries(createAttachmentFile, expectedFailures);
-  return new Map([...failureEntries, ...expectedFailureEntries]);
-};
-
-const parseFailureEntries = async (
-  createAttachmentFile: AttachmentFileFactory,
-  failures: Unknown<XcArray<XcActionTestFailureSummary>>,
-) => {
-  const entries: [string, FailureMapValue][] = [];
-  for (const summary of getObjectArray(failures)) {
-    const entry = await toFailureMapEntry(createAttachmentFile, summary);
-    if (entry) {
-      entries.push(entry);
-    }
-  }
-  return entries;
-};
-
-const parseExpectedFailureEntries = async (
-  createAttachmentFile: AttachmentFileFactory,
-  expectedFailures: Unknown<XcArray<XcActionTestExpectedFailure>>,
-) => {
-  const entries: [string, FailureMapValue][] = [];
-  for (const { uuid, failureReason, failureSummary, isTopLevelFailure } of getObjectArray(expectedFailures)) {
-    if (isObject(failureSummary)) {
-      const mapMessage = (message: string | undefined) => {
-        const prefix = getString(failureReason) ?? DEFAULT_EXPECTED_FAILURE_REASON;
-        return message ? prependTitle(`${prefix}:`, message, 2) : prefix;
-      };
-
-      const entry = await toFailureMapEntry(createAttachmentFile, failureSummary, {
-        uuid,
-        status: "passed",
-        isTopLevel: getBool(isTopLevelFailure),
-        mapMessage,
-      });
-
-      if (entry) {
-        entries.push(entry);
-      }
-    }
-  }
-  return entries;
-};
-
-const toFailureMapEntry = async (
-  createAttachmentFile: AttachmentFileFactory,
-  {
-    attachments,
-    message: rawMessage,
-    sourceCodeContext,
-    timestamp,
-    uuid: rawUuid,
-    isTopLevelFailure,
-    issueType,
-  }: ShallowKnown<XcActionTestFailureSummary>,
-  { uuid: explicitUuid, mapMessage, status: explicitStatus, isTopLevel: explicitTopLevelFlag }: FailureOverrides = {},
-) => {
-  const { steps, files } = await parseAttachments(createAttachmentFile, getObjectArray(attachments));
-  const message = getString(rawMessage);
-  const status = explicitStatus ?? resolveFailureStepStatus(getString(issueType));
-  const trace = convertStackTrace(sourceCodeContext);
-  const start = getDate(timestamp);
-  const uuid = getString(explicitUuid) ?? getString(rawUuid);
-  return uuid
-    ? ([
-        uuid,
-        {
-          step: {
-            type: "step",
-            start,
-            stop: start,
-            duration: 0,
-            message: mapMessage?.(message) ?? message,
-            name: message,
-            status,
-            steps,
-            trace,
-          },
-          files,
-          isTopLevel: explicitTopLevelFlag ?? getBool(isTopLevelFailure),
-        },
-      ] as [string, FailureMapValue])
-    : undefined;
-};
-
 const convertStackTrace = (sourceCodeContext: Unknown<XcSourceCodeContext>) => {
   if (isObject(sourceCodeContext)) {
     const { callStack } = sourceCodeContext;
@@ -416,86 +587,6 @@ const convertStackTrace = (sourceCodeContext: Unknown<XcSourceCodeContext>) => {
       .filter(isDefined)
       .join("\n");
   }
-};
-
-const processActivities = async (
-  createAttachmentFile: AttachmentFileFactory,
-  failures: FailureMap,
-  activities: readonly ShallowKnown<XcActionTestActivitySummary>[],
-): Promise<ActivityProcessingResult> => {
-  const steps: RawStep[] = [];
-  const files: ResultFile[] = [];
-  const apiCalls: AllureApiCall[] = [];
-  const failureSteps: RawTestStepResult[] = [];
-  for (const {
-    activityType,
-    title,
-    start,
-    finish,
-    attachments: rawAttachments,
-    subactivities: rawSubactivities,
-    failureSummaryIDs,
-    expectedFailureIDs,
-  } of activities) {
-    const attachments = getObjectArray(rawAttachments);
-    const subactivities = getObjectArray(rawSubactivities);
-    const failureIds = getStringArray(failureSummaryIDs);
-    const expectedFailureIds = getStringArray(expectedFailureIDs);
-
-    const { steps: thisStepAttachmentSteps, files: thisStepFiles } = await parseAttachments(
-      createAttachmentFile,
-      attachments,
-    );
-    if (getString(activityType) === ACTIVITY_TYPE_ATTACHMENT) {
-      files.push(...thisStepFiles);
-      steps.push(...thisStepAttachmentSteps);
-      continue;
-    }
-
-    const name = getString(title);
-
-    if (attachments.length === 0 && subactivities.length === 0 && failureIds.length === 0) {
-      const parsedAllureApiCall = parseAsAllureApiActivity(name);
-      if (isDefined(parsedAllureApiCall)) {
-        apiCalls.push(parsedAllureApiCall);
-        continue;
-      }
-    }
-
-    const {
-      steps: activitySubsteps,
-      files: substepFiles,
-      apiCalls: substepApiCalls,
-      failureSteps: substepFailureSteps,
-    } = await processActivities(createAttachmentFile, failures, subactivities);
-
-    const { directFailureSteps, transitiveFailureSteps, message, trace, status } = resolveStepFailures(
-      failureIds,
-      expectedFailureIds,
-      failures,
-      substepFailureSteps,
-    );
-
-    const substeps = toSortedSteps(thisStepAttachmentSteps, activitySubsteps, directFailureSteps);
-
-    steps.push({
-      type: "step",
-      name: name ?? DEFAULT_STEP_NAME,
-      start: getDate(start),
-      stop: getDate(finish),
-      status: status ?? "passed",
-      message,
-      trace,
-      steps: substeps,
-    });
-    files.push(...thisStepFiles, ...substepFiles);
-    apiCalls.push(...substepApiCalls);
-    failureSteps.push(...transitiveFailureSteps);
-  }
-
-  fillDefaultAttachmentNames(steps);
-
-  return { steps, files, apiCalls, failureSteps };
 };
 
 const fillDefaultAttachmentNames = (steps: readonly RawStep[]) => {
@@ -558,37 +649,6 @@ const resolveStepFailureSubsteps = (stepFailures: readonly (FailureMapValue | un
         status: "broken",
       } as RawTestStepResult),
   );
-};
-
-const parseAttachments = async (
-  createAttachmentFile: AttachmentFileFactory,
-  attachments: readonly ShallowKnown<XcActionTestAttachment>[],
-) => {
-  const steps: RawStep[] = [];
-  const files: ResultFile[] = [];
-  for (const { name: rawName, timestamp, uuid: rawUuid, filename: rawFileName, uniformTypeIdentifier } of attachments) {
-    const uuid = getString(rawUuid);
-    if (uuid) {
-      const start = getDate(timestamp);
-      const name = getString(rawName);
-      const fileName = ensureUniqueFileName(rawFileName);
-      const step: RawTestAttachment = {
-        type: "attachment",
-        originalFileName: fileName,
-        name,
-        start,
-        stop: start,
-        contentType: getMediaTypeByUti(getString(uniformTypeIdentifier)),
-      };
-      const file = await createAttachmentFile(uuid, fileName);
-      steps.push(step);
-      if (file) {
-        files.push(file);
-      }
-    }
-  }
-
-  return { steps, files };
 };
 
 const ensureUniqueFileName = (fileName: Unknown<XcString>) => getString(fileName) ?? randomUUID();
@@ -668,19 +728,6 @@ const parseTestTags = (tags: Unknown<XcArray<XcTestTag>>): string[] =>
   getObjectArray(tags)
     .map(({ name }) => getString(name))
     .filter(isDefined);
-
-const visitActionTestSummaryGroup = async function* (
-  context: ParsingContext,
-  { name, identifierURL, summary, subtests }: ShallowKnown<XcActionTestSummaryGroup>,
-  state: LegacyParsingState,
-): AsyncGenerator<RawTestResult | ResultFile, void, unknown> {
-  const suiteId = getString(name);
-  const suiteName = getString(summary) ?? suiteId ?? DEFAULT_SUITE_NAME;
-  const suiteUri = getString(identifierURL);
-  const { suites: parentSuites } = state;
-  const suites = withNewSuite(parentSuites, suiteId ?? DEFAULT_SUITE_ID, suiteUri, suiteName);
-  yield* traverseActionTestSummaries(context, subtests, { ...state, suites });
-};
 
 const getParameterName = (parameter: Unknown<XcTestParameter>) =>
   isObject(parameter) ? (getString(parameter.name) ?? getString(parameter.label)) : undefined;
