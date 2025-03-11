@@ -174,18 +174,23 @@ const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDa
   });
 
   // Create slice
-  const values = Object.values(points).map(point => point.y);
-  const min = values.length ? Math.min(...values) : 0;
-  const max = values.length ? Math.max(...values) : 0;
+  const pointsAsArray = Object.values(points);
+  const pointsCount = pointsAsArray.length;
+  const values = pointsAsArray.map(point => point.y);
+  const min = pointsCount ? Math.min(...values) : 0;
+  const max = pointsCount ? Math.max(...values) : 0;
 
-  slices[executionId] = {
-    min,
-    max,
-    metadata: {
-      executionId,
-      executionName: reportName,
-    } as M
-  };
+  // Omit creating slice if there are no points in it
+  if (pointsCount > 0) {
+    slices[executionId] = {
+      min,
+      max,
+      metadata: {
+        executionId,
+        executionName: reportName,
+      } as M
+    };
+  }
 
   return {
     points,
