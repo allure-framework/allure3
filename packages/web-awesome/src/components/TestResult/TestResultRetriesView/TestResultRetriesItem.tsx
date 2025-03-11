@@ -16,7 +16,7 @@ export const TestResultRetriesItem: FunctionalComponent<{
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
-  const navigateUrl = `/testresult/${id}`;
+  const navigateUrl = id;
 
   return (
     <div>

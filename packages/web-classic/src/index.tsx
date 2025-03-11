@@ -41,7 +41,7 @@ const App = () => {
     };
   }, []);
 
-  const ActiveComponent = useMemo(() => tabComponents[route.value.tabName] || (() => <div />), [route.value.tabName]);
+  const ActiveComponent = useMemo(() => tabComponents[route.value.tabName] || (() => null), [route.value.tabName]);
 
   if (!currentLocale.value) {
     return <PageLoader />;
