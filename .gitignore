@@ -46,3 +46,9 @@ build
 **/.nyc_output
 **/package.tgz
 **/wallaby.js
+
+# Cursor IDE ignore
+.cursor/
+.cursorrules
+.cursorignore
+.cursorindexingignore
