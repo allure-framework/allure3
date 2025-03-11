@@ -453,7 +453,7 @@ export default class extends XcresultParser {
     return { steps, files };
   };
 
-  #getRoot = async () => await this.#xcresulttoolGetLegacy<XcActionsInvocationRecord>([]);
+  #getRoot = () => this.#xcresulttoolGetLegacy<XcActionsInvocationRecord>([]);
 
   #getById = async <T>(ref: Unknown<XcReference>) => {
     const id = getRef(ref);
