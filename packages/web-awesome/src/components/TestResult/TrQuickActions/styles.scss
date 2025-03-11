@@ -1,0 +1,14 @@
+.tr-metadata {
+  padding: 12px 24px 0;
+}
+
+.tr-metadata-wrapper {
+  border-bottom: 1px solid var(--on-border-primary);
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+
+.pw-trace {
+  overflow: hidden;
+  height: calc(80vh - 60px);
+}
