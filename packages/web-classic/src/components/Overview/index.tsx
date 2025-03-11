@@ -1,28 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Loadable, PageLoader, Grid, GridItem } from "@allurereport/web-components";
+import { Loadable, PageLoader, Grid, GridItem, SuccessRatePieChart } from "@allurereport/web-components";
 import { Widget } from "./components/Widget";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import * as styles from "./Overview.module.scss";
 import { useEffect } from "preact/hooks";
-import { trendStore, fetchTrendData } from "@/stores/trend";
+import { chartsStore, fetchChartsData } from "@/stores/charts";
 
 const Overview = () => {
   useEffect(() => {
-    fetchTrendData();
+    fetchChartsData();
   }, []);
 
   return (
     <Loadable
-      source={trendStore}
+      source={chartsStore}
       renderLoader={() => <PageLoader />}
-      renderData={(trendData) => {
-        // eslint-disable-next-line no-console
-        console.log("TREND DATA", trendData);
-
-        const TrendChartGridItems = Object.entries(trendData.charts).map(([key, value]) => (
+      renderData={({ pie, trends }) => {
+        const TrendChartGridItems = Object.entries(trends.charts).map(([key, value]) => (
           <GridItem key={key} style={{ padding: "12px", width: "100%" }}>
             <TrendChartWidget
-              title={`${key.charAt(0).toUpperCase() + key.slice(1)} Trend`}
+              title={`Test ${key.charAt(0).toUpperCase() + key.slice(1)} Trend`}
               items={value.items}
               slices={value.slices}
               min={value.min}
@@ -36,8 +33,15 @@ const Overview = () => {
             <Grid kind="swap" className={styles.overview__grid}>
                   {TrendChartGridItems}
                   <GridItem style={{ padding: "12px", width: "100%" }}>
-                    <Widget title="Test Results Trend">
-                      PIE_CHART_PLACEHOLDER
+                    <Widget title="Test Success Rate">
+                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
+                        <div style={{ width: "50%" }}>
+                          <SuccessRatePieChart
+                            slices={pie.slices}
+                            percentage={pie.percentage}
+                          />
+                        </div>
+                      </div>
                     </Widget>
                   </GridItem>
                 </Grid>
