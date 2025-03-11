@@ -45,11 +45,9 @@ const ATTACHMENT_NAME_INFIX_PATTERN = /_\d+_[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\d
 export default class extends XcresultParser {
   async *parse(): AsyncGenerator<ResultFile | RawTestResult, void, unknown> {
     const tests = await getTests(this.xcResultPath);
-    if (isObject(tests)) {
-      const { testNodes } = tests;
-      if (isArray(testNodes)) {
-        yield* this.#processXcNodes(testNodes, { suites: [] });
-      }
+    const testNodes = ensureObject(tests)?.testNodes;
+    if (isArray(testNodes)) {
+      yield* this.#processXcNodes(testNodes, { suites: [] });
     }
   }
 
@@ -103,65 +101,69 @@ export default class extends XcresultParser {
       const testDetails = await getTestDetails(this.xcResultPath, nodeIdentifier);
       const testActivities = await getTestActivities(this.xcResultPath, nodeIdentifier);
 
-      if (isObject(testDetails) && isObject(testActivities)) {
-        const { testName, tags, testRuns: detailsTestRuns, devices: testDetailsDevices } = testDetails;
+      const {
+        testName,
+        tags,
+        testRuns: detailsTestRuns,
+        devices: testDetailsDevices,
+      } = ensureObject(testDetails) ?? {};
 
-        const crossDeviceTesting = isArray(testDetailsDevices) && testDetailsDevices.length > 1;
-        const detailsRunLookup = createTestDetailsRunLookup(detailsTestRuns);
+      const crossDeviceTesting = isArray(testDetailsDevices) && testDetailsDevices.length > 1;
+      const detailsRunLookup = createTestDetailsRunLookup(detailsTestRuns);
 
-        const name = ensureString(displayName) ?? ensureString(testName) ?? DEFAULT_TEST_NAME;
-        const fullName = convertFullName(nodeIdentifier, bundle);
-        const testCaseLabels = convertTestCaseLabels(bundle, suites, nodeIdentifier, tags);
+      const name = ensureString(displayName) ?? ensureString(testName) ?? DEFAULT_TEST_NAME;
+      const fullName = convertFullName(nodeIdentifier, bundle);
+      const testCaseLabels = convertTestCaseLabels(bundle, suites, nodeIdentifier, tags);
 
-        const { testRuns: activityTestRuns } = testActivities;
-        for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject) ?? []) {
-          const {
-            device: activityTestRunDevice,
-            arguments: activityTestRunArguments,
-            testPlanConfiguration: activityTestRunTestPlan,
-            activities,
-          } = activityTestRun;
-          const {
-            labels: deviceLabels,
-            parameters: deviceParameters,
-            deviceId,
-          } = processActivityTestRunDevice(activityTestRunDevice, crossDeviceTesting);
-          const { configurationId } = ensureObject(activityTestRunTestPlan) ?? {};
-          const args = convertActivitiesTestRunArgs(activityTestRunArguments);
+      const { testRuns: activityTestRuns } = ensureObject(testActivities) ?? {};
 
-          const {
-            duration,
-            parameters = [],
-            result = "unknown",
-          } = findNextAttemptDataFromTestDetails(detailsRunLookup, {
-            device: deviceId,
-            testPlan: ensureString(configurationId),
-            args,
-          }) ?? {};
+      for (const activityTestRun of ensureArrayWithItems(activityTestRuns, isObject) ?? []) {
+        const {
+          device: activityTestRunDevice,
+          arguments: activityTestRunArguments,
+          testPlanConfiguration: activityTestRunTestPlan,
+          activities,
+        } = activityTestRun;
+        const {
+          labels: deviceLabels,
+          parameters: deviceParameters,
+          deviceId,
+        } = processActivityTestRunDevice(activityTestRunDevice, crossDeviceTesting);
+        const { configurationId } = ensureObject(activityTestRunTestPlan) ?? {};
+        const args = convertActivitiesTestRunArgs(activityTestRunArguments);
 
-          const createAttachmentFile = this.createAttachmentFile;
+        const {
+          duration,
+          parameters = [],
+          result = "unknown",
+        } = findNextAttemptDataFromTestDetails(detailsRunLookup, {
+          device: deviceId,
+          testPlan: ensureString(configurationId),
+          args,
+        }) ?? {};
 
-          const { steps, attachmentFiles } = createAttachmentFile
-            ? await convertXcActivitiesToAllureSteps(this.createAttachmentFile, activities)
-            : { attachmentFiles: [] };
+        const createAttachmentFile = this.createAttachmentFile;
 
-          yield* attachmentFiles;
+        const { steps, attachmentFiles } = createAttachmentFile
+          ? await convertXcActivitiesToAllureSteps(this.createAttachmentFile, activities)
+          : { attachmentFiles: [] };
 
-          yield {
-            uuid: randomUUID(),
-            fullName,
-            name,
-            start: 0,
-            duration: duration,
-            status: convertXcResultToAllureStatus(result),
-            message: "",
-            trace: "",
-            steps,
-            labels: [...testCaseLabels, ...deviceLabels],
-            links: [],
-            parameters: [...deviceParameters, ...pairParameterNamesWithValues(parameters, args)],
-          } as RawTestResult;
-        }
+        yield* attachmentFiles;
+
+        yield {
+          uuid: randomUUID(),
+          fullName,
+          name,
+          start: 0,
+          duration: duration,
+          status: convertXcResultToAllureStatus(result),
+          message: "",
+          trace: "",
+          steps,
+          labels: [...testCaseLabels, ...deviceLabels],
+          links: [],
+          parameters: [...deviceParameters, ...pairParameterNamesWithValues(parameters, args)],
+        } as RawTestResult;
       }
     }
   }
@@ -451,10 +453,8 @@ const processActivityTestRunDevice = (device: Unknown<XcDevice>, showDevice: boo
 };
 
 const convertHost = (device: Unknown<XcDevice>) => {
-  if (isObject(device)) {
-    const { deviceName, deviceId } = device;
-    return ensureString(deviceName) ?? ensureString(deviceId);
-  }
+  const { deviceName, deviceId } = ensureObject(device) ?? {};
+  return ensureString(deviceName) ?? ensureString(deviceId);
 };
 
 const convertTestClassAndMethod = (testId: string) => {

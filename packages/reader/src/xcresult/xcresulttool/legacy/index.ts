@@ -111,31 +111,26 @@ export default class extends XcresultParser {
 
   async *parse(): AsyncGenerator<ResultFile | RawTestResult, void, unknown> {
     const root = await this.#getRoot();
-    if (isObject(root)) {
-      const actions = getObjectArray(root.actions);
-      const actionDescriminators = parseActionDiscriminators(actions);
-      const multiTarget = isMultiTarget(actionDescriminators);
-      const multiTestPlan = isMultiTestPlan(actionDescriminators);
-      for (const { actionResult } of actions) {
-        const { destination, testPlan } = actionDescriminators.shift()!;
-        if (isObject(actionResult)) {
-          const { testsRef } = actionResult;
-          const summaries = await this.#getById<XcActionTestPlanRunSummaries>(testsRef);
-          if (isObject(summaries)) {
-            for (const { testableSummaries } of getObjectArray(summaries.summaries)) {
-              for (const { name, tests } of getObjectArray(testableSummaries)) {
-                const bundle = getString(name) ?? DEFAULT_BUNDLE_NAME;
-                yield* this.#traverseActionTestSummaries(tests, {
-                  bundle,
-                  suites: [],
-                  destination,
-                  testPlan,
-                  multiTarget,
-                  multiTestPlan,
-                });
-              }
-            }
-          }
+    const actions = getObjectArray(ensureObject(root)?.actions);
+    const actionDescriminators = parseActionDiscriminators(actions);
+    const multiTarget = isMultiTarget(actionDescriminators);
+    const multiTestPlan = isMultiTestPlan(actionDescriminators);
+    for (const { actionResult } of actions) {
+      const { destination, testPlan } = actionDescriminators.shift()!;
+      const testsRef = ensureObject(actionResult)?.testsRef;
+      const testPlanRunSummaries = await this.#getById<XcActionTestPlanRunSummaries>(testsRef);
+      const summaries = ensureObject(testPlanRunSummaries)?.summaries;
+      for (const { testableSummaries } of getObjectArray(summaries)) {
+        for (const { name, tests } of getObjectArray(testableSummaries)) {
+          const bundle = getString(name) ?? DEFAULT_BUNDLE_NAME;
+          yield* this.#traverseActionTestSummaries(tests, {
+            bundle,
+            suites: [],
+            destination,
+            testPlan,
+            multiTarget,
+            multiTestPlan,
+          });
         }
       }
     }
@@ -535,11 +530,7 @@ const parseDestination = (element: Unknown<XcActionRunDestinationRecord>): Legac
   }
 };
 
-const parseHostName = (element: Unknown<XcActionDeviceRecord>) => {
-  if (isObject(element)) {
-    return getString(element.name);
-  }
-};
+const parseHostName = (element: Unknown<XcActionDeviceRecord>) => getString(ensureObject(element)?.name);
 
 const parseTargetDevice = (element: Unknown<XcActionDeviceRecord>) => {
   if (isObject(element)) {
@@ -552,11 +543,7 @@ const parseTargetDevice = (element: Unknown<XcActionDeviceRecord>) => {
   }
 };
 
-const parsePlatform = (element: Unknown<XcActionPlatformRecord>) => {
-  if (isObject(element)) {
-    return getString(element.userDescription);
-  }
-};
+const parsePlatform = (element: Unknown<XcActionPlatformRecord>) => getString(ensureObject(element)?.userDescription);
 
 const iterateFailureFiles = function* (failures: FailureMap) {
   for (const { files } of failures.values()) {
@@ -575,18 +562,16 @@ const parseTrackedIssues = (issues: Unknown<XcArray<XcIssueTrackingMetadata>>): 
     .filter(isDefined);
 
 const convertStackTrace = (sourceCodeContext: Unknown<XcSourceCodeContext>) => {
-  if (isObject(sourceCodeContext)) {
-    const { callStack } = sourceCodeContext;
-    return getObjectArray(callStack)
-      .map(({ symbolInfo }) => symbolInfo)
-      .filter(isObject)
-      .map(({ location, symbolName }) => {
-        const { filePath, lineNumber } = ensureObject(location) ?? {};
-        return convertTraceLine(getString(symbolName), getString(filePath), getInt(lineNumber));
-      })
-      .filter(isDefined)
-      .join("\n");
-  }
+  const callStack = ensureObject(sourceCodeContext)?.callStack;
+  return getObjectArray(callStack)
+    .map(({ symbolInfo }) => symbolInfo)
+    .filter(isObject)
+    .map(({ location, symbolName }) => {
+      const { filePath, lineNumber } = ensureObject(location) ?? {};
+      return convertTraceLine(getString(symbolName), getString(filePath), getInt(lineNumber));
+    })
+    .filter(isDefined)
+    .join("\n");
 };
 
 const fillDefaultAttachmentNames = (steps: readonly RawStep[]) => {
@@ -695,17 +680,15 @@ const convertTestParameters = (args: Unknown<XcArray<XcTestArgument>>): (RawTest
 const convertRepetitionParameter = (
   repetition: Unknown<XcActionTestRepetitionPolicySummary>,
 ): RawTestParameter | undefined => {
-  if (isObject(repetition)) {
-    const { iteration, totalIterations } = repetition;
-    const current = getInt(iteration);
-    const total = getInt(totalIterations);
-    if (current) {
-      return {
-        name: "Repetition",
-        value: total ? `Repetition ${current} of ${total}` : `Repetition ${current}`,
-        excluded: true,
-      };
-    }
+  const { iteration, totalIterations } = ensureObject(repetition) ?? {};
+  const current = getInt(iteration);
+  const total = getInt(totalIterations);
+  if (current) {
+    return {
+      name: "Repetition",
+      value: total ? `Repetition ${current} of ${total}` : `Repetition ${current}`,
+      excluded: true,
+    };
   }
 };
 
