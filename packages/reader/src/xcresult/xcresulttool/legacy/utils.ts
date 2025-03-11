@@ -38,6 +38,10 @@ export const convertTraceLine = (
   filename: string | undefined,
   line: number | undefined,
 ) => {
+  if (filename === "/<compiler-generated>") {
+    return undefined;
+  }
+
   const symbolPart = symbolName ? `In ${symbolName}` : undefined;
   const locationPart = filename && isDefined(line) ? `${filename}:${line}` : filename;
   return symbolPart

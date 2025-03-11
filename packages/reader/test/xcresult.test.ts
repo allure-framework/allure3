@@ -222,7 +222,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "failed",
           message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/),
+          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/),
           steps: [
             {
               type: "step",
@@ -230,7 +230,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
               status: "failed",
               message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
               ),
             },
           ],
@@ -248,14 +248,14 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "failed",
           message: '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/),
+          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/),
           steps: [
             {
               type: "step",
               name: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
               message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
               ),
               steps: [],
             },
@@ -264,7 +264,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
               name: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
               message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
               ),
               steps: [],
             },
@@ -283,7 +283,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "skipped",
           message: "Test skipped - Lorem Ipsum",
-          trace: expect.stringMatching(/At .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/),
+          trace: expect.stringMatching(/At .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/),
         },
       ]);
     });
@@ -298,7 +298,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "passed",
           message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/),
+          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/),
         },
       ]);
     });
@@ -314,14 +314,14 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           status: "passed",
           message:
             '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/),
+          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/),
           steps: [
             {
               type: "step",
               name: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
               message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
               ),
               steps: [],
             },
@@ -330,7 +330,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
               name: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
               message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8$/,
               ),
               steps: [],
             },
@@ -349,7 +349,9 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "broken",
           message: 'failed: caught error: "runtimeError("Lorem Ipsum")"',
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10/),
+          trace: expect.stringMatching(
+            /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10$/,
+          ),
           steps: [
             {
               type: "step",
@@ -357,7 +359,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
               status: "broken",
               message: 'failed: caught error: "runtimeError("Lorem Ipsum")"',
               trace: expect.stringMatching(
-                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10/,
+                /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10$/,
               ),
             },
           ],
@@ -375,7 +377,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
           name: "test()",
           status: "failed",
           message: "Expected failure 'Lorem Ipsum' but none recorded",
-          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/),
+          trace: expect.stringMatching(/foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/),
         },
       ]);
     });
@@ -414,7 +416,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             status: "failed",
             message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
-              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
             ),
             steps: [
               {
@@ -423,7 +425,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 status: "failed",
                 message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
-                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                 ),
                 steps: [
                   {
@@ -432,7 +434,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "failed",
                     message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                     ),
                     steps: [],
                   },
@@ -454,7 +456,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             status: "failed",
             message: '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
-              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
             ),
             steps: [
               {
@@ -464,7 +466,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 message:
                   '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
-                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                 ),
                 steps: [
                   {
@@ -473,7 +475,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     name: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
                     message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                     ),
                     steps: [],
                   },
@@ -483,7 +485,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     name: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
                     message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                     ),
                     steps: [],
                   },
@@ -505,7 +507,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             status: "passed",
             message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
-              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
             ),
             steps: [
               {
@@ -514,7 +516,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 status: "passed",
                 message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
-                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
                 ),
                 steps: [
                   {
@@ -523,7 +525,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "passed",
                     message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
                     ),
                     steps: [],
                   },
@@ -546,7 +548,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             message:
               '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
-              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+              /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
             ),
             steps: [
               {
@@ -556,7 +558,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 message:
                   '2 expected failures have occured. The first one is:\n  Lorem Ipsum:\n    XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
-                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
                 ),
                 steps: [
                   {
@@ -565,7 +567,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "passed",
                     message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
                     ),
                     steps: [],
                   },
@@ -575,7 +577,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "passed",
                     message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:9\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:9\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7$/,
                     ),
                     steps: [],
                   },
@@ -597,7 +599,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             status: "failed",
             message: '3 failures have occured. The first one is:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
             trace: expect.stringMatching(
-              /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+              /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
             ),
             steps: [
               {
@@ -606,7 +608,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 status: "failed",
                 message: 'XCTAssertEqual failed: ("1") is not equal to ("2")',
                 trace: expect.stringMatching(
-                  /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                  /foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                 ),
                 steps: [],
               },
@@ -617,7 +619,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 message:
                   '2 failures have occured. The first one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
                 trace: expect.stringMatching(
-                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                  /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8$/,
                 ),
                 steps: [
                   {
@@ -626,7 +628,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "failed",
                     message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
                     trace: expect.stringMatching(
-                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                      /closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8$/,
                     ),
                     steps: [],
                   },
@@ -636,7 +638,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "failed",
                     message: 'XCTAssertEqual failed: ("5") is not equal to ("6")',
                     trace: expect.stringMatching(
-                      /closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:14\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:12\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                      /closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:14\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:12\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8$/,
                     ),
                     steps: [
                       {
@@ -645,7 +647,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                         status: "failed",
                         message: 'XCTAssertEqual failed: ("5") is not equal to ("6")',
                         trace: expect.stringMatching(
-                          /closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:14\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:12\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8/,
+                          /closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:14\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:12\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8$/,
                         ),
                         steps: [],
                       },
@@ -672,7 +674,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
             message:
               '2 failures have occured (1 expected). The first unexpected one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
             trace: expect.stringMatching(
-              /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+              /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
             ),
             steps: [
               {
@@ -682,7 +684,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                 message:
                   '2 failures have occured (1 expected). The first unexpected one is:\n  XCTAssertEqual failed: ("3") is not equal to ("4")',
                 trace: expect.stringMatching(
-                  /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                  /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                 ),
                 steps: [
                   {
@@ -691,7 +693,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "passed",
                     message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                     trace: expect.stringMatching(
-                      /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                      /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                     ),
                     steps: [
                       {
@@ -700,7 +702,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                         status: "passed",
                         message: 'Lorem Ipsum:\n  XCTAssertEqual failed: ("1") is not equal to ("2")',
                         trace: expect.stringMatching(
-                          /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                          /closure #1 in closure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:10\nclosure #1 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:8\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:7\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                         ),
                         steps: [],
                       },
@@ -712,7 +714,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                     status: "failed",
                     message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
                     trace: expect.stringMatching(
-                      /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                      /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                     ),
                     steps: [
                       {
@@ -721,7 +723,7 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
                         status: "failed",
                         message: 'XCTAssertEqual failed: ("3") is not equal to ("4")',
                         trace: expect.stringMatching(
-                          /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6/,
+                          /closure #2 in closure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:17\nclosure #1 in foo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:15\nfoo\.test\(\) at .*xcresult-examples\/xcresult-examplesXCTests\/foo\.swift:6$/,
                         ),
                         steps: [],
                       },
