@@ -97,7 +97,7 @@ import { XcActionTestSummaryIdentifiableObjectTypes } from "./xcModel.js";
 const IDENTIFIER_URL_PREFIX = "test://com.apple.xcode/";
 const ACTIVITY_TYPE_ATTACHMENT = "com.apple.dt.xctest.activity-type.attachmentContainer";
 
-export default class extends XcresultParser {
+export default class LegacyApiParser extends XcresultParser {
   #xcode16Plus: boolean;
   #legacyCliSucceeded = false;
   #noLegacyApi = false;

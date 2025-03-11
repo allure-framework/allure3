@@ -42,7 +42,7 @@ import type { XcActivityNode, XcAttachment, XcDevice, XcTestNode, XcTestResult, 
 const DURATION_PATTERN = /\d+\.\d+/;
 const ATTACHMENT_NAME_INFIX_PATTERN = /_\d+_[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12}/g;
 
-export default class extends XcresultParser {
+export default class NewApiParser extends XcresultParser {
   async *parse(): AsyncGenerator<ResultFile | RawTestResult, void, unknown> {
     const tests = await getTests(this.xcResultPath);
     const testNodes = ensureObject(tests)?.testNodes;
