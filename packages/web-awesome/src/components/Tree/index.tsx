@@ -1,7 +1,8 @@
-import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
+import { Button, Heading, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
 import type { AwesomeStatus } from "types";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
+import { environments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import {
@@ -55,18 +56,46 @@ export const TreeList = () => {
           );
         }
 
+        // render single tree for single environment
+        if (environments.value.data.length === 1) {
+          return (
+            <div className={styles["tree-list"]}>
+              <Tree
+                collapsedTrees={collapsedTrees.value}
+                toggleTree={toggleTree}
+                treeFiltersStore={treeFiltersStore}
+                navigateTo={navigateTo}
+                statsStore={statsStore}
+                tree={filteredTree.value.default}
+                statusFilter={currentTab as AwesomeStatus}
+                root
+              />
+            </div>
+          );
+        }
+
+        // render tree section for every environment
         return (
-          <div className={styles["tree-list"]}>
-            <Tree
-              collapsedTrees={collapsedTrees.value}
-              toggleTree={toggleTree}
-              treeFiltersStore={treeFiltersStore}
-              navigateTo={navigateTo}
-              statsStore={statsStore}
-              tree={filteredTree.value}
-              statusFilter={currentTab as AwesomeStatus}
-              root
-            />
+          <div>
+            {Object.entries(filteredTree.value).map(([key, value]) => (
+              <div key={key} className={styles["tree-section"]}>
+                <Heading tag={"p"} size={"s"}>
+                  {key}
+                </Heading>
+                <div className={styles["tree-list"]}>
+                  <Tree
+                    collapsedTrees={collapsedTrees.value}
+                    toggleTree={toggleTree}
+                    treeFiltersStore={treeFiltersStore}
+                    navigateTo={navigateTo}
+                    statsStore={statsStore}
+                    tree={value}
+                    statusFilter={currentTab as AwesomeStatus}
+                    root
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         );
       }}
