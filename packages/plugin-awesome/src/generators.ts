@@ -376,7 +376,7 @@ export const generateStaticFiles = async (
 };
 
 export const generateHistoryTrendData = async (
-  writer: AllureAwesomeDataWriter,
+  writer: AwesomeDataWriter,
   reportName: string,
   statistic: Statistic,
   testResults: TestResult[],
