@@ -392,4 +392,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     return allTrs.filter((tr) => tr.environment === env);
   }
+
+  // variables
+
+  async allVariables() {
+    return this.#reportVariables;
+  }
+
+  async envVariables(env: string) {
+    return {
+      ...this.#reportVariables,
+      ...(this.#environmentsConfig?.[env]?.variables ?? {}),
+    };
+  }
 }
