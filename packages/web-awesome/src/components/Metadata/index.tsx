@@ -25,7 +25,7 @@ export const MetadataList: FunctionalComponent<MetadataProps & { columns?: numbe
   );
 };
 
-export const TestResultMetadataList: FunctionalComponent<MetadataProps> = ({ groupedLabels, size = "m" }) => {
+export const TrMetadataList: FunctionalComponent<MetadataProps> = ({ groupedLabels, size = "m" }) => {
   return (
     <div class={styles["report-metadata-list"]}>
       {groupedLabels &&

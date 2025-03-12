@@ -42,6 +42,8 @@ import lineIconBomb2 from "@/assets/svg/line-icon-bomb-2.svg";
 import lineImagesImage from "@/assets/svg/line-images-image.svg";
 import lineLayoutsColumn2 from "@/assets/svg/line-layouts-columns-2.svg";
 import lineLayoutsLayoutTop from "@/assets/svg/line-layouts-layout-top.svg";
+import lineLayoutsMaximize2 from "@/assets/svg/line-layouts-maximize-2.svg";
+import lineLayoutsMinimize2 from "@/assets/svg/line-layouts-minimize-2.svg";
 import lineSecurityKey from "@/assets/svg/line-security-key.svg";
 import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
@@ -101,6 +103,8 @@ export const allureIcons = {
   lineImagesImage: lineImagesImage.id,
   lineLayoutsColumn2: lineLayoutsColumn2.id,
   lineLayoutsLayoutTop: lineLayoutsLayoutTop.id,
+  lineLayoutsMaximize2: lineLayoutsMaximize2.id,
+  lineLayoutsMinimize2: lineLayoutsMinimize2.id,
   lineSecurityKey: lineSecurityKey.id,
   lineShapesDotCircle: lineShapesDotCircle.id,
   lineShapesMoon: lineShapesMoon.id,

@@ -1,7 +1,9 @@
 import type { AttachmentLinkExpected, AttachmentTestStepResult } from "@allurereport/core-api";
 import { downloadAttachment, openAttachmentInNewTab } from "@allurereport/web-commons";
+import { clsx } from "clsx";
 import type { VNode } from "preact";
-import { useEffect } from "preact/hooks";
+import { cloneElement } from "preact/compat";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import Prism from "prismjs";
 import { Button, IconButton } from "@/components/Button";
 import Gallery from "@/components/Modal/Gallery";
@@ -15,7 +17,7 @@ export type ModalGalleryProps = {
 };
 
 export interface ModalDataProps<T = any> {
-  data: T;
+  data?: T;
   component: VNode;
   preview?: boolean;
   isModalOpen?: boolean;
@@ -46,16 +48,21 @@ export const Modal = ({
 }: ModalDataProps & ModalTranslationsProps) => {
   const { tooltipPreview, tooltipDownload, openInNewTabButton } = translations;
   const { link } = data || {};
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const isImageAttachment = link?.contentType?.startsWith("image");
   const isHtmlAttachment = link?.contentType === "text/html";
   const isAttachment = link?.id && link?.ext && link?.contentType;
   const attachmentName = link?.name || (link?.id && link?.ext && `${link.id}${link.ext}`) || "";
   const modalName = title || attachmentName;
+  const WrappedComponent = useMemo(() => {
+    return component && cloneElement(component, { data, isFullScreen });
+  }, [component, data, isFullScreen]);
 
   useEffect(() => {
     Prism.highlightAll();
-
+  }, []);
+  useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -65,7 +72,7 @@ export const Modal = ({
     return () => {
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [isModalOpen]);
 
   const downloadData = async (e: Event) => {
     e.stopPropagation();
@@ -86,8 +93,8 @@ export const Modal = ({
 
   return (
     <div className={styles["modal-overlay"]} onClick={closeModal}>
-      <div className={styles["modal-content"]} onClick={(e) => e.stopPropagation()}>
-        <div className={`${styles["modal-wrapper"]}`}>
+      <div className={clsx(styles["modal-content"])} onClick={(e) => e.stopPropagation()}>
+        <div className={clsx(styles["modal-wrapper"], { [styles["modal-wrapper-fullscreen"]]: isFullScreen })}>
           <div className={styles["modal-top"]}>
             <Heading size={"s"}>{modalName}</Heading>
             <div className={styles["modal-buttons"]}>
@@ -120,16 +127,22 @@ export const Modal = ({
                   />
                 </TooltipWrapper>
               )}
+              <IconButton
+                iconSize={"m"}
+                style={"ghost"}
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                icon={isFullScreen ? allureIcons.lineLayoutsMinimize2 : allureIcons.lineLayoutsMaximize2}
+              />
               <IconButton iconSize={"m"} style={"ghost"} onClick={closeModal} icon={allureIcons.lineGeneralXClose} />
             </div>
           </div>
           <div className={styles["modal-data"]}>
             <div className={styles["modal-data-component"]} key={data?.link?.id}>
-              {component}
+              {WrappedComponent}
             </div>
           </div>
         </div>
-        <Gallery attachments={attachments} />
+        {attachments?.length && <Gallery attachments={attachments} />}
       </div>
     </div>
   );
