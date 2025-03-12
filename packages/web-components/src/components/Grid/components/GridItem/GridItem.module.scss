@@ -1,0 +1,31 @@
+.gridItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--on-border-primary);
+  overflow: hidden;
+  background-color: var(--bg-base-primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-raised);
+  padding: 12px;
+}
+
+.gridItemContent {
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gridItemHandle {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-height: 28px;
+}

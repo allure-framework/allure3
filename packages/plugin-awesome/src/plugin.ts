@@ -1,4 +1,4 @@
-import { type EnvironmentItem } from "@allurereport/core-api";
+import type { EnvironmentItem} from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
@@ -10,6 +10,7 @@ import {
   generateStatistic,
   generateTestResults,
   generateTree,
+  generateHistoryTrendData
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -24,6 +25,8 @@ export class AwesomePlugin implements Plugin {
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic();
     const attachments = await store.allAttachments();
+    const historyDataPoints = await store.allHistoryDataPoints();
+    const testResults = await store.allTestResults();
 
     await generateStatistic(this.#writer!, statistic);
     await generatePieChart(this.#writer!, statistic);
@@ -45,6 +48,9 @@ export class AwesomePlugin implements Plugin {
     if (attachments?.length) {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
+
+    // Trend data generation
+    await generateHistoryTrendData(this.#writer!, context.reportName, statistic, testResults, historyDataPoints);
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
