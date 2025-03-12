@@ -5,10 +5,14 @@ import type { StoreSignalState } from "@/stores/types";
 export const environments = signal<StoreSignalState<string[]>>({
   loading: false,
   error: undefined,
-  data: undefined,
+  data: [],
 });
 
-export const currentEnvironment = signal<string>("default");
+export const currentEnvironment = signal<string | undefined>(undefined);
+
+export const setCurrentEnvironment = (env: string) => {
+  currentEnvironment.value = env;
+};
 
 export const fetchEnvironments = async () => {
   environments.value = {

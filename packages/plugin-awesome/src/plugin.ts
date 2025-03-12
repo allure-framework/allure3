@@ -13,6 +13,7 @@ import {
   generateTestCases,
   generateTestResults,
   generateTree,
+  generateVariables,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -55,6 +56,7 @@ export class AwesomePlugin implements Plugin {
     }
 
     await generateEnvirontmentsList(this.#writer!, store);
+    await generateVariables(this.#writer!, store);
 
     if (environmentItems?.length) {
       await generateEnvironmentJson(this.#writer!, environmentItems);

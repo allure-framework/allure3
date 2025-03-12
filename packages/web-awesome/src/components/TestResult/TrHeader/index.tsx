@@ -1,4 +1,5 @@
 import type { FunctionalComponent } from "preact";
+import { EnvironmentPicker } from "@/components/EnvironmentPicker";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import type { TrProps } from "@/components/TestResult";
 import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
@@ -12,6 +13,7 @@ export const TrHeader: FunctionalComponent<TrProps> = ({ testResult }) => {
     <div className={styles.above}>
       {!isSplitMode.value ? <TrBreadcrumbs testResult={testResult} /> : ""}
       <div className={styles.right}>
+        <EnvironmentPicker />
         <LanguagePicker />
         <ToggleLayout />
         <ThemeButton />

@@ -2,7 +2,7 @@ import { Button, Heading, Loadable, PageLoader, Text, Tree } from "@allurereport
 import type { AwesomeStatus } from "types";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
-import { environments } from "@/stores/env";
+import { currentEnvironment, environments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import {
@@ -26,6 +26,7 @@ export const TreeList = () => {
       source={treeStore}
       renderLoader={() => <PageLoader />}
       renderData={() => {
+        // TODO: use function instead of computed
         if (noTests.value) {
           return (
             <div className={styles["tree-list"]}>
@@ -67,6 +68,25 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 statsStore={statsStore}
                 tree={filteredTree.value.default}
+                statusFilter={currentTab as AwesomeStatus}
+                root
+              />
+            </div>
+          );
+        }
+
+        const currentTree = currentEnvironment.value ? filteredTree.value[currentEnvironment.value] : undefined;
+
+        if (currentTree) {
+          return (
+            <div className={styles["tree-list"]}>
+              <Tree
+                collapsedTrees={collapsedTrees.value}
+                toggleTree={toggleTree}
+                treeFiltersStore={treeFiltersStore}
+                navigateTo={navigateTo}
+                statsStore={statsStore}
+                tree={currentTree}
                 statusFilter={currentTab as AwesomeStatus}
                 root
               />

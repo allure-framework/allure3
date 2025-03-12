@@ -204,6 +204,19 @@ export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store
   await writer.writeWidget("environments.json", environments);
 };
 
+export const generateVariables = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const reportVariables = await store.allVariables();
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("variables.json", reportVariables);
+
+  for (const env of environments) {
+    const envVariables = await store.envVariables(env);
+
+    await writer.writeWidget(`${env}_variables.json`, envVariables);
+  }
+};
+
 export const generateStatistic = async (writer: AwesomeDataWriter, statistic: Statistic) => {
   await writer.writeWidget("allure_statistic.json", statistic);
 };

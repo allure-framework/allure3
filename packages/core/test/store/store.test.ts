@@ -1484,3 +1484,62 @@ describe("environments", () => {
     expect(result).toEqual([]);
   });
 });
+
+describe("variables", () => {
+  it("should return all report variables", async () => {
+    const fixture = {
+      foo: "bar",
+    };
+    const store = new DefaultAllureStore({
+      reportVariables: fixture,
+    });
+    const result = await store.allVariables();
+
+    expect(result).toEqual(fixture);
+  });
+
+  it("should return empty object when variables aren't provided", async () => {
+    const store = new DefaultAllureStore();
+    const result = await store.allVariables();
+
+    expect(result).toEqual({});
+  });
+
+  it("should return variables for a specific environment, including report-wide variables", async () => {
+    const fixtures = {
+      report: {
+        foo: "bar",
+      },
+      env: {
+        bar: "baz",
+      },
+    };
+    const store = new DefaultAllureStore({
+      reportVariables: fixtures.report,
+      environmentsConfig: {
+        foo: {
+          variables: fixtures.env,
+          matcher: () => true,
+        },
+      },
+    });
+    const result = await store.envVariables("foo");
+
+    expect(result).toEqual({
+      ...fixtures.report,
+      ...fixtures.env,
+    });
+  });
+
+  it("should return report-wide variables for the default environment", async () => {
+    const fixture = {
+      foo: "bar",
+    };
+    const store = new DefaultAllureStore({
+      reportVariables: fixture,
+    });
+    const result = await store.envVariables("default");
+
+    expect(result).toEqual(fixture);
+  });
+});
