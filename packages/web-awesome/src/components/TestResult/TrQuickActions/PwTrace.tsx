@@ -1,7 +1,12 @@
+import clsx from "clsx";
 import { useEffect, useRef } from "preact/hooks";
 import * as styles from "./styles.scss";
 
-export const PwTrace = ({ blob }: any) => {
+interface PwTraceProps {
+  blob: Blob;
+  isFullScreen?: boolean;
+}
+export const PwTrace = ({ blob, isFullScreen }: PwTraceProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -18,9 +23,10 @@ export const PwTrace = ({ blob }: any) => {
       iframeRef.current.onload = handleLoad;
     }
   }, [blob]);
+
   return (
     <iframe
-      className={styles["pw-trace"]}
+      className={clsx(styles["pw-trace"], { [styles["pw-trace-fullscreen"]]: isFullScreen })}
       ref={iframeRef}
       width={"100%"}
       height={"100%"}

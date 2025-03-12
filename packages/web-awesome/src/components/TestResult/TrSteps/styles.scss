@@ -1,136 +1,3 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--ad-other-modal-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-}
-
-.modal-wrapper {
-  position: relative;
-  background: var(--bg-base-primary);
-  width: 90vw;
-  min-width: 320px;
-  min-height: 320px;
-  max-height: 80vh;
-  display: flex;
-  border-radius: 16px;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-  z-index: 1;
-  overflow-y: auto;
-}
-
-.modal-wrapper-fullscreen {
-  max-height: 100%;
-  max-width: 100%;
-  height: calc(100vh - 16px);
-  width: calc(100vw - 16px);
-}
-
-.modal-data-component {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  pointer-events: all;
-  padding-top: 56px;
-}
-
-.modal-image {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.close-button-wrap {
-  position: absolute;
-  top: 0;
-  right: 0;
-  cursor: pointer;
-  z-index: 1;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
-  align-items: center;
-}
-
-.modal-data {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  pointer-events: none;
-  display: flex;
-  position: relative;
-  align-items: center;
-}
-
-.modal-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  --modal-padding: 32px;
-  width: calc(100% - var(--modal-padding));
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 1;
-}
-
-.modal-bottom {
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  color: var(--gray-neutral-0);
-}
-
-.modal-thumb {
-  display: flex;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  background: var(--constant-bg-base-primary-night);
-  overflow: hidden;
-  border: 1px solid transparent;
-  cursor: pointer;
-  user-select: none;
-
-  &.active {
-    border: 1px solid var(--constant-on-border-heavy);
-  }
-}
-
-.modal-gallery {
-  align-items: center;
-  display: flex;
-  width: 100%;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 .test-result-steps {
   padding-right: 24px;
 
@@ -174,7 +41,7 @@
 
 .test-result-step-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   transition: background-color 300ms;
   cursor: pointer;
@@ -189,6 +56,7 @@
 .test-result-header-text {
   padding-left: 4px;
   word-break: break-word;
+  margin-right: auto;
 }
 
 .test-result-step-button {
@@ -215,7 +83,7 @@
 }
 
 .item-info {
-  margin-left: auto;
+  //margin-left: auto;
   display: flex;
   gap: 8px;
   color: var(--on-text-secondary);
@@ -246,13 +114,11 @@
   width: 12px;
   height: 12px;
   transform: rotate(-90deg);
-  transform-origin: center;
   transition: transform 200ms;
 }
 
 .test-result-step-chevron-open {
   transform: rotate(0deg);
-  transform-origin: center;
 }
 
 .test-result-attachment-header {
@@ -271,7 +137,6 @@
 .test-result-attachment-arrow {
   transform: rotate(-90deg);
   transition: transform 200ms;
-  transform-origin: center;
 }
 
 .test-result-attachment-arrow-opened {
@@ -287,6 +152,7 @@
 .test-result-attachment-text {
   padding-left: 4px;
   word-break: break-word;
+  margin-right: auto;
 }
 
 .test-result-attachment-image {
