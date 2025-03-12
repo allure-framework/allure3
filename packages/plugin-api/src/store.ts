@@ -41,4 +41,7 @@ export interface AllureStore {
   // environments
   allEnvironments: () => Promise<string[]>;
   testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
+  // variables
+  allVariables: () => Promise<Record<string, any>>;
+  envVariables: (env: string) => Promise<Record<string, any>>;
 }

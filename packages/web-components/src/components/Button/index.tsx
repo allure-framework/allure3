@@ -167,7 +167,7 @@ export const IconButton = (props: IconButtonProps) => <BaseBtn {...props} isIcon
 
 type DropdownButtonProps = Omit<
   BaseBtnProps,
-  "type" | "autoFocus" | "isDropdownButton" | "isIconButton" | "text" | "icon" | "isActive"
+  "type" | "autoFocus" | "isDropdownButton" | "isIconButton" | "text" | "isActive"
 > &
   Pick<Required<BaseBtnProps>, "text"> & {
     isExpanded?: boolean;
