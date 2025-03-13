@@ -42,7 +42,7 @@ export const SuccessRatePieChart = (props: Props) => {
           ))}
         </g>
       </svg>
-      {!!percentage && (
+      {percentage !== undefined && (
         <Heading className={styles.legend} size="s" tag="b">
           {percentage}%
         </Heading>

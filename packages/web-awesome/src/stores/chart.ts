@@ -1,6 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import { StoreSignalState } from "@/stores/types";
+import type { StoreSignalState } from "@/stores/types";
 
 export const pieChartStore = signal<StoreSignalState<any>>({
   loading: true,
