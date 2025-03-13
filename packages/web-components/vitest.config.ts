@@ -23,11 +23,4 @@ export default defineConfig({
       "react-dom": "preact/compat",
     },
   },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        api: "modern-compiler",
-      },
-    },
-  },
 });
