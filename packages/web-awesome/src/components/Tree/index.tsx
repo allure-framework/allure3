@@ -1,8 +1,9 @@
-import { Button, Heading, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
 import type { AwesomeStatus } from "types";
+import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
-import { currentEnvironment, environments } from "@/stores/env";
+import { collapsedEnvironments, currentEnvironment, environments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import {
@@ -96,27 +97,47 @@ export const TreeList = () => {
 
         // render tree section for every environment
         return (
-          <div>
-            {Object.entries(filteredTree.value).map(([key, value]) => (
-              <div key={key} className={styles["tree-section"]}>
-                <Heading tag={"p"} size={"s"}>
-                  {key}
-                </Heading>
-                <div className={styles["tree-list"]}>
-                  <Tree
-                    collapsedTrees={collapsedTrees.value}
-                    toggleTree={toggleTree}
-                    treeFiltersStore={treeFiltersStore}
-                    navigateTo={navigateTo}
-                    statsStore={statsStore}
-                    tree={value}
-                    statusFilter={currentTab as AwesomeStatus}
-                    root
+          <>
+            {Object.entries(filteredTree.value).map(([key, value]) => {
+              const { total } = value.statistic;
+
+              if (total === 0) {
+                return null;
+              }
+
+              const isOpened = !collapsedEnvironments.value.includes(key);
+              const toggleEnv = () => {
+                collapsedEnvironments.value = isOpened
+                  ? collapsedEnvironments.value.concat(key)
+                  : collapsedEnvironments.value.filter((env) => env !== key);
+              };
+
+              return (
+                <div key={key} className={styles["tree-section"]}>
+                  <MetadataButton
+                    isOpened={isOpened}
+                    setIsOpen={toggleEnv}
+                    title={`Environment: "${key}"`}
+                    counter={total}
                   />
+                  {isOpened && (
+                    <div className={styles["tree-list"]}>
+                      <Tree
+                        collapsedTrees={collapsedTrees.value}
+                        toggleTree={toggleTree}
+                        treeFiltersStore={treeFiltersStore}
+                        navigateTo={navigateTo}
+                        statsStore={statsStore}
+                        tree={value}
+                        statusFilter={currentTab as AwesomeStatus}
+                        root
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              );
+            })}
+          </>
         );
       }}
     />

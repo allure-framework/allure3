@@ -32,7 +32,6 @@ const App = () => {
   const [prefetched, setPrefetched] = useState(false);
   const { id: testResultId } = route.value;
   const prefetchData = async () => {
-    // fetchEnvInfo,
     const fns = [ensureReportDataReady, fetchStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
 
     if (globalThis) {

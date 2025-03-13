@@ -10,7 +10,7 @@
   min-height: 128px;
 }
 
-.tree-header {
+.tree-section {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -23,16 +23,7 @@
   }
 }
 
-.tree-header-arrow {
-  transform: rotate(-90deg);
-  transition: transform 200ms;
-}
-
-.tree-header-arrow-opened {
-  transform: rotate(0);
-}
-
-.tree-header-title {
+.tree-section-title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
