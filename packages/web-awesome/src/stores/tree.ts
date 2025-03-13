@@ -29,8 +29,7 @@ export const noTests = computed(() => {
   );
 });
 
-const loadedFromLS = loadFromLocalStorage<string[]>("collapsedTrees", []);
-export const collapsedTrees = signal(new Set(loadedFromLS as string[]));
+export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
 
 effect(() => {
   localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));

@@ -1,5 +1,6 @@
-import { DropdownButton, Menu, allureIcons } from "@allurereport/web-components";
+import { DropdownButton, Menu, Text, allureIcons } from "@allurereport/web-components";
 import { currentEnvironment, environments, setCurrentEnvironment } from "@/stores/env";
+import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 export const EnvironmentPicker = () => {
@@ -14,30 +15,35 @@ export const EnvironmentPicker = () => {
   }
 
   return (
-    <Menu
-      size="s"
-      menuTrigger={({ isOpened, onClick }) => (
-        <DropdownButton
-          icon={allureIcons.view}
-          style="ghost"
-          size="s"
-          // text={LANG_LOCALE[environment || "en"].short}
-          text={environment ?? "All"}
-          isExpanded={isOpened}
-          onClick={onClick}
-        />
-      )}
-    >
-      <Menu.Section>
-        <Menu.ItemWithCheckmark onClick={() => handleSelect(undefined)} isChecked={!environment}>
-          All
-        </Menu.ItemWithCheckmark>
-        {environments.value.data.map((env) => (
-          <Menu.ItemWithCheckmark onClick={() => handleSelect(env)} key={env} isChecked={env === environment}>
-            {env}
+    <div className={styles["environment-picker"]}>
+      <Text type={"ui"} size={"s"} bold>
+        Environment:
+      </Text>
+      <Menu
+        size="s"
+        menuTrigger={({ isOpened, onClick }) => (
+          <DropdownButton
+            icon={allureIcons.environment}
+            style="ghost"
+            size="s"
+            // text={LANG_LOCALE[environment || "en"].short}
+            text={environment ?? "All"}
+            isExpanded={isOpened}
+            onClick={onClick}
+          />
+        )}
+      >
+        <Menu.Section>
+          <Menu.ItemWithCheckmark onClick={() => handleSelect(undefined)} isChecked={!environment}>
+            All
           </Menu.ItemWithCheckmark>
-        ))}
-      </Menu.Section>
-    </Menu>
+          {environments.value.data.map((env) => (
+            <Menu.ItemWithCheckmark onClick={() => handleSelect(env)} key={env} isChecked={env === environment}>
+              {env}
+            </Menu.ItemWithCheckmark>
+          ))}
+        </Menu.Section>
+      </Menu>
+    </div>
   );
 };

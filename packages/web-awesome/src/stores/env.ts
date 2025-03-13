@@ -1,6 +1,7 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
-import { signal } from "@preact/signals";
+import { effect, signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
+import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 
 export const environments = signal<StoreSignalState<string[]>>({
   loading: false,
@@ -8,7 +9,9 @@ export const environments = signal<StoreSignalState<string[]>>({
   data: [],
 });
 
-export const currentEnvironment = signal<string | undefined>(undefined);
+export const collapsedEnvironments = signal<string[]>(loadFromLocalStorage<string[]>("collapsedEnvironments", []));
+
+export const currentEnvironment = signal<string>(loadFromLocalStorage<string>("currentEnvironment", "default"));
 
 export const setCurrentEnvironment = (env: string) => {
   currentEnvironment.value = env;
@@ -37,3 +40,11 @@ export const fetchEnvironments = async () => {
     };
   }
 };
+
+effect(() => {
+  localStorage.setItem("currentEnvironment", JSON.stringify(currentEnvironment.value));
+});
+
+effect(() => {
+  localStorage.setItem("collapsedEnvironments", JSON.stringify([...collapsedEnvironments.value]));
+});

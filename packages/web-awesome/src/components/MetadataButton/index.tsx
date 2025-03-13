@@ -15,6 +15,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({ isOpe
   return (
     <div
       className={clsx(styles["report-metadata-header"], isOpened && styles["report-metadata-header-opened"])}
+      role={"button"}
       onClick={() => setIsOpen(!isOpened)}
     >
       <Text size={"m"} bold>
