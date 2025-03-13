@@ -1,5 +1,4 @@
-import { Loadable } from "@allurereport/web-components";
-import { SuccessRatePieChart } from "@allurereport/web-components";
+import { Loadable, SuccessRatePieChart } from "@allurereport/web-components";
 import { pieChartStore } from "@/stores/chart";
 import * as styles from "./styles.scss";
 

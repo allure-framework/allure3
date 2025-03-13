@@ -40,7 +40,7 @@ export const SplitLayout = () => {
     <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
   );
 
-  const TestResultView = () => {
+  const TrView = () => {
     return testResultId ? (
       <Loadable
         source={testResultStore}
@@ -70,7 +70,7 @@ export const SplitLayout = () => {
   return (
     <div className={styles["side-by-side"]} data-testId={"split-layout"}>
       <Header className={styles.header} />
-      <SideBySide left={cachedMain} right={<TestResultView />} />
+      <SideBySide left={cachedMain} right={<TrView />} />
       <Footer />
     </div>
   );

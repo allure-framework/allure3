@@ -9,7 +9,7 @@ export interface Attachments {
   img?: string;
 }
 
-const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
+export const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
   const fileName = `${id || "-"}${ext || ""}`;
 
   return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
