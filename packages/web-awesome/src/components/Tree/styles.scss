@@ -190,6 +190,8 @@
 
 .tree-section {
   &:not(:last-child) {
-    margin-bottom: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
   }
 }

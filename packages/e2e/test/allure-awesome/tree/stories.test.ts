@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status } from "allure-js-commons";
-import { layer } from "allure-js-commons";
+import { Stage, Status, layer } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -53,10 +52,10 @@ test.describe("stories", () => {
 
   test("stories groups are displayed", async ({ page }) => {
     const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
+    const parentGroupHeader = page.getByTestId("tree-section");
 
     await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
+    await expect(parentGroupHeader.getByTestId("tree-section-title")).toHaveText("foo");
     await parentGroupHeader.getByTestId("tree-arrow").click();
 
     await expect(treeLeaves).toHaveCount(2);
