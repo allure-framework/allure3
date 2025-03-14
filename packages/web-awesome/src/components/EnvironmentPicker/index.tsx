@@ -1,4 +1,4 @@
-import { DropdownButton, Menu, Text, allureIcons } from "@allurereport/web-components";
+import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { currentEnvironment, environments, setCurrentEnvironment } from "@/stores/env";
 import * as styles from "./styles.scss";
 
@@ -16,6 +16,7 @@ export const EnvironmentPicker = () => {
 
   return (
     <div className={styles["environment-picker"]}>
+      <SvgIcon id={allureIcons.environment} size={"s"} />
       <Text type={"ui"} size={"s"} bold>
         Environment:
       </Text>
@@ -23,7 +24,6 @@ export const EnvironmentPicker = () => {
         size="s"
         menuTrigger={({ isOpened, onClick }) => (
           <DropdownButton
-            icon={allureIcons.environment}
             style="ghost"
             size="s"
             // text={LANG_LOCALE[environment || "en"].short}

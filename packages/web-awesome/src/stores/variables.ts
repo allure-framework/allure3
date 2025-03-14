@@ -2,7 +2,6 @@ import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
-// TODO:
 export type Variables = Record<string, any>;
 
 export const variables = signal<StoreSignalState<Record<string, Variables>>>({
@@ -10,12 +9,6 @@ export const variables = signal<StoreSignalState<Record<string, Variables>>>({
   error: undefined,
   data: undefined,
 });
-
-// export const currentEnvironment = signal<string | undefined>(undefined);
-
-// export const setCurrentEnvironment = (env: string) => {
-//   currentEnvironment.value = env;
-// };
 
 export const fetchVariables = async (env: string = "default") => {
   variables.value = {
@@ -25,7 +18,7 @@ export const fetchVariables = async (env: string = "default") => {
   };
 
   try {
-    const res = await fetchReportJsonData<string[]>(`widgets/${env}_variables.json`);
+    const res = await fetchReportJsonData<string[]>(env ? `widgets/${env}/variables.json` : "widgets/variables.json");
 
     variables.value = {
       data: {
