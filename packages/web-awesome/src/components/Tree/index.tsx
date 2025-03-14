@@ -1,7 +1,9 @@
 import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
 import type { AwesomeStatus } from "types";
+import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
+import { collapsedEnvironments, currentEnvironment, environments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import {
@@ -25,6 +27,7 @@ export const TreeList = () => {
       source={treeStore}
       renderLoader={() => <PageLoader />}
       renderData={() => {
+        // TODO: use function instead of computed
         if (noTests.value) {
           return (
             <div className={styles["tree-list"]}>
@@ -55,19 +58,86 @@ export const TreeList = () => {
           );
         }
 
+        // render single tree for single environment
+        if (environments.value.data.length === 1) {
+          return (
+            <div className={styles["tree-list"]}>
+              <Tree
+                collapsedTrees={collapsedTrees.value}
+                toggleTree={toggleTree}
+                treeFiltersStore={treeFiltersStore}
+                navigateTo={navigateTo}
+                statsStore={statsStore}
+                tree={filteredTree.value.default}
+                statusFilter={currentTab as AwesomeStatus}
+                root
+              />
+            </div>
+          );
+        }
+
+        const currentTree = currentEnvironment.value ? filteredTree.value[currentEnvironment.value] : undefined;
+
+        if (currentTree) {
+          return (
+            <div className={styles["tree-list"]}>
+              <Tree
+                collapsedTrees={collapsedTrees.value}
+                toggleTree={toggleTree}
+                treeFiltersStore={treeFiltersStore}
+                navigateTo={navigateTo}
+                statsStore={statsStore}
+                tree={currentTree}
+                statusFilter={currentTab as AwesomeStatus}
+                root
+              />
+            </div>
+          );
+        }
+
+        // render tree section for every environment
         return (
-          <div className={styles["tree-list"]}>
-            <Tree
-              collapsedTrees={collapsedTrees.value}
-              toggleTree={toggleTree}
-              treeFiltersStore={treeFiltersStore}
-              navigateTo={navigateTo}
-              statsStore={statsStore}
-              tree={filteredTree.value}
-              statusFilter={currentTab as AwesomeStatus}
-              root
-            />
-          </div>
+          <>
+            {Object.entries(filteredTree.value).map(([key, value]) => {
+              const { total } = value.statistic;
+
+              if (total === 0) {
+                return null;
+              }
+
+              const isOpened = !collapsedEnvironments.value.includes(key);
+              const toggleEnv = () => {
+                collapsedEnvironments.value = isOpened
+                  ? collapsedEnvironments.value.concat(key)
+                  : collapsedEnvironments.value.filter((env) => env !== key);
+              };
+
+              return (
+                <div key={key} className={styles["tree-section"]}>
+                  <MetadataButton
+                    isOpened={isOpened}
+                    setIsOpen={toggleEnv}
+                    title={`Environment: "${key}"`}
+                    counter={total}
+                  />
+                  {isOpened && (
+                    <div className={styles["tree-list"]}>
+                      <Tree
+                        collapsedTrees={collapsedTrees.value}
+                        toggleTree={toggleTree}
+                        treeFiltersStore={treeFiltersStore}
+                        navigateTo={navigateTo}
+                        statsStore={statsStore}
+                        tree={value}
+                        statusFilter={currentTab as AwesomeStatus}
+                        root
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
         );
       }}
     />

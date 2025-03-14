@@ -1,5 +1,4 @@
 import type { TestLabel } from "./metadata.js";
-import type { TestResult } from "./model.js";
 
 // TODO rework
 export interface EnvironmentItem {
@@ -17,8 +16,3 @@ export type EnvironmentDescriptor = {
 };
 
 export type EnvironmentsConfig = Record<string, EnvironmentDescriptor>;
-
-export type EnvTestGroup = Pick<TestResult, "fullName" | "name" | "status"> & {
-  id: string;
-  testResultsByEnv: Record<string, TestResult>;
-};

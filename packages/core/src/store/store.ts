@@ -359,10 +359,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return results;
   }
 
-  async testsStatistic() {
+  async testsStatistic(filter?: (testResult: TestResult) => boolean) {
     const all = await this.allTestResults();
+    const filtered = filter ? all.filter(filter) : all;
 
-    return all.reduce(
+    return filtered.reduce(
       (acc, test) => {
         if (!acc[test.status]) {
           acc[test.status] = 0;
@@ -372,7 +373,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         return acc;
       },
-      { total: all.length } as Statistic,
+      { total: filtered.length } as Statistic,
     );
   }
 
@@ -391,5 +392,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const allTrs = await this.allTestResults(options);
 
     return allTrs.filter((tr) => tr.environment === env);
+  }
+
+  // variables
+
+  async allVariables() {
+    return this.#reportVariables;
+  }
+
+  async envVariables(env: string) {
+    return {
+      ...this.#reportVariables,
+      ...(this.#environmentsConfig?.[env]?.variables ?? {}),
+    };
   }
 }

@@ -1,5 +1,6 @@
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
+import { EnvironmentPicker } from "@/components/EnvironmentPicker";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { TestResultBreadcrumbs } from "@/components/TestResult/TestResultHeader/TestResultBreadcrumbs";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
@@ -19,6 +20,7 @@ export const Header = ({ className }: HeaderProps) => {
     <div className={clsx(styles.above, className)}>
       {id && <TestResultBreadcrumbs testResult={testResultStore.value?.data?.[id]} />}
       <div className={styles.right}>
+        <EnvironmentPicker />
         <LanguagePicker />
         <ToggleLayout />
         <ThemeButton />
