@@ -22,7 +22,7 @@ export const d3Pie = pie<TestResultSlice>()
 
 export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
-export const getChartData = (stats: Statistic): TestResultChartData => {
+export const getPieChartData = (stats: Statistic): TestResultChartData => {
   const convertedStatuses = statusesList
     .filter((status) => !!stats?.[status])
     .map((status) => ({

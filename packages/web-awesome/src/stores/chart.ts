@@ -8,7 +8,7 @@ export const pieChartStore = signal<StoreSignalState<any>>({
   data: undefined,
 });
 
-export const fetchPieChartData = async () => {
+export const fetchPieChartData = async (env: string) => {
   pieChartStore.value = {
     ...pieChartStore.value,
     loading: true,
@@ -16,7 +16,7 @@ export const fetchPieChartData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData("widgets/allure_pie_chart.json");
+    const res = await fetchReportJsonData(env ? `widgets/${env}/pie_chart.json` : "widgets/pie_chart.json");
 
     pieChartStore.value = {
       data: res,
