@@ -72,6 +72,10 @@ effect(() => {
 export const filteredTree = computed(() => {
   return Object.entries(treeStore.value.data).reduce(
     (acc, [key, value]) => {
+      if (!value) {
+        return acc;
+      }
+
       const { root, leavesById, groupsById } = value;
       const tree = createRecursiveTree({
         group: root as AwesomeTreeGroup,
@@ -144,7 +148,14 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
   };
 };
 
-export const fetchTreeData = async (environments: string[]) => {
+export const fetchTreesData = async (envs: string[]) => {
+  const envsToFetch = envs.filter((env) => !treeStore.value.data?.[env]);
+
+  // all envs have already been fetched
+  if (envsToFetch.length === 0) {
+    return;
+  }
+
   treeStore.value = {
     ...treeStore.value,
     loading: true,
@@ -152,20 +163,50 @@ export const fetchTreeData = async (environments: string[]) => {
   };
 
   try {
-    for (const environment of environments) {
-      const res = await fetchReportJsonData<AwesomeTree>(`widgets/${environment}_tree.json`);
+    const data = await Promise.all(
+      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`)),
+    );
 
-      treeStore.value = {
-        ...treeStore.value,
-        data: {
-          ...treeStore.value.data,
-          [environment]: res,
-        },
-      };
-    }
+    treeStore.value = {
+      data: envs.reduce((acc, env, index) => {
+        return {
+          ...acc,
+          [env]: data[index],
+        };
+      }, {}),
+      loading: false,
+      error: undefined,
+    };
+  } catch (e) {
+    treeStore.value = {
+      ...treeStore.value,
+      error: e.message,
+      loading: false,
+    };
+  }
+};
+
+export const fetchTreeData = async (env: string) => {
+  // env has already been fetched
+  if (treeStore.value.data?.[env]) {
+    return;
+  }
+
+  treeStore.value = {
+    ...treeStore.value,
+    loading: true,
+    error: undefined,
+  };
+
+  try {
+    const res = await fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`);
 
     treeStore.value = {
       ...treeStore.value,
+      data: {
+        ...treeStore.value.data,
+        [env]: res,
+      },
       loading: false,
       error: undefined,
     };

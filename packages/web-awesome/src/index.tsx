@@ -10,12 +10,12 @@ import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
-import { environments, fetchEnvironments } from "@/stores/env";
+import { currentEnvironment, environments, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
-import { fetchTreeData } from "@/stores/tree";
+import { fetchTreeData, fetchTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -39,15 +39,20 @@ const App = () => {
     }
 
     await waitForI18next;
-    await Promise.all(fns.map((fn) => fn()));
-    await fetchTreeData(environments.value.data);
+    await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
+
+    if (currentEnvironment.value) {
+      await fetchTreeData(currentEnvironment.value);
+    } else {
+      await fetchTreesData(environments.value.data);
+    }
 
     setPrefetched(true);
   };
 
   useEffect(() => {
     prefetchData();
-  }, []);
+  }, [currentEnvironment]);
 
   useEffect(() => {
     if (testResultId) {
