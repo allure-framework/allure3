@@ -102,7 +102,7 @@ export class AllureReport {
     try {
       for await (const dirent of dir) {
         if (dirent.isFile()) {
-          const path = await realpath(join(dirent.parentPath, dirent.name));
+          const path = await realpath(join(dirent.path, dirent.name));
 
           await this.readResult(new PathResultFile(path, dirent.name));
         }
