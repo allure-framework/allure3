@@ -39,8 +39,10 @@ export const IS_MAC = platform() === "darwin";
  * On other platforms return `false`.
  */
 export const isXcResultBundle = async (directory: string) => {
-  const hasXcResultUti = IS_MAC ? await checkUniformTypeIdentifier(directory, "com.apple.xcode.resultbundle") : false;
-  return hasXcResultUti || isMostProbablyXcResultBundle(directory);
+  const hasXcResultUti = IS_MAC
+    ? await checkUniformTypeIdentifier(directory, "com.apple.xcode.resultbundle")
+    : undefined;
+  return hasXcResultUti ?? (await isMostProbablyXcResultBundle(directory));
 };
 
 /**
@@ -62,13 +64,14 @@ export const checkUniformTypeIdentifier = async (itemPath: string, uti: string) 
     // If mdls fails for some reason, resort to heuristics.
     // We don't show messages here as there might be circumstances where a well-formed results directory (not a bundle)
     // is parsed on a machine without Spotlight.
+    return undefined;
   }
 
   return false;
 };
 
-export const isMostProbablyXcResultBundle = (directory: string) =>
-  isDefined(findBundleInfoFile(directory)) || followsXcResultNaming(directory);
+export const isMostProbablyXcResultBundle = async (directory: string) =>
+  isDefined(await findBundleInfoFile(directory)) || followsXcResultNaming(directory);
 
 export const followsXcResultNaming = (directory: string) => directory.endsWith(".xcresult");
 
