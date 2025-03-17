@@ -38,7 +38,7 @@ export const findMatching = async (
     const dir = await opendir(watchDirectory);
 
     for await (const dirent of dir) {
-      const path = join(dirent.path, dirent.name);
+      const path = join(dirent.parentPath ?? dirent.path, dirent.name);
 
       // shouldn't be looking in private folders
       if (dirent.name.at(0) === "." || dirent.name === "node_modules") {
@@ -80,7 +80,7 @@ const findFiles = async (
         continue;
       }
 
-      const path = join(dirent.path, dirent.name);
+      const path = join(dirent.parentPath ?? dirent.path, dirent.name);
       if (existingResults.has(path)) {
         continue;
       }
