@@ -3,6 +3,7 @@ import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import clsx from "clsx";
 import { render } from "preact";
+import "preact/debug";
 import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
@@ -52,7 +53,7 @@ const App = () => {
 
   useEffect(() => {
     prefetchData();
-  }, [currentEnvironment]);
+  }, [currentEnvironment.value]);
 
   useEffect(() => {
     if (testResultId) {

@@ -67,7 +67,8 @@
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
-    "no-test-case-results": "Geen testresultaten"
+    "no-test-case-results": "Geen testresultaten",
+    "no-environments-results": "Geen informatie over omgevingen beschikbaar"
   },
   "severity": {
     "blocker": "blokkerend",
@@ -92,6 +93,7 @@
     "history": "Geschiedenis",
     "attachments": "Bijlagen",
     "retries": "Herhalingen",
+    "environments": "Omgevingen",
     "error": "Fout",
     "goToStep": "Ga naar stap",
     "showLess": "Minder weergeven",

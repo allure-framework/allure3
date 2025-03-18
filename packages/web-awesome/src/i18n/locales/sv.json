@@ -67,7 +67,8 @@
     "no-history-results": "Ingen historik information tillgänglig",
     "no-retries-results": "Ingen omtagningar information tillgänglig",
     "no-test-steps-results": "Ingen information om teststeg tillgänglig",
-    "no-test-case-results": "Inga testfallresultat"
+    "no-test-case-results": "Inga testfallresultat",
+    "no-environments-results": "Ingen miljöinformation tillgänglig"
   },
   "severity": {
     "blocker": "blockerare",
@@ -92,6 +93,7 @@
     "history": "Historik",
     "attachments": "Bilagor",
     "retries": "Omtagningar",
+    "environments": "Miljöer",
     "error": "Fel",
     "goToStep": "Gå till steg",
     "showLess": "Visa mindre",

@@ -67,7 +67,8 @@
     "no-history-results": "לא נמצאה מידע על היסטוריה",
     "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים",
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
-    "no-test-case-results": "אין תוצאות של מקרי בדיקה"
+    "no-test-case-results": "אין תוצאות של מקרי בדיקה",
+    "no-environments-results": "לא נמצא מידע על סביבות"
   },
   "severity": {
     "blocker": "חוסם",
@@ -92,6 +93,7 @@
     "history": "היסטוריה",
     "attachments": "קבצים מצורפים",
     "retries": "נסיונות חוזרים",
+    "environments": "סביבות",
     "error": "שגיאה",
     "goToStep": "עבור לשלב",
     "showLess": "הצג פחות",
