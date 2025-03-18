@@ -1,4 +1,5 @@
-import type { FunctionalComponent, ComponentChildren } from "preact";
+import { Heading } from "@allurereport/web-components";
+import type { ComponentChildren, FunctionalComponent } from "preact";
 import * as styles from "./Widget.module.scss";
 
 interface WidgetProps {
@@ -11,7 +12,7 @@ export const Widget: FunctionalComponent<WidgetProps> = ({ children, title }) =>
     <div className={styles.widget}>
       <div className={styles.header}>
         <div className={styles.dragArea} />
-        <h3 className={styles.title}>{title}</h3>
+        <Heading size="s">{title}</Heading>
       </div>
       <div className={styles.content}>{children}</div>
     </div>
