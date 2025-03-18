@@ -1,4 +1,6 @@
+import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
+import styles from "./DragHandleIcon.module.scss";
 
 export interface DragHandleIconProps {
   className?: string;
@@ -12,7 +14,7 @@ export const DragHandleIcon: FunctionComponent<DragHandleIconProps> = ({ classNa
       viewBox="0 0 12 8"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={clsx(styles["drag-handle-icon"], className)}
     >
       <circle cx="3" cy="2" r="1" />
       <circle cx="6" cy="2" r="1" />

@@ -13,10 +13,7 @@ Sortable.mount(new Swap());
  * @param ref - A reference to the container element.
  * @param options - The SortableJS options.
  */
-export const useSortable = (
-  ref: RefObject<HTMLElement>,
-  options?: Options
-): void => {
+export const useSortable = (ref: RefObject<HTMLElement>, options?: Options): void => {
   useEffect(() => {
     if (ref.current) {
       const sortable = Sortable.create(ref.current, {
