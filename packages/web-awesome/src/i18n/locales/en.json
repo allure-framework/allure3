@@ -68,7 +68,8 @@
     "no-history-results": "No history information available",
     "no-retries-results": "No retries information available",
     "no-test-steps-results": "No test steps information available",
-    "no-test-case-results": "No test case results"
+    "no-test-case-results": "No test case results",
+    "no-environments-results": "No environments information available"
   },
   "severity": {
     "blocker": "blocker",
@@ -93,6 +94,7 @@
     "history": "History",
     "attachments": "Attachments",
     "retries": "Retries",
+    "environments": "Environments",
     "error": "Error",
     "goToStep": "Go to step",
     "showLess": "Show less",

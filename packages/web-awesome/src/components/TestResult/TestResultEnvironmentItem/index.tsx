@@ -1,5 +1,6 @@
 import { formatDuration } from "@allurereport/core-api";
 import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import cx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
@@ -13,7 +14,8 @@ import * as styles from "./styles.scss";
 export const TestResultEnvironmentItem: FunctionalComponent<{
   env: string;
   testResult: AwesomeTestResult;
-}> = ({ env, testResult }) => {
+  current?: boolean;
+}> = ({ env, testResult, current = false }) => {
   const { status, error, stop, duration, id } = testResult;
   const [isOpened, setIsOpen] = useState(false);
   const hasEmptyError = !error || !Object.keys(error).length;
@@ -31,8 +33,14 @@ export const TestResultEnvironmentItem: FunctionalComponent<{
           </span>
         )}
         <div
-          className={styles["test-result-environment-item-wrap"]}
+          className={cx(styles["test-result-environment-item-wrap"], {
+            [styles.current]: current,
+          })}
           onClick={(e) => {
+            if (current) {
+              return;
+            }
+
             e.stopPropagation();
             navigateTo(navigateUrl);
           }}
@@ -46,18 +54,20 @@ export const TestResultEnvironmentItem: FunctionalComponent<{
             <Text type="ui" size={"s"} className={styles["test-result-environment-item-time"]}>
               {formattedDuration}
             </Text>
-            <TooltipWrapper tooltipText={t("openInNewTab")}>
-              <IconButton
-                icon={allureIcons.lineGeneralLinkExternal}
-                style={"ghost"}
-                size={"s"}
-                className={styles["test-result-environment-item-link"]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openInNewTab(navigateUrl);
-                }}
-              />
-            </TooltipWrapper>
+            {!current && (
+              <TooltipWrapper tooltipText={t("openInNewTab")}>
+                <IconButton
+                  icon={allureIcons.lineGeneralLinkExternal}
+                  style={"ghost"}
+                  size={"s"}
+                  className={styles["test-result-environment-item-link"]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openInNewTab(navigateUrl);
+                  }}
+                />
+              </TooltipWrapper>
+            )}
           </div>
         </div>
       </div>

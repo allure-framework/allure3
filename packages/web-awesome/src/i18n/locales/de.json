@@ -67,7 +67,8 @@
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
-    "no-test-case-results": "Keine Testergebnisse verfügbar"
+    "no-test-case-results": "Keine Testergebnisse verfügbar",
+    "no-environments-results": "Keine Umgebungsinformationen verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -92,6 +93,7 @@
     "history": "Verlauf",
     "attachments": "Anhänge",
     "retries": "Wiederholungen",
+    "environments": "Umgebungen",
     "error": "Fehler",
     "goToStep": "Zum Schritt gehen",
     "showLess": "Weniger anzeigen",

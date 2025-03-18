@@ -67,7 +67,8 @@
     "no-history-results": "Geçmiş bilgisi mevcut değil",
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
     "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
-    "no-test-case-results": "Test vakası sonuçları yok"
+    "no-test-case-results": "Test vakası sonuçları yok",
+    "no-environments-results": "Ortam bilgisi mevcut değil"
   },
   "severity": {
     "blocker": "engelleyici",
@@ -92,6 +93,7 @@
     "history": "Geçmiş",
     "attachments": "Ekler",
     "retries": "Tekrar Denemeler",
+    "environments": "Ortam",
     "error": "Hata",
     "goToStep": "Adıma git",
     "showLess": "Daha az göster",

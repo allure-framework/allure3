@@ -67,7 +67,8 @@
     "no-history-results": "Nenhuma informação de histórico disponível",
     "no-retries-results": "Nenhuma informação de repetições disponível",
     "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
-    "no-test-case-results": "Nenhum resultado de caso de teste"
+    "no-test-case-results": "Nenhum resultado de caso de teste",
+    "no-environments-results": "Nenhuma informação de ambiente disponível"
   },
   "severity": {
     "blocker": "bloqueador",
@@ -92,6 +93,7 @@
     "history": "Histórico",
     "attachments": "Anexos",
     "retries": "Repetições",
+    "environments": "Ambientes",
     "error": "Erro",
     "goToStep": "Ir para o passo",
     "showLess": "Mostrar menos",

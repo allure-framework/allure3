@@ -67,7 +67,8 @@
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
     "no-retries-results": "Təkrar məlumatı mövcud deyil",
     "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",
-    "no-test-case-results": "Test halları haqqında nəticələr yoxdur"
+    "no-test-case-results": "Test halları haqqında nəticələr yoxdur",
+    "no-environments-results": "Mühitlər haqqında məlumat mövcud deyil"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -92,6 +93,7 @@
     "history": "Tarixçə",
     "attachments": "Əlavələr",
     "retries": "Təkrarlar",
+    "environments": "Mühitlər",
     "error": "Səhv",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",

@@ -67,7 +67,8 @@
     "no-history-results": "履歴情報が利用できません",
     "no-retries-results": "再試行情報が利用できません",
     "no-test-steps-results": "テスト手順の情報は利用できません",
-    "no-test-case-results": "テストケースの結果がありません"
+    "no-test-case-results": "テストケースの結果がありません",
+    "no-environments-results": "環境情報が利用できません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -92,6 +93,7 @@
     "history": "履歴",
     "attachments": "添付ファイル",
     "retries": "再試行",
+    "environments": "環境",
     "error": "エラー",
     "goToStep": "ステップに移動",
     "showLess": "表示を減らす",

@@ -67,7 +67,8 @@
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
     "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
-    "no-test-case-results": "Nessun risultato dei casi di test"
+    "no-test-case-results": "Nessun risultato dei casi di test",
+    "no-environments-results": "Nessuna informazione sugli ambienti disponibile"
   },
   "severity": {
     "blocker": "bloccante",
@@ -92,6 +93,7 @@
     "history": "Cronologia",
     "attachments": "Allegati",
     "retries": "Ritentativi",
+    "environments": "Ambienti",
     "error": "Errore",
     "goToStep": "Vai al passo",
     "showLess": "Mostra meno",

@@ -64,7 +64,8 @@
     "no-history-results": "Brak dostępnych informacji o historii",
     "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
     "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
-    "no-test-case-results": "Brak wyników przypadków testowych"
+    "no-test-case-results": "Brak wyników przypadków testowych",
+    "no-environments-results": "Brak dostępnych informacji o środowiskach"
   },
   "severity": {
     "name": "Ważność",
@@ -90,6 +91,7 @@
     "history": "Historia",
     "attachments": "Załączniki",
     "retries": "Próby ponowne",
+    "environments": "Środowiska",
     "error": "Błąd",
     "goToStep": "Idź do kroku",
     "showLess": "Pokaż mniej",
