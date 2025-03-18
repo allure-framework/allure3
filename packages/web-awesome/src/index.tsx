@@ -10,7 +10,7 @@ import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
 import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
-import { currentEnvironment, environments, fetchEnvironments } from "@/stores/env";
+import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
@@ -44,7 +44,7 @@ const App = () => {
     if (currentEnvironment.value) {
       await fetchTreeData(currentEnvironment.value);
     } else {
-      await fetchTreesData(environments.value.data);
+      await fetchTreesData(environmentsStore.value.data);
     }
 
     setPrefetched(true);
@@ -57,9 +57,9 @@ const App = () => {
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
-      fetchTestResultNav();
+      fetchTestResultNav(currentEnvironment.value);
     }
-  }, [testResultId]);
+  }, [testResultId, currentEnvironment]);
 
   useEffect(() => {
     handleHashChange();

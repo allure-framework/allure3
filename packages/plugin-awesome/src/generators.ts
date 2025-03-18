@@ -151,6 +151,16 @@ export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeT
   }
 };
 
+export const generateTestEnvGroups = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const groups = await store.allTestEnvGroups();
+
+  for (const group of groups) {
+    const src = join("test-env-groups", `${group.id}.json`);
+
+    await writer.writeData(src, group);
+  }
+};
+
 export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
   await writer.writeWidget(
     filename,

@@ -1,12 +1,19 @@
+import type { TestEnvGroup } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 
-export const environments = signal<StoreSignalState<string[]>>({
+export const environmentsStore = signal<StoreSignalState<string[]>>({
   loading: false,
   error: undefined,
   data: [],
+});
+
+export const testEnvGroupsStore = signal<StoreSignalState<Record<string, TestEnvGroup>>>({
+  loading: false,
+  error: undefined,
+  data: {},
 });
 
 export const collapsedEnvironments = signal<string[]>(loadFromLocalStorage<string[]>("collapsedEnvironments", []));
@@ -18,8 +25,8 @@ export const setCurrentEnvironment = (env: string) => {
 };
 
 export const fetchEnvironments = async () => {
-  environments.value = {
-    ...environments.value,
+  environmentsStore.value = {
+    ...environmentsStore.value,
     loading: true,
     error: undefined,
   };
@@ -27,14 +34,45 @@ export const fetchEnvironments = async () => {
   try {
     const res = await fetchReportJsonData<string[]>("widgets/environments.json");
 
-    environments.value = {
+    environmentsStore.value = {
       data: res,
       error: undefined,
       loading: false,
     };
   } catch (e) {
-    environments.value = {
-      ...environments.value,
+    environmentsStore.value = {
+      ...environmentsStore.value,
+      error: e.message,
+      loading: false,
+    };
+  }
+};
+
+export const fetchTestEnvGroup = async (id: string) => {
+  if (testEnvGroupsStore.value.data[id]) {
+    return;
+  }
+
+  testEnvGroupsStore.value = {
+    ...testEnvGroupsStore.value,
+    loading: true,
+    error: undefined,
+  };
+
+  try {
+    const res = await fetchReportJsonData<TestEnvGroup | undefined>(`data/test-env-groups/${id}.json`);
+
+    testEnvGroupsStore.value = {
+      data: {
+        ...testEnvGroupsStore.value.data,
+        [id]: res,
+      },
+      error: undefined,
+      loading: false,
+    };
+  } catch (e) {
+    testEnvGroupsStore.value = {
+      ...testEnvGroupsStore.value,
       error: e.message,
       loading: false,
     };

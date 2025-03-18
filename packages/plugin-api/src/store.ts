@@ -5,6 +5,7 @@ import type {
   KnownTestFailure,
   Statistic,
   TestCase,
+  TestEnvGroup,
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
@@ -41,6 +42,8 @@ export interface AllureStore {
   // environments
   allEnvironments: () => Promise<string[]>;
   testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
+  allTestEnvGroups: () => Promise<TestEnvGroup[]>;
+  testEnvGroupByTestCaseId: (id: string) => Promise<TestEnvGroup | undefined>;
   // variables
   allVariables: () => Promise<Record<string, any>>;
   envVariables: (env: string) => Promise<Record<string, any>>;

@@ -19,9 +19,9 @@ export const testResultNavStore = signal<StoreSignalState<TrNavStoreState>>({
   data: undefined,
 });
 
-export const fetchTestResultNav = async () => {
+export const fetchTestResultNav = async (env?: string) => {
   try {
-    const data = await fetchReportJsonData<string[]>("widgets/nav.json");
+    const data = await fetchReportJsonData<string[]>(env ? `widgets/${env}/nav.json` : "widgets/nav.json");
 
     testResultNavStore.value = {
       data,
