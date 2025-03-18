@@ -3,10 +3,10 @@ import type { Point } from "@nivo/line";
 import type { FunctionalComponent } from "preact";
 import { useCallback } from "preact/hooks";
 import { defaultTrendChartConfig } from "./config";
+import * as styles from "./styles.scss";
 import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
 import { getKindConfig } from "./utils";
-import * as styles from "./styles.scss";
 
 export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   kind = TrendChartKind.Mesh,
