@@ -1,4 +1,4 @@
-.gridItem {
+.grid-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px;
   width: 100%;
@@ -12,14 +12,14 @@
   padding: 12px;
 }
 
-.gridItemContent {
+.grid-item-content {
   overflow: hidden;
   min-width: 0;
   width: 100%;
   height: 100%;
 }
 
-.gridItemHandle {
+.grid-item-handle {
   position: relative;
   top: 50%;
   transform: translateY(-50%);

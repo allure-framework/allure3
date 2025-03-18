@@ -1,1 +1,1 @@
-export const SymlogScaleConstant = 64;
+export const SYMLOG_SCALE_CONSTANT = 64;

@@ -1,10 +1,10 @@
-import type { FunctionComponent, ComponentChildren } from "preact";
-import { useMemo, useRef } from "preact/hooks";
 import { clsx } from "clsx";
-import type { Options } from "sortablejs";
-import { useSortable } from "./hooks";
-import styles from "./Grid.module.scss";
+import type { ComponentChildren, FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
+import { useMemo, useRef } from "preact/hooks";
+import type { Options } from "sortablejs";
+import styles from "./Grid.module.scss";
+import { useSortable } from "./hooks";
 
 export type GridKind = "default" | "swap";
 
