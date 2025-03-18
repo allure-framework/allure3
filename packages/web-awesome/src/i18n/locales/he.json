@@ -83,6 +83,11 @@
     "setup": "הכנה",
     "teardown": "סיום"
   },
+  "environments": {
+    "environment_one": "סביבה",
+    "environment_other": "סביבות",
+    "all": "הכל"
+  },
   "ui": {
     "labels": "תוויות",
     "metadata": "נתונים",
@@ -99,7 +104,8 @@
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
     "copy": "העתק",
-    "at": "ב-"
+    "at": "ב-",
+    "variables": "משתנים"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

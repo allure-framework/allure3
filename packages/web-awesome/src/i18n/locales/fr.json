@@ -83,6 +83,11 @@
     "setup": "Préparation",
     "teardown": "Démontage"
   },
+  "environments": {
+    "environment_one": "Environnement",
+    "environment_other": "Environnements",
+    "all": "Tous"
+  },
   "ui": {
     "labels": "Étiquettes",
     "metadata": "Métadonnées",
@@ -99,7 +104,8 @@
     "showLess": "Montrer moins",
     "showMore": "Montrer plus",
     "copy": "Copier",
-    "at": "à"
+    "at": "à",
+    "variables": "Variables"
   },
   "controls": {
     "newTabAttachment": "Ouvrir dans un nouvel onglet",

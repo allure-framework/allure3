@@ -83,6 +83,11 @@
     "setup": "Vorbereitung",
     "teardown": "Abbau"
   },
+  "environments": {
+    "environment_one": "Umgebung",
+    "environment_other": "Umgebungen",
+    "all": "Alle"
+  },
   "ui": {
     "labels": "Labels",
     "metadata": "Metadaten",
@@ -99,7 +104,8 @@
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
-    "at": "bei"
+    "at": "bei",
+    "variables": "Variablen"
   },
   "controls": {
     "newTabAttachment": "Anhang in neuem Tab öffnen",

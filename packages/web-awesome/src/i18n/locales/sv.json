@@ -83,6 +83,11 @@
     "setup": "Förberedelse",
     "teardown": "Avslutning"
   },
+  "environments": {
+    "environment_one": "Miljö",
+    "environment_other": "Miljöer",
+    "all": "Alla"
+  },
   "ui": {
     "labels": "Etiketter",
     "metadata": "Metadata",
@@ -99,7 +104,8 @@
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
     "copy": "Kopiera",
-    "at": "vid"
+    "at": "vid",
+    "variables": "Variabler"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

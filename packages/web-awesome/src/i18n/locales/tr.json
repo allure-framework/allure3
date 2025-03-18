@@ -83,6 +83,11 @@
     "setup": "Kurulum",
     "teardown": "Kapatma"
   },
+  "environments": {
+    "environment_one": "Ortam",
+    "environment_other": "Ortamlar",
+    "all": "Tümü"
+  },
   "ui": {
     "labels": "Etiketler",
     "metadata": "Meta Veriler",
@@ -99,7 +104,8 @@
     "showLess": "Daha az göster",
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
-    "at": "tarihinde"
+    "at": "tarihinde",
+    "variables": "Değişkenler"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",

@@ -83,6 +83,11 @@
     "setup": "Voorbereiding",
     "teardown": "Afsluiten"
   },
+  "environments": {
+    "environment_one": "Omgeving",
+    "environment_other": "Omgevingen",
+    "all": "Alle"
+  },
   "ui": {
     "labels": "Labels",
     "metadata": "Metadata",
@@ -99,7 +104,8 @@
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
-    "at": "om"
+    "at": "om",
+    "variables": "Variabelen"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
