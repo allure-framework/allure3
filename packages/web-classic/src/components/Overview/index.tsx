@@ -1,12 +1,17 @@
+/* eslint-disable @stylistic/quotes */
+
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Loadable, PageLoader, Grid, GridItem, SuccessRatePieChart } from "@allurereport/web-components";
-import { Widget } from "./components/Widget";
-import { TrendChartWidget } from "./components/TrendChartWidget";
-import * as styles from "./Overview.module.scss";
+import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
+import { useI18n } from "@/stores/locale";
+import * as styles from "./Overview.module.scss";
+import { TrendChartWidget } from "./components/TrendChartWidget";
+import { Widget } from "./components/Widget";
 
 const Overview = () => {
+  const { t } = useI18n("charts");
+
   useEffect(() => {
     fetchChartsData();
   }, []);
@@ -16,35 +21,39 @@ const Overview = () => {
       source={chartsStore}
       renderLoader={() => <PageLoader />}
       renderData={({ pie, trends }) => {
-        const TrendChartGridItems = Object.entries(trends.charts).map(([key, value]) => (
-          <GridItem key={key} style={{ padding: "12px", width: "100%" }}>
-            <TrendChartWidget
-              title={`Test ${key.charAt(0).toUpperCase() + key.slice(1)} Trend`}
-              items={value.items}
-              slices={value.slices}
-              min={value.min}
-              max={value.max}
-            />
-          </GridItem>
-        ));
+        const pieTitle = t("charts.pie.title");
+
+        const TrendChartGridItems = Object.entries(trends.charts).map(([key, value]) => {
+          const title = t(`charts.trend.title.${key}`);
+
+          return (
+            <GridItem key={key} className={styles.overviewGridItem}>
+              <TrendChartWidget
+                title={title}
+                items={value.items}
+                slices={value.slices}
+                min={value.min}
+                max={value.max}
+                rootAriaLabel={title}
+              />
+            </GridItem>
+          );
+        });
 
         return (
           <div className={styles.overview}>
-            <Grid kind="swap" className={styles.overview__grid}>
-                  {TrendChartGridItems}
-                  <GridItem style={{ padding: "12px", width: "100%" }}>
-                    <Widget title="Test Success Rate">
-                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
-                        <div style={{ width: "50%" }}>
-                          <SuccessRatePieChart
-                            slices={pie.slices}
-                            percentage={pie.percentage}
-                          />
-                        </div>
-                      </div>
-                    </Widget>
-                  </GridItem>
-                </Grid>
+            <Grid kind="swap" className={styles["overview-grid"]}>
+              {TrendChartGridItems}
+              <GridItem className={styles["overview-grid-item"]}>
+                <Widget title={pieTitle}>
+                  <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
+                    <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
+                      <SuccessRatePieChart slices={pie.slices} percentage={pie.percentage} />
+                    </div>
+                  </div>
+                </Widget>
+              </GridItem>
+            </Grid>
           </div>
         );
       }}

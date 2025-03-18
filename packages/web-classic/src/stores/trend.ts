@@ -1,8 +1,8 @@
-import { signal } from "@preact/signals";
+import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
+import { severityLevels, statusesList } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
+import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-import type { TestStatus, SeverityLevel } from "@allurereport/core-api";
-import { statusesList, severityLevels } from "@allurereport/core-api";
 
 interface Point {
   x: Date | string | number;
@@ -23,7 +23,7 @@ interface ChartData {
   points: Record<string, Point>;
   slices: Record<string, Slice>;
   series: Record<TestStatus | SeverityLevel, string[]>;
-};
+}
 
 interface TrendResponse {
   charts: Partial<Record<ChartType, ChartData>>;
@@ -51,7 +51,7 @@ const statusColors: Record<TestStatus, string> = {
   broken: "var(--bg-support-atlas)",
   passed: "var(--bg-support-castor)",
   skipped: "var(--bg-support-rau)",
-  unknown: "var(--bg-support-skat)"
+  unknown: "var(--bg-support-skat)",
 };
 
 const severityColors: Record<SeverityLevel, string> = {
@@ -59,7 +59,7 @@ const severityColors: Record<SeverityLevel, string> = {
   critical: "var(--bg-support-atlas)",
   normal: "var(--bg-support-castor)",
   minor: "var(--bg-support-rau)",
-  trivial: "var(--bg-support-skat)"
+  trivial: "var(--bg-support-skat)",
 };
 
 export const trendStore = signal<StoreSignalState<TrendData>>({
@@ -79,7 +79,7 @@ export const trendStore = signal<StoreSignalState<TrendData>>({
 const createChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ChartData | undefined,
   getGroups: () => T[],
-  getColor: (group: T) => string
+  getColor: (group: T) => string,
 ): TrendChartData | undefined => {
   const chart = getChart();
   if (!chart) {
@@ -87,16 +87,17 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
   }
 
   const items = getGroups().reduce((acc, group) => {
-    const pointsByGroupBy = chart.series[group]?.map(pointId => ({
-      x: chart.points[pointId].x,
-      y: chart.points[pointId].y
-    })) ?? [];
+    const pointsByGroupBy =
+      chart.series[group]?.map((pointId) => ({
+        x: chart.points[pointId].x,
+        y: chart.points[pointId].y,
+      })) ?? [];
 
     if (pointsByGroupBy.length) {
       acc.push({
         id: group.charAt(0).toUpperCase() + group.slice(1),
         data: pointsByGroupBy,
-        color: getColor(group)
+        color: getColor(group),
       });
     }
 
@@ -107,12 +108,22 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
     items,
     slices: Object.values(chart.slices),
     min: chart.min,
-    max: chart.max
+    max: chart.max,
   };
 };
 
-const createStatusChartData = (res: TrendResponse): TrendChartData | undefined => createChartData(() => res.charts.status, () => statusesList, (status) => statusColors[status]);
-const createSeverityChartData = (res: TrendResponse): TrendChartData | undefined => createChartData(() => res.charts.severity, () => severityLevels, (severity) => severityColors[severity]);
+const createStatusChartData = (res: TrendResponse): TrendChartData | undefined =>
+  createChartData(
+    () => res.charts.status,
+    () => statusesList,
+    (status) => statusColors[status],
+  );
+const createSeverityChartData = (res: TrendResponse): TrendChartData | undefined =>
+  createChartData(
+    () => res.charts.severity,
+    () => severityLevels,
+    (severity) => severityColors[severity],
+  );
 
 const makeCharts = (res: TrendResponse): TrendData["charts"] => ({
   status: res.charts.status ? createStatusChartData(res) : undefined,
@@ -131,7 +142,7 @@ export const fetchTrendData = async () => {
 
     trendStore.value = {
       data: {
-        charts: makeCharts(res)
+        charts: makeCharts(res),
       },
       error: undefined,
       loading: false,
