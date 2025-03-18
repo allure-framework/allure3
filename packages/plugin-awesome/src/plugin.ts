@@ -12,6 +12,7 @@ import {
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
+  generateTestEnvGroups,
   generateTestResults,
   generateTree,
   generateVariables,
@@ -45,6 +46,7 @@ export class AwesomePlugin implements Plugin {
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs);
     await generateNav(this.#writer!, convertedTrs, "nav.json");
+    await generateTestEnvGroups(this.#writer!, store);
 
     for (const reportEnvironment of reportEnvironments) {
       const envTrs = await store.testResultsByEnvironment(reportEnvironment);

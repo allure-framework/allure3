@@ -1,5 +1,5 @@
 import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
-import { currentEnvironment, environments, setCurrentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -10,7 +10,7 @@ export const EnvironmentPicker = () => {
   };
 
   // TODO: use props instead
-  if (environments.value.data.length <= 1) {
+  if (environmentsStore.value.data.length <= 1) {
     return null;
   }
 
@@ -37,7 +37,7 @@ export const EnvironmentPicker = () => {
           <Menu.ItemWithCheckmark onClick={() => handleSelect(undefined)} isChecked={!environment}>
             All
           </Menu.ItemWithCheckmark>
-          {environments.value.data.map((env) => (
+          {environmentsStore.value.data.map((env) => (
             <Menu.ItemWithCheckmark onClick={() => handleSelect(env)} key={env} isChecked={env === environment}>
               {env}
             </Menu.ItemWithCheckmark>

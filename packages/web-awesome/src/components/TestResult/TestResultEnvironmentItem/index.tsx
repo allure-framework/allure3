@@ -1,0 +1,71 @@
+import { formatDuration } from "@allurereport/core-api";
+import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { type FunctionalComponent } from "preact";
+import { useState } from "preact/hooks";
+import { ArrowButton } from "@/components/ArrowButton";
+import { TrError } from "@/components/TestResult/TrError";
+import { useI18n } from "@/stores";
+import { navigateTo, openInNewTab } from "@/stores/router";
+import { timestampToDate } from "@/utils/time";
+import type { AwesomeTestResult } from "../../../../types";
+import * as styles from "./styles.scss";
+
+export const TestResultEnvironmentItem: FunctionalComponent<{
+  env: string;
+  testResult: AwesomeTestResult;
+}> = ({ env, testResult }) => {
+  const { status, error, stop, duration, id } = testResult;
+  const [isOpened, setIsOpen] = useState(false);
+  const hasEmptyError = !error || !Object.keys(error).length;
+  const convertedStop = timestampToDate(stop);
+  const formattedDuration = formatDuration(duration as number);
+  const { t } = useI18n("controls");
+  const navigateUrl = id;
+
+  return (
+    <div>
+      <div className={styles["test-result-environment-item-header"]}>
+        {!hasEmptyError && (
+          <span onClick={() => setIsOpen(!isOpened)}>
+            <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
+          </span>
+        )}
+        <div
+          className={styles["test-result-environment-item-wrap"]}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigateTo(navigateUrl);
+          }}
+        >
+          <TreeItemIcon status={status} className={styles["test-result-environment-item-status"]} />
+          <Text className={styles["test-result-environment-item-env"]} bold>
+            {env}
+          </Text>
+          <Text className={styles["test-result-environment-item-text"]}>{convertedStop}</Text>
+          <div className={styles["test-result-environment-item-info"]}>
+            <Text type="ui" size={"s"} className={styles["test-result-environment-item-time"]}>
+              {formattedDuration}
+            </Text>
+            <TooltipWrapper tooltipText={t("openInNewTab")}>
+              <IconButton
+                icon={allureIcons.lineGeneralLinkExternal}
+                style={"ghost"}
+                size={"s"}
+                className={styles["test-result-environment-item-link"]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openInNewTab(navigateUrl);
+                }}
+              />
+            </TooltipWrapper>
+          </div>
+        </div>
+      </div>
+      {isOpened && !hasEmptyError && (
+        <div>
+          <TrError {...error} />
+        </div>
+      )}
+    </div>
+  );
+};
