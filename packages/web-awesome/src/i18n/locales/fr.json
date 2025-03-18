@@ -67,7 +67,8 @@
     "no-history-results": "Aucune information sur l'historique disponible",
     "no-retries-results": "Aucune information sur les réessais disponible",
     "no-test-steps-results": "Aucune information sur les étapes de test disponible",
-    "no-test-case-results": "Aucun résultat de cas de test"
+    "no-test-case-results": "Aucun résultat de cas de test",
+    "no-environments-results": "Aucune information sur les environnements disponible"
   },
   "severity": {
     "blocker": "bloquant",
@@ -92,6 +93,7 @@
     "history": "Historique",
     "attachments": "Pièces jointes",
     "retries": "Réessais",
+    "environments": "Environnements",
     "error": "Erreur",
     "goToStep": "Aller à l'étape",
     "showLess": "Montrer moins",

@@ -67,7 +67,8 @@
     "no-history-results": "기록 정보를 사용할 수 없습니다",
     "no-retries-results": "재시도 정보를 사용할 수 없습니다",
     "no-test-steps-results": "테스트 단계 정보가 없습니다",
-    "no-test-case-results": "테스트 케이스 결과가 없습니다"
+    "no-test-case-results": "테스트 케이스 결과가 없습니다",
+    "no-environments-results": "환경 정보를 사용할 수 없습니다"
   },
   "severity": {
     "blocker": "차단자",
@@ -92,6 +93,7 @@
     "history": "기록",
     "attachments": "첨부파일",
     "retries": "재시도",
+    "environments": "환경",
     "error": "오류",
     "goToStep": "단계로 이동",
     "showLess": "덜 보기",

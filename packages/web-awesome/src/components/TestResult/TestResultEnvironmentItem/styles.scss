@@ -1,9 +1,18 @@
+.test-result-environment-item {
+  &:not(.current) {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--bg-control-flat-medium);
+    }
+  }
+}
+
 .test-result-environment-item-header {
   display: flex;
   width: 100%;
   gap: 4px;
   align-items: center;
-  cursor: pointer;
 }
 
 .test-result-environment-item-wrap {
@@ -15,10 +24,6 @@
   padding: 4px 4px 4px 4px;
   width: 100%;
   align-items: flex-start;
-
-  &:hover {
-    background: var(--bg-control-flat-medium);
-  }
 }
 
 .test-result-environment-item-text {
