@@ -1,9 +1,7 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
-  type HistoryDataPoint,
   type Statistic,
-  type TestResult,
   compareBy,
   incrementStatistic,
   nullsLast,
@@ -29,7 +27,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getChartData, getStatusTrendData, getSeverityTrendData } from "./charts.js";
+import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -373,23 +371,4 @@ export const generateStaticFiles = async (
   });
 
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
-};
-
-export const generateHistoryTrendData = async (
-  writer: AwesomeDataWriter,
-  reportName: string,
-  statistic: Statistic,
-  testResults: TestResult[],
-  historyDataPoints: HistoryDataPoint[],
-) => {
-  // Put chart generators here
-  const statusTrendData = getStatusTrendData(statistic, reportName, historyDataPoints);
-  const severityTrendData = getSeverityTrendData(testResults, reportName, historyDataPoints);
-
-  await writer.writeWidget("history-trend.json", {
-    charts: {
-      status: statusTrendData,
-      severity: severityTrendData
-    }
-  });
 };
