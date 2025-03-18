@@ -83,6 +83,11 @@
     "setup": "Voorbereiding",
     "teardown": "Afsluiten"
   },
+  "environments": {
+    "environment_one": "Omgeving",
+    "environment_other": "Omgevingen",
+    "all": "Alle"
+  },
   "ui": {
     "labels": "Labels",
     "metadata": "Metadata",
@@ -100,6 +105,7 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "at": "om",
+    "variables": "Variabelen",
     "openPwTrace": "Playwright Trace openen"
   },
   "controls": {

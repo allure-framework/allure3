@@ -81,6 +81,11 @@
     "setup": "Przygotowanie",
     "teardown": "Zakończenie"
   },
+  "environments": {
+    "environment_one": "Środowisko",
+    "environment_other": "Środowiska",
+    "all": "Wszystkie"
+  },
   "ui": {
     "labels": "Labelki",
     "metadata": "Metadane",
@@ -98,6 +103,7 @@
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
     "at": "w",
+    "variables": "Zmienne",
     "openPwTrace": "Otwórz Playwright Trace"
   },
   "controls": {

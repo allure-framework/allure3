@@ -83,6 +83,11 @@
     "setup": "설정",
     "teardown": "해체"
   },
+  "environments": {
+    "environment_one": "환경",
+    "environment_other": "환경",
+    "all": "모두"
+  },
   "ui": {
     "labels": "레이블",
     "metadata": "메타데이터",
@@ -100,6 +105,7 @@
     "showMore": "더 보기",
     "copy": "복사",
     "at": "에서",
+    "variables": "변수",
     "openPwTrace": "Playwright Trace 열기"
   },
   "controls": {

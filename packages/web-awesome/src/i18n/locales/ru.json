@@ -81,6 +81,11 @@
     "setup": "Подготовка",
     "teardown": "Завершение"
   },
+  "environments": {
+    "environment_one": "Окружение",
+    "environment_other": "Окружения",
+    "all": "Все"
+  },
   "ui": {
     "labels": "Лейблы",
     "metadata": "Метаданные",
@@ -98,6 +103,7 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "at": "в",
+    "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace"
   },
   "controls": {
