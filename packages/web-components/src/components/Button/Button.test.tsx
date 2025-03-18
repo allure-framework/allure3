@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
 import { describe, expect, it, vi } from "vitest";
-import { Button } from "./index";
+import { Button } from "@/components/Button";
 
 describe("Button", () => {
   it("renders the button with text", async () => {

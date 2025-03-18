@@ -1,7 +1,7 @@
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { TestResultBreadcrumbs } from "@/components/TestResult/TestResultHeader/TestResultBreadcrumbs";
+import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
 import ToggleLayout from "@/components/ToggleLayout";
 import { route } from "@/stores/router";
@@ -17,7 +17,7 @@ export const Header = ({ className }: HeaderProps) => {
 
   return (
     <div className={clsx(styles.above, className)}>
-      {id && <TestResultBreadcrumbs testResult={testResultStore.value?.data?.[id]} />}
+      {id && <TrBreadcrumbs testResult={testResultStore.value?.data?.[id]} />}
       <div className={styles.right}>
         <LanguagePicker />
         <ToggleLayout />

@@ -1,0 +1,84 @@
+import type { DefaultTestStepResult } from "@allurereport/core-api";
+import { Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import type { FunctionComponent } from "preact";
+import { useState } from "preact/hooks";
+import { ArrowButton } from "@/components/ArrowButton";
+import { MetadataList } from "@/components/Metadata";
+import { type MetadataItem } from "@/components/ReportMetadata";
+import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
+import { TrStepInfo } from "@/components/TestResult/TrSteps/TrStepInfo";
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+export const TrStepParameters = (props: { parameters: DefaultTestStepResult["parameters"] }) => {
+  const { parameters } = props;
+
+  return (
+    <div className={styles["test-result-parameters"]}>
+      <MetadataList size={"s"} envInfo={parameters as unknown as MetadataItem[]} columns={1} />
+    </div>
+  );
+};
+export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
+  const { item } = props;
+
+  return (
+    <div className={styles["test-result-step-content"]}>
+      {Boolean(item?.parameters?.length) && <TrStepParameters parameters={item.parameters} />}
+      {Boolean(item?.steps?.length) && (
+        <>
+          {item.steps?.map((subItem, key) => {
+            if (subItem.type === "step") {
+              return <TrStep stepIndex={key + 1} key={key} item={subItem} />;
+            }
+
+            if (subItem.type === "attachment") {
+              return <TrAttachment stepIndex={key + 1} key={key} item={subItem} />;
+            }
+
+            return null;
+          })}
+        </>
+      )}
+    </div>
+  );
+};
+
+export const TrStep: FunctionComponent<{
+  item: DefaultTestStepResult;
+  stepIndex?: number;
+  className?: string;
+}> = ({ item, stepIndex }) => {
+  const isEarlyOpened = collapsedTrees.value.has(item.stepId);
+  const [isOpened, setIsOpen] = useState(isEarlyOpened || false);
+  const hasContent = Boolean(item?.steps?.length || item?.parameters?.length);
+
+  const handleClick = () => {
+    setIsOpen(!isOpened);
+    toggleTree(item.stepId);
+  };
+
+  return (
+    <div className={styles["test-result-step"]}>
+      <div className={styles["test-result-step-header"]} onClick={handleClick}>
+        {!hasContent ? (
+          <div className={styles["test-result-strut"]} />
+        ) : (
+          <ArrowButton
+            isOpened={isOpened}
+            icon={allureIcons.arrowsChevronDown}
+            iconSize={"xs"}
+            className={!hasContent ? styles["test-result-visibility-hidden"] : ""}
+          />
+        )}
+        <TreeItemIcon status={item.status} />
+        <Code size={"s"} className={styles["test-result-step-number"]}>
+          {stepIndex}
+        </Code>
+        <Text className={styles["test-result-header-text"]}>{item.name}</Text>
+        <TrStepInfo item={item} />
+      </div>
+      {hasContent && isOpened && <TrStepsContent item={item} />}
+    </div>
+  );
+};

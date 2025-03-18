@@ -42,11 +42,14 @@ import lineIconBomb2 from "@/assets/svg/line-icon-bomb-2.svg";
 import lineImagesImage from "@/assets/svg/line-images-image.svg";
 import lineLayoutsColumn2 from "@/assets/svg/line-layouts-columns-2.svg";
 import lineLayoutsLayoutTop from "@/assets/svg/line-layouts-layout-top.svg";
+import lineLayoutsMaximize2 from "@/assets/svg/line-layouts-maximize-2.svg";
+import lineLayoutsMinimize2 from "@/assets/svg/line-layouts-minimize-2.svg";
 import lineSecurityKey from "@/assets/svg/line-security-key.svg";
 import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
 import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
 import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
+import playwrightLogo from "@/assets/svg/playwright-logo.svg";
 import reportLogo from "@/assets/svg/report-logo.svg";
 import solidAlertCircle from "@/assets/svg/solid-alert-circle.svg";
 import solidCheckCircle from "@/assets/svg/solid-check-circle.svg";
@@ -101,11 +104,14 @@ export const allureIcons = {
   lineImagesImage: lineImagesImage.id,
   lineLayoutsColumn2: lineLayoutsColumn2.id,
   lineLayoutsLayoutTop: lineLayoutsLayoutTop.id,
+  lineLayoutsMaximize2: lineLayoutsMaximize2.id,
+  lineLayoutsMinimize2: lineLayoutsMinimize2.id,
   lineSecurityKey: lineSecurityKey.id,
   lineShapesDotCircle: lineShapesDotCircle.id,
   lineShapesMoon: lineShapesMoon.id,
   lineShapesSun: lineShapesSun.id,
   lineTimeClockStopwatch: lineTimeClockStopwatch.id,
+  playwrightLogo: playwrightLogo.id,
   reportLogo: reportLogo.id,
   solidAlertCircle: solidAlertCircle.id,
   solidCheckCircle: solidCheckCircle.id,

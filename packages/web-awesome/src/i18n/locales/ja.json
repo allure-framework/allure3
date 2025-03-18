@@ -97,7 +97,8 @@
     "showLess": "表示を減らす",
     "showMore": "もっと見る",
     "copy": "コピー",
-    "at": "時"
+    "at": "時",
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",

@@ -126,6 +126,7 @@ export interface AttachmentLinkExpected {
   ext: string;
   used: true;
   missed: true;
+  isPwTrace?: boolean;
 }
 
 /**

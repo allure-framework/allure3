@@ -2,7 +2,7 @@ import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
-const TestStepsEmpty = () => {
+const TrStepsEmpty = () => {
   const { t } = useI18n("empty");
   return (
     <div className={styles["test-steps-empty"]}>
@@ -20,4 +20,4 @@ const TestStepsEmpty = () => {
   );
 };
 
-export default TestStepsEmpty;
+export default TrStepsEmpty;

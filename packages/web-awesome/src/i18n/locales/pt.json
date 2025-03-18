@@ -97,7 +97,8 @@
     "showLess": "Mostrar menos",
     "showMore": "Mostrar mais",
     "copy": "Copiar",
-    "at": "em"
+    "at": "em",
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",

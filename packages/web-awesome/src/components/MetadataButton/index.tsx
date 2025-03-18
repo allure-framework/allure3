@@ -20,7 +20,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({ isOpe
       <Text size={"m"} bold>
         {title}
       </Text>
-      {counter && <Counter count={counter} size="s" />}
+      {Boolean(counter !== null) && <Counter count={counter} size="s" />}
       <ArrowButton
         isOpened={isOpened}
         iconSize={"s"}

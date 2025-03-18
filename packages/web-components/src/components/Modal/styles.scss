@@ -18,18 +18,15 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  max-width: 90%;
-  max-height: 90%;
 }
 
 .modal-wrapper {
   position: relative;
   background: var(--bg-base-primary);
-  max-width: 90%;
-  max-height: 80vh;
   width: 90vw;
   min-width: 320px;
   min-height: 320px;
+  max-height: 80vh;
   display: flex;
   border-radius: 16px;
   align-items: center;
@@ -38,6 +35,13 @@
   overflow: hidden;
   z-index: 1;
   overflow-y: auto;
+}
+
+.modal-wrapper-fullscreen {
+  max-height: 100%;
+  max-width: 100%;
+  height: calc(100vh - 16px);
+  width: calc(100vw - 16px);
 }
 
 .modal-data-component {
