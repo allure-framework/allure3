@@ -3,7 +3,7 @@ import type { AwesomeStatus } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
 import { statsStore } from "@/stores";
-import { collapsedEnvironments, currentEnvironment, environments } from "@/stores/env";
+import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import {
@@ -59,7 +59,7 @@ export const TreeList = () => {
         }
 
         // render single tree for single environment
-        if (environments.value.data.length === 1) {
+        if (environmentsStore.value.data.length === 1) {
           return (
             <div className={styles["tree-list"]}>
               <Tree

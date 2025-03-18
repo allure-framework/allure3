@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
+import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+import { TestResultEnvironmentsView } from "@/components/TestResult/TestResultEnvironmentsView";
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import TrEmpty from "@/components/TestResult/TrEmpty";
 import { TrHeader } from "@/components/TestResult/TrHeader";
@@ -9,6 +11,7 @@ import { TrInfo } from "@/components/TestResult/TrInfo";
 import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
 import { TrTabs, useTestResultTabsContext } from "@/components/TestResult/TrTabs";
+import { fetchTestEnvGroup } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import * as styles from "./styles.scss";
 
@@ -31,6 +34,7 @@ const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
     history: TrHistoryView,
     attachments: TrAttachmentView,
     retries: TrRetriesView,
+    environments: TestResultEnvironmentsView,
   };
   const ViewComponent = viewMap[currentTab];
 
@@ -48,6 +52,14 @@ const TrContent: FunctionalComponent<TrContentProps> = ({ testResult }) => {
 
 const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
   const splitModeClass = isSplitMode.value ? styles["scroll-inside"] : "";
+
+  useEffect(() => {
+    const testCaseId = testResult?.testCase?.id;
+
+    if (testCaseId) {
+      fetchTestEnvGroup(testCaseId);
+    }
+  }, [testResult]);
 
   return (
     <>

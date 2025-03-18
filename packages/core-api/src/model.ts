@@ -65,6 +65,14 @@ export interface TestResult {
   categories?: any;
 }
 
+export interface TestEnvGroup {
+  id: string;
+  name: string;
+  fullName?: string;
+  status: TestStatus;
+  testResultsByEnv: Record<string, string>;
+}
+
 export interface TestFixtureResult {
   id: string;
   testResultIds: string[];

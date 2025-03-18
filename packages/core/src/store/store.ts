@@ -9,8 +9,10 @@ import {
   type ReportVariables,
   type Statistic,
   type TestCase,
+  type TestEnvGroup,
   type TestFixtureResult,
   type TestResult,
+  getWorstStatus,
   matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
@@ -392,6 +394,57 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const allTrs = await this.allTestResults(options);
 
     return allTrs.filter((tr) => tr.environment === env);
+  }
+
+  async allTestEnvGroups() {
+    const allTr = await this.allTestResults({ includeHidden: true });
+    const trByTestCaseId = allTr.reduce(
+      (acc, tr) => {
+        const testCaseId = tr?.testCase?.id;
+
+        if (!testCaseId) {
+          return acc;
+        }
+
+        if (acc[testCaseId]) {
+          acc[testCaseId].push(tr);
+        } else {
+          acc[testCaseId] = [tr];
+        }
+
+        return acc;
+      },
+      {} as Record<string, TestResult[]>,
+    );
+
+    return Object.entries(trByTestCaseId).reduce((acc, [testCaseId, trs]) => {
+      if (trs.length === 0) {
+        return acc;
+      }
+
+      const { fullName, name } = trs[0];
+      const envGroup: TestEnvGroup = {
+        id: testCaseId,
+        fullName,
+        name,
+        status: getWorstStatus(trs.map(({ status }) => status)) ?? "passed",
+        testResultsByEnv: {},
+      };
+
+      trs.forEach((tr) => {
+        const env = matchEnvironment(this.#environmentsConfig, tr);
+
+        envGroup.testResultsByEnv[env] = tr.id;
+      });
+
+      return acc.concat(envGroup);
+    }, [] as TestEnvGroup[]);
+  }
+
+  async testEnvGroupByTestCaseId(id: string) {
+    const allEnvGroups = await this.allTestEnvGroups();
+
+    return allEnvGroups.find((group) => group.id === id);
   }
 
   // variables

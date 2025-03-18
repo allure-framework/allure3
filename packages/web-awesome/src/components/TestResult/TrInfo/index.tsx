@@ -1,5 +1,6 @@
+import type { TestEnvGroup } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
-import { Counter, Heading, Text, TooltipWrapper } from "@allurereport/web-components";
+import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
@@ -9,6 +10,7 @@ import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
+import { testEnvGroupsStore } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
@@ -66,6 +68,18 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
                 {Boolean(attachments?.length) && <Counter size={"s"} count={attachments?.length} />}
               </div>
             </TrTab>
+            <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
+              source={testEnvGroupsStore}
+              transformData={(groups) => groups[testResult.testCase.id]}
+              renderData={(group) => (
+                <TrTab id="environments" disabled={!group}>
+                  <div className={styles["test-result-tab"]}>
+                    {t("environments")}
+                    {Boolean(group) && <Counter size={"s"} count={Object.keys(group.testResultsByEnv).length} />}
+                  </div>
+                </TrTab>
+              )}
+            />
           </TrTabsList>
         </div>
       </>
