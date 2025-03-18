@@ -97,7 +97,8 @@
     "showLess": "Ցուցադրել պակաս",
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
-    "at": "է"
+    "at": "է",
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",

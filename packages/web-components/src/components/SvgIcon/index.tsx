@@ -49,6 +49,7 @@ import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
 import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
 import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
+import playwrightLogo from "@/assets/svg/playwright-logo.svg";
 import reportLogo from "@/assets/svg/report-logo.svg";
 import solidAlertCircle from "@/assets/svg/solid-alert-circle.svg";
 import solidCheckCircle from "@/assets/svg/solid-check-circle.svg";
@@ -110,6 +111,7 @@ export const allureIcons = {
   lineShapesMoon: lineShapesMoon.id,
   lineShapesSun: lineShapesSun.id,
   lineTimeClockStopwatch: lineTimeClockStopwatch.id,
+  playwrightLogo: playwrightLogo.id,
   reportLogo: reportLogo.id,
   solidAlertCircle: solidAlertCircle.id,
   solidCheckCircle: solidCheckCircle.id,

@@ -95,7 +95,8 @@
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
     "copy": "Скопировать",
-    "at": "в"
+    "at": "в",
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

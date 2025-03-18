@@ -7,7 +7,7 @@ import { TrError } from "@/components/TestResult/TrError";
 import { TrLinks } from "@/components/TestResult/TrLinks";
 import { TrMetadata } from "@/components/TestResult/TrMetadata";
 import { TrParameters } from "@/components/TestResult/TrParameters";
-import { TrQuickActions } from "@/components/TestResult/TrQuickActions";
+import { TrPwTraces } from "@/components/TestResult/TrPwTraces";
 import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
@@ -19,6 +19,9 @@ export type TestResultOverviewProps = {
 export const TrOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
   const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id } = testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
+  const pwTraces = testResult?.attachments?.filter(
+    (attachment) => attachment.link.name === "trace" || attachment.link.contentType === "application/playwright-trace",
+  );
 
   return (
     <>
@@ -27,7 +30,7 @@ export const TrOverview: FunctionalComponent<TestResultOverviewProps> = ({ testR
           <TrError {...error} />
         </div>
       )}
-      <TrQuickActions testResult={testResult} />
+      {Boolean(pwTraces.length) && <TrPwTraces pwTraces={pwTraces} />}
       {Boolean(parameters?.length) && <TrParameters parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && <TrMetadata testResult={testResult} />}
       {Boolean(links?.length) && <TrLinks links={links} />}

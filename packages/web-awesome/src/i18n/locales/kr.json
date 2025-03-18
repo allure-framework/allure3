@@ -97,7 +97,8 @@
     "showLess": "덜 보기",
     "showMore": "더 보기",
     "copy": "복사",
-    "at": "에서"
+    "at": "에서",
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

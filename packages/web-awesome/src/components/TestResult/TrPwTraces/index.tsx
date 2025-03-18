@@ -1,3 +1,4 @@
+import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
@@ -8,28 +9,19 @@ import * as styles from "./styles.scss";
 
 export type TrMetadataProps = {
   testResult?: AwesomeTestResult;
+  pwTraces?: AttachmentTestStepResult[];
 };
 
-export const TrQuickActions: FunctionalComponent<TrMetadataProps> = ({ testResult }) => {
+export const TrPwTraces: FunctionalComponent<TrMetadataProps> = ({ pwTraces }) => {
   const { t } = useI18n("ui");
   const [isOpened, setIsOpened] = useState(true);
-  const pwTraces = testResult?.attachments?.filter(
-    (attachment) => attachment.link.name === "trace" || attachment.link.isPwTrace,
-  );
 
   return (
     <div className={styles["tr-metadata"]}>
-      <MetadataButton
-        isOpened={isOpened}
-        setIsOpen={setIsOpened}
-        counter={pwTraces?.length}
-        title={t("quickActions")}
-      />
+      <MetadataButton isOpened={isOpened} setIsOpen={setIsOpened} counter={pwTraces?.length} title={t("pwTrace")} />
       {isOpened && (
         <div className={styles["tr-metadata-wrapper"]}>
-          {pwTraces.map((pw, index) => (
-            <TrAttachment stepIndex={index + 1} item={pw} key={pw.link.id} />
-          ))}
+          {pwTraces?.map((pw, index) => <TrAttachment stepIndex={index + 1} item={pw} key={pw.link.id} />)}
         </div>
       )}
     </div>

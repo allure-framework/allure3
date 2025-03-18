@@ -1,8 +1,8 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { Attachments } from "@allurereport/web-commons";
 import { fetchReportAttachment } from "@allurereport/web-commons";
-import { Button } from "@allurereport/web-components";
-import { PwTrace } from "@/components/TestResult/TrQuickActions/PwTrace";
+import { IconButton, allureIcons } from "@allurereport/web-components";
+import { PwTrace } from "@/components/TestResult/TrPwTraces/PwTrace";
 import { openModal } from "@/stores/modal";
 import * as styles from "./styles.scss";
 
@@ -24,11 +24,11 @@ export const PwTraceButton = ({ link }: Pick<AttachmentTestStepResult, "link">) 
   };
 
   return (
-    <Button
+    <IconButton
+      icon={allureIcons.playwrightLogo}
       size={"s"}
       style={"flat"}
       className={styles["pw-trace-button"]}
-      text={"Playwright Trace Viewer"}
       onClick={openPw}
     />
   );

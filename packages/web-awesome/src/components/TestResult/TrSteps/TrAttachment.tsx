@@ -4,7 +4,7 @@ import { Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
-import { PwTraceButton } from "@/components/TestResult/TrQuickActions/PwTraceButton";
+import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -38,7 +38,7 @@ export const TrAttachment: FunctionComponent<{
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
-  const isPwTrace = link.name === "trace" || link.isPwTrace;
+  const isPwTrace = link.name === "trace" || link.contentType === "application/playwright-trace";
 
   return (
     <div className={styles["test-result-step"]}>

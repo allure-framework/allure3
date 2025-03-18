@@ -99,7 +99,7 @@
     "showMore": "Show more",
     "copy": "Copy",
     "at": "at",
-    "quickActions": "Quick Actions"
+    "pwTrace": "Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",
