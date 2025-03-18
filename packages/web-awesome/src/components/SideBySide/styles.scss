@@ -1,13 +1,14 @@
 .side {
   width: 100%;
-  padding: 0;
   margin: 0;
   overflow: hidden;
   display: flex;
   max-width: 1920px;
   justify-content: space-between;
   height: 100%;
+  padding: 0 8px;
 }
+
 .wrapper {
   width: 100%;
   flex-direction: column;
@@ -15,7 +16,7 @@
 }
 
 .side-left {
-  padding: 8px 0 8px 8px;
+  //padding: 8px 0 8px 8px;
   margin-right: auto;
   transition: width 50ms;
   will-change: width;
@@ -23,7 +24,7 @@
 
 .side-right {
   flex: 1 1 auto;
-  padding: 8px 8px 8px 0;
+  //padding: 8px 8px 8px 0;
   margin-left: auto;
   transition: width 200ms;
   will-change: width, height;

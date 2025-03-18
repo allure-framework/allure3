@@ -12,6 +12,7 @@
   flex-direction: column;
   margin: auto;
   position: relative;
+  height: 100%;
 }
 
 .content {
@@ -80,6 +81,6 @@
 }
 
 .header {
-  padding: 8px 8px 0;
+  padding: 8px;
   margin-bottom: 0;
 }
