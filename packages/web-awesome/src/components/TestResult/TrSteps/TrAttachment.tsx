@@ -38,7 +38,7 @@ export const TrAttachment: FunctionComponent<{
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
-  const isPwTrace = link.name === "trace" || link.contentType === "application/playwright-trace";
+  const isPwTrace = link.name === "trace" || link.contentType === "application/vnd.allure.playwright-trace";
 
   return (
     <div className={styles["test-result-step"]}>
