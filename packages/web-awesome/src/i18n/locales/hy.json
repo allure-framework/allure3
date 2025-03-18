@@ -83,6 +83,11 @@
     "setup": "Պատրաստում",
     "teardown": "Ավարտում"
   },
+  "environments": {
+    "environment_one": "Համակարգչային միջավայր",
+    "environment_other": "Համակարգչային միջավայրներ",
+    "all": "Բոլոր համակարգչային միջավայրները"
+  },
   "ui": {
     "labels": "Պիտակներ",
     "metadata": "Մետատվյալներ",
@@ -100,6 +105,7 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "at": "է",
+    "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace"
   },
   "controls": {

@@ -83,6 +83,11 @@
     "setup": "Configuración",
     "teardown": "Desmontaje"
   },
+  "environments": {
+    "environment_one": "Entorno",
+    "environment_other": "Entornos",
+    "all": "Todo"
+  },
   "ui": {
     "labels": "Etiquetas",
     "metadata": "Metadatos",
@@ -100,6 +105,7 @@
     "showMore": "Mostrar más",
     "copy": "Copiar",
     "at": "a las",
+    "variables": "Variables",
     "openPwTrace": "Abrir Playwright Trace"
   },
   "controls": {

@@ -20,6 +20,7 @@ import * as styles from "./styles.scss";
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
+  const { t: tEnvironments } = useI18n("environments");
   const { currentTab } = useTabsContext();
 
   return (
@@ -117,7 +118,7 @@ export const TreeList = () => {
                   <MetadataButton
                     isOpened={isOpened}
                     setIsOpen={toggleEnv}
-                    title={`Environment: "${key}"`}
+                    title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
                     counter={total}
                   />
                   {isOpened && (

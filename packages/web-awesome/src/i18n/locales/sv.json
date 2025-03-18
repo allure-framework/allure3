@@ -83,6 +83,11 @@
     "setup": "Förberedelse",
     "teardown": "Avslutning"
   },
+  "environments": {
+    "environment_one": "Miljö",
+    "environment_other": "Miljöer",
+    "all": "Alla"
+  },
   "ui": {
     "labels": "Etiketter",
     "metadata": "Metadata",
@@ -100,6 +105,7 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "at": "vid",
+    "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace"
   },
   "controls": {

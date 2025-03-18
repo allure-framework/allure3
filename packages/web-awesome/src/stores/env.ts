@@ -1,4 +1,4 @@
-import type { TestEnvGroup } from "@allurereport/core-api";
+import { type TestEnvGroup } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
@@ -18,7 +18,7 @@ export const testEnvGroupsStore = signal<StoreSignalState<Record<string, TestEnv
 
 export const collapsedEnvironments = signal<string[]>(loadFromLocalStorage<string[]>("collapsedEnvironments", []));
 
-export const currentEnvironment = signal<string>(loadFromLocalStorage<string>("currentEnvironment", "default"));
+export const currentEnvironment = signal<string>(loadFromLocalStorage<string>("currentEnvironment", ""));
 
 export const setCurrentEnvironment = (env: string) => {
   currentEnvironment.value = env;

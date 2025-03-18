@@ -83,6 +83,11 @@
     "setup": "მომზადება",
     "teardown": "დასრულება"
   },
+  "environments": {
+    "environment_one": "გარემობა",
+    "environment_other": "გარემობები",
+    "all": "ყველა"
+  },
   "ui": {
     "labels": "ლეიბლები",
     "metadata": "მეტამონაცემები",
@@ -93,13 +98,14 @@
     "history": "ისტორია",
     "attachments": "დანართები",
     "retries": "ხელახალი ცდები",
-    "environments": "გარემობის მიმართულებები",
+    "environments": "გარემობები",
     "error": "შეცდომა",
     "goToStep": "გადადით საფეხურზე",
     "showLess": "ნაკლების ჩვენება",
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "at": "ზე",
+    "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace"
   },
   "controls": {

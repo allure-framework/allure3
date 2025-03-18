@@ -5,6 +5,7 @@ import { useEffect, useState } from "preact/hooks";
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
+import { useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { fetchVariables, variables } from "@/stores/variables";
@@ -42,6 +43,7 @@ const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
 };
 
 const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) => {
+  const { t } = useI18n("ui");
   const [isOpened, setIsOpen] = useState(true);
   const convertedEnvInfo = Object.entries(props.variables).map(([key, value]) => {
     // return { ...env, value: env.values.join(", ") };
@@ -56,7 +58,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
       <MetadataButton
         isOpened={isOpened}
         setIsOpen={setIsOpen}
-        title={"Variables"}
+        title={t("variables")}
         counter={Object.keys(props.variables).length}
       />
       {isOpened && <MetadataList envInfo={convertedEnvInfo} />}

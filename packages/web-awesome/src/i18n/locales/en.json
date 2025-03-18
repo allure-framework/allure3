@@ -84,6 +84,11 @@
     "setup": "Set up",
     "teardown": "Tear down"
   },
+  "environments": {
+    "environment_one": "Environment",
+    "environment_other": "Environments",
+    "all": "All"
+  },
   "ui": {
     "labels": "Labels",
     "metadata": "Metadata",
@@ -101,6 +106,7 @@
     "showMore": "Show more",
     "copy": "Copy",
     "at": "at",
+    "variables": "Variables",
     "openPwTrace": "Open Playwright Trace"
   },
   "controls": {
