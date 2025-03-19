@@ -4,7 +4,7 @@ import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { TestResultEnvironmentItem } from "@/components/TestResult/TestResultEnvironmentItem";
 import { useI18n } from "@/stores";
-import { currentEnvironment, testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupsStore } from "@/stores/env";
 import { testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 
@@ -31,7 +31,7 @@ export const TestResultEnvironmentsView: FunctionalComponent<{
 
                 return (
                   <li key={`${env}-${trId}`}>
-                    <TestResultEnvironmentItem env={env} testResult={tr} current={currentEnvironment.value === env} />
+                    <TestResultEnvironmentItem env={env} testResult={tr} current={env === tr.environment} />
                   </li>
                 );
               })}
