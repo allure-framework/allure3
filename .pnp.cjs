@@ -55,6 +55,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/plugin-csv"\
     },\
     {\
+      "name": "@allurereport/plugin-dashboards",\
+      "reference": "workspace:packages/plugin-dashboards"\
+    },\
+    {\
       "name": "@allurereport/plugin-log",\
       "reference": "workspace:packages/plugin-log"\
     },\
@@ -132,6 +136,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-awesome", ["workspace:packages/plugin-awesome"]],\
     ["@allurereport/plugin-classic", ["workspace:packages/plugin-classic"]],\
     ["@allurereport/plugin-csv", ["workspace:packages/plugin-csv"]],\
+    ["@allurereport/plugin-dashboards", ["workspace:packages/plugin-dashboards"]],\
     ["@allurereport/plugin-log", ["workspace:packages/plugin-log"]],\
     ["@allurereport/plugin-progress", ["workspace:packages/plugin-progress"]],\
     ["@allurereport/plugin-server-reload", ["workspace:packages/plugin-server-reload"]],\
@@ -484,6 +489,34 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-csv/",\
         "packageDependencies": [\
           ["@allurereport/plugin-csv", "workspace:packages/plugin-csv"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
+          ["@types/eslint", "npm:8.56.12"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@vitest/runner", "npm:2.1.8"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.0.9"],\
+          ["eslint", "npm:8.57.1"],\
+          ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
+          ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
+          ["eslint-plugin-jsdoc", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:50.6.0"],\
+          ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
+          ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
+          ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["rimraf", "npm:6.0.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.8"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/plugin-dashboards", [\
+      ["workspace:packages/plugin-dashboards", {\
+        "packageLocation": "./packages/plugin-dashboards/",\
+        "packageDependencies": [\
+          ["@allurereport/plugin-dashboards", "workspace:packages/plugin-dashboards"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
