@@ -54,12 +54,13 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   });
 
   return (
-    <div class={styles["report-metadata"]}>
+    <div class={styles["report-metadata"]} data-testid={"report-variables"}>
       <MetadataButton
         isOpened={isOpened}
         setIsOpen={setIsOpen}
         title={t("variables")}
         counter={Object.keys(props.variables).length}
+        data-testid={"report-variables-button"}
       />
       {isOpened && <MetadataList envInfo={convertedEnvInfo} />}
     </div>

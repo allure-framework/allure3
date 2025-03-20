@@ -11,9 +11,16 @@ interface MetadataButtonProps {
   title?: string;
 }
 
-export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({ isOpened, setIsOpen, counter, title }) => {
+export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
+  isOpened,
+  setIsOpen,
+  counter,
+  title,
+  ...rest
+}) => {
   return (
     <div
+      {...rest}
       className={clsx(styles["report-metadata-header"], isOpened && styles["report-metadata-header-opened"])}
       role={"button"}
       onClick={() => setIsOpen(!isOpened)}
