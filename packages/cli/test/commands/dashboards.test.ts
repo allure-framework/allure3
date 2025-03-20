@@ -16,7 +16,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("awesome command", () => {
+describe("dashboards command", () => {
   it("should initialize allure report with a correct default plugin options", async () => {
     const resultsDir = "foo/bar/allure-results";
 
