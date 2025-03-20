@@ -25,7 +25,7 @@ export const TestResultEnvironmentItem: FunctionalComponent<{
   const navigateUrl = id;
 
   return (
-    <div>
+    <div data-testid={"test-result-env-item"}>
       <div className={styles["test-result-environment-item-header"]}>
         {!hasEmptyError && (
           <span onClick={() => setIsOpen(!isOpened)}>
@@ -61,6 +61,7 @@ export const TestResultEnvironmentItem: FunctionalComponent<{
                   style={"ghost"}
                   size={"s"}
                   className={styles["test-result-environment-item-link"]}
+                  data-testid={"test-result-env-item-new-tab-button"}
                   onClick={(e) => {
                     e.stopPropagation();
                     openInNewTab(navigateUrl);

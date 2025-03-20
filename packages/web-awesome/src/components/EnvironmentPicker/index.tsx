@@ -17,7 +17,7 @@ export const EnvironmentPicker = () => {
   }
 
   return (
-    <div className={styles["environment-picker"]}>
+    <div className={styles["environment-picker"]} data-testid={"environment-picker"}>
       <SvgIcon id={allureIcons.environment} size={"s"} />
       <Text className={styles["environment-picker-label"]} type={"ui"} size={"s"} bold>
         {t("environment", { count: 1 })}:
@@ -30,6 +30,7 @@ export const EnvironmentPicker = () => {
             size="s"
             text={environment || t("all")}
             isExpanded={isOpened}
+            data-testid={"environment-picker-button"}
             onClick={onClick}
           />
         )}

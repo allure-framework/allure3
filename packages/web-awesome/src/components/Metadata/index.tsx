@@ -17,6 +17,7 @@ export const MetadataList: FunctionalComponent<MetadataProps & { columns?: numbe
     <div
       class={styles["report-metadata-list"]}
       style={{ gridTemplateColumns: `repeat(${columns}, ${100 / columns - 5}%)` }}
+      data-testid={"metadata-list"}
     >
       {envInfo?.map(({ name, values, value }) => (
         <MetadataKeyValue key={name} size={size} title={name} value={value} values={values} />
@@ -97,22 +98,23 @@ const MetadataKeyValue: FunctionalComponent<{
   size?: "s" | "m";
 }> = ({ title, value, values, size = "m" }) => {
   return (
-    <div className={styles["report-metadata-keyvalue"]}>
+    <div className={styles["report-metadata-keyvalue"]} data-testid={"metadata-item"}>
       <Text
         type={"ui"}
         size={size}
         className={clsx(styles["report-metadata-keyvalue-title"], styles[`report-metadata-${size}`])}
+        data-testid={"metadata-item-key"}
       >
         {title}
       </Text>
       {values?.length ? (
-        <div className={styles["report-metadata-values"]}>
+        <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
           {values.map((item) => (
             <MetaDataKeyLabel key={item} value={item} />
           ))}
         </div>
       ) : (
-        <div className={styles["report-metadata-values"]}>
+        <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
           <MetaDataKeyLabel value={value} />
         </div>
       )}
