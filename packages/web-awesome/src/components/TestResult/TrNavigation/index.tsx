@@ -39,6 +39,7 @@ export const TrNavigation: FunctionalComponent<TrNavigationProps> = ({ testResul
       source={testResultNavStore}
       renderData={(data) => {
         const currentIndex = data.indexOf(id) + 1;
+
         return (
           <div className={styles["test-result-nav"]}>
             {fullName && <FullName />}

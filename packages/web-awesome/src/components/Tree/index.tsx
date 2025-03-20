@@ -114,15 +114,16 @@ export const TreeList = () => {
               };
 
               return (
-                <div key={key} className={styles["tree-section"]}>
+                <div key={key} className={styles["tree-section"]} data-testid={"tree-section"}>
                   <MetadataButton
                     isOpened={isOpened}
                     setIsOpen={toggleEnv}
                     title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
                     counter={total}
+                    data-testid={"tree-section-env-button"}
                   />
                   {isOpened && (
-                    <div className={styles["tree-list"]}>
+                    <div className={styles["tree-list"]} data-testid={"tree-section-env-content"}>
                       <Tree
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}

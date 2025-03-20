@@ -53,7 +53,7 @@ export class AwesomePlugin implements Plugin {
       const envTrsIds = envTrs.map(({ id }) => id);
       const envConvertedTrs = convertedTrs.filter(({ id }) => envTrsIds.includes(id));
 
-      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs);
+      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, true);
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
 
