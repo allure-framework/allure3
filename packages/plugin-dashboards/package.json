@@ -1,12 +1,13 @@
 {
   "name": "@allurereport/plugin-dashboards",
   "version": "3.0.0-beta.1",
-  "description": "Allure Charts Plugin – plugin for generating trend charts",
+  "description": "Allure Dashboards Plugin – plugin for generating dashboards with trend charts",
   "keywords": [
     "allure",
     "testing",
     "report",
     "plugin",
+    "dashboards",
     "charts",
     "trends"
   ],

@@ -8,24 +8,24 @@ export type ReportFile = {
   value: string;
 };
 
-export interface ChartsDataWriter {
+export interface DashboardsDataWriter {
   writeWidget<T>(fileName: string, data: T): Promise<void>;
 }
 
-export class FileSystemReportDataWriter implements ChartsDataWriter {
+export class FileSystemReportDataWriter implements DashboardsDataWriter {
   constructor(private readonly output: string) {}
 
-  async writeWidget(fileName: string, data: any): Promise<void> {
+  async writeWidget<T>(fileName: string, data: T): Promise<void> {
     const distFolder = resolve(this.output, "widgets");
     await mkdir(distFolder, { recursive: true });
     await writeFile(resolve(distFolder, fileName), JSON.stringify(data), { encoding: "utf-8" });
   }
 }
 
-export class InMemoryChartsDataWriter implements ChartsDataWriter {
+export class InMemoryDashboardsDataWriter implements DashboardsDataWriter {
   #data: Record<string, Buffer> = {};
 
-  async writeWidget(fileName: string, data: any): Promise<void> {
+  async writeWidget<T>(fileName: string, data: T): Promise<void> {
     const dist = joinPosix("widgets", fileName);
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
@@ -39,10 +39,10 @@ export class InMemoryChartsDataWriter implements ChartsDataWriter {
   }
 }
 
-export class ReportFileChartsDataWriter implements ChartsDataWriter {
+export class ReportFileDashboardsDataWriter implements DashboardsDataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
-  async writeWidget(fileName: string, data: any): Promise<void> {
+  async writeWidget<T>(fileName: string, data: T): Promise<void> {
     await this.reportFiles.addFile(joinPosix("widgets", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
   }
 }

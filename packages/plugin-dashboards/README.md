@@ -1,6 +1,6 @@
-# Allure Charts Plugin
+# Allure Dashboards Plugin
 
-Плагин для генерации графиков трендов для отчетов Allure.
+Плагин для генерации дашбордов с графиками трендов для отчетов Allure.
 
 ## Установка
 
@@ -11,10 +11,10 @@ npm install @allurereport/plugin-dashboards
 ## Использование
 
 ```typescript
-import { ChartsPlugin } from "@allurereport/plugin-dashboards";
+import { DashboardsPlugin } from "@allurereport/plugin-dashboards";
 
 // Создание экземпляра плагина
-const chartsPlugin = new ChartsPlugin({
+const dashboardsPlugin = new DashboardsPlugin({
   // Опции плагина
   singleFile: false
 });
@@ -24,7 +24,7 @@ const allure = new AllureReport({
   // ...
   plugins: [
     // ...
-    chartsPlugin
+    dashboardsPlugin
   ]
 });
 ```
@@ -41,13 +41,13 @@ const allure = new AllureReport({
 
 ## API
 
-### ChartsPlugin
+### DashboardsPlugin
 
 Основной класс плагина.
 
 #### Опции
 
-- `singleFile` - если `true`, то данные графиков будут сохранены в памяти, а не в файлах.
+- `singleFile` - если `true`, то данные дашборда будут сохранены в памяти, а не в файлах.
 
 ## Лицензия
 

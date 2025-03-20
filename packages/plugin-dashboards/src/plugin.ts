@@ -1,13 +1,13 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { getSeverityTrendData } from "./charts/severity-trend.js";
 import { getStatusTrendData } from "./charts/status-trend.js";
-import type { ChartsPluginOptions } from "./model.js";
-import { type ChartsDataWriter, InMemoryChartsDataWriter, ReportFileChartsDataWriter } from "./writer.js";
+import type { DashboardsPluginOptions } from "./model.js";
+import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
 
-export class ChartsPlugin implements Plugin {
-  #writer: ChartsDataWriter | undefined;
+export class DashboardsPlugin implements Plugin {
+  #writer: DashboardsDataWriter | undefined;
 
-  constructor(readonly options: ChartsPluginOptions = {}) {}
+  constructor(readonly options: DashboardsPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const statistic = await store.testsStatistic();
@@ -26,17 +26,12 @@ export class ChartsPlugin implements Plugin {
     });
   };
 
-  start = async (context: PluginContext) => {
-    const { singleFile } = this.options;
-
-    if (singleFile) {
-      this.#writer = new InMemoryChartsDataWriter();
-      return;
+  start = async (context: PluginContext): Promise<void> => {
+    if (this.options.singleFile) {
+      this.#writer = new InMemoryDashboardsDataWriter();
+    } else {
+      this.#writer = new ReportFileDashboardsDataWriter(context.reportFiles);
     }
-
-    this.#writer = new ReportFileChartsDataWriter(context.reportFiles);
-
-    await Promise.resolve();
   };
 
   update = async (context: PluginContext, store: AllureStore) => {
