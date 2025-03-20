@@ -51,9 +51,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
-
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestTestResultByHistoryId: Map<string, TestResult> = new Map<string, TestResult>();
+  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -90,6 +89,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
     this.#reportVariables = reportVariables;
+    this.indexLatestEnvTestResultByHistoryId = new Map();
+
+    // initialize test result maps for every environment
+    Object.keys(this.#environmentsConfig)
+      .concat("default")
+      .forEach((key) => {
+        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      });
   }
 
   // test methods
@@ -126,28 +133,27 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    const env = matchEnvironment(this.#environmentsConfig, testResult);
-
-    if (env) {
-      testResult.environment = env;
-    }
+    testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
     this.#testResults.set(testResult.id, testResult);
 
     // retries
     if (testResult.historyId) {
-      const maybeOther = this.indexLatestTestResultByHistoryId.get(testResult.historyId);
+      const maybeOther = this.indexLatestEnvTestResultByHistoryId
+        .get(testResult.environment)!
+        .get(testResult.historyId);
+
       if (maybeOther) {
         // if no start, means only duration is provided from result. In that case always use the latest (current).
         // Otherwise, compare by start timestamp, the latest wins.
         if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestTestResultByHistoryId.set(testResult.historyId, testResult);
+          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
           maybeOther.hidden = true;
         } else {
           testResult.hidden = true;
         }
       } else {
-        this.indexLatestTestResultByHistoryId.set(testResult.historyId, testResult);
+        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
       }
     }
 

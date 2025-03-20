@@ -173,10 +173,8 @@ export const generateTree = async (
   treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
-  includeHidden?: boolean,
 ) => {
-  // FIXME: change logic for environments – they also can have retries
-  const visibleTests = includeHidden ? tests : tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.hidden);
   const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,

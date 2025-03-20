@@ -95,6 +95,133 @@ describe("test results", () => {
       historyId: `${md5("some")}.${md5("")}`,
     });
   });
+
+  it("should mark retries as hidden", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "sample test",
+      start: 1000,
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      fullName: "sample test",
+      start: 0,
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(1);
+    expect(testResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "test result 1",
+          hidden: false,
+        }),
+      ]),
+    );
+  });
+
+  it("should not mark latest environment test result as retry", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "sample test",
+      labels: [],
+    };
+    const tr2: RawTestResult = {
+      name: "test result 1",
+      fullName: "sample test",
+      labels: [{ name: "env", value: "foo" }],
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(2);
+    expect(testResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "test result 1",
+          hidden: false,
+          environment: "default",
+        }),
+        expect.objectContaining({
+          name: "test result 1",
+          hidden: false,
+          environment: "foo",
+        }),
+      ]),
+    );
+  });
+
+  it("should mark retries as hidden for test result with different environments", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "sample test",
+      labels: [],
+      start: 1000,
+    };
+    const tr2: RawTestResult = {
+      name: "test result 1 retry",
+      fullName: "sample test",
+      labels: [],
+      start: 0,
+    };
+    const tr3: RawTestResult = {
+      name: "test result 2",
+      fullName: "sample test",
+      labels: [{ name: "env", value: "foo" }],
+      start: 1000,
+    };
+    const tr4: RawTestResult = {
+      name: "test result 2 retry",
+      fullName: "sample test",
+      labels: [{ name: "env", value: "foo" }],
+      start: 0,
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+    await store.visitTestResult(tr3, { readerId });
+    await store.visitTestResult(tr4, { readerId });
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(2);
+    expect(testResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "test result 1",
+          hidden: false,
+          environment: "default",
+        }),
+        expect.objectContaining({
+          name: "test result 2",
+          hidden: false,
+          environment: "foo",
+        }),
+      ]),
+    );
+  });
 });
 
 describe("attachments", () => {
