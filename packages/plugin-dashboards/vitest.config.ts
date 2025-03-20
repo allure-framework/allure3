@@ -1,21 +1,18 @@
+import { createRequire } from "node:module";
 import { defineConfig } from "vitest/config";
-import { resolve } from "node:path";
+
+const require = createRequire(import.meta.url);
 
 export default defineConfig({
   test: {
-    reporters: ["default", "allure-vitest"],
-    outputFile: {
-      allure: "./out/allure-results/allure-results.json",
-    },
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      reportsDirectory: "./out/coverage",
-    },
+    include: ["./test/**/*.test.ts"],
+    setupFiles: [require.resolve("allure-vitest/setup")],
+    reporters: [
+      "default",
+      [
+        "allure-vitest/reporter",
+        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "plugin-dashboards" }] },
+      ],
+    ],
   },
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "./src"),
-    },
-  },
-}); 
+});
