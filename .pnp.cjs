@@ -208,6 +208,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/plugin-classic", "workspace:packages/plugin-classic"],\
           ["@allurereport/plugin-csv", "workspace:packages/plugin-csv"],\
+          ["@allurereport/plugin-dashboards", "workspace:packages/plugin-dashboards"],\
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
@@ -14510,6 +14511,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/plugin-classic", "workspace:packages/plugin-classic"],\
+          ["@allurereport/plugin-dashboards", "workspace:packages/plugin-dashboards"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-server-reload", "workspace:packages/plugin-server-reload"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\

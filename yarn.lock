@@ -47,6 +47,7 @@ __metadata:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
+    "@allurereport/plugin-dashboards": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
@@ -312,7 +313,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-dashboards@workspace:packages/plugin-dashboards":
+"@allurereport/plugin-dashboards@workspace:*, @allurereport/plugin-dashboards@workspace:packages/plugin-dashboards":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-dashboards@workspace:packages/plugin-dashboards"
   dependencies:
@@ -8641,6 +8642,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
+    "@allurereport/plugin-dashboards": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
