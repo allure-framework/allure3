@@ -1,6 +1,6 @@
-export type ChartsOptions = {
+export type DashboardsOptions = {
   // Опции для настройки графиков
   singleFile?: boolean;
 };
 
-export type ChartsPluginOptions = ChartsOptions;
+export type DashboardsPluginOptions = DashboardsOptions;
