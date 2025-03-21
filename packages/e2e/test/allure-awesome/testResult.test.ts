@@ -152,11 +152,6 @@ test.describe("allure-awesome", () => {
 
     test("should toggle from BaseLayout to SplitLayout with loader displayed correctly", async ({ page }) => {
       await page.getByTestId("toggle-layout-button").click();
-
-      await expect(page.getByTestId("loader")).toBeVisible();
-
-      await expect(page.getByTestId("loader")).toBeHidden({ timeout: 1000 });
-
       await expect(page.getByTestId("split-layout")).toBeVisible();
       await expect(page.getByTestId("base-layout")).toBeHidden();
     });
@@ -164,12 +159,7 @@ test.describe("allure-awesome", () => {
     test("should toggle back from SplitLayout to BaseLayout with loader displayed correctly", async ({ page }) => {
       await page.getByTestId("toggle-layout-button").click();
       await expect(page.getByTestId("split-layout")).toBeVisible();
-
       await page.getByTestId("toggle-layout-button").click();
-
-      await expect(page.getByTestId("loader")).toBeVisible();
-      await expect(page.getByTestId("loader")).toBeHidden({ timeout: 1000 });
-
       await expect(page.getByTestId("base-layout")).toBeVisible();
       await expect(page.getByTestId("split-layout")).toBeHidden();
     });

@@ -146,7 +146,7 @@ test.describe("environments", () => {
       await expect(envSectionLocator).toBeVisible();
     }
 
-    await expect(treeLeaves).toHaveCount(3);
+    await expect(treeLeaves).toHaveCount(4);
   });
 
   test("should allow to switch environments using the picker in the header", async ({ page }) => {
@@ -159,15 +159,15 @@ test.describe("environments", () => {
     await selectEnvironment(page, "foo");
     await expect(envSections).toHaveCount(0);
     await expect(envButtons).toHaveCount(0);
-    await expect(treeLeaves).toHaveCount(1);
+    await expect(treeLeaves).toHaveCount(2);
   });
 
   test("should render statistics for all environments by default", async ({ page }) => {
     const passedCounter = page.getByTestId("metadata-item-passed").getByTestId("metadata-value");
     const totalCounter = page.getByTestId("metadata-item-total").getByTestId("metadata-value");
 
-    await expect(passedCounter).toHaveText("3");
-    await expect(totalCounter).toHaveText("3");
+    await expect(passedCounter).toHaveText("4");
+    await expect(totalCounter).toHaveText("4");
   });
 
   test("should render statistics for selected environment", async ({ page }) => {
@@ -251,7 +251,7 @@ test.describe("environments", () => {
     const navCounter = page.getByTestId("test-result-nav-current");
 
     await treeLeaves.nth(0).click();
-    await expect(navCounter).toHaveText("1/3");
+    await expect(navCounter).toHaveText("1/4");
     await page.goto(bootstrap.url);
     await selectEnvironment(page, "bar");
     await expect(treeLeaves).toHaveCount(1);
