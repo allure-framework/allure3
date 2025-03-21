@@ -1,0 +1,11 @@
+.grid {
+  width: 100%;
+}
+
+:global(.dnd-drag-swap-highlight) {
+  opacity: 0.8;
+  transition: all 150ms ease;
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+  z-index: 1;
+}
