@@ -1,0 +1,60 @@
+.test-result-environment-item {
+  &:not(.current) {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--bg-control-flat-medium);
+    }
+  }
+}
+
+.test-result-environment-item-header {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+  align-items: center;
+}
+
+.test-result-environment-item-wrap {
+  transition: background-color 300ms;
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  border-radius: 6px;
+  padding: 4px 4px 4px 4px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.test-result-environment-item-text {
+  padding-top: 2px;
+}
+
+.test-result-environment-item-env {
+  margin-top: 1px;
+}
+
+.test-result-environment-item-info {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.test-result-environment-item-time {
+  margin-left: auto;
+  line-height: 20px;
+  color: var(--on-text-secondary);
+}
+
+.test-result-environment-item-link {
+  :root {
+    --allure-btn-icon-color: var(--bg-control-flat);
+  }
+
+  color: var(--on-icon-secondary);
+}
+
+.test-result-environment-item-status {
+  padding-top: 4px;
+}

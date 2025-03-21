@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status } from "allure-js-commons";
-import { layer } from "allure-js-commons";
+import { Stage, Status, layer } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -56,21 +55,21 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
+    const parentGroupHeader = page.getByTestId("tree-section");
 
     await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
+    await expect(parentGroupHeader.getByTestId("tree-section-title")).toHaveText("foo");
     await parentGroupHeader.getByTestId("tree-arrow").click();
 
     await expect(parentGroupHeader).toHaveCount(2);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("bar");
+    await expect(parentGroupHeader.nth(0).getByTestId("tree-section-title")).toHaveText("foo");
+    await expect(parentGroupHeader.nth(1).getByTestId("tree-section-title")).toHaveText("bar");
     await parentGroupHeader.nth(1).getByTestId("tree-arrow").click();
 
     await expect(parentGroupHeader).toHaveCount(3);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("bar");
-    await expect(parentGroupHeader.nth(2).getByTestId("tree-header-title")).toHaveText("baz");
+    await expect(parentGroupHeader.nth(0).getByTestId("tree-section-title")).toHaveText("foo");
+    await expect(parentGroupHeader.nth(1).getByTestId("tree-section-title")).toHaveText("bar");
+    await expect(parentGroupHeader.nth(2).getByTestId("tree-section-title")).toHaveText("baz");
     await parentGroupHeader.nth(2).getByTestId("tree-arrow").click();
 
     await expect(treeLeaves).toHaveCount(2);
@@ -122,15 +121,15 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
+    const parentGroupHeader = page.getByTestId("tree-section");
 
     await expect(treeLeaves).toHaveCount(1);
-    await expect(parentGroupHeader.getByTestId("tree-header-title")).toHaveText("foo");
+    await expect(parentGroupHeader.getByTestId("tree-section-title")).toHaveText("foo");
     await parentGroupHeader.getByTestId("tree-arrow").click();
 
     await expect(parentGroupHeader).toHaveCount(2);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("bar");
+    await expect(parentGroupHeader.nth(0).getByTestId("tree-section-title")).toHaveText("foo");
+    await expect(parentGroupHeader.nth(1).getByTestId("tree-section-title")).toHaveText("bar");
     await parentGroupHeader.nth(1).getByTestId("tree-arrow").click();
 
     await expect(treeLeaves).toHaveCount(2);
@@ -186,19 +185,19 @@ test.describe("suites", () => {
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
-    const parentGroupHeader = page.getByTestId("tree-header");
+    const parentGroupHeader = page.getByTestId("tree-section");
 
     await expect(treeLeaves).toHaveCount(1);
     // all nodes locates in the group, so tree can't be collapsed and we see two groups intially
     await expect(parentGroupHeader).toHaveCount(2);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("Assign me please!");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("foo");
+    await expect(parentGroupHeader.nth(0).getByTestId("tree-section-title")).toHaveText("Assign me please!");
+    await expect(parentGroupHeader.nth(1).getByTestId("tree-section-title")).toHaveText("foo");
     await parentGroupHeader.nth(1).getByTestId("tree-arrow").click();
 
     await expect(parentGroupHeader).toHaveCount(3);
-    await expect(parentGroupHeader.nth(0).getByTestId("tree-header-title")).toHaveText("Assign me please!");
-    await expect(parentGroupHeader.nth(1).getByTestId("tree-header-title")).toHaveText("foo");
-    await expect(parentGroupHeader.nth(2).getByTestId("tree-header-title")).toHaveText("bar");
+    await expect(parentGroupHeader.nth(0).getByTestId("tree-section-title")).toHaveText("Assign me please!");
+    await expect(parentGroupHeader.nth(1).getByTestId("tree-section-title")).toHaveText("foo");
+    await expect(parentGroupHeader.nth(2).getByTestId("tree-section-title")).toHaveText("bar");
     await parentGroupHeader.nth(2).getByTestId("tree-arrow").click();
 
     await expect(treeLeaves).toHaveCount(2);

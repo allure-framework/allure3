@@ -11,6 +11,7 @@ export { Loadable } from "./components/Loadable";
 export { PageLoader } from "./components/PageLoader";
 export { SearchBox } from "./components/SearchBox";
 export { Menu } from "./components/Menu";
+export { ArrowButton } from "./components/ArrowButton";
 export * from "./components/Modal";
 export * from "./components/Tree";
 export * from "./components/Attachment";

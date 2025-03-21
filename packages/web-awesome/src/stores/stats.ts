@@ -11,7 +11,7 @@ export const statsStore = signal<StoreSignalState<Statistic>>({
   },
 });
 
-export const fetchStats = async () => {
+export const fetchStats = async (env: string) => {
   statsStore.value = {
     ...statsStore.value,
     loading: true,
@@ -19,7 +19,7 @@ export const fetchStats = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<Statistic>("widgets/allure_statistic.json");
+    const res = await fetchReportJsonData<Statistic>(env ? `widgets/${env}/statistic.json` : "widgets/statistic.json");
 
     statsStore.value = {
       data: res,

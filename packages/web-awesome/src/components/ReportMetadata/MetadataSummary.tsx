@@ -29,6 +29,7 @@ export const MetadataSummary: FunctionComponent = () => {
             if (!stats[key as keyof Statistic]) {
               return;
             }
+
             const title = testSummary(key);
             const props = { title, count: stats[key as keyof Statistic] || 0, type: key };
 

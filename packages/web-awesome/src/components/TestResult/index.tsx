@@ -1,14 +1,17 @@
 import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
+import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
+import { TestResultEnvironmentsView } from "@/components/TestResult/TestResultEnvironmentsView";
 import { TestResultHeader } from "@/components/TestResult/TestResultHeader";
 import TestResultHistoryView from "@/components/TestResult/TestResultHistory";
 import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
+import { fetchTestEnvGroup } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
 import * as styles from "./styles.scss";
 
@@ -23,6 +26,7 @@ const TestResultView: FunctionalComponent<TestResultViewProps> = ({ testResult }
     history: TestResultHistoryView,
     attachments: TestResultAttachmentView,
     retries: TestResultRetriesView,
+    environments: TestResultEnvironmentsView,
   };
   const ViewComponent = viewMap[currentTab];
 
@@ -48,6 +52,14 @@ export type TestResultProps = {
 
 const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {
   const splitModeClass = isSplitMode.value ? styles["scroll-inside"] : "";
+
+  useEffect(() => {
+    const testCaseId = testResult?.testCase?.id;
+
+    if (testCaseId) {
+      fetchTestEnvGroup(testCaseId);
+    }
+  }, [testResult]);
 
   return (
     <>

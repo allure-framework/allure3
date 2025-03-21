@@ -1,7 +1,6 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
-  type Statistic,
   compareBy,
   incrementStatistic,
   nullsLast,
@@ -27,7 +26,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getChartData } from "./charts.js";
+import { getPieChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -143,17 +142,35 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     await writer.writeTestCase(convertedTr);
   }
 
-  await writer.writeWidget(
-    "nav.json",
-    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
-  );
-
   return convertedTrs;
+};
+
+export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[]) => {
+  for (const tr of trs) {
+    await writer.writeTestCase(tr);
+  }
+};
+
+export const generateTestEnvGroups = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const groups = await store.allTestEnvGroups();
+
+  for (const group of groups) {
+    const src = join("test-env-groups", `${group.id}.json`);
+
+    await writer.writeData(src, group);
+  }
+};
+
+export const generateNav = async (writer: AwesomeDataWriter, trs: AwesomeTestResult[], filename = "nav.json") => {
+  await writer.writeWidget(
+    filename,
+    trs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+  );
 };
 
 export const generateTree = async (
   writer: AwesomeDataWriter,
-  treeName: string,
+  treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
 ) => {
@@ -183,21 +200,56 @@ export const generateTree = async (
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
   transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
-  await writer.writeWidget(`${treeName}.json`, tree);
+  await writer.writeWidget(treeFilename, tree);
 };
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);
 };
 
-export const generateStatistic = async (writer: AwesomeDataWriter, statistic: Statistic) => {
-  await writer.writeWidget("allure_statistic.json", statistic);
+export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("environments.json", environments);
 };
 
-export const generatePieChart = async (writer: AwesomeDataWriter, statistic: Statistic) => {
-  const chartData = getChartData(statistic);
+export const generateVariables = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const reportVariables = await store.allVariables();
+  const environments = await store.allEnvironments();
 
-  await writer.writeWidget("allure_pie_chart.json", chartData);
+  await writer.writeWidget("variables.json", reportVariables);
+
+  for (const env of environments) {
+    const envVariables = await store.envVariables(env);
+
+    await writer.writeWidget(join(env, "variables.json"), envVariables);
+  }
+};
+
+export const generateStatistic = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const reportStatistic = await store.testsStatistic();
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("statistic.json", reportStatistic);
+
+  for (const env of environments) {
+    const envStatistic = await store.testsStatistic((testResult) => testResult.environment === env);
+
+    await writer.writeWidget(join(env, "statistic.json"), envStatistic);
+  }
+};
+
+export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const reportStatistic = await store.testsStatistic();
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("pie_chart.json", getPieChartData(reportStatistic));
+
+  for (const env of environments) {
+    const envStatistic = await store.testsStatistic((testResult) => testResult.environment === env);
+
+    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartData(envStatistic));
+  }
 };
 
 export const generateAttachmentsFiles = async (

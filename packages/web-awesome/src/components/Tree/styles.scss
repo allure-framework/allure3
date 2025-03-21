@@ -187,3 +187,11 @@
 .tree-item-marked {
   background: var(--bg-base-secondary);
 }
+
+.tree-section {
+  &:not(:last-child) {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
+  }
+}
