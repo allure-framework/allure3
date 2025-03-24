@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, layer } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -7,6 +7,10 @@ let bootstrap: ReportBootstrap;
 test.describe("suites", () => {
   test.afterEach(async () => {
     await bootstrap?.shutdown?.();
+  });
+
+  test.beforeEach(async ({ browserName }) => {
+    await label("env", browserName);
   });
 
   test("should display tree groups with a correct suites hierarchy", async ({ page }) => {
@@ -51,7 +55,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
@@ -117,7 +120,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
@@ -181,7 +183,6 @@ test.describe("suites", () => {
       ],
     });
 
-    await layer("e2e");
     await page.goto(bootstrap.url);
 
     const treeLeaves = page.getByTestId("tree-leaf");
