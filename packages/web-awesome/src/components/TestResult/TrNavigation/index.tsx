@@ -7,11 +7,11 @@ import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
-export type TestResultNavigationProps = {
+export type TrNavigationProps = {
   testResult?: AwesomeTestResult;
 };
 
-export const TrNavigation: FunctionalComponent<TestResultNavigationProps> = ({ testResult }) => {
+export const TrNavigation: FunctionalComponent<TrNavigationProps> = ({ testResult }) => {
   const { fullName, id: testResultId } = testResult ?? {};
   const id = testResultId || "";
   const { t: tooltip } = useI18n("controls");

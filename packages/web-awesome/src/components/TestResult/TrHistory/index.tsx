@@ -4,11 +4,11 @@ import { useI18n } from "@/stores";
 import { type AwesomeTestResult } from "../../../../types";
 import * as styles from "./styles.scss";
 
-export type TestResultHistoryViewProps = {
+export type TrHistoryViewProps = {
   testResult?: AwesomeTestResult;
 };
 
-const TrHistoryView: FunctionalComponent<TestResultHistoryViewProps> = ({ testResult }) => {
+const TrHistoryView: FunctionalComponent<TrHistoryViewProps> = ({ testResult }) => {
   const { history } = testResult ?? {};
   const { t } = useI18n("empty");
 

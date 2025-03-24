@@ -9,12 +9,12 @@ import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { isModalOpen, openModal } from "@/stores/modal";
 
-interface TestResultAttachmentInfoProps {
+interface TrAttachmentInfo {
   item?: AttachmentTestStepResult;
   shouldExpand?: boolean;
 }
 
-export const TrAttachmentInfo: FunctionalComponent<TestResultAttachmentInfoProps> = ({ item, shouldExpand }) => {
+export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, shouldExpand }) => {
   const { t: tooltip } = useI18n("controls");
   const { id, ext, contentType } = item.link;
   const isPwTrace = contentType === "application/vnd.allure.playwright-trace";

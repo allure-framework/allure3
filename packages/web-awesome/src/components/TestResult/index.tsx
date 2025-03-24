@@ -12,11 +12,19 @@ import { TrTabs, useTestResultTabsContext } from "@/components/TestResult/TrTabs
 import { isSplitMode } from "@/stores/layout";
 import * as styles from "./styles.scss";
 
-export type TestResultViewProps = {
+export type TrViewProps = {
   testResult?: AwesomeTestResult;
 };
 
-const TrView: FunctionalComponent<TestResultViewProps> = ({ testResult }) => {
+export type TrContentProps = {
+  testResult?: AwesomeTestResult;
+};
+
+export type TrProps = {
+  testResult?: AwesomeTestResult;
+};
+
+const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
   const { currentTab } = useTestResultTabsContext();
   const viewMap: Record<string, any> = {
     overview: TrOverview,
@@ -29,11 +37,7 @@ const TrView: FunctionalComponent<TestResultViewProps> = ({ testResult }) => {
   return <ViewComponent testResult={testResult} />;
 };
 
-export type TestResultContentProps = {
-  testResult?: AwesomeTestResult;
-};
-
-const TrContent: FunctionalComponent<TestResultContentProps> = ({ testResult }) => {
+const TrContent: FunctionalComponent<TrContentProps> = ({ testResult }) => {
   return (
     <TrTabs initialTab="overview">
       <TrInfo testResult={testResult} />
@@ -42,11 +46,7 @@ const TrContent: FunctionalComponent<TestResultContentProps> = ({ testResult }) 
   );
 };
 
-export type TestResultProps = {
-  testResult?: AwesomeTestResult;
-};
-
-const TestResult: FunctionComponent<TestResultProps> = ({ testResult }) => {
+const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
   const splitModeClass = isSplitMode.value ? styles["scroll-inside"] : "";
 
   return (

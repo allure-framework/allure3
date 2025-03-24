@@ -12,11 +12,11 @@ import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
 
-export type TestResultOverviewProps = {
+export type TrOverviewProps = {
   testResult?: AwesomeTestResult;
 };
 
-export const TrOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
+export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
   const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id } = testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(

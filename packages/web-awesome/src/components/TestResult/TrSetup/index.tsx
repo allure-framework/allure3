@@ -16,12 +16,12 @@ const typeMap = {
   attachment: TrAttachment,
 };
 
-export type TestResultSetupProps = {
+export type TrSetupProps = {
   setup: AwesomeTestResult["setup"];
   id?: string;
 };
 
-export const TrSetup: FunctionalComponent<TestResultSetupProps> = ({ setup, id }) => {
+export const TrSetup: FunctionalComponent<TrSetupProps> = ({ setup, id }) => {
   const teardownId = `${id}-setup`;
   const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(teardownId));
   const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);

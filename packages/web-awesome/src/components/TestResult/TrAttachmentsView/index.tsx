@@ -5,11 +5,11 @@ import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
-export type TestResultAttachmentViewProps = {
+export type TrAttachmentViewProps = {
   testResult?: AwesomeTestResult;
 };
 
-export const TrAttachmentView: FunctionalComponent<TestResultAttachmentViewProps> = ({ testResult }) => {
+export const TrAttachmentView: FunctionalComponent<TrAttachmentViewProps> = ({ testResult }) => {
   const { attachments } = testResult ?? {};
   const { t } = useI18n("empty");
 

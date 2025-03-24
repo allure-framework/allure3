@@ -30,11 +30,11 @@ const TrPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({
   );
 };
 
-export type TestResultPrevStatusesProps = {
+export type TrPrevStatusesProps = {
   history: AwesomeTestResult["history"];
 };
 
-export const TrPrevStatuses: FunctionalComponent<TestResultPrevStatusesProps> = ({ history }) => {
+export const TrPrevStatuses: FunctionalComponent<TrPrevStatusesProps> = ({ history }) => {
   return (
     <div className={styles["test-result-prev-statuses"]}>
       {history?.slice(0, 6).map((item, key) => (

@@ -4,11 +4,11 @@ import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/TestResult/TrHeader/styles.scss";
 import { navigateTo } from "@/stores/router";
 
-interface TestResultBreadcrumbsProps {
+interface TrBreadcrumbs {
   testResult?: AwesomeTestResult;
 }
 
-export const TrBreadcrumbs = ({ testResult }: TestResultBreadcrumbsProps) => {
+export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
   const { breadcrumbs, name } = testResult || {};
 
   return (

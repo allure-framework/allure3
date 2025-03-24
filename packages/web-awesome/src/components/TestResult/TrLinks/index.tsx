@@ -6,7 +6,7 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
-interface TestResultLinkProps {
+interface TrLinkProps {
   name: string;
   url: string;
   type: string;
@@ -20,7 +20,7 @@ const linksIconMap: Record<string, string> = {
 };
 
 const TrLink: FunctionalComponent<{
-  link: TestResultLinkProps;
+  link: TrLinkProps;
 }> = ({ link }) => {
   const { url, type } = link;
 
@@ -34,15 +34,15 @@ const TrLink: FunctionalComponent<{
   );
 };
 
-export type TestResultLinksProps = {
+export type TrLinksProps = {
   links: AwesomeTestResult["links"];
 };
 
-export const TrLinks: FunctionalComponent<TestResultLinksProps> = ({ links }) => {
+export const TrLinks: FunctionalComponent<TrLinksProps> = ({ links }) => {
   const [isOpened, setIsOpen] = useState(true);
   const { t } = useI18n("ui");
   const linkMap = links.map((link, index) => {
-    return <TrLink link={link as TestResultLinkProps} key={index} />;
+    return <TrLink link={link as TrLinkProps} key={index} />;
   });
 
   return (

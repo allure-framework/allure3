@@ -6,11 +6,11 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
-export type TestResultParametersProps = {
+export type TrParametersProps = {
   parameters: AwesomeTestResult["parameters"];
 };
 
-export const TrParameters: FunctionalComponent<TestResultParametersProps> = ({ parameters }) => {
+export const TrParameters: FunctionalComponent<TrParametersProps> = ({ parameters }) => {
   const [isOpened, setIsOpened] = useState(true);
   const { t } = useI18n("ui");
 

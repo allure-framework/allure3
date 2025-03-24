@@ -14,7 +14,7 @@ const typeMap = {
   attachment: TrAttachment,
 } as const;
 
-export type TestResultStepsProps = {
+export type TrStepsProps = {
   steps: AwesomeTestResult["steps"];
   id?: string;
 };
@@ -24,7 +24,7 @@ type StepComponentProps = FunctionalComponent<{
   stepIndex?: number;
 }>;
 
-export const TrSteps: FunctionalComponent<TestResultStepsProps> = ({ steps, id }) => {
+export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
   const stepsId = `${id}-steps`;
   const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(stepsId));
   const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);

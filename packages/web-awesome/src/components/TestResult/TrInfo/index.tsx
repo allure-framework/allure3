@@ -14,11 +14,11 @@ import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
-export type TestResultInfoProps = {
+export type TrInfoProps = {
   testResult?: AwesomeTestResult;
 };
 
-export const TrInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
+export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
   const fullDate = stop && timestampToDate(stop);

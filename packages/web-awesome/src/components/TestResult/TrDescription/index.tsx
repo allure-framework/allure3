@@ -5,11 +5,11 @@ import type { AwesomeTestResult } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import * as styles from "./styles.scss";
 
-export type TestResultDescriptionProps = {
+export type TrDescriptionProps = {
   description: AwesomeTestResult["description"];
 };
 
-export const TrDescription: FunctionalComponent<TestResultDescriptionProps> = ({ description }) => {
+export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ description }) => {
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
   return (

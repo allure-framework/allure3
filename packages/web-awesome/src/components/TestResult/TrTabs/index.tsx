@@ -4,12 +4,12 @@ import { useContext, useEffect, useState } from "preact/hooks";
 import { activeTab, navigateTo, route } from "@/stores/router";
 import * as styles from "./styles.scss";
 
-type TestResultTabsContextT = {
+type TrTabsContextT = {
   currentTab: string | undefined;
   setCurrentTab: (id: string) => void;
 };
 
-const TestResultTabsContext = createContext<TestResultTabsContextT | null>(null);
+const TestResultTabsContext = createContext<TrTabsContextT | null>(null);
 
 export const useTestResultTabsContext = () => {
   const context = useContext(TestResultTabsContext);
