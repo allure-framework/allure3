@@ -11,7 +11,7 @@ import { timestampToDate } from "@/utils/time";
 import type { AwesomeTestResult } from "../../../../types";
 import * as styles from "./styles.scss";
 
-export const TestResultEnvironmentItem: FunctionalComponent<{
+export const TrEnvironmentItem: FunctionalComponent<{
   env: string;
   testResult: AwesomeTestResult;
   current?: boolean;
