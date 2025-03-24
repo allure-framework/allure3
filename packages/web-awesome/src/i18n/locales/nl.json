@@ -98,7 +98,7 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "at": "om",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Playwright Trace openen"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

@@ -98,7 +98,7 @@
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
     "at": "bei",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Playwright Trace öffnen"
   },
   "controls": {
     "newTabAttachment": "Anhang in neuem Tab öffnen",

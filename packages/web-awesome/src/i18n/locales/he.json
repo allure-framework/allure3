@@ -98,7 +98,7 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "at": "ב-",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "פתח Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

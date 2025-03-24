@@ -4,9 +4,10 @@ import { Attachment, IconButton, Text, TooltipWrapper, allureIcons } from "@allu
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
-import { isModalOpen, modalData, openModal } from "@/stores/modal";
+import { isModalOpen, openModal } from "@/stores/modal";
 
 interface TestResultAttachmentInfoProps {
   item?: AttachmentTestStepResult;
@@ -14,8 +15,9 @@ interface TestResultAttachmentInfoProps {
 }
 
 export const TrAttachmentInfo: FunctionalComponent<TestResultAttachmentInfoProps> = ({ item, shouldExpand }) => {
-  const { id, ext, contentType } = item.link;
   const { t: tooltip } = useI18n("controls");
+  const { id, ext, contentType } = item.link;
+  const isPwTrace = contentType === "application/vnd.allure.playwright-trace";
   const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
   const contentSize = contentLength
     ? filesize(contentLength, {
@@ -52,6 +54,7 @@ export const TrAttachmentInfo: FunctionalComponent<TestResultAttachmentInfoProps
       {Boolean(contentType) && <Text size={"s"}>{contentType}</Text>}
       {Boolean(contentSize) && <Text size={"s"}>{contentSize}</Text>}
       <div className={styles["item-buttons"]}>
+        {isPwTrace && <PwTraceButton link={item.link} />}
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>
             <IconButton

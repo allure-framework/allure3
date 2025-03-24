@@ -5,7 +5,7 @@ export const AVAILABLE_LOCALES = [
   "es",
   "pt",
   "de",
-  "am",
+  "hy",
   "az",
   "fr",
   "it",
@@ -61,8 +61,8 @@ export const LANG_LOCALE: Record<
     full: "Deutsch",
     iso: "de-DE",
   },
-  am: {
-    short: "Am",
+  hy: {
+    short: "Hy",
     full: "Հայերեն",
     iso: "hy-AM",
   },

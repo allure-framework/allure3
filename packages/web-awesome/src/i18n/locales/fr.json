@@ -98,7 +98,7 @@
     "showMore": "Montrer plus",
     "copy": "Copier",
     "at": "à",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Ouvrir Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Ouvrir dans un nouvel onglet",

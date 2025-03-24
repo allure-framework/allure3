@@ -20,8 +20,7 @@ export const TrOverview: FunctionalComponent<TestResultOverviewProps> = ({ testR
   const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id } = testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
-    (attachment) =>
-      attachment.link.name === "trace" || attachment.link.contentType === "application/vnd.allure.playwright-trace",
+    (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
   );
 
   return (

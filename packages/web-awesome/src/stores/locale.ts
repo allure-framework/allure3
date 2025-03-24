@@ -25,7 +25,7 @@ const namespaces = [
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
-export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value].iso);
+export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
 export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value));
 
 export const getLocale = async () => {

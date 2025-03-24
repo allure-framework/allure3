@@ -22,7 +22,7 @@ export const LanguagePicker = () => {
         <DropdownButton
           style="ghost"
           size="s"
-          text={LANG_LOCALE[locale || "en"].short}
+          text={(LANG_LOCALE[locale] && LANG_LOCALE[locale].short) || LANG_LOCALE.en.short}
           isExpanded={isOpened}
           onClick={onClick}
         />

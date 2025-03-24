@@ -96,7 +96,7 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "at": "в",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Открыть Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

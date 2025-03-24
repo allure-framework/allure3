@@ -8,7 +8,7 @@ import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton"
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
-const { lineImagesImage, lineFilesFileAttachment2 } = allureIcons;
+const { lineImagesImage, lineFilesFileAttachment2, playwrightLogo } = allureIcons;
 
 const iconMap: Record<string, string> = {
   "text/plain": lineFilesFileAttachment2,
@@ -26,6 +26,7 @@ const iconMap: Record<string, string> = {
   "image/jpeg": lineImagesImage,
   "video/mp4": lineImagesImage,
   "application/vnd.allure.image.diff": lineImagesImage,
+  "application/vnd.allure.playwright-trace": playwrightLogo,
 };
 
 export const TrAttachment: FunctionComponent<{
@@ -38,7 +39,6 @@ export const TrAttachment: FunctionComponent<{
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
-  const isPwTrace = link.name === "trace" || link.contentType === "application/vnd.allure.playwright-trace";
 
   return (
     <div className={styles["test-result-step"]}>
@@ -63,8 +63,9 @@ export const TrAttachment: FunctionComponent<{
             missed
           </Text>
         )}
-        {isPwTrace && <PwTraceButton link={link} />}
-        <TrAttachmentInfo item={item} shouldExpand={isValidComponentType} />
+        <div>
+          <TrAttachmentInfo item={item} shouldExpand={isValidComponentType} />
+        </div>
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>

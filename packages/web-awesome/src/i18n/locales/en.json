@@ -99,7 +99,7 @@
     "showMore": "Show more",
     "copy": "Copy",
     "at": "at",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Open Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",

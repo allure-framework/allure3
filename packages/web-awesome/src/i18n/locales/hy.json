@@ -98,7 +98,7 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "at": "է",
-    "pwTrace": "Playwright Trace"
+    "openPwTrace": "Բացել Playwright Trace"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",
