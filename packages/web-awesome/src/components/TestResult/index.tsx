@@ -2,9 +2,9 @@ import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
-import { TestResultEnvironmentsView } from "@/components/TestResult/TestResultEnvironmentsView";
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import TrEmpty from "@/components/TestResult/TrEmpty";
+import { TrEnvironmentsView } from "@/components/TestResult/TrEnvironmentsView";
 import { TrHeader } from "@/components/TestResult/TrHeader";
 import TrHistoryView from "@/components/TestResult/TrHistory";
 import { TrInfo } from "@/components/TestResult/TrInfo";
@@ -34,7 +34,7 @@ const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
     history: TrHistoryView,
     attachments: TrAttachmentView,
     retries: TrRetriesView,
-    environments: TestResultEnvironmentsView,
+    environments: TrEnvironmentsView,
   };
   const ViewComponent = viewMap[currentTab];
 

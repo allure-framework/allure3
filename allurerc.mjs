@@ -17,9 +17,11 @@ export default defineConfig({
       },
     },
   },
+  variables: {},
   environments: {
     browser: {
       matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "browser"),
+      variables: {}
     },
   },
 });

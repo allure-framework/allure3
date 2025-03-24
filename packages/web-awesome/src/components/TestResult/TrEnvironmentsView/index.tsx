@@ -3,13 +3,13 @@ import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
-import { TestResultEnvironmentItem } from "@/components/TestResult/TestResultEnvironmentItem";
+import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
 import { testEnvGroupsStore } from "@/stores/env";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 
-export const TestResultEnvironmentSection: FunctionalComponent<{
+export const TrEnvironmentSection: FunctionalComponent<{
   env: string;
   activeTestResultId: string;
   testResultId: string;
@@ -23,13 +23,13 @@ export const TestResultEnvironmentSection: FunctionalComponent<{
       source={testResultStore}
       transformData={(data) => data[testResultId]}
       renderData={(tr) =>
-        tr && <TestResultEnvironmentItem env={env} testResult={tr} current={activeTestResultId === testResultId} />
+        tr && <TrEnvironmentItem env={env} testResult={tr} current={activeTestResultId === testResultId} />
       }
     />
   );
 };
 
-export const TestResultEnvironmentsView: FunctionalComponent<{
+export const TrEnvironmentsView: FunctionalComponent<{
   testResult: AwesomeTestResult;
 }> = ({ testResult }) => {
   const { t } = useI18n("empty");
@@ -50,7 +50,7 @@ export const TestResultEnvironmentsView: FunctionalComponent<{
               {envs.map(([env, trId]) => {
                 return (
                   <li key={`${env}-${trId}`}>
-                    <TestResultEnvironmentSection env={env} testResultId={trId} activeTestResultId={testResult.id} />
+                    <TrEnvironmentSection env={env} testResultId={trId} activeTestResultId={testResult.id} />
                   </li>
                 );
               })}

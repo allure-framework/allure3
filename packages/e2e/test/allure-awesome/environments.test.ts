@@ -239,11 +239,13 @@ test.describe("environments", () => {
     expect(context.pages()).toHaveLength(1);
     expect(context.pages()[0].url()).toBe(pageUrl);
 
-    await envItems.nth(0).getByTestId("test-result-env-item-new-tab-button").click();
+    const [newTab] = await Promise.all([
+      context.waitForEvent("page"),
+      await envItems.nth(0).getByTestId("test-result-env-item-new-tab-button").click(),
+    ]);
 
-    expect(context.pages()).toHaveLength(2);
     expect(context.pages()[0].url()).toBe(pageUrl);
-    expect(context.pages()[1].url()).not.toBe(pageUrl);
+    expect(newTab.url()).not.toBe(pageUrl);
   });
 
   test("should use different navigations between all environments and a specific one", async ({ page }) => {
