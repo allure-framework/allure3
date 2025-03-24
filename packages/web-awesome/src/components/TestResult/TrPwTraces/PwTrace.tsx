@@ -9,16 +9,14 @@ interface PwTraceProps {
 export const PwTrace = ({ blob, isFullScreen }: PwTraceProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
-    const handleLoad = () => {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          { method: "load", params: { trace: blob } },
-          "https://trace.playwright.dev",
-        );
-      }
-    };
+  const handleLoad = () => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { method: "load", params: { trace: blob } },
+      "https://trace.playwright.dev",
+    );
+  };
 
+  useEffect(() => {
     if (iframeRef.current) {
       iframeRef.current.onload = handleLoad;
     }

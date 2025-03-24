@@ -9,9 +9,12 @@
 }
 
 .pw-trace {
+  --modal-paddings: 60px;
   overflow: hidden;
-  height: calc(80vh - 60px);
+  height: calc(80vh - var(--modal-paddings));
 }
+
 .pw-trace-fullscreen {
-  height: calc(100vh - 75px);
+  --modal-fs-paddings: 75px;
+  height: calc(100vh - var(--modal-fs-paddings));
 }
