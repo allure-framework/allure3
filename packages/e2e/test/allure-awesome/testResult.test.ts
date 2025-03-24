@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, layer } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport, randomNumber } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -68,12 +68,15 @@ test.beforeAll(async () => {
   });
 });
 
+test.beforeEach(async ({ browserName }) => {
+  await label("env", browserName);
+});
+
 test.afterAll(async () => {
   await bootstrap.shutdown();
 });
 
 test.beforeEach(async ({ page }) => {
-  await layer("e2e");
   await page.goto(bootstrap.url);
 });
 
@@ -106,7 +109,9 @@ test.describe("allure-awesome", () => {
       await expect(page.getByTestId("test-result-info-title")).toHaveText(testTitleText);
     });
 
-    test("test result fullname copies to clipboard", async ({ page, context }) => {
+    test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {
+      test.skip(browserName !== "chromium", "Only chromium supports clipboard API");
+
       const passedLeaf = page.getByTestId("tree-leaf").nth(0);
 
       await passedLeaf.click();

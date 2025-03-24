@@ -19,9 +19,14 @@ export default defineConfig({
   },
   variables: {},
   environments: {
-    browser: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "browser"),
-      variables: {}
+    chromium: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "chromium"),
     },
+    firefox: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "firefox"),
+    },
+    safari: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "webkit"),
+    }
   },
 });
