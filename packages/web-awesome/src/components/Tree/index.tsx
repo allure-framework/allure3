@@ -1,8 +1,8 @@
-import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
+import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
 import type { AwesomeStatus } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
-import { statsStore } from "@/stores";
+import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
@@ -13,7 +13,6 @@ import {
   noTests,
   noTestsFound,
   toggleTree,
-  treeFiltersStore,
   treeStore,
 } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -64,11 +63,11 @@ export const TreeList = () => {
           return (
             <div className={styles["tree-list"]}>
               <Tree
+                reportStatistic={reportStatsStore.value.data}
+                statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                treeFiltersStore={treeFiltersStore}
                 navigateTo={navigateTo}
-                statsStore={statsStore}
                 tree={filteredTree.value.default}
                 statusFilter={currentTab as AwesomeStatus}
                 root
@@ -83,11 +82,11 @@ export const TreeList = () => {
           return (
             <div className={styles["tree-list"]}>
               <Tree
+                reportStatistic={reportStatsStore.value.data}
+                statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                treeFiltersStore={treeFiltersStore}
                 navigateTo={navigateTo}
-                statsStore={statsStore}
                 tree={currentTree}
                 statusFilter={currentTab as AwesomeStatus}
                 root
@@ -112,26 +111,34 @@ export const TreeList = () => {
                   ? collapsedEnvironments.value.concat(key)
                   : collapsedEnvironments.value.filter((env) => env !== key);
               };
+              const stats = statsByEnvStore.value.data[key];
 
               return (
                 <div key={key} className={styles["tree-section"]} data-testid={"tree-section"}>
-                  <MetadataButton
-                    isOpened={isOpened}
-                    setIsOpen={toggleEnv}
-                    title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
-                    counter={total}
-                    data-testid={"tree-section-env-button"}
-                  />
+                  <div className={styles["tree-env-button"]}>
+                    <MetadataButton
+                      isOpened={isOpened}
+                      setIsOpen={toggleEnv}
+                      title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      counter={total}
+                      data-testid={"tree-section-env-button"}
+                    />
+                    <TreeStatusBar
+                      statistic={stats}
+                      reportStatistic={reportStatsStore.value.data}
+                      statusFilter={currentTab}
+                    />
+                  </div>
                   {isOpened && (
                     <div className={styles["tree-list"]} data-testid={"tree-section-env-content"}>
                       <Tree
+                        statistic={statsByEnvStore.value.data[key]}
+                        reportStatistic={reportStatsStore.value.data}
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}
-                        treeFiltersStore={treeFiltersStore}
+                        statusFilter={currentTab}
                         navigateTo={navigateTo}
-                        statsStore={statsStore}
                         tree={value}
-                        statusFilter={currentTab as AwesomeStatus}
                         root
                       />
                     </div>

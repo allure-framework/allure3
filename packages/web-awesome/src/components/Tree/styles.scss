@@ -195,3 +195,10 @@
     border-bottom: 1px solid var(--on-border-muted);
   }
 }
+
+.tree-env-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 6px;
+}

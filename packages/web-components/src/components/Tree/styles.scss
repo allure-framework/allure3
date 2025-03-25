@@ -102,7 +102,7 @@
   color: var(--bg-support-skat);
 }
 
-.tree-header-bar {
+.tree-status-bar {
   display: inline-flex;
   font-family: var(--font-family);
   max-width: 140px;
@@ -117,7 +117,7 @@
   overflow: hidden;
 }
 
-.tree-header-bar-item {
+.tree-status-bar-item {
   display: flex;
   min-width: 16px;
   justify-content: center;

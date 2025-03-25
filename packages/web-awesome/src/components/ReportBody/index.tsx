@@ -1,6 +1,6 @@
 import { statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components";
-import { statsStore } from "@/stores";
+import { reportStatsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
 import { treeFiltersStore } from "@/stores/tree";
 import { capitalize } from "@/utils/capitalize";
@@ -15,13 +15,14 @@ const ALL_TAB = "total";
 
 const Header = () => {
   const { t } = useI18n("statuses");
+
   return (
     <header className={styles.header}>
       <HeaderActions />
       <div className={styles.headerRow}>
         <TabsList>
           <Loadable
-            source={statsStore}
+            source={reportStatsStore}
             renderData={(stats) => {
               const allStatuses = statusesList
                 .map((status) => ({ status, value: stats[status] }))
