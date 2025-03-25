@@ -21,7 +21,8 @@
     "results": "Resultat",
     "globalAttachments": "Globala Bilagor",
     "globalErrors": "Globala Fel",
-    "qualityGates": "Kvalitetsportar"
+    "qualityGates": "Kvalitetsportar",
+    "categories": "Kategorier"
   },
   "search": {
     "search": "Sök",
@@ -36,6 +37,7 @@
     "malfunctioned": "Felaktig",
     "transition": "Övergång",
     "tags": "Taggar",
+    "categories": "Kategorier",
     "goto_filter": "Gå till filter",
     "errors": {
       "max_values_one": "Endast det första {{count}} värdet används för filtrering.\nYtterligare värden ignoreras",
@@ -48,7 +50,8 @@
       "fixed": "Visa tester som nu är godkända men som tidigare var \"misslyckade\" eller \"trasiga\"",
       "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
       "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status",
-      "tags": "Visa testresultat som har de angivna taggarna"
+      "tags": "Visa testresultat som har de angivna taggarna",
+      "categories": "Visa testresultat som har de angivna kategorierna"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "Ingen omtagningar information tillgänglig",
     "no-test-steps-results": "Ingen information om teststeg tillgänglig",
     "no-test-case-results": "Inga testfallresultat",
-    "no-environments-results": "Ingen miljöinformation tillgänglig"
+    "no-environments-results": "Ingen miljöinformation tillgänglig",
+    "no-categories-results": "Inga kategoriresultat tillgängliga"
   },
   "severity": {
     "blocker": "blockerare",
@@ -116,6 +120,7 @@
     "labels": "Etiketter",
     "metadata": "Metadata",
     "parameters": "Parametrar",
+    "category": "Kategori",
     "description": "Beskrivning",
     "links": "Länkar",
     "overview": "Översikt",

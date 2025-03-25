@@ -1,0 +1,53 @@
+.tree-content {
+  padding-left: 24px;
+}
+
+.tree-item-history {
+  padding: 0;
+  background: var(--bg-base-primary);
+}
+
+.tree-item-history :global(.styles_tree-section-title) {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.tree-item-history-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.tree-item-history-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tree-item-history-name {
+  color: var(--on-text-primary);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-item-history-copy {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+.tree-item-history-title:hover .tree-item-history-copy {
+  opacity: 1;
+}
+

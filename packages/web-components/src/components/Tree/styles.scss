@@ -17,8 +17,15 @@
   transition: background-color 300ms;
   cursor: pointer;
   padding: 4px 8px 4px 6px;
+  position: var(--tree-section-position, relative);
+  top: var(--tree-section-top, auto);
+  z-index: var(--tree-section-z, auto);
+  background: var(--tree-section-bg, transparent);
+  min-height: var(--tree-section-min-height, auto);
+  box-sizing: border-box;
 
   &:hover {
+  background: var(--tree-section-bg, transparent);
     background: var(--bg-control-flat-medium);
   }
 }
@@ -28,6 +35,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 24px;
+  flex-grow: 1;
 }
 
 .tree-count {

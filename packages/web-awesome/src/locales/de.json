@@ -21,7 +21,8 @@
     "results": "Ergebnisse",
     "globalAttachments": "Globale Anhänge",
     "globalErrors": "Globale Fehler",
-    "qualityGates": "Qualitätstore"
+    "qualityGates": "Qualitätstore",
+    "categories": "Kategorien"
   },
   "search": {
     "search": "Suchen",
@@ -36,6 +37,7 @@
     "malfunctioned": "Defekt",
     "transition": "Übergang",
     "tags": "Tags",
+    "categories": "Kategorien",
     "goto_filter": "Zum Filter gehen",
     "errors": {
       "max_values_one": "Nur der erste {{count}} Wert wird für die Filterung verwendet.\nZusätzliche Werte werden ignoriert",
@@ -48,7 +50,8 @@
       "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
       "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
       "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben",
-      "tags": "Testergebnisse anzeigen, die die angegebenen Tags haben"
+      "tags": "Testergebnisse anzeigen, die die angegebenen Tags haben",
+      "categories": "Testergebnisse anzeigen, die die angegebenen Kategorien haben"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
     "no-test-case-results": "Keine Testergebnisse verfügbar",
-    "no-environments-results": "Keine Umgebungsinformationen verfügbar"
+    "no-environments-results": "Keine Umgebungsinformationen verfügbar",
+    "no-categories-results": "Keine Kategorien verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -116,6 +120,7 @@
     "labels": "Labels",
     "metadata": "Metadaten",
     "parameters": "Parameter",
+    "category": "Kategorie",
     "description": "Beschreibung",
     "links": "Links",
     "overview": "Übersicht",

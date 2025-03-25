@@ -21,7 +21,8 @@
     "results": "Risultati",
     "globalAttachments": "Allegati Globali",
     "globalErrors": "Errori Globali",
-    "qualityGates": "Porte di Qualità"
+    "qualityGates": "Porte di Qualità",
+    "categories": "Categorie"
   },
   "search": {
     "search": "Cerca",
@@ -36,6 +37,7 @@
     "malfunctioned": "Danneggiati",
     "transition": "Transizione",
     "tags": "Tag",
+    "categories": "Categorie",
     "goto_filter": "Vai al filtro",
     "errors": {
       "max_values_one": "Solo il primo {{count}} valore viene utilizzato per il filtraggio.\nI valori aggiuntivi vengono ignorati",
@@ -48,7 +50,8 @@
       "fixed": "Mostra test che ora sono superati ma che erano precedentemente \"falliti\" o \"danneggiati\"",
       "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"danneggiato\" a \"fallito\"",
       "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"fallito\" a \"danneggiato\"",
-      "tags": "Mostra i risultati dei test che hanno i tag specificati"
+      "tags": "Mostra i risultati dei test che hanno i tag specificati",
+      "categories": "Mostra i risultati dei test che hanno le categorie specificate"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
     "no-test-case-results": "Nessun risultato dei casi di test",
-    "no-environments-results": "Nessuna informazione sugli ambienti disponibile"
+    "no-environments-results": "Nessuna informazione sugli ambienti disponibile",
+    "no-categories-results": "Nessuna categoria disponibile"
   },
   "severity": {
     "blocker": "bloccante",
@@ -116,6 +120,7 @@
     "labels": "Etichette",
     "metadata": "Metadati",
     "parameters": "Parametri",
+    "category": "Categoria",
     "description": "Descrizione",
     "links": "Link",
     "overview": "Panoramica",

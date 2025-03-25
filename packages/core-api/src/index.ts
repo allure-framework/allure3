@@ -10,6 +10,8 @@ export type * from "./testCase.js";
 export type * from "./testPlan.js";
 export type * from "./config.js";
 export * from "./static.js";
+export * from "./categories.js";
+
 export * from "./utils/step.js";
 export type * from "./utils/tree.js";
 export * from "./utils/time.js";

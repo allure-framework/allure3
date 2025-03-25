@@ -8,7 +8,7 @@ import styles from "./styles.scss";
 
 interface TreeItemProps {
   name: string;
-  status: TestStatus;
+  status?: TestStatus;
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
@@ -18,7 +18,7 @@ interface TreeItemProps {
   groupOrder: number;
   marked?: boolean;
   navigateTo: (id: string) => void;
-  tooltips: Record<string, string>;
+  tooltips?: Record<string, string>;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({

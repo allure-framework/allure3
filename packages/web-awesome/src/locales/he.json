@@ -21,7 +21,8 @@
     "results": "תוצאות",
     "globalAttachments": "קבצים מצורפים גלובליים",
     "globalErrors": "שגיאות גלובליות",
-    "qualityGates": "שערי איכות"
+    "qualityGates": "שערי איכות",
+    "categories": "קטגוריות"
   },
   "search": {
     "search": "חפש",
@@ -36,6 +37,7 @@
     "malfunctioned": "פגום",
     "transition": "מעבר",
     "tags": "תגיות",
+    "categories": "קטגוריות",
     "goto_filter": "עבור למסנן",
     "errors": {
       "max_values_one": "רק הערך הראשון {{count}} משמש לסינון.\nערכים נוספים מתעלמים",
@@ -48,7 +50,8 @@
       "fixed": "הצג בדיקות שעוברות עכשיו אבל היו קודם \"נכשלות\" או \"שבורות\"",
       "regressed": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"שבור\" ל-\"נכשל\"",
       "malfunctioned": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"נכשל\" ל-\"שבור\"",
-      "tags": "הצג תוצאות בדיקות שיש להן את התגים שצוינו"
+      "tags": "הצג תוצאות בדיקות שיש להן את התגים שצוינו",
+      "categories": "הצג תוצאות בדיקות שיש להן את הקטגוריות שצוינו"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים",
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
     "no-test-case-results": "אין תוצאות של מקרי בדיקה",
-    "no-environments-results": "לא נמצא מידע על סביבות"
+    "no-environments-results": "לא נמצא מידע על סביבות",
+    "no-categories-results": "אין קטגוריות זמינות"
   },
   "severity": {
     "blocker": "חוסם",
@@ -116,6 +120,7 @@
     "labels": "תוויות",
     "metadata": "נתונים",
     "parameters": "פרמטרים",
+    "category": "קטגוריה",
     "description": "תיאור",
     "links": "קישורים",
     "overview": "סקירה כללית",

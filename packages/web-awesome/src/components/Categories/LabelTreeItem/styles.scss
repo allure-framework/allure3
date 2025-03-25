@@ -1,0 +1,35 @@
+.tree-item-label {
+  padding: 0;
+  border-top: 1px solid var(--on-border-muted);
+}
+
+.tree-item-label-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.tree-item-label-key {
+  padding: 4px 0;
+}
+
+.tree-item-label-values {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tree-item-label-bubble {
+  background: var(--on-border-primary);
+  border-radius: 4px;
+  padding: 2px 4px;
+  line-height: 16px;
+}
+
+.tree-item-label-value-text {
+  width: max-content;
+  height: max-content;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

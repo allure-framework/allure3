@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { HeaderControls } from "@/components/HeaderControls";
 import { SectionPicker } from "@/components/SectionPicker";
 import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
-import { testResultRoute } from "@/stores/router";
+import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { CiInfo } from "./CiInfo";
@@ -14,7 +14,9 @@ interface HeaderProps {
   className?: ClassValue;
 }
 
-const isTestResultRoute = computed(() => testResultRoute.value.matches);
+const isTestResultRoute = computed(
+  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
+);
 const testResult = computed(() => testResultStore.value?.data?.[currentTrId.value]);
 
 export const Header = ({ className }: HeaderProps) => {

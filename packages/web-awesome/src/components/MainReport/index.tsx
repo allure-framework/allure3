@@ -1,24 +1,36 @@
 import { Counter, Loadable } from "@allurereport/web-components";
 import clsx from "clsx";
+import { useEffect } from "preact/hooks";
 import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
 import { ReportBody } from "@/components/ReportBody";
+import { ReportErrorCategories } from "@/components/ReportErrorCategories";
 import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { reportStatsStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
+import { categoriesStore } from "@/stores/errorCategories";
 import { globalsStore } from "@/stores/globals";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
+import {
+  navigateToPlainTestResult,
+  navigateToRoot,
+  navigateToRootTabRoot,
+  navigateToRootTabTestResult,
+  rootTabRoute,
+} from "@/stores/router";
+import { currentTrId, trCurrentTab } from "@/stores/testResult";
 import { ReportQualityGateResults } from "../ReportQualityGateResults";
 import * as styles from "./styles.scss";
 
-enum ReportRootTab {
+export enum ReportRootTab {
   Results = "results",
   QualityGate = "qualityGate",
   GlobalAttachments = "globalAttachments",
   GlobalErrors = "globalErrors",
+  ErrorCategories = "errorCategories",
 }
 
 const viewsByTab = {
@@ -31,6 +43,7 @@ const viewsByTab = {
   [ReportRootTab.GlobalAttachments]: () => <ReportGlobalAttachments />,
   [ReportRootTab.GlobalErrors]: () => <ReportGlobalErrors />,
   [ReportRootTab.QualityGate]: () => <ReportQualityGateResults />,
+  [ReportRootTab.ErrorCategories]: () => <ReportErrorCategories />,
 };
 
 const MainReportContent = () => {
@@ -48,15 +61,31 @@ const MainReport = () => {
     <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
       <ReportHeader />
       <div className={styles["main-report-tabs"]}>
-        <NavTabs initialTab={ReportRootTab.Results}>
+        <NavTabs initialTab={initialTab}>
+            <RootTabRouteSync />
           <NavTabsList>
             <Loadable
               source={reportStatsStore}
               renderData={(stats) => (
-                <NavTab id={ReportRootTab.Results}>
+                <RootTab id={ReportRootTab.Results}>
                   {t("results")} <Counter count={stats?.total ?? 0} />
-                </NavTab>
-              )}
+                </RootTab>
+                )}
+              />
+              <Loadable
+                source={categoriesStore}
+                renderData={(categories) => {
+                  if (!categories || !categories.roots?.length) {
+                    return null;
+                  }
+                  return (
+                    <>
+                      <RootTab id={ReportRootTab.ErrorCategories}>
+                        {t("categories")} <Counter count={categories.roots?.length} />
+                      </RootTab>
+                    </>
+                  );
+              }}
             />
             <Loadable
               source={qualityGateStore}
@@ -66,13 +95,13 @@ const MainReport = () => {
                   : Object.values(results).flatMap((envResults) => envResults);
 
                 return (
-                  <NavTab id={ReportRootTab.QualityGate}>
+                  <RootTab id={ReportRootTab.QualityGate}>
                     {t("qualityGates")}{" "}
                     <Counter
                       status={currentEnvResults.length > 0 ? "failed" : undefined}
                       count={currentEnvResults.length}
                     />
-                  </NavTab>
+                  </RootTab>
                 );
               }}
             />
@@ -80,13 +109,13 @@ const MainReport = () => {
               source={globalsStore}
               renderData={({ attachments = [], errors = [] }) => (
                 <>
-                  <NavTab id={ReportRootTab.GlobalAttachments}>
+                  <RootTab id={ReportRootTab.GlobalAttachments}>
                     {t("globalAttachments")} <Counter count={attachments.length} />
-                  </NavTab>
-                  <NavTab id={ReportRootTab.GlobalErrors}>
+                  </RootTab>
+                  <RootTab id={ReportRootTab.GlobalErrors}>
                     {t("globalErrors")}{" "}
                     <Counter status={errors.length > 0 ? "failed" : undefined} count={errors.length} />
-                  </NavTab>
+                  </RootTab>
                 </>
               )}
             />

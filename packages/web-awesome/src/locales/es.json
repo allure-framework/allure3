@@ -21,7 +21,8 @@
     "results": "Resultados",
     "globalAttachments": "Adjuntos Globales",
     "globalErrors": "Errores Globales",
-    "qualityGates": "Puertas de Calidad"
+    "qualityGates": "Puertas de Calidad",
+    "categories": "Categorías"
   },
   "search": {
     "search": "Buscar",
@@ -36,6 +37,7 @@
     "malfunctioned": "Defectuoso",
     "transition": "Transición",
     "tags": "Etiquetas",
+    "categories": "Categorías",
     "goto_filter": "Ir al filtro",
     "errors": {
       "max_values_one": "Solo se usa el primer {{count}} valor para el filtrado.\nLos valores adicionales se ignoran",
@@ -48,7 +50,8 @@
       "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
       "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
       "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\"",
-      "tags": "Mostrar resultados de pruebas que tienen las etiquetas especificadas"
+      "tags": "Mostrar resultados de pruebas que tienen las etiquetas especificadas",
+      "categories": "Mostrar resultados de pruebas que tienen las categorías especificadas"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "No hay información de reintentos disponible",
     "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",
     "no-test-case-results": "No hay resultados de casos de prueba",
-    "no-environments-results": "No hay información de entornos disponible"
+    "no-environments-results": "No hay información de entornos disponible",
+    "no-categories-results": "No hay categorías disponibles"
   },
   "severity": {
     "blocker": "bloqueante",
@@ -116,6 +120,7 @@
     "labels": "Etiquetas",
     "metadata": "Metadatos",
     "parameters": "Parámetros",
+    "category": "Categoría",
     "description": "Descripción",
     "links": "Enlaces",
     "overview": "Resumen",

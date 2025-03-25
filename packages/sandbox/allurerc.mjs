@@ -41,9 +41,56 @@ const chartLayout = [
   },
 ];
 
+const comboRules = [
+  {
+    name: "Failed / Severity+Layer / Msg+History+Env",
+    matchers: { statuses: ["failed"] },
+    groupBy: ["severity", { label: "layer" }],
+    groupByMessage: true,
+    groupByHistoryId: true,
+    groupByEnvironment: true,
+  },
+  {
+    name: "Failed / Owner / Msg",
+    matchers: { statuses: ["failed"] },
+    groupBy: ["owner"],
+    groupByMessage: true,
+    groupByEnvironment: false,
+  },
+  {
+    name: "Broken / Owner / Env",
+    matchers: { statuses: ["broken"] },
+    groupBy: ["owner"],
+    groupByMessage: false,
+    groupByEnvironment: true,
+  },
+  {
+    name: "Broken / Message only (no env)",
+    matchers: { statuses: ["broken"] },
+    groupByMessage: true,
+    groupByHistoryId: false,
+    groupByEnvironment: false,
+  },
+  {
+    name: "Broken / Feature+Story / Env",
+    matchers: { statuses: ["broken"] },
+    groupBy: [{ label: "feature" }, { label: "story" }],
+    groupByMessage: false,
+    groupByEnvironment: true,
+  },
+  {
+    name: "Failed+Broken / Layer / Env",
+    matchers: { statuses: ["failed", "broken"] },
+    groupBy: [{ label: "layer" }],
+    groupByMessage: false,
+    groupByEnvironment: true,
+  },
+];
+
 export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
+  historyPath: "./history.jsonl",
   qualityGate: {
     rules: [
       {
@@ -75,6 +122,9 @@ export default defineConfig({
         open: false,
         charts: chartLayout,
         publish: true,
+        categories: {
+          rules: comboRules,
+        },
       },
     },
     dashboard: {

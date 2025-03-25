@@ -21,7 +21,8 @@
     "results": "Sonuçlar",
     "globalAttachments": "Küresel Ekler",
     "globalErrors": "Küresel Hatalar",
-    "qualityGates": "Kalite Kapıları"
+    "qualityGates": "Kalite Kapıları",
+    "categories": "Kategoriler"
   },
   "search": {
     "search": "Ara",
@@ -36,6 +37,7 @@
     "malfunctioned": "Bozuk",
     "transition": "Geçiş",
     "tags": "Etiketler",
+    "categories": "Kategoriler",
     "goto_filter": "Filtreye git",
     "errors": {
       "max_values_one": "Filtreleme için yalnızca ilk {{count}} değer kullanılır.\nEk değerler yok sayılır",
@@ -48,7 +50,8 @@
       "fixed": "Şimdi başarılı olan ancak daha önce \"başarısız\" veya \"bozuk\" olan testleri göster",
       "regressed": "\"başarılı\" veya \"bozuk\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
       "malfunctioned": "\"başarılı\" veya \"başarısız\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster",
-      "tags": "Belirtilen etiketlere sahip test sonuçlarını göster"
+      "tags": "Belirtilen etiketlere sahip test sonuçlarını göster",
+      "categories": "Belirtilen kategorilere sahip test sonuçlarını göster"
     }
   },
   "sort-by": {
@@ -92,7 +95,8 @@
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
     "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
     "no-test-case-results": "Test vakası sonuçları yok",
-    "no-environments-results": "Ortam bilgisi mevcut değil"
+    "no-environments-results": "Ortam bilgisi mevcut değil",
+    "no-categories-results": "Kategoriler için sonuç bulunamadı"
   },
   "severity": {
     "blocker": "engelleyici",
@@ -116,6 +120,7 @@
     "labels": "Etiketler",
     "metadata": "Meta Veriler",
     "parameters": "Parametreler",
+    "category": "Kategori",
     "description": "Açıklama",
     "links": "Bağlantılar",
     "overview": "Genel Bakış",
