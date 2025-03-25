@@ -148,7 +148,7 @@ export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
   };
 };
 
-export const fetchTreesData = async (envs: string[]) => {
+export const fetchEnvTreesData = async (envs: string[]) => {
   const envsToFetch = envs.filter((env) => !treeStore.value.data?.[env]);
 
   // all envs have already been fetched
@@ -168,45 +168,13 @@ export const fetchTreesData = async (envs: string[]) => {
     );
 
     treeStore.value = {
-      data: envs.reduce((acc, env, index) => {
-        return {
+      data: envs.reduce(
+        (acc, env, index) => ({
           ...acc,
           [env]: data[index],
-        };
-      }, {}),
-      loading: false,
-      error: undefined,
-    };
-  } catch (e) {
-    treeStore.value = {
-      ...treeStore.value,
-      error: e.message,
-      loading: false,
-    };
-  }
-};
-
-export const fetchTreeData = async (env: string) => {
-  // env has already been fetched
-  if (treeStore.value.data?.[env]) {
-    return;
-  }
-
-  treeStore.value = {
-    ...treeStore.value,
-    loading: true,
-    error: undefined,
-  };
-
-  try {
-    const res = await fetchReportJsonData<AwesomeTree>(env ? `widgets/${env}/tree.json` : "widgets/tree.json");
-
-    treeStore.value = {
-      ...treeStore.value,
-      data: {
-        ...treeStore.value.data,
-        [env]: res,
-      },
+        }),
+        {},
+      ),
       loading: false,
       error: undefined,
     };

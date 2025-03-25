@@ -9,14 +9,14 @@ import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
-import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
+import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
-import { fetchTreeData, fetchTreesData } from "@/stores/tree";
+import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -33,7 +33,7 @@ const App = () => {
   const [prefetched, setPrefetched] = useState(false);
   const { id: testResultId } = route.value;
   const prefetchData = async () => {
-    const fns = [ensureReportDataReady, fetchStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
+    const fns = [ensureReportDataReady, fetchReportStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
 
     if (globalThis) {
       fns.unshift(getLocale, getLayout as () => Promise<void>, getTheme as () => Promise<void>);
@@ -43,9 +43,10 @@ const App = () => {
     await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
 
     if (currentEnvironment.value) {
-      await fetchTreeData(currentEnvironment.value);
+      await fetchEnvTreesData([currentEnvironment.value]);
     } else {
-      await fetchTreesData(environmentsStore.value.data);
+      await fetchEnvTreesData(environmentsStore.value.data);
+      await fetchEnvStats(environmentsStore.value.data);
     }
 
     setPrefetched(true);

@@ -28,4 +28,7 @@ export default defineConfig({
       },
     ],
   ],
+  use: {
+    trace: "on",
+  },
 });
