@@ -1,6 +1,7 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeStatus, AwesomeTree, AwesomeTreeGroup } from "types";
+import { treeFiltersStore } from "@/stores/treeFilters";
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
@@ -46,20 +47,6 @@ export const selectedFilters = signal(new Set(loadFromLocalStorage("selectedFilt
 effect(() => {
   localStorage.setItem("selectedFilters", JSON.stringify([...selectedFilters.value]));
 });
-
-export const treeFiltersStore = signal<TreeFiltersState>(
-  loadFromLocalStorage<TreeFiltersState>("treeFilters", {
-    query: "",
-    status: "total",
-    filter: {
-      flaky: false,
-      retry: false,
-      new: false,
-    },
-    sortBy: "order",
-    direction: "asc",
-  }) as TreeFiltersState,
-);
 
 effect(() => {
   localStorage.setItem("treeFilters", JSON.stringify(treeFiltersStore.value));

@@ -1,6 +1,8 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AwesomeStatus, AwesomeTree, AwesomeTreeGroup } from "types";
+import { treeStore } from "@/stores/tree";
+import { treeFiltersStore } from "@/stores/treeFilters";
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
@@ -21,19 +23,7 @@ export const categoriesStore = signal<StoreSignalState<AwesomeTree>>({
   data: undefined,
 });
 
-export const noTests = computed(() => !Object.keys(categoriesStore?.value?.data?.leavesById).length);
-
-export const categoriesFiltersStore = signal<TreeFiltersState>({
-  query: "",
-  status: "total",
-  filter: {
-    flaky: false,
-    retry: false,
-    new: false,
-  },
-  sortBy: "order",
-  direction: "asc",
-});
+export const noTests = computed(() => !Object.keys(categoriesStore?.value?.data?.leavesById || {}).length);
 
 export const filteredCategories = computed(() => {
   const { root, leavesById, groupsById } = categoriesStore.value.data;
@@ -42,7 +32,7 @@ export const filteredCategories = computed(() => {
     group: root as AwesomeTreeGroup,
     leavesById,
     groupsById,
-    filterOptions: categoriesFiltersStore.value,
+    filterOptions: treeFiltersStore.value,
   });
 });
 
@@ -51,7 +41,7 @@ export const noTestsFound = computed(() => {
 });
 
 export const clearCategoriesFilters = () => {
-  categoriesFiltersStore.value = {
+  treeFiltersStore.value = {
     query: "",
     status: "total",
     filter: {
@@ -65,40 +55,16 @@ export const clearCategoriesFilters = () => {
 };
 
 export const setCategoriesQuery = (query: string) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
+  treeFiltersStore.value = {
+    ...treeFiltersStore.value,
     query,
   };
 };
 
 export const setCategoriesStatus = (status: AwesomeStatus) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
+  treeFiltersStore.value = {
+    ...treeFiltersStore.value,
     status,
-  };
-};
-
-export const setCategoriesSortBy = (sortBy: TreeSortBy) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setCategoriesDirection = (direction: TreeDirection) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    direction,
-  };
-};
-
-export const setCategoriesFilter = (filterKey: TreeFilters, value: boolean) => {
-  categoriesFiltersStore.value = {
-    ...categoriesFiltersStore.value,
-    filter: {
-      ...categoriesFiltersStore.value.filter,
-      [filterKey]: value,
-    },
   };
 };
 

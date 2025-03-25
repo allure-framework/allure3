@@ -3,7 +3,8 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import Categories from "@/components/Categories";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { treeFiltersStore } from "@/stores/tree";
+import { currentTab } from "@/stores/tabs";
+import { currentTree } from "@/stores/treeSwitcher";
 import { capitalize } from "@/utils/capitalize";
 import { Tab, Tabs, TabsList } from "../Tabs";
 import { TreeList } from "../Tree";
@@ -50,23 +51,16 @@ const Header = () => {
   );
 };
 
-const Body = () => {
-  return (
-    <div className={styles.body}>
-      {/* <TreeList />*/}
-      <Categories />
-    </div>
-  );
-};
-
 export const ReportBody = () => {
-  const initialTab = treeFiltersStore.value.status;
+  const initialTab = currentTab.value;
+  const treeMap = { categories: Categories, suites: TreeList };
+
   return (
     <ReportContentProvider>
       <section>
         <Tabs initialTab={initialTab}>
           <Header />
-          <Body />
+          <div className={styles.body}>{treeMap[currentTree.value]()}</div>
         </Tabs>
       </section>
     </ReportContentProvider>
