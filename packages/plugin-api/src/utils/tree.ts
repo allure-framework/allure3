@@ -53,6 +53,7 @@ const createTree = <T, L, G>(
     let parentGroups = [root];
 
     for (const layer of itemGroups) {
+      console.log("itemGroups", itemGroups, layer);
       if (layer.length === 0) {
         break;
       }
@@ -181,7 +182,8 @@ export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = 
 };
 
 export const byCategories = (item: TestResult): string[][] => {
-  return [item.categories?.map((category: any) => category.name)];
+  console.log("byCategories", item.categories, item.id);
+  return [item.categories?.map((category: TestResult["categories"]) => category.name) || []];
 };
 
 /**
