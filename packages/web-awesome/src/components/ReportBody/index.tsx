@@ -3,10 +3,9 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import Categories from "@/components/Categories";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { currentTab } from "@/stores/tabs";
 import { currentTree } from "@/stores/treeSwitcher";
 import { capitalize } from "@/utils/capitalize";
-import { Tab, Tabs, TabsList } from "../Tabs";
+import { Tab, TabsList } from "../Tabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
@@ -52,16 +51,15 @@ const Header = () => {
 };
 
 export const ReportBody = () => {
-  const initialTab = currentTab.value;
   const treeMap = { categories: Categories, suites: TreeList };
 
   return (
     <ReportContentProvider>
       <section>
-        <Tabs initialTab={initialTab}>
-          <Header />
-          <div className={styles.body}>{treeMap[currentTree.value]()}</div>
-        </Tabs>
+        {/* <Tabs>*/}
+        <Header />
+        <div className={styles.body}>{treeMap[currentTree.value]()}</div>
+        {/* </Tabs>*/}
       </section>
     </ReportContentProvider>
   );
