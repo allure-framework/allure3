@@ -99,7 +99,9 @@
     "showMore": "Show more",
     "copy": "Copy",
     "at": "at",
-    "openPwTrace": "Open Playwright Trace"
+    "openPwTrace": "Open Playwright Trace",
+    "suites": "Suites",
+    "categories": "Categories"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",

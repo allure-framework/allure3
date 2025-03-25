@@ -12,21 +12,23 @@ import {
   setCategoriesStatus,
 } from "@/stores/categories";
 import { useI18n } from "@/stores/locale";
-import { navigateTo } from "@/stores/router";
+import { navigateTo, route } from "@/stores/router";
 import { currentTab } from "@/stores/tabs";
-import { collapsedTrees, toggleTree, treeFiltersStore } from "@/stores/tree";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { treeFiltersStore } from "@/stores/treeFilters";
 import * as styles from "./styles.scss";
 
 const Categories = () => {
   const { t } = useI18n("empty");
+  const { id } = route.value;
 
   useEffect(() => {
     fetchCategoriesData();
   }, []);
 
-  useEffect(() => {
-    setCategoriesStatus(currentTab.value as AwesomeStatus);
-  }, [currentTab.value]);
+  // useEffect(() => {
+  //   setCategoriesStatus(currentTab.value as AwesomeStatus);
+  // }, [currentTab.value]);
 
   return (
     <Loadable
@@ -73,6 +75,7 @@ const Categories = () => {
               statsStore={statsStore}
               tree={filteredCategories.value}
               statusFilter={currentTab.value as AwesomeStatus}
+              routeId={id}
               root
             />
           </div>

@@ -2,7 +2,7 @@ import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-comp
 import type { AwesomeStatus } from "types";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { navigateTo } from "@/stores/router";
+import { navigateTo, route } from "@/stores/router";
 import { currentTab } from "@/stores/tabs";
 import {
   clearTreeFilters,
@@ -11,13 +11,14 @@ import {
   noTests,
   noTestsFound,
   toggleTree,
-  treeFiltersStore,
   treeStore,
 } from "@/stores/tree";
+import { treeFiltersStore } from "@/stores/treeFilters";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
+  const { id } = route.value;
 
   return (
     <Loadable
@@ -64,6 +65,7 @@ export const TreeList = () => {
               statsStore={statsStore}
               tree={filteredTree.value}
               statusFilter={currentTab.value as AwesomeStatus}
+              routeId={id}
               root
             />
           </div>
