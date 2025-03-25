@@ -4,7 +4,7 @@ import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
 export const xcrunJson = async <T>(utilityName: string, ...args: readonly string[]) => {
   try {
-    return await invokeJsonCliTool<T>("xcrun", [utilityName, ...args], { timeout: 1000 });
+    return await invokeJsonCliTool<T>("xcrun", [utilityName, ...args], { timeout: 10000 });
   } catch (e) {
     console.error(e);
   }
@@ -27,7 +27,7 @@ export const xcresulttool = async <T>(...args: readonly string[]) => await xcrun
 export const xcresulttoolBinary = async (...args: readonly string[]) => await xcrunBinary("xcresulttool", ...args);
 
 export const version = async () => {
-  const stdout = invokeTextStdoutCliTool("xcrun", ["xcresulttool", "version"], { timeout: 1000 });
+  const stdout = invokeTextStdoutCliTool("xcrun", ["xcresulttool", "version"], { timeout: 10000 });
   const lines: string[] = [];
   for await (const line of stdout) {
     lines.push(line);
