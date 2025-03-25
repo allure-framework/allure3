@@ -21,7 +21,9 @@ jobs:
     - name: Install playwright for static server
       run: yarn workspace @allurereport/static-server playwright install chromium
     - name: Install playwright for e2e
-      run: yarn workspace @allurereport/e2e playwright install chromium
+      run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
+    - name: Install playwright dependencies for e2e
+      run: yarn workspace @allurereport/e2e playwright install-deps
     - name: Build project
       run: yarn build
     - name: Test Project
