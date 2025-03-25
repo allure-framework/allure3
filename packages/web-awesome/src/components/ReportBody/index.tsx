@@ -56,10 +56,8 @@ export const ReportBody = () => {
   return (
     <ReportContentProvider>
       <section>
-        {/* <Tabs>*/}
         <Header />
         <div className={styles.body}>{treeMap[currentTree.value]()}</div>
-        {/* </Tabs>*/}
       </section>
     </ReportContentProvider>
   );
