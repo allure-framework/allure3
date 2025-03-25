@@ -98,7 +98,9 @@
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
     "at": "ზე",
-    "openPwTrace": "გახსენი Playwright Trace"
+    "openPwTrace": "გახსენი Playwright Trace",
+    "suites": "ტესტების სუიტები",
+    "categories": "კატეგორიები"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",

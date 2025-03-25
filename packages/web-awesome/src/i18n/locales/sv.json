@@ -98,7 +98,9 @@
     "showMore": "Visa mer",
     "copy": "Kopiera",
     "at": "vid",
-    "openPwTrace": "Öppna Playwright Trace"
+    "openPwTrace": "Öppna Playwright Trace",
+    "suites": "Testsuiter",
+    "categories": "Kategorier"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

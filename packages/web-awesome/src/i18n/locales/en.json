@@ -99,6 +99,7 @@
     "showMore": "Show more",
     "copy": "Copy",
     "at": "at",
+    "pwTrace": "Playwright Trace",
     "openPwTrace": "Open Playwright Trace",
     "suites": "Suites",
     "categories": "Categories"
