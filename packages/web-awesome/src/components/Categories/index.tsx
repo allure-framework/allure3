@@ -9,7 +9,6 @@ import {
   filteredCategories,
   noTests,
   noTestsFound,
-  setCategoriesStatus,
 } from "@/stores/categories";
 import { useI18n } from "@/stores/locale";
 import { navigateTo, route } from "@/stores/router";
@@ -25,10 +24,6 @@ const Categories = () => {
   useEffect(() => {
     fetchCategoriesData();
   }, []);
-
-  // useEffect(() => {
-  //   setCategoriesStatus(currentTab.value as AwesomeStatus);
-  // }, [currentTab.value]);
 
   return (
     <Loadable

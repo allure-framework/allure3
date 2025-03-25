@@ -182,7 +182,6 @@ export const createTreeByCategories = <T = TestResult, L = DefaultTreeLeaf, G = 
 };
 
 export const byCategories = (item: TestResult): string[][] => {
-  console.log("byCategories", item.categories, item.id);
   return [item.categories?.map((category: TestResult["categories"]) => category.name) || []];
 };
 
