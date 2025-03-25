@@ -98,7 +98,9 @@
     "showMore": "显示更多",
     "copy": "复制",
     "at": "在",
-    "openPwTrace": "打开 Playwright Trace"
+    "openPwTrace": "打开 Playwright Trace",
+    "suites": "测试套件",
+    "categories": "类别"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",
