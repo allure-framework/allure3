@@ -1,27 +1,36 @@
 import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
+import { useEffect } from "preact/hooks";
 import type { AwesomeStatus } from "types";
 import { statsStore } from "@/stores";
+import {
+  categoriesStore,
+  clearCategoriesFilters,
+  fetchCategoriesData,
+  filteredCategories,
+  noTests,
+  noTestsFound,
+  setCategoriesStatus,
+} from "@/stores/categories";
 import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import { currentTab } from "@/stores/tabs";
-import {
-  clearTreeFilters,
-  collapsedTrees,
-  filteredTree,
-  noTests,
-  noTestsFound,
-  toggleTree,
-  treeFiltersStore,
-  treeStore,
-} from "@/stores/tree";
+import { collapsedTrees, toggleTree, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
-export const TreeList = () => {
+const Categories = () => {
   const { t } = useI18n("empty");
+
+  useEffect(() => {
+    fetchCategoriesData();
+  }, []);
+
+  useEffect(() => {
+    setCategoriesStatus(currentTab.value as AwesomeStatus);
+  }, [currentTab.value]);
 
   return (
     <Loadable
-      source={treeStore}
+      source={categoriesStore}
       renderLoader={() => <PageLoader />}
       renderData={() => {
         if (noTests.value) {
@@ -47,7 +56,7 @@ export const TreeList = () => {
                   text={t("clear-filters")}
                   size={"s"}
                   style={"outline"}
-                  onClick={() => clearTreeFilters()}
+                  onClick={() => clearCategoriesFilters()}
                 />
               </div>
             </div>
@@ -62,7 +71,7 @@ export const TreeList = () => {
               treeFiltersStore={treeFiltersStore}
               navigateTo={navigateTo}
               statsStore={statsStore}
-              tree={filteredTree.value}
+              tree={filteredCategories.value}
               statusFilter={currentTab.value as AwesomeStatus}
               root
             />
@@ -72,3 +81,4 @@ export const TreeList = () => {
     />
   );
 };
+export default Categories;

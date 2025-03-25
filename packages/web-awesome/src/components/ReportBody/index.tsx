@@ -1,5 +1,6 @@
 import { statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components";
+import Categories from "@/components/Categories";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
 import { treeFiltersStore } from "@/stores/tree";
@@ -52,7 +53,8 @@ const Header = () => {
 const Body = () => {
   return (
     <div className={styles.body}>
-      <TreeList />
+      {/* <TreeList />*/}
+      <Categories />
     </div>
   );
 };
