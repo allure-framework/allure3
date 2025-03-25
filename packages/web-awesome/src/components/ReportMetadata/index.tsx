@@ -46,7 +46,6 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   const { t } = useI18n("ui");
   const [isOpened, setIsOpen] = useState(true);
   const convertedEnvInfo = Object.entries(props.variables).map(([key, value]) => {
-    // return { ...env, value: env.values.join(", ") };
     return {
       name: key,
       value,
