@@ -3,18 +3,19 @@ import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import clsx from "clsx";
 import { render } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { ModalComponent } from "@/components/Modal";
 import { SplitLayout } from "@/components/SplitLayout";
-import { fetchStats, getLocale, getTheme, waitForI18next } from "@/stores";
+import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
+import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
-import { fetchTreeData } from "@/stores/tree";
+import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -26,28 +27,40 @@ const Loader = () => {
     </div>
   );
 };
+
 const App = () => {
+  const [prefetched, setPrefetched] = useState(false);
   const { id: testResultId } = route.value;
+  const prefetchData = async () => {
+    const fns = [ensureReportDataReady, fetchReportStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
+
+    if (globalThis) {
+      fns.unshift(getLocale, getLayout as () => Promise<void>, getTheme as () => Promise<void>);
+    }
+
+    await waitForI18next;
+    await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
+
+    if (currentEnvironment.value) {
+      await fetchEnvTreesData([currentEnvironment.value]);
+    } else {
+      await fetchEnvTreesData(environmentsStore.value.data);
+      await fetchEnvStats(environmentsStore.value.data);
+    }
+
+    setPrefetched(true);
+  };
 
   useEffect(() => {
-    if (globalThis) {
-      getLocale();
-      getLayout();
-      getTheme();
-    }
-    ensureReportDataReady();
-    fetchStats();
-    fetchEnvInfo();
-    fetchPieChartData();
-    fetchTreeData();
-  }, []);
+    prefetchData();
+  }, [currentEnvironment.value]);
 
   useEffect(() => {
     if (testResultId) {
       fetchTestResult(testResultId);
-      fetchTestResultNav();
+      fetchTestResultNav(currentEnvironment.value);
     }
-  }, [testResultId]);
+  }, [testResultId, currentEnvironment]);
 
   useEffect(() => {
     handleHashChange();
@@ -60,9 +73,13 @@ const App = () => {
 
   return (
     <div className={styles.main}>
-      <Loader />
-      {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
-      <ModalComponent />
+      {!prefetched && <Loader />}
+      {prefetched && (
+        <>
+          {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+          <ModalComponent />
+        </>
+      )}
     </div>
   );
 };
@@ -79,18 +96,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-(async () => {
-  await waitForI18next;
-  if (globalThis) {
-    await getLocale();
-    getLayout();
-    getTheme();
-  }
-  await ensureReportDataReady();
-  await fetchStats();
-  await fetchEnvInfo();
-  await fetchPieChartData();
-  await fetchTreeData();
-
-  render(<App />, rootElement);
-})();
+render(<App />, rootElement);

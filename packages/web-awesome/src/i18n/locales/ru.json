@@ -64,7 +64,8 @@
     "no-history-results": "Информация об истории отсутствует",
     "no-retries-results": "Информация о перезапусках отсутствует",
     "no-test-steps-results": "Нет информации о шагах тестирования",
-    "no-test-case-results": "Нет результатов тест-кейсов"
+    "no-test-case-results": "Нет результатов тест-кейсов",
+    "no-environments-results": "Информация об окружениях отсутствует"
   },
   "severity": {
     "name": "Важность",
@@ -80,6 +81,11 @@
     "setup": "Подготовка",
     "teardown": "Завершение"
   },
+  "environments": {
+    "environment_one": "Окружение",
+    "environment_other": "Окружения",
+    "all": "Все"
+  },
   "ui": {
     "labels": "Лейблы",
     "metadata": "Метаданные",
@@ -90,12 +96,14 @@
     "history": "История",
     "attachments": "Вложения",
     "retries": "Перезапуски",
+    "environments": "Окружения",
     "error": "Ошибка",
     "goToStep": "Перейти к шагу",
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "at": "в",
+    "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace"
   },
   "controls": {

@@ -1,15 +1,21 @@
 import { type EnvironmentItem } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import { join } from "node:path";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
+  generateEnvirontmentsList,
   generateHistoryDataPoints,
+  generateNav,
   generatePieChart,
   generateStaticFiles,
   generateStatistic,
+  generateTestCases,
+  generateTestEnvGroups,
   generateTestResults,
   generateTree,
+  generateVariables,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -22,21 +28,37 @@ export class AwesomePlugin implements Plugin {
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [] } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const statistic = await store.testsStatistic();
+    const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
 
-    await generateStatistic(this.#writer!, statistic);
-    await generatePieChart(this.#writer!, statistic);
+    await generateStatistic(this.#writer!, store);
+    await generatePieChart(this.#writer!, store);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
+
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
       ({ labels }) => labels.map(({ name }) => name),
     );
 
-    await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
+    await generateTestCases(this.#writer!, convertedTrs);
+    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs);
+    await generateNav(this.#writer!, convertedTrs, "nav.json");
+    await generateTestEnvGroups(this.#writer!, store);
+
+    for (const reportEnvironment of reportEnvironments) {
+      const envTrs = await store.testResultsByEnvironment(reportEnvironment);
+      const envTrsIds = envTrs.map(({ id }) => id);
+      const envConvertedTrs = convertedTrs.filter(({ id }) => envTrsIds.includes(id));
+
+      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs);
+      await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
+    }
+
+    await generateEnvirontmentsList(this.#writer!, store);
+    await generateVariables(this.#writer!, store);
 
     if (environmentItems?.length) {
       await generateEnvironmentJson(this.#writer!, environmentItems);

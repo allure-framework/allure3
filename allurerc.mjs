@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: {
     awesome: {
       options: {
-        singleFile: true,
+        singleFile: false,
         reportLanguage: "en",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
       },
@@ -16,5 +16,17 @@ export default defineConfig({
         groupBy: "none",
       },
     },
+  },
+  variables: {},
+  environments: {
+    chromium: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "chromium"),
+    },
+    firefox: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "firefox"),
+    },
+    safari: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "webkit"),
+    }
   },
 });

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, layer } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -22,8 +22,8 @@ test.afterAll(async () => {
   await bootstrap?.shutdown?.();
 });
 
-test.beforeEach(async () => {
-  await layer("e2e");
+test.beforeEach(async ({ browserName }) => {
+  await label("env", browserName);
 });
 
 test.describe("allure-awesome", () => {

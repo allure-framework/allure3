@@ -67,7 +67,8 @@
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
     "no-retries-results": "Təkrar məlumatı mövcud deyil",
     "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",
-    "no-test-case-results": "Test halları haqqında nəticələr yoxdur"
+    "no-test-case-results": "Test halları haqqında nəticələr yoxdur",
+    "no-environments-results": "Mühitlər haqqında məlumat mövcud deyil"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -82,6 +83,11 @@
     "setup": "Hazırlıq",
     "teardown": "Yekunlaşma"
   },
+  "environments": {
+    "environment_one": "Mühit",
+    "environment_other": "Mühitlər",
+    "all": "Hamısı"
+  },
   "ui": {
     "labels": "Etiketlər",
     "metadata": "Metaməlumat",
@@ -92,13 +98,16 @@
     "history": "Tarixçə",
     "attachments": "Əlavələr",
     "retries": "Təkrarlar",
+    "environment_one": "Mühit",
+    "environment_other": "Mühitlər",
     "error": "Səhv",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "at": "üçün",
-    "openPwTrace": "Playwright Trace aç"
+    "openPwTrace": "Playwright Trace aç",
+    "variables": "Dəyişənlər"
   },
   "controls": {
     "newTabAttachment": "Yeni sekmede aç",

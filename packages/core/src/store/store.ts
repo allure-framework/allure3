@@ -9,8 +9,10 @@ import {
   type ReportVariables,
   type Statistic,
   type TestCase,
+  type TestEnvGroup,
   type TestFixtureResult,
   type TestResult,
+  getWorstStatus,
   matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
@@ -49,9 +51,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
   readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
-
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestTestResultByHistoryId: Map<string, TestResult> = new Map<string, TestResult>();
+  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -88,6 +89,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
     this.#reportVariables = reportVariables;
+    this.indexLatestEnvTestResultByHistoryId = new Map();
+
+    // initialize test result maps for every environment
+    Object.keys(this.#environmentsConfig)
+      .concat("default")
+      .forEach((key) => {
+        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      });
   }
 
   // test methods
@@ -124,28 +133,27 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    const env = matchEnvironment(this.#environmentsConfig, testResult);
-
-    if (env) {
-      testResult.environment = env;
-    }
+    testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
     this.#testResults.set(testResult.id, testResult);
 
     // retries
     if (testResult.historyId) {
-      const maybeOther = this.indexLatestTestResultByHistoryId.get(testResult.historyId);
+      const maybeOther = this.indexLatestEnvTestResultByHistoryId
+        .get(testResult.environment)!
+        .get(testResult.historyId);
+
       if (maybeOther) {
         // if no start, means only duration is provided from result. In that case always use the latest (current).
         // Otherwise, compare by start timestamp, the latest wins.
         if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestTestResultByHistoryId.set(testResult.historyId, testResult);
+          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
           maybeOther.hidden = true;
         } else {
           testResult.hidden = true;
         }
       } else {
-        this.indexLatestTestResultByHistoryId.set(testResult.historyId, testResult);
+        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
       }
     }
 
@@ -359,10 +367,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return results;
   }
 
-  async testsStatistic() {
+  async testsStatistic(filter?: (testResult: TestResult) => boolean) {
     const all = await this.allTestResults();
+    const filtered = filter ? all.filter(filter) : all;
 
-    return all.reduce(
+    return filtered.reduce(
       (acc, test) => {
         if (!acc[test.status]) {
           acc[test.status] = 0;
@@ -372,7 +381,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         return acc;
       },
-      { total: all.length } as Statistic,
+      { total: filtered.length } as Statistic,
     );
   }
 
@@ -391,5 +400,69 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const allTrs = await this.allTestResults(options);
 
     return allTrs.filter((tr) => tr.environment === env);
+  }
+
+  async allTestEnvGroups() {
+    const allTr = await this.allTestResults({ includeHidden: true });
+    const trByTestCaseId = allTr.reduce(
+      (acc, tr) => {
+        const testCaseId = tr?.testCase?.id;
+
+        if (!testCaseId) {
+          return acc;
+        }
+
+        if (acc[testCaseId]) {
+          acc[testCaseId].push(tr);
+        } else {
+          acc[testCaseId] = [tr];
+        }
+
+        return acc;
+      },
+      {} as Record<string, TestResult[]>,
+    );
+
+    return Object.entries(trByTestCaseId).reduce((acc, [testCaseId, trs]) => {
+      if (trs.length === 0) {
+        return acc;
+      }
+
+      const { fullName, name } = trs[0];
+      const envGroup: TestEnvGroup = {
+        id: testCaseId,
+        fullName,
+        name,
+        status: getWorstStatus(trs.map(({ status }) => status)) ?? "passed",
+        testResultsByEnv: {},
+      };
+
+      trs.forEach((tr) => {
+        const env = matchEnvironment(this.#environmentsConfig, tr);
+
+        envGroup.testResultsByEnv[env] = tr.id;
+      });
+
+      return acc.concat(envGroup);
+    }, [] as TestEnvGroup[]);
+  }
+
+  async testEnvGroupByTestCaseId(id: string) {
+    const allEnvGroups = await this.allTestEnvGroups();
+
+    return allEnvGroups.find((group) => group.id === id);
+  }
+
+  // variables
+
+  async allVariables() {
+    return this.#reportVariables;
+  }
+
+  async envVariables(env: string) {
+    return {
+      ...this.#reportVariables,
+      ...(this.#environmentsConfig?.[env]?.variables ?? {}),
+    };
   }
 }

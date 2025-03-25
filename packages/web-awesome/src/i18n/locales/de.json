@@ -67,7 +67,8 @@
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
-    "no-test-case-results": "Keine Testergebnisse verfügbar"
+    "no-test-case-results": "Keine Testergebnisse verfügbar",
+    "no-environments-results": "Keine Umgebungsinformationen verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -82,6 +83,11 @@
     "setup": "Vorbereitung",
     "teardown": "Abbau"
   },
+  "environments": {
+    "environment_one": "Umgebung",
+    "environment_other": "Umgebungen",
+    "all": "Alle"
+  },
   "ui": {
     "labels": "Labels",
     "metadata": "Metadaten",
@@ -92,12 +98,14 @@
     "history": "Verlauf",
     "attachments": "Anhänge",
     "retries": "Wiederholungen",
+    "environments": "Umgebungen",
     "error": "Fehler",
     "goToStep": "Zum Schritt gehen",
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
     "at": "bei",
+    "variables": "Variablen",
     "openPwTrace": "Playwright Trace öffnen"
   },
   "controls": {

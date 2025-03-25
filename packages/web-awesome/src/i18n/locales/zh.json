@@ -67,7 +67,8 @@
     "no-history-results": "没有历史信息",
     "no-retries-results": "没有重试信息",
     "no-test-steps-results": "没有可用的测试步骤信息",
-    "no-test-case-results": "没有测试用例结果"
+    "no-test-case-results": "没有测试用例结果",
+    "no-environments-results": "没有环境信息"
   },
   "severity": {
     "blocker": "阻断",
@@ -82,6 +83,11 @@
     "setup": "设置",
     "teardown": "拆解"
   },
+  "environments": {
+    "environment_one": "环境",
+    "environment_other": "环境",
+    "all": "所有"
+  },
   "ui": {
     "labels": "标签",
     "metadata": "元数据",
@@ -92,12 +98,14 @@
     "history": "历史",
     "attachments": "附件",
     "retries": "重试",
+    "environments": "环境",
     "error": "错误",
     "goToStep": "跳转到步骤",
     "showLess": "显示更少",
     "showMore": "显示更多",
     "copy": "复制",
     "at": "在",
+    "variables": "变量",
     "openPwTrace": "打开 Playwright Trace"
   },
   "controls": {

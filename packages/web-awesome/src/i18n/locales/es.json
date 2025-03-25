@@ -67,7 +67,8 @@
     "no-history-results": "No hay información de historial disponible",
     "no-retries-results": "No hay información de reintentos disponible",
     "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",
-    "no-test-case-results": "No hay resultados de casos de prueba"
+    "no-test-case-results": "No hay resultados de casos de prueba",
+    "no-environments-results": "No hay información de entornos disponible"
   },
   "severity": {
     "blocker": "bloqueante",
@@ -82,6 +83,11 @@
     "setup": "Configuración",
     "teardown": "Desmontaje"
   },
+  "environments": {
+    "environment_one": "Entorno",
+    "environment_other": "Entornos",
+    "all": "Todo"
+  },
   "ui": {
     "labels": "Etiquetas",
     "metadata": "Metadatos",
@@ -92,12 +98,14 @@
     "history": "Historial",
     "attachments": "Adjuntos",
     "retries": "Reintentos",
+    "environments": "Entornos",
     "error": "Error",
     "goToStep": "Ir al paso",
     "showLess": "Mostrar menos",
     "showMore": "Mostrar más",
     "copy": "Copiar",
     "at": "a las",
+    "variables": "Variables",
     "openPwTrace": "Abrir Playwright Trace"
   },
   "controls": {

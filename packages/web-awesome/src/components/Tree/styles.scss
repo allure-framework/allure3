@@ -187,3 +187,18 @@
 .tree-item-marked {
   background: var(--bg-base-secondary);
 }
+
+.tree-section {
+  &:not(:last-child) {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
+  }
+}
+
+.tree-env-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 6px;
+}

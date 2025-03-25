@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { Stage, Status, layer } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -40,8 +40,8 @@ test.beforeAll(async () => {
   });
 });
 
-test.beforeEach(async ({ page }) => {
-  await layer("e2e");
+test.beforeEach(async ({ browserName, page }) => {
+  await label("env", browserName);
   await page.goto(bootstrap.url);
 });
 

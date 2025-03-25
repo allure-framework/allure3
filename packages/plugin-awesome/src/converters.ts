@@ -33,6 +33,8 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     links: tr.links,
     steps: tr.steps,
     error: tr.error,
+    testCase: tr.testCase,
+    environment: tr.environment,
     setup: [],
     teardown: [],
     history: [],

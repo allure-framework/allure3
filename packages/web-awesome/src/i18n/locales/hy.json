@@ -67,7 +67,8 @@
     "no-history-results": "Պատմության մասին տեղեկություններ չկան",
     "no-retries-results": "Կրկնությունների մասին տեղեկություններ չկան",
     "no-test-steps-results": "Թեստի քայլերի մասին տեղեկատվությունը հասանելի չէ։",
-    "no-test-case-results": "Թեստի դեպքերի արդյունքներ չկան։"
+    "no-test-case-results": "Թեստի դեպքերի արդյունքներ չկան։",
+    "no-environments-results": "Համակարգչային միջավայրի մասին տեղեկություններ չկան"
   },
   "severity": {
     "blocker": "արգելափակում",
@@ -82,6 +83,11 @@
     "setup": "Պատրաստում",
     "teardown": "Ավարտում"
   },
+  "environments": {
+    "environment_one": "Համակարգչային միջավայր",
+    "environment_other": "Համակարգչային միջավայրներ",
+    "all": "Բոլոր համակարգչային միջավայրները"
+  },
   "ui": {
     "labels": "Պիտակներ",
     "metadata": "Մետատվյալներ",
@@ -92,12 +98,14 @@
     "history": "Պատմություն",
     "attachments": "Կցորդներ",
     "retries": "Կրկնություններ",
+    "environments": "Համակարգչային միջավայրներ",
     "error": "Սխալ",
     "goToStep": "Գնալ քայլին",
     "showLess": "Ցուցադրել պակաս",
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "at": "է",
+    "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace"
   },
   "controls": {

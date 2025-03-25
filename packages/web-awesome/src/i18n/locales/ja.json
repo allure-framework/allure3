@@ -67,7 +67,8 @@
     "no-history-results": "履歴情報が利用できません",
     "no-retries-results": "再試行情報が利用できません",
     "no-test-steps-results": "テスト手順の情報は利用できません",
-    "no-test-case-results": "テストケースの結果がありません"
+    "no-test-case-results": "テストケースの結果がありません",
+    "no-environments-results": "環境情報が利用できません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -82,6 +83,11 @@
     "setup": "セットアップ",
     "teardown": "後処理"
   },
+  "environments": {
+    "environment_one": "環境",
+    "environment_other": "環境",
+    "all": "すべて"
+  },
   "ui": {
     "labels": "ラベル",
     "metadata": "メタデータ",
@@ -92,12 +98,14 @@
     "history": "履歴",
     "attachments": "添付ファイル",
     "retries": "再試行",
+    "environments": "環境",
     "error": "エラー",
     "goToStep": "ステップに移動",
     "showLess": "表示を減らす",
     "showMore": "もっと見る",
     "copy": "コピー",
     "at": "時",
+    "variables": "変数",
     "openPwTrace": "Playwright Trace を開く"
   },
   "controls": {

@@ -1,16 +1,15 @@
 import type { Statistic } from "@allurereport/core-api";
-import type { Signal } from "@preact/signals";
 import cx from "clsx";
-import type { RecursiveTree, Status, TreeFiltersState } from "global";
-import type { FunctionComponent } from "preact";
+import type { RecursiveTree, Status } from "global";
+import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { StoreSignalState } from "@/components/Loadable";
 import { TreeItem } from "@/components/Tree/TreeItem";
 import { TreeHeader } from "./TreeHeader";
 import styles from "./styles.scss";
 
 interface TreeProps {
   statistic?: Statistic;
+  reportStatistic?: Statistic;
   tree: RecursiveTree;
   name?: string;
   root?: boolean;
@@ -19,27 +18,23 @@ interface TreeProps {
   toggleTree: (id: string) => void;
   navigateTo: (id: string) => void;
   routeId?: string;
-  statsStore: Signal<StoreSignalState<Statistic>>;
-  treeFiltersStore: Signal<TreeFiltersState>;
 }
 
-export const Tree: FunctionComponent<TreeProps> = ({
+export const Tree: FunctionalComponent<TreeProps> = ({
   tree,
   statusFilter,
   root,
   name,
   statistic,
+  reportStatistic,
   collapsedTrees,
   toggleTree,
   routeId,
-  statsStore,
   navigateTo,
-  treeFiltersStore,
 }) => {
   const isEarlyCollapsed = collapsedTrees.has(tree.nodeId as string);
   const haveFailedSteps = statistic === undefined || !!statistic?.failed || !!statistic?.broken;
-  const [isOpened, setIsOpen] = useState(() => (isEarlyCollapsed ? !haveFailedSteps : haveFailedSteps));
-
+  const [isOpened, setIsOpen] = useState(() => root || (isEarlyCollapsed ? !haveFailedSteps : haveFailedSteps));
   const toggleTreeHeader = () => {
     setIsOpen(!isOpened);
     toggleTree(tree.nodeId as string);
@@ -64,13 +59,12 @@ export const Tree: FunctionComponent<TreeProps> = ({
           name={subTree.name}
           tree={subTree}
           statistic={subTree.statistic}
+          reportStatistic={reportStatistic}
           statusFilter={statusFilter}
           collapsedTrees={collapsedTrees}
           toggleTree={toggleTree}
           routeId={routeId}
           navigateTo={navigateTo}
-          statsStore={statsStore}
-          treeFiltersStore={treeFiltersStore}
         />
       ))}
       {tree?.leaves?.map?.((leaf) => (
@@ -93,12 +87,12 @@ export const Tree: FunctionComponent<TreeProps> = ({
     <div className={styles.tree}>
       {name && (
         <TreeHeader
-          treeFiltersStore={treeFiltersStore.value}
-          statsStore={statsStore}
+          statusFilter={statusFilter}
           categoryTitle={name}
           isOpened={isOpened}
           toggleTree={toggleTreeHeader}
           statistic={statistic}
+          reportStatistic={reportStatistic}
         />
       )}
       {treeContent}
