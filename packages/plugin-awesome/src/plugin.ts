@@ -1,5 +1,5 @@
 import { type EnvironmentItem } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import type { AllureStore, Plugin, PluginContext, PluginInfo } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import {
@@ -108,4 +108,11 @@ export class AwesomePlugin implements Plugin {
 
     await this.#generate(context, store);
   };
+
+  async info(context: PluginContext, store: AllureStore): Promise<PluginInfo> {
+    return {
+      name: this.options.reportName || context.reportName,
+      stats: await store.testsStatistic(this.options.filter),
+    };
+  }
 }

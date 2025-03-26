@@ -7,6 +7,7 @@ import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
 import { opendir, realpath } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { join as joinPosix } from "node:path/posix";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { createHistory, writeHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
@@ -186,16 +187,21 @@ export class AllureReport {
       await writeHistory(this.#historyPath, historyDataPoint);
     }
 
-    const pluginsInfo: PluginInfo[] = [];
+    const pluginsInfo: (PluginInfo & {
+      output: string;
+    })[] = [];
 
-    await this.#eachPlugin(false, async (plugin, context) => {
+    await this.#eachPlugin(false, async (plugin, context, id) => {
       if (!plugin.info) {
         return;
       }
 
       const pluginInfo = await plugin.info(context, this.#store);
 
-      pluginsInfo.push(pluginInfo);
+      pluginsInfo.push({
+        ...pluginInfo,
+        output: joinPosix("/", id),
+      });
     });
 
     if (!pluginsInfo.length) {
@@ -205,7 +211,10 @@ export class AllureReport {
     console.log("plugins info", pluginsInfo);
   };
 
-  #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
+  #eachPlugin = async (
+    initState: boolean,
+    consumer: (plugin: Plugin, context: PluginContext, id: string) => Promise<void>,
+  ) => {
     if (initState) {
       // reset state on start;
       this.#state = {};
@@ -235,7 +244,7 @@ export class AllureReport {
       };
 
       try {
-        await consumer.call(this, plugin, pluginContext);
+        await consumer.call(this, plugin, pluginContext, id);
 
         if (initState) {
           this.#state![id] = pluginState;
