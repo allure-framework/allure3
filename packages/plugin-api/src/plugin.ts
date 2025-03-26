@@ -1,3 +1,4 @@
+import type { Statistic } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -22,6 +23,12 @@ export interface PluginContext {
   reportUuid: string;
   reportName: string;
   reportFiles: ReportFiles;
+}
+
+export interface PluginInfo {
+  name: string;
+  id: string;
+  stats: Statistic;
 }
 
 export interface BatchOptions {
