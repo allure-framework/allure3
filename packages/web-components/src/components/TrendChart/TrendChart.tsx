@@ -22,9 +22,9 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   const handleClick = useCallback(
     (data: Point | Slice, event: MouseEvent): void => {
       if (kind === TrendChartKind.Mesh) {
-        return (restProps as MeshTrendChartProps)?.onClick?.(data as Point, event);
+        (restProps as MeshTrendChartProps)?.onClick?.(data as Point, event);
       } else if ([TrendChartKind.SlicesX, TrendChartKind.SlicesY].includes(kind)) {
-        return (restProps as SlicesTrendChartProps)?.onSliceClick?.(data as Slice, event);
+        (restProps as SlicesTrendChartProps)?.onSliceClick?.(data as Slice, event);
       }
     },
     [kind, restProps],
@@ -33,9 +33,9 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   const handleTouchEnd = useCallback(
     (data: Point | Slice, event: TouchEvent): void => {
       if (kind === TrendChartKind.Mesh) {
-        return (restProps as MeshTrendChartProps)?.onTouchEnd?.(data as Point, event);
+        (restProps as MeshTrendChartProps)?.onTouchEnd?.(data as Point, event);
       } else if ([TrendChartKind.SlicesX, TrendChartKind.SlicesY].includes(kind)) {
-        return (restProps as SlicesTrendChartProps)?.onSliceTouchEnd?.(data as Slice, event);
+        (restProps as SlicesTrendChartProps)?.onSliceTouchEnd?.(data as Slice, event);
       }
     },
     [kind, restProps],
