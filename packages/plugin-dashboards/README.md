@@ -1,25 +1,25 @@
 # Allure Dashboards Plugin
 
-Плагин для генерации дашбордов с графиками трендов для отчетов Allure.
+Plugin for generating dashboard with trend graphs for Allure reports.
 
-## Установка
+## Installation
 
 ```bash
 npm install @allurereport/plugin-dashboards
 ```
 
-## Использование
+## Usage
 
 ```typescript
 import { DashboardsPlugin } from "@allurereport/plugin-dashboards";
 
-// Создание экземпляра плагина
+// Create plugin instance
 const dashboardsPlugin = new DashboardsPlugin({
-  // Опции плагина
+  // Plugin options
   singleFile: false
 });
 
-// Добавление плагина в конфигурацию Allure
+// Add plugin to Allure configuration
 const allure = new AllureReport({
   // ...
   plugins: [
@@ -29,26 +29,26 @@ const allure = new AllureReport({
 });
 ```
 
-## Типы графиков
+## Chart Types
 
-### Тренды статусов
+### Status Trends
 
-Графики трендов статусов показывают изменение статусов тестов с течением времени.
+Status trend charts show how test statuses change over time.
 
-### Тренды серьезности
+### Severity Trends
 
-Графики трендов серьезности показывают изменение распределения тестов по уровням серьезности с течением времени.
+Severity trend charts show how the distribution of tests by severity levels changes over time.
 
 ## API
 
 ### DashboardsPlugin
 
-Основной класс плагина.
+Main plugin class.
 
-#### Опции
+#### Options
 
-- `singleFile` - если `true`, то данные дашборда будут сохранены в памяти, а не в файлах.
+- `singleFile` - if `true`, dashboard data will be stored in memory instead of files.
 
-## Лицензия
+## License
 
 Apache-2.0 

@@ -1,6 +1,6 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
-import { getSeverityTrendData } from "./charts/severity-trend.js";
-import { getStatusTrendData } from "./charts/status-trend.js";
+import { getSeverityTrendData } from "./charts/severityTrend.js";
+import { getStatusTrendData } from "./charts/statusTrend.js";
 import type { DashboardsPluginOptions } from "./model.js";
 import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
 

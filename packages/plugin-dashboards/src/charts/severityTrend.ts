@@ -6,7 +6,7 @@ import {
   createEmptyStats,
   getTrendDataGeneric,
   mergeTrendDataGeneric,
-} from "../utils/trend-utils.js";
+} from "../utils/trend.js";
 
 export const getSeverityTrendData = (
   testResults: TestResult[],

@@ -1,5 +1,5 @@
 export type DashboardsOptions = {
-  // Опции для настройки графиков
+  // Chart options
   singleFile?: boolean;
 };
 
