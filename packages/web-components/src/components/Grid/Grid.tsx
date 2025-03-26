@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { ComponentChildren, FunctionComponent } from "preact";
+import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
 import { useMemo, useRef } from "preact/hooks";
 import type { Options } from "sortablejs";
@@ -9,10 +9,6 @@ import { useSortable } from "./hooks";
 export type GridKind = "default" | "swap";
 
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Child elements to render within the layout.
-   */
-  children: ComponentChildren;
 
   /**
    * Options to configure SortableJS behavior.

@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 import type { JSX } from "preact";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
+import draggable from "@/assets/svg/draggable.svg";
 import github from "@/assets/svg/github.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
@@ -64,6 +65,7 @@ import styles from "./styles.scss";
 export const allureIcons = {
   arrowsChevronDown: arrowsChevronDown.id,
   github: github.id,
+  draggable: draggable.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
   lineAlertsNotificationBox: lineAlertsNotificationBox.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
