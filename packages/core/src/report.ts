@@ -1,4 +1,4 @@
-import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { Plugin, PluginContext, PluginInfo, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
@@ -182,8 +182,27 @@ export class AllureReport {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
       const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
+
       await writeHistory(this.#historyPath, historyDataPoint);
     }
+
+    const pluginsInfo: PluginInfo[] = [];
+
+    await this.#eachPlugin(false, async (plugin, context) => {
+      if (!plugin.info) {
+        return;
+      }
+
+      const pluginInfo = await plugin.info(context, this.#store);
+
+      pluginsInfo.push(pluginInfo);
+    });
+
+    if (!pluginsInfo.length) {
+      return;
+    }
+
+    console.log("plugins info", pluginsInfo);
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
