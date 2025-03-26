@@ -6,7 +6,7 @@ import {
   getTrendDataGeneric,
   mergeTrendDataGeneric,
   normalizeStatistic,
-} from "../utils/trend-utils.js";
+} from "../utils/trend.js";
 
 export const getStatusTrendData = (
   currentStatistic: Statistic,
