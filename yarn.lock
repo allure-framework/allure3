@@ -224,6 +224,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-awesome@workspace:packages/plugin-awesome"
   dependencies:
+    "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"

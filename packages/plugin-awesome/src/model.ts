@@ -1,4 +1,4 @@
-import type { EnvironmentsConfig } from "@allurereport/core-api";
+import type { EnvironmentsConfig, TestResult } from "@allurereport/core-api";
 
 export type AwesomeOptions = {
   reportName?: string;
@@ -14,6 +14,7 @@ export type AwesomeOptions = {
     url: string;
     name: string;
   };
+  filter?: (testResult: TestResult) => boolean;
 };
 
 export type TemplateManifest = Record<string, string>;
