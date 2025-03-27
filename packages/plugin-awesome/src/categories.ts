@@ -28,14 +28,15 @@ export const matchCategories = (
 
 const categoryMatch = (
   category: AwesomeCategory,
-  result: { statusMessage?: string; statusTrace?: string; status: TestStatus; flaky: boolean },
+  result: { message?: string; trace?: string; status: TestStatus; flaky: boolean },
 ): boolean => {
-  const { status, statusMessage, statusTrace, flaky } = result;
+  const { status, message, trace, flaky } = result;
   const matchesStatus =
     !category.matchedStatuses || category.matchedStatuses.length === 0 || category.matchedStatuses.includes(status);
-  const matchesMessage = match(category.messageRegex, statusMessage);
-  const matchesTrace = match(category.traceRegex, statusTrace);
+  const matchesMessage = match(category.messageRegex, message);
+  const matchesTrace = match(category.traceRegex, trace);
   const matchesFlaky = (category.flaky ?? flaky) === flaky;
+
   return matchesStatus && matchesMessage && matchesTrace && matchesFlaky;
 };
 
@@ -47,8 +48,7 @@ const match = (regex?: string, value?: string): boolean => {
     return false;
   }
   try {
-    const b = new RegExp(regex, "s").test(value);
-    return b;
+    return new RegExp(regex, "s").test(value);
   } catch (ignored) {
     return false;
   }
