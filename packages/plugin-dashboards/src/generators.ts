@@ -1,11 +1,11 @@
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import type { AvailableTrendChartData } from "./types.js";
+import type { ChartId, GeneratedChartsData } from "./types.js";
 import { getSeverityTrendData } from "./charts/severityTrend.js";
 import { getStatusTrendData } from "./charts/statusTrend.js";
 
-import type { ChartType, DashboardsPluginOptions } from "./model.js";
+import type { DashboardsPluginOptions } from "./model.js";
 
-export const generateCharts = async (options: DashboardsPluginOptions, store: AllureStore, context: PluginContext): Promise<Record<ChartType, AvailableTrendChartData> | undefined> => {
+export const generateCharts = async (options: DashboardsPluginOptions, store: AllureStore, context: PluginContext) => {
   const { layout } = options;
 
   if (!layout) {
@@ -13,23 +13,24 @@ export const generateCharts = async (options: DashboardsPluginOptions, store: Al
   }
 
   const historyDataPoints = await store.allHistoryDataPoints();
-    const statistic = await store.testsStatistic();
-    const testResults = await store.allTestResults();
+  const statistic = await store.testsStatistic();
+  const testResults = await store.allTestResults();
 
-    return layout?.reduce((acc, chart) => {
-      const { type } = chart;
+  return layout?.reduce((acc, chartOptions) => {
+    const { type, mode = "raw" } = chartOptions;
+    const chartId = `${type}-${mode}` satisfies ChartId;
 
-      switch (type) {
-        case "status":
-          acc[type] = getStatusTrendData(statistic, context.reportName, historyDataPoints);
-          break;
-        case "severity":
-          acc[type] = getSeverityTrendData(testResults, context.reportName, historyDataPoints);
-          break;
-        default:
-          break;
-      }
+    switch (type) {
+      case "status":
+        acc[chartId] = getStatusTrendData(statistic, context.reportName, historyDataPoints, chartOptions);
+        break;
+      case "severity":
+        acc[chartId] = getSeverityTrendData(testResults, context.reportName, historyDataPoints, chartOptions);
+        break;
+      default:
+        break;
+    }
 
-      return acc;
-    }, {} as Record<ChartType, AvailableTrendChartData>);
+    return acc;
+  }, {} as GeneratedChartsData);
 };

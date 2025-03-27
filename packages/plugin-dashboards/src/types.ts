@@ -1,5 +1,16 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 
+export type ChartType = "status" | "severity";
+
+export type ChartMode = "raw" | "percent";
+
+export type ChartId = `${ChartType}-${ChartMode}`;
+
+export type ChartOptions = {
+  type: ChartType;
+  mode?: ChartMode;
+};
+
 // Type aliases for meaningful string keys
 export type TrendPointId = string;
 export type TrendSliceId = string;
@@ -29,6 +40,7 @@ export type TrendSlice<Metadata extends BaseMetadata> = {
 };
 
 export type TrendChartData<Metadata extends BaseMetadata, SeriesType extends string> = {
+  type: ChartType;
   // Points for all series
   points: Record<TrendPointId, TrendPoint>;
   // Slices for all series
@@ -51,4 +63,4 @@ export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
 export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
 export type SeverityTrendChartData = TrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
 
-export type AvailableTrendChartData = StatusTrendChartData | SeverityTrendChartData;
+export type GeneratedChartsData = Record<ChartId, StatusTrendChartData | SeverityTrendChartData>;
