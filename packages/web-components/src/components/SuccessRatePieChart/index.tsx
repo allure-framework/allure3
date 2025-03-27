@@ -1,4 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
+import cx from "clsx";
 import { Heading } from "@/components/Typography";
 import styles from "./styles.scss";
 
@@ -8,9 +9,10 @@ type Slice = {
   d: string;
 };
 
-type Props = {
+type SuccessRatePieChartProps = {
   slices: Slice[];
   percentage: number;
+  className?: string;
 };
 
 const getColorFromStatus = (status: TestStatus) => {
@@ -30,11 +32,9 @@ const getColorFromStatus = (status: TestStatus) => {
   }
 };
 
-export const SuccessRatePieChart = (props: Props) => {
-  const { slices, percentage } = props;
-
+export const SuccessRatePieChart = ({ slices, percentage, className }: SuccessRatePieChartProps) => {
   return (
-    <article aria-label="Success rate" role="presentation" className={styles.chart}>
+    <article aria-label="Success rate" role="presentation" className={cx(styles.chart, className)}>
       <svg aria-hidden viewBox="0 0 100 100">
         <g transform={"translate(50, 50)"}>
           {slices.map((slice) => (

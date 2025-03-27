@@ -1,4 +1,4 @@
-import type { Statistic } from "@allurereport/core-api";
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -28,6 +28,9 @@ export interface PluginContext {
 export interface PluginInfo {
   name: string;
   stats: Statistic;
+  status: TestStatus;
+  duration: number;
+  href?: string;
 }
 
 export interface BatchOptions {

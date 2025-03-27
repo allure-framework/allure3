@@ -1,0 +1,35 @@
+:root {
+  --showcase-width: 940px;
+}
+
+.summary-showcase {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-width: var(--showcase-width);
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.summary-card {
+  display: block;
+  padding: 16px;
+  height: 100%;
+  text-decoration: none;
+  box-shadow: var(--shadow-small);
+  background: var(--bg-base-primary);
+  border-radius: 12px;
+
+  &:hover {
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+  }
+}
+
+.summary-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0 4px;
+  color: var(--on-text-secondary);
+  margin-top: 12px;
+}
