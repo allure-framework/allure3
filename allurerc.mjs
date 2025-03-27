@@ -6,9 +6,24 @@ export default defineConfig({
   plugins: {
     awesome: {
       options: {
-        singleFile: true,
+        singleFile: false,
         reportLanguage: "en",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
+      },
+    },
+    dashboards: {
+      options: {
+        singleFile: false,
+        reportLanguage: "en",
+        layout: [
+          {
+            type: "status",
+            mode: "percent",
+          },
+          {
+            type: "status",
+          },
+        ],
       },
     },
     log: {

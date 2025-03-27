@@ -127,10 +127,7 @@
   },
   "charts": {
     "trend": {
-      "title": {
-        "status": "Test Status Trend",
-        "severity": "Test Severity Trend"
-      }
+      "title": "Trend Test: {{chartId}}"
     },
     "pie": {
       "title": "Test Success Rate"
