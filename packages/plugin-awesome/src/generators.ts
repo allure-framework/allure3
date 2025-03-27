@@ -2,14 +2,25 @@ import {
   type AttachmentLink,
   type EnvironmentItem,
   type Statistic,
+  type TreeGroup,
+  type TreeLeaf,
   compareBy,
   incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
-import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type ReportFiles,
+  type ResultFile,
+  createTreeByCategories,
+  createTreeByLabels,
+  filterTree,
+  sortTree,
+  transformTree,
+} from "@allurereport/plugin-api";
 import type {
+  AwesomeCategory,
   AwesomeFixtureResult,
   AwesomeReportOptions,
   AwesomeTestResult,
@@ -27,6 +38,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
+import { matchCategories } from "./categories.js";
 import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
@@ -117,6 +129,16 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     const trFixtures = await store.fixturesByTrId(tr.id);
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr);
+
+    const { error, status, flaky } = convertedTr;
+    const categories: AwesomeCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
+
+    convertedTr.categories = matchCategories(categories, {
+      message: error?.message,
+      trace: error?.trace,
+      status,
+      flaky,
+    });
 
     convertedTr.history = await store.historyByTrId(tr.id);
     convertedTr.retries = await store.retriesByTrId(tr.id);
@@ -318,4 +340,41 @@ export const generateStaticFiles = async (
   });
 
   await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+};
+
+export const generateTreeByCategories = async (
+  writer: AwesomeDataWriter,
+  treeName: string,
+  tests: AwesomeTestResult[],
+) => {
+  const visibleTests = tests.filter((test) => !test.hidden);
+
+  const tree = createTreeByCategories<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    visibleTests,
+    ({ id, name, status, duration, flaky, start, retries }: AwesomeTestResult) => {
+      return {
+        nodeId: id,
+        retry: !!retries?.length,
+        name,
+        status,
+        duration,
+        flaky,
+        start,
+      };
+    },
+    undefined,
+    (group: TreeGroup<AwesomeTreeGroup>, leaf: TreeLeaf<AwesomeTreeLeaf>) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
+  );
+
+  // @ts-ignore
+  filterTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>) => !leaf.hidden);
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  transformTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>, idx: number) => ({
+    ...leaf,
+    groupOrder: idx + 1,
+  }));
+
+  await writer.writeWidget(`${treeName}.json`, tree);
 };

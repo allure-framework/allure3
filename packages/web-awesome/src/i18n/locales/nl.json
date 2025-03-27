@@ -98,7 +98,9 @@
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
     "at": "om",
-    "openPwTrace": "Playwright Trace openen"
+    "openPwTrace": "Playwright Trace openen",
+    "suites": "Testreeksen",
+    "categories": "Categorieën"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

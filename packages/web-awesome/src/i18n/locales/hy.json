@@ -98,7 +98,9 @@
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
     "at": "է",
-    "openPwTrace": "Բացել Playwright Trace"
+    "openPwTrace": "Բացել Playwright Trace",
+    "suites": "Թեստերի հավաքածուներ",
+    "categories": "Կատեգորիաներ"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",
