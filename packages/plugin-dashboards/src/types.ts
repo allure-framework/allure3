@@ -50,3 +50,5 @@ export interface SeverityMetadata extends BaseTrendSliceMetadata {}
 export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
 export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
 export type SeverityTrendChartData = TrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
+
+export type AvailableTrendChartData = StatusTrendChartData | SeverityTrendChartData;
