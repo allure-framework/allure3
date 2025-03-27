@@ -1,12 +1,4 @@
-
-export type ChartType = "severity" | "status";
-
-export type ChartMode = "raw" | "percent";
-
-export type ChartOptions = {
-  type: ChartType;
-  mode?: ChartMode;
-};
+import type { ChartOptions } from "./types.js";
 
 export type DashboardsOptions = {
   singleFile?: boolean;

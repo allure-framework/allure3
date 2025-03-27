@@ -1,9 +1,21 @@
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import type { SeverityLevel, Statistic, TestStatus } from "@allurereport/core-api";
-import type { BaseTrendSliceMetadata, TrendChartData, TrendPointId } from "../types.js";
+import type {
+  BaseTrendSliceMetadata,
+  ChartOptions,
+  TrendChartData,
+  TrendPoint,
+  TrendPointId,
+} from "../types.js";
 
 // Common type for trend data operations
 type TrendDataType = TestStatus | SeverityLevel;
+
+// Type for calculation result
+type TrendCalculationResult<T extends TrendDataType> = {
+  points: Record<TrendPointId, TrendPoint>;
+  series: Record<T, TrendPointId[]>;
+};
 
 // Constants for type safety
 export const STATUS_LIST = statusesList as readonly TestStatus[];
@@ -29,6 +41,64 @@ export const normalizeStatistic = (statistic: Statistic): Record<TestStatus, num
   );
 };
 
+// Helper for calculating raw mode values
+const calculateRawValues = <T extends TrendDataType>(
+  stats: Record<T, number>,
+  executionId: string,
+  itemType: readonly T[],
+): TrendCalculationResult<T> => {
+  const points: Record<TrendPointId, TrendPoint> = {};
+  const series = createEmptySeries(itemType);
+
+  itemType.forEach((item) => {
+    const pointId = `${executionId}-${item}`;
+    const value = stats[item] ?? 0;
+
+    if (value) {
+      points[pointId] = {
+        x: executionId,
+        y: value,
+      };
+
+      series[item].push(pointId);
+    }
+  });
+
+  return { points, series };
+};
+
+// Helper for calculating percent mode values
+const calculatePercentValues = <T extends TrendDataType>(
+  stats: Record<T, number>,
+  executionId: string,
+  itemType: readonly T[],
+): TrendCalculationResult<T> => {
+  const points: Record<TrendPointId, TrendPoint> = {};
+  const series = createEmptySeries(itemType);
+  const values = Object.values<number>(stats);
+  const total = values.reduce<number>((sum, value) => sum + value, 0);
+
+  if (total === 0) {
+    return { points, series };
+  }
+
+  itemType.forEach((item) => {
+    const pointId = `${executionId}-${item}`;
+    const value = stats[item] ?? 0;
+
+    if (value) {
+      points[pointId] = {
+        x: executionId,
+        y: (value / total) * 100,
+      };
+
+      series[item].push(pointId);
+    }
+  });
+
+  return { points, series };
+};
+
 // Helper for merging trend data
 export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
   trendData: TrendChartData<M, T>,
@@ -36,6 +106,7 @@ export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extend
   itemType: readonly T[],
 ): TrendChartData<M, T> => {
   return {
+    type: trendData.type,
     points: {
       ...trendData.points,
       ...trendDataPart.points,
@@ -68,25 +139,15 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   reportName: string,
   executionOrder: number,
   itemType: readonly T[],
+  chartOptions: ChartOptions,
 ): TrendChartData<M, T> => {
-  const points: Record<TrendPointId, { x: string; y: number }> = {};
-  const slices: Record<string, { min: number; max: number; metadata: M }> = {};
-  const series = createEmptySeries(itemType);
+  const { type, mode = "raw" } = chartOptions;
   const executionId = `execution-${executionOrder}`;
+  const { points, series } = mode === "percent"
+    ? calculatePercentValues(stats, executionId, itemType)
+    : calculateRawValues(stats, executionId, itemType);
 
-  // Create points and populate series
-  itemType.forEach((item) => {
-    const pointId = `${executionId}-${item}`;
-
-    if (stats[item]) {
-      points[pointId] = {
-        x: executionId,
-        y: stats[item] ?? 0,
-      };
-
-      series[item].push(pointId);
-    }
-  });
+  const slices: Record<string, { min: number; max: number; metadata: M }> = {};
 
   // Create slice
   const pointsAsArray = Object.values(points);
@@ -108,6 +169,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   }
 
   return {
+    type,
     points,
     slices,
     series,

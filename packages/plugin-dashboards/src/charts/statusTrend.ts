@@ -1,5 +1,5 @@
 import type { HistoryDataPoint, Statistic } from "@allurereport/core-api";
-import type { StatusTrendChartData } from "../types.js";
+import type { ChartOptions, StatusTrendChartData } from "../types.js";
 import {
   STATUS_LIST,
   createEmptySeries,
@@ -12,6 +12,7 @@ export const getStatusTrendData = (
   currentStatistic: Statistic,
   reportName: string,
   historyPoints: HistoryDataPoint[],
+  chartOptions: ChartOptions,
 ): StatusTrendChartData => {
   // Convert history points to statistics
   const convertedHistoryPoints = historyPoints.map((point) => ({
@@ -35,6 +36,7 @@ export const getStatusTrendData = (
     reportName,
     convertedHistoryPoints.length + 1,
     STATUS_LIST,
+    chartOptions
   );
 
   // Process historical data
@@ -45,11 +47,13 @@ export const getStatusTrendData = (
         historyPoint.name,
         convertedHistoryPoints.length - index,
         STATUS_LIST,
+        chartOptions
       );
 
       return mergeTrendDataGeneric(acc, trendDataPart, STATUS_LIST);
     },
     {
+      type: chartOptions.type,
       points: {},
       slices: {},
       series: createEmptySeries(STATUS_LIST),

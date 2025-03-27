@@ -1,5 +1,5 @@
 import type { HistoryDataPoint, SeverityLevel, TestResult } from "@allurereport/core-api";
-import type { SeverityTrendChartData } from "../types.js";
+import type { ChartOptions, SeverityTrendChartData } from "../types.js";
 import {
   SEVERITY_LIST,
   createEmptySeries,
@@ -12,6 +12,7 @@ export const getSeverityTrendData = (
   testResults: TestResult[],
   reportName: string,
   historyPoints: HistoryDataPoint[],
+  chartOptions: ChartOptions,
 ): SeverityTrendChartData => {
   // Convert history points to statistics by severity
   const convertedHistoryPoints = historyPoints.map((point) => ({
@@ -46,6 +47,7 @@ export const getSeverityTrendData = (
     reportName,
     convertedHistoryPoints.length + 1,
     SEVERITY_LIST,
+    chartOptions
   );
 
   // Process historical data
@@ -56,11 +58,13 @@ export const getSeverityTrendData = (
         historyPoint.name,
         convertedHistoryPoints.length - index,
         SEVERITY_LIST,
+        chartOptions
       );
 
       return mergeTrendDataGeneric(acc, trendDataPart, SEVERITY_LIST);
     },
     {
+      type: chartOptions.type,
       points: {},
       slices: {},
       series: createEmptySeries(SEVERITY_LIST),
