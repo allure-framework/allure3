@@ -17,7 +17,12 @@ interface Slice {
 
 type ChartType = "status" | "severity";
 
+type ChartMode = "percent" | "raw";
+
+type ChartId = `${ChartType}-${ChartMode}`;
+
 interface ChartData {
+  type: ChartType;
   min: number;
   max: number;
   points: Record<string, Point>;
@@ -26,7 +31,7 @@ interface ChartData {
 }
 
 interface TrendResponse {
-  charts: Partial<Record<ChartType, ChartData>>;
+  charts: Partial<Record<ChartId, ChartData>>;
 }
 
 interface TrendChartItem {
@@ -43,7 +48,7 @@ interface TrendChartData {
 }
 
 interface TrendData {
-  charts: Partial<Record<ChartType, TrendChartData>>;
+  charts: Partial<Record<ChartId, TrendChartData>>;
 }
 
 const statusColors: Record<TestStatus, string> = {
@@ -112,23 +117,32 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
   };
 };
 
-const createStatusChartData = (res: TrendResponse): TrendChartData | undefined =>
+const createStatusChartData = (chartId: ChartId, res: TrendResponse): TrendChartData | undefined =>
   createChartData(
-    () => res.charts.status,
+    () => res.charts[chartId],
     () => statusesList,
     (status) => statusColors[status],
   );
-const createSeverityChartData = (res: TrendResponse): TrendChartData | undefined =>
+const createSeverityChartData = (chartId: ChartId, res: TrendResponse): TrendChartData | undefined =>
   createChartData(
-    () => res.charts.severity,
+    () => res.charts[chartId],
     () => severityLevels,
     (severity) => severityColors[severity],
   );
 
-const makeCharts = (res: TrendResponse): TrendData["charts"] => ({
-  status: res.charts.status ? createStatusChartData(res) : undefined,
-  severity: res.charts.severity ? createSeverityChartData(res) : undefined,
-});
+const makeCharts = (res: TrendResponse): TrendData["charts"] => {
+  return Object.entries(res.charts).reduce((acc, [chartId, chart]) => {
+    const { type } = chart;
+
+    if (type === "status") {
+      acc[chartId] = createStatusChartData(chartId as ChartId, res);
+    } else if (type === "severity") {
+      acc[chartId] = createSeverityChartData(chartId as ChartId, res);
+    }
+
+    return acc;
+  }, {} as Record<ChartId, TrendChartData>);
+};
 
 export const fetchTrendData = async () => {
   trendStore.value = {

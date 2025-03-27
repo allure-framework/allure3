@@ -4,7 +4,7 @@
 import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
-import { useI18n } from "@/stores/locale";
+import { useI18n } from "@/stores";
 import * as styles from "./Overview.module.scss";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
@@ -21,13 +21,13 @@ const Overview = () => {
       source={chartsStore}
       renderLoader={() => <PageLoader />}
       renderData={({ pie, trends }) => {
-        const pieTitle = t("charts.pie.title");
+        const pieTitle = t("pie.title");
 
-        const TrendChartGridItems = Object.entries(trends.charts).map(([key, value]) => {
-          const title = t(`charts.trend.title.${key}`);
+        const TrendChartGridItems = Object.entries(trends.charts).map(([chartId, value]) => {
+          const title = t("trend.title", { chartId });
 
           return (
-            <GridItem key={key} className={styles.overviewGridItem}>
+            <GridItem key={chartId} className={styles["overview-grid-item"]}>
               <TrendChartWidget
                 title={title}
                 items={value.items}
