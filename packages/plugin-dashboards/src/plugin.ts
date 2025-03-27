@@ -1,8 +1,7 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
-import { getSeverityTrendData } from "./charts/severityTrend.js";
-import { getStatusTrendData } from "./charts/statusTrend.js";
 import type { DashboardsPluginOptions } from "./model.js";
 import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
+import { generateCharts } from "./generators.js";
 
 export class DashboardsPlugin implements Plugin {
   #writer: DashboardsDataWriter | undefined;
@@ -10,20 +9,11 @@ export class DashboardsPlugin implements Plugin {
   constructor(readonly options: DashboardsPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const statistic = await store.testsStatistic();
-    const historyDataPoints = await store.allHistoryDataPoints();
-    const testResults = await store.allTestResults();
+    const charts = await generateCharts(this.options, store, context);
 
-    // Trend data generation
-    const statusTrendData = getStatusTrendData(statistic, context.reportName, historyDataPoints);
-    const severityTrendData = getSeverityTrendData(testResults, context.reportName, historyDataPoints);
-
-    await this.#writer!.writeWidget("history-trend.json", {
-      charts: {
-        status: statusTrendData,
-        severity: severityTrendData,
-      },
-    });
+    if (charts && Object.keys(charts).length > 0) {
+      await this.#writer!.writeWidget("history-trend.json", { charts });
+    }
   };
 
   start = async (context: PluginContext): Promise<void> => {
