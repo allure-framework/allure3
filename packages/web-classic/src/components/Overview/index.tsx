@@ -10,7 +10,7 @@ import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
 
 const Overview = () => {
-  const { t } = useI18n("charts");
+  const { t } = useI18n('charts');
 
   useEffect(() => {
     fetchChartsData();
