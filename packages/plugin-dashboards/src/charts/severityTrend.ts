@@ -14,8 +14,13 @@ export const getSeverityTrendData = (
   historyPoints: HistoryDataPoint[],
   chartOptions: ChartOptions,
 ): SeverityTrendChartData => {
+  // Apply limit to history points if specified
+  const limitedHistoryPoints = chartOptions.limit
+    ? historyPoints.slice(-chartOptions.limit)
+    : historyPoints;
+
   // Convert history points to statistics by severity
-  const convertedHistoryPoints = historyPoints.map((point) => ({
+  const convertedHistoryPoints = limitedHistoryPoints.map((point) => ({
     name: point.name,
     statistic: Object.values(point.testResults).reduce((stat, test) => {
       const severityLabel = test.labels?.find((label) => label.name === "severity");

@@ -6,10 +6,13 @@ export type ChartMode = "raw" | "percent";
 
 export type ChartId = `${ChartType}-${ChartMode}`;
 
-export type ChartOptions = {
+export type TrendChartOptions = {
   type: ChartType;
   mode?: ChartMode;
+  limit?: number;
 };
+
+export type ChartOptions = TrendChartOptions;
 
 // Type aliases for meaningful string keys
 export type TrendPointId = string;

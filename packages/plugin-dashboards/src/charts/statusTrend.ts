@@ -14,8 +14,15 @@ export const getStatusTrendData = (
   historyPoints: HistoryDataPoint[],
   chartOptions: ChartOptions,
 ): StatusTrendChartData => {
+  const { limit } = chartOptions;
+
+  // Apply limit to history points if specified
+  const limitedHistoryPoints = limit
+    ? historyPoints.slice(-limit)
+    : historyPoints;
+
   // Convert history points to statistics
-  const convertedHistoryPoints = historyPoints.map((point) => ({
+  const convertedHistoryPoints = limitedHistoryPoints.map((point) => ({
     name: point.name,
     statistic: Object.values(point.testResults).reduce(
       (stat: Statistic, test) => {
