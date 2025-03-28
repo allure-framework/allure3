@@ -37,7 +37,7 @@ const App = () => {
               return (
                 <li key={summary.output}>
                   <ReportCard
-                    href={summary.output}
+                    href={summary.href}
                     name={summary.name}
                     status={summary.status}
                     stats={summary.stats}

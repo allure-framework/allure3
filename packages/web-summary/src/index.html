@@ -23,79 +23,62 @@
     <script>
       window.reportSummaries = [
         {
-          name: "Example report asdlkjaslkdalskdalksdlkasjdlakdl asdasd asdasd",
-          output: "/foo/bar",
+          name: "First sample report",
+          href: "#",
           stats: {
-            passed: 1,
-            failed: 2,
-            total: 3
+            passed: 100,
+            failed: 31,
+            broken: 5,
+            skipped: 1,
+            unknown: 2,
+            total: 139
           },
-          duration: 100,
+          duration: 1240812,
           status: "failed",
-          environments: ["foo", "bar"]
         },
         {
-          name: "Example report",
-          output: "/foo/bar",
+          name: "Second sample report with longer title",
+          href: "#",
           stats: {
-            passed: 2,
-            failed: 5,
-            total: 3
+            passed: 67,
+            total: 67
           },
-          duration: 100,
-          status: "broken",
-          variables: {
-            foo: "bar",
-            bar: "baz",
-          },
-          environments: ["foo", "bar"]
+          duration: 31290,
+          status: "passed",
         },
         {
-          name: "Example report",
-          output: "/foo/bar",
+          name: "Third report",
+          href: "#",
+          stats: {
+            passed: 12,
+            broken: 48,
+            total: 60
+          },
+          duration: 512341,
+          status: "broken",
+        },
+        {
+          name: "Fourth report",
+          href: "#",
           stats: {
             passed: 10,
-            total: 10
+            unknown: 4,
+            broken: 1,
+            total: 15
           },
-          duration: 100,
-          status: "passed",
-          variables: {
-            foo: "bar",
-            bar: "baz",
-          },
-          environments: ["foo", "bar"]
+          duration: 12341,
+          status: "broken",
         },
         {
-          name: "Example report",
-          output: "/foo/bar",
+          name: "Fifth report with a very long title that should not be truncated and should be displayed in full",
+          href: "#",
           stats: {
-            passed: 1,
-            failed: 2,
-            total: 3
+            skipped: 1,
+            unknown: 1,
+            total: 2
           },
-          duration: 100,
-          status: "passed",
-          variables: {
-            foo: "bar",
-            bar: "baz",
-          },
-          environments: ["foo", "bar"]
-        },
-        {
-          name: "Example report",
-          output: "/foo/bar",
-          stats: {
-            passed: 1,
-            failed: 2,
-            total: 3
-          },
-          duration: 100,
-          status: "passed",
-          variables: {
-            foo: "bar",
-            bar: "baz",
-          },
-          environments: ["foo", "bar"]
+          duration: 0,
+          status: "skipped",
         },
       ]
     </script>
