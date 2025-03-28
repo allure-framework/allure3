@@ -10,6 +10,7 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     start: vi.fn<Required<Plugin>["start"]>(),
     update: vi.fn<Required<Plugin>["update"]>(),
     done: vi.fn<Required<Plugin>["done"]>(),
+    info: vi.fn<Required<Plugin>["info"]>(),
   };
 
   return {

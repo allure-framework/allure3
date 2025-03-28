@@ -1,0 +1,109 @@
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { dirname, join } from "node:path";
+import { env } from "node:process";
+import { fileURLToPath } from "node:url";
+import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
+import webpack from "webpack";
+import { WebpackManifestPlugin } from "webpack-manifest-plugin";
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+
+const baseDir = dirname(fileURLToPath(import.meta.url));
+
+export default (env, argv) => {
+  const devMode = argv?.mode === "development";
+  const config = {
+    entry: "./src/index.tsx",
+    output: {
+      path: join(baseDir, "dist"),
+      filename: devMode ? "app.js" : "app-[hash:8].js",
+      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[hash:8].[ext]`,
+    },
+    devtool: devMode ? "inline-source-map" : false,
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          use: "babel-loader",
+          exclude: /node_modules/,
+        },
+        {
+          test: /\.css$/,
+          use: ["style-loader", "css-loader"],
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            "style-loader",
+            {
+              loader: "css-loader",
+              options: {
+                modules: {
+                  localIdentName: devMode ? "[path][name]__[local]" : "[hash:base64:8]",
+                },
+              },
+            },
+            "sass-loader",
+          ],
+        },
+        {
+          test: /\.svg$/,
+          loader: "svg-sprite-loader",
+        },
+        {
+          test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
+          type: "asset/inline",
+        },
+      ],
+    },
+    devServer: {
+      hot: true,
+      static: "./out/dev",
+      historyApiFallback: true,
+      watchFiles: ["./src"],
+      devMiddleware: {
+        index: true,
+        mimeTypes: { phtml: "text/html" },
+        serverSideRender: false,
+      },
+    },
+    plugins: [
+      new ForkTsCheckerPlugin(),
+      new webpack.DefinePlugin({
+        DEVELOPMENT: devMode,
+      }),
+      new MiniCssExtractPlugin({
+        filename: devMode ? "styles.css" : "styles-[hash:8].css",
+      }),
+      new SpriteLoaderPlugin(),
+      new WebpackManifestPlugin({
+        publicPath: "",
+      }),
+    ],
+    resolve: {
+      modules: ["node_modules"],
+      extensions: [".js", ".ts", ".tsx"],
+      alias: {
+        "@": join(baseDir, "src"),
+        "react": "@preact/compat",
+        "react-dom": "@preact/compat",
+      },
+    },
+  };
+
+  config.plugins.push(
+    new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1,
+    }),
+  );
+
+  if (devMode) {
+    config.plugins.push(
+      new HtmlWebpackPlugin({
+        template: "src/index.html",
+      }),
+    );
+  }
+
+  return config;
+};

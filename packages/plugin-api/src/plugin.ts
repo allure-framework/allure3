@@ -1,3 +1,4 @@
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -24,6 +25,14 @@ export interface PluginContext {
   reportFiles: ReportFiles;
 }
 
+export interface PluginInfo {
+  href?: string;
+  name: string;
+  stats: Statistic;
+  status: TestStatus;
+  duration: number;
+}
+
 export interface BatchOptions {
   maxTimeout?: number;
 }
@@ -38,4 +47,5 @@ export interface Plugin {
   start?(context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void>;
   update?(context: PluginContext, store: AllureStore): Promise<void>;
   done?(context: PluginContext, store: AllureStore): Promise<void>;
+  info?(context: PluginContext, store: AllureStore): Promise<PluginInfo>;
 }

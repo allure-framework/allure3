@@ -8,6 +8,7 @@ export default defineConfig({
       options: {
         singleFile: true,
         reportLanguage: "en",
+        reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
       },
     },

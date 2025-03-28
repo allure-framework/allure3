@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "passed",
+    "failed": "failed",
+    "broken": "broken",
+    "skipped": "skipped",
+    "unknown": "unknown",
+    "total": "total",
+    "in": "in"
+  },
+  "empty": {
+    "no-reports": "No reports found"
+  }
+}

@@ -7,7 +7,6 @@ import {
   type HistoryTestResult,
   type KnownTestFailure,
   type ReportVariables,
-  type Statistic,
   type TestCase,
   type TestFixtureResult,
   type TestResult,
@@ -24,6 +23,7 @@ import type {
 } from "@allurereport/reader-api";
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
+import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
@@ -359,21 +359,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return results;
   }
 
-  async testsStatistic() {
+  async testsStatistic(filter?: (testResult: TestResult) => boolean) {
     const all = await this.allTestResults();
 
-    return all.reduce(
-      (acc, test) => {
-        if (!acc[test.status]) {
-          acc[test.status] = 0;
-        }
-
-        acc[test.status]!++;
-
-        return acc;
-      },
-      { total: all.length } as Statistic,
-    );
+    return getTestResultsStats(all, filter);
   }
 
   // environments

@@ -1,4 +1,5 @@
-import type { Plugin, PluginContext, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { Plugin, PluginContext, PluginInfo, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type SummaryPlugin from "@allurereport/plugin-summary";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
@@ -31,6 +32,7 @@ export class AllureReport {
   readonly #appendHistory: boolean;
   readonly #historyPath: string;
   readonly #realTime: any;
+  readonly #output: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -49,6 +51,7 @@ export class AllureReport {
       defaultLabels = {},
       variables = {},
       environments,
+      output,
     } = opts;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
@@ -68,6 +71,7 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
+    this.#output = output;
 
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
@@ -182,11 +186,38 @@ export class AllureReport {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
       const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
+
       await writeHistory(this.#historyPath, historyDataPoint);
     }
+
+    const summaryPlugin = this.#plugins.find((plugin) => plugin.id === "summary");
+
+    if (!summaryPlugin) {
+      return;
+    }
+
+    const summaries: PluginInfo[] = [];
+
+    await this.#eachPlugin(false, async (plugin, context, id) => {
+      const summary = await plugin?.info?.(context, this.#store);
+
+      if (!summary) {
+        return;
+      }
+
+      summaries.push({
+        ...summary,
+        href: join("/", id),
+      });
+    });
+
+    await (summaryPlugin.plugin as unknown as SummaryPlugin).generate(this.#output, summaries);
   };
 
-  #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
+  #eachPlugin = async (
+    initState: boolean,
+    consumer: (plugin: Plugin, context: PluginContext, id: string) => Promise<void>,
+  ) => {
     if (initState) {
       // reset state on start;
       this.#state = {};
@@ -216,7 +247,7 @@ export class AllureReport {
       };
 
       try {
-        await consumer.call(this, plugin, pluginContext);
+        await consumer.call(this, plugin, pluginContext, id);
 
         if (initState) {
           this.#state![id] = pluginState;
