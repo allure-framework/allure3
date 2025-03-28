@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "geslaagd",
+    "failed": "mislukt",
+    "broken": "gebroken",
+    "skipped": "overgeslagen",
+    "unknown": "onbekend",
+    "total": "totaal",
+    "in": "in"
+  },
+  "empty": {
+    "no-reports": "Geen rapporten gevonden"
+  }
+}

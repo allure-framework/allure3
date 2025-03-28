@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "başarılı",
+    "failed": "başarısız",
+    "broken": "bozuk",
+    "skipped": "atlandı",
+    "unknown": "bilinmeyen",
+    "total": "toplam",
+    "in": "içinde"
+  },
+  "empty": {
+    "no-reports": "Rapor bulunamadı"
+  }
+}
