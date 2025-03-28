@@ -1,9 +1,10 @@
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import type { ChartId, GeneratedChartsData } from "./types.js";
+import type { GeneratedChartsData } from "./types.js";
 import { getSeverityTrendData } from "./charts/severityTrend.js";
 import { getStatusTrendData } from "./charts/statusTrend.js";
 
 import type { DashboardsPluginOptions } from "./model.js";
+import { randomUUID } from "crypto";
 
 export const generateCharts = async (options: DashboardsPluginOptions, store: AllureStore, context: PluginContext) => {
   const { layout } = options;
@@ -17,8 +18,9 @@ export const generateCharts = async (options: DashboardsPluginOptions, store: Al
   const testResults = await store.allTestResults();
 
   return layout?.reduce((acc, chartOptions) => {
-    const { type, mode = "raw" } = chartOptions;
-    const chartId = `${type}-${mode}` satisfies ChartId;
+    const { type } = chartOptions;
+
+    const chartId = randomUUID();
 
     switch (type) {
       case "status":

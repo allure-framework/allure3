@@ -4,7 +4,7 @@ export type ChartType = "status" | "severity";
 
 export type ChartMode = "raw" | "percent";
 
-export type ChartId = `${ChartType}-${ChartMode}`;
+export type ChartId = string;
 
 export type TrendChartOptions = {
   type: ChartType;
@@ -43,6 +43,7 @@ export type TrendSlice<Metadata extends BaseMetadata> = {
 };
 
 export type TrendChartData<Metadata extends BaseMetadata, SeriesType extends string> = {
+  // Type of the chart
   type: ChartType;
   // Points for all series
   points: Record<TrendPointId, TrendPoint>;
