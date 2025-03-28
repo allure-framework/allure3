@@ -113,6 +113,12 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         }
       : config.plugins!;
+
+  // TODO: do we need to inject the plugin dynamically right here? which options we need to add here?
+  Object.assign(plugins, {
+    summary: {},
+  });
+
   const pluginInstances = await resolvePlugins(plugins);
 
   return {

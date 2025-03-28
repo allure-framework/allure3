@@ -48,10 +48,13 @@ const fixtures = {
 describe("plugin", () => {
   describe("info", () => {
     it("should returns info for all test results in the store", async () => {
-      const plugin = new AwesomePlugin();
+      const plugin = new AwesomePlugin({ reportName: "Sample report" });
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
+        duration: 0,
+        name: "Sample report",
+        status: "failed",
         stats: {
           passed: 1,
           failed: 1,
@@ -65,11 +68,15 @@ describe("plugin", () => {
 
     it("should returns info for filtered test results in the store", async () => {
       const plugin = new AwesomePlugin({
+        reportName: "Sample report",
         filter: ({ status }) => status === "passed",
       });
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
+        duration: 0,
+        name: "Sample report",
+        status: "passed",
         stats: {
           passed: 1,
           total: 1,
