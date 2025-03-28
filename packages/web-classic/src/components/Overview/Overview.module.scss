@@ -1,0 +1,29 @@
+.overview {
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.overview-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(50% - 12px)), 1fr));
+}
+
+.overview-grid-item {
+  padding: 12px;
+  width: 100%;
+}
+
+.overview-grid-item-pie-chart-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.overview-grid-item-pie-chart-wrapper-squeezer {
+  width: 50%;
+}

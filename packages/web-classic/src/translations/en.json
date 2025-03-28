@@ -124,5 +124,13 @@
     "packages": "Packages",
     "suites": "Suites",
     "timeline": "Timeline"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trend {{type}} Chart"
+    },
+    "pie": {
+      "title": "Test Success Rate"
+    }
   }
 }
