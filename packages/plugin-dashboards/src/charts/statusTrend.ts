@@ -61,6 +61,7 @@ export const getStatusTrendData = (
     },
     {
       type: chartOptions.type,
+      title: chartOptions.title,
       points: {},
       slices: {},
       series: createEmptySeries(STATUS_LIST),

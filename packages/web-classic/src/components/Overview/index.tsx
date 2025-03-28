@@ -8,6 +8,7 @@ import { useI18n } from "@/stores";
 import * as styles from "./Overview.module.scss";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
+import { capitalize } from "@/utils/capitalize";
 
 const Overview = () => {
   const { t } = useI18n('charts');
@@ -24,7 +25,7 @@ const Overview = () => {
         const pieTitle = t("pie.title");
 
         const TrendChartGridItems = Object.entries(trends.charts).map(([chartId, value]) => {
-          const title = t("trend.title", { chartId });
+          const title = value.title ?? t("trend.title", { type: capitalize(value.type) });
 
           return (
             <GridItem key={chartId} className={styles["overview-grid-item"]}>

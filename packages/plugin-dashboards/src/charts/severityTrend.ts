@@ -70,6 +70,7 @@ export const getSeverityTrendData = (
     },
     {
       type: chartOptions.type,
+      title: chartOptions.title,
       points: {},
       slices: {},
       series: createEmptySeries(SEVERITY_LIST),
