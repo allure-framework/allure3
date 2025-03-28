@@ -8,7 +8,6 @@ import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 
-const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
@@ -16,7 +15,7 @@ export default (env, argv) => {
   const config = {
     entry: "./src/index.tsx",
     output: {
-      path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
+      path: join(baseDir, "dist"),
       filename: devMode ? "app.js" : "app-[hash:8].js",
       assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[hash:8].[ext]`,
     },
@@ -30,12 +29,12 @@ export default (env, argv) => {
         },
         {
           test: /\.css$/,
-          use: [SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader, "css-loader"],
+          use: ["style-loader", "css-loader"],
         },
         {
           test: /\.scss$/,
           use: [
-            SINGLE_FILE_MODE ? "style-loader" : MiniCssExtractPlugin.loader,
+            "style-loader",
             {
               loader: "css-loader",
               options: {
@@ -53,7 +52,7 @@ export default (env, argv) => {
         },
         {
           test: /\.(png|jpe?g|gif|woff2?|otf|ttf)$/i,
-          type: SINGLE_FILE_MODE ? "asset/inline" : "asset/resource",
+          type: "asset/inline",
         },
       ],
     },
@@ -92,13 +91,11 @@ export default (env, argv) => {
     },
   };
 
-  if (SINGLE_FILE_MODE) {
-    config.plugins.push(
-      new webpack.optimize.LimitChunkCountPlugin({
-        maxChunks: 1,
-      }),
-    );
-  }
+  config.plugins.push(
+    new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1,
+    }),
+  );
 
   if (devMode) {
     config.plugins.push(

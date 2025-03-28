@@ -5,10 +5,11 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import { opendir, realpath } from "node:fs/promises";
+import { opendir, realpath, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 import type { FullConfig, PluginInstance } from "./api.js";
+import { generateSummaryStaticFiles } from "./generators.js";
 import { createHistory, writeHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate } from "./qualityGate.js";
@@ -32,6 +33,7 @@ export class AllureReport {
   readonly #appendHistory: boolean;
   readonly #historyPath: string;
   readonly #realTime: any;
+  readonly #output: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -50,6 +52,7 @@ export class AllureReport {
       defaultLabels = {},
       variables = {},
       environments,
+      output,
     } = opts;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
@@ -69,6 +72,7 @@ export class AllureReport {
     this.#readers = [...readers];
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
+    this.#output = output;
 
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
@@ -187,9 +191,7 @@ export class AllureReport {
       await writeHistory(this.#historyPath, historyDataPoint);
     }
 
-    const pluginsInfo: (PluginInfo & {
-      output: string;
-    })[] = [];
+    const pluginsInfo: PluginInfo[] = [];
 
     await this.#eachPlugin(false, async (plugin, context, id) => {
       if (!plugin.info) {
@@ -200,7 +202,7 @@ export class AllureReport {
 
       pluginsInfo.push({
         ...pluginInfo,
-        output: joinPosix("/", id),
+        href: joinPosix("/", id),
       });
     });
 
@@ -208,7 +210,9 @@ export class AllureReport {
       return;
     }
 
-    console.log("plugins info", pluginsInfo);
+    const summaryHtml = await generateSummaryStaticFiles({ summaries: pluginsInfo });
+
+    await writeFile(resolve(this.#output, "index.html"), summaryHtml, "utf8");
   };
 
   #eachPlugin = async (

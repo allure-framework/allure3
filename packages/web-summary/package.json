@@ -16,12 +16,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "dev": "webpack serve --mode development",
-    "build": "run-s clean 'build:prod:*'",
-    "build:dev": "run-s clean 'build:dev:*'",
-    "build:prod:single": "SINGLE_FILE_MODE=1 webpack --mode production",
-    "build:prod:multi": "webpack --mode production",
-    "build:dev:single": "SINGLE_FILE_MODE=1 webpack --mode development",
-    "build:dev:multi": "webpack --mode development",
+    "build": "run-s clean 'build:prod'",
+    "build:prod": "webpack --mode production",
+    "build:dev": "webpack --mode development",
     "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "browserslist": [

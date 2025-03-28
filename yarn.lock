@@ -53,8 +53,11 @@ __metadata:
     "@allurereport/plugin-testplan": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
+    "@allurereport/web-summary": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
+    "@types/handlebars": "npm:^4.1.0"
     "@types/markdown-it": "npm:^14.1.2"
     "@types/node": "npm:^20.17.9"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
@@ -70,6 +73,7 @@ __metadata:
     eslint-plugin-n: "npm:^17.10.1"
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    handlebars: "npm:^4.7.8"
     markdown-it: "npm:^14.1.0"
     rimraf: "npm:^6.0.1"
     tslib: "npm:^2.7.0"
@@ -902,7 +906,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/web-summary@workspace:packages/web-summary":
+"@allurereport/web-summary@workspace:*, @allurereport/web-summary@workspace:packages/web-summary":
   version: 0.0.0-use.local
   resolution: "@allurereport/web-summary@workspace:packages/web-summary"
   dependencies:
@@ -7206,6 +7210,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/handlebars@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@types/handlebars@npm:4.1.0"
+  dependencies:
+    handlebars: "npm:*"
+  checksum: 10/536d9f690c93f5d13fcc4a37ae7dd11f41eb73c47416d56f51623aedc3b573ad9775d6618ede75d7bf9148ac75694e50f8e6ba5773de7d9f040811368c73739f
+  languageName: node
+  linkType: hard
+
 "@types/html-minifier-terser@npm:^6.0.0":
   version: 6.1.0
   resolution: "@types/html-minifier-terser@npm:6.1.0"
@@ -13456,7 +13469,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handlebars@npm:^4.7.8":
+"handlebars@npm:*, handlebars@npm:^4.7.8":
   version: 4.7.8
   resolution: "handlebars@npm:4.7.8"
   dependencies:
