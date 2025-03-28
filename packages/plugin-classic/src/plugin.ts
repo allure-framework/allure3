@@ -1,5 +1,6 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { getWorstStatus } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext, PluginInfo } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
@@ -100,4 +101,17 @@ export class AwesomePlugin implements Plugin {
 
     await this.#generate(context, store);
   };
+
+  async info(context: PluginContext, store: AllureStore): Promise<PluginInfo> {
+    const allTrs = await store.allTestResults();
+    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
+    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+
+    return {
+      name: this.options.reportName || context.reportName,
+      stats: await store.testsStatistic(this.options.filter),
+      status: worstStatus ?? "passed",
+      duration,
+    };
+  }
 }
