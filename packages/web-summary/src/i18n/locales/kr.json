@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "통과",
+    "failed": "실패",
+    "broken": "손상됨",
+    "skipped": "건너뜀",
+    "unknown": "알 수 없음",
+    "total": "총계",
+    "in": "중"
+  },
+  "empty": {
+    "no-reports": "보고서가 없습니다"
+  }
+}

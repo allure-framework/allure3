@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "עבר",
+    "failed": "נכשל",
+    "broken": "שבור",
+    "skipped": "דלג",
+    "unknown": "לא ידוע",
+    "total": "סה\"כ",
+    "in": "ב-"
+  },
+  "empty": {
+    "no-reports": "לא נמצאו דוחות"
+  }
+}

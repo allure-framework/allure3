@@ -1,0 +1,23 @@
+.footer {
+  display: block;
+}
+
+.logo-label {
+  color: var(--on-text-secondary);
+
+  a {
+    text-decoration: none;
+  }
+}
+
+.logo {
+  margin-left: 8px;
+}
+
+.version {
+  color: var(--on-text-hint);
+}
+
+.link {
+  text-decoration: none;
+}

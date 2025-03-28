@@ -26,11 +26,11 @@ export interface PluginContext {
 }
 
 export interface PluginInfo {
+  href?: string;
   name: string;
   stats: Statistic;
   status: TestStatus;
   duration: number;
-  href?: string;
 }
 
 export interface BatchOptions {

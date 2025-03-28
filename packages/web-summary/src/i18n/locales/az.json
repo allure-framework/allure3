@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "keçdi",
+    "failed": "uğursuz",
+    "broken": "sınıq",
+    "skipped": "keçildi",
+    "unknown": "naməlum",
+    "total": "cəmi",
+    "in": "içində"
+  },
+  "empty": {
+    "no-reports": "Hesabat tapılmadı"
+  }
+}

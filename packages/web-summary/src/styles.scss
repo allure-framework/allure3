@@ -2,13 +2,24 @@
   --showcase-width: 940px;
 }
 
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0 24px 0;
+  max-width: var(--showcase-width);
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
 .summary-showcase {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  max-width: var(--showcase-width);
-  margin: 0 auto;
-  padding: 40px;
+  margin-bottom: 40px;
+  //max-width: var(--showcase-width);
+  //margin: 0 auto;
+  //padding: 40px;
 }
 
 .summary-card {
@@ -32,4 +43,8 @@
   gap: 0 4px;
   color: var(--on-text-secondary);
   margin-top: 12px;
+}
+
+.footer {
+  margin-top: auto;
 }

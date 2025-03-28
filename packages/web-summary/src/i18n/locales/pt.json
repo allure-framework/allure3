@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "aprovado",
+    "failed": "falhou",
+    "broken": "quebrado",
+    "skipped": "ignorado",
+    "unknown": "desconhecido",
+    "total": "total",
+    "in": "em"
+  },
+  "empty": {
+    "no-reports": "Nenhum relatório encontrado"
+  }
+}

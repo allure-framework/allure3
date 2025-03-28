@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "bestanden",
+    "failed": "fehlgeschlagen",
+    "broken": "defekt",
+    "skipped": "übersprungen",
+    "unknown": "unbekannt",
+    "total": "gesamt",
+    "in": "in"
+  },
+  "empty": {
+    "no-reports": "Keine Berichte gefunden"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "godkänd",
+    "failed": "misslyckad",
+    "broken": "trasig",
+    "skipped": "hoppad över",
+    "unknown": "okänd",
+    "total": "totalt",
+    "in": "i"
+  },
+  "empty": {
+    "no-reports": "Inga rapporter"
+  }
+}

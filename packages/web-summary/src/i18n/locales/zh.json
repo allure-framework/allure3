@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "通过",
+    "failed": "失败",
+    "broken": "损坏",
+    "skipped": "跳过",
+    "unknown": "未知",
+    "total": "总计",
+    "in": "在"
+  },
+  "empty": {
+    "no-reports": "未找到报告"
+  }
+}

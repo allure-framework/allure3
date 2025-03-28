@@ -1,0 +1,14 @@
+{
+  "summary": {
+    "passed": "superato",
+    "failed": "fallito",
+    "broken": "rotto",
+    "skipped": "saltato",
+    "unknown": "sconosciuto",
+    "total": "totale",
+    "in": "in"
+  },
+  "empty": {
+    "no-reports": "Nessun report trovato"
+  }
+}
