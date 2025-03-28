@@ -1,4 +1,4 @@
-import type { TestStatus } from "@allurereport/core-api";
+import type { TestResult, TestStatus } from "@allurereport/core-api";
 
 export type AwesomeOptions = {
   reportName?: string;
@@ -12,6 +12,7 @@ export type AwesomeOptions = {
     url: string;
     name: string;
   };
+  filter?: (tr: TestResult) => boolean;
 };
 
 export type TemplateManifest = Record<string, string>;
