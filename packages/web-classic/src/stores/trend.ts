@@ -21,6 +21,7 @@ type ChartId = string;
 
 interface ChartData {
   type: ChartType;
+  title?: string;
   min: number;
   max: number;
   points: Record<string, Point>;
@@ -43,6 +44,8 @@ interface TrendChartData {
   max: number;
   items: TrendChartItem[];
   slices: Slice[];
+  type: ChartType;
+  title?: string;
 }
 
 interface TrendData {
@@ -108,6 +111,8 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
   }, [] as TrendChartItem[]);
 
   return {
+    type: chart.type,
+    title: chart.title,
     items,
     slices: Object.values(chart.slices),
     min: chart.min,

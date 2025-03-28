@@ -8,6 +8,7 @@ export type ChartId = string;
 
 export type TrendChartOptions = {
   type: ChartType;
+  title?: string;
   mode?: ChartMode;
   limit?: number;
 };
@@ -45,6 +46,8 @@ export type TrendSlice<Metadata extends BaseMetadata> = {
 export type TrendChartData<Metadata extends BaseMetadata, SeriesType extends string> = {
   // Type of the chart
   type: ChartType;
+  // Title of the chart
+  title?: string;
   // Points for all series
   points: Record<TrendPointId, TrendPoint>;
   // Slices for all series

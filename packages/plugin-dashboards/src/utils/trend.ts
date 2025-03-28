@@ -106,7 +106,7 @@ export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extend
   itemType: readonly T[],
 ): TrendChartData<M, T> => {
   return {
-    type: trendData.type,
+    ...trendData,
     points: {
       ...trendData.points,
       ...trendDataPart.points,
@@ -141,7 +141,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   itemType: readonly T[],
   chartOptions: ChartOptions,
 ): TrendChartData<M, T> => {
-  const { type, mode = "raw" } = chartOptions;
+  const { type, title, mode = "raw" } = chartOptions;
   const executionId = `execution-${executionOrder}`;
   const { points, series } = mode === "percent"
     ? calculatePercentValues(stats, executionId, itemType)
@@ -170,6 +170,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
 
   return {
     type,
+    title,
     points,
     slices,
     series,
