@@ -17,9 +17,7 @@ interface Slice {
 
 type ChartType = "status" | "severity";
 
-type ChartMode = "percent" | "raw";
-
-type ChartId = `${ChartType}-${ChartMode}`;
+type ChartId = string;
 
 interface ChartData {
   type: ChartType;
@@ -135,9 +133,9 @@ const makeCharts = (res: TrendResponse): TrendData["charts"] => {
     const { type } = chart;
 
     if (type === "status") {
-      acc[chartId] = createStatusChartData(chartId as ChartId, res);
+      acc[chartId] = createStatusChartData(chartId, res);
     } else if (type === "severity") {
-      acc[chartId] = createSeverityChartData(chartId as ChartId, res);
+      acc[chartId] = createSeverityChartData(chartId, res);
     }
 
     return acc;

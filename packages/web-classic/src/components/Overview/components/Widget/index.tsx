@@ -1,9 +1,8 @@
 import { Heading } from "@allurereport/web-components";
-import type { ComponentChildren, FunctionalComponent } from "preact";
+import type { FunctionalComponent } from "preact";
 import * as styles from "./Widget.module.scss";
 
 interface WidgetProps {
-  children: ComponentChildren;
   title: string;
 }
 
