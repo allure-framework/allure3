@@ -4,24 +4,12 @@ export default defineConfig({
   name: "Allure Report 3",
   output: "./out/allure-report",
   plugins: {
-    awesome1: {
-      import: "@allurereport/plugin-awesome",
+    awesome: {
       options: {
         singleFile: false,
         reportLanguage: "en",
-        reportName: "Without layers",
+        reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
-        filter: ({ labels }) => !labels.some(({ name }) => name === "layer")
-      },
-    },
-    awesome2: {
-      import: "@allurereport/plugin-awesome",
-      options: {
-        singleFile: true,
-        reportLanguage: "en",
-        reportName: "Layers only",
-        groupBy: ["module", "parentSuite", "suite", "subSuite"],
-        filter: ({ labels }) => labels.some(({ name }) => name === "layer")
       },
     },
     log: {
