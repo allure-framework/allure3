@@ -141,8 +141,10 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   itemType: readonly T[],
   chartOptions: ChartOptions,
 ): TrendChartData<M, T> => {
-  const { type, title, mode = "raw" } = chartOptions;
-  const executionId = `execution-${executionOrder}`;
+  const { type, title, mode = "raw", metadata = {} } = chartOptions;
+  const { executionIdFn, executionNameFn } = metadata;
+  const executionId = executionIdFn ? executionIdFn(executionOrder) : `execution-${executionOrder}`;
+
   const { points, series } = mode === "percent"
     ? calculatePercentValues(stats, executionId, itemType)
     : calculateRawValues(stats, executionId, itemType);
@@ -158,12 +160,14 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
 
   // Omit creating slice if there are no points in it
   if (pointsCount > 0) {
+    const executionName = executionNameFn ? executionNameFn(executionOrder) : reportName;
+
     slices[executionId] = {
       min,
       max,
       metadata: {
         executionId,
-        executionName: reportName,
+        executionName,
       } as M,
     };
   }

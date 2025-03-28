@@ -7,6 +7,7 @@ import {
   getTrendDataGeneric,
   mergeTrendDataGeneric,
 } from "../utils/trend.js";
+import { SEVERITY_LABEL_NAME } from "../constants.js";
 
 export const getSeverityTrendData = (
   testResults: TestResult[],
@@ -20,23 +21,27 @@ export const getSeverityTrendData = (
     : historyPoints;
 
   // Convert history points to statistics by severity
-  const convertedHistoryPoints = limitedHistoryPoints.map((point) => ({
-    name: point.name,
-    statistic: Object.values(point.testResults).reduce((stat, test) => {
-      const severityLabel = test.labels?.find((label) => label.name === "severity");
-      const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
+  const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
+    const originalIndex = chartOptions.limit ? historyPoints.length - chartOptions.limit + index : index;
+    return {
+      name: point.name,
+      originalIndex,
+      statistic: Object.values(point.testResults).reduce((stat, test) => {
+        const severityLabel = test.labels?.find((label) => label.name === SEVERITY_LABEL_NAME);
+        const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
-      if (severity) {
-        stat[severity] = (stat[severity] ?? 0) + 1;
-      }
+        if (severity) {
+          stat[severity] = (stat[severity] ?? 0) + 1;
+        }
 
-      return stat;
-    }, createEmptyStats(SEVERITY_LIST)),
-  }));
+        return stat;
+      }, createEmptyStats(SEVERITY_LIST)),
+    };
+  });
 
   // Get current severity statistics
   const currentSeverityStats = testResults.reduce((acc, test) => {
-    const severityLabel = test.labels.find((label) => label.name === "severity");
+    const severityLabel = test.labels.find((label) => label.name === SEVERITY_LABEL_NAME);
     const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
     if (severity) {
@@ -50,18 +55,18 @@ export const getSeverityTrendData = (
   const currentTrendData = getTrendDataGeneric(
     currentSeverityStats,
     reportName,
-    convertedHistoryPoints.length + 1,
+    historyPoints.length + 1,
     SEVERITY_LIST,
     chartOptions
   );
 
   // Process historical data
   const historicalTrendData = convertedHistoryPoints.reduceRight(
-    (acc, historyPoint, index) => {
+    (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
         historyPoint.statistic,
         historyPoint.name,
-        convertedHistoryPoints.length - index,
+        historyPoint.originalIndex + 1,
         SEVERITY_LIST,
         chartOptions
       );

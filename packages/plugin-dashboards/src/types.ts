@@ -1,16 +1,24 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
-
-export type ChartType = "status" | "severity";
+import type { ChartType } from "./model.js";
 
 export type ChartMode = "raw" | "percent";
 
 export type ChartId = string;
+
+export type ExecutionIdFn = (executionOrder: number) => string;
+export type ExecutionNameFn = (executionOrder: number) => string;
+
+export type TrendMetadataFnOverrides = {
+  executionIdFn?: ExecutionIdFn;
+  executionNameFn?: ExecutionNameFn;
+};
 
 export type TrendChartOptions = {
   type: ChartType;
   title?: string;
   mode?: ChartMode;
   limit?: number;
+  metadata?: TrendMetadataFnOverrides;
 };
 
 export type ChartOptions = TrendChartOptions;

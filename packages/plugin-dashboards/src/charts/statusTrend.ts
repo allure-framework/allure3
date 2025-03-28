@@ -22,37 +22,41 @@ export const getStatusTrendData = (
     : historyPoints;
 
   // Convert history points to statistics
-  const convertedHistoryPoints = limitedHistoryPoints.map((point) => ({
-    name: point.name,
-    statistic: Object.values(point.testResults).reduce(
-      (stat: Statistic, test) => {
-        if (test.status) {
-          stat[test.status] = (stat[test.status] ?? 0) + 1;
-          stat.total = (stat.total ?? 0) + 1;
-        }
+  const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
+    const originalIndex = limit ? historyPoints.length - limit + index : index;
+    return {
+      name: point.name,
+      originalIndex,
+      statistic: Object.values(point.testResults).reduce(
+        (stat: Statistic, test) => {
+          if (test.status) {
+            stat[test.status] = (stat[test.status] ?? 0) + 1;
+            stat.total = (stat.total ?? 0) + 1;
+          }
 
-        return stat;
-      },
-      { total: 0 } as Statistic,
-    ),
-  }));
+          return stat;
+        },
+        { total: 0 } as Statistic,
+      ),
+    };
+  });
 
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentStatistic),
     reportName,
-    convertedHistoryPoints.length + 1,
+    historyPoints.length + 1,
     STATUS_LIST,
     chartOptions
   );
 
   // Process historical data
   const historicalTrendData = convertedHistoryPoints.reduceRight(
-    (acc, historyPoint, index) => {
+    (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
         normalizeStatistic(historyPoint.statistic),
         historyPoint.name,
-        convertedHistoryPoints.length - index,
+        historyPoint.originalIndex + 1,
         STATUS_LIST,
         chartOptions
       );

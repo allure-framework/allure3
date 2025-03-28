@@ -4,6 +4,7 @@ import { getSeverityTrendData } from "./charts/severityTrend.js";
 import { getStatusTrendData } from "./charts/statusTrend.js";
 
 import type { DashboardsPluginOptions } from "./model.js";
+import { ChartType } from "./model.js";
 import { randomUUID } from "crypto";
 
 export const generateCharts = async (options: DashboardsPluginOptions, store: AllureStore, context: PluginContext) => {
@@ -23,10 +24,10 @@ export const generateCharts = async (options: DashboardsPluginOptions, store: Al
     const chartId = randomUUID();
 
     switch (type) {
-      case "status":
+      case ChartType.STATUS:
         acc[chartId] = getStatusTrendData(statistic, context.reportName, historyDataPoints, chartOptions);
         break;
-      case "severity":
+      case ChartType.SEVERITY:
         acc[chartId] = getSeverityTrendData(testResults, context.reportName, historyDataPoints, chartOptions);
         break;
       default:
