@@ -1,6 +1,7 @@
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -29,13 +30,21 @@ test.beforeEach(async ({ browserName }) => {
 test.describe("allure-awesome", () => {
   test.describe("report options", () => {
     test("report title and page title contain give report name", async ({ page }) => {
-      bootstrap = await boostrapReport({
+      bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
           history: undefined,
           historyPath: undefined,
           knownIssuesPath: undefined,
+          plugins: [
+            {
+              id: "awesome",
+              enabled: true,
+              plugin: new AwesomePlugin(),
+              options: {},
+            },
+          ],
         },
         testResults: fixtures.testResults,
       });
@@ -46,31 +55,49 @@ test.describe("allure-awesome", () => {
     });
 
     test("layout Split mode are enabled within plugin options", async ({ page }) => {
-      bootstrap = await boostrapReport({
+      bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
           history: undefined,
           historyPath: undefined,
           knownIssuesPath: undefined,
+          plugins: [
+            {
+              id: "awesome",
+              enabled: true,
+              plugin: new AwesomePlugin({
+                layout: "split",
+              }),
+              options: {
+                layout: "split",
+              },
+            },
+          ],
         },
         testResults: fixtures.testResults,
-        pluginConfig: {
-          layout: "split",
-        },
       });
       await page.goto(bootstrap.url);
       await expect(page.getByTestId("base-layout")).toBeHidden();
       await expect(page.getByTestId("split-layout")).toBeVisible();
     });
+
     test("layout Base mode are enabled by default", async ({ page }) => {
-      bootstrap = await boostrapReport({
+      bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
           history: undefined,
           historyPath: undefined,
           knownIssuesPath: undefined,
+          plugins: [
+            {
+              id: "awesome",
+              enabled: true,
+              plugin: new AwesomePlugin(),
+              options: {},
+            },
+          ],
         },
         testResults: fixtures.testResults,
       });

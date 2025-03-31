@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -18,7 +18,7 @@ test.afterAll(async () => {
 
 test.describe("commons", () => {
   test.beforeAll(async () => {
-    bootstrap = await boostrapReport({
+    bootstrap = await bootstrapReport({
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
@@ -152,7 +152,7 @@ test.describe("commons", () => {
 test.describe("filters", () => {
   test.describe("retry", () => {
     test.beforeAll(async () => {
-      bootstrap = await boostrapReport({
+      bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,

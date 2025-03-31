@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -14,46 +14,48 @@ test.describe("suites", () => {
   });
 
   test("should display tree groups with a correct suites hierarchy", async ({ page }) => {
-    bootstrap = await boostrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          history: undefined,
+          historyPath: undefined,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            labels: [
+              { name: "parentSuite", value: "foo" },
+              {
+                name: "suite",
+                value: "bar",
+              },
+              { name: "subSuite", value: "baz" },
+            ],
+          },
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+        ],
       },
-      pluginConfig: {
+      {
         groupBy: ["parentSuite", "suite", "subSuite"],
       },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [
-            { name: "parentSuite", value: "foo" },
-            {
-              name: "suite",
-              value: "bar",
-            },
-            { name: "subSuite", value: "baz" },
-          ],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-      ],
-    });
+    );
 
     await page.goto(bootstrap.url);
 
@@ -83,7 +85,7 @@ test.describe("suites", () => {
   });
 
   test("should not display groups when test results don't have related label", async ({ page }) => {
-    bootstrap = await boostrapReport({
+    bootstrap = await bootstrapReport({
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
@@ -140,48 +142,50 @@ test.describe("suites", () => {
   });
 
   test("should assign default labels when test results don't any matched one label", async ({ page }) => {
-    bootstrap = await boostrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-        defaultLabels: {
-          parentSuite: "Assign me please!",
-        },
-      },
-      pluginConfig: {
-        groupBy: ["parentSuite", "suite", "subSuite"],
-      },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [
-            {
-              name: "suite",
-              value: "foo",
-            },
-            { name: "subSuite", value: "bar" },
-          ],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          history: undefined,
+          historyPath: undefined,
+          knownIssuesPath: undefined,
+          defaultLabels: {
+            parentSuite: "Assign me please!",
           },
         },
-      ],
-    });
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            labels: [
+              {
+                name: "suite",
+                value: "foo",
+              },
+              { name: "subSuite", value: "bar" },
+            ],
+          },
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+        ],
+      },
+      {
+        groupBy: ["parentSuite", "suite", "subSuite"],
+      },
+    );
 
     await page.goto(bootstrap.url);
 

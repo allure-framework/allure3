@@ -1,5 +1,8 @@
-import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
-import AwesomePlugin from "@allurereport/plugin-awesome";
+import {
+  AllureReport,
+  FileSystemReportFiles,
+  type FullConfig,
+} from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { type TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
@@ -12,7 +15,6 @@ export type GeneratorParams = {
   resultsDir: string;
   testResults: Partial<TestResult>[];
   reportConfig?: Omit<FullConfig, "output" | "reportFiles">;
-  pluginConfig?: any;
 };
 
 export interface ReportBootstrap {
@@ -28,19 +30,9 @@ export const randomNumber = (min: number, max: number) => {
   return Math.random() * (max - min) + min;
 };
 
-export const generateTestResults = async (payload: GeneratorParams) => {
-  const { reportConfig, reportDir, resultsDir, pluginConfig, testResults } = payload;
+export const generateReport = async (payload: GeneratorParams) => {
+  const { reportConfig, reportDir, resultsDir, testResults } = payload;
   const report = new AllureReport({
-    plugins: [
-      {
-        id: "awesome",
-        enabled: true,
-        plugin: new AwesomePlugin(pluginConfig),
-        options: {
-          ...pluginConfig,
-        },
-      },
-    ],
     ...reportConfig,
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
@@ -62,14 +54,14 @@ export const generateTestResults = async (payload: GeneratorParams) => {
   await report.done();
 };
 
-export const boostrapReport = async (
+export const bootstrapReport = async (
   params: Omit<GeneratorParams, "reportDir" | "resultsDir">,
 ): Promise<ReportBootstrap> => {
   const temp = tmpdir();
   const allureTestResultsDir = await mkdtemp(resolve(temp, "allure-results-"));
   const allureReportDir = await mkdtemp(resolve(temp, "allure-report-"));
 
-  await generateTestResults({
+  await generateReport({
     ...params,
     resultsDir: allureTestResultsDir,
     reportDir: allureReportDir,

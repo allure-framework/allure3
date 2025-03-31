@@ -1,21 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
 test.describe("stories", () => {
   test.beforeAll(async () => {
-    bootstrap = await boostrapReport({
+    bootstrap = await bootstrapReport({
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
         history: undefined,
         historyPath: undefined,
         knownIssuesPath: undefined,
-      },
-      pluginConfig: {
-        groupBy: ["feature"],
       },
       testResults: [
         {
@@ -38,6 +35,8 @@ test.describe("stories", () => {
           },
         },
       ],
+    }, {
+      groupBy: ["feature"],
     });
   });
 

@@ -1,19 +1,28 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport, randomNumber } from "../utils/index.js";
+import { type ReportBootstrap, bootstrapReport, randomNumber } from "../utils/index.js";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 
 let bootstrap: ReportBootstrap;
 
 test.beforeAll(async () => {
   const now = Date.now();
 
-  bootstrap = await boostrapReport({
+  bootstrap = await bootstrapReport({
     reportConfig: {
       name: "Sample allure report",
       appendHistory: false,
       history: undefined,
       historyPath: undefined,
       knownIssuesPath: undefined,
+      plugins: [
+        {
+          id: "awesome",
+          enabled: true,
+          plugin: new AwesomePlugin(),
+          options: {},
+        },
+      ],
     },
     testResults: [
       {
@@ -169,5 +178,6 @@ test.describe("allure-awesome", () => {
       await expect(page.getByTestId("split-layout")).toBeHidden();
     });
   });
+
   test.describe("Error tracing", () => {});
 });
