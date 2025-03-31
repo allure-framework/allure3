@@ -15,6 +15,8 @@ export default defineConfig({
         },
       ],
     ],
+    maxWorkers: 1,
+    minWorkers: 1,
   },
   resolve: {
     alias: {
