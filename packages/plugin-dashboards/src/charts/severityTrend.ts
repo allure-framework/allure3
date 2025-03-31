@@ -55,13 +55,13 @@ export const getSeverityTrendData = (
   const currentTrendData = getTrendDataGeneric(
     currentSeverityStats,
     reportName,
-    historyPoints.length + 1,
+    (chartOptions.limit ? Math.max(historyPoints.length, chartOptions.limit) : historyPoints.length) + 1,
     SEVERITY_LIST,
     chartOptions
   );
 
   // Process historical data
-  const historicalTrendData = convertedHistoryPoints.reduceRight(
+  const historicalTrendData = convertedHistoryPoints.reduce(
     (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
         historyPoint.statistic,

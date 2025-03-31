@@ -45,13 +45,13 @@ export const getStatusTrendData = (
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentStatistic),
     reportName,
-    historyPoints.length + 1,
+    (limit ? Math.max(historyPoints.length, limit) : historyPoints.length) + 1,
     STATUS_LIST,
     chartOptions
   );
 
   // Process historical data
-  const historicalTrendData = convertedHistoryPoints.reduceRight(
+  const historicalTrendData = convertedHistoryPoints.reduce(
     (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
         normalizeStatistic(historyPoint.statistic),
