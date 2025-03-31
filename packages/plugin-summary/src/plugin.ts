@@ -7,6 +7,8 @@ import type { SummaryPluginOptions } from "./model.js";
 export class SummaryPlugin {
   constructor(readonly options: SummaryPluginOptions) {}
 
+  static id = "__summary__";
+
   async generate(output: string, summaries: PluginInfo[]) {
     if (!summaries.length) {
       return;

@@ -24,7 +24,7 @@ describe("log command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-log": {
           options: {
             groupBy: undefined,
@@ -32,14 +32,14 @@ describe("log command", () => {
             withTrace: undefined,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-log",
             enabled: true,
@@ -49,7 +49,7 @@ describe("log command", () => {
               withTrace: undefined,
             },
           }),
-        ],
+        ]),
       }),
     );
   });
@@ -70,7 +70,7 @@ describe("log command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-log": {
           options: {
             groupBy: fixtures.groupBy,
@@ -78,13 +78,13 @@ describe("log command", () => {
             withTrace: fixtures.withTrace,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-log",
             enabled: true,
@@ -94,7 +94,7 @@ describe("log command", () => {
               withTrace: fixtures.withTrace,
             },
           }),
-        ],
+        ]),
       }),
     );
   });

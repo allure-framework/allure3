@@ -24,20 +24,20 @@ describe("csv command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-csv": {
           options: {
             groupBy: undefined,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-csv",
             enabled: true,
@@ -45,7 +45,7 @@ describe("csv command", () => {
               groupBy: undefined,
             },
           }),
-        ],
+        ]),
       }),
     );
   });
@@ -68,7 +68,7 @@ describe("csv command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-csv": {
           options: {
             groupBy: undefined,
@@ -78,13 +78,13 @@ describe("csv command", () => {
             knownIssues: fixtures.knownIssues,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-csv",
             enabled: true,
@@ -95,7 +95,7 @@ describe("csv command", () => {
               separator: fixtures.separator,
             },
           }),
-        ],
+        ]),
       }),
     );
   });

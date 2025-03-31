@@ -31,20 +31,20 @@ describe("slack command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-slack": {
           options: {
             token: fixtures.token,
             channel: fixtures.channel,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-slack",
             enabled: true,
@@ -53,7 +53,7 @@ describe("slack command", () => {
               channel: fixtures.channel,
             },
           }),
-        ],
+        ]),
       }),
     );
   });

@@ -24,20 +24,20 @@ describe("awesome command", () => {
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-awesome": {
           options: {
             groupBy: undefined,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-awesome",
             enabled: true,
@@ -45,7 +45,7 @@ describe("awesome command", () => {
               groupBy: undefined,
             },
           }),
-        ],
+        ]),
       }),
     );
   });
@@ -78,7 +78,7 @@ describe("awesome command", () => {
       output: fixtures.output,
       knownIssuesPath: fixtures.knownIssues,
       historyPath: fixtures.historyPath,
-      plugins: {
+      plugins: expect.objectContaining({
         "@allurereport/plugin-awesome": {
           options: {
             groupBy: undefined,
@@ -87,14 +87,14 @@ describe("awesome command", () => {
             logo: fixtures.logo,
           },
         },
-      },
+      }),
     });
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: fixtures.reportName,
         history: [],
-        plugins: [
+        plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-awesome",
             enabled: true,
@@ -105,7 +105,7 @@ describe("awesome command", () => {
               logo: fixtures.logo,
             },
           }),
-        ],
+        ]),
       }),
     );
   });

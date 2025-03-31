@@ -1,5 +1,5 @@
 import type { Plugin, PluginContext, PluginInfo, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type SummaryPlugin from "@allurereport/plugin-summary";
+import SummaryPlugin from "@allurereport/plugin-summary";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import console from "node:console";
@@ -190,7 +190,7 @@ export class AllureReport {
       await writeHistory(this.#historyPath, historyDataPoint);
     }
 
-    const summaryPlugin = this.#plugins.find((plugin) => plugin.id === "summary");
+    const { plugin: summaryPlugin } = this.#plugins.find((plugin) => plugin.id === SummaryPlugin.id) ?? {};
 
     if (!summaryPlugin) {
       return;
@@ -211,7 +211,7 @@ export class AllureReport {
       });
     });
 
-    await (summaryPlugin.plugin as unknown as SummaryPlugin).generate(this.#output, summaries);
+    await (summaryPlugin as SummaryPlugin).generate(this.#output, summaries);
   };
 
   #eachPlugin = async (
