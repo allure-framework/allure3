@@ -1,8 +1,8 @@
 import { ResponsiveLine } from "@nivo/line";
 import type { Point } from "@nivo/line";
 import type { FunctionalComponent } from "preact";
-import { useCallback } from "preact/hooks";
-import { defaultTrendChartConfig } from "./config";
+import { useCallback, useMemo } from "preact/hooks";
+import { defaultTrendChartConfig, defaultTrendChartAxisBottomConfig } from "./config";
 import * as styles from "./styles.scss";
 import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
@@ -14,7 +14,9 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   height = 400,
   emptyLabel = "No data available",
   emptyAriaLabel = "No data available",
+  axisBottom,
   rootAriaLabel,
+  data: items,
   ...restProps
 }) => {
   const kindConfig = getKindConfig(kind);
@@ -41,8 +43,41 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
     [kind, restProps],
   );
 
+  // Fix for X-axis values order
+  const tickValues = useMemo(() => {
+    const xValues = items?.flatMap((item) => item.data?.map((d) => d.x));
+
+    return [...new Set(xValues)].sort((a, b) => {
+      const aStr = a?.toString() || "";
+      const bStr = b?.toString() || "";
+
+      // Split strings into chunks of numbers and non-numbers
+      const aParts = aStr.split(/(\d+)/).filter(Boolean);
+      const bParts = bStr.split(/(\d+)/).filter(Boolean);
+
+      // Compare each part
+      for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+        const aNum = parseInt(aParts[i], 10);
+        const bNum = parseInt(bParts[i], 10);
+
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          if (aNum !== bNum) {
+            return aNum - bNum;
+          }
+        } else {
+          const comp = aParts[i].localeCompare(bParts[i]);
+          if (comp !== 0) {
+            return comp;
+          }
+        }
+      }
+
+      return aParts.length - bParts.length;
+    });
+  }, [items]);
+
   // Check if data is empty
-  if (!restProps.data || restProps.data.length === 0 || restProps.data.every((series) => !series.data?.length)) {
+  if (!items || items.length === 0 || items.every((series) => !series.data?.length)) {
     return (
       <div
         role="img"
@@ -65,8 +100,14 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
         {...defaultTrendChartConfig}
         {...kindConfig}
         {...restProps}
+        data={items}
         onClick={handleClick}
         onTouchEnd={handleTouchEnd}
+        axisBottom={{
+          ...defaultTrendChartAxisBottomConfig,
+          ...axisBottom,
+          tickValues,
+        }}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import type { AxisProps } from "@nivo/axes";
 import type { LineSvgProps, Datum as OriginalDatum, Serie as OriginalSerie, Point } from "@nivo/line";
 import type { ScaleSymlogSpec } from "@nivo/scales";
 import type { CSSProperties } from "preact/compat";
@@ -38,12 +39,13 @@ export interface Slice {
 export type TrendChartSliceClickHandler = (slice: Slice, event: MouseEvent) => void;
 export type TrendChartSliceTouchHandler = (slice: Slice, event: TouchEvent) => void;
 
-interface BaseTrendChartProps extends Omit<BaseLineSvgProps, "onClick" | "onTouchEnd"> {
+interface BaseTrendChartProps extends Omit<BaseLineSvgProps, "onClick" | "onTouchEnd" | "axisBottom"> {
   rootAriaLabel?: string;
   emptyLabel?: string;
   emptyAriaLabel?: string;
   width?: CSSProperties["width"];
   height?: CSSProperties["height"];
+  axisBottom?: Omit<AxisProps, "tickValues">;
 }
 
 export interface MeshTrendChartProps extends BaseTrendChartProps {
