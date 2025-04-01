@@ -1,4 +1,11 @@
-import type { Plugin, PluginContext, PluginInfo, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type {
+  Plugin,
+  PluginContext,
+  PluginState,
+  PluginSummary,
+  ReportFiles,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
@@ -6,8 +13,8 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import { opendir, realpath } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { opendir, readdir, realpath, rename, rm } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { createHistory, writeHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
@@ -171,28 +178,19 @@ export class AllureReport {
   };
 
   done = async (): Promise<void> => {
+    const summaries: PluginSummary[] = [];
+
     if (this.#stage !== "running") {
       throw new Error(initRequired);
     }
+
     this.#events.offAll();
     // closing it early, to prevent future reads
     this.#stage = "done";
 
-    await this.#eachPlugin(false, async (plugin, context) => {
-      await plugin.done?.(context, this.#store);
-    });
-
-    if (this.#appendHistory) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
-
-      await writeHistory(this.#historyPath, historyDataPoint);
-    }
-
-    const summaries: PluginInfo[] = [];
-
     await this.#eachPlugin(false, async (plugin, context, id) => {
+      await plugin.done?.(context, this.#store);
+
       const summary = await plugin?.info?.(context, this.#store);
 
       if (!summary) {
@@ -205,8 +203,32 @@ export class AllureReport {
       });
     });
 
-    // don't generate summary, when there is no or one plugin
-    if (summaries.length <= 1) {
+    if (this.#appendHistory) {
+      const testResults = await this.#store.allTestResults();
+      const testCases = await this.#store.allTestCases();
+      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
+
+      await writeHistory(this.#historyPath, historyDataPoint);
+    }
+
+    const outputDirFiles = await readdir(this.#output);
+
+    if (outputDirFiles.length === 1) {
+      const reportPath = join(this.#output, outputDirFiles[0]);
+      const reportContent = await readdir(reportPath);
+
+      for (const entry of reportContent) {
+        const currentFilePath = join(reportPath, entry);
+        const newFilePath = resolve(dirname(currentFilePath), "..", entry);
+
+        await rename(currentFilePath, newFilePath);
+      }
+
+      await rm(reportPath, { recursive: true });
+      return;
+    }
+
+    if (summaries.length === 0) {
       return;
     }
 

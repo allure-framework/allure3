@@ -25,7 +25,7 @@ export interface PluginContext {
   reportFiles: ReportFiles;
 }
 
-export interface PluginInfo {
+export interface PluginSummary {
   href?: string;
   name: string;
   stats: Statistic;
@@ -47,5 +47,5 @@ export interface Plugin {
   start?(context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void>;
   update?(context: PluginContext, store: AllureStore): Promise<void>;
   done?(context: PluginContext, store: AllureStore): Promise<void>;
-  info?(context: PluginContext, store: AllureStore): Promise<PluginInfo>;
+  info?(context: PluginContext, store: AllureStore): Promise<PluginSummary>;
 }

@@ -1,4 +1,4 @@
-import type { PluginInfo } from "@allurereport/plugin-api";
+import type { PluginSummary } from "@allurereport/plugin-api";
 import { createBaseUrlScript, createScriptTag } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -37,7 +37,7 @@ export const readTemplateManifest = async (): Promise<TemplateManifest> => {
   return JSON.parse(templateManifest);
 };
 
-export const generateSummaryStaticFiles = async (payload: { summaries: PluginInfo[] }) => {
+export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[] }) => {
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest();
   const bodyTags: string[] = [];
