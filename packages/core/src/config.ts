@@ -1,5 +1,4 @@
 import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
-import SummaryPlugin from "@allurereport/plugin-summary";
 import * as console from "node:console";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -114,15 +113,6 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         }
       : config.plugins!;
-
-  // inject summary plugin to use it every time under the hood without necessarily specifying it in the config for the user
-  Object.assign(plugins, {
-    [SummaryPlugin.id]: {
-      import: "@allurereport/plugin-summary",
-      options: {},
-    },
-  });
-
   const pluginInstances = await resolvePlugins(plugins);
 
   return {

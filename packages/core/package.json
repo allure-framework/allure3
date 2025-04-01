@@ -34,10 +34,10 @@
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
-    "@allurereport/plugin-summary": "workspace:*",
     "@allurereport/plugin-testplan": "workspace:*",
     "@allurereport/reader": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
+    "@allurereport/summary": "workspace:*",
     "handlebars": "^4.7.8",
     "markdown-it": "^14.1.0"
   },

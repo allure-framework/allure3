@@ -50,10 +50,10 @@ __metadata:
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
-    "@allurereport/plugin-summary": "workspace:*"
     "@allurereport/plugin-testplan": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
+    "@allurereport/summary": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
     "@types/handlebars": "npm:^4.1.0"
@@ -422,37 +422,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-summary@workspace:*, @allurereport/plugin-summary@workspace:packages/plugin-summary":
-  version: 0.0.0-use.local
-  resolution: "@allurereport/plugin-summary@workspace:packages/plugin-summary"
-  dependencies:
-    "@allurereport/core": "workspace:*"
-    "@allurereport/core-api": "workspace:*"
-    "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
-    "@allurereport/web-summary": "workspace:*"
-    "@stylistic/eslint-plugin": "npm:^2.6.1"
-    "@types/eslint": "npm:^8.56.11"
-    "@types/handlebars": "npm:^4.1.0"
-    "@types/node": "npm:^20.17.9"
-    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
-    "@typescript-eslint/parser": "npm:^8.0.0"
-    "@vitest/runner": "npm:^2.1.8"
-    allure-vitest: "npm:^3.0.9"
-    eslint: "npm:^8.57.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-import: "npm:^2.29.1"
-    eslint-plugin-jsdoc: "npm:^50.0.0"
-    eslint-plugin-n: "npm:^17.10.1"
-    eslint-plugin-no-null: "npm:^1.0.2"
-    eslint-plugin-prefer-arrow: "npm:^1.2.3"
-    handlebars: "npm:^4.7.8"
-    rimraf: "npm:^6.0.1"
-    typescript: "npm:^5.6.3"
-    vitest: "npm:^2.1.8"
-  languageName: unknown
-  linkType: soft
-
 "@allurereport/plugin-testplan@workspace:*, @allurereport/plugin-testplan@workspace:packages/plugin-testplan":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-testplan@workspace:packages/plugin-testplan"
@@ -568,6 +537,37 @@ __metadata:
     get-port: "npm:^7.1.0"
     npm-run-all2: "npm:^7.0.1"
     open: "npm:^10.1.0"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/summary@workspace:*, @allurereport/summary@workspace:packages/summary":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/summary@workspace:packages/summary"
+  dependencies:
+    "@allurereport/core": "workspace:*"
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
+    "@allurereport/web-summary": "workspace:*"
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/handlebars": "npm:^4.1.0"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.9"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    handlebars: "npm:^4.7.8"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.8"

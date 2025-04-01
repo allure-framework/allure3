@@ -1,5 +1,4 @@
 import type { Config } from "@allurereport/plugin-api";
-import SummaryPlugin from "@allurereport/plugin-summary";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
@@ -240,16 +239,5 @@ describe("resolveConfig", () => {
     await expect(resolveConfig(fixture)).rejects.toThrow(
       "The provided Allure config contains unsupported fields: unsupportedField",
     );
-  });
-
-  it("should inject summary plugin to the config", async () => {
-    (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
-
-    expect((await resolveConfig({})).plugins).toContainEqual({
-      id: SummaryPlugin.id,
-      enabled: true,
-      options: {},
-      plugin: expect.any(PluginFixture),
-    });
   });
 });

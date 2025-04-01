@@ -1,7 +1,7 @@
 import type { Plugin, PluginContext, PluginInfo, PluginState, ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import SummaryPlugin from "@allurereport/plugin-summary";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
@@ -190,12 +190,6 @@ export class AllureReport {
       await writeHistory(this.#historyPath, historyDataPoint);
     }
 
-    const { plugin: summaryPlugin } = this.#plugins.find((plugin) => plugin.id === SummaryPlugin.id) ?? {};
-
-    if (!summaryPlugin) {
-      return;
-    }
-
     const summaries: PluginInfo[] = [];
 
     await this.#eachPlugin(false, async (plugin, context, id) => {
@@ -211,7 +205,12 @@ export class AllureReport {
       });
     });
 
-    await (summaryPlugin as SummaryPlugin).generate(this.#output, summaries);
+    // don't generate summary, when there is no or one plugin
+    if (summaries.length <= 1) {
+      return;
+    }
+
+    await generateSummary(this.#output, summaries);
   };
 
   #eachPlugin = async (
