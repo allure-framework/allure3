@@ -16,11 +16,9 @@ type DiffType = keyof typeof diffFunctions;
 type ViewMode = "unified" | "side-by-side";
 
 export const TrDiff = ({ expected, actual }: { expected: string; actual: string }) => {
-  const stringifiedExpected = JSON.stringify(expected);
-  const stringifiedActual = JSON.stringify(actual);
   const [diffType, setDiffType] = useState<DiffType>("lines");
   const [viewMode, setViewMode] = useState<ViewMode>("unified");
-  const [diff, setDiff] = useState<Change[]>(() => diffLines(stringifiedExpected, stringifiedActual));
+  const [diff, setDiff] = useState<Change[]>(() => diffLines(expected, actual));
   const { t } = useI18n("controls");
 
   const DiffCode = () => {
@@ -37,8 +35,8 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
   const changeTypeDiff = (type: DiffType = "chars") => {
     const diffFn = diffFunctions[type];
     const result = (diffFn as (oldStr: string, newStr: string, options?: BaseOptions) => Change[])(
-      stringifiedExpected,
-      stringifiedActual,
+      expected,
+      actual,
       {},
     );
 

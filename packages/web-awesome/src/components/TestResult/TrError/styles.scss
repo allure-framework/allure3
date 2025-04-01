@@ -56,18 +56,28 @@
   width: 100%;
   line-height: 1.28;
   padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 
   .side {
     flex: 1 1 auto;
     gap: 4px;
+    height: 100%;
+    overflow: hidden;
   }
 
   .unified {
     flex: 1 1 auto;
+    overflow: auto;
   }
 
   .diff-screen {
     min-height: 320px;
+    height: 100%;
+    overflow: auto;
+    padding-bottom: 48px;
   }
 }
 
@@ -125,6 +135,8 @@
 .side-by-side {
   display: flex;
   gap: 4px;
+  height: 100%;
+  overflow: hidden;
 }
 
 .diff-buttons-title {

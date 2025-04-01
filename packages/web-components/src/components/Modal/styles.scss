@@ -27,6 +27,7 @@
   min-width: 320px;
   min-height: 320px;
   max-height: 80vh;
+  height: 80vh;
   display: flex;
   border-radius: 16px;
   align-items: center;
@@ -49,6 +50,8 @@
   overflow-y: auto;
   pointer-events: all;
   padding-top: 56px;
+  height: inherit;
+  max-height: inherit;
 }
 
 .modal-image {
