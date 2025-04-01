@@ -54,14 +54,12 @@ const calculateRawValues = <T extends TrendDataType>(
     const pointId = `${executionId}-${item}`;
     const value = stats[item] ?? 0;
 
-    if (value) {
-      points[pointId] = {
-        x: executionId,
-        y: value,
-      };
+    points[pointId] = {
+      x: executionId,
+      y: value,
+    };
 
-      series[item].push(pointId);
-    }
+    series[item].push(pointId);
   });
 
   return { points, series };
@@ -86,14 +84,12 @@ const calculatePercentValues = <T extends TrendDataType>(
     const pointId = `${executionId}-${item}`;
     const value = stats[item] ?? 0;
 
-    if (value) {
-      points[pointId] = {
-        x: executionId,
-        y: (value / total) * 100,
-      };
+    points[pointId] = {
+      x: executionId,
+      y: (value / total) * 100,
+    };
 
-      series[item].push(pointId);
-    }
+    series[item].push(pointId);
   });
 
   return { points, series };
