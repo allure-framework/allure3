@@ -1,8 +1,4 @@
-import {
-  AllureReport,
-  FileSystemReportFiles,
-  type FullConfig,
-} from "@allurereport/core";
+import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { type TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
@@ -19,6 +15,7 @@ export type GeneratorParams = {
 
 export interface ReportBootstrap {
   url: string;
+  reportDir: string;
   shutdown: () => Promise<void>;
 }
 
@@ -54,31 +51,43 @@ export const generateReport = async (payload: GeneratorParams) => {
   await report.done();
 };
 
-export const bootstrapReport = async (
-  params: Omit<GeneratorParams, "reportDir" | "resultsDir">,
-): Promise<ReportBootstrap> => {
-  const temp = tmpdir();
-  const allureTestResultsDir = await mkdtemp(resolve(temp, "allure-results-"));
-  const allureReportDir = await mkdtemp(resolve(temp, "allure-report-"));
-
-  await generateReport({
-    ...params,
-    resultsDir: allureTestResultsDir,
-    reportDir: allureReportDir,
-  });
-
+export const serveReport = async (reportDir: string) => {
   const server = await serve({
-    servePath: resolve(allureReportDir, "./awesome"),
+    servePath: resolve(reportDir),
   });
 
   return {
     url: `http://localhost:${server.port}`,
     shutdown: async () => {
       await server?.stop();
+    },
+  };
+};
+
+export const bootstrapReport = async (
+  params: Omit<GeneratorParams, "reportDir" | "resultsDir">,
+): Promise<ReportBootstrap> => {
+  const temp = tmpdir();
+  const resultsDir = await mkdtemp(resolve(temp, "allure-results-"));
+  const reportDir = await mkdtemp(resolve(temp, "allure-report-"));
+
+  await generateReport({
+    ...params,
+    resultsDir,
+    reportDir,
+  });
+
+  const server = await serveReport(reportDir);
+
+  return {
+    ...server,
+    reportDir,
+    shutdown: async () => {
+      await server?.shutdown();
 
       try {
-        await rm(allureTestResultsDir, { recursive: true });
-        await rm(allureReportDir, { recursive: true });
+        await rm(resultsDir, { recursive: true });
+        await rm(reportDir, { recursive: true });
       } catch (ignored) {}
     },
   };
