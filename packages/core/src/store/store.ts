@@ -443,14 +443,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         envGroup.testResultsByEnv[env] = tr.id;
       });
 
-      return acc.concat(envGroup);
+      acc.push(envGroup);
+
+      return acc;
     }, [] as TestEnvGroup[]);
-  }
-
-  async testEnvGroupByTestCaseId(id: string) {
-    const allEnvGroups = await this.allTestEnvGroups();
-
-    return allEnvGroups.find((group) => group.id === id);
   }
 
   // variables

@@ -30,5 +30,6 @@ export default defineConfig({
   ],
   use: {
     trace: "on",
+    screenshot: "only-on-failure",
   },
 });

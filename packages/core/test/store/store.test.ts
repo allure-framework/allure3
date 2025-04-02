@@ -1675,51 +1675,6 @@ describe("environments", () => {
       },
     });
   });
-
-  it("should return test env group by test case id", async () => {
-    const store = new DefaultAllureStore({
-      environmentsConfig: {
-        foo: {
-          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
-        },
-      },
-    });
-    const tr1: RawTestResult = {
-      name: "test result 1",
-      fullName: "test result 1",
-      status: "passed",
-      testId: "test result id 1",
-      labels: [
-        {
-          name: "env",
-          value: "foo",
-        },
-      ],
-    };
-    const tr2: RawTestResult = {
-      name: "test result 1",
-      fullName: "test result 1",
-      status: "failed",
-      testId: "test result id 1",
-      labels: [],
-    };
-
-    await store.visitTestResult(tr1, { readerId });
-    await store.visitTestResult(tr2, { readerId });
-
-    const result = await store.testEnvGroupByTestCaseId("f7bfa0e77e93719dcfbb2c4c5ac83586");
-
-    expect(result).toMatchObject({
-      name: "test result 1",
-    });
-  });
-
-  it("should return undefined when test env group by id is not found", async () => {
-    const store = new DefaultAllureStore();
-    const result = await store.testEnvGroupByTestCaseId("f7bfa0e77e93719dcfbb2c4c5ac83586");
-
-    expect(result).toBeUndefined();
-  });
 });
 
 describe("variables", () => {

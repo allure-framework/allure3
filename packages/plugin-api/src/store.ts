@@ -43,7 +43,6 @@ export interface AllureStore {
   allEnvironments: () => Promise<string[]>;
   testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
   allTestEnvGroups: () => Promise<TestEnvGroup[]>;
-  testEnvGroupByTestCaseId: (id: string) => Promise<TestEnvGroup | undefined>;
   // variables
   allVariables: () => Promise<Record<string, any>>;
   envVariables: (env: string) => Promise<Record<string, any>>;
