@@ -1,3 +1,4 @@
+import type { TestStatus } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
@@ -17,7 +18,7 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id } = testResult || {};
+  const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id, status } = testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
@@ -27,7 +28,7 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
     <>
       {Boolean(error?.message) && (
         <div className={styles["test-result-errors"]}>
-          <TrError {...error} />
+          <TrError {...error} status={status} />
         </div>
       )}
       {Boolean(pwTraces.length) && <TrPwTraces pwTraces={pwTraces} />}

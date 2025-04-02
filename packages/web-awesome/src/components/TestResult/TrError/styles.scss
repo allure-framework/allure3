@@ -13,7 +13,43 @@
     position: absolute;
     left: 0;
     top: 0;
-    background: var(--on-support-capella);
+    //background: var(--on-support-capella);
+    //background: var(--on-support-capella);
+  }
+}
+
+.tr-status-failed {
+  background-color: var(--bg-alpha-capella);
+  &:before {
+    background-color: var(--bg-support-capella);
+  }
+}
+
+.tr-status-broken {
+  background-color: var(--bg-alpha-atlas);
+  &:before {
+    background-color: var(--bg-support-atlas);
+  }
+}
+
+.tr-status-skipped {
+  background-color: var(--bg-alpha-rau);
+  &:before {
+    background-color: var(--bg-support-rau);
+  }
+}
+
+.tr-status-unknown {
+  background-color: var(--bg-alpha-skat);
+  &:before {
+    background-color: var(--bg-support-skat);
+  }
+}
+
+.tr-status-passed {
+  background-color: var(--bg-alpha-castor);
+  &:before {
+    background-color: var(--bg-support-castor);
   }
 }
 
@@ -28,6 +64,48 @@
   padding-left: 8px;
   color: var(--on-support-capella);
   margin-right: auto;
+}
+
+.tr-color-failed {
+  color: var(--on-support-capella);
+}
+
+.tr-color-broken {
+  color: var(--on-support-atlas);
+}
+
+.tr-color-skipped {
+  color: var(--on-support-rau);
+}
+
+.tr-color-passed {
+  color: var(--on-support-castor);
+}
+.tr-color-unknown {
+  color: var(--on-support-skat);
+}
+
+.tr-bg-failed {
+  background: var(--bg-support-capella);
+}
+
+.tr-bg-broken {
+  background: var(--bg-support-atlas);
+}
+
+.tr-bg-skipped {
+  background: var(--bg-support-rau);
+}
+
+.tr-bg-passed {
+  background: var(--bg-support-castor);
+}
+
+.tr-bg-failed {
+  background: var(--bg-support-capella);
+}
+.tr-bg-unknown {
+  background: var(--bg-support-skat);
 }
 
 .test-result-error-trace {
@@ -48,7 +126,7 @@
   margin-bottom: 4px;
 
   &:hover {
-    background: var(--bg-alpha-capella);
+    background: inherit;
   }
 }
 

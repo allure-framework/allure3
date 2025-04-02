@@ -3,7 +3,6 @@
   --ad-other-modal-overlay: var(--ad-other-modal-overlay-day);
   --bg-alpha-capella-heavy: var(--bg-alpha-capella-heavy-day);
   --bg-alpha-capella: var(--bg-alpha-capella-day);
-  --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-day);
   --bg-base-modal: var(--bg-base-modal-day);
   --bg-base-neutral: var(--bg-base-neutral-day);
   --bg-base-primary: var(--bg-base-primary-day);
@@ -49,6 +48,11 @@
   --on-text-primary: var(--on-text-primary-day);
   --on-text-secondary: var(--on-text-secondary-day);
   --scrollbar-color: var(--gray-300);
+  --bg-alpha-atlas: var(--atlas-day-darken-1-8);
+  --bg-alpha-rau: var(--rau-day-darken-1-8);
+  --bg-alpha-castor: var(--castor-day-darken-1-8);
+  --bg-alpha-skat: var(--skat-day-darken-1-8);
+  --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-day);
 
   color-scheme: light;
 }
@@ -115,5 +119,9 @@
   --on-text-secondary: var(--on-text-secondary-night);
 
   --scrollbar-color: var(--gray-400);
+  --bg-alpha-atlas: var(--atlas-night-darken-5-12);
+  --bg-alpha-rau: var(--rau-night-darken-5-12);
+  --bg-alpha-castor: var(--castor-night-darken-5-20);
+  --bg-alpha-skat: var(--skat-night-darken-5-12);
   color-scheme: dark;
 }

@@ -57,4 +57,12 @@
 .test-result-errors {
   padding: 0 24px;
   margin-top: 12px;
+  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+
+  & > div {
+    flex: 1 1 auto;
+  }
 }

@@ -1,6 +1,7 @@
-import type { TestError } from "@allurereport/core-api";
+import type { TestError, TestResult, TestStatus } from "@allurereport/core-api";
 import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import AnsiToHtml from "ansi-to-html";
+import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
@@ -21,7 +22,13 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TrError: FunctionalComponent<TestError> = ({ message, trace, actual, expected }) => {
+export const TrError: FunctionalComponent<TestError & { status: TestStatus }> = ({
+  message,
+  trace,
+  actual,
+  expected,
+  status,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
@@ -35,11 +42,16 @@ export const TrError: FunctionalComponent<TestError> = ({ message, trace, actual
     });
 
   return (
-    <div data-testid="test-result-error" className={styles["test-result-error"]}>
+    <div data-testid="test-result-error" className={clsx(styles["test-result-error"], styles[`tr-status-${status}`])}>
       {message ? (
         <>
           <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
-            <Text tag={"p"} size={"m"} bold className={styles["test-result-error-text"]}>
+            <Text
+              tag={"p"}
+              size={"m"}
+              bold
+              className={clsx(styles["test-result-error-text"], styles[`tr-color-${status}`])}
+            >
               {t("error")}
             </Text>
             <TooltipWrapper tooltipText={tooltip("clipboard")} tooltipTextAfterClick={tooltip("clipboardSuccess")}>

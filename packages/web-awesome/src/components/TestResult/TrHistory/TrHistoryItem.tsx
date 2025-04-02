@@ -58,7 +58,7 @@ export const TrHistoryItem: FunctionalComponent<{
       </div>
       {isOpened && error && (
         <div>
-          <TrError {...error} />
+          <TrError {...error} status={status} />
         </div>
       )}
     </div>

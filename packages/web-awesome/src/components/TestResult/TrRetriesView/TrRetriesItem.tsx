@@ -43,7 +43,7 @@ export const TrRetriesItem: FunctionalComponent<{
       </div>
       {isOpened && error && (
         <div className={styles["test-result-retries-item-content"]}>
-          <TrError {...error} />
+          <TrError {...error} status={status} />
         </div>
       )}
     </div>
