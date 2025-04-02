@@ -2,8 +2,10 @@ import type { Statistic } from "./aggregate.js";
 import type { SeverityLevel, TestStatus } from "./model.js";
 
 // TODO: use as a type in the tree filter store
-export const statusesList: TestStatus[] = ["failed", "broken", "passed", "skipped", "unknown"];
-export const severityLevels: SeverityLevel[] = ["blocker", "critical", "normal", "minor", "trivial"];
+export const statusesList: readonly TestStatus[] = ["failed", "broken", "passed", "skipped", "unknown"];
+export const severityLevels: readonly SeverityLevel[] = ["blocker", "critical", "normal", "minor", "trivial"];
+
+export const severityLabelName = "severity";
 
 export const unsuccessfulStatuses = new Set<TestStatus>(["failed", "broken"]);
 
