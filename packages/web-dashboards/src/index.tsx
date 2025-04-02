@@ -4,10 +4,9 @@ import { render } from "preact";
 import { useEffect } from "preact/hooks";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
-import { getLocale, getTheme, waitForI18next } from "@/stores";
+import { getLocale, waitForI18next } from "@/stores/locale";
+import { getTheme } from "@/stores/theme";
 import { fetchTrendData } from "@/stores/trends";
-import { fetchEnvInfo } from "@/stores/envInfo";
-import { handleHashChange } from "@/stores/router";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -21,24 +20,11 @@ const App = () => {
     fetchTrendData();
   }, []);
 
-  useEffect(() => {
-    handleHashChange();
-    globalThis.addEventListener("hashchange", () => handleHashChange());
-
-    return () => {
-      globalThis.removeEventListener("hashchange", () => handleHashChange());
-    };
-  }, []);
-
   return (
     <div className={styles.main}>
       <BaseLayout />
     </div>
   );
-};
-
-export const openInNewTab = (path: string) => {
-  window.open(`#${path}`, "_blank");
 };
 
 const rootElement = document.getElementById("app");
@@ -56,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
     getTheme();
   }
   await ensureReportDataReady();
-  await fetchEnvInfo();
   await fetchTrendData();
 
 
