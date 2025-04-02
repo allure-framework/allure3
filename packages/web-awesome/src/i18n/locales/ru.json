@@ -96,7 +96,9 @@
     "showMore": "Показать больше",
     "copy": "Скопировать",
     "at": "в",
-    "openPwTrace": "Открыть Playwright Trace"
+    "openPwTrace": "Открыть Playwright Trace",
+    "suites": "Наборы тестов",
+    "categories": "Категории"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

@@ -1,6 +1,8 @@
 import { SearchBox } from "@allurereport/web-components";
+import { TreeToggle } from "@/components/ReportBody/TreeToggle";
 import { useI18n } from "@/stores/locale";
-import { setTreeQuery, treeFiltersStore } from "@/stores/tree";
+import { setTreeQuery } from "@/stores/tree";
+import { treeFiltersStore } from "@/stores/treeFilters";
 import { Filters } from "./Filters";
 import * as styles from "./styles.scss";
 
@@ -14,6 +16,7 @@ const Search = () => {
 export const HeaderActions = () => {
   return (
     <div className={styles.headerActions}>
+      <TreeToggle />
       <Search />
       <Filters />
     </div>

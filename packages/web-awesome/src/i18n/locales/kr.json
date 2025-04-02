@@ -98,7 +98,9 @@
     "showMore": "더 보기",
     "copy": "복사",
     "at": "에서",
-    "openPwTrace": "Playwright Trace 열기"
+    "openPwTrace": "Playwright Trace 열기",
+    "suites": "테스트 모음",
+    "categories": "카테고리"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

@@ -98,7 +98,9 @@
     "showMore": "もっと見る",
     "copy": "コピー",
     "at": "時",
-    "openPwTrace": "Playwright Trace を開く"
+    "openPwTrace": "Playwright Trace を開く",
+    "suites": "テストスイート",
+    "categories": "カテゴリ"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",

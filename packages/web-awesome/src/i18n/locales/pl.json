@@ -96,7 +96,9 @@
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
     "at": "w",
-    "openPwTrace": "Otwórz Playwright Trace"
+    "openPwTrace": "Otwórz Playwright Trace",
+    "suites": "Pakiety testów",
+    "categories": "Kategorie"
   },
   "controls": {
     "newTabAttachment": "Otwórz w nowej zakładce",

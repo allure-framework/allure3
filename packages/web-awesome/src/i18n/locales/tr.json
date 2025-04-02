@@ -98,7 +98,9 @@
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
     "at": "tarihinde",
-    "openPwTrace": "Playwright Trace'i aç"
+    "openPwTrace": "Playwright Trace'i aç",
+    "suites": "Test takımları",
+    "categories": "Kategoriler"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",

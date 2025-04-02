@@ -98,7 +98,9 @@
     "showMore": "הצג עוד",
     "copy": "העתק",
     "at": "ב-",
-    "openPwTrace": "פתח Playwright Trace"
+    "openPwTrace": "פתח Playwright Trace",
+    "suites": "סוויטות",
+    "categories": "קטגוריות"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

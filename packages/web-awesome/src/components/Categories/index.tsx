@@ -1,28 +1,33 @@
 import { Button, Loadable, PageLoader, Text, Tree } from "@allurereport/web-components";
+import { useEffect } from "preact/hooks";
 import type { AwesomeStatus } from "types";
 import { statsStore } from "@/stores";
+import {
+  categoriesStore,
+  clearCategoriesFilters,
+  fetchCategoriesData,
+  filteredCategories,
+  noTests,
+  noTestsFound,
+} from "@/stores/categories";
 import { useI18n } from "@/stores/locale";
 import { navigateTo, route } from "@/stores/router";
 import { currentTab } from "@/stores/tabs";
-import {
-  clearTreeFilters,
-  collapsedTrees,
-  filteredTree,
-  noTests,
-  noTestsFound,
-  toggleTree,
-  treeStore,
-} from "@/stores/tree";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 import { treeFiltersStore } from "@/stores/treeFilters";
 import * as styles from "./styles.scss";
 
-export const TreeList = () => {
+const Categories = () => {
   const { t } = useI18n("empty");
   const { id } = route.value;
 
+  useEffect(() => {
+    fetchCategoriesData();
+  }, []);
+
   return (
     <Loadable
-      source={treeStore}
+      source={categoriesStore}
       renderLoader={() => <PageLoader />}
       renderData={() => {
         if (noTests.value) {
@@ -48,7 +53,7 @@ export const TreeList = () => {
                   text={t("clear-filters")}
                   size={"s"}
                   style={"outline"}
-                  onClick={() => clearTreeFilters()}
+                  onClick={() => clearCategoriesFilters()}
                 />
               </div>
             </div>
@@ -63,7 +68,7 @@ export const TreeList = () => {
               treeFiltersStore={treeFiltersStore}
               navigateTo={navigateTo}
               statsStore={statsStore}
-              tree={filteredTree.value}
+              tree={filteredCategories.value}
               statusFilter={currentTab.value as AwesomeStatus}
               routeId={id}
               root
@@ -74,3 +79,4 @@ export const TreeList = () => {
     />
   );
 };
+export default Categories;

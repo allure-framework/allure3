@@ -10,6 +10,7 @@ import {
   generateStatistic,
   generateTestResults,
   generateTree,
+  generateTreeByCategories,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
@@ -35,6 +36,7 @@ export class AwesomePlugin implements Plugin {
       ({ labels }) => labels.map(({ name }) => name),
     );
 
+    await generateTreeByCategories(this.#writer!, "categories", convertedTrs);
     await generateTree(this.#writer!, "tree", treeLabels, convertedTrs);
     await generateHistoryDataPoints(this.#writer!, store);
 
