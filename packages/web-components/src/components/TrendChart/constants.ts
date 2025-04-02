@@ -1,0 +1,1 @@
+export const SYMLOG_SCALE_CONSTANT = 64;

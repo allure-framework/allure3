@@ -1,0 +1,32 @@
+.widget {
+  background: var(--bg-base-modal);
+  border-radius: 8px;
+  box-shadow: var(--shadow-small);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--on-border-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.dragArea {
+  width: 24px;
+  height: 24px;
+  margin-left: -8px;
+  flex: 0 0 auto;
+}
+
+.content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}

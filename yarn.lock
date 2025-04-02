@@ -47,6 +47,7 @@ __metadata:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
+    "@allurereport/plugin-dashboards": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
@@ -286,6 +287,32 @@ __metadata:
 "@allurereport/plugin-csv@workspace:*, @allurereport/plugin-csv@workspace:packages/plugin-csv":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-csv@workspace:packages/plugin-csv"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.9"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/plugin-dashboards@workspace:*, @allurereport/plugin-dashboards@workspace:packages/plugin-dashboards":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/plugin-dashboards@workspace:packages/plugin-dashboards"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -813,6 +840,7 @@ __metadata:
     "@nivo/core": "npm:^0.88.0"
     "@nivo/legends": "npm:^0.88.0"
     "@nivo/line": "npm:^0.88.0"
+    "@nivo/scales": "npm:^0.88.0"
     "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.9.4"
     "@preact/signals": "npm:^1.3.0"
@@ -844,6 +872,7 @@ __metadata:
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^20.17.9"
     "@types/prismjs": "npm:^1"
+    "@types/sortablejs": "npm:^1.15.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.8"
@@ -890,6 +919,7 @@ __metadata:
     rollup-plugin-svg-sprites: "npm:^1.2.5"
     sass: "npm:^1.83.1"
     sass-loader: "npm:^16.0.4"
+    sortablejs: "npm:^1.15.6"
     storybook: "npm:^8.4.7"
     style-loader: "npm:^4.0.0"
     svg-sprite-loader: "npm:^6.0.11"
@@ -5172,7 +5202,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nivo/scales@npm:0.88.0":
+"@nivo/scales@npm:0.88.0, @nivo/scales@npm:^0.88.0":
   version: 0.88.0
   resolution: "@nivo/scales@npm:0.88.0"
   dependencies:
@@ -7420,6 +7450,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/sortablejs@npm:^1.15.8":
+  version: 1.15.8
+  resolution: "@types/sortablejs@npm:1.15.8"
+  checksum: 10/aea58b08cf45f5e9633707a8df0df1212595c731bbdfd29805487138fdd0d8c51fa5c741999738a645c1e801d43a92ba0d3fb5b45625b52e247c56588aef6c55
+  languageName: node
+  linkType: hard
+
 "@types/underscore@npm:^1":
   version: 1.13.0
   resolution: "@types/underscore@npm:1.13.0"
@@ -8477,6 +8514,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
+    "@allurereport/plugin-dashboards": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
@@ -19162,7 +19200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sortablejs@npm:^1.15.3":
+"sortablejs@npm:^1.15.3, sortablejs@npm:^1.15.6":
   version: 1.15.6
   resolution: "sortablejs@npm:1.15.6"
   checksum: 10/3179071352662e6cff20d7d10792a934fc892a83a01ae09c7e604d2dd51daaf07283b00a8f2b13025f27959ff68a1469959bc94ef2a7049723d4c381a368a5ac
