@@ -1,4 +1,5 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { type TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
@@ -92,3 +93,9 @@ export const bootstrapReport = async (
     },
   };
 };
+
+export class AwesomePluginWithoutSummary extends AwesomePlugin {
+  async info() {
+    return undefined;
+  }
+}

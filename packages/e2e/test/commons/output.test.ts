@@ -2,7 +2,7 @@ import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status } from "allure-js-commons";
 import { readdir } from "node:fs/promises";
-import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
+import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -90,12 +90,6 @@ test.describe("output", () => {
   });
 
   test("should not generate summary page if no one report provided summary, but still should generate sub-directories for every report", async () => {
-    class SummarylessAwesomePlugin extends AwesomePlugin {
-      async info() {
-        return undefined;
-      }
-    }
-
     bootstrap = await bootstrapReport({
       reportConfig: {
         name: "Sample allure report",
@@ -107,13 +101,13 @@ test.describe("output", () => {
           {
             id: "awesome1",
             enabled: true,
-            plugin: new SummarylessAwesomePlugin({}),
+            plugin: new AwesomePluginWithoutSummary({}),
             options: {},
           },
           {
             id: "awesome2",
             enabled: true,
-            plugin: new SummarylessAwesomePlugin({}),
+            plugin: new AwesomePluginWithoutSummary({}),
             options: {},
           },
         ],

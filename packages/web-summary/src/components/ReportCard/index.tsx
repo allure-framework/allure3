@@ -19,7 +19,13 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({ href, status,
   const formattedDuration = formatDuration(duration);
 
   return (
-    <a className={styles["report-card"]} href={href}>
+    <a
+      data-testid={"summary-report-card"}
+      className={styles["report-card"]}
+      href={href}
+      target={"_blank"}
+      rel="noreferrer"
+    >
       <div className={styles["report-card-chart-wrapper"]}>
         <SuccessRatePieChart className={styles["report-card-chart"]} slices={slices} percentage={percentage} />
       </div>
