@@ -1,13 +1,13 @@
 import type { HistoryDataPoint, SeverityLevel, TestResult } from "@allurereport/core-api";
+import { severityLevels, severityLabelName } from "@allurereport/core-api";
 import type { ChartOptions, SeverityTrendChartData } from "../types.js";
 import {
-  SEVERITY_LIST,
   createEmptySeries,
   createEmptyStats,
   getTrendDataGeneric,
   mergeTrendDataGeneric,
+  normalizeStatistic,
 } from "../utils/trend.js";
-import { SEVERITY_LABEL_NAME } from "../constants.js";
 
 export const getSeverityTrendData = (
   testResults: TestResult[],
@@ -23,11 +23,12 @@ export const getSeverityTrendData = (
   // Convert history points to statistics by severity
   const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
     const originalIndex = chartOptions.limit ? historyPoints.length - chartOptions.limit + index : index;
+
     return {
       name: point.name,
       originalIndex,
       statistic: Object.values(point.testResults).reduce((stat, test) => {
-        const severityLabel = test.labels?.find((label) => label.name === SEVERITY_LABEL_NAME);
+        const severityLabel = test.labels?.find((label) => label.name === severityLabelName);
         const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
         if (severity) {
@@ -35,13 +36,13 @@ export const getSeverityTrendData = (
         }
 
         return stat;
-      }, createEmptyStats(SEVERITY_LIST)),
+      }, createEmptyStats(severityLevels)),
     };
   });
 
   // Get current severity statistics
   const currentSeverityStats = testResults.reduce((acc, test) => {
-    const severityLabel = test.labels.find((label) => label.name === SEVERITY_LABEL_NAME);
+    const severityLabel = test.labels.find((label) => label.name === severityLabelName);
     const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
     if (severity) {
@@ -49,14 +50,14 @@ export const getSeverityTrendData = (
     }
 
     return acc;
-  }, createEmptyStats(SEVERITY_LIST));
+  }, createEmptyStats(severityLevels));
 
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
-    currentSeverityStats,
+    normalizeStatistic(currentSeverityStats, severityLevels),
     reportName,
     (chartOptions.limit ? Math.max(historyPoints.length, chartOptions.limit) : historyPoints.length) + 1,
-    SEVERITY_LIST,
+    severityLevels,
     chartOptions
   );
 
@@ -64,25 +65,25 @@ export const getSeverityTrendData = (
   const historicalTrendData = convertedHistoryPoints.reduce(
     (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
-        historyPoint.statistic,
+        normalizeStatistic(historyPoint.statistic, severityLevels),
         historyPoint.name,
         historyPoint.originalIndex + 1,
-        SEVERITY_LIST,
+        severityLevels,
         chartOptions
       );
 
-      return mergeTrendDataGeneric(acc, trendDataPart, SEVERITY_LIST);
+      return mergeTrendDataGeneric(acc, trendDataPart, severityLevels);
     },
     {
       type: chartOptions.type,
       title: chartOptions.title,
       points: {},
       slices: {},
-      series: createEmptySeries(SEVERITY_LIST),
+      series: createEmptySeries(severityLevels),
       min: Infinity,
       max: -Infinity,
     } as SeverityTrendChartData,
   );
 
-  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, SEVERITY_LIST);
+  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, severityLevels);
 };

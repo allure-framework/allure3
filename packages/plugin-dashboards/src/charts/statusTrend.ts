@@ -1,8 +1,9 @@
 import type { HistoryDataPoint, Statistic } from "@allurereport/core-api";
+import { statusesList } from "@allurereport/core-api";
 import type { ChartOptions, StatusTrendChartData } from "../types.js";
 import {
-  STATUS_LIST,
   createEmptySeries,
+  createEmptyStats,
   getTrendDataGeneric,
   mergeTrendDataGeneric,
   normalizeStatistic,
@@ -24,6 +25,7 @@ export const getStatusTrendData = (
   // Convert history points to statistics
   const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
     const originalIndex = limit ? historyPoints.length - limit + index : index;
+
     return {
       name: point.name,
       originalIndex,
@@ -36,17 +38,17 @@ export const getStatusTrendData = (
 
           return stat;
         },
-        { total: 0 } as Statistic,
+        { total: 0, ...createEmptyStats(statusesList) } as Statistic,
       ),
     };
   });
 
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
-    normalizeStatistic(currentStatistic),
+    normalizeStatistic(currentStatistic, statusesList),
     reportName,
     (limit ? Math.max(historyPoints.length, limit) : historyPoints.length) + 1,
-    STATUS_LIST,
+    statusesList,
     chartOptions
   );
 
@@ -54,26 +56,26 @@ export const getStatusTrendData = (
   const historicalTrendData = convertedHistoryPoints.reduce(
     (acc, historyPoint) => {
       const trendDataPart = getTrendDataGeneric(
-        normalizeStatistic(historyPoint.statistic),
+        normalizeStatistic(historyPoint.statistic, statusesList),
         historyPoint.name,
         historyPoint.originalIndex + 1,
-        STATUS_LIST,
+        statusesList,
         chartOptions
       );
 
-      return mergeTrendDataGeneric(acc, trendDataPart, STATUS_LIST);
+      return mergeTrendDataGeneric(acc, trendDataPart, statusesList);
     },
     {
       type: chartOptions.type,
       title: chartOptions.title,
       points: {},
       slices: {},
-      series: createEmptySeries(STATUS_LIST),
+      series: createEmptySeries(statusesList),
       min: Infinity,
       max: -Infinity,
     } as StatusTrendChartData,
   );
 
   // Add current report data as the last item
-  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, STATUS_LIST);
+  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, statusesList);
 };

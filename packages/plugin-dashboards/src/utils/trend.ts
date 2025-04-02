@@ -1,5 +1,4 @@
-import { severityLevels, statusesList } from "@allurereport/core-api";
-import type { SeverityLevel, Statistic, TestStatus } from "@allurereport/core-api";
+import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import type {
   BaseTrendSliceMetadata,
   ChartOptions,
@@ -17,10 +16,6 @@ type TrendCalculationResult<T extends TrendDataType> = {
   series: Record<T, TrendPointId[]>;
 };
 
-// Constants for type safety
-export const STATUS_LIST = statusesList as readonly TestStatus[];
-export const SEVERITY_LIST = severityLevels as readonly SeverityLevel[];
-
 // Helper for creating empty stats records
 export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): Record<T, number> =>
   items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as Record<T, number>);
@@ -29,15 +24,17 @@ export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): 
 export const createEmptySeries = <T extends TrendDataType>(items: readonly T[]): Record<T, string[]> =>
   items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
 
-// Helper for converting Statistic to Record<TestStatus, number>
-export const normalizeStatistic = (statistic: Statistic): Record<TestStatus, number> => {
-  return STATUS_LIST.reduce(
-    (acc, status) => {
-      acc[status] = statistic[status] ?? 0;
-
+// Helper for converting statistics to normalized record
+export const normalizeStatistic = <T extends TrendDataType>(
+  statistic: Partial<Record<T, number>>,
+  itemType: readonly T[],
+): Record<T, number> => {
+  return itemType.reduce(
+    (acc, item) => {
+      acc[item] = statistic[item] ?? 0;
       return acc;
     },
-    {} as Record<TestStatus, number>,
+    {} as Record<T, number>,
   );
 };
 
