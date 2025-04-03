@@ -30,14 +30,12 @@
     "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-summary": "workspace:*",
     "handlebars": "^4.7.8"
   },
   "devDependencies": {
-    "@allurereport/core": "workspace:*",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
     "@types/handlebars": "^4.1.0",

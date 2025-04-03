@@ -417,7 +417,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-awesome/",\
         "packageDependencies": [\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
-          ["@allurereport/core", "workspace:packages/core"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
@@ -759,8 +758,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/summary/",\
         "packageDependencies": [\
           ["@allurereport/summary", "workspace:packages/summary"],\
-          ["@allurereport/core", "workspace:packages/core"],\
-          ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-summary", "workspace:packages/web-summary"],\

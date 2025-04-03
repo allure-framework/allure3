@@ -227,7 +227,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-awesome@workspace:packages/plugin-awesome"
   dependencies:
-    "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
@@ -547,8 +546,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/summary@workspace:packages/summary"
   dependencies:
-    "@allurereport/core": "workspace:*"
-    "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-summary": "workspace:*"
