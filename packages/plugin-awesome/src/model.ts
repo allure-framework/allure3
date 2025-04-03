@@ -8,6 +8,7 @@ export type AwesomeOptions = {
   reportLanguage?: "en" | "ru";
   groupBy?: string[];
   layout?: "base" | "split";
+  excludeSkippedFromChart?: boolean;
   environments?: Record<string, EnvironmentsConfig>;
   ci?: {
     type: "github" | "jenkins";

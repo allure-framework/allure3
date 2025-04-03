@@ -20,12 +20,17 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [] } = this.options ?? {};
+    const { singleFile, groupBy = [], excludeSkippedFromChart = false } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const statistic = await store.testsStatistic();
     const attachments = await store.allAttachments();
 
     await generateStatistic(this.#writer!, statistic);
+
+    if (excludeSkippedFromChart) {
+      statistic.total -= statistic.skipped;
+      statistic.skipped = 0;
+    }
     await generatePieChart(this.#writer!, statistic);
 
     const convertedTrs = await generateTestResults(this.#writer!, store);
