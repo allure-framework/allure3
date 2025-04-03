@@ -74,7 +74,7 @@ export const TrEnvironmentItem: FunctionalComponent<{
       </div>
       {isOpened && !hasEmptyError && (
         <div>
-          <TrError {...error} />
+          <TrError status={status} {...error} />
         </div>
       )}
     </div>

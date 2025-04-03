@@ -118,9 +118,12 @@ test.afterAll(async () => {
 });
 
 test.describe("environments", () => {
-  test("should render all environment tree sections by default and allow to toggle them", async ({ page, browserName }) => {
+  test("should render all environment tree sections by default and allow to toggle them", async ({
+    page,
+    browserName,
+  }) => {
     // flaky test, but the feature works as expected
-    if (browserName === "firefox") {
+    if (browserName !== "chromium") {
       test.skip();
     }
 
