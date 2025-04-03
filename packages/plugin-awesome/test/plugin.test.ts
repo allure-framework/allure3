@@ -1,31 +1,51 @@
-import { getTestResultsStats } from "@allurereport/core";
-import type { TestResult } from "@allurereport/core-api";
+import type { Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { describe, expect, it } from "vitest";
 import AwesomePlugin from "../src/index.js";
 
-const fixtures = {
+// duplicated the code from core to avoid circular dependency
+export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
+  const trsToProcess = trs.filter(filter);
+
+  return trsToProcess.reduce(
+    (acc, test) => {
+      if (filter && !filter(test)) {
+        return acc;
+      }
+
+      if (!acc[test.status]) {
+        acc[test.status] = 0;
+      }
+
+      acc[test.status]!++;
+
+      return acc;
+    },
+    { total: trsToProcess.length } as Statistic,
+  );
+};
+const fixtures: any = {
   testResults: {
     passed: {
       name: "passed sample",
       status: "passed",
-    } as TestResult,
+    },
     failed: {
       name: "failed sample",
       status: "failed",
-    } as TestResult,
+    },
     broken: {
       name: "broken sample",
       status: "broken",
-    } as TestResult,
+    },
     unknown: {
       name: "unknown sample",
       status: "unknown",
-    } as TestResult,
+    },
     skipped: {
       name: "skipped sample",
       status: "skipped",
-    } as TestResult,
+    },
   },
   context: {} as PluginContext,
   store: {
