@@ -1,0 +1,1 @@
+{"id":"8ae0119bd2dc3e57ae8532a37b57ee1c","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool should throw on non-zero exit code","name":"should throw on non-zero exit code","status":"passed","testResultsByEnv":{"default":"ca4ece656d545e3075a67bf4fe94f677"}}

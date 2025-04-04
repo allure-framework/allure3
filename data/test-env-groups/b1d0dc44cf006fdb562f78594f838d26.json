@@ -1,0 +1,1 @@
+{"id":"b1d0dc44cf006fdb562f78594f838d26","fullName":"test/qualityGate.test.ts#QualityGate returns exit code 0 when all rules are passed","name":"returns exit code 0 when all rules are passed","status":"passed","testResultsByEnv":{"default":"d91a973eb1137d2e89b5fc8f1f3385c3"}}

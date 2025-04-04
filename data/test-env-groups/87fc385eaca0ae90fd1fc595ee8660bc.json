@@ -1,0 +1,1 @@
+{"id":"87fc385eaca0ae90fd1fc595ee8660bc","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference names should set fullName to scenario id if feature uri, name, and id are missing","name":"should set fullName to scenario id if feature uri, name, and id are missing","status":"passed","testResultsByEnv":{"default":"f8abf32e44cf793db16a395246126d56"}}

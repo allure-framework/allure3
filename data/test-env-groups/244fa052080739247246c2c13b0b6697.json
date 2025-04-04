@@ -1,0 +1,1 @@
+{"id":"244fa052080739247246c2c13b0b6697","fullName":"test/resultFile.test.ts#PathResultFile should return extension according to detected type sample.jpeg as image/jpeg by magic header","name":"should return extension according to detected type sample.jpeg as image/jpeg by magic header","status":"passed","testResultsByEnv":{"default":"00f6a843356752e10f8b61c5508baf46"}}

@@ -1,0 +1,1 @@
+{"id":"21edf529c885e992b50fe13a2ac48894","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference step arguments data tables should treat an ill-formed cell as an empty string","name":"should treat an ill-formed cell as an empty string","status":"passed","testResultsByEnv":{"default":"f759205e64e29a94c98569b789e8fe8f"}}

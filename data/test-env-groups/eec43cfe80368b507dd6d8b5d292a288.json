@@ -1,0 +1,1 @@
+{"id":"eec43cfe80368b507dd6d8b5d292a288","fullName":"allure-awesome/testResult.test.ts:173:5","name":"should toggle back from SplitLayout to BaseLayout with loader displayed correctly","status":"passed","testResultsByEnv":{"chromium":"5f083fcf4695ead6e150ac36c644bf3a","firefox":"086b9d0a1a155d45476eb36f378fba90","safari":"72b099d472cc778b5c5f680711c95dc1"}}

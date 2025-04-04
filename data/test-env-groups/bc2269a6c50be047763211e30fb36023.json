@@ -1,0 +1,1 @@
+{"id":"bc2269a6c50be047763211e30fb36023","fullName":"test/resultFile.test.ts#BufferResultFile should detect type sample.jpeg as image/jpeg by file extension with higher priority","name":"should detect type sample.jpeg as image/jpeg by file extension with higher priority","status":"passed","testResultsByEnv":{"default":"d0a5d5d8e2b95031ca356336e02351a9"}}

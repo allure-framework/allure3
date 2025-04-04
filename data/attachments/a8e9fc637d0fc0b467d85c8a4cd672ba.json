@@ -1,0 +1,42 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;passed-test",
+        "keyword": "Scenario",
+        "name": "Passed test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "foo",
+            "result": {
+              "status": "passed",
+              "duration": 12499999
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "bar",
+            "result": {
+              "status": "passed",
+              "duration": { "foo": "bar" }
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "baz",
+            "result": {
+              "status": "passed",
+              "duration": 12499999
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

@@ -1,0 +1,1 @@
+{"id":"543e604031876ee9bac1728b77548331","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference step statuses should treat a step with a missing status as unknown","name":"should treat a step with a missing status as unknown","status":"passed","testResultsByEnv":{"default":"ff5fd125a62726d53f2ce3ec58b9db15"}}

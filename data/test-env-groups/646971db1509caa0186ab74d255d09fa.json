@@ -1,0 +1,1 @@
+{"id":"646971db1509caa0186ab74d255d09fa","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool ignores stderr if ignoreStderr is set","name":"ignores stderr if ignoreStderr is set","status":"passed","testResultsByEnv":{"default":"8101bc364d3ff53946bab98e60b7ebb0"}}

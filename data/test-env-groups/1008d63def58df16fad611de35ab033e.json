@@ -1,0 +1,1 @@
+{"id":"1008d63def58df16fad611de35ab033e","fullName":"test/junitxml.test.ts#junit xml reader labels testClass should not add a testClass label if classname is missing","name":"should not add a testClass label if classname is missing","status":"passed","testResultsByEnv":{"default":"5d774f9736664e67108ce107f4788505"}}
