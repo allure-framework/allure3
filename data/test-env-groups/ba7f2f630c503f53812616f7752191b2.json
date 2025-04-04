@@ -1,0 +1,1 @@
+{"id":"ba7f2f630c503f53812616f7752191b2","fullName":"test/resultFile.test.ts#PathResultFile should return extension according to detected type sample.svg as image/svg+xml by magic header","name":"should return extension according to detected type sample.svg as image/svg+xml by magic header","status":"passed","testResultsByEnv":{"default":"f53cd64839ef0af60571ccdc88692d3c"}}

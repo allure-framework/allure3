@@ -1,0 +1,1 @@
+{"id":"726c16fedf9f51b36989878ed711c0a5","fullName":"test/config.test.ts#resolveConfig should set default known issues path if it's not provided","name":"should set default known issues path if it's not provided","status":"passed","testResultsByEnv":{"default":"e704b821626d37ebef15606aa0af8a77"}}

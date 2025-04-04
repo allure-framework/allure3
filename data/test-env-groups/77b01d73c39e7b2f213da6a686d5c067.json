@@ -1,0 +1,1 @@
+{"id":"77b01d73c39e7b2f213da6a686d5c067","fullName":"allure-awesome/tree/suites.test.ts:142:3","name":"should assign default labels when test results don't any matched one label","status":"passed","testResultsByEnv":{"chromium":"b1dc4cdc48aae5a72c1f37a4f033905b","firefox":"1b280030389839f3125dd59fff83c0bd","safari":"a00eeebc811bfc9559733d25be08cd62"}}

@@ -1,0 +1,1 @@
+{"id":"7fd856f906aff35c9dee28e67943f2d2","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool should accept if a user-defined exit code predicate returns true","name":"should accept if a user-defined exit code predicate returns true","status":"passed","testResultsByEnv":{"default":"e57c7831c5f5a58a8fc8b02052ad17c2"}}

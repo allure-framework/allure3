@@ -1,0 +1,1 @@
+{"id":"550f85bb38fb3cc28f144a9fa523fe25","fullName":"test/junitxml.test.ts#junit xml reader statuses error should leave trace undefined if content is missing","name":"should leave trace undefined if content is missing","status":"passed","testResultsByEnv":{"default":"bb1597c1bcab302c39f303ec7bf47b59"}}

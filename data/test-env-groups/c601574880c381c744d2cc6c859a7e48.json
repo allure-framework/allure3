@@ -1,0 +1,1 @@
+{"id":"c601574880c381c744d2cc6c859a7e48","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference embeddings should use application/octet-stream if no mime_type specified","name":"should use application/octet-stream if no mime_type specified","status":"passed","testResultsByEnv":{"default":"93f9ffef55df294942f9232e9f4e4825"}}

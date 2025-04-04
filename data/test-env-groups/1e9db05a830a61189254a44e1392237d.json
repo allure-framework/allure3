@@ -1,0 +1,1 @@
+{"id":"1e9db05a830a61189254a44e1392237d","fullName":"test/resultFile.test.ts#PathResultFile should preserve extension ignoring detected type sample.tiff as image/tiff by magic header","name":"should preserve extension ignoring detected type sample.tiff as image/tiff by magic header","status":"passed","testResultsByEnv":{"default":"d11f537888f00258ebe0c25b4fc0a688"}}
