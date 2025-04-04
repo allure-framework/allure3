@@ -1,1 +1,0 @@
-{"id":"219b8405678249e1c551376edcca52a0","fullName":"test/junitxml.test.ts#junit xml reader durations should round the duration down if it has less than 500 microseconds","name":"should round the duration down if it has less than 500 microseconds","status":"passed","testResultsByEnv":{"default":"9dffcbfd9566e78fd855e0d0eed0eeb6"}}

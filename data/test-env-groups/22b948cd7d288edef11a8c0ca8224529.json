@@ -1,1 +1,0 @@
-{"id":"22b948cd7d288edef11a8c0ca8224529","fullName":"test/allure1.test.ts#allure1 reader timings should set duration to zero if start is greater than stop","name":"should set duration to zero if start is greater than stop","status":"passed","testResultsByEnv":{"default":"d1aa13c536ef1a9249abe8449c95a964"}}

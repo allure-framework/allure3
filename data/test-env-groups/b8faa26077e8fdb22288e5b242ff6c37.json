@@ -1,1 +1,0 @@
-{"id":"b8faa26077e8fdb22288e5b242ff6c37","fullName":"test/junitxml.test.ts#junit xml reader fullNames should leave fullName undefined if classname is ill-formed","name":"should leave fullName undefined if classname is ill-formed","status":"passed","testResultsByEnv":{"default":"875391a2964db5bbe627fed1d3f5ee5a"}}

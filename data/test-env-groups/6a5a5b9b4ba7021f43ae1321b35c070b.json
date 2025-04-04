@@ -1,1 +1,0 @@
-{"id":"6a5a5b9b4ba7021f43ae1321b35c070b","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference embeddings should attach an empty file if the data is an ill-formed base64 string","name":"should attach an empty file if the data is an ill-formed base64 string","status":"passed","testResultsByEnv":{"default":"1a273d9784869da690d6b40bd2b5cde3"}}

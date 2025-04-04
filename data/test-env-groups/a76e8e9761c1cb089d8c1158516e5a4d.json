@@ -1,1 +1,0 @@
-{"id":"a76e8e9761c1cb089d8c1158516e5a4d","fullName":"test/resultFile.test.ts#PathResultFile should detect type sample.jpeg as image/jpeg by file extension with higher priority","name":"should detect type sample.jpeg as image/jpeg by file extension with higher priority","status":"passed","testResultsByEnv":{"default":"00f67f9b37543516c6d88f368bf1f4fc"}}

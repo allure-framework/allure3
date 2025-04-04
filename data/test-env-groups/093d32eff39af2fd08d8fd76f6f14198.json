@@ -1,1 +1,0 @@
-{"id":"093d32eff39af2fd08d8fd76f6f14198","fullName":"test/config.test.ts#resolveConfig should throw an error when config contains unsupported fields","name":"should throw an error when config contains unsupported fields","status":"passed","testResultsByEnv":{"default":"571eb36b6895f533ad7740522f5b7dc3"}}

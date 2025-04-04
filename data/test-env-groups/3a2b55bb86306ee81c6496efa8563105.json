@@ -1,1 +1,0 @@
-{"id":"3a2b55bb86306ee81c6496efa8563105","fullName":"test/cucumberjson.test.ts#cucumberjson reader cucumberjs step arguments docstrings should ignore a step's doc string with an ill-formed content","name":"should ignore a step's doc string with an ill-formed content","status":"passed","testResultsByEnv":{"default":"b1ca99468143226d0c57338e5c1638a0"}}

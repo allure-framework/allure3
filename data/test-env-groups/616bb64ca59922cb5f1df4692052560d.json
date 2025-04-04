@@ -1,1 +1,0 @@
-{"id":"616bb64ca59922cb5f1df4692052560d","fullName":"test/qualityGate.test.ts#MaxFailuresValidator with meta passes when there are less failures than allowed","name":"passes when there are less failures than allowed","status":"passed","testResultsByEnv":{"default":"e2fd7731871c5e1283ddac03d4f85c70"}}

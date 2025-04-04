@@ -1,1 +1,0 @@
-{"id":"8267e7e713e8f1f555bb750d93c12f72","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference names should not add a feature label if the feature's name is missing","name":"should not add a feature label if the feature's name is missing","status":"passed","testResultsByEnv":{"default":"30b41f02a6d442abeecbb96d2acad371"}}
