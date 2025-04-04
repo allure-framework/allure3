@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, boostrapReport } from "../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "./utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -80,7 +80,7 @@ const selectEnvironment = async (page: Page, environment: string) => {
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
 
-  bootstrap = await boostrapReport({
+  bootstrap = await bootstrapReport({
     reportConfig: {
       name: "Sample allure report",
       appendHistory: false,
