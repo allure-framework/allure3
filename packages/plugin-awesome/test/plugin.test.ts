@@ -86,7 +86,7 @@ describe("plugin", () => {
       });
     });
 
-    it("should returns info for filtered test results in the store", async () => {
+    it("should return info for filtered test results in the store", async () => {
       const plugin = new AwesomePlugin({
         reportName: "Sample report",
         filter: ({ status }) => status === "passed",

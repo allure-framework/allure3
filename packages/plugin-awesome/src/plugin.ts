@@ -109,13 +109,15 @@ export class AwesomePlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = await store.allTestResults();
+    const allTrs = (await store.allTestResults()).filter((tr) =>
+      this.options.filter ? this.options.filter(tr) : true,
+    );
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
     return {
       name: this.options.reportName || context.reportName,
-      stats: await store.testsStatistic(),
+      stats: await store.testsStatistic(this.options.filter),
       status: worstStatus ?? "passed",
       duration,
     };
