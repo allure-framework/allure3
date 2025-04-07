@@ -6,6 +6,7 @@ export enum ChartType {
 };
 
 export type DashboardsOptions = {
+  reportName?: string;
   singleFile?: boolean;
   logo?: string;
   theme?: "light" | "dark";
