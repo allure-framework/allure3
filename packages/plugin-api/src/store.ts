@@ -16,7 +16,7 @@ export type TestResultFilter = (testResult: TestResult) => boolean;
 export interface AllureStore {
   // base state
   allTestCases: () => Promise<TestCase[]>;
-  allTestResults: (options?: { includeHidden?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
+  allTestResults: (options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
   allAttachments: () => Promise<AttachmentLink[]>;
   allMetadata: () => Promise<Record<string, any>>;
   allFixtures: () => Promise<TestFixtureResult[]>;

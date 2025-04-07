@@ -10,8 +10,8 @@ import {
   type AllureStore,
   type ReportFiles,
   type ResultFile,
+  type TestResultFilter,
   filterTree,
-  TestResultFilter
 } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
@@ -115,7 +115,7 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
 };
 
 export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
-  const allTr = await store.allTestResults({ includeHidden: true, filter });
+  const allTr = (await store.allTestResults({ includeHidden: true })).filter((tr) => (filter ? filter(tr) : true));
   let convertedTrs: AwesomeTestResult[] = [];
 
   for (const tr of allTr) {

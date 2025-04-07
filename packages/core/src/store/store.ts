@@ -15,7 +15,7 @@ import {
   matchEnvironment,
 } from "@allurereport/core-api";
 import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
-import { type AllureStore, type TestResultFilter, type ResultFile, md5 } from "@allurereport/plugin-api";
+import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawMetadata,
@@ -227,27 +227,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async allTestResults(
     options: {
       includeHidden?: boolean;
-      filter?: TestResultFilter;
     } = { includeHidden: false },
   ): Promise<TestResult[]> {
-    const { includeHidden, filter } = options;
-    const result: TestResult[] = [];
+    const { includeHidden } = options;
+    const result = Array.from(this.#testResults.values());
 
-    for (const [, testResult] of this.#testResults) {
-      const passedFilter = !filter ? true : filter(testResult);
-
-      if (!passedFilter) {
-        continue;
-      }
-
-      if (!includeHidden && testResult.hidden) {
-        continue;
-      }
-
-      result.push(testResult);
-    }
-
-    return result;
+    return includeHidden ? result : result.filter((tr) => !tr.hidden);
   }
 
   async allAttachments(
@@ -384,7 +369,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async testsStatistic(filter?: TestResultFilter) {
-    const all = await this.allTestResults({ filter });
+    const all = await this.allTestResults();
 
     return getTestResultsStats(all, filter);
   }

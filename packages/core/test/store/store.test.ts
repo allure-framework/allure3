@@ -85,30 +85,6 @@ describe("test results", () => {
     );
   });
 
-  it("should return all test results except filtered ones", async () => {
-    const store = new DefaultAllureStore();
-    const tr1: RawTestResult = {
-      name: "test result 1",
-    };
-    const tr2: RawTestResult = {
-      name: "test result 2",
-    };
-    await store.visitTestResult(tr1, { readerId });
-    await store.visitTestResult(tr2, { readerId });
-
-    const testResults = await store.allTestResults({
-      filter: (tr) => tr.name === "test result 1",
-    });
-
-    expect(testResults).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "test result 1",
-        }),
-      ]),
-    );
-  });
-
   it("should add test results", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
