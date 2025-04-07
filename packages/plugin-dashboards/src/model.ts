@@ -7,9 +7,12 @@ export enum ChartType {
 
 export type DashboardsOptions = {
   singleFile?: boolean;
+  logo?: string;
   theme?: "light" | "dark";
   reportLanguage?: "en" | "ru";
   layout?: ChartOptions[];
 };
 
 export type DashboardsPluginOptions = DashboardsOptions;
+
+export type TemplateManifest = Record<string, string>;

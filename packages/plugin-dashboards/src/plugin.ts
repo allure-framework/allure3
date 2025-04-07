@@ -1,7 +1,7 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import type { DashboardsPluginOptions } from "./model.js";
 import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
-import { generateCharts } from "./generators.js";
+import { generateAllCharts, generateStaticFiles } from "./generators.js";
 
 export class DashboardsPlugin implements Plugin {
   #writer: DashboardsDataWriter | undefined;
@@ -9,11 +9,18 @@ export class DashboardsPlugin implements Plugin {
   constructor(readonly options: DashboardsPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const charts = await generateCharts(this.options, store, context);
+    await generateAllCharts(this.#writer!, store, this.options, context);
 
-    if (charts && Object.keys(charts).length > 0) {
-      await this.#writer!.writeWidget("history-trend.json", { charts });
-    }
+    const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardsDataWriter).reportFiles() : [];
+
+    await generateStaticFiles({
+      ...this.options,
+      allureVersion: context.allureVersion,
+      reportFiles: context.reportFiles,
+      reportDataFiles,
+      reportUuid: context.reportUuid,
+      reportName: context.reportName,
+    });
   };
 
   start = async (context: PluginContext): Promise<void> => {

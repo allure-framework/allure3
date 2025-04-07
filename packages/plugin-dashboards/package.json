@@ -33,7 +33,10 @@
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
-    "@allurereport/plugin-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*",
+    "@allurereport/web-commons": "workspace:*",
+    "@allurereport/web-dashboards": "workspace:*",
+    "handlebars": "^4.7.8"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
