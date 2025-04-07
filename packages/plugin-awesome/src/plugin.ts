@@ -31,11 +31,10 @@ export class AwesomePlugin implements Plugin {
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
 
-    await generateStatistic(this.#writer!, store);
-    await generatePieChart(this.#writer!, store);
+    await generateStatistic(this.#writer!, store, this.options.filter);
+    await generatePieChart(this.#writer!, store, this.options.filter);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store);
-
+    const convertedTrs = await generateTestResults(this.#writer!, store, this.options.filter);
     const treeLabels = preciseTreeLabels(
       !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
       convertedTrs,
@@ -110,13 +109,13 @@ export class AwesomePlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
+    const allTrs = await store.allTestResults({ filter: this.options.filter });
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
     return {
       name: this.options.reportName || context.reportName,
-      stats: await store.testsStatistic(this.options.filter),
+      stats: await store.testsStatistic(),
       status: worstStatus ?? "passed",
       duration,
     };

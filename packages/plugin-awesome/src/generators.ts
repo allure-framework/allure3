@@ -6,7 +6,13 @@ import {
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import { type AllureStore, type ReportFiles, type ResultFile, filterTree } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type ReportFiles,
+  type ResultFile,
+  filterTree,
+  TestResultFilter
+} from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AwesomeFixtureResult,
@@ -108,8 +114,8 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const allTr = await store.allTestResults({ includeHidden: true });
+export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
+  const allTr = await store.allTestResults({ includeHidden: true, filter });
   let convertedTrs: AwesomeTestResult[] = [];
 
   for (const tr of allTr) {
@@ -226,27 +232,39 @@ export const generateVariables = async (writer: AwesomeDataWriter, store: Allure
   }
 };
 
-export const generateStatistic = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const reportStatistic = await store.testsStatistic();
+export const generateStatistic = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
+  const reportStatistic = await store.testsStatistic(filter);
   const environments = await store.allEnvironments();
 
   await writer.writeWidget("statistic.json", reportStatistic);
 
   for (const env of environments) {
-    const envStatistic = await store.testsStatistic((testResult) => testResult.environment === env);
+    const envStatistic = await store.testsStatistic((testResult) => {
+      if (testResult.environment !== env) {
+        return false;
+      }
+
+      return filter ? filter(testResult) : true;
+    });
 
     await writer.writeWidget(join(env, "statistic.json"), envStatistic);
   }
 };
 
-export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const reportStatistic = await store.testsStatistic();
+export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
+  const reportStatistic = await store.testsStatistic(filter);
   const environments = await store.allEnvironments();
 
   await writer.writeWidget("pie_chart.json", getPieChartData(reportStatistic));
 
   for (const env of environments) {
-    const envStatistic = await store.testsStatistic((testResult) => testResult.environment === env);
+    const envStatistic = await store.testsStatistic((testResult) => {
+      if (testResult.environment !== env) {
+        return false;
+      }
+
+      return filter ? filter(testResult) : true;
+    });
 
     await writer.writeWidget(join(env, "pie_chart.json"), getPieChartData(envStatistic));
   }
