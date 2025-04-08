@@ -15,14 +15,18 @@ export const getSeverityTrendData = (
   historyPoints: HistoryDataPoint[],
   chartOptions: TrendChartOptions,
 ): SeverityTrendChartData => {
+  const { limit } = chartOptions;
+  const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
+
   // Apply limit to history points if specified
-  const limitedHistoryPoints = chartOptions.limit
-    ? historyPoints.slice(-chartOptions.limit)
+  const limitedHistoryPoints = historyLimit !== undefined
+    ? historyPoints.slice(-historyLimit)
     : historyPoints;
 
   // Convert history points to statistics by severity
+  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyPoints.length - historyLimit) : 0;
   const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
-    const originalIndex = chartOptions.limit ? historyPoints.length - chartOptions.limit + index : index;
+    const originalIndex = firstOriginalIndex + index;
 
     return {
       name: point.name,
@@ -56,7 +60,7 @@ export const getSeverityTrendData = (
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentSeverityStats, severityLevels),
     reportName,
-    (chartOptions.limit ? Math.max(historyPoints.length, chartOptions.limit) : historyPoints.length) + 1,
+    historyPoints.length + 1, // Always use the full history length for current point order
     severityLevels,
     chartOptions
   );

@@ -16,15 +16,17 @@ export const getStatusTrendData = (
   chartOptions: TrendChartOptions,
 ): StatusTrendChartData => {
   const { limit } = chartOptions;
+  const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
 
   // Apply limit to history points if specified
-  const limitedHistoryPoints = limit
-    ? historyPoints.slice(-limit)
+  const limitedHistoryPoints = historyLimit !== undefined
+    ? historyPoints.slice(-historyLimit)
     : historyPoints;
 
   // Convert history points to statistics
+  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyPoints.length - historyLimit) : 0;
   const convertedHistoryPoints = limitedHistoryPoints.map((point, index) => {
-    const originalIndex = limit ? historyPoints.length - limit + index : index;
+    const originalIndex = firstOriginalIndex + index;
 
     return {
       name: point.name,
@@ -47,7 +49,7 @@ export const getStatusTrendData = (
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentStatistic, statusesList),
     reportName,
-    (limit ? Math.max(historyPoints.length, limit) : historyPoints.length) + 1,
+    historyPoints.length + 1, // Always use the full history length for current point order
     statusesList,
     chartOptions
   );
