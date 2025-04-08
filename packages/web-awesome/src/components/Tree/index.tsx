@@ -2,6 +2,7 @@ import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allure
 import type { AwesomeStatus } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
+import { TrError } from "@/components/TestResult/TrError";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
@@ -70,6 +71,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={filteredTree.value.default}
                 statusFilter={currentTab as AwesomeStatus}
+                ErrorComponent={TrError}
                 root
               />
             </div>
@@ -89,6 +91,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={currentTree}
                 statusFilter={currentTab as AwesomeStatus}
+                ErrorComponent={TrError}
                 root
               />
             </div>
@@ -139,6 +142,7 @@ export const TreeList = () => {
                         statusFilter={currentTab}
                         navigateTo={navigateTo}
                         tree={value}
+                        ErrorComponent={TrError}
                         root
                       />
                     </div>
