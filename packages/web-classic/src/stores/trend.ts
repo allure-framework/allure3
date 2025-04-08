@@ -84,7 +84,7 @@ export const trendStore = signal<StoreSignalState<TrendData>>({
  */
 const createChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ChartData | undefined,
-  getGroups: () => T[],
+  getGroups: () => readonly T[],
   getColor: (group: T) => string,
 ): TrendChartData | undefined => {
   const chart = getChart();
