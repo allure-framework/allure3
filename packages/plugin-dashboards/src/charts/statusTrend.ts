@@ -1,6 +1,6 @@
 import type { HistoryDataPoint, Statistic } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import type { ChartOptions, StatusTrendChartData } from "../types.js";
+import type { StatusTrendChartData, TrendChartOptions } from "../model.js";
 import {
   createEmptySeries,
   createEmptyStats,
@@ -13,7 +13,7 @@ export const getStatusTrendData = (
   currentStatistic: Statistic,
   reportName: string,
   historyPoints: HistoryDataPoint[],
-  chartOptions: ChartOptions,
+  chartOptions: TrendChartOptions,
 ): StatusTrendChartData => {
   const { limit } = chartOptions;
 
@@ -67,6 +67,7 @@ export const getStatusTrendData = (
     },
     {
       type: chartOptions.type,
+      dataType: chartOptions.dataType,
       title: chartOptions.title,
       points: {},
       slices: {},

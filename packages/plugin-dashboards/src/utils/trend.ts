@@ -1,11 +1,11 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import type {
   BaseTrendSliceMetadata,
-  ChartOptions,
-  TrendChartData,
+  GenericTrendChartData,
+  TrendChartOptions,
   TrendPoint,
   TrendPointId,
-} from "../types.js";
+} from "../model.js";
 
 // Common type for trend data operations
 type TrendDataType = TestStatus | SeverityLevel;
@@ -94,10 +94,10 @@ const calculatePercentValues = <T extends TrendDataType>(
 
 // Helper for merging trend data
 export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
-  trendData: TrendChartData<M, T>,
-  trendDataPart: TrendChartData<M, T>,
+  trendData: GenericTrendChartData<M, T>,
+  trendDataPart: GenericTrendChartData<M, T>,
   itemType: readonly T[],
-): TrendChartData<M, T> => {
+): GenericTrendChartData<M, T> => {
   return {
     ...trendData,
     points: {
@@ -132,9 +132,9 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   reportName: string,
   executionOrder: number,
   itemType: readonly T[],
-  chartOptions: ChartOptions,
-): TrendChartData<M, T> => {
-  const { type, title, mode = "raw", metadata = {} } = chartOptions;
+  chartOptions: TrendChartOptions,
+): GenericTrendChartData<M, T> => {
+  const { type, dataType, title, mode = "raw", metadata = {} } = chartOptions;
   const { executionIdFn, executionNameFn } = metadata;
   const executionId = executionIdFn ? executionIdFn(executionOrder) : `execution-${executionOrder}`;
 
@@ -167,6 +167,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
 
   return {
     type,
+    dataType,
     title,
     points,
     slices,

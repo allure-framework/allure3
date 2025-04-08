@@ -4,6 +4,18 @@ import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
+export enum ChartType {
+  Trend = "trend",
+  Pie = "pie",
+}
+
+enum ChartDataType {
+  Status = "status",
+  Severity = "severity",
+}
+
+type ChartId = string;
+
 interface Point {
   x: Date | string | number;
   y: number;
@@ -15,12 +27,9 @@ interface Slice {
   metadata: { executionId: string };
 }
 
-type ChartType = "status" | "severity";
-
-type ChartId = string;
-
-interface ChartData {
-  type: ChartType;
+interface ResponseTrendChartData {
+  type: ChartType.Trend;
+  dataType: ChartDataType;
   title?: string;
   min: number;
   max: number;
@@ -29,28 +38,43 @@ interface ChartData {
   series: Record<TestStatus | SeverityLevel, string[]>;
 }
 
-interface TrendResponse {
-  charts: Partial<Record<ChartId, ChartData>>;
-}
-
 interface TrendChartItem {
   id: string;
   data: Point[];
   color: string;
 }
 
-interface TrendChartData {
+export interface TrendChartData {
+  type: ChartType.Trend;
+  dataType: ChartDataType;
   min: number;
   max: number;
   items: TrendChartItem[];
   slices: Slice[];
-  type: ChartType;
   title?: string;
 }
 
-interface TrendData {
-  charts: Partial<Record<ChartId, TrendChartData>>;
+
+interface PieSlice {
+  status: TestStatus;
+  count: number;
+  d: string | null;
+};
+
+interface ResponsePieChartData {
+  type: ChartType.Pie;
+  title?: string;
+  percentage: number;
+  slices: PieSlice[];
 }
+
+export type PieChartData = ResponsePieChartData;
+
+export type ChartData = TrendChartData | PieChartData;
+
+type ChartsResponse = Partial<Record<ChartId, ResponseTrendChartData | ResponsePieChartData>>;
+
+type ChartsData = Record<ChartId, ChartData>;
 
 const statusColors: Record<TestStatus, string> = {
   failed: "var(--bg-support-capella)",
@@ -68,7 +92,7 @@ const severityColors: Record<SeverityLevel, string> = {
   trivial: "var(--bg-support-skat)",
 };
 
-export const trendStore = signal<StoreSignalState<TrendData>>({
+export const trendStore = signal<StoreSignalState<ChartsData>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -82,8 +106,8 @@ export const trendStore = signal<StoreSignalState<TrendData>>({
  * @param getColor - Function to get the color
  * @returns TrendChartData or undefined if the chart data is not available
  */
-const createChartData = <T extends TestStatus | SeverityLevel>(
-  getChart: () => ChartData | undefined,
+const createTrendChartData = <T extends TestStatus | SeverityLevel>(
+  getChart: () => ResponseTrendChartData | undefined,
   getGroups: () => readonly T[],
   getColor: (group: T) => string,
 ): TrendChartData | undefined => {
@@ -112,6 +136,7 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
 
   return {
     type: chart.type,
+    dataType: chart.dataType,
     title: chart.title,
     items,
     slices: Object.values(chart.slices),
@@ -120,31 +145,37 @@ const createChartData = <T extends TestStatus | SeverityLevel>(
   };
 };
 
-const createStatusChartData = (chartId: ChartId, res: TrendResponse): TrendChartData | undefined =>
-  createChartData(
-    () => res.charts[chartId],
+const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+  createTrendChartData(
+    () => res[chartId] as ResponseTrendChartData | undefined,
     () => statusesList,
     (status) => statusColors[status],
   );
-const createSeverityChartData = (chartId: ChartId, res: TrendResponse): TrendChartData | undefined =>
-  createChartData(
-    () => res.charts[chartId],
+const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+  createTrendChartData(
+    () => res[chartId] as ResponseTrendChartData | undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
   );
 
-const makeCharts = (res: TrendResponse): TrendData["charts"] => {
-  return Object.entries(res.charts).reduce((acc, [chartId, chart]) => {
-    const { type } = chart;
+const createaTrendChartData = (chartId: string, chartData: ResponseTrendChartData, res: ChartsResponse): TrendChartData | undefined => {
+  if (chartData.dataType === ChartDataType.Status) {
+    return createStatusTrendChartData(chartId, res);
+  } else if (chartData.dataType === ChartDataType.Severity) {
+    return createSeverityTrendChartData(chartId, res);
+  }
+};
 
-    if (type === "status") {
-      acc[chartId] = createStatusChartData(chartId, res);
-    } else if (type === "severity") {
-      acc[chartId] = createSeverityChartData(chartId, res);
+const createCharts = (res: ChartsResponse): ChartsData => {
+  return Object.entries(res).reduce((acc, [chartId, chart]) => {
+    if (chart.type === ChartType.Trend) {
+      acc[chartId] = createaTrendChartData(chartId, chart, res);
+    } else if (chart.type === ChartType.Pie) {
+      acc[chartId] = chart;
     }
 
     return acc;
-  }, {} as Record<ChartId, TrendChartData>);
+  }, {} as ChartsData);
 };
 
 export const fetchTrendData = async () => {
@@ -155,12 +186,10 @@ export const fetchTrendData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<TrendResponse>("widgets/history-trend.json");
+    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json");
 
     trendStore.value = {
-      data: {
-        charts: makeCharts(res),
-      },
+      data: createCharts(res),
       error: undefined,
       loading: false,
     };

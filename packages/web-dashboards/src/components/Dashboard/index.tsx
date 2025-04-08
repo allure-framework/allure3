@@ -1,42 +1,54 @@
-/* eslint-disable @stylistic/quotes */
-
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import { chartsStore, fetchChartsData } from "@/stores/charts";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
 import { capitalize } from "@/utils/capitalize";
+import { ChartType, fetchTrendData, trendStore, type ChartData } from "@/stores/trend";
+
+const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: any) => string) => {
+  switch (chartData.type) {
+    case ChartType.Trend: {
+      const title = chartData.title ?? t("trend.title", { type: capitalize(chartData.dataType) });
+
+      return <TrendChartWidget title={title} items={chartData.items} slices={chartData.slices} min={chartData.min} max={chartData.max} />;
+    }
+    case ChartType.Pie: {
+      const title = chartData.title ?? t("pie.title");
+
+      return (
+        <Widget title={title}>
+          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
+            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
+              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
+            </div>
+          </div>
+        </Widget>
+      );
+    }
+  }
+};
 
 export const Dashboard = () => {
-  const { t } = useI18n('charts');
+  const { t } = useI18n("charts");
 
   useEffect(() => {
-    fetchChartsData();
+    fetchTrendData();
   }, []);
 
   return (
     <Loadable
-      source={chartsStore}
+      source={trendStore}
       renderLoader={() => <PageLoader />}
-      renderData={({ pie, trends }) => {
-        const pieTitle = t("pie.title");
-
-        const TrendChartGridItems = Object.entries(trends.charts).map(([chartId, value]) => {
-          const title = value.title ?? t("trend.title", { type: capitalize(value.type) });
+      renderData={({ data }) => {
+        const charts = Object.entries(data).map(([chartId, value]) => {
+          const chartWidget = getChartWidgetByType(value, t);
 
           return (
             <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              <TrendChartWidget
-                title={title}
-                items={value.items}
-                slices={value.slices}
-                min={value.min}
-                max={value.max}
-                rootAriaLabel={title}
-              />
+              {chartWidget}
             </GridItem>
           );
         });
@@ -44,16 +56,7 @@ export const Dashboard = () => {
         return (
           <div className={styles.overview}>
             <Grid kind="swap" className={styles["overview-grid"]}>
-              {TrendChartGridItems}
-              <GridItem className={styles["overview-grid-item"]}>
-                <Widget title={pieTitle}>
-                  <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-                    <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-                      <SuccessRatePieChart slices={pie.slices} percentage={pie.percentage} />
-                    </div>
-                  </div>
-                </Widget>
-              </GridItem>
+              {charts}
             </Grid>
           </div>
         );

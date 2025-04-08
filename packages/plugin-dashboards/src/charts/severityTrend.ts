@@ -1,6 +1,6 @@
 import type { HistoryDataPoint, SeverityLevel, TestResult } from "@allurereport/core-api";
 import { severityLevels, severityLabelName } from "@allurereport/core-api";
-import type { ChartOptions, SeverityTrendChartData } from "../types.js";
+import type { SeverityTrendChartData, TrendChartOptions } from "../model.js";
 import {
   createEmptySeries,
   createEmptyStats,
@@ -13,7 +13,7 @@ export const getSeverityTrendData = (
   testResults: TestResult[],
   reportName: string,
   historyPoints: HistoryDataPoint[],
-  chartOptions: ChartOptions,
+  chartOptions: TrendChartOptions,
 ): SeverityTrendChartData => {
   // Apply limit to history points if specified
   const limitedHistoryPoints = chartOptions.limit
@@ -76,6 +76,7 @@ export const getSeverityTrendData = (
     },
     {
       type: chartOptions.type,
+      dataType: chartOptions.dataType,
       title: chartOptions.title,
       points: {},
       slices: {},
