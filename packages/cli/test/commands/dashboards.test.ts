@@ -26,9 +26,7 @@ describe("dashboards command", () => {
     expect(core.resolveConfig).toHaveBeenCalledWith({
       plugins: {
         "@allurereport/plugin-dashboards": {
-          options: {
-            groupBy: undefined,
-          },
+          options: {},
         },
       },
     });
@@ -41,9 +39,6 @@ describe("dashboards command", () => {
           expect.objectContaining({
             id: "plugin-dashboards",
             enabled: true,
-            options: {
-              groupBy: undefined,
-            },
           }),
         ],
       }),
@@ -55,8 +50,6 @@ describe("dashboards command", () => {
       resultsDir: "foo/bar/allure-results",
       reportName: "Custom Allure Report",
       output: "./custom/output/path",
-      knownIssues: "./custom/known/issues/path",
-      historyPath: "./custom/history/path",
       reportLanguage: "es",
       singleFile: true,
       logo: "./custom/logo.png",
@@ -65,8 +58,6 @@ describe("dashboards command", () => {
     await DashboardsCommandAction(fixtures.resultsDir, {
       reportName: fixtures.reportName,
       output: fixtures.output,
-      knownIssues: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
       reportLanguage: fixtures.reportLanguage,
       singleFile: fixtures.singleFile,
       logo: fixtures.logo,
@@ -76,12 +67,9 @@ describe("dashboards command", () => {
     expect(core.resolveConfig).toHaveBeenCalledWith({
       name: "Custom Allure Report",
       output: fixtures.output,
-      knownIssuesPath: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
       plugins: {
         "@allurereport/plugin-dashboards": {
           options: {
-            groupBy: undefined,
             reportLanguage: fixtures.reportLanguage,
             singleFile: fixtures.singleFile,
             logo: fixtures.logo,
@@ -99,7 +87,6 @@ describe("dashboards command", () => {
             id: "plugin-dashboards",
             enabled: true,
             options: {
-              groupBy: undefined,
               reportLanguage: fixtures.reportLanguage,
               singleFile: fixtures.singleFile,
               logo: fixtures.logo,

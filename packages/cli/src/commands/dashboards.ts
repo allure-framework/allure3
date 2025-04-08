@@ -8,25 +8,18 @@ type DashboardsCommandOptions = {
   reportLanguage?: string;
   logo?: string;
   singleFile?: boolean;
-  historyPath?: string;
-  knownIssues?: string;
-  groupBy?: string;
+  theme?: "light" | "dark";
 };
 
 export const DashboardsCommandAction = async (resultsDir: string, options: DashboardsCommandOptions) => {
   const before = new Date().getTime();
-  const { output, reportName: name, historyPath, knownIssues: knownIssuesPath, groupBy, ...rest } = options;
+  const { output, reportName: name, ...rest } = options;
   const config = await resolveConfig({
     output,
     name,
-    historyPath,
-    knownIssuesPath,
     plugins: {
       "@allurereport/plugin-dashboards": {
-        options: {
-          ...rest,
-          groupBy: groupBy?.split(","),
-        },
+        options: rest,
       },
     },
   });
@@ -82,25 +75,6 @@ export const DashboardsCommand = createCommand({
       "--report-language, --lang <string>",
       {
         description: "Default language of the report (default: OS language)",
-      },
-    ],
-    [
-      "--history-path, -h <file>",
-      {
-        description: "The path to history file",
-      },
-    ],
-    [
-      "--known-issues <file>",
-      {
-        description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
-      },
-    ],
-    [
-      "--group-by, -g <string>",
-      {
-        description: "Group test results by labels. The labels should be separated by commas",
-        default: "parentSuite,suite,subSuite",
       },
     ],
   ],
