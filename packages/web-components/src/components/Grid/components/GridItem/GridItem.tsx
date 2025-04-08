@@ -1,16 +1,11 @@
 import { clsx } from "clsx";
-import type { ComponentChildren, FunctionComponent } from "preact";
+import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
 import styles from "./GridItem.module.scss";
 import { DragHandle } from "./components";
 import { DEFAULT_DRAG_ENABLED_CLASSNAME } from "../../constants";
 
 export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Child elements to render within the grid item.
-   */
-  children: ComponentChildren;
-
   /**
    * Additional class names to be applied to the container.
    */

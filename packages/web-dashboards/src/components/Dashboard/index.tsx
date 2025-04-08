@@ -47,7 +47,7 @@ export const Dashboard = () => {
           const chartWidget = getChartWidgetByType(value, t);
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
+            <GridItem isDndDisabled key={chartId} className={styles["overview-grid-item"]}>
               {chartWidget}
             </GridItem>
           );
