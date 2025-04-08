@@ -1,4 +1,4 @@
-import { getWorstStatus, type EnvironmentItem } from "@allurereport/core-api";
+import { type EnvironmentItem, getWorstStatus } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";

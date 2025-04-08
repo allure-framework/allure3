@@ -3,13 +3,12 @@ import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
 import { useMemo, useRef } from "preact/hooks";
 import type { Options } from "sortablejs";
-import styles from "./styles.scss";
 import { useSortable } from "./hooks";
+import styles from "./styles.scss";
 
 export type GridKind = "default" | "swap";
 
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {
-
   /**
    * Options to configure SortableJS behavior.
    */

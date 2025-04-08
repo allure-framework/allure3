@@ -54,12 +54,11 @@ export interface TrendChartData {
   title?: string;
 }
 
-
 interface PieSlice {
   status: TestStatus;
   count: number;
   d: string | null;
-};
+}
 
 interface ResponsePieChartData {
   type: ChartType.Pie;
@@ -158,7 +157,11 @@ const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): Tr
     (severity) => severityColors[severity],
   );
 
-const createaTrendChartData = (chartId: string, chartData: ResponseTrendChartData, res: ChartsResponse): TrendChartData | undefined => {
+const createaTrendChartData = (
+  chartId: string,
+  chartData: ResponseTrendChartData,
+  res: ChartsResponse,
+): TrendChartData | undefined => {
   if (chartData.dataType === ChartDataType.Status) {
     return createStatusTrendChartData(chartId, res);
   } else if (chartData.dataType === ChartDataType.Severity) {

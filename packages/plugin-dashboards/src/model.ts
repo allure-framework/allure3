@@ -8,7 +8,7 @@ export enum ChartType {
 export enum ChartData {
   Status = "status",
   Severity = "severity",
-};
+}
 
 export type ChartMode = "raw" | "percent";
 

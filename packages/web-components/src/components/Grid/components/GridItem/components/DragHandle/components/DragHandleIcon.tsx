@@ -6,7 +6,5 @@ export interface DragHandleIconProps {
 }
 
 export const DragHandleIcon: FunctionComponent<DragHandleIconProps> = ({ className }) => {
-  return (
-    <SvgIcon id={allureIcons.draggable} className={className} />
-  );
+  return <SvgIcon id={allureIcons.draggable} className={className} />;
 };

@@ -1,8 +1,8 @@
 import { SvgIcon, allureIcons } from "@allurereport/web-components";
 import { Text } from "@allurereport/web-components";
 import { clsx } from "clsx";
-import * as styles from "./styles.scss";
 import type { FC } from "preact/compat";
+import * as styles from "./styles.scss";
 
 export type ReportLogoFullProps = {
   className?: string;

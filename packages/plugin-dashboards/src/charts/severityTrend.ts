@@ -1,5 +1,5 @@
 import type { HistoryDataPoint, SeverityLevel, TestResult } from "@allurereport/core-api";
-import { severityLevels, severityLabelName } from "@allurereport/core-api";
+import { severityLabelName, severityLevels } from "@allurereport/core-api";
 import type { SeverityTrendChartData, TrendChartOptions } from "../model.js";
 import {
   createEmptySeries,
@@ -19,9 +19,7 @@ export const getSeverityTrendData = (
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
 
   // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined
-    ? historyPoints.slice(-historyLimit)
-    : historyPoints;
+  const limitedHistoryPoints = historyLimit !== undefined ? historyPoints.slice(-historyLimit) : historyPoints;
 
   // Convert history points to statistics by severity
   const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyPoints.length - historyLimit) : 0;
@@ -62,7 +60,7 @@ export const getSeverityTrendData = (
     reportName,
     historyPoints.length + 1, // Always use the full history length for current point order
     severityLevels,
-    chartOptions
+    chartOptions,
   );
 
   // Process historical data
@@ -73,7 +71,7 @@ export const getSeverityTrendData = (
         historyPoint.name,
         historyPoint.originalIndex + 1,
         severityLevels,
-        chartOptions
+        chartOptions,
       );
 
       return mergeTrendDataGeneric(acc, trendDataPart, severityLevels);

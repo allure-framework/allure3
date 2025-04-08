@@ -3,15 +3,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import { chartsStore, fetchChartsData } from "@/stores/charts";
 import { useI18n } from "@/stores";
+import { chartsStore, fetchChartsData } from "@/stores/charts";
+import { capitalize } from "@/utils/capitalize";
 import * as styles from "./Overview.module.scss";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
-import { capitalize } from "@/utils/capitalize";
 
 const Overview = () => {
-  const { t } = useI18n('charts');
+  const { t } = useI18n("charts");
 
   useEffect(() => {
     fetchChartsData();

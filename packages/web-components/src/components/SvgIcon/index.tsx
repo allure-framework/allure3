@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import type { JSX } from "preact";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import draggable from "@/assets/svg/draggable.svg";
+import environment from "@/assets/svg/environment.svg";
 import github from "@/assets/svg/github.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
@@ -60,7 +61,6 @@ import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
 import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";
-import environment from "@/assets/svg/environment.svg";
 import styles from "./styles.scss";
 
 export const allureIcons = {

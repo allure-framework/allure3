@@ -1,7 +1,7 @@
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { generateAllCharts, generateStaticFiles } from "./generators.js";
 import type { DashboardsPluginOptions } from "./model.js";
 import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
-import { generateAllCharts, generateStaticFiles } from "./generators.js";
 
 export class DashboardsPlugin implements Plugin {
   #writer: DashboardsDataWriter | undefined;
@@ -11,7 +11,9 @@ export class DashboardsPlugin implements Plugin {
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context);
 
-    const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardsDataWriter).reportFiles() : [];
+    const reportDataFiles = this.options.singleFile
+      ? (this.#writer! as InMemoryDashboardsDataWriter).reportFiles()
+      : [];
 
     await generateStaticFiles({
       ...this.options,

@@ -1,19 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
+import { type ChartData, ChartType, dashboardStore, fetchDashboardData } from "@/stores/dashboard";
 import { useI18n } from "@/stores/locale";
-import * as styles from "./styles.scss";
+import { capitalize } from "@/utils/capitalize";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
-import { capitalize } from "@/utils/capitalize";
-import { ChartType, fetchDashboardData, dashboardStore, type ChartData } from "@/stores/dashboard";
+import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: any) => string) => {
   switch (chartData.type) {
     case ChartType.Trend: {
       const title = chartData.title ?? t("trend.title", { type: capitalize(chartData.dataType) });
 
-      return <TrendChartWidget title={title} items={chartData.items} slices={chartData.slices} min={chartData.min} max={chartData.max} />;
+      return (
+        <TrendChartWidget
+          title={title}
+          items={chartData.items}
+          slices={chartData.slices}
+          min={chartData.min}
+          max={chartData.max}
+        />
+      );
     }
     case ChartType.Pie: {
       const title = chartData.title ?? t("pie.title");

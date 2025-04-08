@@ -19,9 +19,7 @@ export const getStatusTrendData = (
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
 
   // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined
-    ? historyPoints.slice(-historyLimit)
-    : historyPoints;
+  const limitedHistoryPoints = historyLimit !== undefined ? historyPoints.slice(-historyLimit) : historyPoints;
 
   // Convert history points to statistics
   const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyPoints.length - historyLimit) : 0;
@@ -51,7 +49,7 @@ export const getStatusTrendData = (
     reportName,
     historyPoints.length + 1, // Always use the full history length for current point order
     statusesList,
-    chartOptions
+    chartOptions,
   );
 
   // Process historical data
@@ -62,7 +60,7 @@ export const getStatusTrendData = (
         historyPoint.name,
         historyPoint.originalIndex + 1,
         statusesList,
-        chartOptions
+        chartOptions,
       );
 
       return mergeTrendDataGeneric(acc, trendDataPart, statusesList);

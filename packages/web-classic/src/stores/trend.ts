@@ -134,17 +134,20 @@ const createSeverityChartData = (chartId: ChartId, res: TrendResponse): TrendCha
   );
 
 const makeCharts = (res: TrendResponse): TrendData["charts"] => {
-  return Object.entries(res.charts).reduce((acc, [chartId, chart]) => {
-    const { type } = chart;
+  return Object.entries(res.charts).reduce(
+    (acc, [chartId, chart]) => {
+      const { type } = chart;
 
-    if (type === "status") {
-      acc[chartId] = createStatusChartData(chartId, res);
-    } else if (type === "severity") {
-      acc[chartId] = createSeverityChartData(chartId, res);
-    }
+      if (type === "status") {
+        acc[chartId] = createStatusChartData(chartId, res);
+      } else if (type === "severity") {
+        acc[chartId] = createSeverityChartData(chartId, res);
+      }
 
-    return acc;
-  }, {} as Record<ChartId, TrendChartData>);
+      return acc;
+    },
+    {} as Record<ChartId, TrendChartData>,
+  );
 };
 
 export const fetchTrendData = async () => {

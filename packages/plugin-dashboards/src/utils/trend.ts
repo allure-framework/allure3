@@ -138,9 +138,10 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   const { executionIdFn, executionNameFn } = metadata;
   const executionId = executionIdFn ? executionIdFn(executionOrder) : `execution-${executionOrder}`;
 
-  const { points, series } = mode === "percent"
-    ? calculatePercentValues(stats, executionId, itemType)
-    : calculateRawValues(stats, executionId, itemType);
+  const { points, series } =
+    mode === "percent"
+      ? calculatePercentValues(stats, executionId, itemType)
+      : calculateRawValues(stats, executionId, itemType);
 
   const slices: Record<string, { min: number; max: number; metadata: M }> = {};
 

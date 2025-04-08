@@ -1,7 +1,7 @@
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, bootstrapReport, randomNumber } from "../utils/index.js";
-import AwesomePlugin from "@allurereport/plugin-awesome";
 
 let bootstrap: ReportBootstrap;
 

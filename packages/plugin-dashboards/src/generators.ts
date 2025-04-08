@@ -1,18 +1,5 @@
+import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
-import { getSeverityTrendData } from "./charts/severityTrend.js";
-import { getStatusTrendData } from "./charts/statusTrend.js";
-import { getPieChartData } from "./charts/statusPie.js";
-
-import type { DashboardsOptions, DashboardsPluginOptions, TemplateManifest, GeneratedChartsData, TrendChartOptions, PieChartData, TrendChartData, GeneratedChartData, PieChartOptions } from "./model.js";
-import { ChartData, ChartType } from "./model.js";
-import { randomUUID } from "crypto";
-import type { DashboardsDataWriter, ReportFile } from "./writer.js";
-import type {
-  DashboardsReportOptions,
-} from "@allurereport/web-dashboards";
-import Handlebars from "handlebars";
-import { readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
 import {
   createBaseUrlScript,
   createFontLinkTag,
@@ -20,7 +7,27 @@ import {
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/web-commons";
-import type { TestResult, HistoryDataPoint, Statistic } from "@allurereport/core-api";
+import type { DashboardsReportOptions } from "@allurereport/web-dashboards";
+import { randomUUID } from "crypto";
+import Handlebars from "handlebars";
+import { readFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+import { getSeverityTrendData } from "./charts/severityTrend.js";
+import { getPieChartData } from "./charts/statusPie.js";
+import { getStatusTrendData } from "./charts/statusTrend.js";
+import type {
+  DashboardsOptions,
+  DashboardsPluginOptions,
+  GeneratedChartData,
+  GeneratedChartsData,
+  PieChartData,
+  PieChartOptions,
+  TemplateManifest,
+  TrendChartData,
+  TrendChartOptions,
+} from "./model.js";
+import { ChartData, ChartType } from "./model.js";
+import type { DashboardsDataWriter, ReportFile } from "./writer.js";
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -68,7 +75,11 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
-const generateTrendChart = (options: TrendChartOptions, stores: { historyDataPoints: HistoryDataPoint[]; statistic: Statistic; testResults: TestResult[] }, context: PluginContext): TrendChartData | undefined => {
+const generateTrendChart = (
+  options: TrendChartOptions,
+  stores: { historyDataPoints: HistoryDataPoint[]; statistic: Statistic; testResults: TestResult[] },
+  context: PluginContext,
+): TrendChartData | undefined => {
   const { dataType } = options;
   const { statistic, historyDataPoints, testResults } = stores;
 
@@ -85,7 +96,11 @@ const generatePieChart = (options: PieChartOptions, stores: { statistic: Statist
   return getPieChartData(statistic, options);
 };
 
-export const generateCharts = async (options: DashboardsPluginOptions, store: AllureStore, context: PluginContext): Promise<GeneratedChartsData | undefined> => {
+export const generateCharts = async (
+  options: DashboardsPluginOptions,
+  store: AllureStore,
+  context: PluginContext,
+): Promise<GeneratedChartsData | undefined> => {
   const { layout } = options;
 
   if (!layout) {
@@ -115,14 +130,18 @@ export const generateCharts = async (options: DashboardsPluginOptions, store: Al
   }, {} as GeneratedChartsData);
 };
 
-export const generateAllCharts = async (writer: DashboardsDataWriter, store: AllureStore, options: DashboardsPluginOptions, context: PluginContext): Promise<void> => {
+export const generateAllCharts = async (
+  writer: DashboardsDataWriter,
+  store: AllureStore,
+  options: DashboardsPluginOptions,
+  context: PluginContext,
+): Promise<void> => {
   const charts = await generateCharts(options, store, context);
 
   if (charts && Object.keys(charts).length > 0) {
     await writer.writeWidget("charts.json", charts);
   }
 };
-
 
 export const generateStaticFiles = async (
   payload: DashboardsOptions & {

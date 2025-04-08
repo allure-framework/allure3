@@ -1,9 +1,9 @@
 import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
-import styles from "./styles.scss";
-import { DragHandle } from "./components";
 import { DEFAULT_DRAG_ENABLED_CLASSNAME } from "../../constants";
+import { DragHandle } from "./components";
+import styles from "./styles.scss";
 
 export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -33,7 +33,10 @@ export const GridItem: FunctionComponent<GridItemProps> = ({
   const isDndEnabled = !isDndDisabled;
 
   return (
-    <div {...restProps} className={clsx(styles["grid-item"], { [DEFAULT_DRAG_ENABLED_CLASSNAME]: isDndEnabled }, className)}>
+    <div
+      {...restProps}
+      className={clsx(styles["grid-item"], { [DEFAULT_DRAG_ENABLED_CLASSNAME]: isDndEnabled }, className)}
+    >
       <div className={styles["grid-item-content"]}>{children}</div>
       {isDndEnabled && <DragHandle className={styles["grid-item-handle"]} />}
     </div>
