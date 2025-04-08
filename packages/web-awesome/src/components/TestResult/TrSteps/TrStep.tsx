@@ -1,4 +1,4 @@
-import type { DefaultTestStepResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult, TestStepResult } from "@allurereport/core-api";
 import { Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -44,12 +44,21 @@ export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   );
 };
 
+const hasFailedStep = (step: TestStepResult): boolean => {
+  if (step.type !== "step") {
+    return false;
+  }
+
+  return step.status !== "passed" || step.steps.some(hasFailedStep);
+};
+
 export const TrStep: FunctionComponent<{
   item: DefaultTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  const isEarlyOpened = collapsedTrees.value.has(item.stepId);
+  const haveFailedSteps = hasFailedStep(item);
+  const isEarlyOpened = collapsedTrees.value.has(item.stepId) ? false : Boolean(haveFailedSteps);
   const [isOpened, setIsOpen] = useState(isEarlyOpened || false);
   const hasContent = Boolean(item?.steps?.length || item?.parameters?.length);
 

@@ -25,7 +25,7 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TrError: FunctionalComponent<TestError & { status: TestStatus }> = ({
+export const TrError: FunctionalComponent<TestError & { status?: TestStatus }> = ({
   message,
   trace,
   actual,
