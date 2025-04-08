@@ -7,6 +7,7 @@ import * as styles from "./styles.scss";
 import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
 import { getKindConfig } from "./utils";
+import { nivoTheme } from "./theme";
 
 export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   kind = TrendChartKind.Mesh,
@@ -108,6 +109,7 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
           ...axisBottom,
           tickValues,
         }}
+        theme={nivoTheme} // Pass the theme object to ResponsiveLine
       />
     </div>
   );
