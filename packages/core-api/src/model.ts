@@ -23,6 +23,7 @@ export interface TestResult {
   name: string;
   status: TestStatus;
   error?: TestError;
+  errors?: TestError[];
 
   testCase?: TestCase;
 

@@ -1,10 +1,10 @@
-import type { TestStatus } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrDescription } from "@/components/TestResult/TrDescription";
 import { TrError } from "@/components/TestResult/TrError";
+import { TrErrorStack } from "@/components/TestResult/TrErrorStack";
 import { TrLinks } from "@/components/TestResult/TrLinks";
 import { TrMetadata } from "@/components/TestResult/TrMetadata";
 import { TrParameters } from "@/components/TestResult/TrParameters";
@@ -18,12 +18,14 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id, status } = testResult || {};
+  const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id, status, errors } =
+    testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
   );
 
+  const errorMock = Array.from({ length: 12 }, () => ({ ...error }));
   return (
     <>
       {Boolean(error?.message) && (
@@ -31,6 +33,7 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
           <TrError {...error} status={status} />
         </div>
       )}
+      {Boolean(errorMock?.length) && <TrErrorStack errors={errorMock} status={status} />}
       {Boolean(pwTraces.length) && <TrPwTraces pwTraces={pwTraces} />}
       {Boolean(parameters?.length) && <TrParameters parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && <TrMetadata testResult={testResult} />}

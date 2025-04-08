@@ -107,7 +107,8 @@
     "copy": "Copy",
     "at": "at",
     "variables": "Variables",
-    "openPwTrace": "Open Playwright Trace"
+    "openPwTrace": "Open Playwright Trace",
+    "errorStack": "Errors"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",
