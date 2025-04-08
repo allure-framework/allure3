@@ -92,7 +92,7 @@ const severityColors: Record<SeverityLevel, string> = {
   trivial: "var(--bg-support-skat)",
 };
 
-export const trendStore = signal<StoreSignalState<ChartsData>>({
+export const dashboardStore = signal<StoreSignalState<ChartsData>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -178,9 +178,9 @@ const createCharts = (res: ChartsResponse): ChartsData => {
   }, {} as ChartsData);
 };
 
-export const fetchTrendData = async () => {
-  trendStore.value = {
-    ...trendStore.value,
+export const fetchDashboardData = async () => {
+  dashboardStore.value = {
+    ...dashboardStore.value,
     loading: true,
     error: undefined,
   };
@@ -188,13 +188,13 @@ export const fetchTrendData = async () => {
   try {
     const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json");
 
-    trendStore.value = {
+    dashboardStore.value = {
       data: createCharts(res),
       error: undefined,
       loading: false,
     };
   } catch (err) {
-    trendStore.value = {
+    dashboardStore.value = {
       data: undefined,
       error: err.message,
       loading: false,

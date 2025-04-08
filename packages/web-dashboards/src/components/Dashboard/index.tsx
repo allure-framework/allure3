@@ -6,7 +6,7 @@ import * as styles from "./styles.scss";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
 import { capitalize } from "@/utils/capitalize";
-import { ChartType, fetchTrendData, trendStore, type ChartData } from "@/stores/trend";
+import { ChartType, fetchDashboardData, dashboardStore, type ChartData } from "@/stores/dashboard";
 
 const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: any) => string) => {
   switch (chartData.type) {
@@ -35,14 +35,14 @@ export const Dashboard = () => {
   const { t } = useI18n("charts");
 
   useEffect(() => {
-    fetchTrendData();
+    fetchDashboardData();
   }, []);
 
   return (
     <Loadable
-      source={trendStore}
+      source={dashboardStore}
       renderLoader={() => <PageLoader />}
-      renderData={({ data }) => {
+      renderData={(data) => {
         const charts = Object.entries(data).map(([chartId, value]) => {
           const chartWidget = getChartWidgetByType(value, t);
 
