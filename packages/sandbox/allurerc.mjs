@@ -36,7 +36,40 @@ export default defineConfig({
           {
             type: "trend",
             dataType: "status",
+            mode: "percent",
+          },
+          {
+            type: "trend",
+            dataType: "status",
             limit: 10,
+          },
+          {
+            title: "Custom Status Trend",
+            type: "trend",
+            dataType: "status",
+            mode: "percent",
+            limit: 15,
+          },
+          {
+            type: "trend",
+            dataType: "status",
+            limit: 15,
+            metadata: {
+              executionIdFn: (executionOrder) => `build-${executionOrder}`,
+              executionNameFn: (executionOrder) => `build #${executionOrder}`,
+            },
+          },
+          {
+            type: "trend",
+            dataType: "severity",
+            limit: 15,
+          },
+          {
+            type: "pie",
+          },
+          {
+            type: "pie",
+            title: "Custom Pie",
           },
         ],
       },
