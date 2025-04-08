@@ -1,7 +1,6 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
-  type Statistic,
   compareBy,
   incrementStatistic,
   nullsLast,
@@ -27,10 +26,10 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
+import { getPieChartData } from "./charts.js";
 
 const require = createRequire(import.meta.url);
 

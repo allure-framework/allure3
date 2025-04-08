@@ -60,6 +60,7 @@ import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
 import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";
+import environment from "@/assets/svg/environment.svg";
 import styles from "./styles.scss";
 
 export const allureIcons = {

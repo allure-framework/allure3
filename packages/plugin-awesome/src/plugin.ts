@@ -1,5 +1,5 @@
-import type { EnvironmentItem } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { getWorstStatus, type EnvironmentItem } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import {
@@ -15,6 +15,7 @@ import {
   generateTestEnvGroups,
   generateTestResults,
   generateTree,
+  generateVariables,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
