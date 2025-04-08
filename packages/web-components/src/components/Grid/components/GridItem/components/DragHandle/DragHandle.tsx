@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
-import styles from "./DragHandle.module.scss";
+import styles from "./styles.scss";
 import { DragHandleIcon } from "./components";
 import { DEFAULT_HANDLE_CLASSNAME } from "../../../../constants";
 
