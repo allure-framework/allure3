@@ -135,10 +135,10 @@ test.describe("allure-awesome", () => {
               id: "awesome",
               enabled: true,
               plugin: new AwesomePlugin({
-                filter: ({ name }) => name === "0 sample passed test"
+                filter: ({ name }) => name === "0 sample passed test",
               }),
               options: {
-                // filter: ({ name }) => name === "0 sample passed test",
+                filter: ({ name }) => name === "0 sample passed test",
               },
             },
           ],
