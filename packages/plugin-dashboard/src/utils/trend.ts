@@ -16,15 +16,28 @@ type TrendCalculationResult<T extends TrendDataType> = {
   series: Record<T, TrendPointId[]>;
 };
 
-// Helper for creating empty stats records
+/**
+ * Initializes stats record with items as keys and 0 as values.
+ * @param items - Items for stats record.
+ * @returns Record with items as keys and 0 values.
+ */
 export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): Record<T, number> =>
   items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as Record<T, number>);
 
-// Helper for creating empty series records
+/**
+ * Initializes series record with items as keys and empty arrays.
+ * @param items - Items for series record.
+ * @returns Record with items as keys and empty arrays.
+ */
 export const createEmptySeries = <T extends TrendDataType>(items: readonly T[]): Record<T, string[]> =>
   items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
 
-// Helper for converting statistics to normalized record
+/**
+ * Normalizes stats record, ensuring all items are represented.
+ * @param statistic - Partial stats record.
+ * @param itemType - All possible items.
+ * @returns Complete stats record with all items.
+ */
 export const normalizeStatistic = <T extends TrendDataType>(
   statistic: Partial<Record<T, number>>,
   itemType: readonly T[],
@@ -38,7 +51,13 @@ export const normalizeStatistic = <T extends TrendDataType>(
   );
 };
 
-// Helper for calculating raw mode values
+/**
+ * Calculates raw trend data points and series.
+ * @param stats - Statistical values for items.
+ * @param executionId - Execution context identifier.
+ * @param itemType - Items for trend data.
+ * @returns Points and series for visualization.
+ */
 const calculateRawValues = <T extends TrendDataType>(
   stats: Record<T, number>,
   executionId: string,
@@ -62,7 +81,13 @@ const calculateRawValues = <T extends TrendDataType>(
   return { points, series };
 };
 
-// Helper for calculating percent mode values
+/**
+ * Calculates percentage trend data points and series.
+ * @param stats - Statistical values for items.
+ * @param executionId - Execution context identifier.
+ * @param itemType - Items for trend data.
+ * @returns Points and series for visualization.
+ */
 const calculatePercentValues = <T extends TrendDataType>(
   stats: Record<T, number>,
   executionId: string,
@@ -92,7 +117,13 @@ const calculatePercentValues = <T extends TrendDataType>(
   return { points, series };
 };
 
-// Helper for merging trend data
+/**
+ * Merges two trend data sets into one.
+ * @param trendData - Primary trend data.
+ * @param trendDataPart - Secondary trend data.
+ * @param itemType - Items for data inclusion.
+ * @returns Merged dataset for analysis.
+ */
 export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
   trendData: GenericTrendChartData<M, T>,
   trendDataPart: GenericTrendChartData<M, T>,
@@ -126,7 +157,15 @@ export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extend
   };
 };
 
-// Helper for getting trend data
+/**
+ * Generates trend data from stats and options.
+ * @param stats - Statistical values for items.
+ * @param reportName - Associated report name.
+ * @param executionOrder - Execution sequence order.
+ * @param itemType - Items for trend data.
+ * @param chartOptions - Chart configuration options.
+ * @returns Dataset for trend visualization.
+ */
 export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
   stats: Record<T, number>,
   reportName: string,
