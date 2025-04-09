@@ -1,1 +1,1 @@
-{"id":"139466fcdfec90220016861ea6de417c","fullName":"test/config.test.ts#getPluginId returns the same string if it doesn't have scope","name":"returns the same string if it doesn't have scope","status":"passed","testResultsByEnv":{"default":"26783506b9a8b02d2d1a22cdae55222d"}}
+{"id":"139466fcdfec90220016861ea6de417c","fullName":"test/config.test.ts#getPluginId returns the same string if it doesn't have scope","name":"returns the same string if it doesn't have scope","status":"passed","testResultsByEnv":{"default":"4e25d540ed7256db9db063fea3aa5778"}}
