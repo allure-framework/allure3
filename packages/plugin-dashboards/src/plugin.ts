@@ -1,4 +1,5 @@
-import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { getWorstStatus } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
 import { generateAllCharts, generateStaticFiles } from "./generators.js";
 import type { DashboardsPluginOptions } from "./model.js";
 import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
@@ -48,4 +49,17 @@ export class DashboardsPlugin implements Plugin {
 
     await this.#generate(context, store);
   };
+
+  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
+    const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
+    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
+    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+
+    return {
+      name: this.options.reportName || context.reportName,
+      stats: await store.testsStatistic(this.options.filter),
+      status: worstStatus ?? "passed",
+      duration,
+    };
+  }
 }

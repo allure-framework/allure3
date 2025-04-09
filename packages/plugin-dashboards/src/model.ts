@@ -1,4 +1,4 @@
-import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
+import type { SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
 
 export enum ChartType {
   Trend = "trend",
@@ -121,6 +121,7 @@ export type DashboardsOptions = {
   theme?: "light" | "dark";
   reportLanguage?: "en" | "ru";
   layout?: ChartOptions[];
+  filter?: (testResult: TestResult) => boolean;
 };
 
 export type DashboardsPluginOptions = DashboardsOptions;

@@ -11,6 +11,7 @@ import type { DashboardsReportOptions } from "@allurereport/web-dashboards";
 import { randomUUID } from "crypto";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { getSeverityTrendData } from "./charts/severityTrend.js";
 import { getPieChartData } from "./charts/statusPie.js";
@@ -28,6 +29,8 @@ import type {
 } from "./model.js";
 import { ChartData, ChartType } from "./model.js";
 import type { DashboardsDataWriter, ReportFile } from "./writer.js";
+
+const require = createRequire(import.meta.url);
 
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -77,7 +80,11 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
 
 const generateTrendChart = (
   options: TrendChartOptions,
-  stores: { historyDataPoints: HistoryDataPoint[]; statistic: Statistic; testResults: TestResult[] },
+  stores: {
+    historyDataPoints: HistoryDataPoint[];
+    statistic: Statistic;
+    testResults: TestResult[];
+  },
   context: PluginContext,
 ): TrendChartData | undefined => {
   const { dataType } = options;
@@ -90,7 +97,12 @@ const generateTrendChart = (
   }
 };
 
-const generatePieChart = (options: PieChartOptions, stores: { statistic: Statistic }): PieChartData => {
+const generatePieChart = (
+  options: PieChartOptions,
+  stores: {
+    statistic: Statistic;
+  },
+): PieChartData => {
   const { statistic } = stores;
 
   return getPieChartData(statistic, options);
@@ -117,7 +129,15 @@ export const generateCharts = async (
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(chartOptions, { historyDataPoints, statistic, testResults }, context);
+      chart = generateTrendChart(
+        chartOptions,
+        {
+          historyDataPoints,
+          statistic,
+          testResults,
+        },
+        context,
+      );
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
     }
