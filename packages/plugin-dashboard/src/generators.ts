@@ -123,7 +123,7 @@ export const generateCharts = async (
   const statistic = await store.testsStatistic();
   const testResults = await store.allTestResults();
 
-  return layout?.reduce((acc, chartOptions) => {
+  return layout.reduce((acc, chartOptions) => {
     const chartId = randomUUID();
 
     let chart: GeneratedChartData | undefined;
