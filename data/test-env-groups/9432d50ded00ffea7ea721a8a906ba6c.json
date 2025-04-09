@@ -1,1 +1,1 @@
-{"id":"9432d50ded00ffea7ea721a8a906ba6c","fullName":"test/utils.test.ts#stringifyStatusBadge returns yellow badge for skipped status","name":"returns yellow badge for skipped status","status":"passed","testResultsByEnv":{"default":"62b7c5692e16a5246806ea0130b6feab"}}
+{"id":"9432d50ded00ffea7ea721a8a906ba6c","fullName":"test/utils.test.ts#stringifyStatusBadge returns yellow badge for skipped status","name":"returns yellow badge for skipped status","status":"passed","testResultsByEnv":{"default":"3a145cf0145b38ed2a5e43e6b7b0e4ff"}}
