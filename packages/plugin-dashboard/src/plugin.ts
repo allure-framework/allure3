@@ -1,19 +1,19 @@
 import { getWorstStatus } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
 import { generateAllCharts, generateStaticFiles } from "./generators.js";
-import type { DashboardsPluginOptions } from "./model.js";
-import { type DashboardsDataWriter, InMemoryDashboardsDataWriter, ReportFileDashboardsDataWriter } from "./writer.js";
+import type { DashboardPluginOptions } from "./model.js";
+import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
-export class DashboardsPlugin implements Plugin {
-  #writer: DashboardsDataWriter | undefined;
+export class DashboardPlugin implements Plugin {
+  #writer: DashboardDataWriter | undefined;
 
-  constructor(readonly options: DashboardsPluginOptions = {}) {}
+  constructor(readonly options: DashboardPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context);
 
     const reportDataFiles = this.options.singleFile
-      ? (this.#writer! as InMemoryDashboardsDataWriter).reportFiles()
+      ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles()
       : [];
 
     await generateStaticFiles({
@@ -28,9 +28,9 @@ export class DashboardsPlugin implements Plugin {
 
   start = async (context: PluginContext): Promise<void> => {
     if (this.options.singleFile) {
-      this.#writer = new InMemoryDashboardsDataWriter();
+      this.#writer = new InMemoryDashboardDataWriter();
     } else {
-      this.#writer = new ReportFileDashboardsDataWriter(context.reportFiles);
+      this.#writer = new ReportFileDashboardDataWriter(context.reportFiles);
     }
   };
 

@@ -10,7 +10,7 @@ import type {
   WithChildren,
 } from "@allurereport/core-api";
 
-export type DashboardsReportOptions = {
+export type DashboardReportOptions = {
   allureVersion: string;
   reportName?: string;
   logo?: string;

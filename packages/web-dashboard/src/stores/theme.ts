@@ -1,6 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import type { DashboardsReportOptions } from "../../types.js";
+import type { DashboardReportOptions } from "../../types.js";
 
 type Theme = "light" | "dark";
 
@@ -17,7 +17,7 @@ export const toggleTheme = () => {
 };
 
 export const getTheme = () => {
-  const { theme } = getReportOptions<DashboardsReportOptions>() ?? {};
+  const { theme } = getReportOptions<DashboardReportOptions>() ?? {};
   const themeFromLS = (window.localStorage.getItem("theme") as Theme | null) || (theme as Theme);
 
   if (themeFromLS) {

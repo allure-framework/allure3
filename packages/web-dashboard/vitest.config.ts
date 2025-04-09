@@ -5,13 +5,14 @@ const require = createRequire(import.meta.url);
 
 export default defineConfig({
   test: {
+    passWithNoTests: true,
     include: ["./test/**/*.test.ts"],
     setupFiles: [require.resolve("allure-vitest/setup")],
     reporters: [
       "default",
       [
         "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "plugin-dashboards" }] },
+        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-dashboard" }] },
       ],
     ],
   },

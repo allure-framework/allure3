@@ -8,11 +8,11 @@ export type ReportFile = {
   value: string;
 };
 
-export interface DashboardsDataWriter {
+export interface DashboardDataWriter {
   writeWidget<T>(fileName: string, data: T): Promise<void>;
 }
 
-export class FileSystemReportDataWriter implements DashboardsDataWriter {
+export class FileSystemReportDataWriter implements DashboardDataWriter {
   constructor(private readonly output: string) {}
 
   async writeWidget<T>(fileName: string, data: T): Promise<void> {
@@ -22,7 +22,7 @@ export class FileSystemReportDataWriter implements DashboardsDataWriter {
   }
 }
 
-export class InMemoryDashboardsDataWriter implements DashboardsDataWriter {
+export class InMemoryDashboardDataWriter implements DashboardDataWriter {
   #data: Record<string, Buffer> = {};
 
   async writeWidget<T>(fileName: string, data: T): Promise<void> {
@@ -39,7 +39,7 @@ export class InMemoryDashboardsDataWriter implements DashboardsDataWriter {
   }
 }
 
-export class ReportFileDashboardsDataWriter implements DashboardsDataWriter {
+export class ReportFileDashboardDataWriter implements DashboardDataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
   async writeWidget<T>(fileName: string, data: T): Promise<void> {

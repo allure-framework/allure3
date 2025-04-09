@@ -2,7 +2,7 @@ import { AllureReport, resolveConfig } from "@allurereport/core";
 import * as console from "node:console";
 import { createCommand } from "../utils/commands.js";
 
-type DashboardsCommandOptions = {
+type DashboardCommandOptions = {
   output?: string;
   reportName?: string;
   reportLanguage?: string;
@@ -11,14 +11,14 @@ type DashboardsCommandOptions = {
   theme?: "light" | "dark";
 };
 
-export const DashboardsCommandAction = async (resultsDir: string, options: DashboardsCommandOptions) => {
+export const DashboardCommandAction = async (resultsDir: string, options: DashboardCommandOptions) => {
   const before = new Date().getTime();
   const { output, reportName: name, ...rest } = options;
   const config = await resolveConfig({
     output,
     name,
     plugins: {
-      "@allurereport/plugin-dashboards": {
+      "@allurereport/plugin-dashboard": {
         options: rest,
       },
     },
@@ -34,9 +34,9 @@ export const DashboardsCommandAction = async (resultsDir: string, options: Dashb
   console.log(`the report successfully generated (${after - before}ms)`);
 };
 
-export const DashboardsCommand = createCommand({
-  name: "dashboards <resultsDir>",
-  description: "Generates Allure Dashboards report based on provided Allure Results",
+export const DashboardCommand = createCommand({
+  name: "dashboard <resultsDir>",
+  description: "Generates Allure Dashboard report based on provided Allure Results",
   options: [
     [
       "--output, -o <file>",
@@ -78,5 +78,5 @@ export const DashboardsCommand = createCommand({
       },
     ],
   ],
-  action: DashboardsCommandAction,
+  action: DashboardCommandAction,
 });

@@ -7,7 +7,7 @@ import {
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/web-commons";
-import type { DashboardsReportOptions } from "@allurereport/web-dashboards";
+import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -17,8 +17,8 @@ import { getSeverityTrendData } from "./charts/severityTrend.js";
 import { getPieChartData } from "./charts/statusPie.js";
 import { getStatusTrendData } from "./charts/statusTrend.js";
 import type {
-  DashboardsOptions,
-  DashboardsPluginOptions,
+  DashboardOptions,
+  DashboardPluginOptions,
   GeneratedChartData,
   GeneratedChartsData,
   PieChartData,
@@ -28,7 +28,7 @@ import type {
   TrendChartOptions,
 } from "./model.js";
 import { ChartData, ChartType } from "./model.js";
-import type { DashboardsDataWriter, ReportFile } from "./writer.js";
+import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
 
@@ -54,7 +54,7 @@ const template = `<!DOCTYPE html>
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-LNDJ3J7WT0', {
-          "report": "dashboards",
+          "report": "dashboard",
           "allureVersion": "{{ allureVersion }}",
           "reportUuid": "{{ reportUuid }}",
           "single_file": "{{singleFile}}"
@@ -71,7 +71,7 @@ const template = `<!DOCTYPE html>
 
 export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
   const templateManifestSource = require.resolve(
-    `@allurereport/web-dashboards/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
+    `@allurereport/web-dashboard/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
   );
   const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
 
@@ -109,7 +109,7 @@ const generatePieChart = (
 };
 
 export const generateCharts = async (
-  options: DashboardsPluginOptions,
+  options: DashboardPluginOptions,
   store: AllureStore,
   context: PluginContext,
 ): Promise<GeneratedChartsData | undefined> => {
@@ -151,9 +151,9 @@ export const generateCharts = async (
 };
 
 export const generateAllCharts = async (
-  writer: DashboardsDataWriter,
+  writer: DashboardDataWriter,
   store: AllureStore,
-  options: DashboardsPluginOptions,
+  options: DashboardPluginOptions,
   context: PluginContext,
 ): Promise<void> => {
   const charts = await generateCharts(options, store, context);
@@ -164,7 +164,7 @@ export const generateAllCharts = async (
 };
 
 export const generateStaticFiles = async (
-  payload: DashboardsOptions & {
+  payload: DashboardOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
@@ -192,7 +192,7 @@ export const generateStaticFiles = async (
     for (const key in manifest) {
       const fileName = manifest[key];
       const filePath = require.resolve(
-        join("@allurereport/web-dashboards/dist", singleFile ? "single" : "multi", fileName),
+        join("@allurereport/web-dashboard/dist", singleFile ? "single" : "multi", fileName),
       );
 
       if (key.includes(".woff")) {
@@ -217,13 +217,13 @@ export const generateStaticFiles = async (
     }
   } else {
     const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-dashboards/dist/single/${mainJs}`);
+    const mainJsSource = require.resolve(`@allurereport/web-dashboard/dist/single/${mainJs}`);
     const mainJsContentBuffer = await readFile(mainJsSource);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
-  const reportOptions: DashboardsReportOptions = {
+  const reportOptions: DashboardReportOptions = {
     reportName,
     logo,
     theme,

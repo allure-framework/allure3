@@ -47,7 +47,7 @@ __metadata:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
-    "@allurereport/plugin-dashboards": "workspace:*"
+    "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
@@ -313,14 +313,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-dashboards@workspace:*, @allurereport/plugin-dashboards@workspace:packages/plugin-dashboards":
+"@allurereport/plugin-dashboard@workspace:*, @allurereport/plugin-dashboard@workspace:packages/plugin-dashboard":
   version: 0.0.0-use.local
-  resolution: "@allurereport/plugin-dashboards@workspace:packages/plugin-dashboards"
+  resolution: "@allurereport/plugin-dashboard@workspace:packages/plugin-dashboard"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
-    "@allurereport/web-dashboards": "workspace:*"
+    "@allurereport/web-dashboard": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
@@ -968,9 +968,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/web-dashboards@workspace:*, @allurereport/web-dashboards@workspace:packages/web-dashboards":
+"@allurereport/web-dashboard@workspace:*, @allurereport/web-dashboard@workspace:packages/web-dashboard":
   version: 0.0.0-use.local
-  resolution: "@allurereport/web-dashboards@workspace:packages/web-dashboards"
+  resolution: "@allurereport/web-dashboard@workspace:packages/web-dashboard"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
@@ -8724,7 +8724,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-classic": "workspace:*"
-    "@allurereport/plugin-dashboards": "workspace:*"
+    "@allurereport/plugin-dashboard": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"

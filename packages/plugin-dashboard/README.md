@@ -1,20 +1,20 @@
-# Allure Dashboards Plugin
+# Allure Dashboard Plugin
 
 Plugin for generating dashboard with trend graphs for Allure reports.
 
 ## Installation
 
 ```bash
-npm install @allurereport/plugin-dashboards
+npm install @allurereport/plugin-dashboard
 ```
 
 ## Usage
 
 ```typescript
-import { DashboardsPlugin } from "@allurereport/plugin-dashboards";
+import { DashboardPlugin } from "@allurereport/plugin-dashboard";
 
 // Create plugin instance
-const dashboardsPlugin = new DashboardsPlugin({
+const dashboardPlugin = new DashboardPlugin({
   // Plugin options
   singleFile: false
 });
@@ -24,7 +24,7 @@ const allure = new AllureReport({
   // ...
   plugins: [
     // ...
-    dashboardsPlugin
+    dashboardPlugin
   ]
 });
 ```
@@ -41,7 +41,7 @@ Severity trend charts show how the distribution of tests by severity levels chan
 
 ## API
 
-### DashboardsPlugin
+### DashboardPlugin
 
 Main plugin class.
 

@@ -1,7 +1,7 @@
 {
-  "name": "@allurereport/web-dashboards",
+  "name": "@allurereport/web-dashboard",
   "version": "1.0.0",
-  "description": "The static files for Allure Dashboards Report",
+  "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",
     "testing",

@@ -114,7 +114,7 @@ export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type ChartOptions = TrendChartOptions | PieChartOptions;
 
-export type DashboardsOptions = {
+export type DashboardOptions = {
   reportName?: string;
   singleFile?: boolean;
   logo?: string;
@@ -124,6 +124,6 @@ export type DashboardsOptions = {
   filter?: (testResult: TestResult) => boolean;
 };
 
-export type DashboardsPluginOptions = DashboardsOptions;
+export type DashboardPluginOptions = DashboardOptions;
 
 export type TemplateManifest = Record<string, string>;

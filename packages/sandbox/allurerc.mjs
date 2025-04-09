@@ -27,10 +27,10 @@ export default defineConfig({
         open: false,
       },
     },
-    dashboards: {
+    dashboard: {
       options: {
         singleFile: false,
-        reportName: "HelloWorld-Dashboards",
+        reportName: "HelloWorld-Dashboard",
         reportLanguage: "en",
         layout: [
           {

@@ -1,4 +1,4 @@
-# Web Allure Dashboards
+# Web Allure Dashboard
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -12,16 +12,16 @@
 
 ## Overview
 
-Allure Dashboards report web-implementation.
+Allure Dashboard report web-implementation.
 
-The package is utilized by Dashboards Plugin.
+The package is utilized by Dashboard Plugin.
 
 ## Install
 
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/web-dashboards
-yarn add @allurereport/web-dashboards
-pnpm add @allurereport/web-dashboards
+npm add @allurereport/web-dashboard
+yarn add @allurereport/web-dashboard
+pnpm add @allurereport/web-dashboard
 ```

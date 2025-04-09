@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AllureReportMock } from "../utils.js";
 
 const core = await import("@allurereport/core");
-const { DashboardsCommandAction } = await import("../../src/commands/dashboards.js");
+const { DashboardCommandAction } = await import("../../src/commands/dashboard.js");
 
 vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
@@ -16,16 +16,16 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("dashboards command", () => {
+describe("dashboard command", () => {
   it("should initialize allure report with a correct default plugin options", async () => {
     const resultsDir = "foo/bar/allure-results";
 
-    await DashboardsCommandAction(resultsDir, {});
+    await DashboardCommandAction(resultsDir, {});
 
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
       plugins: {
-        "@allurereport/plugin-dashboards": {
+          "@allurereport/plugin-dashboard": {
           options: {},
         },
       },
@@ -37,7 +37,7 @@ describe("dashboards command", () => {
         history: [],
         plugins: [
           expect.objectContaining({
-            id: "plugin-dashboards",
+            id: "plugin-dashboard",
             enabled: true,
           }),
         ],
@@ -55,7 +55,7 @@ describe("dashboards command", () => {
       logo: "./custom/logo.png",
     };
 
-    await DashboardsCommandAction(fixtures.resultsDir, {
+    await DashboardCommandAction(fixtures.resultsDir, {
       reportName: fixtures.reportName,
       output: fixtures.output,
       reportLanguage: fixtures.reportLanguage,
@@ -68,7 +68,7 @@ describe("dashboards command", () => {
       name: "Custom Allure Report",
       output: fixtures.output,
       plugins: {
-        "@allurereport/plugin-dashboards": {
+        "@allurereport/plugin-dashboard": {
           options: {
             reportLanguage: fixtures.reportLanguage,
             singleFile: fixtures.singleFile,
@@ -84,7 +84,7 @@ describe("dashboards command", () => {
         history: [],
         plugins: [
           expect.objectContaining({
-            id: "plugin-dashboards",
+            id: "plugin-dashboard",
             enabled: true,
             options: {
               reportLanguage: fixtures.reportLanguage,

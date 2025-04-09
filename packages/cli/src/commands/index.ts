@@ -14,4 +14,4 @@ export * from "./open.js";
 export * from "./qualityGate.js";
 export * from "./log.js";
 export * from "./generate.js";
-export * from "./dashboards.js";
+export * from "./dashboard.js";
