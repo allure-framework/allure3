@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Trenddiagram: {{type}}"
+      "title": "Trenddiagram: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Allvarlighetsgrad"
+      }
     },
     "pie": {
       "title": "Testframgångsfrekvens"

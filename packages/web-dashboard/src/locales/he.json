@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "תרשים מגמה: {{type}}"
+      "title": "תרשים מגמה: {{type}}",
+      "type": {
+        "status": "סטטוס",
+        "severity": "חומרה"
+      }
     },
     "pie": {
       "title": "שיעור הצלחת הבדיקות"

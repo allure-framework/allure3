@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "트렌드 차트: {{type}}"
+      "title": "트렌드 차트: {{type}}",
+      "type": {
+        "status": "상태",
+        "severity": "심각도"
+      }
     },
     "pie": {
       "title": "테스트 성공률"

@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "趋势图表: {{type}}"
+      "title": "趋势图表: {{type}}",
+      "type": {
+        "status": "状态",
+        "severity": "严重程度"
+      }
     },
     "pie": {
       "title": "测试成功率"

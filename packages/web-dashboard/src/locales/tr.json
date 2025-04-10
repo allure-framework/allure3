@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Trend Grafiği: {{type}}"
+      "title": "Trend Grafiği: {{type}}",
+      "type": {
+        "status": "Durum",
+        "severity": "Önem Derecesi"
+      }
     },
     "pie": {
       "title": "Test Başarı Oranı"

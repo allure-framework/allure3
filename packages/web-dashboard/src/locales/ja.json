@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "トレンドチャート: {{type}}"
+      "title": "トレンドチャート: {{type}}",
+      "type": {
+        "status": "ステータス",
+        "severity": "重要度"
+      }
     },
     "pie": {
       "title": "テスト成功率"

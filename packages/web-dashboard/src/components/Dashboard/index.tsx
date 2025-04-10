@@ -11,7 +11,8 @@ import * as styles from "./styles.scss";
 const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: any) => string) => {
   switch (chartData.type) {
     case ChartType.Trend: {
-      const title = chartData.title ?? t("trend.title", { type: capitalize(chartData.dataType) });
+      const type = t(`trend.type.${chartData.dataType}`);
+      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
 
       return (
         <TrendChartWidget

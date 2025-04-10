@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Trendgrafiek: {{type}}"
+      "title": "Trendgrafiek: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Ernst"
+      }
     },
     "pie": {
       "title": "Test slagingspercentage"

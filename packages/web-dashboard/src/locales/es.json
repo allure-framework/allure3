@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Gráfico de tendencia: {{type}}"
+      "title": "Gráfico de tendencia: {{type}}",
+      "type": {
+        "status": "Estado",
+        "severity": "Severidad"
+      }
     },
     "pie": {
       "title": "Tasa de éxito de pruebas"

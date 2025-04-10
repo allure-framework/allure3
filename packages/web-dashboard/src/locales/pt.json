@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Gráfico de tendência: {{type}}"
+      "title": "Gráfico de tendência: {{type}}",
+      "type": {
+        "status": "Estado",
+        "severity": "Severidade"
+      }
     },
     "pie": {
       "title": "Taxa de sucesso dos testes"

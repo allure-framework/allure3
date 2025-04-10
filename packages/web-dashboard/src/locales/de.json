@@ -19,7 +19,11 @@
   },
   "charts": {
     "trend": {
-      "title": "Trenddiagramm: {{type}}"
+      "title": "Trenddiagramm: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Schweregrad"
+      }
     },
     "pie": {
       "title": "Testerfolgsrate"
