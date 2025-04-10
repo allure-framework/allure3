@@ -1,53 +1,102 @@
-# Allure Dashboard Plugin
+# Dashboard Plugin
 
-Plugin for generating dashboard with trend graphs for Allure reports.
+[<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
-## Installation
+- Learn more about Allure Report at https://allurereport.org
+- 📚 [Documentation](https://allurereport.org/docs/) – discover official documentation for Allure Report
+- ❓ [Questions and Support](https://github.com/orgs/allure-framework/discussions/categories/questions-support) – get help from the team and community
+- 📢 [Official announcements](https://github.com/orgs/allure-framework/discussions/categories/announcements) – be in touch with the latest updates
+- 💬 [General Discussion ](https://github.com/orgs/allure-framework/discussions/categories/general-discussion) – engage in casual conversations, share insights and ideas with the community
 
-```bash
-npm install @allurereport/plugin-dashboard
+---
+
+## Overview
+
+The plugin generates dashboard with trend graphs for Allure reports, allowing you to track test execution statistics over time.
+
+## Install
+
+Use your favorite package manager to install the package:
+
+```shell
+npm add @allurereport/plugin-dashboard
+yarn add @allurereport/plugin-dashboard
+pnpm add @allurereport/plugin-dashboard
 ```
 
-## Usage
+Then, add the plugin to the Allure configuration file:
 
 ```typescript
-import { DashboardPlugin } from "@allurereport/plugin-dashboard";
+import { defineConfig } from "allure";
 
-// Create plugin instance
-const dashboardPlugin = new DashboardPlugin({
-  // Plugin options
-  singleFile: false
-});
-
-// Add plugin to Allure configuration
-const allure = new AllureReport({
-  // ...
-  plugins: [
-    // ...
-    dashboardPlugin
-  ]
+export default defineConfig({
+  plugins: {
+    dashboard: {
+      options: {
+        singleFile: false,
+        reportName: "My Dashboard",
+        reportLanguage: "en",
+        layout: [
+          {
+            type: "trend",
+            dataType: "status",
+            mode: "percent"
+          },
+          {
+            type: "pie",
+            title: "Test Results"
+          }
+        ]
+      }
+    }
+  }
 });
 ```
 
-## Chart Types
+## Features
 
-### Status Trends
+### Available Widgets
 
-Status trend charts show how test statuses change over time.
+#### Trend Charts
 
-### Severity Trends
+Trend charts allow you to track metrics over time. Available configurations:
 
-Severity trend charts show how the distribution of tests by severity levels changes over time.
+```typescript
+{
+  type: "trend",
+  dataType: "status",
+  mode: "percent", // optional, default: "raw"
+  limit: 10, // optional: limit number of builds
+  title: "Custom Status Trend", // optional
+  metadata: { // optional
+    executionIdFn: (executionOrder) => `build-${executionOrder}`,
+    executionNameFn: (executionOrder) => `build #${executionOrder}`
+  }
+}
+```
 
-## API
+#### Pie Charts
 
-### DashboardPlugin
+Pie charts show distribution of test results:
 
-Main plugin class.
+```typescript
+{
+  type: "pie",
+  title: "Custom Pie" // optional
+}
+```
 
-#### Options
+## Options
 
-- `singleFile` - if `true`, dashboard data will be stored in memory instead of files.
+The plugin accepts the following options:
+
+| Option           | Description                                     | Type                                                         | Default         |
+|------------------|-------------------------------------------------|--------------------------------------------------------------|-----------------|
+| `reportName`     | Name of the report                              | `string`                                                     | `Allure Report` |
+| `singleFile`     | Writes the report as a single `index.html` file | `boolean`                                                    | `false`         |
+| `logo`           | Path to the logo image                          | `string`                                                     | `null`          |
+| `theme`          | Default color theme of the report               | `light \| dark`                                              | OS theme        |
+| `reportLanguage` | Default language of the report                  | `string`                                                     | OS language     |
 
 ## License
 
