@@ -3,6 +3,7 @@ import type { Serie, Slice } from "@allurereport/web-components";
 import type { CSSProperties } from "preact/compat";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import { Widget } from "../Widget";
+import { useI18n } from "@/stores/locale";
 
 interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
   title: string;
@@ -25,7 +26,10 @@ export const TrendChartWidget = ({
   width = "100%",
   rootAriaLabel,
 }: TrendChartWidgetProps) => {
+  const { t } = useI18n("empty");
   const [selectedSliceIds, setSelectedSliceIds] = useState<string[]>([]);
+
+  const emptyLabel = t("no-results");
 
   const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
 
@@ -50,9 +54,11 @@ export const TrendChartWidget = ({
       <TrendChart
         kind={TrendChartKind.SlicesX}
         data={items}
-        rootAriaLabel={rootAriaLabel}
         height={height}
         width={width}
+        emptyLabel={emptyLabel}
+        emptyAriaLabel={emptyLabel}
+        rootAriaLabel={rootAriaLabel}
         colors={({ color }) => color}
         yScale={yScale}
         onSliceClick={handleSliceClick}
