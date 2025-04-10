@@ -1,8 +1,7 @@
-import { getReportOptions } from "@allurereport/web-commons";
+import { DEFAULT_LOCALE, getReportOptions, LANG_LOCALE, type LangLocale } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import type { AwesomeReportOptions } from "types";
-import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 
 const namespaces = [
   "empty",
@@ -44,7 +43,7 @@ export const waitForI18next = i18next
       namespace: string,
       callback: (errorValue: unknown, translations: null) => void,
     ) => {
-      await import(`@/i18n/locales/${language}.json`)
+      await import(`@/locales/${language}.json`)
         .then((resources: Record<string, null>) => {
           callback(null, resources[namespace]);
         })
