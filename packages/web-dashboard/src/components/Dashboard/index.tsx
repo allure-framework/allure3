@@ -3,7 +3,7 @@ import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allu
 import { useEffect } from "preact/hooks";
 import { type ChartData, ChartType, dashboardStore, fetchDashboardData } from "@/stores/dashboard";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
+import { capitalize } from "@allurereport/web-commons";
 import { TrendChartWidget } from "./components/TrendChartWidget";
 import { Widget } from "./components/Widget";
 import * as styles from "./styles.scss";
