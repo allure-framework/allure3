@@ -55,8 +55,8 @@ export default defineConfig({
             dataType: "status",
             limit: 15,
             metadata: {
-              executionIdFn: (executionOrder) => `build-${executionOrder}`,
-              executionNameFn: (executionOrder) => `build #${executionOrder}`,
+              executionIdAccessor: (executionOrder) => `build-${executionOrder}`,
+              executionNameAccessor: (executionOrder) => `build #${executionOrder}`,
             },
           },
           {

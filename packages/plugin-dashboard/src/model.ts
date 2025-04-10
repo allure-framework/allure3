@@ -18,8 +18,8 @@ export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
 
 export type TrendMetadataFnOverrides = {
-  executionIdFn?: ExecutionIdFn;
-  executionNameFn?: ExecutionNameFn;
+  executionIdAccessor?: ExecutionIdFn;
+  executionNameAccessor?: ExecutionNameFn;
 };
 
 export type TrendChartOptions = {

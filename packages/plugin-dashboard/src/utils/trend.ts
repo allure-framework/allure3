@@ -174,8 +174,8 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   chartOptions: TrendChartOptions,
 ): GenericTrendChartData<M, T> => {
   const { type, dataType, title, mode = "raw", metadata = {} } = chartOptions;
-  const { executionIdFn, executionNameFn } = metadata;
-  const executionId = executionIdFn ? executionIdFn(executionOrder) : `execution-${executionOrder}`;
+  const { executionIdAccessor, executionNameAccessor } = metadata;
+  const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
   const { points, series } =
     mode === "percent"
@@ -193,7 +193,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
 
   // Omit creating slice if there are no points in it
   if (pointsCount > 0) {
-    const executionName = executionNameFn ? executionNameFn(executionOrder) : reportName;
+    const executionName = executionNameAccessor ? executionNameAccessor(executionOrder) : reportName;
 
     slices[executionId] = {
       min,

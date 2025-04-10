@@ -69,8 +69,8 @@ Trend charts allow you to track metrics over time. Available configurations:
   limit: 10, // optional: limit number of builds
   title: "Custom Status Trend", // optional
   metadata: { // optional
-    executionIdFn: (executionOrder) => `build-${executionOrder}`,
-    executionNameFn: (executionOrder) => `build #${executionOrder}`
+    executionIdAccessor: (executionOrder) => `build-${executionOrder}`,
+    executionNameAccessor: (executionOrder) => `build #${executionOrder}`
   }
 }
 ```
