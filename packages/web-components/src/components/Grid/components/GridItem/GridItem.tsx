@@ -12,9 +12,9 @@ export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
 
   /**
-   * Disable drag and drop functionality for this item.
+   * Enable drag and drop functionality for this item.
    */
-  isDndDisabled?: boolean;
+  dndEnabled?: boolean;
 }
 
 /**
@@ -22,23 +22,19 @@ export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @property children - The elements rendered inside the grid item.
  * @property className - Additional CSS classes to apply to the container.
- * @property isDndDisabled - When true, disables drag and drop functionality for this item.
+ * @property dndEnabled - Enables drag and drop functionality for this item.
  */
 export const GridItem: FunctionComponent<GridItemProps> = ({
   className,
   children,
-  isDndDisabled = false,
+  dndEnabled = true,
   ...restProps
-}) => {
-  const isDndEnabled = !isDndDisabled;
-
-  return (
-    <div
-      {...restProps}
-      className={clsx(styles["grid-item"], { [DEFAULT_DRAG_ENABLED_CLASSNAME]: isDndEnabled }, className)}
-    >
-      <div className={styles["grid-item-content"]}>{children}</div>
-      {isDndEnabled && <DragHandle className={styles["grid-item-handle"]} />}
-    </div>
-  );
-};
+}) => (
+  <div
+    {...restProps}
+    className={clsx(styles["grid-item"], { [DEFAULT_DRAG_ENABLED_CLASSNAME]: dndEnabled }, className)}
+  >
+    <div className={styles["grid-item-content"]}>{children}</div>
+    {dndEnabled && <DragHandle className={styles["grid-item-handle"]} />}
+  </div>
+);
