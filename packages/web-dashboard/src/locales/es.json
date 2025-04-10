@@ -19,7 +19,7 @@
   },
   "charts": {
     "trend": {
-      "title": "Tendencia: {{type}}"
+      "title": "Gráfico de tendencia: {{type}}"
     },
     "pie": {
       "title": "Tasa de éxito de pruebas"

@@ -19,7 +19,7 @@
   },
   "charts": {
     "trend": {
-      "title": "Trend: {{type}}"
+      "title": "Wykres trendu: {{type}}"
     },
     "pie": {
       "title": "Wskaźnik powodzenia testów"

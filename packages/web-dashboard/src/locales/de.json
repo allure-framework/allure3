@@ -19,7 +19,7 @@
   },
   "charts": {
     "trend": {
-      "title": "Trend: {{type}}"
+      "title": "Trenddiagramm: {{type}}"
     },
     "pie": {
       "title": "Testerfolgsrate"

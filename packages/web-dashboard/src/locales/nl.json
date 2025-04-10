@@ -19,7 +19,7 @@
   },
   "charts": {
     "trend": {
-      "title": "Trend: {{type}}"
+      "title": "Trendgrafiek: {{type}}"
     },
     "pie": {
       "title": "Test slagingspercentage"

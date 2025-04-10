@@ -19,7 +19,7 @@
   },
   "charts": {
     "trend": {
-      "title": "Trend: {{type}}"
+      "title": "Trend Grafiği: {{type}}"
     },
     "pie": {
       "title": "Test Başarı Oranı"
