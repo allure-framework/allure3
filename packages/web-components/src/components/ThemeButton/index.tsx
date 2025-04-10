@@ -1,6 +1,6 @@
+import { useEffect } from "preact/hooks";
 import { IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
-import { useEffect } from "preact/hooks";
 
 export type Theme = "light" | "dark";
 

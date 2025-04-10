@@ -25,7 +25,7 @@ describe("dashboard command", () => {
     expect(core.resolveConfig).toHaveBeenCalledTimes(1);
     expect(core.resolveConfig).toHaveBeenCalledWith({
       plugins: {
-          "@allurereport/plugin-dashboard": {
+        "@allurereport/plugin-dashboard": {
           options: {},
         },
       },

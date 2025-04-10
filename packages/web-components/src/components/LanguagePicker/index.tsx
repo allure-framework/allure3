@@ -1,6 +1,6 @@
+import { LANG_LOCALE, type LangLocale } from "@allurereport/web-commons";
 import { DropdownButton } from "@/components/Button";
 import { Menu } from "@/components/Menu";
-import { LANG_LOCALE, type LangLocale } from "@allurereport/web-commons";
 
 export interface LanguagePickerProps {
   locale: LangLocale;
@@ -13,7 +13,7 @@ export const LanguagePicker = ({ locale, setLocale, availableLocales }: Language
     setLocale(selectedOption);
   };
 
-  const locales = availableLocales ? availableLocales : Object.keys(LANG_LOCALE) as LangLocale[];
+  const locales = availableLocales ? availableLocales : (Object.keys(LANG_LOCALE) as LangLocale[]);
   const langPickerOptions = [...new Set(locales)].map((item) => ({
     key: item,
     value: LANG_LOCALE[item].full,

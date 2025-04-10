@@ -1,4 +1,4 @@
-import { getReportOptions, DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@allurereport/web-commons";
+import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale, getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import type { DashboardReportOptions } from "types";

@@ -2,8 +2,8 @@ import { TrendChart, TrendChartKind, makeSymlogScale } from "@allurereport/web-c
 import type { Serie, Slice } from "@allurereport/web-components";
 import type { CSSProperties } from "preact/compat";
 import { useCallback, useMemo, useState } from "preact/hooks";
-import { Widget } from "../Widget";
 import { useI18n } from "@/stores/locale";
+import { Widget } from "../Widget";
 
 interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
   title: string;

@@ -1,10 +1,10 @@
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
+import { HeaderControls } from "@/components/HeaderControls";
 import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
 import { route } from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
-import { HeaderControls } from "@/components/HeaderControls";
 
 interface HeaderProps {
   className?: ClassValue;

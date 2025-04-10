@@ -12,9 +12,7 @@ export class DashboardPlugin implements Plugin {
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context);
 
-    const reportDataFiles = this.options.singleFile
-      ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles()
-      : [];
+    const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles() : [];
 
     await generateStaticFiles({
       ...this.options,
