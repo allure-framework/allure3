@@ -27,7 +27,7 @@ export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {
 export const GridItem: FunctionComponent<GridItemProps> = ({
   className,
   children,
-  dndEnabled = true,
+  dndEnabled = false,
   ...restProps
 }) => (
   <div
