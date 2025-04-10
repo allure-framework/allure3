@@ -11,7 +11,7 @@ import { getKindConfig } from "./utils";
 
 export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   kind = TrendChartKind.Mesh,
-  width = 600,
+  width = "100%",
   height = 400,
   emptyLabel = "No data available",
   emptyAriaLabel = "No data available",
