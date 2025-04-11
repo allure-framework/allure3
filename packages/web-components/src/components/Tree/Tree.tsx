@@ -1,7 +1,7 @@
 import type { Statistic } from "@allurereport/core-api";
 import cx from "clsx";
 import type { RecursiveTree, Status } from "global";
-import type { FunctionalComponent } from "preact";
+import type { FunctionComponent, FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { TreeItem } from "@/components/Tree/TreeItem";
 import { TreeHeader } from "./TreeHeader";
@@ -18,6 +18,7 @@ interface TreeProps {
   toggleTree: (id: string) => void;
   navigateTo: (id: string) => void;
   routeId?: string;
+  ErrorComponent: FunctionComponent;
 }
 
 export const Tree: FunctionalComponent<TreeProps> = ({
@@ -31,6 +32,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
   toggleTree,
   routeId,
   navigateTo,
+  ErrorComponent,
 }) => {
   const isEarlyCollapsed = collapsedTrees.has(tree.nodeId as string);
   const haveFailedSteps = statistic === undefined || !!statistic?.failed || !!statistic?.broken;
@@ -65,6 +67,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
           toggleTree={toggleTree}
           routeId={routeId}
           navigateTo={navigateTo}
+          ErrorComponent={ErrorComponent}
         />
       ))}
       {tree?.leaves?.map?.((leaf) => (
@@ -78,6 +81,8 @@ export const Tree: FunctionalComponent<TreeProps> = ({
           duration={leaf.duration}
           marked={leaf.nodeId === routeId}
           navigateTo={navigateTo}
+          error={leaf.error}
+          ErrorComponent={ErrorComponent}
         />
       ))}
     </div>
