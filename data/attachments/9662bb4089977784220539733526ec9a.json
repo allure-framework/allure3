@@ -1,0 +1,45 @@
+{
+  "id": "91e4bcd484c5d15b9a5ae4fc2ca8107b",
+  "name": "Unknown test",
+  "testCase": {
+    "id": "54631b594347485df297a9c95ac6d58f",
+    "name": "#___unknown_value___#"
+  },
+  "historyId": "54631b594347485df297a9c95ac6d58f.baffc53e788bee643373b86b94633479",
+  "status": "unknown",
+  "error": {},
+  "flaky": false,
+  "muted": false,
+  "known": false,
+  "hidden": false,
+  "labels": [],
+  "steps": [],
+  "parameters": [
+    {
+      "name": "c",
+      "value": "1",
+      "hidden": false,
+      "excluded": false,
+      "masked": false
+    },
+    {
+      "name": "a",
+      "value": "2",
+      "hidden": false,
+      "excluded": false,
+      "masked": false
+    },
+    {
+      "name": "b",
+      "value": "3",
+      "hidden": false,
+      "excluded": true,
+      "masked": false
+    }
+  ],
+  "links": [],
+  "sourceMetadata": {
+    "readerId": "convert.test.ts",
+    "metadata": {}
+  }
+}

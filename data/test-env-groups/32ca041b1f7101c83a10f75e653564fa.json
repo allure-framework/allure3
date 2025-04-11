@@ -1,1 +1,1 @@
-{"id":"32ca041b1f7101c83a10f75e653564fa","fullName":"test/detect.test.ts#detectContentType should detect sample.svg as image/svg+xml","name":"should detect sample.svg as image/svg+xml","status":"passed","testResultsByEnv":{"default":"0c799dc759bb8ac54adda03fd1744779"}}
+{"id":"32ca041b1f7101c83a10f75e653564fa","fullName":"test/detect.test.ts#detectContentType should detect sample.svg as image/svg+xml","name":"should detect sample.svg as image/svg+xml","status":"passed","testResultsByEnv":{"default":"8e180a121ee66736c8f756b205a43780"}}

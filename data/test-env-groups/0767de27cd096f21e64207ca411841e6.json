@@ -1,1 +1,1 @@
-{"id":"0767de27cd096f21e64207ca411841e6","fullName":"src/components/Link/Link.test.tsx#Link component renders as a <a> tag when href is provided","name":"renders as a <a> tag when href is provided","status":"passed","testResultsByEnv":{"default":"9d0d6da32b44f3a83310a6d5860dbab5"}}
+{"id":"0767de27cd096f21e64207ca411841e6","fullName":"src/components/Link/Link.test.tsx#Link component renders as a <a> tag when href is provided","name":"renders as a <a> tag when href is provided","status":"passed","testResultsByEnv":{"default":"bf61581be9f52dde969d336e7162e097"}}

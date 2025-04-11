@@ -1,1 +1,1 @@
-{"id":"3c5f76daa5817d194be9dbed5f80236f","fullName":"test/allure1.test.ts#allure1 reader fullName should ignore an ill-formed suite title","name":"should ignore an ill-formed suite title","status":"passed","testResultsByEnv":{"default":"28e57bb2af110886c8ba959192840610"}}
+{"id":"3c5f76daa5817d194be9dbed5f80236f","fullName":"test/allure1.test.ts#allure1 reader fullName should ignore an ill-formed suite title","name":"should ignore an ill-formed suite title","status":"passed","testResultsByEnv":{"default":"e289cdcc84c964f7e42f809deb7db514"}}
