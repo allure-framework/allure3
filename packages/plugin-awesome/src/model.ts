@@ -15,6 +15,8 @@ export type AwesomeOptions = {
     name: string;
   };
   filter?: (testResult: TestResult) => boolean;
+  statFilter?: (testResult: TestResult) => boolean;
+  chartFilter?: (testResult: TestResult) => boolean;
 };
 
 export type TemplateManifest = Record<string, string>;
