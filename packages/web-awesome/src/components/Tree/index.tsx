@@ -5,7 +5,7 @@ import { useTabsContext } from "@/components/Tabs";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { navigateTo } from "@/stores/router";
+import { navigateTo, route } from "@/stores/router";
 import {
   clearTreeFilters,
   collapsedTrees,
@@ -21,6 +21,7 @@ export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
   const { currentTab } = useTabsContext();
+  const { id: routeId } = route.value;
 
   return (
     <Loadable
@@ -70,6 +71,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={filteredTree.value.default}
                 statusFilter={currentTab as AwesomeStatus}
+                routeId={routeId}
                 root
               />
             </div>
@@ -89,6 +91,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={currentTree}
                 statusFilter={currentTab as AwesomeStatus}
+                routeId={routeId}
                 root
               />
             </div>
@@ -139,6 +142,7 @@ export const TreeList = () => {
                         statusFilter={currentTab}
                         navigateTo={navigateTo}
                         tree={value}
+                        routeId={routeId}
                         root
                       />
                     </div>
