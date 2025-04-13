@@ -5,6 +5,7 @@ import { useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
+import { TrError } from "@/components/TestResult/TrError";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { TrStepInfo } from "@/components/TestResult/TrSteps/TrStepInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
@@ -25,6 +26,7 @@ export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   return (
     <div className={styles["test-result-step-content"]}>
       {Boolean(item?.parameters?.length) && <TrStepParameters parameters={item.parameters} />}
+      {Boolean(item?.message && item?.trace) && <TrError {...item} />}
       {Boolean(item?.steps?.length) && (
         <>
           {item.steps?.map((subItem, key) => {
@@ -60,7 +62,7 @@ export const TrStep: FunctionComponent<{
   const haveFailedSteps = hasFailedStep(item);
   const isEarlyOpened = collapsedTrees.value.has(item.stepId) ? false : Boolean(haveFailedSteps);
   const [isOpened, setIsOpen] = useState(isEarlyOpened || false);
-  const hasContent = Boolean(item?.steps?.length || item?.parameters?.length);
+  const hasContent = Boolean(item?.steps?.length || item?.parameters?.length || item?.message || item?.trace);
 
   const handleClick = () => {
     setIsOpen(!isOpened);

@@ -277,6 +277,8 @@ const convertStep = (
       parameters: convertParameters(step.parameters),
       ...processTimings(step),
       type: "step",
+      message: step.message,
+      trace: step.trace,
     };
   }
   return {
