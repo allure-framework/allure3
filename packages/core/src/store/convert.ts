@@ -269,6 +269,10 @@ const convertStep = (
   step: RawStep,
 ): TestStepResult => {
   if (step.type === "step") {
+    const subSteps = convertSteps(stateData, step.steps);
+    const isMessageInSubSteps =
+      !!step.message && subSteps.some((s) => s.type === "step" && s?.message === step.message);
+
     return {
       stepId: md5(`${step.name}${step.start}`),
       name: step.name ?? __unknown,
@@ -277,8 +281,8 @@ const convertStep = (
       parameters: convertParameters(step.parameters),
       ...processTimings(step),
       type: "step",
-      message: step.message,
-      trace: step.trace,
+      message: isMessageInSubSteps ? undefined : step.message,
+      trace: isMessageInSubSteps ? undefined : step.trace,
     };
   }
   return {
