@@ -112,6 +112,7 @@ export interface DefaultTestStepResult {
 
   message?: string;
   trace?: string;
+  hasSimilarErrorInSubSteps?: boolean;
 }
 
 /**

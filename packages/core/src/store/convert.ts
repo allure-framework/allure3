@@ -281,6 +281,7 @@ const convertStep = (
       parameters: convertParameters(step.parameters),
       ...processTimings(step),
       type: "step",
+      hasSimilarErrorInSubSteps: isMessageInSubSteps ?? undefined,
       message: isMessageInSubSteps ? undefined : step.message,
       trace: isMessageInSubSteps ? undefined : step.trace,
     };
