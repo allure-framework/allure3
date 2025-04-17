@@ -1,11 +1,13 @@
 {
-  "name": "allure",
-  "version": "3.0.0-beta.13",
-  "description": "Allure Commandline Tool",
+  "name": "@allurereport/history",
+  "version": "3.0.0-beta.11",
+  "description": "Allure History Service API",
   "keywords": [
     "allure",
     "testing",
-    "report"
+    "report",
+    "plugin",
+    "html"
   ],
   "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
@@ -17,7 +19,6 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": "./cli.js",
   "files": [
     "./dist"
   ],
@@ -26,37 +27,19 @@
     "clean": "rimraf ./dist",
     "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
-    "start": "node ./cli.js",
-    "test": "vitest run"
+    "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
-    "@allurereport/core": "workspace:*",
-    "@allurereport/core-api": "workspace:*",
-    "@allurereport/directory-watcher": "workspace:*",
-    "@allurereport/history": "workspace:*",
-    "@allurereport/plugin-allure2": "workspace:*",
-    "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/plugin-awesome": "workspace:*",
-    "@allurereport/plugin-classic": "workspace:*",
-    "@allurereport/plugin-dashboard": "workspace:*",
-    "@allurereport/plugin-progress": "workspace:*",
-    "@allurereport/plugin-server-reload": "workspace:*",
-    "@allurereport/plugin-slack": "workspace:*",
-    "@allurereport/reader-api": "workspace:*",
-    "@allurereport/static-server": "workspace:*",
-    "cac": "^6.7.14",
-    "lodash.omit": "^4.5.0",
-    "yoctocolors": "^2.1.1"
+    "axios": "^1.8.4",
+    "open": "^10.1.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
-    "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
     "allure-vitest": "^3.0.9",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
