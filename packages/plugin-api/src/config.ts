@@ -38,6 +38,7 @@ export interface Config {
    */
   plugins?: Record<string, PluginDescriptor>;
   qualityGate?: QualityGateConfig;
+  historyServiceUrl?: string;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

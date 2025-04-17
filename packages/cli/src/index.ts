@@ -12,12 +12,16 @@ import {
   HistoryCommand,
   KnownIssueCommand,
   LogCommand,
+  LoginCommand,
   OpenCommand,
+  ProjectCreateCommand,
+  ProjectDeleteCommand,
   QualityGateCommand,
   RunCommand,
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
+  WhoamiCommand,
 } from "./commands/index.js";
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
@@ -41,6 +45,10 @@ const commands = [
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
+  LoginCommand,
+  WhoamiCommand,
+  ProjectCreateCommand,
+  ProjectDeleteCommand,
 ];
 
 commands.forEach((command) => {
