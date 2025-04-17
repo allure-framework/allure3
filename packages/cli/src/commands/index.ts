@@ -15,3 +15,6 @@ export * from "./qualityGate.js";
 export * from "./log.js";
 export * from "./generate.js";
 export * from "./dashboard.js";
+export * from "./login.js";
+export * from "./whoami.js";
+export * from "./project/index.js";

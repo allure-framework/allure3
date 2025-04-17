@@ -85,4 +85,5 @@ export default defineConfig({
       },
     },
   },
+  historyServiceUrl: "http://localhost:5173"
 });
