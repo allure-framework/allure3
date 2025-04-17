@@ -1,4 +1,5 @@
-import { type TestStatus, formatDuration } from "@allurereport/core-api";
+import type { TestError, TestStatus } from "@allurereport/core-api";
+import { formatDuration } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
@@ -13,6 +14,8 @@ interface TreeItemProps {
   groupOrder: number;
   marked?: boolean;
   navigateTo: (id: string) => void;
+  error?: TestError;
+  ErrorComponent: FunctionComponent<TestError & { status?: TestStatus }>;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -23,27 +26,31 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   id,
   marked,
   navigateTo,
+  error,
+  ErrorComponent,
   ...rest
 }) => {
   const formattedDuration = formatDuration(duration);
 
   return (
-    <div
-      {...rest}
-      className={clsx(styles["tree-item"], marked ? styles["tree-item-marked"] : "")}
-      onClick={() => navigateTo(id)}
-      id={id}
-    >
-      <TreeItemIcon status={status} />
-      <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
-        {groupOrder}
-      </Code>
-      <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
-        {name}
-      </Text>
-      <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-time"]}>
-        {formattedDuration}
-      </Text>
+    <div {...rest}>
+      <div
+        className={clsx(styles["tree-item"], marked ? styles["tree-item-marked"] : "")}
+        id={id}
+        onClick={() => navigateTo(id)}
+      >
+        <TreeItemIcon status={status} />
+        <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
+          {groupOrder}
+        </Code>
+        <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
+          {name}
+        </Text>
+        <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-time"]}>
+          {formattedDuration}
+        </Text>
+      </div>
+      <div>{error?.message && ErrorComponent && <ErrorComponent {...error} status={status} />}</div>
     </div>
   );
 };

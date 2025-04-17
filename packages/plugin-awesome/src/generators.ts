@@ -184,7 +184,7 @@ export const generateTree = async (
   const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,
-    ({ id, name, status, duration, flaky, start, retries }) => {
+    ({ id, name, status, duration, flaky, start, retries ,error}) => {
       return {
         nodeId: id,
         retry: !!retries?.length,
@@ -193,6 +193,7 @@ export const generateTree = async (
         duration,
         flaky,
         start,
+        error
       };
     },
     undefined,
