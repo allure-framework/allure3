@@ -88,5 +88,4 @@ export default defineConfig({
       },
     },
   },
-},
-);
+});
