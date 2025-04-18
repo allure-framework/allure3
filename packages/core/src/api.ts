@@ -44,4 +44,5 @@ export interface FullConfig {
   appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
+  historyServiceUrl?: string;
 }

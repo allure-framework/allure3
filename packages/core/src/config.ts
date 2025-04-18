@@ -77,6 +77,7 @@ export const validateConfig = (config: Config) => {
     "defaultLabels",
     "variables",
     "environments",
+    "historyServiceUrl",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
 
@@ -127,6 +128,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     qualityGate: config.qualityGate,
+    historyServiceUrl: config.historyServiceUrl,
   };
 };
 
