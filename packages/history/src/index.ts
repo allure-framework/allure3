@@ -55,13 +55,15 @@ export class AllureHistoryService {
   async profile() {
     const { data } = await this.#client.get("/api/user/profile");
 
-    return data;
+    // TODO: introduce types
+    return data as { email: string };
   }
 
   async projects() {
     const { data } = await this.#client.get("/api/projects/list");
 
-    return data;
+    // TODO: introduce types
+    return data as { id: string; name: string }[];
   }
 
   async createProject(payload: { name: string }) {
@@ -71,7 +73,8 @@ export class AllureHistoryService {
       },
     });
 
-    return data;
+    // TODO: introduce types
+    return data as { id: string; name: string };
   }
 
   async deleteProject(payload: { id: string }) {
