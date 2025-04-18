@@ -63,6 +63,7 @@ export type AwesomeTestResult = Omit<
   steps: AwesomeTestStepResult[];
   history: HistoryTestResult[];
   retries?: TestResult[];
+  retriesCount?: number;
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
   breadcrumbs: AwesomeBreadcrumbItem[];
@@ -75,7 +76,7 @@ export type AwesomeTestResult = Omit<
 
 export type AwesomeTreeLeaf = Pick<
   AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry" | "retriesCount"
 > & {
   nodeId: string;
 };

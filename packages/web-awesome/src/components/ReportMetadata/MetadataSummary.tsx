@@ -20,14 +20,14 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
     type: "all",
     count: stats.total,
   }));
-  const metaDataTests = ["flaky", "retry"]
+  const metaDataTests = ["flaky", "retries"]
     .map((key) => {
       if (!stats[key as keyof Statistic]) {
         return;
       }
 
       const title = testSummary(key);
-      const props = { title, count: stats[key as keyof Statistic] || 0, type: key };
+      const props = { title: capitalize(title), count: stats[key as keyof Statistic] || 0, type: key };
 
       return (
         <div key={key}>
