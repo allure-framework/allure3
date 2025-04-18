@@ -5,7 +5,7 @@ import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {
   flaky: allureIcons.lineGeneralZap,
-  retry: allureIcons.lineArrowsRefreshCcw1,
+  retries: allureIcons.lineArrowsRefreshCcw1,
   new: allureIcons.lineAlertsNotificationBox,
 };
 
