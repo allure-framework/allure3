@@ -56,12 +56,7 @@
 .item-title {
   display: flex;
   align-items: flex-start;
-}
-
-.item-time {
-  flex: none;
-  margin-left: auto;
-  color: var(--on-text-hint);
+  margin-right: auto;
 }
 
 .test-count {
