@@ -14,8 +14,9 @@ import {
   LogCommand,
   LoginCommand,
   OpenCommand,
-  ProjectCreateCommand,
-  ProjectDeleteCommand,
+  ProjectsCreateCommand,
+  ProjectsDeleteCommand,
+  ProjectsListCommand,
   QualityGateCommand,
   RunCommand,
   SlackCommand,
@@ -47,8 +48,9 @@ const commands = [
   WatchCommand,
   LoginCommand,
   WhoamiCommand,
-  ProjectCreateCommand,
-  ProjectDeleteCommand,
+  ProjectsCreateCommand,
+  ProjectsDeleteCommand,
+  ProjectsListCommand,
 ];
 
 commands.forEach((command) => {
@@ -56,7 +58,8 @@ commands.forEach((command) => {
 });
 
 cli.on("command:*", () => {
-  console.error("Invalid command: %s", cli.args.join(" "));
+  console.error(`Invalid command: "${cli.args.join(" ")}"`);
+  console.error("See --help for a list of available commands");
   process.exit(1);
 });
 
