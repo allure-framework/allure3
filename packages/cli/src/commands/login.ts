@@ -1,10 +1,10 @@
 import { readConfig } from "@allurereport/core";
-import { AllureHistoryService } from "@allurereport/history";
+import { AllureService } from "@allurereport/service";
 import { createCommand } from "../utils/commands.js";
 
 export const LoginCommandAction = async () => {
   const config = await readConfig();
-  const historyService = new AllureHistoryService(config.historyServiceUrl);
+  const historyService = new AllureService(config?.allureService?.url);
 
   await historyService.login();
   // eslint-disable-next-line no-console
@@ -13,7 +13,7 @@ export const LoginCommandAction = async () => {
 
 export const LoginCommand = createCommand({
   name: "login",
-  description: "Logins to the Allure History Service",
+  description: "Logins to the Allure Service",
   options: [],
   action: LoginCommandAction,
 });
