@@ -12845,6 +12845,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/prompts", [\
+      ["npm:2.4.9", {\
+        "packageLocation": "./.yarn/cache/@types-prompts-npm-2.4.9-a99ca98ad4-69b8372f4c.zip/node_modules/@types/prompts/",\
+        "packageDependencies": [\
+          ["@types/prompts", "npm:2.4.9"],\
+          ["@types/node", "npm:20.11.21"],\
+          ["kleur", "npm:3.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/prop-types", [\
       ["npm:15.7.14", {\
         "packageLocation": "./.yarn/cache/@types-prop-types-npm-15.7.14-4ccaa07795-d0c5407b9c.zip/node_modules/@types/prop-types/",\
@@ -14691,6 +14702,7 @@ const RAW_RUNTIME_STATE =
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/lodash.omit", "npm:4.5.9"],\
           ["@types/node", "npm:20.17.9"],\
+          ["@types/prompts", "npm:2.4.9"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.8"],\
@@ -14705,6 +14717,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["lodash.omit", "npm:4.5.0"],\
+          ["prompts", "npm:2.4.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.8"],\
@@ -23149,6 +23162,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["kleur", [\
+      ["npm:3.0.3", {\
+        "packageLocation": "./.yarn/cache/kleur-npm-3.0.3-f6f53649a4-0c0ecaf00a.zip/node_modules/kleur/",\
+        "packageDependencies": [\
+          ["kleur", "npm:3.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["kolorist", [\
       ["npm:1.8.0", {\
         "packageLocation": "./.yarn/cache/kolorist-npm-1.8.0-2cc04dcc05-71d5d12295.zip/node_modules/kolorist/",\
@@ -26945,6 +26967,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["prompts", [\
+      ["npm:2.4.2", {\
+        "packageLocation": "./.yarn/cache/prompts-npm-2.4.2-f5d25d5eea-c52536521a.zip/node_modules/prompts/",\
+        "packageDependencies": [\
+          ["prompts", "npm:2.4.2"],\
+          ["kleur", "npm:3.0.3"],\
+          ["sisteransi", "npm:1.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["prop-types", [\
       ["npm:15.8.1", {\
         "packageLocation": "./.yarn/cache/prop-types-npm-15.8.1-17c71ee7ee-7d959caec0.zip/node_modules/prop-types/",\
@@ -28444,6 +28477,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["simple-code-frame", "npm:1.3.0"],\
           ["kolorist", "npm:1.8.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sisteransi", [\
+      ["npm:1.0.5", {\
+        "packageLocation": "./.yarn/cache/sisteransi-npm-1.0.5-af60cc0cfa-aba6438f46.zip/node_modules/sisteransi/",\
+        "packageDependencies": [\
+          ["sisteransi", "npm:1.0.5"]\
         ],\
         "linkType": "HARD"\
       }]\
