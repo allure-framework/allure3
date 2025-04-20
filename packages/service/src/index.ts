@@ -55,14 +55,12 @@ export class AllureService {
   async profile() {
     const { data } = await this.#client.get("/api/user/profile");
 
-    // TODO: introduce types
     return data as { email: string };
   }
 
   async projects() {
     const { data } = await this.#client.get("/api/projects/list");
 
-    // TODO: introduce types
     return data as { id: string; name: string }[];
   }
 
@@ -73,11 +71,10 @@ export class AllureService {
       },
     });
 
-    // TODO: introduce types
     return data as { id: string; name: string };
   }
 
-  async deleteProject(payload: { id: string }) {
+  async deleteProject(payload: { name: string }) {
     const { data } = await this.#client.post("/api/projects/delete", payload, {
       headers: {
         "Content-Type": "application/json",
