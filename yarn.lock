@@ -136,32 +136,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/history@workspace:*, @allurereport/history@workspace:packages/history":
-  version: 0.0.0-use.local
-  resolution: "@allurereport/history@workspace:packages/history"
-  dependencies:
-    "@stylistic/eslint-plugin": "npm:^2.6.1"
-    "@types/eslint": "npm:^8.56.11"
-    "@types/node": "npm:^20.17.9"
-    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
-    "@typescript-eslint/parser": "npm:^8.0.0"
-    "@vitest/runner": "npm:^2.1.8"
-    allure-vitest: "npm:^3.0.9"
-    axios: "npm:^1.8.4"
-    eslint: "npm:^8.57.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-import: "npm:^2.29.1"
-    eslint-plugin-jsdoc: "npm:^50.0.0"
-    eslint-plugin-n: "npm:^17.10.1"
-    eslint-plugin-no-null: "npm:^1.0.2"
-    eslint-plugin-prefer-arrow: "npm:^1.2.3"
-    open: "npm:^10.1.0"
-    rimraf: "npm:^6.0.1"
-    typescript: "npm:^5.6.3"
-    vitest: "npm:^2.1.8"
-  languageName: unknown
-  linkType: soft
-
 "@allurereport/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@allurereport/monorepo@workspace:."
@@ -561,6 +535,32 @@ __metadata:
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
     fast-xml-parser: "npm:^4.5.0"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/service@workspace:*, @allurereport/service@workspace:packages/service":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/service@workspace:packages/service"
+  dependencies:
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.9"
+    axios: "npm:^1.8.4"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    open: "npm:^10.1.0"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.8"
@@ -8738,7 +8738,6 @@ __metadata:
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/directory-watcher": "workspace:*"
-    "@allurereport/history": "workspace:*"
     "@allurereport/plugin-allure2": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
@@ -8748,6 +8747,7 @@ __metadata:
     "@allurereport/plugin-server-reload": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
+    "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"

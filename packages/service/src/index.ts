@@ -3,7 +3,7 @@ import { DEFAULT_HISTORY_SERVICE_URL } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 import { decryptExchangeToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
-export class AllureHistoryService {
+export class AllureService {
   #client: HttpClient;
 
   constructor(readonly historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL) {

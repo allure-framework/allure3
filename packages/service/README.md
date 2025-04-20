@@ -1,4 +1,4 @@
-# History Service API
+# Allure Service API
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
