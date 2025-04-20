@@ -7563,6 +7563,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prompts@npm:^2":
+  version: 2.4.9
+  resolution: "@types/prompts@npm:2.4.9"
+  dependencies:
+    "@types/node": "npm:*"
+    kleur: "npm:^3.0.3"
+  checksum: 10/69b8372f4c790b45fea16a46ff8d1bcc71b14579481776b67bd6263637118a7ecb1f12e1311506c29fadc81bf618dc64f1a91f903cfd5be67a0455a227b3e462
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:^15.7.2":
   version: 15.7.14
   resolution: "@types/prop-types@npm:15.7.14"
@@ -8753,6 +8763,7 @@ __metadata:
     "@types/eslint": "npm:^8.56.11"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20.17.9"
+    "@types/prompts": "npm:^2"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.8"
@@ -8767,6 +8778,7 @@ __metadata:
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
     lodash.omit: "npm:^4.5.0"
+    prompts: "npm:^2.4.2"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.8"
@@ -15189,6 +15201,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kleur@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "kleur@npm:3.0.3"
+  checksum: 10/0c0ecaf00a5c6173d25059c7db2113850b5457016dfa1d0e3ef26da4704fbb186b4938d7611246d86f0ddf1bccf26828daa5877b1f232a65e7373d0122a83e7f
+  languageName: node
+  linkType: hard
+
 "kolorist@npm:^1.6.0, kolorist@npm:^1.8.0":
   version: 1.8.0
   resolution: "kolorist@npm:1.8.0"
@@ -17936,6 +17955,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prompts@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "prompts@npm:2.4.2"
+  dependencies:
+    kleur: "npm:^3.0.3"
+    sisteransi: "npm:^1.0.5"
+  checksum: 10/c52536521a4d21eff4f2f2aa4572446cad227464066365a7167e52ccf8d9839c099f9afec1aba0eed3d5a2514b3e79e0b3e7a1dc326b9acde6b75d27ed74b1a9
+  languageName: node
+  linkType: hard
+
 "prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
@@ -19279,6 +19308,13 @@ __metadata:
   dependencies:
     kolorist: "npm:^1.6.0"
   checksum: 10/103c78b3a5794b263125b93df66012974e315bbff773d0239f9c51c3a02d90da1fcf7e5affdd309db5f991123f53efed46a400ad9870a571dcc59170305bd245
+  languageName: node
+  linkType: hard
+
+"sisteransi@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "sisteransi@npm:1.0.5"
+  checksum: 10/aba6438f46d2bfcef94cf112c835ab395172c75f67453fe05c340c770d3c402363018ae1ab4172a1026a90c47eaccf3af7b6ff6fa749a680c2929bd7fa2b37a4
   languageName: node
   linkType: hard
 

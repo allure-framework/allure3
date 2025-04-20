@@ -9,9 +9,18 @@ export const ProjectsCreateCommandAction = async (projectName: string) => {
   const project = await historyService.createProject({
     name: projectName,
   });
+  const lines: string[] = [
+    `The "${green(project.name)}" has been created. Insert following code into your Allure Config file, to enable Allure Service features for the project:`,
+    "",
+    "{",
+    "  allureService:",
+    `    project: "${project.name}"`,
+    "  }",
+    "}",
+  ];
 
   // eslint-disable-next-line no-console
-  console.info(`The ${project.name} ${`<${green(project.id)}>`} has been created`);
+  console.info(lines.join("\n"));
 };
 
 export const ProjectsCreateCommand = createCommand({
