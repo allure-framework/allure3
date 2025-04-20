@@ -46,6 +46,7 @@
     "@allurereport/static-server": "workspace:*",
     "cac": "^6.7.14",
     "lodash.omit": "^4.5.0",
+    "prompts": "^2.4.2",
     "yoctocolors": "^2.1.1"
   },
   "devDependencies": {
@@ -53,6 +54,7 @@
     "@types/eslint": "^8.56.11",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
+    "@types/prompts": "^2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
