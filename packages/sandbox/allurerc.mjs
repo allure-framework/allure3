@@ -85,5 +85,7 @@ export default defineConfig({
       },
     },
   },
-  historyServiceUrl: "http://localhost:5173"
+  allureService: {
+    url: "http://localhost:5173",
+  },
 });
