@@ -1,6 +1,7 @@
 import { readConfig } from "@allurereport/core";
 import { AllureService } from "@allurereport/service";
-import { green } from "yoctocolors";
+import { exit } from "node:process";
+import prompts from "prompts";
 import { createCommand } from "../../utils/commands.js";
 
 export const ProjectsListCommandAction = async () => {
@@ -10,17 +11,35 @@ export const ProjectsListCommandAction = async () => {
 
   if (projects.length === 0) {
     // eslint-disable-next-line no-console
-    console.info("No projects found. Create a new one with `allure project create` command");
+    console.info("No projects found. Create a new one with `allure create-project` command");
     return;
   }
 
-  const lines: string[] = ["You have following projects:"];
-
-  projects.forEach((project) => {
-    const name = project.name.length > 20 ? `${project.name.slice(0, 17)}...` : project.name;
-
-    lines.push(`- ${name} ${green(`<${project.id}>`)}`);
+  const res = await prompts({
+    type: "select",
+    name: "project",
+    message: "Select a project",
+    choices: projects.map((project) => ({
+      title: project.name,
+      value: project.name,
+    })),
   });
+
+  if (!res?.project) {
+    // eslint-disable-next-line no-console
+    console.error("No project selected");
+    exit(1);
+  }
+
+  const lines: string[] = [
+    "Insert following code into your Allure Config file, to enable Allure Service features for the project:",
+    "",
+    "{",
+    "  allureService:",
+    `    project: "${res.project}"`,
+    "  }",
+    "}",
+  ];
 
   // eslint-disable-next-line no-console
   console.info(lines.join("\n"));
