@@ -88,4 +88,7 @@ export default defineConfig({
       },
     },
   },
+  allureService: {
+    url: "http://localhost:5173",
+  },
 });
