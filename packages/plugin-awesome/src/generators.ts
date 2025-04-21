@@ -239,21 +239,13 @@ export const generateVariables = async (writer: AwesomeDataWriter, store: Allure
 export const generateStatistic = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
   const statistic = await store.testsStatistic(filter);
   const environments = await store.allEnvironments();
-  const allTestResults = await store.allTestResults({ includeHidden: true });
-  const filteredTestResults = allTestResults.filter((tr) => filter ? filter(tr) : true);
 
-  const retriesValues = await Promise.all(filteredTestResults.map(async (tr) => (await store.retriesByTrId(tr.id)).length));
-  const retriesCount = retriesValues.reduce((sum, testRetriesCount) => sum + testRetriesCount, 0);
-
-  await writer.writeWidget("statistic.json", { ...statistic, retries: retriesCount });
+  await writer.writeWidget("statistic.json", statistic);
 
   for (const env of environments) {
     const envStatistic = await store.testsStatistic(filterEnv(env, filter));
-    const envTestResults = filteredTestResults.filter((tr) => tr.environment === env);
-    const envRetriesValues = await Promise.all(envTestResults.map(async (tr) => (await store.retriesByTrId(tr.id)).length));
-    const envRetriesCount = envRetriesValues.reduce((sum, testRetriesCount) => sum + testRetriesCount, 0);
 
-    await writer.writeWidget(join(env, "statistic.json"), { ...envStatistic, retries: envRetriesCount });
+    await writer.writeWidget(join(env, "statistic.json"), envStatistic);
   }
 };
 

@@ -13,8 +13,11 @@ import {
   type TestResult,
   getWorstStatus,
   matchEnvironment,
+  compareBy,
+  ordinal,
+  reverse,
+  nullsLast,
 } from "@allurereport/core-api";
-import { compareBy, nullsLast, ordinal, reverse } from "@allurereport/core-api";
 import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
@@ -296,14 +299,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.indexAttachmentByTestResult.get(trId) ?? [];
   }
 
-  async retriesByTrId(trId: string): Promise<TestResult[]> {
-    const tr = await this.testResultById(trId);
+  retriesByTr(tr: TestResult): TestResult[] {
     if (!tr || tr.hidden || !tr.historyId) {
       return [];
     }
+
     return (this.indexTestResultByHistoryId.get(tr.historyId) ?? [])
       .filter((r) => r.hidden)
       .sort(nullsLast(compareBy("start", reverse(ordinal()))));
+  };
+
+  async retriesByTrId(trId: string): Promise<TestResult[]> {
+    const tr = await this.testResultById(trId);
+
+    if (!tr) {
+      return [];
+    }
+
+    return this.retriesByTr(tr);
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
@@ -370,8 +383,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async testsStatistic(filter?: TestResultFilter) {
     const all = await this.allTestResults();
+    const allWithRetries = all.map((tr) => ({
+      ...tr,
+      retries: this.retriesByTr(tr),
+    }));
 
-    return getTestResultsStats(all, filter);
+    return getTestResultsStats(allWithRetries, filter);
   }
 
   // environments
