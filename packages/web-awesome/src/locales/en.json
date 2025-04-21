@@ -11,10 +11,10 @@
     "retryTests": "retry"
   },
   "testSummary": {
-    "all": "All Test",
-    "flaky": "Flaky test",
-    "retry": "Retry test",
-    "new": "New test"
+    "total": "Total",
+    "flaky": "Flaky tests",
+    "retries": "Retry tests",
+    "new": "New tests"
   },
   "tabs": {
     "total": "All"

@@ -11,9 +11,9 @@
     "retryTests": "ritentati"
   },
   "testSummary": {
-    "all": "Tutti i test",
+    "total": "Totale",
     "flaky": "Test instabili",
-    "retry": "Test ritentati",
+    "retries": "Test ritentati",
     "new": "Nuovi test"
   },
   "tabs": {

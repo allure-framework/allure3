@@ -11,10 +11,10 @@
     "retryTests": "재시도"
   },
   "testSummary": {
-    "all": "모든 테스트",
-    "flaky": "불안정한 테스트",
-    "retry": "재시도 테스트",
-    "new": "새로운 테스트"
+    "total": "총계",
+    "flaky": "불안정한 테스트들",
+    "retries": "재시도 테스트들",
+    "new": "새로운 테스트들"
   },
   "tabs": {
     "total": "전체"

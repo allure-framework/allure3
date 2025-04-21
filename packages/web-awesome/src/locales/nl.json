@@ -11,9 +11,9 @@
     "retryTests": "opnieuw proberen"
   },
   "testSummary": {
-    "all": "Alle tests",
+    "total": "Totaal",
     "flaky": "Onstabiele tests",
-    "retry": "Opnieuw uitgevoerde tests",
+    "retries": "Opnieuw uitgevoerde tests",
     "new": "Nieuwe tests"
   },
   "tabs": {

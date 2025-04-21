@@ -11,9 +11,9 @@
     "retryTests": "重试"
   },
   "testSummary": {
-    "all": "所有测试",
+    "total": "总计",
     "flaky": "不稳定的测试",
-    "retry": "重试的测试",
+    "retries": "重试的测试",
     "new": "新的测试"
   },
   "tabs": {

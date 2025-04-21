@@ -11,9 +11,9 @@
     "retryTests": "försök igen"
   },
   "testSummary": {
-    "all": "Alla tester",
+    "total": "Totalt",
     "flaky": "Ostadiga tester",
-    "retry": "Omtestade tester",
+    "retries": "Omtestade tester",
     "new": "Nya tester"
   },
   "tabs": {

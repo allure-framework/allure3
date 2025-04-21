@@ -8,9 +8,9 @@
     "total": "wszystkie"
   },
   "testSummary": {
-    "all": "Wszystkie testy",
-    "flaky": "Flaky testy",
-    "retry": "Powtórne testy",
+    "total": "Wszystkie",
+    "flaky": "Niestabilne testy",
+    "retries": "Powtórne testy",
     "new": "Nowe testy"
   },
   "tabs": {

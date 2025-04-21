@@ -11,9 +11,9 @@
     "retryTests": "təkrar"
   },
   "testSummary": {
-    "all": "Bütün testlər",
+    "total": "Cəmi",
     "flaky": "Etibarsız testlər",
-    "retry": "Təkrar testlər",
+    "retries": "Təkrar testlər",
     "new": "Yeni testlər"
   },
   "tabs": {

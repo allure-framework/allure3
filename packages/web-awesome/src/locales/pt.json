@@ -11,9 +11,9 @@
     "retryTests": "repetir"
   },
   "testSummary": {
-    "all": "Todos os testes",
+    "total": "Total",
     "flaky": "Testes instáveis",
-    "retry": "Testes repetidos",
+    "retries": "Testes repetidos",
     "new": "Testes novos"
   },
   "tabs": {

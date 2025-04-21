@@ -11,9 +11,9 @@
     "retryTests": "再試行"
   },
   "testSummary": {
-    "all": "すべてのテスト",
+    "total": "合計",
     "flaky": "不安定なテスト",
-    "retry": "再試行されたテスト",
+    "retries": "再試行されたテスト",
     "new": "新しいテスト"
   },
   "tabs": {
