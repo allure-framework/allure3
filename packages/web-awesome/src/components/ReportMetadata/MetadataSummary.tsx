@@ -12,22 +12,25 @@ export interface MetadataSummaryProps {
   stats: Statistic;
 }
 
+const metadataTestsKeys = ["flaky", "retries"] as const as (keyof Statistic)[];
+
 export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
   const { t } = useI18n("statuses");
   const { t: testSummary } = useI18n("testSummary");
+
   const allTest = computed(() => ({
-    title: capitalize(t("total")),
+    title: testSummary("total"),
     type: "all",
     count: stats.total,
   }));
-  const metaDataTests = ["flaky", "retries"]
+
+  const metaDataTests = metadataTestsKeys
     .map((key) => {
-      if (!stats[key as keyof Statistic]) {
+      if (!stats[key]) {
         return;
       }
 
-      const title = testSummary(key);
-      const props = { title: capitalize(title), count: stats[key as keyof Statistic] || 0, type: key };
+      const props = { title: testSummary(key), count: stats[key] || 0, type: key };
 
       return (
         <div key={key}>

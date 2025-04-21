@@ -5,4 +5,5 @@ export type Statistic = {
   skipped?: number;
   unknown?: number;
   total: number;
+  retries?: number;
 };
