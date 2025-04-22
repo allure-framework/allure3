@@ -12,7 +12,7 @@ export interface MetadataSummaryProps {
   stats: Statistic;
 }
 
-const metadataTestsKeys = ["flaky", "retries"] as const as (keyof Statistic)[];
+const metadataTestsTypes = ["flaky", "retries"] as const as (keyof Statistic)[];
 
 export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
   const { t } = useI18n("statuses");
@@ -24,17 +24,21 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
     count: stats.total,
   }));
 
-  const metaDataTests = metadataTestsKeys
-    .map((key) => {
-      if (!stats[key]) {
+  const metaDataTests = metadataTestsTypes
+    .map((type) => {
+      if (!stats[type]) {
         return;
       }
 
-      const props = { title: testSummary(key), count: stats[key] || 0, type: key };
+      const props = { title: testSummary(type), count: stats[type] || 0, type: type };
 
       return (
-        <div key={key}>
-          <MetadataItem key={key} props={props} renderComponent={MetadataWithIcon} />
+        <div key={type}>
+          <MetadataItem
+            data-testid={`metadata-item-${type}`}
+            props={props}
+            renderComponent={MetadataWithIcon}
+          />
         </div>
       );
     })
