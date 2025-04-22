@@ -34,11 +34,7 @@ export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ sta
 
       return (
         <div key={type}>
-          <MetadataItem
-            data-testid={`metadata-item-${type}`}
-            props={props}
-            renderComponent={MetadataWithIcon}
-          />
+          <MetadataItem data-testid={`metadata-item-${type}`} props={props} renderComponent={MetadataWithIcon} />
         </div>
       );
     })

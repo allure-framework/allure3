@@ -2,8 +2,8 @@ import { type TestStatus } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
-import { Code, Text } from "@/components/Typography";
 import { TreeItemInfo } from "@/components/Tree/TreeItemInfo";
+import { Code, Text } from "@/components/Typography";
 import styles from "./styles.scss";
 
 interface TreeItemProps {

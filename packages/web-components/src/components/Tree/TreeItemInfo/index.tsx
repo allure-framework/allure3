@@ -1,7 +1,7 @@
-import { TreeItemRetries } from "../TreeItemRetries";
-import { Text } from "@/components/Typography";
-import styles from "./styles.scss";
 import { formatDuration } from "@allurereport/core-api";
+import { Text } from "@/components/Typography";
+import { TreeItemRetries } from "../TreeItemRetries";
+import styles from "./styles.scss";
 
 export interface TreeItemInfoProps {
   duration?: number;

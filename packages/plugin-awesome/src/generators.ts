@@ -34,9 +34,9 @@ import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { getPieChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
+import { filterEnv } from "./environments.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
-import { filterEnv } from "./environments.js";
 
 const require = createRequire(import.meta.url);
 

@@ -128,14 +128,20 @@ test.describe("retries", () => {
     await expect(retryIcons).toHaveCount(2);
 
     // Check retry count indicators
-    const testWithRetriesIcon = page.getByTestId("tree-leaf").filter({
-      has: page.getByText("Test with retries", {exact: true})
-    }).getByTestId("tree-item-retries");
+    const testWithRetriesIcon = page
+      .getByTestId("tree-leaf")
+      .filter({
+        has: page.getByText("Test with retries", { exact: true }),
+      })
+      .getByTestId("tree-item-retries");
     await expect(testWithRetriesIcon).toContainText("2"); // 2 retries
 
-    const anotherTestWithRetriesIcon = page.getByTestId("tree-leaf").filter({
-      has: page.getByText("Another test with retries", {exact: true})
-    }).getByTestId("tree-item-retries");
+    const anotherTestWithRetriesIcon = page
+      .getByTestId("tree-leaf")
+      .filter({
+        has: page.getByText("Another test with retries", { exact: true }),
+      })
+      .getByTestId("tree-item-retries");
     await expect(anotherTestWithRetriesIcon).toContainText("1"); // 1 retry
   });
 });

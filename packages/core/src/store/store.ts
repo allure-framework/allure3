@@ -11,12 +11,12 @@ import {
   type TestEnvGroup,
   type TestFixtureResult,
   type TestResult,
+  compareBy,
   getWorstStatus,
   matchEnvironment,
-  compareBy,
+  nullsLast,
   ordinal,
   reverse,
-  nullsLast,
 } from "@allurereport/core-api";
 import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
 import type {
@@ -307,7 +307,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return (this.indexTestResultByHistoryId.get(tr.historyId) ?? [])
       .filter((r) => r.hidden)
       .sort(nullsLast(compareBy("start", reverse(ordinal()))));
-  };
+  }
 
   async retriesByTrId(trId: string): Promise<TestResult[]> {
     const tr = await this.testResultById(trId);
