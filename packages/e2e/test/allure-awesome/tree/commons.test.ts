@@ -228,3 +228,90 @@ test.describe("filters", () => {
     });
   });
 });
+
+test.describe("metadata retries", () => {
+  test.beforeAll(async () => {
+    bootstrap = await bootstrapReport({
+      reportConfig: {
+        name: "Sample allure report with retries",
+        appendHistory: false,
+        history: undefined,
+        historyPath: undefined,
+        knownIssuesPath: undefined,
+      },
+      testResults: [
+        // Тест с двумя повторными запусками (будет считаться как 2 retries)
+        {
+          name: "test with retries",
+          fullName: "sample.js#test with retries",
+          historyId: "test-with-retries",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 1000,
+          statusDetails: {
+            message: "First run failed",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "test with retries",
+          fullName: "sample.js#test with retries",
+          historyId: "test-with-retries",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 2000,
+          statusDetails: {
+            message: "Second run failed",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "test with retries",
+          fullName: "sample.js#test with retries",
+          historyId: "test-with-retries",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 3000,
+        },
+        // Тест с одним повторным запуском (будет считаться как 1 retry)
+        {
+          name: "test with one retry",
+          fullName: "sample.js#test with one retry",
+          historyId: "test-with-one-retry",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 4000,
+          statusDetails: {
+            message: "First run failed",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "test with one retry",
+          fullName: "sample.js#test with one retry",
+          historyId: "test-with-one-retry",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 5000,
+        },
+        // Тест без повторных запусков
+        {
+          name: "test without retries",
+          fullName: "sample.js#test without retries",
+          historyId: "test-without-retries",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 6000,
+        },
+      ],
+    });
+  });
+
+  test("metadata shows correct count of retries", async ({ page }) => {
+    // Проверяем, что в метаданных отображается правильное количество тестов с ретраями
+    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
+
+    // В нашем тестовом наборе 2 теста имеют retries (один с двумя повторами, другой с одним)
+    await expect(page.getByTestId("metadata-item-retries").getByTestId("metadata-value")).toHaveText("2");
+  });
+});

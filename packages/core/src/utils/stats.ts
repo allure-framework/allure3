@@ -21,6 +21,6 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
 
       return acc;
     },
-    { total: trsToProcess.length, retries: 0 },
+    { total: trsToProcess.length },
   );
 };
