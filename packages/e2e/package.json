@@ -8,7 +8,8 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@allurereport/core": "workspace:*",
