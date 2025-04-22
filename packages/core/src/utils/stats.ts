@@ -10,7 +10,7 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
       }
 
       if (tr.retries && tr.retries?.length > 0) {
-        acc.retries = (acc.retries ?? 0) + tr.retries.length;
+        acc.retries = (acc.retries ?? 0) + 1;
       }
 
       if (!acc[tr.status]) {
