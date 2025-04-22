@@ -2,6 +2,7 @@ import { readConfig } from "@allurereport/core";
 import { AllureService } from "@allurereport/service";
 import { exit } from "node:process";
 import prompts from "prompts";
+import { green, red } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
 
 export type ProjectsDeleteCommandOptions = {
@@ -14,11 +15,11 @@ export const ProjectsDeleteCommandAction = async (
 ) => {
   const { force = false } = options ?? {};
   const config = await readConfig();
-  const allureService = new AllureService(config?.allureService?.url);
+  const service = new AllureService(config?.allureService);
 
   if (!projectName) {
     // eslint-disable-next-line no-console
-    console.error("No project name is provided");
+    console.error(red("No project name is provided"));
     exit(1);
   }
 
@@ -34,12 +35,12 @@ export const ProjectsDeleteCommandAction = async (
     }
   }
 
-  await allureService.deleteProject({
+  await service.deleteProject({
     name: projectName,
   });
 
   // eslint-disable-next-line no-console
-  console.info("Project has been deleted");
+  console.info(green("Project has been deleted"));
 };
 
 export const ProjectsDeleteCommand = createCommand({

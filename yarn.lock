@@ -54,6 +54,7 @@ __metadata:
     "@allurereport/plugin-testplan": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
+    "@allurereport/service": "workspace:*"
     "@allurereport/summary": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
@@ -545,6 +546,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/service@workspace:packages/service"
   dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
     "@types/node": "npm:^20.17.9"
