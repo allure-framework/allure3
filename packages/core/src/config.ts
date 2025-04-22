@@ -77,6 +77,7 @@ export const validateConfig = (config: Config) => {
     "defaultLabels",
     "variables",
     "environments",
+    "appendHistory",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
 
@@ -99,6 +100,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
 
   const name = override.name ?? config.name ?? "Allure Report";
   const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");
+  const appendHistory = config.appendHistory ?? true;
   const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const history = await readHistory(historyPath);
@@ -124,6 +126,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     known,
     variables,
     environments,
+    appendHistory,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     qualityGate: config.qualityGate,
