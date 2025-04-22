@@ -14,6 +14,7 @@ import {
   LogCommand,
   LoginCommand,
   OpenCommand,
+  ProjectInitCommand,
   ProjectsCreateCommand,
   ProjectsDeleteCommand,
   ProjectsListCommand,
@@ -51,6 +52,7 @@ const commands = [
   ProjectsCreateCommand,
   ProjectsDeleteCommand,
   ProjectsListCommand,
+  ProjectInitCommand,
 ];
 
 commands.forEach((command) => {

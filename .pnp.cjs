@@ -225,6 +225,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/summary", "workspace:packages/summary"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -772,6 +773,8 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/service/",\
         "packageDependencies": [\
           ["@allurereport/service", "workspace:packages/service"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/node", "npm:20.17.9"],\
