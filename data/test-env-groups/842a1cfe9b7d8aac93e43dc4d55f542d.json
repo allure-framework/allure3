@@ -1,1 +1,1 @@
-{"id":"842a1cfe9b7d8aac93e43dc4d55f542d","fullName":"test/junitxml.test.ts#junit xml reader statuses failure should parse a failure element","name":"should parse a failure element","status":"passed","testResultsByEnv":{"default":"dd56c0ff14b20d80fd999ce8e5437ded"}}
+{"id":"842a1cfe9b7d8aac93e43dc4d55f542d","fullName":"test/junitxml.test.ts#junit xml reader statuses failure should parse a failure element","name":"should parse a failure element","status":"passed","testResultsByEnv":{"default":"841c13f11207df0cb0fd7f41efdfeea8"}}

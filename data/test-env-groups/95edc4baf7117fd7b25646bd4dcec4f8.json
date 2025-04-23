@@ -1,0 +1,1 @@
+{"id":"95edc4baf7117fd7b25646bd4dcec4f8","fullName":"allure-awesome/tree/retries.test.ts:102:3","name":"should be able to filter tests with retries using retry filter","status":"passed","testResultsByEnv":{"chromium":"249d0eaaa81ae04ecdd7e29c1527375b","firefox":"b2c31098b8e11af670266c7b3b166794","safari":"4caa02fac240f524f20c35a443b3301c"}}

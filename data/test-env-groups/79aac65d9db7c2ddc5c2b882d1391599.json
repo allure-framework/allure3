@@ -1,1 +1,1 @@
-{"id":"79aac65d9db7c2ddc5c2b882d1391599","fullName":"test/index.test.ts#printTest prints the test with all steps if `allSteps` is true","name":"prints the test with all steps if `allSteps` is true","status":"passed","testResultsByEnv":{"default":"9354202bc8e59195055edafec25f4c63"}}
+{"id":"79aac65d9db7c2ddc5c2b882d1391599","fullName":"test/index.test.ts#printTest prints the test with all steps if `allSteps` is true","name":"prints the test with all steps if `allSteps` is true","status":"passed","testResultsByEnv":{"default":"5e640cc6bed9d6c612cfb8d5c9792bdb"}}
