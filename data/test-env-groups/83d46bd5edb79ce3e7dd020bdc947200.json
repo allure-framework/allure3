@@ -1,1 +1,1 @@
-{"id":"83d46bd5edb79ce3e7dd020bdc947200","fullName":"test/config.test.ts#findConfig should fail if provided config file is not found","name":"should fail if provided config file is not found","status":"passed","testResultsByEnv":{"default":"96030fc69bc4e7f7f57dbe896ee2d36e"}}
+{"id":"83d46bd5edb79ce3e7dd020bdc947200","fullName":"test/config.test.ts#findConfig should fail if provided config file is not found","name":"should fail if provided config file is not found","status":"passed","testResultsByEnv":{"default":"1974951d3a3fdfdf258c7f268e38fb18"}}

@@ -1,1 +1,1 @@
-{"id":"cbe9f67bfbf980943edd7da50611bb4d","fullName":"test/detect.test.ts#detectContentType should detect sample.png as image/png","name":"should detect sample.png as image/png","status":"passed","testResultsByEnv":{"default":"653912c8739721d3187d45cf25a10366"}}
+{"id":"cbe9f67bfbf980943edd7da50611bb4d","fullName":"test/detect.test.ts#detectContentType should detect sample.png as image/png","name":"should detect sample.png as image/png","status":"passed","testResultsByEnv":{"default":"1c6beb51eede3124be590e02aec3ed8f"}}
