@@ -30,6 +30,7 @@ import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
+import { isFlaky } from "../utils/flaky.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -319,9 +320,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.retriesByTr(tr);
   }
 
-  async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
-    const tr = await this.testResultById(trId);
-
+  historyByTr(tr: TestResult): HistoryTestResult[] {
     if (!tr?.historyId) {
       return [];
     }
@@ -329,6 +328,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return [...this.#history]
       .filter((dp) => !!dp.testResults[tr.historyId!])
       .map((dp) => ({ ...dp.testResults[tr.historyId!] }));
+  }
+
+  async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
+    const tr = await this.testResultById(trId);
+
+    if (!tr) {
+      return [];
+    }
+
+    return this.historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {
@@ -385,6 +394,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const all = await this.allTestResults();
     const allWithRetries = all.map((tr) => ({
       ...tr,
+      flaky: isFlaky(tr, this.historyByTr(tr)),
       retries: this.retriesByTr(tr),
     }));
 

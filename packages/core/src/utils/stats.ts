@@ -13,6 +13,10 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
         acc.retries = (acc.retries ?? 0) + 1;
       }
 
+      if (tr.flaky) {
+        acc.flaky = (acc.flaky ?? 0) + 1;
+      }
+
       if (!acc[tr.status]) {
         acc[tr.status] = 0;
       }

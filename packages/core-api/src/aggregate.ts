@@ -6,4 +6,5 @@ export type Statistic = {
   unknown?: number;
   total: number;
   retries?: number;
+  flaky?: number;
 };
