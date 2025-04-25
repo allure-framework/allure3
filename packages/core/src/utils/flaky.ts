@@ -1,15 +1,10 @@
 import type { TestStatus, TestResult, HistoryTestResult } from "@allurereport/core-api";
 
 const MAX_LAST_HISTORY_SIZE = 5;
+const badStatuses: TestStatus[] = ["failed", "broken"];
 
 const isAllureClassicFlaky = (tr: TestResult, history: HistoryTestResult[]) => {
-    if (history.length === 0) {
-        return false;
-    }
-
-    const nonFlakyStatuses: TestStatus[] = ["failed", "broken"];
-
-    if (!nonFlakyStatuses.includes(tr.status)) {
+    if (history.length === 0 || !badStatuses.includes(tr.status)) {
         return false;
     }
 
