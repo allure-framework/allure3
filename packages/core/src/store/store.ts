@@ -139,6 +139,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
+    // Make flaky status more accurate
+    testResult.flaky = isFlaky(testResult, this.historyByTr(testResult));
+
     this.#testResults.set(testResult.id, testResult);
 
     // retries
@@ -317,7 +320,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   historyByTr(tr: TestResult): HistoryTestResult[] {
-    if (!tr?.historyId) {
+        if (!tr?.historyId) {
       return [];
     }
 
