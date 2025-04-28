@@ -240,7 +240,6 @@ test.describe("metadata retries", () => {
         knownIssuesPath: undefined,
       },
       testResults: [
-        // Тест с двумя повторными запусками (будет считаться как 2 retries)
         {
           name: "test with retries",
           fullName: "sample.js#test with retries",
@@ -273,7 +272,6 @@ test.describe("metadata retries", () => {
           stage: Stage.FINISHED,
           start: 3000,
         },
-        // Тест с одним повторным запуском (будет считаться как 1 retry)
         {
           name: "test with one retry",
           fullName: "sample.js#test with one retry",
@@ -294,7 +292,6 @@ test.describe("metadata retries", () => {
           stage: Stage.FINISHED,
           start: 5000,
         },
-        // Тест без повторных запусков
         {
           name: "test without retries",
           fullName: "sample.js#test without retries",
@@ -308,10 +305,159 @@ test.describe("metadata retries", () => {
   });
 
   test("metadata shows correct count of retries", async ({ page }) => {
-    // Проверяем, что в метаданных отображается правильное количество тестов с ретраями
     await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
-
-    // В нашем тестовом наборе 2 теста имеют retries (один с двумя повторами, другой с одним)
     await expect(page.getByTestId("metadata-item-retries").getByTestId("metadata-value")).toHaveText("2");
+  });
+});
+test.describe("metadata flaky", () => {
+  test.beforeAll(async () => {
+    bootstrap = await bootstrapReport({
+      reportConfig: {
+        name: "Sample allure report with flaky tests",
+        appendHistory: false,
+        history: [
+          {
+            uuid: "history-flaky",
+            name: "History with flaky tests",
+            timestamp: 1000000000000,
+            knownTestCaseIds: ["test-flaky", "test-not-flaky-failed", "test-not-flaky-passed"],
+            testResults: {
+              "test-flaky": {
+                id: "test-flaky",
+                name: "flaky test",
+                status: "passed",
+                start: 1000,
+                stop: 2000,
+                duration: 1000
+              },
+              "test-not-flaky-failed-1": {
+                id: "test-not-flaky-failed",
+                name: "non-flaky failed test",
+                status: "failed",
+                start: 11000,
+                stop: 12000,
+                duration: 1000
+              },
+              "test-not-flaky-passed-1": {
+                id: "test-not-flaky-passed",
+                name: "non-flaky passed test",
+                status: "passed",
+                start: 17000,
+                stop: 18000,
+                duration: 1000
+              },
+            },
+            metrics: {},
+          },
+          {
+            uuid: "history-flaky-2",
+            name: "History with flaky tests 2",
+            timestamp: 2000000000000,
+            knownTestCaseIds: ["test-flaky", "test-not-flaky-failed", "test-not-flaky-passed"],
+            testResults: {
+              "test-flaky": {
+                id: "test-flaky",
+                name: "flaky test",
+                status: "failed",
+                start: 3000,
+                stop: 4000,
+                duration: 1000
+              },
+              "test-not-flaky-failed-2": {
+                id: "test-not-flaky-failed",
+                name: "non-flaky failed test",
+                status: "failed",
+                start: 13000,
+                stop: 14000,
+                duration: 1000
+              },
+              "test-not-flaky-passed-2": {
+                id: "test-not-flaky-passed",
+                name: "non-flaky passed test",
+                status: "passed",
+                start: 19000,
+                stop: 20000,
+                duration: 1000
+              },
+            },
+            metrics: {},
+          },
+          {
+            uuid: "history-flaky-3",
+            name: "History with flaky tests 3",
+            timestamp: 3000000000000,
+            knownTestCaseIds: ["test-flaky", "test-not-flaky-failed", "test-not-flaky-passed"],
+            testResults: {
+              "test-flaky": {
+                id: "test-flaky",
+                name: "flaky test",
+                status: "passed",
+                start: 5000,
+                stop: 6000,
+                duration: 1000
+              },
+              "test-not-flaky-failed-3": {
+                id: "test-not-flaky-failed",
+                name: "non-flaky failed test",
+                status: "failed",
+                start: 15000,
+                stop: 16000,
+                duration: 1000
+              },
+              "test-not-flaky-passed-3": {
+                id: "test-not-flaky-passed",
+                name: "non-flaky passed test",
+                status: "passed",
+                start: 21000,
+                stop: 22000,
+                duration: 1000
+              },
+            },
+            metrics: {},
+          },
+        ],
+        historyPath: undefined,
+        knownIssuesPath: undefined,
+      },
+      testResults: [
+        {
+          name: "flaky test",
+          fullName: "sample.js#flaky test",
+          historyId: "test-flaky",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 1000,
+          statusDetails: {
+            message: "Current run failed",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "non-flaky failed test",
+          fullName: "sample.js#non-flaky failed test",
+          historyId: "test-not-flaky-failed",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 2000,
+          statusDetails: {
+            message: "Current run failed",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "non-flaky passed test",
+          fullName: "sample.js#non-flaky passed test",
+          historyId: "test-not-flaky-passed",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 3000,
+        },
+      ],
+    });
+  });
+
+  test("metadata shows correct count of flaky tests", async ({ page }) => {
+    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
+    await expect(page.getByTestId("metadata-item-flaky").getByTestId("metadata-value")).toHaveText("1");
   });
 });
