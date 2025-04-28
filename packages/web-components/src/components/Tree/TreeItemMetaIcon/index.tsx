@@ -15,4 +15,6 @@ export interface TreeItemMetaIconProps {
   type: "flaky" | "new";
 }
 
-export const TreeItemMetaIcon = ({ type }: TreeItemMetaIconProps) => <SvgIcon id={icons[type]} className={classNames[type]} />;
+export const TreeItemMetaIcon = ({ type }: TreeItemMetaIconProps) => (
+  <SvgIcon data-testid={`tree-item-meta-icon-${type}`} id={icons[type]} className={classNames[type]} />
+);
