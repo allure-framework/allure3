@@ -77,6 +77,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
           groupOrder={leaf.groupOrder as number}
           duration={leaf.duration}
           retriesCount={leaf.retriesCount}
+          flaky={leaf.flaky}
           marked={leaf.nodeId === routeId}
           navigateTo={navigateTo}
         />
