@@ -1,4 +1,4 @@
-import type { HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
+import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { isFileNotFoundError } from "./utils/misc.js";
@@ -49,24 +49,37 @@ export const createHistory = (
   };
 };
 
-export const readHistory = async (historyPath: string): Promise<HistoryDataPoint[]> => {
-  const path = resolve(historyPath);
-  try {
-    return (await readFile(path, { encoding: "utf-8" }))
-      .split("\n")
-      .filter((line) => line && line.trim() !== "")
-      .map((line) => JSON.parse(line) as HistoryDataPoint);
-  } catch (e) {
-    if (isFileNotFoundError(e)) {
-      return [];
-    }
-    throw e;
-  }
-};
-
 export const writeHistory = async (historyPath: string, data: HistoryDataPoint) => {
   const path = resolve(historyPath);
   const parentDir = dirname(path);
   await mkdir(parentDir, { recursive: true });
   await writeFile(path, `${JSON.stringify(data)}\n`, { encoding: "utf-8", flag: "a+" });
 };
+
+export class AllureLocalHistory implements AllureHistory {
+  constructor(private readonly historyPath: string) {}
+
+  async readHistory() {
+    const path = resolve(this.historyPath);
+
+    try {
+      return (await readFile(path, { encoding: "utf-8" }))
+        .split("\n")
+        .filter((line) => line && line.trim() !== "")
+        .map((line) => JSON.parse(line) as HistoryDataPoint);
+    } catch (e) {
+      if (isFileNotFoundError(e)) {
+        return [];
+      }
+      throw e;
+    }
+  }
+
+  async appendHistory(data: HistoryDataPoint) {
+    const path = resolve(this.historyPath);
+    const parentDir = dirname(path);
+
+    await mkdir(parentDir, { recursive: true });
+    await writeFile(path, `${JSON.stringify(data)}\n`, { encoding: "utf-8", flag: "a+" });
+  }
+}
