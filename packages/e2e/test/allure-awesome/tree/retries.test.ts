@@ -100,6 +100,8 @@ test.describe("retries", () => {
   });
 
   test("should be able to filter tests with retries using retry filter", async ({ page }) => {
+    await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
+
     // Open filters
     await page.getByTestId("filters-button").click();
 
@@ -143,5 +145,10 @@ test.describe("retries", () => {
       })
       .getByTestId("tree-item-retries");
     await expect(anotherTestWithRetriesIcon).toContainText("1"); // 1 retry
+  });
+
+  test("metadata shows correct count of retries", async ({ page }) => {
+    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
+    await expect(page.getByTestId("metadata-item-retries").getByTestId("metadata-value")).toHaveText("2");
   });
 });

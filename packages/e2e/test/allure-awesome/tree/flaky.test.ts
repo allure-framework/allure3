@@ -200,6 +200,30 @@ test.describe("flaky", () => {
     await bootstrap?.shutdown?.();
   });
 
+  test("should be able to filter flaky tests with flaky status using flaky filter", async ({ page }) => {
+    await expect(page.getByTestId("tree-leaf")).toHaveCount(2);
+
+    // Open filters
+    await page.getByTestId("filters-button").click();
+
+    // Select flaky filter
+    await page.getByTestId("flaky-filter").click();
+
+    // Verify only tests with flaky status are visible
+    const treeLeaves = page.getByTestId("tree-leaf");
+    await expect(treeLeaves).toHaveCount(1);
+
+    // Verify the test names are correct for tests with flaky status
+    await expect(page.getByText("Classic flaky test", { exact: true })).toBeVisible();
+    await expect(page.getByText("Non-flaky test", { exact: true })).not.toBeVisible();
+
+    // Disable flaky filter
+    await page.getByTestId("flaky-filter").click();
+
+    // Verify all tests are visible again
+    await expect(page.getByTestId("tree-leaf")).toHaveCount(2);
+  });
+
   test("should show flaky icon only for flaky tests in the tree", async ({ page }) => {
     const treeLeaves = page.getByTestId("tree-leaf");
 
@@ -214,5 +238,10 @@ test.describe("flaky", () => {
       .filter({ has: page.getByText("Non-flaky test", { exact: true }) })
       .getByTestId("tree-item-meta-icon-flaky");
     await expect(nonFlaky).not.toBeVisible();
+  });
+
+  test("metadata shows correct count of flaky tests", async ({ page }) => {
+    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("2");
+    await expect(page.getByTestId("metadata-item-flaky").getByTestId("metadata-value")).toHaveText("1");
   });
 });
