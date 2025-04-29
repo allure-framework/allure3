@@ -1,106 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-// import { createHash } from "node:crypto";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
-
-// export const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
 let bootstrap: ReportBootstrap;
 
 test.describe("flaky", () => {
-  test.beforeAll(async () => {
-    const now = Date.now();
-
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report with flaky tests",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-      },
-      testResults: [
-        // Classic flaky test (history: FAILED, FAILED, PASSED, FAILED)
-        {
-          name: "Classic flaky test",
-          fullName: "sample.js#Classic flaky test",
-          historyId,
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: now,
-          stop: now + 1000,
-        },
-        {
-          name: "Classic flaky test",
-          fullName: "sample.js#Classic flaky test",
-          historyId,
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: now + 2000,
-          stop: now + 3000,
-        },
-        {
-          name: "Classic flaky test",
-          fullName: "sample.js#Classic flaky test",
-          historyId,
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: now + 4000,
-          stop: now + 5000,
-        },
-        {
-          name: "Classic flaky test",
-          fullName: "sample.js#Classic flaky test",
-          historyId,
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: now + 6000,
-          stop: now + 7000,
-        },
-        // Non-flaky test
-        {
-          name: "Non-flaky test",
-          fullName: "sample.js#Non-flaky test",
-          historyId: "nonFlaky",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: now + 10000,
-          stop: now + 11000,
-        },
-      ],
-    });
-  });
-
-  test.beforeEach(async ({ browserName, page }) => {
-    await label("env", browserName);
-    await page.goto(bootstrap.url);
-  });
-
-  test.afterAll(async () => {
-    await bootstrap?.shutdown?.();
-  });
-
-  test("should show flaky icon only for flaky tests in the tree", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
-
-    // Classic flaky test
-    const classicFlaky = treeLeaves
-      .filter({ has: page.getByText("Classic flaky test", { exact: true }) })
-      .getByTestId("tree-item-meta-icon-flaky");
-    await expect(classicFlaky).toBeVisible();
-
-    // Non-flaky test
-    const nonFlaky = treeLeaves
-      .filter({ has: page.getByText("Non-flaky test", { exact: true }) })
-      .getByTestId("tree-item-meta-icon-flaky");
-    await expect(nonFlaky).not.toBeVisible();
-  });
-});
-
-test.describe("debug data", () => {
-  let debugBootstrap: ReportBootstrap;
-
   test.beforeAll(async () => {
     const now = Date.now();
 
@@ -110,7 +15,7 @@ test.describe("debug data", () => {
     const testCaseId = makeTestCaseId(flakyTestFullname);
     const historyId = makeHistoryId(flakyTestFullname);
 
-    debugBootstrap = await bootstrapReport({
+    bootstrap = await bootstrapReport({
       reportConfig: {
         name: reportName,
         appendHistory: true,
@@ -288,14 +193,26 @@ test.describe("debug data", () => {
 
   test.beforeEach(async ({ browserName, page }) => {
     await label("env", browserName);
-    await page.goto(debugBootstrap.url);
+    await page.goto(bootstrap.url);
   });
 
   test.afterAll(async () => {
-    await debugBootstrap?.shutdown?.();
+    await bootstrap?.shutdown?.();
   });
 
-  test("should print report data to console", async () => {
-    expect({}).not.toBeNull();
+  test("should show flaky icon only for flaky tests in the tree", async ({ page }) => {
+    const treeLeaves = page.getByTestId("tree-leaf");
+
+    // Classic flaky test
+    const classicFlaky = treeLeaves
+      .filter({ has: page.getByText("Classic flaky test", { exact: true }) })
+      .getByTestId("tree-item-meta-icon-flaky");
+    await expect(classicFlaky).toBeVisible();
+
+    // Non-flaky test
+    const nonFlaky = treeLeaves
+      .filter({ has: page.getByText("Non-flaky test", { exact: true }) })
+      .getByTestId("tree-item-meta-icon-flaky");
+    await expect(nonFlaky).not.toBeVisible();
   });
 });

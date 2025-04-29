@@ -4,7 +4,7 @@ import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";
 import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {
-  flaky: allureIcons.lineGeneralZap,
+  flaky: allureIcons.lineIconBomb2,
   retries: allureIcons.lineArrowsRefreshCcw1,
   new: allureIcons.lineAlertsNotificationBox,
 };
