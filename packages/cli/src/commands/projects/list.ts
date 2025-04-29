@@ -36,7 +36,7 @@ export const ProjectsListCommandAction = async () => {
     "Insert following code into your Allure Config file, to enable Allure Service features for the project:",
     "",
     green("{"),
-    green("  allureService:"),
+    green("  allureService: {"),
     green(`    project: "${res.project}"`),
     green("  }"),
     green("}"),

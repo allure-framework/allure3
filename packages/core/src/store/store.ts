@@ -6,6 +6,7 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
+  type RepoData,
   type ReportVariables,
   type TestCase,
   type TestEnvGroup,
@@ -28,6 +29,7 @@ import type {
 } from "@allurereport/reader-api";
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
+import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
@@ -62,6 +64,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
+  #repoData?: RepoData;
 
   constructor(params?: {
     history?: HistoryDataPoint[];
@@ -224,6 +227,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {
     Object.keys(metadata).forEach((key) => this.#metadata.set(key, metadata[key]));
+  }
+
+  // git state
+
+  async repoData() {
+    if (this.#repoData) {
+      return this.#repoData;
+    }
+
+    try {
+      this.#repoData = {
+        name: await getGitRepoName(),
+        branch: await getGitBranch(),
+      };
+
+      return this.#repoData;
+    } catch (err) {
+      return undefined;
+    }
   }
 
   // state access API
