@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { EOL } from "node:os";
 import {
   ALLURE_ACCESS_TOKEN_PATH,
   ALLURE_FILES_DIRNAME,
@@ -90,8 +91,19 @@ export const writeAccessToken = async (token: string) => {
  */
 export const readAccessToken = async () => {
   try {
-    return readFile(ALLURE_ACCESS_TOKEN_PATH, "utf-8");
+    const accessToken = await readFile(ALLURE_ACCESS_TOKEN_PATH, "utf-8");
+
+    return accessToken.replaceAll(EOL, "").trim();
   } catch (e) {
     return undefined;
   }
+};
+
+/**
+ * Deletes the access token from the home dir permanently
+ */
+export const deleteAccessToken = async () => {
+  try {
+    await rm(ALLURE_ACCESS_TOKEN_PATH, { force: true });
+  } catch (ignore) {}
 };

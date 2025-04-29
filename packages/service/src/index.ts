@@ -1,18 +1,28 @@
+import { type HistoryDataPoint } from "@allurereport/core-api";
+import { type Config } from "@allurereport/plugin-api";
 import open from "open";
 import { DEFAULT_HISTORY_SERVICE_URL } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
-import { decryptExchangeToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
+import { decryptExchangeToken, deleteAccessToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
 export class AllureService {
-  #client: HttpClient;
+  readonly #client: HttpClient;
+  readonly #url: string;
+  project: string | undefined;
 
-  constructor(readonly historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL) {
-    this.#client = createServiceHttpClient(historyServiceURL);
+  constructor(readonly config: Config["allureService"]) {
+    this.#url = config?.url ?? DEFAULT_HISTORY_SERVICE_URL;
+    this.#client = createServiceHttpClient(this.#url, config?.accessToken);
+    this.project = config?.project;
+  }
+
+  setProject(project: string) {
+    this.project = project;
   }
 
   async login(): Promise<string> {
     const exchangeToken = await writeExchangeToken();
-    const connectUrl = new URL("/connect", this.historyServiceURL);
+    const connectUrl = new URL("/connect", this.#url);
 
     connectUrl.searchParams.set("token", decryptExchangeToken(exchangeToken));
 
@@ -25,7 +35,7 @@ export class AllureService {
         return globalThis.setTimeout(async () => {
           const token = decryptExchangeToken(exchangeToken);
           const { data } = await this.#client.post(
-            "/api/auth/exchange",
+            "/api/auth/tokens/exchange",
             {
               token,
             },
@@ -50,6 +60,10 @@ export class AllureService {
 
       currentExchangeAttemptTimeout = makeExchangeAttempt();
     });
+  }
+
+  async logout() {
+    await deleteAccessToken();
   }
 
   async profile() {
