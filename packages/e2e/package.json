@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@allurereport/core": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@playwright/test": "^1.48.2",

@@ -6,7 +6,7 @@ import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporte
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-
+import { md5 } from "@allurereport/plugin-api";
 export type GeneratorParams = {
   reportDir: string;
   resultsDir: string;
@@ -26,6 +26,13 @@ export const randomNumber = (min: number, max: number) => {
   }
 
   return Math.random() * (max - min) + min;
+};
+
+export const makeHistoryId = (fullName: string, parameters: Record<string, unknown> = {}) => {
+  const fullnameMd5 = md5(fullName);
+  const parametersMd5 = md5(JSON.stringify(parameters));
+
+  return `${fullnameMd5}.${parametersMd5}`;
 };
 
 export const generateReport = async (payload: GeneratorParams) => {

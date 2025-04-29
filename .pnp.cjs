@@ -310,6 +310,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/e2e", "workspace:packages/e2e"],\
           ["@allurereport/core", "workspace:packages/core"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
           ["@playwright/test", "npm:1.48.2"],\
