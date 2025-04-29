@@ -13,7 +13,7 @@ export const ProjectsCreateCommandAction = async (projectName: string) => {
     `The "${green(project.name)}" has been created. Insert following code into your Allure Config file, to enable Allure Service features for the project:`,
     "",
     green("{"),
-    green("  allureService:"),
+    green("  allureService: {"),
     green(`    project: "${project.name}"`),
     green("  }"),
     green("}"),
