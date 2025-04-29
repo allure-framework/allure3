@@ -1,3 +1,4 @@
+import type { AllureHistory } from "@allurereport/core-api";
 import type {
   Plugin,
   PluginContext,
@@ -8,7 +9,7 @@ import type {
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureService } from "@allurereport/service";
+import { AllureRemoteHistory, AllureService } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -17,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { opendir, readdir, realpath, rename, rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
-import { createHistory, writeHistory } from "./history.js";
+import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -38,8 +39,6 @@ export class AllureReport {
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
   readonly #events: Events;
   readonly #qualityGate: QualityGate;
-  readonly #appendHistory: boolean;
-  readonly #historyPath: string;
   readonly #realTime: any;
   readonly #output: string;
   #state?: Record<string, PluginState>;
@@ -47,18 +46,19 @@ export class AllureReport {
 
   // TODO: wip
   readonly #allureService: AllureService | undefined;
+  readonly #history: AllureHistory | undefined;
 
   constructor(opts: FullConfig) {
     const {
       name,
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
-      history,
+      // TODO: handle history in another place (we need to have ability to work with local and remote history data
+      // history,
       known,
       reportFiles,
       qualityGate,
       realTime,
-      appendHistory,
       historyPath,
       defaultLabels = {},
       variables = {},
@@ -71,13 +71,12 @@ export class AllureReport {
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
-    this.#appendHistory = appendHistory ?? true;
-    this.#historyPath = historyPath;
     this.#store = new DefaultAllureStore({
       eventEmitter: this.#eventEmitter,
       reportVariables: variables,
       environmentsConfig: environments,
-      history,
+      // TODO: how to pass history from the history service?
+      history: [],
       known,
       defaultLabels,
     });
@@ -92,6 +91,12 @@ export class AllureReport {
     if (allureServiceConfig) {
       this.#allureService = new AllureService(allureServiceConfig);
     }
+
+    if (allureServiceConfig) {
+      this.#history = new AllureRemoteHistory(this.#allureService!, this.#store);
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory(historyPath);
+    }
   }
 
   // TODO: keep it until we understand how to handle shared test results
@@ -105,6 +110,14 @@ export class AllureReport {
 
   get validationResults() {
     return this.#qualityGate.result;
+  }
+
+  async readGitBranch() {
+    try {
+      return getGitBranch();
+    } catch (err) {
+      return undefined;
+    }
   }
 
   readDirectory = async (resultsDir: string) => {
@@ -157,6 +170,12 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    if (this.#history) {
+      await this.#history.readHistory();
+    }
+
+    // TODO: download history and test results from the allure service
+
     if (this.#stage === "running") {
       throw new Error("the report is already started");
     }
@@ -215,12 +234,20 @@ export class AllureReport {
       });
     });
 
-    if (this.#appendHistory) {
+    /**
+     * TODO: publish flow (storage stage – the next one)
+     * 1. Publish plugin generates url to the report
+     * 2. Publish plugin appends url to the latest history point
+     * 3. Then, if resolved history point contains report URL – render the link to the report
+     * 4. In opposite case – render data without the link (what we have in the history point object)
+     */
+
+    if (this.#history) {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
       const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
 
-      await writeHistory(this.#historyPath, historyDataPoint);
+      await this.#history.appendHistory(historyDataPoint);
     }
 
     const outputDirFiles = await readdir(this.#output);
