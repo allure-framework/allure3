@@ -47,5 +47,6 @@ export interface FullConfig {
   allureService?: {
     url?: string;
     project?: string;
+    accessToken?: string;
   };
 }
