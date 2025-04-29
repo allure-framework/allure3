@@ -3,6 +3,7 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  RepoData,
   Statistic,
   TestCase,
   TestEnvGroup,
@@ -14,6 +15,8 @@ import type { ResultFile } from "./resultFile.js";
 export type TestResultFilter = (testResult: TestResult) => boolean;
 
 export interface AllureStore {
+  // git state
+  repoData: () => Promise<RepoData | undefined>;
   // base state
   allTestCases: () => Promise<TestCase[]>;
   allTestResults: (options?: { includeHidden?: boolean }) => Promise<TestResult[]>;

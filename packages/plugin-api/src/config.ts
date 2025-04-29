@@ -42,6 +42,7 @@ export interface Config {
   allureService?: {
     url?: string;
     project?: string;
+    accessToken?: string;
   };
 }
 
