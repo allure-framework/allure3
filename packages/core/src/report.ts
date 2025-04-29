@@ -8,6 +8,7 @@ import type {
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { AllureService } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -22,6 +23,7 @@ import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
 import type { AllureStoreEvents } from "./utils/event.js";
 import { Events } from "./utils/event.js";
+import { getGitBranch } from "./utils/git.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -43,6 +45,9 @@ export class AllureReport {
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
+  // TODO: wip
+  readonly #allureService: AllureService | undefined;
+
   constructor(opts: FullConfig) {
     const {
       name,
@@ -59,6 +64,7 @@ export class AllureReport {
       variables = {},
       environments,
       output,
+      allureService: allureServiceConfig,
     } = opts;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
@@ -82,6 +88,10 @@ export class AllureReport {
 
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
+
+    if (allureServiceConfig) {
+      this.#allureService = new AllureService(allureServiceConfig);
+    }
   }
 
   // TODO: keep it until we understand how to handle shared test results
@@ -150,9 +160,11 @@ export class AllureReport {
     if (this.#stage === "running") {
       throw new Error("the report is already started");
     }
+
     if (this.#stage === "done") {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
+
     this.#stage = "running";
 
     await this.#eachPlugin(true, async (plugin, context) => {
