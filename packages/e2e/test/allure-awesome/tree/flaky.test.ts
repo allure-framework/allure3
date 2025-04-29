@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 // import { createHash } from "node:crypto";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
-import { makeHistoryId } from "../../utils/index.js";
+import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
 
 // export const md5 = (data: string) => createHash("md5").update(data).digest("hex");
 
@@ -107,6 +107,7 @@ test.describe("debug data", () => {
     const reportName = "Sample allure report with flaky tests";
     const flakyTestFullname = "sample.js#Classic flaky test";
     const flakyTestName = "Classic flaky test";
+    const testCaseId = makeTestCaseId(flakyTestFullname);
     const historyId = makeHistoryId(flakyTestFullname);
 
     debugBootstrap = await bootstrapReport({
@@ -118,9 +119,9 @@ test.describe("debug data", () => {
             uuid: "dc4d9432-ebef-4e0f-b121-37fcf0383023",
             name: reportName,
             timestamp: 1745926867897,
-            knownTestCaseIds: ["7bd200e7b7e8b689dd54391d5d6a60ae", "54511e33b8d1887a829f815f468563a9"],
+            knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
             testResults: {
-              "7bd200e7b7e8b689dd54391d5d6a60ae.d41d8cd98f00b204e9800998ecf8427e": {
+              [historyId]: {
                 id: "42dffbf3bb12f89807c85206c3f993a2",
                 name: flakyTestName,
                 fullName: flakyTestFullname,
@@ -147,7 +148,7 @@ test.describe("debug data", () => {
             uuid: "b441fbc8-5222-4380-a325-d776436789f3",
             name: reportName,
             timestamp: 1745926884436,
-            knownTestCaseIds: ["7bd200e7b7e8b689dd54391d5d6a60ae", "54511e33b8d1887a829f815f468563a9"],
+            knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
             testResults: {
               "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
                 id: "67175da7a4eded923ad6d8dda76f2838",
@@ -159,7 +160,7 @@ test.describe("debug data", () => {
                 duration: 1000,
                 labels: [],
               },
-              "7bd200e7b7e8b689dd54391d5d6a60ae.d41d8cd98f00b204e9800998ecf8427e": {
+              [historyId]: {
                 id: "1373936b78555e2d7646b6f7eccb5b83",
                 name: flakyTestName,
                 fullName: flakyTestFullname,
@@ -176,7 +177,7 @@ test.describe("debug data", () => {
             uuid: "47b06933-e2a4-401a-b873-648885f033a2",
             name: reportName,
             timestamp: 1745926887428,
-            knownTestCaseIds: ["7bd200e7b7e8b689dd54391d5d6a60ae", "54511e33b8d1887a829f815f468563a9"],
+            knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
             testResults: {
               "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
                 id: "b40702a85e54a2f8dcc6cfdf791170dd",
@@ -188,7 +189,7 @@ test.describe("debug data", () => {
                 duration: 1000,
                 labels: [],
               },
-              "7bd200e7b7e8b689dd54391d5d6a60ae.d41d8cd98f00b204e9800998ecf8427e": {
+              [historyId]: {
                 id: "218637ff0c630613e70a149cda54bdf2",
                 name: flakyTestName,
                 fullName: flakyTestFullname,
@@ -205,7 +206,7 @@ test.describe("debug data", () => {
             uuid: "06fbdfee-9a4b-4965-8132-07e9570bdaad",
             name: reportName,
             timestamp: 1745926948995,
-            knownTestCaseIds: ["7bd200e7b7e8b689dd54391d5d6a60ae", "54511e33b8d1887a829f815f468563a9"],
+            knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
             testResults: {
               "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
                 id: "433a030c83d5ac12cebf5a49aaac0bf0",
@@ -217,9 +218,9 @@ test.describe("debug data", () => {
                 duration: 1000,
                 labels: [],
               },
-              "7bd200e7b7e8b689dd54391d5d6a60ae.d41d8cd98f00b204e9800998ecf8427e": {
+              [historyId]: {
                 id: "f2bad682e0dc3fcba8fb571946a9d552",
-                name: "Classic flaky test",
+                name: flakyTestName,
                 fullName: flakyTestFullname,
                 status: Status.FAILED,
                 start: 1745926954880,
