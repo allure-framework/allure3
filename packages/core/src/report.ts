@@ -9,7 +9,7 @@ import type {
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureRemoteHistory } from "@allurereport/service";
+import { AllureRemoteHistory, AllureService } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -41,6 +41,7 @@ export class AllureReport {
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
+  readonly #allureService: AllureService | undefined;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -58,20 +59,13 @@ export class AllureReport {
       variables = {},
       environments,
       output,
-      allureService,
+      allureService: allureServiceConfig,
     } = opts;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
-
-    if (allureService) {
-      this.#history = new AllureRemoteHistory(allureService);
-    } else if (historyPath) {
-      this.#history = new AllureLocalHistory(historyPath);
-    }
-
     this.#store = new DefaultAllureStore({
       eventEmitter: this.#eventEmitter,
       reportVariables: variables,
@@ -87,6 +81,16 @@ export class AllureReport {
 
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
+
+    if (allureServiceConfig) {
+      this.#allureService = new AllureService(allureServiceConfig);
+    }
+
+    if (allureServiceConfig) {
+      this.#history = new AllureRemoteHistory(this.#allureService!, this.#store);
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory(historyPath);
+    }
   }
 
   // TODO: keep it until we understand how to handle shared test results
@@ -100,6 +104,14 @@ export class AllureReport {
 
   get validationResults() {
     return this.#qualityGate.result;
+  }
+
+  async readGitBranch() {
+    try {
+      return getGitBranch();
+    } catch (err) {
+      return undefined;
+    }
   }
 
   readDirectory = async (resultsDir: string) => {
@@ -152,6 +164,10 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    // if (this.#history) {
+    //   await this.#history.readHistory();
+    // }
+
     await this.#store.readHistory();
 
     if (this.#stage === "running") {
@@ -217,7 +233,7 @@ export class AllureReport {
       const testCases = await this.#store.allTestCases();
       const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
 
-      await this.#store.appendHistory(historyDataPoint);
+      await this.#history.appendHistory(historyDataPoint);
     }
 
     const outputDirFiles = await readdir(this.#output);

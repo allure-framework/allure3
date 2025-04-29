@@ -16,6 +16,10 @@ export class AllureService {
     this.project = config?.project;
   }
 
+  setProject(project: string) {
+    this.project = project;
+  }
+
   async login(): Promise<string> {
     const exchangeToken = await writeExchangeToken();
     const connectUrl = new URL("/connect", this.#url);
