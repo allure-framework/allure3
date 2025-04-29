@@ -2,7 +2,7 @@ import axios, { type AxiosRequestConfig } from "axios";
 import { DEFAULT_HISTORY_SERVICE_URL } from "../model.js";
 import { readAccessToken } from "./token.js";
 
-export const createServiceHttpClient = (historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL) => {
+export const createServiceHttpClient = (historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL, accessToken?: string) => {
   const client = axios.create({
     baseURL: historyServiceURL,
     withCredentials: true,
@@ -11,13 +11,13 @@ export const createServiceHttpClient = (historyServiceURL: string = DEFAULT_HIST
   const sendRequest =
     (method: "get" | "delete") =>
     async (endpoint: string, params?: Record<string, any>, options?: AxiosRequestConfig) => {
-      const accessToken = await readAccessToken();
+      const actualAccessToken = accessToken || await readAccessToken();
       const headers = {
         ...(options?.headers ?? {}),
       };
 
-      if (accessToken) {
-        headers.Authorization = accessToken;
+      if (actualAccessToken) {
+        headers.Authorization = actualAccessToken;
       }
 
       return client[method](endpoint, {
@@ -28,13 +28,13 @@ export const createServiceHttpClient = (historyServiceURL: string = DEFAULT_HIST
     };
   const sendRequestWithBody =
     (method: "post" | "put") => async (endpoint: string, body?: any, options?: AxiosRequestConfig) => {
-      const accessToken = await readAccessToken();
+      const actualAccessToken = accessToken || await readAccessToken();
       const headers = {
         ...(options?.headers ?? {}),
       };
 
-      if (accessToken) {
-        headers.Authorization = accessToken;
+      if (actualAccessToken) {
+        headers.Authorization = actualAccessToken;
       }
 
       return client[method](endpoint, body, {
