@@ -13,7 +13,7 @@ export const LogoutCommandAction = async () => {
 };
 
 export const LogoutCommand = createCommand({
-  name: "login",
+  name: "logout",
   description: "Logouts to the Allure Service",
   options: [],
   action: LogoutCommandAction,
