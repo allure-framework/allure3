@@ -13,7 +13,7 @@
   "testSummary": {
     "total": "Totalt",
     "flaky": "Ostadiga tester",
-    "retries": "Omtestade tester",
+    "retries": "Omtagna tester",
     "new": "Nya tester"
   },
   "tabs": {
