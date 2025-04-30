@@ -36,7 +36,6 @@ describe("classic command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-classic",
@@ -91,7 +90,6 @@ describe("classic command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: fixtures.reportName,
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-classic",
