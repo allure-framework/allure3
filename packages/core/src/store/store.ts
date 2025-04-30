@@ -116,11 +116,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    const historyPoints = await this.#history.readHistory();
+    const repoData = await this.repoData();
+    const historyPoints = await this.#history.readHistory(repoData?.branch);
 
     this.#historyPoints = historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints ?? [];
+  }
+
+  async appendHistory(history: HistoryDataPoint): Promise<void> {
+    if (!this.#history) {
+      return;
+    }
+
+    const repoData = await this.repoData();
+
+    this.#historyPoints.push(history);
+
+    await this.#history.appendHistory(history, repoData?.branch);
   }
 
   // git state

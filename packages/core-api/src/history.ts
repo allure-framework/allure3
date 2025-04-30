@@ -37,6 +37,6 @@ export interface HistoryDataPoint {
  * Provides ability to load and update report history
  */
 export interface AllureHistory {
-  readHistory(): Promise<HistoryDataPoint[]>;
-  appendHistory(history: HistoryDataPoint): Promise<void>;
+  readHistory(branch?: string): Promise<HistoryDataPoint[]>;
+  appendHistory(history: HistoryDataPoint, branch?: string): Promise<void>;
 }

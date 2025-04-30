@@ -4,7 +4,6 @@ import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import * as process from "node:process";
 import type { FullConfig, PluginInstance } from "./api.js";
-import { readHistory } from "./history.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { importWrapper } from "./utils/module.js";
@@ -104,7 +103,6 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const appendHistory = config.appendHistory ?? true;
   const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
-  const history = await readHistory(historyPath);
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
   const environments = config.environments ?? {};
@@ -121,7 +119,6 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   return {
     name,
     output,
-    history,
     historyPath,
     knownIssuesPath,
     known,

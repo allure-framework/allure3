@@ -49,7 +49,6 @@ export class AllureReport {
       name,
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
-      // TODO: handle history in another place (we need to have ability to work with local and remote history data
       known,
       reportFiles,
       qualityGate,
@@ -68,7 +67,7 @@ export class AllureReport {
     this.#realTime = realTime;
 
     if (allureService) {
-      this.#history = new AllureRemoteHistory(allureService, () => this.#store?.repoData?.());
+      this.#history = new AllureRemoteHistory(allureService);
     } else if (historyPath) {
       this.#history = new AllureLocalHistory(historyPath);
     }
@@ -102,10 +101,6 @@ export class AllureReport {
   get validationResults() {
     return this.#qualityGate.result;
   }
-
-  readHistory = async () => {
-    await this.#store.readHistory();
-  };
 
   readDirectory = async (resultsDir: string) => {
     if (this.#stage !== "running") {
@@ -157,6 +152,8 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    await this.#store.readHistory();
+
     if (this.#stage === "running") {
       throw new Error("the report is already started");
     }
@@ -220,7 +217,7 @@ export class AllureReport {
       const testCases = await this.#store.allTestCases();
       const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
 
-      await this.#history.appendHistory(historyDataPoint);
+      await this.#store.appendHistory(historyDataPoint);
     }
 
     const outputDirFiles = await readdir(this.#output);
