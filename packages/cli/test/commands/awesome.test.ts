@@ -36,7 +36,6 @@ describe("awesome command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-awesome",
@@ -93,7 +92,6 @@ describe("awesome command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: fixtures.reportName,
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-awesome",
