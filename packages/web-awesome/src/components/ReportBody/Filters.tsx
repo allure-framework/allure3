@@ -31,7 +31,7 @@ export const Filters = () => {
           onClick={() => {
             setTreeFilter("flaky", !flaky);
           }}
-          leadingIcon={allureIcons.lineGeneralZap}
+          leadingIcon={allureIcons.lineIconBomb2}
           rightSlot={
             <div className={styles.filterToggle}>
               <Toggle
