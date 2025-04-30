@@ -10,3 +10,12 @@ AllureReportMock.prototype.start = vi.fn();
 AllureReportMock.prototype.update = vi.fn();
 
 AllureReportMock.prototype.done = vi.fn();
+
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+export const AllureServiceMock = vi.fn(function () {});
+
+AllureServiceMock.prototype.login = vi.fn();
+
+AllureServiceMock.prototype.logout = vi.fn();
+
+AllureServiceMock.prototype.profile = vi.fn();
