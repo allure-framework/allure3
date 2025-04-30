@@ -1,4 +1,5 @@
 import {
+  type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -50,7 +51,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #attachmentContents: Map<string, ResultFile>;
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
-  readonly #history: HistoryDataPoint[];
+  readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
@@ -64,10 +65,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
+
+  #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
   constructor(params?: {
-    history?: HistoryDataPoint[];
+    history?: AllureHistory;
     known?: KnownTestFailure[];
     eventEmitter?: EventEmitter<AllureStoreEvents>;
     defaultLabels?: DefaultLabelsConfig;
@@ -75,7 +78,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     reportVariables?: ReportVariables;
   }) {
     const {
-      history = [],
+      history,
       known = [],
       eventEmitter,
       defaultLabels = {},
@@ -89,7 +92,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#testCases = new Map<string, TestCase>();
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
-    this.#history = [...history].sort(compareBy("timestamp", reverse(ordinal())));
+    this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
     this.#eventEmitter = eventEmitter;
@@ -104,6 +107,39 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       .forEach((key) => {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
+  }
+
+  // history state
+
+  async readHistory(): Promise<HistoryDataPoint[]> {
+    if (!this.#history) {
+      return [];
+    }
+
+    const historyPoints = await this.#history.readHistory();
+
+    this.#historyPoints = historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
+
+    return this.#historyPoints ?? [];
+  }
+
+  // git state
+
+  async repoData() {
+    if (this.#repoData) {
+      return this.#repoData;
+    }
+
+    try {
+      this.#repoData = {
+        name: await getGitRepoName(),
+        branch: await getGitBranch(),
+      };
+
+      return this.#repoData;
+    } catch (err) {
+      return undefined;
+    }
   }
 
   // test methods
@@ -229,25 +265,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     Object.keys(metadata).forEach((key) => this.#metadata.set(key, metadata[key]));
   }
 
-  // git state
-
-  async repoData() {
-    if (this.#repoData) {
-      return this.#repoData;
-    }
-
-    try {
-      this.#repoData = {
-        name: await getGitRepoName(),
-        branch: await getGitBranch(),
-      };
-
-      return this.#repoData;
-    } catch (err) {
-      return undefined;
-    }
-  }
-
   // state access API
 
   async allTestCases(): Promise<TestCase[]> {
@@ -289,7 +306,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPoints(): Promise<HistoryDataPoint[]> {
-    return this.#history;
+    return this.#historyPoints;
   }
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
@@ -347,7 +364,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    return [...this.#history]
+    return [...this.#historyPoints]
       .filter((dp) => !!dp.testResults[tr.historyId!])
       .map((dp) => ({ ...dp.testResults[tr.historyId!] }));
   }
