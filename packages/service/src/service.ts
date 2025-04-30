@@ -16,10 +16,6 @@ export class AllureService {
     this.project = config?.project;
   }
 
-  setProject(project: string) {
-    this.project = project;
-  }
-
   async login(): Promise<string> {
     const exchangeToken = await writeExchangeToken();
     const connectUrl = new URL("/connect", this.#url);
@@ -107,11 +103,18 @@ export class AllureService {
       throw new Error("Project is not set");
     }
 
-    await this.#client.post("/api/history/append", payload, {
-      headers: {
-        "Content-Type": "application/json",
+    await this.#client.post(
+      "/api/history/append",
+      {
+        ...payload,
+        project: this.project,
       },
-    });
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
   }
 
   /**
@@ -123,11 +126,18 @@ export class AllureService {
       throw new Error("Project is not set");
     }
 
-    const { data } = await this.#client.get("/api/history/download", payload, {
-      headers: {
-        "Content-Type": "application/json",
+    const { data } = await this.#client.get(
+      "/api/history/download",
+      {
+        ...payload,
+        project: this.project,
       },
-    });
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
     return data as HistoryDataPoint[];
   }
