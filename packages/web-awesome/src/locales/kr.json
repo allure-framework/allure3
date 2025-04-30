@@ -13,7 +13,7 @@
   "testSummary": {
     "total": "총계",
     "flaky": "불안정한 테스트들",
-    "retries": "재시도된 테스트들",
+    "retries": "재시도 테스트",
     "new": "새로운 테스트들"
   },
   "tabs": {

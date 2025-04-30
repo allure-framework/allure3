@@ -13,7 +13,7 @@
   "testSummary": {
     "total": "Total",
     "flaky": "Testes instáveis",
-    "retries": "Testes reexecutados",
+    "retries": "Testes repetidos",
     "new": "Testes novos"
   },
   "tabs": {

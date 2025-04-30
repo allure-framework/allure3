@@ -13,7 +13,7 @@
   "testSummary": {
     "total": "Toplam",
     "flaky": "İstikrarsız Testler",
-    "retries": "Yeniden çalıştırılan Testler",
+    "retries": "Yinelenen Testler",
     "new": "Yeni Testler"
   },
   "tabs": {

@@ -13,7 +13,7 @@
   "testSummary": {
     "total": "总计",
     "flaky": "不稳定的测试",
-    "retries": "重试的测试",
+    "retries": "重跑测试",
     "new": "新的测试"
   },
   "tabs": {

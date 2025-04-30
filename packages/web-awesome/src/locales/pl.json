@@ -10,7 +10,7 @@
   "testSummary": {
     "total": "Wszystkie",
     "flaky": "Niestabilne testy",
-    "retries": "Ponownie uruchomione testy",
+    "retries": "Powtórzone testy",
     "new": "Nowe testy"
   },
   "tabs": {
