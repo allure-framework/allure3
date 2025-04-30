@@ -7,6 +7,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { md5 } from "@allurereport/plugin-api";
+
 export type GeneratorParams = {
   reportDir: string;
   resultsDir: string;

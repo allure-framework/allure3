@@ -140,7 +140,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
     // Make flaky status more accurate
-    testResult.flaky = isFlaky(testResult, this.historyByTr(testResult));
+    const trHistory = await this.historyByTr(testResult);
+    testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
 
@@ -303,7 +304,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.indexAttachmentByTestResult.get(trId) ?? [];
   }
 
-  retriesByTr(tr: TestResult): TestResult[] {
+  async retriesByTr(tr: TestResult): Promise<TestResult[]> {
     if (!tr || tr.hidden || !tr.historyId) {
       return [];
     }
@@ -319,7 +320,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return tr ? this.retriesByTr(tr) : [];
   }
 
-  historyByTr(tr: TestResult): HistoryTestResult[] {
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
         if (!tr?.historyId) {
       return [];
     }
@@ -388,10 +389,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testsStatistic(filter?: TestResultFilter) {
     const all = await this.allTestResults();
 
-    const allWithStats = all.map((tr) => ({
-      ...tr,
-      flaky: isFlaky(tr, this.historyByTr(tr)),
-      retries: this.retriesByTr(tr),
+    const allWithStats = await Promise.all(all.map(async (tr) => {
+      const trHistory = await this.historyByTr(tr);
+      const retries = await this.retriesByTr(tr);
+
+      return {
+        ...tr,
+        flaky: isFlaky(tr, trHistory),
+        retries,
+      };
     }));
 
     return getTestResultsStats(allWithStats, filter);

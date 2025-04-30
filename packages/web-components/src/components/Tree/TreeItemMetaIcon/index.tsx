@@ -1,14 +1,8 @@
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
-import styles from "./styles.scss";
 
 const icons = {
   flaky: allureIcons.lineIconBomb2,
   new: allureIcons.lineGeneralEye,
-};
-
-const classNames = {
-  flaky: styles["tree-item-meta-icon-flaky"],
-  new: styles["tree-item-meta-icon-new"],
 };
 
 export interface TreeItemMetaIconProps {
@@ -16,5 +10,5 @@ export interface TreeItemMetaIconProps {
 }
 
 export const TreeItemMetaIcon = ({ type }: TreeItemMetaIconProps) => (
-  <SvgIcon data-testid={`tree-item-meta-icon-${type}`} id={icons[type]} className={classNames[type]} />
+  <SvgIcon data-testid={`tree-item-meta-icon-${type}`} id={icons[type]} />
 );
