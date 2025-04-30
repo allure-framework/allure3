@@ -1,7 +1,6 @@
 import type {
   DefaultLabelsConfig,
   EnvironmentsConfig,
-  HistoryDataPoint,
   KnownTestFailure,
   ReportVariables,
 } from "@allurereport/core-api";
@@ -40,7 +39,6 @@ export interface FullConfig {
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
-  history: HistoryDataPoint[];
   appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
