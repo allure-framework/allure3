@@ -1,1 +1,1 @@
-{"id":"551af39850a8a1b84f84c7181d08daf7","fullName":"test/config.test.ts#resolvePlugin throws an error when plugin can't be resolved","name":"throws an error when plugin can't be resolved","status":"passed","testResultsByEnv":{"default":"e2fcfbd17898fc694d8a609f45f674ef"}}
+{"id":"551af39850a8a1b84f84c7181d08daf7","fullName":"test/config.test.ts#resolvePlugin throws an error when plugin can't be resolved","name":"throws an error when plugin can't be resolved","status":"passed","testResultsByEnv":{"default":"27fbbc2d34d9be5e9dfd3c280cea1f22"}}

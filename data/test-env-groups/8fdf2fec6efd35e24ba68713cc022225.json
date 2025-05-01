@@ -1,1 +1,1 @@
-{"id":"8fdf2fec6efd35e24ba68713cc022225","fullName":"test/detect.test.ts#detectContentType should detect sample.jpeg as image/jpeg","name":"should detect sample.jpeg as image/jpeg","status":"passed","testResultsByEnv":{"default":"615cf8361d2a63449f3fe0acc5d692d8"}}
+{"id":"8fdf2fec6efd35e24ba68713cc022225","fullName":"test/detect.test.ts#detectContentType should detect sample.jpeg as image/jpeg","name":"should detect sample.jpeg as image/jpeg","status":"passed","testResultsByEnv":{"default":"d4ad77af34c21b6bbca568f1ac3ef8d1"}}

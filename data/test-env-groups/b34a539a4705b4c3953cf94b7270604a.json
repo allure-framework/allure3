@@ -1,1 +1,1 @@
-{"id":"b34a539a4705b4c3953cf94b7270604a","fullName":"test/config.test.ts#resolveConfig should allow to override given report name","name":"should allow to override given report name","status":"passed","testResultsByEnv":{"default":"4448a779395a51f3b58a12005c329337"}}
+{"id":"b34a539a4705b4c3953cf94b7270604a","fullName":"test/config.test.ts#resolveConfig should allow to override given report name","name":"should allow to override given report name","status":"passed","testResultsByEnv":{"default":"225d8bc46f9d684694ea05eee8ba4fe2"}}
