@@ -114,12 +114,15 @@ export class AwesomePlugin implements Plugin {
     );
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
     return {
       name: this.options.reportName || context.reportName,
       stats: await store.testsStatistic(this.options.filter),
       status: worstStatus ?? "passed",
       duration,
+      createdAt,
+      plugin: "Awesome",
     };
   }
 }
