@@ -12,6 +12,9 @@ export const ReportHeader = () => {
     month: "long",
     day: "numeric",
     year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
   });
 
   return (

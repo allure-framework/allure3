@@ -9,10 +9,10 @@ export type MetadataRowProps = {
 export const MetadataRow: FunctionalComponent<MetadataRowProps> = ({ label, children }) => {
   return (
     <div className={styles["metadata-row"]}>
-      <Text type={"ui"} size={"s"} bold className={styles.label}>
+      <Text type={"ui"} size={"m"} className={styles.label}>
         {label}
       </Text>
-      <Text type={"ui"} size={"s"}>
+      <Text type={"ui"} size={"m"} bold className={styles.number}>
         {children}
       </Text>
     </div>
