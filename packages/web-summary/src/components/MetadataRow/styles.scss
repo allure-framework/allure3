@@ -1,12 +1,43 @@
 .metadata-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  gap: 8px;
   color: var(--on-text-secondary);
 }
 
-.label {
+.status-passed {
+  background: var(--bg-support-castor);
+}
+
+.status-failed {
+  background: var(--bg-support-capella);
+}
+
+.status-broken {
+  background: var(--bg-support-atlas);
+}
+
+.status-skipped {
+  background: var(--bg-support-rau);
+}
+
+.status-unknown {
+  background: var(--bg-support-skat);
+}
+
+.metadata-row-label {
   text-transform: capitalize;
 }
-.number {
-  text-align: center;
+
+.metadata-row-number {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8px;
+  color: var(--constant-on-text-primary);
+  border-radius: 12px;
+}
+
+.status-total {
+  color: var(--on-text-primary);
+  background: var(--bg-control-secondary);
 }
