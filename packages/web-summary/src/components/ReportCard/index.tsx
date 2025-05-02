@@ -46,7 +46,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
     >
       <div className={styles["report-card-content"]}>
         {plugin && (
-          <Text type={"ui"} size={"s"}>
+          <Text type={"ui"} tag={"div"} size={"s"} className={styles["report-card-plugin"]}>
             {plugin}
           </Text>
         )}
@@ -70,24 +70,18 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
           </Text>
         </div>
         <div className={styles["report-card-metadata"]}>
-          <li>
-            <MetadataRow label={t("passed")}>{stats?.passed ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("failed")}>{stats?.failed ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("broken")}>{stats?.broken ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("skipped")}>{stats?.skipped ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("unknown")}>{stats?.unknown ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("total")}>{stats?.total ?? 0}</MetadataRow>
-          </li>
+          {[
+            { label: "total", value: stats?.total },
+            { label: "failed", value: stats?.failed },
+            { label: "broken", value: stats?.broken },
+            { label: "passed", value: stats?.passed },
+            { label: "skipped", value: stats?.skipped },
+            { label: "unknown", value: stats?.unknown },
+          ].map(({ label, value }) => (
+            <MetadataRow key={label} status={label} label={t(label)}>
+              {value ?? 0}
+            </MetadataRow>
+          ))}
         </div>
       </div>
       <div className={styles["report-card-chart-wrapper"]}>

@@ -5,18 +5,18 @@
   padding: 16px;
   height: 100%;
   text-decoration: none;
-  box-shadow: var(--shadow-small);
   background: var(--bg-base-primary);
+  border: 1px solid var(--bg-base-secondary);
   border-radius: 12px;
   cursor: pointer;
 
   &:hover {
-    box-shadow: none;
     transition: box-shadow 0.2s;
+    box-shadow: var(--shadow-small);
   }
 }
 
-.report-card-plugin-name {
+.report-card-plugin {
   margin-bottom: 4px;
   color: var(--on-text-secondary);
 }
@@ -27,14 +27,15 @@
 }
 
 .report-card-chart {
-  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
+  max-width: 120px;
 }
 
 .report-card-chart-wrapper {
-  position: relative;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .report-card-title {
@@ -50,9 +51,6 @@
 }
 
 .report-card-metadata {
-  & > li {
-    &:not(:last-child) {
-      margin-bottom: 2px;
-    }
-  }
+  display: flex;
+  gap: 4px;
 }
