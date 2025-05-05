@@ -118,6 +118,8 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/static-server": "workspace:*"
+    "@anatine/zod-mock": "npm:^3.14.0"
+    "@faker-js/faker": "npm:^9.7.0"
     "@playwright/test": "npm:^1.48.2"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
@@ -135,6 +137,7 @@ __metadata:
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
     prettier: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
+    zod: "npm:^3.24.3"
   languageName: unknown
   linkType: soft
 
@@ -1142,6 +1145,18 @@ __metadata:
     "@jridgewell/gen-mapping": "npm:^0.3.0"
     "@jridgewell/trace-mapping": "npm:^0.3.9"
   checksum: 10/e15fecbf3b54c988c8b4fdea8ef514ab482537e8a080b2978cc4b47ccca7140577ca7b65ad3322dcce65bc73ee6e5b90cbfe0bbd8c766dad04d5c62ec9634c42
+  languageName: node
+  linkType: hard
+
+"@anatine/zod-mock@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "@anatine/zod-mock@npm:3.14.0"
+  dependencies:
+    randexp: "npm:^0.5.3"
+  peerDependencies:
+    "@faker-js/faker": ^7.0.0 || ^8.0.0 || ^9.0.0
+    zod: ^3.21.4
+  checksum: 10/3fd85e9736c690c65564cc5cdada0536021473cf12958df8f8eb296ac301476f794d0962830ad89d467cd2fea87f7e3bade4278e7d18eeeef4ff3adf1b3f918c
   languageName: node
   linkType: hard
 
@@ -4541,6 +4556,13 @@ __metadata:
   version: 9.10.0
   resolution: "@eslint/js@npm:9.10.0"
   checksum: 10/cbda2bf268c8ac7a2b2493aaaa0113a78165a576ee5178b9fbdaf245c3d40ffaf41d006f75afab5718f68d816f00319e267b4c88ead100b19022fe491f9e0175
+  languageName: node
+  linkType: hard
+
+"@faker-js/faker@npm:^9.7.0":
+  version: 9.7.0
+  resolution: "@faker-js/faker@npm:9.7.0"
+  checksum: 10/5167cc179bbf5f140b957f600af24772ca8c6e7e42405c312c25a6b4278b851b84bd8e3065f80e667dd4c35dd5aeb0ed490b0b1872f908d58ffae1cef9a5ef72
   languageName: node
   linkType: hard
 
@@ -10896,6 +10918,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"drange@npm:^1.0.2":
+  version: 1.1.1
+  resolution: "drange@npm:1.1.1"
+  checksum: 10/7e6ed639f9ab4d826e79717e2b0685a7ab02ecd39dac6483305dcc43ea2a27dc78b538e10adaba35c086efab216ef1f53f22bc402abfd0d29454b1c5f48fecd1
+  languageName: node
+  linkType: hard
+
 "dunder-proto@npm:^1.0.0":
   version: 1.0.1
   resolution: "dunder-proto@npm:1.0.1"
@@ -16955,6 +16984,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"randexp@npm:^0.5.3":
+  version: 0.5.3
+  resolution: "randexp@npm:0.5.3"
+  dependencies:
+    drange: "npm:^1.0.2"
+    ret: "npm:^0.2.0"
+  checksum: 10/e67238fe5b0a71b1bfe56b964f59fc10d37c0cb05bf686ec624696897b1c9b3cf7a371f8d3257b7c829a67a2a4a9c2c136c1decdad147bc3f62b2147f5cafb2b
+  languageName: node
+  linkType: hard
+
 "randombytes@npm:^2.1.0":
   version: 2.1.0
   resolution: "randombytes@npm:2.1.0"
@@ -20491,5 +20530,12 @@ __metadata:
     compress-commons: "npm:^6.0.2"
     readable-stream: "npm:^4.0.0"
   checksum: 10/aa5abd6a89590eadeba040afbc375f53337f12637e5e98330012a12d9886cde7a3ccc28bd91aafab50576035bbb1de39a9a316eecf2411c8b9009c9f94f0db27
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.3":
+  version: 3.24.3
+  resolution: "zod@npm:3.24.3"
+  checksum: 10/1b15db625ca633324084f3a8587bfb907043bbca407a09f7d5da6a9781b3838c68e9312b49e91e479d2f8bf04cdda5810803ac9504e3b7ccbec3adf2de625fb8
   languageName: node
   linkType: hard

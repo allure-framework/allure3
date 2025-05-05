@@ -7,4 +7,5 @@ export type Statistic = {
   total: number;
   retries?: number;
   flaky?: number;
+  new?: number;
 };
