@@ -17,7 +17,6 @@
 }
 
 .report-card-plugin {
-  margin-bottom: 4px;
   color: var(--on-text-secondary);
 }
 
@@ -30,12 +29,14 @@
   top: 0;
   left: 0;
   width: 100%;
-  max-width: 120px;
+  max-width: 88px;
+  max-height: 88px;
 }
 
 .report-card-chart-wrapper {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .report-card-title {

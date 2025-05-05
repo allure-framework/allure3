@@ -56,7 +56,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
           </Heading>
         </div>
         {formattedCreatedAt && (
-          <Text tag={"div"} size={"m"} className={styles["report-card-created-at"]}>
+          <Text tag={"div"} size={"s"} className={styles["report-card-created-at"]}>
             {formattedCreatedAt}
           </Text>
         )}
