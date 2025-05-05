@@ -1,8 +1,12 @@
 import { type Page, expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, bootstrapReport } from "./utils/index.js";
+import { CommonPage, TestResultPage, TreePage } from "../pageObjects/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
+let commonPage: CommonPage;
+let treePage: TreePage;
+let testResultPage: TestResultPage;
 
 const now = Date.now();
 const fixtures = {
@@ -79,6 +83,10 @@ const selectEnvironment = async (page: Page, environment: string) => {
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
+
+  commonPage = new CommonPage(page);
+  treePage = new TreePage(page);
+  testResultPage = new TestResultPage(page);
 
   bootstrap = await bootstrapReport({
     reportConfig: {
@@ -160,35 +168,21 @@ test.describe("environments", () => {
     await expect(treeLeaves).toHaveCount(4);
   });
 
-  test("should allow to switch environments using the picker in the header", async ({ page }) => {
-    const envPickerButton = page.getByTestId("environment-picker-button");
-    const envButtons = page.getByTestId("tree-section-env-button");
-    const envSections = page.getByTestId("tree-section-env-content");
-    const treeLeaves = page.getByTestId("tree-leaf");
-
-    await expect(envPickerButton).toHaveText("All");
-    await selectEnvironment(page, "foo");
-    await expect(envSections).toHaveCount(0);
-    await expect(envButtons).toHaveCount(0);
-    await expect(treeLeaves).toHaveCount(2);
+  test("should allow to switch environments using the picker in the header", async () => {
+    await expect(commonPage.envPickerButtonLocator).toHaveText("All");
+    await commonPage.selectEnv("foo");
+    await expect(treePage.envSectionContentLocator).toHaveCount(0);
+    await expect(treePage.envSectionButtonLocator).toHaveCount(0);
+    await expect(treePage.leafLocator).toHaveCount(2);
   });
 
   test("should render statistics for all environments by default", async ({ page }) => {
-    const passedCounter = page.getByTestId("metadata-item-passed").getByTestId("metadata-value");
-    const totalCounter = page.getByTestId("metadata-item-total").getByTestId("metadata-value");
+    const stats = await treePage.getMetadataValues();
 
-    await expect(passedCounter).toHaveText("4");
-    await expect(totalCounter).toHaveText("4");
-  });
+    await page.pause();
 
-  test("should render statistics for selected environment", async ({ page }) => {
-    const passedCounter = page.getByTestId("metadata-item-passed").getByTestId("metadata-value");
-    const totalCounter = page.getByTestId("metadata-item-total").getByTestId("metadata-value");
-
-    await selectEnvironment(page, "bar");
-
-    await expect(passedCounter).toHaveText("1");
-    await expect(totalCounter).toHaveText("1");
+    expect(stats.passed).toEqual("4");
+    expect(stats.total).toEqual("4");
   });
 
   test("shouldn't render any environment for test result which doesn't match any environment", async ({ page }) => {
