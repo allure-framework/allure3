@@ -24,6 +24,7 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     fullName: tr.fullName,
     historyId: tr.historyId,
     flaky: tr.flaky,
+    new: tr.new,
     muted: tr.muted,
     known: tr.known,
     hidden: tr.hidden,
