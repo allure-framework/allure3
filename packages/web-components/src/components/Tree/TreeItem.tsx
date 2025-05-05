@@ -12,6 +12,7 @@ interface TreeItemProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
+  new?: boolean;
   id: string;
   groupOrder: number;
   marked?: boolean;
@@ -24,7 +25,8 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   status,
   duration,
   retriesCount,
-  flaky,
+  flaky: flakyTest,
+  new: newTest,
   id,
   marked,
   navigateTo,
@@ -44,7 +46,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}
       </Text>
-      <TreeItemInfo duration={duration} flaky={flaky} retriesCount={retriesCount} />
+      <TreeItemInfo duration={duration} flaky={flakyTest} new={newTest} retriesCount={retriesCount} />
     </div>
   );
 };

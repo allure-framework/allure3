@@ -3,6 +3,7 @@ import { Text } from "@/components/Typography";
 import { TreeItemRetries } from "../TreeItemRetries";
 import styles from "./styles.scss";
 import { TreeItemMetaIcon } from "../TreeItemMetaIcon";
+
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
