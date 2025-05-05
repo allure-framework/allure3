@@ -28,9 +28,9 @@ import type {
 } from "@allurereport/reader-api";
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
+import { isFlaky } from "../utils/flaky.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-import { isFlaky } from "../utils/flaky.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -321,7 +321,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
-        if (!tr?.historyId) {
+    if (!tr?.historyId) {
       return [];
     }
 
@@ -389,16 +389,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testsStatistic(filter?: TestResultFilter) {
     const all = await this.allTestResults();
 
-    const allWithStats = await Promise.all(all.map(async (tr) => {
-      const trHistory = await this.historyByTr(tr);
-      const retries = await this.retriesByTr(tr);
+    const allWithStats = await Promise.all(
+      all.map(async (tr) => {
+        const trHistory = await this.historyByTr(tr);
+        const retries = await this.retriesByTr(tr);
 
-      return {
-        ...tr,
-        flaky: isFlaky(tr, trHistory),
-        retries,
-      };
-    }));
+        return {
+          ...tr,
+          flaky: isFlaky(tr, trHistory),
+          retries,
+        };
+      }),
+    );
 
     return getTestResultsStats(allWithStats, filter);
   }

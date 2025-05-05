@@ -1,8 +1,9 @@
 import { formatDuration } from "@allurereport/core-api";
 import { Text } from "@/components/Typography";
+import { TreeItemMetaIcon } from "../TreeItemMetaIcon";
 import { TreeItemRetries } from "../TreeItemRetries";
 import styles from "./styles.scss";
-import { TreeItemMetaIcon } from "../TreeItemMetaIcon";
+
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;

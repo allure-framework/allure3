@@ -1,4 +1,4 @@
-import type { TestEnvGroup } from "@allurereport/core-api";
+import { DEFAULT_ENVIRONMENT, type TestEnvGroup } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
@@ -39,7 +39,10 @@ export const TrEnvironmentsView: FunctionalComponent<{
       <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
         source={testEnvGroupsStore}
         renderData={(group) => {
-          if (!group) {
+          const envsCount = Object.keys(group?.testResultsByEnv ?? {}).length ?? 0;
+          const emptyEnvs = envsCount === 1 && DEFAULT_ENVIRONMENT in group.testResultsByEnv;
+
+          if (emptyEnvs) {
             return <div className={styles["test-result-empty"]}>{t("no-environments-results")}</div>;
           }
 

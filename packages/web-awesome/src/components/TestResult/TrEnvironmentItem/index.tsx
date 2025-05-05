@@ -19,7 +19,7 @@ export const TrEnvironmentItem: FunctionalComponent<{
   const { status, error, stop, duration, id } = testResult;
   const [isOpened, setIsOpen] = useState(false);
   const hasEmptyError = !error || !Object.keys(error).length;
-  const convertedStop = timestampToDate(stop);
+  const convertedStop = stop ? timestampToDate(stop) : "";
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
   const navigateUrl = id;

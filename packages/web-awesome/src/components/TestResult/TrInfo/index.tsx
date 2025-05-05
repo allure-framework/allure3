@@ -1,4 +1,4 @@
-import type { TestEnvGroup } from "@allurereport/core-api";
+import { DEFAULT_ENVIRONMENT, TestEnvGroup } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
@@ -50,19 +50,19 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
         <div className={styles["test-result-tabs"]}>
           <TrTabsList>
             <TrTab id="overview">{t("overview")}</TrTab>
-            <TrTab id="history" disabled={!history?.length}>
+            <TrTab id="history">
               <div className={styles["test-result-tab"]}>
                 {t("history")}
                 {Boolean(history?.length) && <Counter size={"s"} count={history?.length} />}
               </div>
             </TrTab>
-            <TrTab id="retries" disabled={!retries?.length}>
+            <TrTab id="retries">
               <div className={styles["test-result-tab"]}>
                 {t("retries")}
                 {Boolean(retries?.length) && <Counter size={"s"} count={retries?.length} />}
               </div>
             </TrTab>
-            <TrTab id="attachments" disabled={!attachments?.length}>
+            <TrTab id="attachments">
               <div className={styles["test-result-tab"]}>
                 {t("attachments")}
                 {Boolean(attachments?.length) && <Counter size={"s"} count={attachments?.length} />}
@@ -71,14 +71,20 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
               transformData={(groups) => groups[testResult.testCase.id]}
-              renderData={(group) => (
-                <TrTab id="environments" disabled={!group}>
-                  <div className={styles["test-result-tab"]}>
-                    {t("environments")}
-                    {Boolean(group) && <Counter size={"s"} count={Object.keys(group.testResultsByEnv).length} />}
-                  </div>
-                </TrTab>
-              )}
+              renderData={(group) => {
+                const envsCount = Object.keys(group?.testResultsByEnv ?? {}).length ?? 0;
+                const emptyEnvs = envsCount === 1 && DEFAULT_ENVIRONMENT in group.testResultsByEnv;
+                const counter = emptyEnvs ? 0 : envsCount;
+
+                return (
+                  <TrTab id="environments">
+                    <div className={styles["test-result-tab"]}>
+                      {t("environments")}
+                      {!!counter && <Counter size={"s"} count={counter} />}
+                    </div>
+                  </TrTab>
+                );
+              }}
             />
           </TrTabsList>
         </div>

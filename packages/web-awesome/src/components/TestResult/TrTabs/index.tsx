@@ -38,7 +38,7 @@ export const TrTabsList = (props: { children: ComponentChildren }) => {
   return <div className={styles.tabsList}>{props.children}</div>;
 };
 
-export const TrTab = (props: { id: string; children: ComponentChildren; disabled?: boolean }) => {
+export const TrTab = (props: { id: string; children: ComponentChildren }) => {
   const { currentTab, setCurrentTab } = useTestResultTabsContext();
   const { id, children } = props;
   const isActiveFromUrl = activeTab.value === id;

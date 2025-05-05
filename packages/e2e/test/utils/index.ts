@@ -1,4 +1,5 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
+import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import { type TestResult } from "allure-js-commons";
@@ -6,7 +7,6 @@ import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporte
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { md5 } from "@allurereport/plugin-api";
 
 export type GeneratorParams = {
   reportDir: string;

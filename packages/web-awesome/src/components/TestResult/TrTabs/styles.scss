@@ -37,9 +37,6 @@
     border-bottom: 2px solid transparent;
   }
 
-  &[disabled] {
-    opacity: 0.5;
-  }
   &[aria-current] {
     background-color: var(--bg-base-primary);
     cursor: default;

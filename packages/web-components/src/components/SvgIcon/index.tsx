@@ -135,11 +135,11 @@ export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "i
    *
    * @default s
    */
-  size?: "xs" | "s" | "m";
+  "size"?: "xs" | "s" | "m";
   /**
    * Additional class name
    */
-  className?: string;
+  "className"?: string;
   /**
    * Icon id
    *
@@ -148,11 +148,11 @@ export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "i
    *
    * <SvgIcon id={lineShapesMoonIcon.id} />
    */
-  id: string;
+  "id": string;
   /**
    * Inline icon
    */
-  inline?: boolean;
+  "inline"?: boolean;
   /**
    * Data test id
    */
@@ -164,9 +164,18 @@ export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "i
  *
  * default size is 16x16
  */
-export const SvgIcon = ({ id, size = "s", inline = false, className = "", "data-testid": dataTestId }: SvgIconProps) => {
+export const SvgIcon = ({
+  id,
+  size = "s",
+  inline = false,
+  className = "",
+  "data-testid": dataTestId,
+}: SvgIconProps) => {
   return (
-    <svg className={clsx(styles.icon, styles[`size-${size}`], inline && styles.inline, className)} data-testid={dataTestId}>
+    <svg
+      className={clsx(styles.icon, styles[`size-${size}`], inline && styles.inline, className)}
+      data-testid={dataTestId}
+    >
       <use xlinkHref={`#${id}`} />
     </svg>
   );

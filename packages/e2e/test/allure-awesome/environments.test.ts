@@ -191,23 +191,15 @@ test.describe("environments", () => {
     await expect(totalCounter).toHaveText("1");
   });
 
-  test("should render default environment for test result which doesn't match any environment", async ({ page }) => {
+  test("shouldn't render any environment for test result which doesn't match any environment", async ({ page }) => {
     const treeLeaves = page.getByTestId("tree-leaf");
     const envItems = page.getByTestId("test-result-env-item");
     const envTab = page.getByText("Environments");
 
     await treeLeaves.nth(0).click();
-    await expect(envTab).toContainText("1");
     await envTab.click();
-    await expect(envItems).toHaveCount(1);
 
-    const pageUrl = page.url();
-    const envItem = envItems.nth(0);
-
-    await expect(envItem).toContainText("default");
-    await expect(envItems.getByTestId("test-result-env-item-new-tab-button")).not.toBeVisible();
-    await envItem.click();
-    expect(page.url()).toBe(pageUrl);
+    await expect(envItems).toHaveCount(0);
   });
 
   test("should render a matched environment for test result", async ({ page }) => {
