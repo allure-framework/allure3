@@ -73,14 +73,13 @@ export type AwesomeTestResult = Omit<
   order?: number;
   groupOrder?: number;
   retry: boolean;
-  new: boolean;
   categories?: AwesomeCategory[];
   environment?: string | "default";
 };
 
 export type AwesomeTreeLeaf = Pick<
   AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry" | "retriesCount" | "new"
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "new" | "retry" | "retriesCount"
 > & {
   nodeId: string;
 };
