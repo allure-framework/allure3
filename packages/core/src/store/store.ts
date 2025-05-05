@@ -192,10 +192,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
-    // Make flaky status more accurate
+    // Make calculated statuses more accurate
     const trHistory = await this.historyByTr(testResult);
 
     testResult.flaky = isFlaky(testResult, trHistory);
+    testResult.new = isNew(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
 

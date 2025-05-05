@@ -181,14 +181,15 @@ export const generateTree = async (
   const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,
-    ({ id, name, status, duration, flaky, start, retries }) => {
+    ({ id, name, status, duration, flaky: flakyTest, new: newTest, start, retries }) => {
       return {
         nodeId: id,
         retry: !!retries?.length,
         name,
         status,
         duration,
-        flaky,
+        flaky: flakyTest,
+        new: newTest,
         start,
       };
     },
@@ -349,14 +350,15 @@ export const generateTreeByCategories = async (
 
   const tree = createTreeByCategories<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, start, retries }: AwesomeTestResult) => {
+    ({ id, name, status, duration, flaky: flakyTest, new: newTest, start, retries }: AwesomeTestResult) => {
       return {
         nodeId: id,
         retry: !!retries?.length,
         name,
         status,
         duration,
-        flaky,
+        flaky: flakyTest,
+        new: newTest,
         start,
       };
     },

@@ -37,7 +37,6 @@ import { convertFixtureResult, convertTestResult } from "./converters.js";
 import { filterEnv } from "./environments.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
-import { isNew } from "@allurereport/core";
 
 const require = createRequire(import.meta.url);
 
@@ -186,10 +185,7 @@ export const generateTree = async (
   const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,
-    (awesomeTr) => {
-      const { id, name, status, duration, flaky, start, retries, history } = awesomeTr;
-      const retriesCount = retries?.length;
-
+    ({ id, name, status, duration, flaky: flakyTest, new: newTest, start, retriesCount }) => {
       return {
         nodeId: id,
         retry: Boolean(retriesCount),
@@ -198,8 +194,8 @@ export const generateTree = async (
         status,
         start,
         duration,
-        flaky,
-        new: isNew(awesomeTr, history),
+        flaky: flakyTest,
+        new: newTest,
       };
     },
     undefined,
