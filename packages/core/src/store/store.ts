@@ -31,6 +31,7 @@ import type { AllureStoreEvents } from "../utils/event.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 import { isFlaky } from "../utils/flaky.js";
+import { isNew } from "../utils/new.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -321,7 +322,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
-        if (!tr?.historyId) {
+    if (!tr?.historyId) {
       return [];
     }
 
@@ -396,6 +397,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return {
         ...tr,
         flaky: isFlaky(tr, trHistory),
+        new: isNew(tr, trHistory),
         retries,
       };
     }));

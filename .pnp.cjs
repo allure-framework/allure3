@@ -313,6 +313,8 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
+          ["@anatine/zod-mock", "virtual:4a5ba7b72575b6f6ff5e4d2fa2181601f3457d598f4cd1462c9987cec2c7400dd8088d57b8083a2dd96232ce49d39262041af68a34af69cc0003e3042bc86ec1#npm:3.14.0"],\
+          ["@faker-js/faker", "npm:9.7.0"],\
           ["@playwright/test", "npm:1.48.2"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -329,7 +331,8 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["prettier", "npm:3.3.3"],\
-          ["rimraf", "npm:6.0.1"]\
+          ["rimraf", "npm:6.0.1"],\
+          ["zod", "npm:3.24.3"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -1351,6 +1354,33 @@ const RAW_RUNTIME_STATE =
           ["@ampproject/remapping", "npm:2.2.1"],\
           ["@jridgewell/gen-mapping", "npm:0.3.4"],\
           ["@jridgewell/trace-mapping", "npm:0.3.21"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@anatine/zod-mock", [\
+      ["npm:3.14.0", {\
+        "packageLocation": "./.yarn/cache/@anatine-zod-mock-npm-3.14.0-08f0295869-3fd85e9736.zip/node_modules/@anatine/zod-mock/",\
+        "packageDependencies": [\
+          ["@anatine/zod-mock", "npm:3.14.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:4a5ba7b72575b6f6ff5e4d2fa2181601f3457d598f4cd1462c9987cec2c7400dd8088d57b8083a2dd96232ce49d39262041af68a34af69cc0003e3042bc86ec1#npm:3.14.0", {\
+        "packageLocation": "./.yarn/__virtual__/@anatine-zod-mock-virtual-7c73550cdf/0/cache/@anatine-zod-mock-npm-3.14.0-08f0295869-3fd85e9736.zip/node_modules/@anatine/zod-mock/",\
+        "packageDependencies": [\
+          ["@anatine/zod-mock", "virtual:4a5ba7b72575b6f6ff5e4d2fa2181601f3457d598f4cd1462c9987cec2c7400dd8088d57b8083a2dd96232ce49d39262041af68a34af69cc0003e3042bc86ec1#npm:3.14.0"],\
+          ["@faker-js/faker", "npm:9.7.0"],\
+          ["@types/faker-js__faker", null],\
+          ["@types/zod", null],\
+          ["randexp", "npm:0.5.3"],\
+          ["zod", "npm:3.24.3"]\
+        ],\
+        "packagePeers": [\
+          "@faker-js/faker",\
+          "@types/faker-js__faker",\
+          "@types/zod",\
+          "zod"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -8962,6 +8992,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@eslint-js-npm-9.10.0-faaae041c9-cbda2bf268.zip/node_modules/@eslint/js/",\
         "packageDependencies": [\
           ["@eslint/js", "npm:9.10.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@faker-js/faker", [\
+      ["npm:9.7.0", {\
+        "packageLocation": "./.yarn/cache/@faker-js-faker-npm-9.7.0-620f6a987e-5167cc179b.zip/node_modules/@faker-js/faker/",\
+        "packageDependencies": [\
+          ["@faker-js/faker", "npm:9.7.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -18558,6 +18597,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["drange", [\
+      ["npm:1.1.1", {\
+        "packageLocation": "./.yarn/cache/drange-npm-1.1.1-f48050660f-7e6ed639f9.zip/node_modules/drange/",\
+        "packageDependencies": [\
+          ["drange", "npm:1.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["dunder-proto", [\
       ["npm:1.0.1", {\
         "packageLocation": "./.yarn/cache/dunder-proto-npm-1.0.1-90eb6829db-5add88a3d6.zip/node_modules/dunder-proto/",\
@@ -26997,6 +27045,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["randexp", [\
+      ["npm:0.5.3", {\
+        "packageLocation": "./.yarn/cache/randexp-npm-0.5.3-cbec49e616-e67238fe5b.zip/node_modules/randexp/",\
+        "packageDependencies": [\
+          ["randexp", "npm:0.5.3"],\
+          ["drange", "npm:1.1.1"],\
+          ["ret", "npm:0.2.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["randombytes", [\
       ["npm:2.1.0", {\
         "packageLocation": "./.yarn/cache/randombytes-npm-2.1.0-e3da76bccf-4efd1ad3d8.zip/node_modules/randombytes/",\
@@ -27490,6 +27549,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/ret-npm-0.1.15-0d3c19de76-07c9e7619b.zip/node_modules/ret/",\
         "packageDependencies": [\
           ["ret", "npm:0.1.15"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:0.2.2", {\
+        "packageLocation": "./.yarn/cache/ret-npm-0.2.2-f5d3022812-9f16517f77.zip/node_modules/ret/",\
+        "packageDependencies": [\
+          ["ret", "npm:0.2.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -32370,6 +32436,15 @@ const RAW_RUNTIME_STATE =
           ["archiver-utils", "npm:5.0.2"],\
           ["compress-commons", "npm:6.0.2"],\
           ["readable-stream", "npm:4.7.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["zod", [\
+      ["npm:3.24.3", {\
+        "packageLocation": "./.yarn/cache/zod-npm-3.24.3-464710625e-1b15db625c.zip/node_modules/zod/",\
+        "packageDependencies": [\
+          ["zod", "npm:3.24.3"]\
         ],\
         "linkType": "HARD"\
       }]\
