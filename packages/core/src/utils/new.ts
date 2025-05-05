@@ -5,5 +5,5 @@ export const isNew = (tr: TestResult, history?: HistoryTestResult[]) => {
     return true;
   }
 
-  return !history.some((h) => h.id === tr.historyId);
+  return tr.new || !history.some((h) => h.id === tr.historyId);
 };
