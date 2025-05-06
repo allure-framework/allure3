@@ -1,6 +1,6 @@
 import { md5 } from "@allurereport/plugin-api";
 import { attachment, step } from "allure-js-commons";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";
 
@@ -178,6 +178,31 @@ describe("testResultRawToState", () => {
         originalFileName: "some-file.txt",
         ext: ".txt",
       },
+    });
+  });
+
+  describe("a converted step attachment", () => {
+    it("should match a visited link", async () => {
+      const visitAttachmentLink = vi.fn<StateData["visitAttachmentLink"]>();
+
+      const result = await functionUnderTest(
+        { ...emptyStateData, visitAttachmentLink },
+        { steps: [{ type: "step", steps: [{ type: "attachment", originalFileName: "some-file.txt" }] }] },
+        { readerId },
+      );
+
+      const { id } = visitAttachmentLink.mock.calls[0][0];
+      expect(result.steps).toMatchObject([
+        {
+          type: "step",
+          steps: [
+            {
+              type: "attachment",
+              link: { id },
+            },
+          ],
+        },
+      ]);
     });
   });
 });
