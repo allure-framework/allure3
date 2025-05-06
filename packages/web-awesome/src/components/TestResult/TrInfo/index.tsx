@@ -1,4 +1,4 @@
-import { DEFAULT_ENVIRONMENT, TestEnvGroup } from "@allurereport/core-api";
+import { type TestEnvGroup, getRealEnvsCount } from "@allurereport/core-api";
 import { formatDuration } from "@allurereport/core-api";
 import { Counter, Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import clsx from "clsx";
@@ -72,15 +72,13 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
               source={testEnvGroupsStore}
               transformData={(groups) => groups[testResult.testCase.id]}
               renderData={(group) => {
-                const envsCount = Object.keys(group?.testResultsByEnv ?? {}).length ?? 0;
-                const emptyEnvs = envsCount === 1 && DEFAULT_ENVIRONMENT in group.testResultsByEnv;
-                const counter = emptyEnvs ? 0 : envsCount;
+                const envsCount = getRealEnvsCount(group);
 
                 return (
                   <TrTab id="environments">
                     <div className={styles["test-result-tab"]}>
                       {t("environments")}
-                      {!!counter && <Counter size={"s"} count={counter} />}
+                      {!!envsCount && <Counter size={"s"} count={envsCount} />}
                     </div>
                   </TrTab>
                 );
