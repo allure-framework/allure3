@@ -277,7 +277,7 @@ const convertStep = (
       stepId: md5(`${step.name}${step.start}`),
       name: step.name ?? __unknown,
       status: step.status ?? defaultStatus,
-      steps: convertSteps(stateData, step.steps),
+      steps: subSteps,
       parameters: convertParameters(step.parameters),
       ...processTimings(step),
       type: "step",
