@@ -160,16 +160,12 @@
 }
 
 .test-result-attachment-content {
-  max-height: 450px;
-  overflow-y: auto;
   border-top: 1px solid var(--on-border-muted);
 }
 
 .test-result-attachment-content-wrapper {
   padding-left: 16px;
   margin-left: 11px;
-  max-height: 450px;
-  overflow-y: auto;
 }
 
 .test-result-step-root {
