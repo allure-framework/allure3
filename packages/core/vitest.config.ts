@@ -11,7 +11,16 @@ export default defineConfig({
       "default",
       [
         "allure-vitest/reporter",
-        { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "core" }] },
+        {
+          resultsDir: "./out/allure-results",
+          globalLabels: [{ name: "module", value: "core" }],
+          links: {
+            issue: {
+              urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
+              nameTemplate: "Issue %s",
+            },
+          },
+        },
       ],
     ],
   },
