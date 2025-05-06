@@ -95,7 +95,7 @@ export const Modal = ({
     <div className={styles["modal-overlay"]} onClick={closeModal}>
       <div className={clsx(styles["modal-content"])} onClick={(e) => e.stopPropagation()}>
         <div className={clsx(styles["modal-wrapper"], { [styles["modal-wrapper-fullscreen"]]: isFullScreen })}>
-          <div className={styles["modal-top"]}>
+          <div className={styles["modal-header"]}>
             <Heading size={"s"}>{modalName}</Heading>
             <div className={styles["modal-buttons"]}>
               {isImageAttachment && (
