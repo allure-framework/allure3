@@ -1,5 +1,5 @@
 import { md5 } from "@allurereport/plugin-api";
-import { attachment, step } from "allure-js-commons";
+import { attachment, issue, step } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";
@@ -183,6 +183,7 @@ describe("testResultRawToState", () => {
 
   describe("a converted step attachment", () => {
     it("should match a visited link", async () => {
+      await issue("171");
       const visitAttachmentLink = vi.fn<StateData["visitAttachmentLink"]>();
 
       const result = await functionUnderTest(
