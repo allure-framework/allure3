@@ -1,1 +1,1 @@
-{"id":"8c108b7cbb7c691012b85e314435c24b","fullName":"test/allure1.test.ts#allure1 reader should parse test-suites element with invalid type","name":"should parse test-suites element with invalid type","status":"passed","testResultsByEnv":{"default":"ef09d6080ebd3d7dd179f6165075cd54"}}
+{"id":"8c108b7cbb7c691012b85e314435c24b","fullName":"test/allure1.test.ts#allure1 reader should parse test-suites element with invalid type","name":"should parse test-suites element with invalid type","status":"passed","testResultsByEnv":{"default":"64cbe9237edc8e0cf85f69418b4060ca"}}
