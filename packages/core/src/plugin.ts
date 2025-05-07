@@ -1,6 +1,7 @@
 import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { join as joinPosix } from "node:path/posix";
 
 export class DefaultPluginState implements PluginState {
   readonly #state: Record<string, any>;
@@ -30,7 +31,7 @@ export class PluginFiles implements ReportFiles {
   }
 
   addFile = async (key: string, data: Buffer): Promise<void> => {
-    await this.#parent.addFile(join(this.#pluginId, key), data);
+    await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
   };
 }
 

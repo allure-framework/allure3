@@ -1,7 +1,7 @@
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 
 export interface ReportFile {
@@ -104,7 +104,7 @@ export class ReportFileDataWriter implements AwesomeDataWriter {
       return;
     }
 
-    await this.reportFiles.addFile(join("data", "attachments", source), contentBuffer);
+    await this.reportFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
   }
 
   async writeTestCase(test: AwesomeTestResult): Promise<void> {
