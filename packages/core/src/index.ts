@@ -3,6 +3,8 @@ export * from "./utils/misc.js";
 export * from "./utils/crypto.js";
 export * from "./utils/path.js";
 export * from "./utils/stats.js";
+export * from "./utils/new.js";
+export * from "./utils/flaky.js";
 export * from "./history.js";
 export * from "./known.js";
 export { resolveConfig, readConfig } from "./config.js";
