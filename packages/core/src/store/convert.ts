@@ -104,7 +104,6 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     flaky: raw.flaky ?? false,
     muted: raw.muted ?? false,
     known: raw.known ?? false,
-    new: false,
     hidden: false,
 
     labels,

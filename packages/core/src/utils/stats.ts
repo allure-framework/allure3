@@ -2,7 +2,6 @@ import type { Statistic, TestResult } from "@allurereport/core-api";
 
 type WithComputedStats<T> = T & {
   new: boolean;
-  flaky: boolean;
 };
 
 type ExtendedTestResult = WithComputedStats<TestResult>;
