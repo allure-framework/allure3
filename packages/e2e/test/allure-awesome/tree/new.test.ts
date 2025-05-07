@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
+import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
@@ -8,12 +9,57 @@ test.describe("new tests", () => {
     test.beforeAll(async () => {
       const now = Date.now();
 
+      const reportName = "Sample allure report with new tests";
+      const flakyTestName = "Test with history";
+      const flakyTestFullname = "sample.js#Test with history";
+      const testCaseId = makeTestCaseId(flakyTestFullname);
+      const historyId = makeHistoryId("Test with history");
+
       bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report with new tests",
-          appendHistory: false,
-          history: [],
-          historyPath: undefined,
+          appendHistory: true,
+          history: [
+            {
+                uuid: "dc4d9432-ebef-4e0f-b121-37fcf0383023",
+                name: reportName,
+                timestamp: 1745926867897,
+                knownTestCaseIds: [testCaseId],
+                testResults: {
+                  [historyId]: {
+                    id: "42dffbf3bb12f89807c85206c3f993a2",
+                    name: flakyTestName,
+                    fullName: flakyTestFullname,
+                    status: Status.PASSED,
+                    start: 1745926873782,
+                    stop: 1745926874782,
+                    duration: 1000,
+                    labels: [],
+                  },
+                },
+                metrics: {},
+              },
+              {
+                uuid: "b441fbc8-5222-4380-a325-d776436789f3",
+                name: reportName,
+                timestamp: 1745926884436,
+                knownTestCaseIds: [testCaseId],
+                testResults: {
+                  [historyId]: {
+                    id: "1373936b78555e2d7646b6f7eccb5b83",
+                    name: flakyTestName,
+                    fullName: flakyTestFullname,
+                    status: Status.PASSED,
+                    start: 1745926890322,
+                    stop: 1745926891322,
+                    duration: 1000,
+                    labels: [],
+                  },
+                },
+                metrics: {},
+              },
+          ],
+          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -33,11 +79,11 @@ test.describe("new tests", () => {
             start: now + 2000,
             stop: now + 3000,
           },
-          // Tests with retries
+          // Test with history
           {
-            name: "Test with retries",
-            fullName: "sample.js#Test with retries",
-            historyId: "retryTest1",
+            name: flakyTestName,
+            fullName: flakyTestFullname,
+            historyId,
             status: Status.FAILED,
             stage: Stage.FINISHED,
             start: now + 4000,
@@ -46,15 +92,6 @@ test.describe("new tests", () => {
               message: "Second attempt failed",
               trace: "Second attempt trace",
             },
-          },
-          {
-            name: "Test with retries",
-            fullName: "sample.js#Test with retries",
-            historyId: "retryTest1",
-            status: Status.PASSED,
-            stage: Stage.FINISHED,
-            start: now + 6000,
-            stop: now + 7000,
           },
         ],
       });
