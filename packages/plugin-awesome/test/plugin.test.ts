@@ -1,7 +1,7 @@
 import type { Statistic, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import AwesomePlugin from "../src/index.js";
+import { fixtures } from "./fixtures.js";
 
 // duplicated the code from core to avoid circular dependency
 export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -23,46 +23,6 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
     },
     { total: trsToProcess.length } as Statistic,
   );
-};
-const fixtures: any = {
-  testResults: {
-    passed: {
-      name: "passed sample",
-      status: "passed",
-    },
-    failed: {
-      name: "failed sample",
-      status: "failed",
-    },
-    broken: {
-      name: "broken sample",
-      status: "broken",
-    },
-    unknown: {
-      name: "unknown sample",
-      status: "unknown",
-    },
-    skipped: {
-      name: "skipped sample",
-      status: "skipped",
-    },
-  },
-  context: {} as PluginContext,
-  store: {
-    allTestResults: () =>
-      Promise.resolve([
-        fixtures.testResults.passed,
-        fixtures.testResults.failed,
-        fixtures.testResults.broken,
-        fixtures.testResults.skipped,
-        fixtures.testResults.unknown,
-      ]),
-    testsStatistic: async (filter) => {
-      const all = await fixtures.store.allTestResults();
-
-      return getTestResultsStats(all, filter);
-    },
-  } as AllureStore,
 };
 
 describe("plugin", () => {

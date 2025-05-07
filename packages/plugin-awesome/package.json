@@ -27,7 +27,7 @@
     "clean": "rimraf ./dist",
     "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
-    "test": "rimraf ./out && vitest run"
+    "test": "rimraf ./out && vitest run --config ./vitest.config.ts"
   },
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
