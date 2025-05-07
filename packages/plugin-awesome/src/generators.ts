@@ -1,3 +1,4 @@
+import { isFlaky, isNew } from "@allurereport/core";
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -129,6 +130,8 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
+    convertedTr.new = isNew(tr, convertedTr.history);
+    convertedTr.flaky = isFlaky(tr, convertedTr.history);
     // FIXME: the type is correct, but typescript still shows an error
     // @ts-ignore
     convertedTr.attachments = (await store.attachmentsByTrId(tr.id)).map((attachment) => ({

@@ -20,10 +20,9 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
   const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
   const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
-  // TODO: at this moment we don't have a new field implementation even in the generator
-  // const newMatched = !filterOptions?.filter?.new || leaf.new;
+  const newMatched = !filterOptions?.filter?.new || leaf.new;
 
-  return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
+  return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched].every(Boolean);
 };
 
 const leafComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
