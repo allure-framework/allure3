@@ -44,7 +44,6 @@ export interface TestResult {
   duration?: number;
 
   flaky: boolean;
-  new: boolean;
   muted: boolean;
   known: boolean;
 
