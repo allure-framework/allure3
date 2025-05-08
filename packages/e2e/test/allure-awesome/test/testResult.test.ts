@@ -5,7 +5,6 @@ import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
 import { CommonPage, TestResultPage, TreePage } from "../pageObjects/index.js";
 
 let bootstrap: ReportBootstrap;
-let commonPage: CommonPage;
 let treePage: TreePage;
 let testResultPage: TestResultPage;
 
@@ -104,9 +103,9 @@ test.describe("allure-awesome", () => {
 
       const testTitleText = await testResultPage.titleLocator.textContent();
       const navCounterText = await testResultPage.navCurrentLocator.textContent();
-      const pressPrevArrow = await testResultPage.navPrevLocator.isDisabled();
+      const pressNextButton = await testResultPage.navPrevLocator.isDisabled();
 
-      if (pressPrevArrow) {
+      if (!pressNextButton) {
         await testResultPage.clickPrevTestResult();
       } else {
         await testResultPage.clickNextTestResult();
@@ -115,7 +114,7 @@ test.describe("allure-awesome", () => {
       await expect(testResultPage.navCurrentLocator).not.toHaveText(navCounterText);
       await expect(testResultPage.titleLocator).not.toHaveText(testTitleText);
 
-      if (pressPrevArrow) {
+      if (!pressNextButton) {
         await testResultPage.clickNextTestResult();
       } else {
         await testResultPage.clickPrevTestResult();
@@ -138,7 +137,7 @@ test.describe("allure-awesome", () => {
       expect(clipboardContent).toEqual("sample.js#0 sample passed test");
     });
 
-    test("failed test contains error message and stack", async ({ page }) => {
+    test("failed test contains error message and stack", async () => {
       await treePage.leafStatusFailedLocator.click();
       await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
       await expect(testResultPage.errorTraceLocator).not.toBeVisible();

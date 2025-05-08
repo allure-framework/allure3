@@ -151,6 +151,9 @@ export class TreePage {
   }
 
   async clickRandomLeaf() {
+    // wait before any leaf appear
+    await this.leafLocator.nth(0).waitFor({ state: "visible" });
+
     const leavesCount = await this.leafLocator.count();
 
     if (leavesCount === 0) {
