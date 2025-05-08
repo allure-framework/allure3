@@ -15,6 +15,7 @@ export class TreePage {
   searchClearLocator: Locator;
 
   metadataTotalLocator: Locator;
+  metadataRetriesLocator: Locator;
   metadataPassedLocator: Locator;
   metadataFailedLocator: Locator;
   metadataSkippedLocator: Locator;
@@ -41,6 +42,7 @@ export class TreePage {
     this.searchClearLocator = page.getByTestId("clear-button");
 
     this.metadataTotalLocator = page.getByTestId("metadata-item-total");
+    this.metadataRetriesLocator = page.getByTestId("metadata-item-retries");
     this.metadataPassedLocator = page.getByTestId("metadata-item-passed");
     this.metadataFailedLocator = page.getByTestId("metadata-item-failed");
     this.metadataBrokenLocator = page.getByTestId("metadata-item-broken");
@@ -94,12 +96,17 @@ export class TreePage {
     return this.getNthSectionLocator(n).getByTestId("tree-section-title");
   }
 
-  async getMetadataValue(metadata: "total" | "passed" | "failed" | "skipped" | "broken" | "unknown" = "total") {
+  async getMetadataValue(
+    metadata: "total" | "retries" | "passed" | "failed" | "skipped" | "broken" | "unknown" = "total",
+  ) {
     let baseLocator: Locator;
 
     switch (metadata) {
       case "total":
         baseLocator = this.metadataTotalLocator;
+        break;
+      case "retries":
+        baseLocator = this.metadataRetriesLocator;
         break;
       case "passed":
         baseLocator = this.metadataPassedLocator;
@@ -130,6 +137,7 @@ export class TreePage {
   async getMetadataValues() {
     return {
       total: await this.getMetadataValue("total"),
+      retries: await this.getMetadataValue("retries"),
       passed: await this.getMetadataValue("passed"),
       failed: await this.getMetadataValue("failed"),
       skipped: await this.getMetadataValue("skipped"),

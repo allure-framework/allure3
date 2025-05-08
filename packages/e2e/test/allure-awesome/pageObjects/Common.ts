@@ -10,7 +10,7 @@ export class CommonPage {
   envPickerLocator: Locator;
   envPickerButtonLocator: Locator;
 
-  constructor(page: Page) {
+  constructor(readonly page: Page) {
     this.reportTitleLocator = page.getByTestId("report-title");
 
     this.toggleLayoutButtonLocator = page.getByTestId("toggle-layout-button");

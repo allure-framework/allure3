@@ -158,80 +158,6 @@ test.describe("commons", () => {
   });
 });
 
-test.describe("filters", () => {
-  test.describe("retry", () => {
-    test.beforeAll(async () => {
-      bootstrap = await bootstrapReport({
-        reportConfig: {
-          name: "Sample allure report",
-          appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
-          knownIssuesPath: undefined,
-        },
-        testResults: [
-          {
-            name: "0 sample test",
-            fullName: "sample.js#0 sample test",
-            historyId: "foo",
-            status: Status.FAILED,
-            stage: Stage.FINISHED,
-            start: 0,
-            statusDetails: {
-              message: "Assertion error: Expected 1 to be 2",
-              trace: "failed test trace",
-            },
-          },
-          {
-            name: "0 sample test",
-            fullName: "sample.js#0 sample test",
-            historyId: "foo",
-            status: Status.FAILED,
-            stage: Stage.FINISHED,
-            start: 1000,
-            statusDetails: {
-              message: "Assertion error: Expected 1 to be 2",
-              trace: "failed test trace",
-            },
-          },
-          {
-            name: "0 sample test",
-            fullName: "sample.js#0 sample test",
-            historyId: "foo",
-            status: Status.PASSED,
-            stage: Stage.FINISHED,
-            start: 2000,
-          },
-          {
-            name: "1 sample test",
-            fullName: "sample.js#1 sample test",
-            historyId: "bar",
-            status: Status.PASSED,
-            stage: Stage.FINISHED,
-            start: 3000,
-          },
-          {
-            name: "2 sample test",
-            fullName: "sample.js#2 sample test",
-            historyId: "baz",
-            status: Status.PASSED,
-            stage: Stage.FINISHED,
-            start: 4000,
-          },
-        ],
-      });
-    });
-
-    test("shows only tests with retries", async () => {
-      await expect(treePage.leafLocator).toHaveCount(3);
-      await treePage.clickRetryFilter();
-      await expect(treePage.leafLocator).toHaveCount(1);
-      await treePage.clickRetryFilter();
-      await expect(treePage.leafLocator).toHaveCount(3);
-    });
-  });
-});
-
 test.describe("SearchBox component with debounce", () => {
   test("should update value with debounce and clear input", async ({ page }) => {
     bootstrap = await bootstrapReport(
@@ -577,5 +503,112 @@ test.describe("stories", () => {
     await expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
     await expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
     await expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
+  });
+});
+
+test.describe("retries", () => {
+  test.beforeAll(async () => {
+    bootstrap = await bootstrapReport({
+      reportConfig: {
+        name: "Sample allure report",
+        appendHistory: false,
+        history: undefined,
+        historyPath: undefined,
+        knownIssuesPath: undefined,
+      },
+      testResults: [
+        {
+          name: "0 sample test",
+          fullName: "sample.js#0 sample test",
+          historyId: "foo",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 0,
+          statusDetails: {
+            message: "Assertion error: Expected 1 to be 2",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "0 sample test",
+          fullName: "sample.js#0 sample test",
+          historyId: "foo",
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: 1000,
+          statusDetails: {
+            message: "Assertion error: Expected 1 to be 2",
+            trace: "failed test trace",
+          },
+        },
+        {
+          name: "0 sample test",
+          fullName: "sample.js#0 sample test",
+          historyId: "foo",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 2000,
+        },
+        {
+          name: "1 sample test",
+          fullName: "sample.js#1 sample test",
+          historyId: "bar",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 3000,
+        },
+        {
+          name: "1 sample test",
+          fullName: "sample.js#1 sample test",
+          historyId: "bar",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 4000,
+        },
+        {
+          name: "2 sample test",
+          fullName: "sample.js#2 sample test",
+          historyId: "baz",
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: 5000,
+        },
+      ],
+    });
+  });
+
+  test("shows only tests with retries", async () => {
+    await expect(treePage.leafLocator).toHaveCount(3);
+    await treePage.clickRetryFilter();
+    await expect(treePage.leafLocator).toHaveCount(2);
+    await treePage.clickRetryFilter();
+    await expect(treePage.leafLocator).toHaveCount(3);
+  });
+
+  test("should show retry icon in the tree for tests with retries", async ({ page }) => {
+    const retryIcons = page.getByTestId("tree-item-retries");
+
+    await expect(retryIcons).toHaveCount(2);
+
+    const testWithRetriesIcon = treePage.leafLocator
+      .filter({
+        has: page.getByText("0 sample test", { exact: true }),
+      })
+      .getByTestId("tree-item-retries");
+    const anotherTestWithRetriesIcon = treePage.leafLocator
+      .filter({
+        has: page.getByText("1 sample test", { exact: true }),
+      })
+      .getByTestId("tree-item-retries");
+
+    await expect(testWithRetriesIcon).toContainText("2");
+    await expect(anotherTestWithRetriesIcon).toContainText("1");
+  });
+
+  test("metadata shows correct count of retries", async () => {
+    const { total, retries } = await treePage.getMetadataValues();
+
+    expect(total).toBe("3");
+    expect(retries).toBe("2");
   });
 });
