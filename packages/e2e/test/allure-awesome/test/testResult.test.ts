@@ -2,7 +2,7 @@ import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
-import { CommonPage, TestResultPage, TreePage } from "../pageObjects/index.js";
+import { TestResultPage, TreePage } from "../pageObjects/index.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
@@ -83,17 +83,14 @@ test.beforeAll(async () => {
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
 
-  commonPage = new CommonPage(page);
   treePage = new TreePage(page);
   testResultPage = new TestResultPage(page);
+
+  await page.goto(bootstrap.url);
 });
 
 test.afterAll(async () => {
   await bootstrap.shutdown();
-});
-
-test.beforeEach(async ({ page }) => {
-  await page.goto(bootstrap.url);
 });
 
 test.describe("allure-awesome", () => {

@@ -16,6 +16,7 @@ export class TreePage {
 
   metadataTotalLocator: Locator;
   metadataRetriesLocator: Locator;
+  metadataFlakyLocator: Locator;
   metadataPassedLocator: Locator;
   metadataFailedLocator: Locator;
   metadataSkippedLocator: Locator;
@@ -26,7 +27,10 @@ export class TreePage {
   envSectionContentLocator: Locator;
 
   filtersButtonLocator: Locator;
+  filtersMenuLocator: Locator;
+
   retryFilterLocator: Locator;
+  flakyFilterLocator: Locator;
 
   constructor(readonly page: Page) {
     this.leafLocator = page.getByTestId("tree-leaf");
@@ -43,6 +47,7 @@ export class TreePage {
 
     this.metadataTotalLocator = page.getByTestId("metadata-item-total");
     this.metadataRetriesLocator = page.getByTestId("metadata-item-retries");
+    this.metadataFlakyLocator = page.getByTestId("metadata-item-flaky");
     this.metadataPassedLocator = page.getByTestId("metadata-item-passed");
     this.metadataFailedLocator = page.getByTestId("metadata-item-failed");
     this.metadataBrokenLocator = page.getByTestId("metadata-item-broken");
@@ -53,7 +58,10 @@ export class TreePage {
     this.envSectionButtonLocator = page.getByTestId("tree-section-env-button");
 
     this.filtersButtonLocator = page.getByTestId("filters-button");
+    this.filtersMenuLocator = page.getByTestId("filters-menu");
+
     this.retryFilterLocator = page.getByTestId("retry-filter");
+    this.flakyFilterLocator = page.getByTestId("flaky-filter");
   }
 
   getNthLeafLocator(n: number) {
@@ -96,8 +104,14 @@ export class TreePage {
     return this.getNthSectionLocator(n).getByTestId("tree-section-title");
   }
 
+  getLeafByTitle(title: string) {
+    return this.leafLocator.filter({
+      has: this.page.getByText(title, { exact: true }),
+    });
+  }
+
   async getMetadataValue(
-    metadata: "total" | "retries" | "passed" | "failed" | "skipped" | "broken" | "unknown" = "total",
+    metadata: "total" | "retries" | "flaky" | "passed" | "failed" | "skipped" | "broken" | "unknown" = "total",
   ) {
     let baseLocator: Locator;
 
@@ -107,6 +121,9 @@ export class TreePage {
         break;
       case "retries":
         baseLocator = this.metadataRetriesLocator;
+        break;
+      case "flaky":
+        baseLocator = this.metadataFlakyLocator;
         break;
       case "passed":
         baseLocator = this.metadataPassedLocator;
@@ -138,6 +155,7 @@ export class TreePage {
     return {
       total: await this.getMetadataValue("total"),
       retries: await this.getMetadataValue("retries"),
+      flaky: await this.getMetadataValue("flaky"),
       passed: await this.getMetadataValue("passed"),
       failed: await this.getMetadataValue("failed"),
       skipped: await this.getMetadataValue("skipped"),
@@ -179,9 +197,26 @@ export class TreePage {
     await this.searchClearLocator.click();
   }
 
-  async clickRetryFilter() {
+  async openFilterMenu() {
     await this.filtersButtonLocator.click();
+    await this.filtersMenuLocator.waitFor({ state: "visible" });
+  }
+
+  async closeFilterMenu() {
+    await this.filtersMenuLocator.waitFor({ state: "visible" });
+    await this.filtersButtonLocator.click();
+    await this.filtersMenuLocator.waitFor({ state: "hidden" });
+  }
+
+  async toggleRetryFilter() {
+    await this.openFilterMenu();
     await this.retryFilterLocator.click();
-    await this.filtersButtonLocator.click();
+    await this.closeFilterMenu();
+  }
+
+  async toggleFlakyFilter() {
+    await this.openFilterMenu();
+    await this.flakyFilterLocator.click();
+    await this.closeFilterMenu();
   }
 }

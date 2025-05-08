@@ -24,7 +24,7 @@ export const Filters = () => {
         </div>
       )}
     >
-      <Menu.Section>
+      <Menu.Section data-testid="filters-menu">
         <Menu.Item
           closeMenuOnClick={false}
           ariaLabel={t("enable-filter", { filter: t("flaky") })}
