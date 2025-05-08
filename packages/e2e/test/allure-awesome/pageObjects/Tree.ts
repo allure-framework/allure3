@@ -117,7 +117,7 @@ export class TreePage {
         baseLocator = this.metadataUnknownLocator;
         break;
       default:
-        throw new Error(`Unknown metadata: ${metadata}`);
+        throw new Error(`Unknown metadata: ${metadata as string}`);
     }
 
     try {
@@ -143,7 +143,13 @@ export class TreePage {
   }
 
   async clickRandomLeaf() {
-    await this.leafLocator.nth(randomNumber(0, (await this.leafLocator.count()) - 1)).click();
+    const leavesCount = await this.leafLocator.count();
+
+    if (leavesCount === 0) {
+      throw new Error("No leaves found");
+    }
+
+    await this.leafLocator.nth(randomNumber(0, leavesCount - 1)).click();
   }
 
   async toggleNthSection(n: number) {
