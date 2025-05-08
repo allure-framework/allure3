@@ -1,1 +1,1 @@
-{"id":"0b1094f0dcac57e1633ba11226f1bc29","fullName":"test/config.test.ts#resolveConfig should return provided known issues path","name":"should return provided known issues path","status":"passed","testResultsByEnv":{"default":"7be938f9d4ae77583e4b6297a75a128d"}}
+{"id":"0b1094f0dcac57e1633ba11226f1bc29","fullName":"test/config.test.ts#resolveConfig should return provided known issues path","name":"should return provided known issues path","status":"passed","testResultsByEnv":{"default":"4d2ddf3d53dc743b77482439413d186a"}}
