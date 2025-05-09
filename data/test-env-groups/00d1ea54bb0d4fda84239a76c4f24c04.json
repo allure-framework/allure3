@@ -1,0 +1,1 @@
+{"id":"00d1ea54bb0d4fda84239a76c4f24c04","fullName":"allure-awesome/test/environments.test.ts:273:3","name":"should render environment variables for a chosen environment","status":"passed","testResultsByEnv":{"chromium":"0911131f6d23b99f5c2dc3f5083804c3","firefox":"882e602f80e5390c011c1c1497410d1a","safari":"01c848f5d79351ab38ca405b23c573bd"}}
