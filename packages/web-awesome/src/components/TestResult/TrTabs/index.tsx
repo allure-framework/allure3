@@ -55,11 +55,19 @@ export const TrTab = (props: { id: string; children: ComponentChildren }) => {
       return;
     }
     setCurrentTab(id);
-    navigateTo({ ...route.value, params: { ...route.value.params, tabName: id !== "overview" ? id : "" } });
+    navigateTo({
+      ...route.value,
+      params: { ...route.value.params, tabName: id !== "overview" ? id : "" },
+    });
   };
 
   return (
-    <button className={styles.tab} onClick={handleTabClick} aria-current={isCurrentTab ? true : undefined}>
+    <button
+      className={styles.tab}
+      onClick={handleTabClick}
+      data-testid={`test-result-tab test-result-tab-${id}`}
+      aria-current={isCurrentTab ? true : undefined}
+    >
       <Text type="paragraph" size="m">
         {children}
       </Text>

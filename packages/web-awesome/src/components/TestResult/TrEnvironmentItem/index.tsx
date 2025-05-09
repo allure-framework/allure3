@@ -36,6 +36,7 @@ export const TrEnvironmentItem: FunctionalComponent<{
           className={cx(styles["test-result-environment-item-wrap"], {
             [styles.current]: current,
           })}
+          role={current ? undefined : "button"}
           onClick={(e) => {
             if (current) {
               return;

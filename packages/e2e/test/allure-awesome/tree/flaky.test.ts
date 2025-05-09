@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
+import { TreePage } from "../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
+let treePage: TreePage;
 
 test.describe("flaky", () => {
   test.beforeAll(async () => {
@@ -137,6 +139,9 @@ test.describe("flaky", () => {
 
   test.beforeEach(async ({ browserName, page }) => {
     await label("env", browserName);
+
+    treePage = new TreePage(page);
+
     await page.goto(bootstrap.url);
   });
 
@@ -144,48 +149,25 @@ test.describe("flaky", () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter flaky tests with flaky status using flaky filter", async ({ page }) => {
-    await expect(page.getByTestId("tree-leaf")).toHaveCount(2);
-
-    // Open filters
-    await page.getByTestId("filters-button").click();
-
-    // Select flaky filter
-    await page.getByTestId("flaky-filter").click();
-
-    // Verify only tests with flaky status are visible
-    const treeLeaves = page.getByTestId("tree-leaf");
-    await expect(treeLeaves).toHaveCount(1);
-
-    // Verify the test names are correct for tests with flaky status
-    await expect(page.getByText("Classic flaky test", { exact: true })).toBeVisible();
-    await expect(page.getByText("Non-flaky test", { exact: true })).not.toBeVisible();
-
-    // Disable flaky filter
-    await page.getByTestId("flaky-filter").click();
-
-    // Verify all tests are visible again
-    await expect(page.getByTestId("tree-leaf")).toHaveCount(2);
+  test("should be able to filter flaky tests with flaky status using flaky filter", async () => {
+    await expect(treePage.leafLocator).toHaveCount(2);
+    await treePage.toggleFlakyFilter();
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getLeafByTitle("Classic flaky test")).toBeVisible();
+    await expect(treePage.getLeafByTitle("Non-flaky test")).not.toBeVisible();
+    await treePage.toggleFlakyFilter();
+    await expect(treePage.leafLocator).toHaveCount(2);
   });
 
-  test("should show flaky icon only for flaky tests in the tree", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
-
-    // Classic flaky test
-    const classicFlaky = treeLeaves
-      .filter({ has: page.getByText("Classic flaky test", { exact: true }) })
-      .getByTestId("tree-item-meta-icon-flaky");
-    await expect(classicFlaky).toBeVisible();
-
-    // Non-flaky test
-    const nonFlaky = treeLeaves
-      .filter({ has: page.getByText("Non-flaky test", { exact: true }) })
-      .getByTestId("tree-item-meta-icon-flaky");
-    await expect(nonFlaky).not.toBeVisible();
+  test("should show flaky icon only for flaky tests in the tree", async () => {
+    await expect(treePage.getLeafByTitle("Classic flaky test").getByTestId("tree-item-meta-icon-flaky")).toBeVisible();
+    await expect(treePage.getLeafByTitle("Non-flaky test").getByTestId("tree-item-meta-icon-flaky")).not.toBeVisible();
   });
 
-  test("metadata shows correct count of flaky tests", async ({ page }) => {
-    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("2");
-    await expect(page.getByTestId("metadata-item-flaky").getByTestId("metadata-value")).toHaveText("1");
+  test("metadata shows correct count of flaky tests", async () => {
+    const { total, flaky } = await treePage.getMetadataValues();
+
+    expect(total).toBe("2");
+    expect(flaky).toBe("1");
   });
 });

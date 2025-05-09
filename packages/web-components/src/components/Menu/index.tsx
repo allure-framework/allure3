@@ -138,7 +138,13 @@ export const Menu = (props: {
 };
 
 Menu.Section = (props: { children: ComponentChildren }) => {
-  return <ul className={styles.section}>{props.children}</ul>;
+  const { children, ...rest } = props;
+
+  return (
+    <ul className={styles.section} {...rest}>
+      {children}
+    </ul>
+  );
 };
 
 type ItemProps = {
@@ -154,7 +160,7 @@ type ItemProps = {
 Menu.Item = (props: ItemProps) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { setIsOpened } = useMenuContext();
-  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true } = props;
+  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
   const isInteractive = typeof onClick === "function";
   const hasLeadingIcon = typeof leadingIcon === "string";
 
@@ -170,7 +176,7 @@ Menu.Item = (props: ItemProps) => {
   };
 
   return (
-    <li className={styles.menuListItem}>
+    <li className={styles.menuListItem} {...rest}>
       <Text
         aria-label={ariaLabel}
         type="paragraph"
