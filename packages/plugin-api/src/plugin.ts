@@ -31,6 +31,8 @@ export interface PluginSummary {
   stats: Statistic;
   status: TestStatus;
   duration: number;
+  plugin?: string;
+  createdAt?: number;
 }
 
 export interface BatchOptions {

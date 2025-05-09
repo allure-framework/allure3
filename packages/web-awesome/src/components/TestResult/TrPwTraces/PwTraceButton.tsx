@@ -5,7 +5,6 @@ import { IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-compo
 import { PwTrace } from "@/components/TestResult/TrPwTraces/PwTrace";
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
-import * as styles from "./styles.scss";
 
 export const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
   const fileName = `${id || "-"}${ext || ""}`;
