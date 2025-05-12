@@ -83,6 +83,8 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+
+      await testResultPage.screenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async () => {
@@ -100,6 +102,8 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+
+      await testResultPage.screenshot();
     });
   });
 
@@ -163,7 +167,8 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
-      await expect(page).toHaveScreenshot();
+
+      await testResultPage.screenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async ({ page }) => {
@@ -180,7 +185,8 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
-      await expect(page).toHaveScreenshot();
+
+      await testResultPage.screenshot();
     });
   });
 
@@ -244,7 +250,8 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
-      await expect(page).toHaveScreenshot();
+
+      await testResultPage.screenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async ({ page }) => {
@@ -261,7 +268,8 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
-      await expect(page).toHaveScreenshot();
+
+      await testResultPage.screenshot();
     });
   });
 });

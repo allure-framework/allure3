@@ -1,6 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
+import { PageObject } from "./pageObject.js";
 
-export class TestResultPage {
+export class TestResultPage extends PageObject {
   titleLocator: Locator;
   fullnameLocator: Locator;
   fullnameCopyLocator: Locator;
@@ -33,6 +34,8 @@ export class TestResultPage {
   videoAttachmentContentLocator: Locator;
 
   constructor(readonly page: Page) {
+    super(page);
+
     this.titleLocator = page.getByTestId("test-result-info-title");
     this.fullnameLocator = page.getByTestId("test-result-fullname");
     this.fullnameCopyLocator = page.getByTestId("test-result-fullname-copy");
