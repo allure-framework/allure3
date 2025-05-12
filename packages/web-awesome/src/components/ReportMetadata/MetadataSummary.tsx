@@ -12,7 +12,7 @@ export interface MetadataSummaryProps {
   stats: Statistic;
 }
 
-const metadataTestsTypes = ["flaky", "retries"] as const as (keyof Statistic)[];
+const metadataTestsTypes = ["flaky", "new", "retries"] as const as (keyof Statistic)[];
 
 export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
   const { t } = useI18n("statuses");
