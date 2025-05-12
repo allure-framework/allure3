@@ -20,7 +20,7 @@ export const AttachmentImage: FunctionalComponent<{
     return <div className={styles["test-result-attachment-error"]}>something went wrong</div>;
   }
   return (
-    <div className={styles["test-result-attachment-image"]}>
+    <div data-testid={"image-attachment-content"} className={styles["test-result-attachment-image"]}>
       {attachment?.img && <img src={attachment.img} alt={attachment.originalFileName} />}
     </div>
   );

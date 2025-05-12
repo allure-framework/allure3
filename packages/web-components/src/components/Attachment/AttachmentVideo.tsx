@@ -9,7 +9,7 @@ export const AttachmentVideo: FunctionalComponent<{
     return <Spinner />;
   }
   return (
-    <video class={styles["test-result-attachment-video"]} controls loop muted>
+    <video data-testid={"video-attachment-content"} class={styles["test-result-attachment-video"]} controls loop muted>
       <source src={attachment?.src} type={attachment?.contentType} />
     </video>
   );

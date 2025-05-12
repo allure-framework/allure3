@@ -24,6 +24,14 @@ export class TestResultPage {
 
   envItemLocator: Locator;
 
+  stepLocator: Locator;
+
+  testResultAttachmentLocator: Locator;
+
+  imageAttachmentContentLocator: Locator;
+  codeAttachmentContentLocator: Locator;
+  videoAttachmentContentLocator: Locator;
+
   constructor(readonly page: Page) {
     this.titleLocator = page.getByTestId("test-result-info-title");
     this.fullnameLocator = page.getByTestId("test-result-fullname");
@@ -47,14 +55,26 @@ export class TestResultPage {
     this.tabLocator = page.getByTestId("test-result-tab");
 
     this.envItemLocator = page.getByTestId("test-result-env-item");
+
+    this.stepLocator = page.getByTestId("test-result-step");
+
+    this.testResultAttachmentLocator = page.getByTestId("test-result-attachment");
+
+    this.imageAttachmentContentLocator = page.getByTestId("image-attachment-content");
+    this.codeAttachmentContentLocator = page.getByTestId("code-attachment-content");
+    this.videoAttachmentContentLocator = page.getByTestId("video-attachment-content");
+  }
+
+  tabById(id: string) {
+    return this.page.getByTestId(`test-result-tab-${id}`);
   }
 
   get envTabLocator() {
     return this.tabById("environments");
   }
 
-  tabById(id: string) {
-    return this.page.getByTestId(`test-result-tab-${id}`);
+  get attachmentsTabLocator() {
+    return this.tabById("attachments");
   }
 
   async clickNextTestResult() {
@@ -67,5 +87,21 @@ export class TestResultPage {
 
   async copyFullname() {
     await this.fullnameCopyLocator.click();
+  }
+
+  async toggleStepByTitle(title: string) {
+    const locator = this.stepLocator.filter({
+      has: this.page.getByText(title, { exact: true }),
+    });
+
+    await locator.nth(0).getByTestId("test-result-step-arrow-button").click();
+  }
+
+  async toggleAttachmentByTitle(title: string) {
+    const locator = this.testResultAttachmentLocator.filter({
+      has: this.page.getByText(title, { exact: true }),
+    });
+
+    await locator.click();
   }
 }

@@ -24,7 +24,7 @@ export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
 
   return (
-    <div className={styles["test-result-step-content"]}>
+    <div data-testid={"test-result-step-content"} className={styles["test-result-step-content"]}>
       {Boolean(item?.parameters?.length) && <TrStepParameters parameters={item.parameters} />}
       {Boolean(item?.message && item?.trace) && <TrError {...item} />}
       {Boolean(item?.steps?.length) && (
@@ -70,7 +70,7 @@ export const TrStep: FunctionComponent<{
   };
 
   return (
-    <div className={styles["test-result-step"]}>
+    <div data-testid={"test-result-step"} className={styles["test-result-step"]}>
       <div className={styles["test-result-step-header"]} onClick={handleClick}>
         {!hasContent ? (
           <div className={styles["test-result-strut"]} />
@@ -80,13 +80,16 @@ export const TrStep: FunctionComponent<{
             icon={allureIcons.arrowsChevronDown}
             iconSize={"xs"}
             className={!hasContent ? styles["test-result-visibility-hidden"] : ""}
+            data-testid={"test-result-step-arrow-button"}
           />
         )}
         <TreeItemIcon status={item.status} />
         <Code size={"s"} className={styles["test-result-step-number"]}>
           {stepIndex}
         </Code>
-        <Text className={styles["test-result-header-text"]}>{item.name}</Text>
+        <Text data-testid={"test-result-step-title"} className={styles["test-result-header-text"]}>
+          {item.name}
+        </Text>
         <TrStepInfo item={item} />
       </div>
       {hasContent && isOpened && <TrStepsContent item={item} />}

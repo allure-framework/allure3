@@ -22,6 +22,7 @@ export const Counter = (props: Props) => {
       type="ui"
       bold
       className={clsx(styles.counter, styles[`size-${size}`], status && styles[`status-${status}`])}
+      data-testid={"counter"}
     >
       {displayedCount}
     </Text>

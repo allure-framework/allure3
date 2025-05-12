@@ -41,8 +41,9 @@ export const TrAttachment: FunctionComponent<{
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
 
   return (
-    <div className={styles["test-result-step"]}>
+    <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
+        data-testid={"test-result-attachment-header"}
         className={styles["test-result-attachment-header"]}
         onClick={(e) => {
           e.stopPropagation();

@@ -168,6 +168,10 @@ export class TreePage {
     await this.leafLocator.nth(n).click();
   }
 
+  async clickLeafByTitle(title: string) {
+    await this.getLeafByTitle(title).nth(0).click();
+  }
+
   async clickRandomLeaf() {
     // wait before any leaf appear
     await this.leafLocator.nth(0).waitFor({ state: "visible" });
