@@ -136,4 +136,30 @@ test.describe("new tests", () => {
     // Verify all tests are visible again
     await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
   });
+
+  test("should show new icon only for new tests in the tree", async ({ page }) => {
+    const treeLeaves = page.getByTestId("tree-leaf");
+
+    // Classic new test
+    const passedNewTest = treeLeaves
+      .filter({ has: page.getByText(passedTestName, { exact: true }) })
+      .getByTestId("tree-item-meta-icon-new");
+    await expect(passedNewTest).toBeVisible();
+
+    const failedNewTest = treeLeaves
+      .filter({ has: page.getByText(failedTestName, { exact: true }) })
+      .getByTestId("tree-item-meta-icon-new");
+    await expect(failedNewTest).toBeVisible();
+
+    // Non-new test
+    const nonNew = treeLeaves
+      .filter({ has: page.getByText(flakyTestName, { exact: true }) })
+      .getByTestId("tree-item-meta-icon-new");
+    await expect(nonNew).not.toBeVisible();
+  });
+
+  test("metadata shows correct count of new tests", async ({ page }) => {
+    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
+    await expect(page.getByTestId("metadata-item-new").getByTestId("metadata-value")).toHaveText("2");
+  });
 });
