@@ -1,133 +1,139 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 
+const reportName = "Sample allure report";
+const flakyTestName = "Test with history";
+const flakyTestFullname = "sample.js#Test with history";
+const testCaseId = makeTestCaseId(flakyTestFullname);
+const historyId = makeHistoryId(flakyTestFullname);
+
+const passedTestName = "New PASSED test 1";
+const passedTestFullname = "sample.js#New PASSED test 1";
+
+const failedTestName = "New FAILED test 2";
+const failedTestFullname = "sample.js#New FAILED test 2";
+
 test.describe("new tests", () => {
-    test.beforeAll(async () => {
-      const now = Date.now();
+  test.beforeAll(async () => {
+    const now = Date.now();
 
-      const reportName = "Sample allure report with new tests";
-      const flakyTestName = "Test with history";
-      const flakyTestFullname = "sample.js#Test with history";
-      const testCaseId = makeTestCaseId(flakyTestFullname);
-      const historyId = makeHistoryId("Test with history");
-
-      bootstrap = await bootstrapReport({
-        reportConfig: {
-          name: "Sample allure report with new tests",
-          appendHistory: true,
-          history: [
-            {
-                uuid: "dc4d9432-ebef-4e0f-b121-37fcf0383023",
-                name: reportName,
-                timestamp: 1745926867897,
-                knownTestCaseIds: [testCaseId],
-                testResults: {
-                  [historyId]: {
-                    id: "42dffbf3bb12f89807c85206c3f993a2",
-                    name: flakyTestName,
-                    fullName: flakyTestFullname,
-                    status: Status.PASSED,
-                    start: 1745926873782,
-                    stop: 1745926874782,
-                    duration: 1000,
-                    labels: [],
-                  },
-                },
-                metrics: {},
+    bootstrap = await bootstrapReport({
+      reportConfig: {
+        name: reportName,
+        appendHistory: true,
+        historyPath: "history.jsonl",
+        knownIssuesPath: undefined,
+        history: [
+          {
+            uuid: "773a702e-d63c-4628-b9f1-49a14d509e06",
+            name: reportName,
+            timestamp: 1746612096098,
+            knownTestCaseIds: [testCaseId],
+            testResults: {
+              [historyId]: {
+                id: "942fae5dbc02b4c8e0230c068e6d31ec",
+                name: flakyTestName,
+                fullName: flakyTestFullname,
+                status: Status.FAILED,
+                start: 1746612100009,
+                stop: 1746612101009,
+                duration: 1000,
+                labels: [],
               },
-              {
-                uuid: "b441fbc8-5222-4380-a325-d776436789f3",
-                name: reportName,
-                timestamp: 1745926884436,
-                knownTestCaseIds: [testCaseId],
-                testResults: {
-                  [historyId]: {
-                    id: "1373936b78555e2d7646b6f7eccb5b83",
-                    name: flakyTestName,
-                    fullName: flakyTestFullname,
-                    status: Status.PASSED,
-                    start: 1745926890322,
-                    stop: 1745926891322,
-                    duration: 1000,
-                    labels: [],
-                  },
-                },
-                metrics: {},
-              },
-          ],
-          historyPath: "history.jsonl",
-          knownIssuesPath: undefined,
-        },
-        testResults: [
-          {
-            name: "New PASSED test 1",
-            fullName: "sample.js#New test 1",
-            status: Status.PASSED,
-            stage: Stage.FINISHED,
-            start: now,
-            stop: now + 1000,
-          },
-          {
-            name: "New FAILED test 2",
-            fullName: "sample.js#New test 2",
-            status: Status.FAILED,
-            stage: Stage.FINISHED,
-            start: now + 2000,
-            stop: now + 3000,
-          },
-          // Test with history
-          {
-            name: flakyTestName,
-            fullName: flakyTestFullname,
-            historyId,
-            status: Status.FAILED,
-            stage: Stage.FINISHED,
-            start: now + 4000,
-            stop: now + 5000,
-            statusDetails: {
-              message: "Second attempt failed",
-              trace: "Second attempt trace",
             },
+            metrics: {},
+          },
+          {
+            uuid: "da5f9e79-c170-4150-a071-e2f5e6213e6f",
+            name: reportName,
+            timestamp: 1746612147646,
+            knownTestCaseIds: [testCaseId],
+            testResults: {
+              [historyId]: {
+                id: "f12c65cdb5c6fdedcd93797b303bf815",
+                name: flakyTestName,
+                fullName: flakyTestFullname,
+                status: Status.FAILED,
+                start: 1746612151561,
+                stop: 1746612152561,
+                duration: 1000,
+                labels: [],
+              },
+            },
+            metrics: {},
           },
         ],
-      });
+      },
+      testResults: [
+        {
+          name: passedTestName,
+          fullName: passedTestFullname,
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+          start: now,
+          stop: now + 1000,
+        },
+        {
+          name: failedTestName,
+          fullName: failedTestFullname,
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: now + 2000,
+          stop: now + 3000,
+        },
+        // Test with history
+        {
+          name: flakyTestName,
+          fullName: flakyTestFullname,
+          historyId,
+          status: Status.FAILED,
+          stage: Stage.FINISHED,
+          start: now + 4000,
+          stop: now + 5000,
+          statusDetails: {
+            message: "Second attempt failed",
+            trace: "Second attempt trace",
+          },
+        },
+      ],
     });
+  });
 
-    test.beforeEach(async ({ browserName, page }) => {
-      await label("env", browserName);
-      await page.goto(bootstrap.url);
-    });
+  test.beforeEach(async ({ browserName, page }) => {
+    await label("env", browserName);
+    await page.goto(bootstrap.url);
+  });
 
-    test.afterAll(async () => {
-      await bootstrap?.shutdown?.();
-    });
+  test.afterAll(async () => {
+    await bootstrap?.shutdown?.();
+  });
 
-    test("should be able to filter new tests with using new filter", async ({ page }) => {
-        await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
+  test("should be able to filter new tests with using new filter", async ({ page }) => {
+    await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
 
-        // Open filters
-        await page.getByTestId("filters-button").click();
+    // Open filters
+    await page.getByTestId("filters-button").click();
 
-        // Select retry filter
-        await page.getByTestId("new-filter").click();
+    // Select retry filter
+    await page.getByTestId("new-filter").click();
 
-        // Verify only tests with retries are visible
-        const treeLeaves = page.getByTestId("tree-leaf");
-        await expect(treeLeaves).toHaveCount(2);
+    // Verify only tests with retries are visible
+    const treeLeaves = page.getByTestId("tree-leaf");
+    await expect(treeLeaves).toHaveCount(2);
 
-        // Verify the test names are correct for tests with retries
-        await expect(page.getByText("Test with retries", { exact: true })).toBeVisible();
-        await expect(page.getByText("Another test with retries", { exact: true })).toBeVisible();
-        await expect(page.getByText("Test without retries", { exact: true })).not.toBeVisible();
+    // Verify the test names are correct for tests with retries
+    await expect(page.getByText(passedTestName, { exact: true })).toBeVisible();
+    await expect(page.getByText(failedTestName, { exact: true })).toBeVisible();
+    await expect(page.getByText(flakyTestName, { exact: true })).not.toBeVisible();
 
-        // Disable retry filter
-        await page.getByTestId("new-filter").click();
+    // Disable retry filter
+    await page.getByTestId("new-filter").click();
 
-        // Verify all tests are visible again
-        await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
-      });
+    // Verify all tests are visible again
+    await expect(page.getByTestId("tree-leaf")).toHaveCount(3);
+  });
 });
