@@ -30,7 +30,6 @@
     "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
-    "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
