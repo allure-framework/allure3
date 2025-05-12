@@ -73,7 +73,6 @@ export type AwesomeTestResult = Omit<
   order?: number;
   groupOrder?: number;
   retry: boolean;
-  new: boolean;
   categories?: AwesomeCategory[];
   environment?: string | "default";
 };

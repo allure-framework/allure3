@@ -1,12 +1,6 @@
 import type { Statistic, TestResult } from "@allurereport/core-api";
 
-type WithComputedStats<T> = T & {
-  new: boolean;
-};
-
-type ExtendedTestResult = WithComputedStats<TestResult>;
-
-export const getTestResultsStats = (trs: ExtendedTestResult[], filter: (tr: ExtendedTestResult) => boolean = () => true): Statistic => {
+export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true): Statistic => {
   const trsToProcess = trs.filter(filter);
 
   return trsToProcess.reduce<Statistic>(

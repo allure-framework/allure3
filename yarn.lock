@@ -42,7 +42,16 @@ __metadata:
   resolution: "@allurereport/core@workspace:packages/core"
   dependencies:
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-allure2": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
+    "@allurereport/plugin-awesome": "workspace:*"
+    "@allurereport/plugin-classic": "workspace:*"
+    "@allurereport/plugin-csv": "workspace:*"
+    "@allurereport/plugin-dashboard": "workspace:*"
+    "@allurereport/plugin-log": "workspace:*"
+    "@allurereport/plugin-progress": "workspace:*"
+    "@allurereport/plugin-slack": "workspace:*"
+    "@allurereport/plugin-testplan": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
@@ -225,7 +234,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-awesome@workspace:packages/plugin-awesome"
   dependencies:
-    "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
@@ -342,7 +350,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-log@workspace:packages/plugin-log":
+"@allurereport/plugin-log@workspace:*, @allurereport/plugin-log@workspace:packages/plugin-log":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-log@workspace:packages/plugin-log"
   dependencies:
@@ -451,7 +459,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-testplan@workspace:packages/plugin-testplan":
+"@allurereport/plugin-testplan@workspace:*, @allurereport/plugin-testplan@workspace:packages/plugin-testplan":
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-testplan@workspace:packages/plugin-testplan"
   dependencies:

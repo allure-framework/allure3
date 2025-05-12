@@ -192,11 +192,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
-    // Make calculated statuses more accurate
+    // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
-
+    testResult.new = isNew(trHistory);
     testResult.flaky = isFlaky(testResult, trHistory);
-    testResult.new = isNew(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
 
@@ -457,18 +456,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testsStatistic(filter?: TestResultFilter) {
     const all = await this.allTestResults();
 
-    const allWithStats = await Promise.all(
-      all.map(async (tr) => {
-        const trHistory = await this.historyByTr(tr);
-        const retries = await this.retriesByTr(tr);
+    const allWithStats = await Promise.all(all.map(async (tr) => {
+      const retries = await this.retriesByTr(tr);
 
-        return {
-          ...tr,
-          flaky: isFlaky(tr, trHistory),
-          retries,
-        };
-      }),
-    );
+      return {
+        ...tr,
+        retries,
+      };
+    }));
 
     return getTestResultsStats(allWithStats, filter);
   }
