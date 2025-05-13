@@ -24,6 +24,63 @@ test.describe("attachments", () => {
     await bootstrap?.shutdown?.();
   });
 
+  test.describe("commons", () => {
+    test.beforeEach(async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: {
+          name: "Allure report with attachments",
+          appendHistory: true,
+          history: [],
+          historyPath: "history.jsonl",
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "foo",
+            fullName: "sample.test.js#test with image attachment",
+            historyId: "",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: Date.now(),
+            stop: Date.now() + 1000,
+            steps: [
+              {
+                name: "bar",
+                status: Status.PASSED,
+                stage: Stage.FINISHED,
+                parameters: [],
+                steps: [],
+                statusDetails: {},
+                attachments: [
+                  {
+                    source: "attachment.txt",
+                    type: "text/plain",
+                    name: "attachment",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        attachments: [],
+      });
+
+      await page.goto(bootstrap.url);
+    });
+
+    test('should render "missed" label for attachments which don\'t exist', async ({ page }) => {
+      await treePage.clickNthLeaf(0);
+      await testResultPage.toggleStepByTitle("bar");
+
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await expect(
+        testResultPage.testResultAttachmentLocator.nth(0).getByTestId("test-result-attachment-missed"),
+      ).toBeVisible();
+
+      await testResultPage.screenshot();
+    });
+  });
+
   test.describe("text attachment", () => {
     test.beforeEach(async ({ page }) => {
       bootstrap = await bootstrapReport({
