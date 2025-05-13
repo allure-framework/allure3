@@ -2,9 +2,9 @@ import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurerep
 import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
-import { type TestResult } from "allure-js-commons";
+import type { Attachment, TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
@@ -12,6 +12,7 @@ export type GeneratorParams = {
   reportDir: string;
   resultsDir: string;
   testResults: Partial<TestResult>[];
+  attachments?: { source: string; content: Buffer }[];
   reportConfig?: Omit<FullConfig, "output" | "reportFiles">;
 };
 
@@ -52,7 +53,7 @@ export const makeHistoryId = (fullName: string, strParameters = "") => {
 };
 
 export const generateReport = async (payload: GeneratorParams) => {
-  const { reportConfig, reportDir, resultsDir, testResults } = payload;
+  const { reportConfig, reportDir, resultsDir, testResults, attachments = [] } = payload;
   const report = new AllureReport({
     ...reportConfig,
     output: reportDir,
@@ -68,6 +69,11 @@ export const generateReport = async (payload: GeneratorParams) => {
   testResults.forEach((tr) => {
     runtime.writeTest(runtime.startTest(tr, [scopeUuid]));
   });
+
+  for (const attachment of attachments) {
+    await writeFile(resolve(resultsDir, attachment.source), attachment.content);
+  }
+
   runtime.writeScope(scopeUuid);
 
   await report.start();

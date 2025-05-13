@@ -1,7 +1,8 @@
 import { type Locator, type Page } from "@playwright/test";
 import { randomNumber } from "../../utils/index.js";
+import { PageObject } from "./pageObject.js";
 
-export class TreePage {
+export class TreePage extends PageObject {
   leafLocator: Locator;
 
   leafStatusPassedLocator: Locator;
@@ -33,6 +34,8 @@ export class TreePage {
   flakyFilterLocator: Locator;
 
   constructor(readonly page: Page) {
+    super(page);
+
     this.leafLocator = page.getByTestId("tree-leaf");
 
     this.leafStatusPassedLocator = page.getByTestId("tree-leaf-status-passed");
@@ -166,6 +169,10 @@ export class TreePage {
 
   async clickNthLeaf(n: number) {
     await this.leafLocator.nth(n).click();
+  }
+
+  async clickLeafByTitle(title: string) {
+    await this.getLeafByTitle(title).nth(0).click();
   }
 
   async clickRandomLeaf() {

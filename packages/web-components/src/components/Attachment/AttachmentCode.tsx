@@ -13,7 +13,11 @@ export const AttachmentCode: FunctionalComponent<{
   }, [attachment]);
 
   return (
-    <pre key={item?.link?.id} className={`language-${item?.link?.ext?.replace(".", "")} line-numbers`}>
+    <pre
+      data-testid={"code-attachment-content"}
+      key={item?.link?.id}
+      className={`language-${item?.link?.ext?.replace(".", "")} line-numbers`}
+    >
       <code>{attachment?.text}</code>
     </pre>
   );

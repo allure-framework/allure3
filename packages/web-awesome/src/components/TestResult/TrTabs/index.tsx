@@ -65,7 +65,7 @@ export const TrTab = (props: { id: string; children: ComponentChildren }) => {
     <button
       className={styles.tab}
       onClick={handleTabClick}
-      data-testid={`test-result-tab test-result-tab-${id}`}
+      data-testid={`test-result-tab-${id}`}
       aria-current={isCurrentTab ? true : undefined}
     >
       <Text type="paragraph" size="m">

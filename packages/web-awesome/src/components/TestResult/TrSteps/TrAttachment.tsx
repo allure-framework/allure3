@@ -41,8 +41,9 @@ export const TrAttachment: FunctionComponent<{
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
 
   return (
-    <div className={styles["test-result-step"]}>
+    <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
+        data-testid={"test-result-attachment-header"}
         className={styles["test-result-attachment-header"]}
         onClick={(e) => {
           e.stopPropagation();
@@ -59,7 +60,7 @@ export const TrAttachment: FunctionComponent<{
         </Code>
         <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
         {missed && (
-          <Text size={"s"} className={styles["test-result-attachment-missed"]}>
+          <Text size={"s"} className={styles["test-result-attachment-missed"]} data-testid={"test-result-attachment-missed"}>
             missed
           </Text>
         )}
