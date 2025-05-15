@@ -31,8 +31,8 @@ export class AwesomePlugin implements Plugin {
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
 
-    await generateStatistic(this.#writer!, store, this.options.filter);
-    await generatePieChart(this.#writer!, store, this.options.filter);
+    await generateStatistic(this.#writer!, store, this.options.statFilter ?? this.options.filter);
+    await generatePieChart(this.#writer!, store, this.options.chartFilter ?? this.options.statFilter ?? this.options.filter);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, this.options.filter);
     const treeLabels = preciseTreeLabels(
