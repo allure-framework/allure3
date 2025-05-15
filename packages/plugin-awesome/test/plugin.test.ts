@@ -72,8 +72,10 @@ describe("plugin", () => {
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
+        createdAt: 0,
         duration: 0,
         name: "Sample report",
+        plugin: "Awesome",
         status: "failed",
         stats: {
           passed: 1,
@@ -94,9 +96,11 @@ describe("plugin", () => {
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
+        createdAt: 0,
         duration: 0,
         name: "Sample report",
         status: "passed",
+        plugin: "Awesome",
         stats: {
           passed: 1,
           total: 1,
