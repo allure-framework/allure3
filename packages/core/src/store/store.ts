@@ -193,6 +193,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     // Make flaky status more accurate
     const trHistory = await this.historyByTr(testResult);
+
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
