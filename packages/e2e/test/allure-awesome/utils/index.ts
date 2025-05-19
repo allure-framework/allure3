@@ -7,8 +7,8 @@ import {
 } from "../../utils/index.js";
 
 export const bootstrapReport = async (
-  params: Omit<GeneratorParams, "reportDir" | "resultsDir" | "reportConfig"> & {
-    reportConfig: Omit<FullConfig, "output" | "reportFiles" | "plugins">;
+  params: Omit<GeneratorParams, "rootDir" | "reportDir" | "resultsDir" | "reportConfig"> & {
+    reportConfig: Omit<FullConfig, "output" | "reportFiles" | "plugins" | "historyPath">;
   },
   pluginConfig?: AwesomePluginOptions,
 ) => {

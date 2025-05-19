@@ -114,6 +114,7 @@ __metadata:
   resolution: "@allurereport/e2e@workspace:packages/e2e"
   dependencies:
     "@allurereport/core": "workspace:*"
+    "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/static-server": "workspace:*"
