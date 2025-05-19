@@ -60,7 +60,11 @@ export const TrAttachment: FunctionComponent<{
         </Code>
         <Text className={styles["test-result-attachment-text"]}>{link.name || link.originalFileName}</Text>
         {missed && (
-          <Text size={"s"} className={styles["test-result-attachment-missed"]} data-testid={"test-result-attachment-missed"}>
+          <Text
+            size={"s"}
+            className={styles["test-result-attachment-missed"]}
+            data-testid={"test-result-attachment-missed"}
+          >
             missed
           </Text>
         )}
