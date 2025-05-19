@@ -1,19 +1,22 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
+import { type HistoryDataPoint } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
-import type { Attachment, TestResult } from "allure-js-commons";
+import type { TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 export type GeneratorParams = {
+  history?: HistoryDataPoint[];
+  rootDir: string;
   reportDir: string;
   resultsDir: string;
   testResults: Partial<TestResult>[];
   attachments?: { source: string; content: Buffer }[];
-  reportConfig?: Omit<FullConfig, "output" | "reportFiles">;
+  reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath">;
 };
 
 export interface ReportBootstrap {
@@ -42,7 +45,7 @@ export const makeTestCaseId = (fullName: string) => md5(fullName);
  * Make simplified history id from test's full name and parameters
  *
  * @param fullName Test case full name
- * @param parameters Test case parameters
+ * @param strParameters Test case parameters
  * @returns History id
  */
 export const makeHistoryId = (fullName: string, strParameters = "") => {
@@ -53,11 +56,20 @@ export const makeHistoryId = (fullName: string, strParameters = "") => {
 };
 
 export const generateReport = async (payload: GeneratorParams) => {
-  const { reportConfig, reportDir, resultsDir, testResults, attachments = [] } = payload;
+  const { reportConfig, rootDir, reportDir, resultsDir, testResults, attachments = [], history = [] } = payload;
+  const historyPath = resolve(rootDir, "history.jsonl");
+
+  if (history.length > 0) {
+    await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"));
+  } else {
+    await writeFile(historyPath, "");
+  }
+
   const report = new AllureReport({
     ...reportConfig,
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
+    historyPath,
   });
   const runtime = new ReporterRuntime({
     writer: new FileSystemWriter({
@@ -95,14 +107,15 @@ export const serveReport = async (reportDir: string) => {
 };
 
 export const bootstrapReport = async (
-  params: Omit<GeneratorParams, "reportDir" | "resultsDir">,
+  params: Omit<GeneratorParams, "rootDir" | "reportDir" | "resultsDir">,
 ): Promise<ReportBootstrap> => {
-  const temp = tmpdir();
-  const resultsDir = await mkdtemp(resolve(temp, "allure-results-"));
-  const reportDir = await mkdtemp(resolve(temp, "allure-report-"));
+  const rootDir = tmpdir();
+  const resultsDir = await mkdtemp(resolve(rootDir, "allure-results-"));
+  const reportDir = await mkdtemp(resolve(rootDir, "allure-report-"));
 
   await generateReport({
     ...params,
+    rootDir,
     resultsDir,
     reportDir,
   });
