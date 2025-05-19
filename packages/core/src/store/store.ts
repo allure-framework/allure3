@@ -30,8 +30,8 @@ import type {
 } from "@allurereport/reader-api";
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
-import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { isFlaky } from "../utils/flaky.js";
+import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
