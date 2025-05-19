@@ -41,7 +41,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       onClick={() => navigateTo(id)}
       id={id}
     >
-      <TreeItemIcon status={status} />
+      <TreeItemIcon status={status} new={newTest} newFrom={newFrom} />
       <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
         {groupOrder}
       </Code>
