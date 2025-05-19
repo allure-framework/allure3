@@ -31,6 +31,7 @@ import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
+import { getLastMeaningfulTestStatus, isNew } from "../utils/new.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -142,6 +143,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
     testResult.new = isNew(trHistory);
+    testResult.newFrom = getLastMeaningfulTestStatus(testResult, trHistory);
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
