@@ -41,7 +41,8 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     retries: [],
     breadcrumbs: [],
     retry: false,
-    new: tr.new
+    new: tr.new,
+    newFrom: tr.newFrom
   };
 };
 

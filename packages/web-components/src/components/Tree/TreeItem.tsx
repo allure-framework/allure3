@@ -1,4 +1,4 @@
-import { type TestStatus } from "@allurereport/core-api";
+import type { MeaningfulTestStatus, TestStatus } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
 import { TreeItemIcon } from "@/components/Tree/TreeItemIcon";
@@ -12,6 +12,8 @@ interface TreeItemProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
+  new?: boolean;
+  newFrom?: MeaningfulTestStatus;
   id: string;
   groupOrder: number;
   marked?: boolean;
@@ -24,7 +26,9 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   status,
   duration,
   retriesCount,
-  flaky,
+  flaky: flakyTest,
+  new: newTest,
+  newFrom,
   id,
   marked,
   navigateTo,
@@ -37,14 +41,14 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       onClick={() => navigateTo(id)}
       id={id}
     >
-      <TreeItemIcon status={status} />
+      <TreeItemIcon status={status} new={newTest} newFrom={newFrom} />
       <Code data-testid="tree-leaf-order" size={"s"} className={styles.order}>
         {groupOrder}
       </Code>
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}
       </Text>
-      <TreeItemInfo duration={duration} flaky={flaky} retriesCount={retriesCount} />
+      <TreeItemInfo duration={duration} flaky={flakyTest} new={newTest} newFrom={newFrom} retriesCount={retriesCount} />
     </div>
   );
 };

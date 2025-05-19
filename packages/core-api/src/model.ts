@@ -2,6 +2,7 @@ import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
+export type MeaningfulTestStatus = "failed" | "broken" | "passed";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
 /**
@@ -44,9 +45,11 @@ export interface TestResult {
   duration?: number;
 
   flaky: boolean;
-  new: boolean;
   muted: boolean;
   known: boolean;
+
+  new?: boolean;
+  newFrom?: MeaningfulTestStatus;
 
   hidden: boolean;
 
