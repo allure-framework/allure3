@@ -12,7 +12,7 @@ export type BaseLayoutProps = {
 };
 
 export const BaseLayout = () => {
-  const { id: testResultId } = route.value;
+  const testResultId = route.value.params?.testResultId ?? null;
 
   const content = testResultId ? (
     <Loadable

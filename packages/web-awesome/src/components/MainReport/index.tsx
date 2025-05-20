@@ -9,7 +9,7 @@ import * as styles from "./styles.scss";
 const MainReport = () => {
   return (
     <>
-      {!isSplitMode.value && <Header />}
+      {/* {!isSplitMode.value && <Header />}*/}
       <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
         <ReportHeader />
         <ReportMetadata />
