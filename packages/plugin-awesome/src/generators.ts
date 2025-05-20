@@ -32,7 +32,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getPieChartData } from "./charts.js";
+import { getPieChartData } from "./charts/getPieChart.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import { filterEnv } from "./environments.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
@@ -315,11 +315,18 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
     layout = "base",
+    chartLayout = [],
+    defaultSection = "",
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
+  const sections: string[] = [];
+
+  if (chartLayout) {
+    sections.push("charts");
+  }
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -366,6 +373,8 @@ export const generateStaticFiles = async (
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     layout,
     allureVersion,
+    sections,
+    defaultSection,
   };
   const html = compile({
     headTags: headTags.join("\n"),

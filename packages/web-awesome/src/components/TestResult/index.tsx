@@ -63,7 +63,7 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
 
   return (
     <>
-      {!isSplitMode.value && <TrHeader testResult={testResult} />}
+      {/* {!isSplitMode.value && <TrHeader testResult={testResult} />}*/}
       <div className={clsx(styles.content, splitModeClass)}>
         {testResult ? <TrContent testResult={testResult} /> : <TrEmpty />}
       </div>

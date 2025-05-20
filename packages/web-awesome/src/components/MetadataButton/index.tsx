@@ -19,7 +19,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
   ...rest
 }) => {
   return (
-    <button
+    <div
       {...rest}
       className={clsx(styles["report-metadata-header"], isOpened && styles["report-metadata-header-opened"])}
       type={"button"}
@@ -35,6 +35,6 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
         buttonSize={"s"}
         className={styles["report-metadata-header-arrow"]}
       />
-    </button>
+    </div>
   );
 };

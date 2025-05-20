@@ -2,6 +2,7 @@ import { type EnvironmentItem, getWorstStatus } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
+import { generateAllCharts } from "./charts.js";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
@@ -33,6 +34,7 @@ export class AwesomePlugin implements Plugin {
 
     await generateStatistic(this.#writer!, store, this.options.filter);
     await generatePieChart(this.#writer!, store, this.options.filter);
+    await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, this.options.filter);
     const treeLabels = preciseTreeLabels(

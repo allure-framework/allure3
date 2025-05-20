@@ -4,7 +4,8 @@
   background: var(--bg-base-secondary);
   color: var(--on-text-primary);
   font-size: 14px;
-  min-height: 100vh;
+  height: 100%;
+  overflow: auto;
 }
 
 .wrapper {
@@ -51,7 +52,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
+  padding: 8px 24px;
+  width: 100%;
 }
 
 .test-result-errors {

@@ -155,12 +155,13 @@ type ItemProps = {
   closeMenuOnClick?: boolean;
   ariaLabel?: string;
   setIsOpened?: (isOpened: boolean) => void;
+  className?: string;
 };
 
 Menu.Item = (props: ItemProps) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { setIsOpened } = useMenuContext();
-  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
+  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, className, ...rest } = props;
   const isInteractive = typeof onClick === "function";
   const hasLeadingIcon = typeof leadingIcon === "string";
 

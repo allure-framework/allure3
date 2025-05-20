@@ -1,5 +1,4 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
-import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
 import { route } from "@/stores/router";
@@ -12,7 +11,7 @@ export type BaseLayoutProps = {
 };
 
 export const BaseLayout = () => {
-  const { id: testResultId } = route.value;
+  const testResultId = route.value.params?.testResultId ?? null;
 
   const content = testResultId ? (
     <Loadable
@@ -23,7 +22,6 @@ export const BaseLayout = () => {
         <>
           <div className={styles.wrapper} key={testResult?.id}>
             <TestResult testResult={testResult} />
-            <Footer />
           </div>
         </>
       )}
@@ -31,7 +29,6 @@ export const BaseLayout = () => {
   ) : (
     <div className={styles.wrapper}>
       <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReport />} />
-      <Footer />
     </div>
   );
 
