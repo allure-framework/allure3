@@ -19,6 +19,7 @@ export type GeneratorParams = {
 export interface ReportBootstrap {
   url: string;
   reportDir: string;
+  regenerate: () => Promise<void>;
   shutdown: () => Promise<void>;
 }
 
@@ -100,18 +101,22 @@ export const bootstrapReport = async (
   const temp = tmpdir();
   const resultsDir = await mkdtemp(resolve(temp, "allure-results-"));
   const reportDir = await mkdtemp(resolve(temp, "allure-report-"));
+  const reportGenerator = async () => {
+    await generateReport({
+      ...params,
+      resultsDir,
+      reportDir,
+    });
+  };
 
-  await generateReport({
-    ...params,
-    resultsDir,
-    reportDir,
-  });
+  await reportGenerator();
 
   const server = await serveReport(reportDir);
 
   return {
     ...server,
     reportDir,
+    regenerate: reportGenerator,
     shutdown: async () => {
       await server?.shutdown();
 

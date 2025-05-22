@@ -1,8 +1,8 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
+import { CommonPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
-import { CommonPage, TreePage } from "../pageObjects/index.js";
 
 let bootstrap: ReportBootstrap;
 let commonPage: CommonPage;
@@ -86,7 +86,7 @@ test.describe("allure-awesome", () => {
         });
 
         await page.goto(bootstrap.url);
-        await expect(commonPage.singleLayoutLocator).toBeHidden();
+        await expect(commonPage.baseLayoutLocator).toBeHidden();
         await expect(commonPage.splitLayoutLocator).toBeVisible();
       });
 
@@ -111,7 +111,7 @@ test.describe("allure-awesome", () => {
         });
 
         await page.goto(bootstrap.url);
-        await expect(commonPage.singleLayoutLocator).toBeVisible();
+        await expect(commonPage.baseLayoutLocator).toBeVisible();
         await expect(commonPage.splitLayoutLocator).toBeHidden();
       });
 
@@ -138,10 +138,10 @@ test.describe("allure-awesome", () => {
         await page.goto(bootstrap.url);
         await commonPage.toggleLayout();
         await expect(commonPage.splitLayoutLocator).toBeVisible();
-        await expect(commonPage.singleLayoutLocator).toBeHidden();
+        await expect(commonPage.baseLayoutLocator).toBeHidden();
         await commonPage.toggleLayout();
         await expect(commonPage.splitLayoutLocator).toBeHidden();
-        await expect(commonPage.singleLayoutLocator).toBeVisible();
+        await expect(commonPage.baseLayoutLocator).toBeVisible();
       });
     });
 

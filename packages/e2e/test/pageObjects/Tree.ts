@@ -1,5 +1,5 @@
 import { type Locator, type Page } from "@playwright/test";
-import { randomNumber } from "../../utils/index.js";
+import { randomNumber } from "../utils/index.js";
 import { PageObject } from "./pageObject.js";
 
 export class TreePage extends PageObject {
