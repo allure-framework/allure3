@@ -15,7 +15,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import { opendir, readdir, realpath, rename, rm } from "node:fs/promises";
+import { lstat, opendir, readdir, realpath, rename, rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
@@ -222,8 +222,17 @@ export class AllureReport {
 
     const outputDirFiles = await readdir(this.#output);
 
-    if (outputDirFiles.length === 1) {
-      const reportPath = join(this.#output, outputDirFiles[0]);
+    // just do nothing if there is no reports in the output directory
+    if (outputDirFiles.length === 0) {
+      return;
+    }
+
+    const reportPath = join(this.#output, outputDirFiles[0]);
+    const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
+    const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
+
+    // if there is a single report directory in the output directory, move it to the root and prevent summary generation
+    if (outputDirectoryEntries.length === 1) {
       const reportContent = await readdir(reportPath);
 
       for (const entry of reportContent) {
@@ -237,11 +246,9 @@ export class AllureReport {
       return;
     }
 
-    if (summaries.length === 0) {
-      return;
+    if (summaries.length > 1) {
+      await generateSummary(this.#output, summaries);
     }
-
-    await generateSummary(this.#output, summaries);
   };
 
   #eachPlugin = async (

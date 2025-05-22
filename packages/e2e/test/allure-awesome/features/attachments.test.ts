@@ -3,7 +3,7 @@ import { Stage, Status, label } from "allure-js-commons";
 import { readFile } from "node:fs/promises";
 import { dirname as pathDirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { TestResultPage, TreePage } from "../pageObjects/index.js";
+import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 const dirname = pathDirname(fileURLToPath(import.meta.url));

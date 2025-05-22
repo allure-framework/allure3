@@ -6,7 +6,7 @@ export class CommonPage extends PageObject {
 
   toggleLayoutButtonLocator: Locator;
   splitLayoutLocator: Locator;
-  singleLayoutLocator: Locator;
+  baseLayoutLocator: Locator;
 
   envPickerLocator: Locator;
   envPickerButtonLocator: Locator;
@@ -18,7 +18,7 @@ export class CommonPage extends PageObject {
 
     this.toggleLayoutButtonLocator = page.getByTestId("toggle-layout-button");
     this.splitLayoutLocator = page.getByTestId("split-layout");
-    this.singleLayoutLocator = page.getByTestId("base-layout");
+    this.baseLayoutLocator = page.getByTestId("base-layout");
 
     this.envPickerLocator = page.getByTestId("environment-picker");
     this.envPickerButtonLocator = page.getByTestId("environment-picker-button");
