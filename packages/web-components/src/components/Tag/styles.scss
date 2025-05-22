@@ -5,4 +5,24 @@
   padding: 2px 4px;
   border-radius: 3px;
   background-color: var(--bg-control-secondary);
+
+  &.neutral {
+    color: var(--on-text-universal-primary);
+    background-color: var(--bg-support-sirius);
+  }
+
+  &.successful {
+    color: var(--on-text-universal-primary);
+    background-color: var(--bg-support-castor);
+  }
+
+  &.failed {
+    color: var(--on-text-universal-primary);
+    background-color: var(--bg-support-capella);
+  }
+
+  &.warning {
+    color: var(--on-text-universal-primary);
+    background-color: var(--bg-support-atlas);
+  }
 }
