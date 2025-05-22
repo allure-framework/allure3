@@ -1,1 +1,1 @@
-{"id":"1e1ed81cca1c85a2d5e358e36bd11622","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should await initial scan","name":"should await initial scan","status":"passed","testResultsByEnv":{"default":"8ae99a60e91faa2d98848b282eb82ddd"}}
+{"id":"1e1ed81cca1c85a2d5e358e36bd11622","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should await initial scan","name":"should await initial scan","status":"passed","testResultsByEnv":{"default":"29c2ff4ced32dc55b44b7ebb94debc70"}}

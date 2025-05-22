@@ -1,1 +1,1 @@
-{"id":"1be1e8bee1260cf261323544cb7bb1d8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should keep watching deleted directory","name":"should keep watching deleted directory","status":"passed","testResultsByEnv":{"default":"eb5c363eda91c04357ffc2f073fa8f87"}}
+{"id":"1be1e8bee1260cf261323544cb7bb1d8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should keep watching deleted directory","name":"should keep watching deleted directory","status":"passed","testResultsByEnv":{"default":"7ee7d15915e600055661cf606269079b"}}

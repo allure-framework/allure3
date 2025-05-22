@@ -1,1 +1,1 @@
-{"id":"1d75234fdb258c1499e54bcb16d23d56","fullName":"test/utils.test.ts#stringifyStatusBadge returns red badge for broken status","name":"returns red badge for broken status","status":"passed","testResultsByEnv":{"default":"b2f699d8d2c44631bd210b9056ffe775"}}
+{"id":"1d75234fdb258c1499e54bcb16d23d56","fullName":"test/utils.test.ts#stringifyStatusBadge returns red badge for broken status","name":"returns red badge for broken status","status":"passed","testResultsByEnv":{"default":"a58b2cf48cce661340f902ef93973b05"}}

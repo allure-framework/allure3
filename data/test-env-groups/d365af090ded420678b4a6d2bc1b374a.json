@@ -1,1 +1,1 @@
-{"id":"d365af090ded420678b4a6d2bc1b374a","fullName":"test/junitxml.test.ts#junit xml reader attachments stdout should ignore an ill-formed system-out","name":"should ignore an ill-formed system-out","status":"passed","testResultsByEnv":{"default":"cf3c61fcb6374e08d45ca4948f17e06f"}}
+{"id":"d365af090ded420678b4a6d2bc1b374a","fullName":"test/junitxml.test.ts#junit xml reader attachments stdout should ignore an ill-formed system-out","name":"should ignore an ill-formed system-out","status":"passed","testResultsByEnv":{"default":"d4f989769271f2e32b4edc889f201bbe"}}
