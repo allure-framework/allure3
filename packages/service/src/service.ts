@@ -1,5 +1,7 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
 import { type Config } from "@allurereport/plugin-api";
+import { readFile } from "node:fs/promises";
+import { join as joinPosix } from "node:path/posix";
 import open from "open";
 import { DEFAULT_HISTORY_SERVICE_URL } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
@@ -144,5 +146,57 @@ export class AllureService {
     );
 
     return data as HistoryDataPoint[];
+  }
+
+  async createReport(payload: { reportName: string; reportUuid?: string }) {
+    const { reportName, reportUuid } = payload;
+
+    if (!this.project) {
+      throw new Error("Project is not set");
+    }
+
+    const { data } = await this.#client.post(
+      "/api/reports/create",
+      {
+        project: this.project,
+        name: reportName,
+        id: reportUuid,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return joinPosix(this.#url, data.id);
+  }
+
+  async addReportFile(payload: { reportUuid: string; key: string; file?: Buffer; filepath?: string }) {
+    const { reportUuid, key, file, filepath } = payload;
+
+    if (!file && !filepath) {
+      throw new Error("File or filepath is required");
+    }
+
+    let content = file;
+
+    if (!content) {
+      content = await readFile(filepath!);
+    }
+
+    const form = new FormData();
+
+    form.set("report", reportUuid);
+    form.set("key", key);
+    form.set("file", content);
+
+    await this.#client.post("/api/reports/upload", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return joinPosix(this.#url, reportUuid, key);
   }
 }

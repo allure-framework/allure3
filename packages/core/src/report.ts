@@ -61,11 +61,20 @@ export class AllureReport {
       output,
       allureService: allureServiceConfig,
     } = opts;
+
+    this.#allureService = allureServiceConfig ? new AllureService(allureServiceConfig) : undefined;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
+
+    if (this.#allureService) {
+      this.#history = new AllureRemoteHistory(this.#allureService);
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory(historyPath);
+    }
+
     this.#store = new DefaultAllureStore({
       eventEmitter: this.#eventEmitter,
       reportVariables: variables,
@@ -180,6 +189,14 @@ export class AllureReport {
 
     this.#stage = "running";
 
+    // create remote report to publish files into
+    if (this.#allureService) {
+      await this.#allureService.createReport({
+        reportUuid: this.#reportUuid,
+        reportName: this.#reportName,
+      });
+    }
+
     await this.#eachPlugin(true, async (plugin, context) => {
       await plugin.start?.(context, this.#store, this.#events);
     });
@@ -214,27 +231,33 @@ export class AllureReport {
     this.#stage = "done";
 
     await this.#eachPlugin(false, async (plugin, context, id) => {
+      const pluginFiles = await context.state.get("files");
+
       await plugin.done?.(context, this.#store);
 
       const summary = await plugin?.info?.(context, this.#store);
 
-      if (!summary) {
+      if (summary) {
+        summaries.push({
+          ...summary,
+          href: join("/", id),
+        });
+      }
+
+      if (!this.#allureService || !pluginFiles || !Object.keys(pluginFiles).length) {
         return;
       }
 
-      summaries.push({
-        ...summary,
-        href: join("/", id),
-      });
+      await Promise.all(
+        Object.entries(pluginFiles).map(([key, filepath]) =>
+          this.#allureService?.addReportFile({
+            reportUuid: this.#reportUuid,
+            key,
+            filepath,
+          }),
+        ),
+      );
     });
-
-    if (this.#history) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
-
-      await this.#history.appendHistory(historyDataPoint);
-    }
 
     const outputDirFiles = await readdir(this.#output);
 
@@ -262,9 +285,19 @@ export class AllureReport {
       return;
     }
 
-    if (summaries.length > 1) {
-      await generateSummary(this.#output, summaries);
+    if (this.#history) {
+      const testResults = await this.#store.allTestResults();
+      const testCases = await this.#store.allTestCases();
+      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
+
+      await this.#store.appendHistory(historyDataPoint);
     }
+
+    if (summaries.length === 0) {
+      return;
+    }
+
+    await generateSummary(this.#output, summaries);
   };
 
   #eachPlugin = async (
@@ -290,7 +323,20 @@ export class AllureReport {
         continue;
       }
 
-      const pluginFiles = new PluginFiles(this.#reportFiles, id);
+      if (initState) {
+        await pluginState.set("files", {});
+      }
+
+      const pluginFiles = new PluginFiles(this.#reportFiles, id, async (key, filepath) => {
+        const currentPluginState = this.#getPluginState(false, id);
+        const files: Record<string, string> | undefined = await currentPluginState?.get("files");
+
+        if (!files) {
+          return;
+        }
+
+        files[key] = filepath;
+      });
       const pluginContext: PluginContext = {
         allureVersion: version,
         reportUuid: this.#reportUuid,
