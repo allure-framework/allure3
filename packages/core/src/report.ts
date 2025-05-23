@@ -42,6 +42,7 @@ export class AllureReport {
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureService: AllureService | undefined;
+  readonly #publish: boolean;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -63,6 +64,7 @@ export class AllureReport {
     } = opts;
 
     this.#allureService = allureServiceConfig ? new AllureService(allureServiceConfig) : undefined;
+    this.#publish = allureServiceConfig?.publish ?? false;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
@@ -190,7 +192,7 @@ export class AllureReport {
     this.#stage = "running";
 
     // create remote report to publish files into
-    if (this.#allureService) {
+    if (this.#allureService && this.#publish) {
       await this.#allureService.createReport({
         reportUuid: this.#reportUuid,
         reportName: this.#reportName,
@@ -231,7 +233,7 @@ export class AllureReport {
     this.#stage = "done";
 
     await this.#eachPlugin(false, async (plugin, context, id) => {
-      const pluginFiles = await context.state.get("files");
+      const pluginFiles = (await context.state.get("files")) ?? {};
 
       await plugin.done?.(context, this.#store);
 
@@ -244,7 +246,7 @@ export class AllureReport {
         });
       }
 
-      if (!this.#allureService || !pluginFiles || !Object.keys(pluginFiles).length) {
+      if (!this.#allureService || !this.#publish || !Object.keys(pluginFiles).length) {
         return;
       }
 
