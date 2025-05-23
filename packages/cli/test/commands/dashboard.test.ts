@@ -34,7 +34,6 @@ describe("dashboard command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
-        history: [],
         plugins: [
           expect.objectContaining({
             id: "plugin-dashboard",
@@ -81,7 +80,6 @@ describe("dashboard command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: fixtures.reportName,
-        history: [],
         plugins: [
           expect.objectContaining({
             id: "plugin-dashboard",

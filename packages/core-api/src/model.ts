@@ -162,3 +162,8 @@ export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
   type: "attachment";
 }
+
+export interface RepoData {
+  name: string;
+  branch: string;
+}

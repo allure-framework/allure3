@@ -43,7 +43,6 @@ describe("slack command", () => {
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-slack",

@@ -32,3 +32,11 @@ export interface HistoryDataPoint {
   testResults: Record<string, HistoryTestResult>;
   metrics: Record<string, number>;
 }
+
+/**
+ * Provides ability to load and update report history
+ */
+export interface AllureHistory {
+  readHistory(branch?: string): Promise<HistoryDataPoint[]>;
+  appendHistory(history: HistoryDataPoint, branch?: string): Promise<void>;
+}
