@@ -8,12 +8,12 @@ export interface PluginDescriptor {
 }
 
 export interface ReportFiles {
-  addFile(path: string, data: Buffer): Promise<void>;
+  addFile(path: string, data: Buffer): Promise<string>;
 }
 
 export interface PluginState {
   set(key: string, value: any): Promise<void>;
-  get(key: string): Promise<void>;
+  get<T>(key: string): Promise<T>;
   unset(key: string): Promise<void>;
 }
 

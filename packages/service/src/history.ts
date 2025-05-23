@@ -1,22 +1,17 @@
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
-import type { Config } from "@allurereport/plugin-api";
-import { AllureService } from "./service.js";
+import type { AllureService } from "./service.js";
 
 export class AllureRemoteHistory implements AllureHistory {
-  readonly #service: AllureService;
-
-  constructor(allureServiceConfig: Config["allureService"]) {
-    this.#service = new AllureService(allureServiceConfig);
-  }
+  constructor(readonly allureService: AllureService) {}
 
   async readHistory(branch?: string) {
-    return await this.#service.downloadHistory({
+    return await this.allureService.downloadHistory({
       branch,
     });
   }
 
   async appendHistory(data: HistoryDataPoint, branch?: string) {
-    await this.#service.appendHistory({
+    await this.allureService.appendHistory({
       history: data,
       branch,
     });
