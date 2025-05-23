@@ -199,7 +199,7 @@ export class AllureReport {
 
       summaries.push({
         ...summary,
-        href: join("/", id),
+        href: join("/", id, "/"),
       });
     });
 

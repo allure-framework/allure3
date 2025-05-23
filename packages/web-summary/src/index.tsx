@@ -36,13 +36,7 @@ const App = () => {
             {summaries.map((summary: any) => {
               return (
                 <li key={summary.output}>
-                  <ReportCard
-                    href={summary.href}
-                    name={summary.name}
-                    status={summary.status}
-                    stats={summary.stats}
-                    duration={summary.duration}
-                  />
+                  <ReportCard {...summary} />
                 </li>
               );
             })}
