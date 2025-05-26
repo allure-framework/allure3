@@ -31,7 +31,7 @@ export const TreeList = () => {
         // TODO: use function instead of computed
         if (noTests.value) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <div className={styles["tree-empty-results"]}>
                 <Text className={styles["tree-empty-results-title"]}>{t("no-results")}</Text>
               </div>
@@ -41,7 +41,7 @@ export const TreeList = () => {
 
         if (noTestsFound.value) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <div className={styles["tree-empty-results"]}>
                 <Text tag="p" className={styles["tree-empty-results-title"]}>
                   {t("no-tests-found")}
@@ -62,7 +62,7 @@ export const TreeList = () => {
         // render single tree for single environment
         if (environmentsStore.value.data.length === 1) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <Tree
                 reportStatistic={reportStatsStore.value.data}
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
@@ -82,7 +82,7 @@ export const TreeList = () => {
 
         if (currentTree) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <Tree
                 reportStatistic={reportStatsStore.value.data}
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
@@ -133,7 +133,7 @@ export const TreeList = () => {
                     />
                   </div>
                   {isOpened && (
-                    <div className={styles["tree-list"]} data-testid={"tree-section-env-content"}>
+                    <div data-testid={"tree-section-env-content"}>
                       <Tree
                         statistic={statsByEnvStore.value.data[key]}
                         reportStatistic={reportStatsStore.value.data}
