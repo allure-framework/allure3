@@ -6,6 +6,7 @@ import styles from "./styles.scss";
 import { Tag } from "@/components/Tag";
 import { transitionToTagSkin } from "./utils";
 import { allureIcons, SvgIcon } from "@/components/SvgIcon";
+import type { FunctionComponent } from "preact";
 
 export interface TreeItemInfoProps {
   duration?: number;
@@ -15,7 +16,7 @@ export interface TreeItemInfoProps {
   transitionText?: string;
 }
 
-export const TreeItemInfo = ({ duration, retriesCount, flaky, transition, transitionText }: TreeItemInfoProps) => {
+export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({ duration, retriesCount, flaky, transition, transitionText }) => {
   const formattedDuration = formatDuration(duration);
 
   return (
