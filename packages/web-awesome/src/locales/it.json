@@ -28,7 +28,10 @@
     "enable-filter": "Abilita il filtro \"{filter}\"",
     "flaky": "Instabili",
     "retry": "Ritentati",
-    "new": "Nuovi"
+    "new": "Nuovi",
+    "fixed": "Corretti",
+    "regressed": "Regrediti",
+    "malfuctioned": "Danneggiati"
   },
   "sort-by": {
     "sort-by-text": "Ordina per:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Tasso di successo dei test"
     }
+  },
+  "transitions": {
+    "new": "Nuovo",
+    "fixed": "Corretto",
+    "regressed": "Regredito",
+    "malfuctioned": "Danneggiato"
   }
 }

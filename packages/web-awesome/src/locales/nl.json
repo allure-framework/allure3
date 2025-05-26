@@ -28,7 +28,10 @@
     "enable-filter": "Filter \"{filter}\" inschakelen",
     "flaky": "Onstabiel",
     "retry": "Opnieuw proberen",
-    "new": "Nieuw"
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfuctioned": "Defect"
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Test slagingspercentage"
     }
+  },
+  "transitions": {
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfuctioned": "Defect"
   }
 }

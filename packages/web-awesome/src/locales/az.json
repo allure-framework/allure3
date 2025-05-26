@@ -28,7 +28,10 @@
     "enable-filter": "\"{filter}\" filtrlərini aktiv edin",
     "flaky": "Etibarsız",
     "retry": "Təkrar",
-    "new": "Yeni"
+    "new": "Yeni",
+    "fixed": "Düzəldilmiş",
+    "regressed": "Reqressiya",
+    "malfuctioned": "Sınıq"
   },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
@@ -155,5 +158,11 @@
     "pie": {
       "title": "Test Uğur Dərəcəsi"
     }
+  },
+  "transitions": {
+    "new": "Yeni",
+    "fixed": "Düzəldilmiş",
+    "regressed": "Reqressiya",
+    "malfuctioned": "Sınıq"
   }
 }

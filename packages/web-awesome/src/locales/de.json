@@ -28,7 +28,10 @@
     "enable-filter": "Filter für \"{filter}\" aktivieren",
     "flaky": "Instabil",
     "retry": "Wiederholen",
-    "new": "Neu"
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfuctioned": "Defekt"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -154,6 +157,11 @@
     "pie": {
       "title": "Testerfolgsrate"
     }
+  },
+  "transitions": {
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfuctioned": "Defekt"
   }
-
 }
