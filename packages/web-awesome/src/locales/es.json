@@ -28,7 +28,10 @@
     "enable-filter": "Habilitar filtro para \"{filter}\"",
     "flaky": "Inestable",
     "retry": "Reintento",
-    "new": "Nuevo"
+    "new": "Nuevo",
+    "fixed": "Corregido",
+    "regressed": "Regresado",
+    "malfuctioned": "Defectuoso"
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Tasa de éxito de pruebas"
     }
+  },
+  "transitions": {
+    "new": "Nuevo",
+    "fixed": "Corregido",
+    "regressed": "Regresado",
+    "malfuctioned": "Defectuoso"
   }
 }

@@ -25,7 +25,10 @@
     "enable-filter": "Filtruj po \"{filter}\"",
     "flaky": "Niestabilne",
     "retry": "Powtórne",
-    "new": "Nowe"
+    "new": "Nowe",
+    "fixed": "Naprawione",
+    "regressed": "Zaregresowane",
+    "malfuctioned": "Uszkodzone"
   },
   "sort-by": {
     "sort-by-text": "Sortuj po:",
@@ -152,5 +155,11 @@
     "pie": {
       "title": "Wskaźnik powodzenia testów"
     }
+  },
+  "transitions": {
+    "new": "Nowy",
+    "fixed": "Naprawiony",
+    "regressed": "Zaregresowany",
+    "malfuctioned": "Uszkodzony"
   }
 }

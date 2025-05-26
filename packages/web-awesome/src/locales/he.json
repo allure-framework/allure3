@@ -28,7 +28,10 @@
     "enable-filter": "אפשר מסנן \"{filter}\"",
     "flaky": "לא יציב",
     "retry": "חוזר",
-    "new": "חדש"
+    "new": "חדש",
+    "fixed": "מתוקן",
+    "regressed": "נסוג",
+    "malfuctioned": "פגום"
   },
   "sort-by": {
     "sort-by-text": "מיין לפי:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "שיעור הצלחת הבדיקות"
     }
+  },
+  "transitions": {
+    "new": "חדש",
+    "fixed": "מתוקן",
+    "regressed": "נסוג",
+    "malfuctioned": "פגום"
   }
 }
