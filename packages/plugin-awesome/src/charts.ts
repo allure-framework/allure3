@@ -372,9 +372,9 @@ export const generateCharts = async (
   store: AllureStore,
   context: PluginContext,
 ): Promise<GeneratedChartsData | undefined> => {
-  const { chartLayout } = options;
+  const { charts } = options;
 
-  if (!chartLayout) {
+  if (!charts) {
     return undefined;
   }
 
@@ -382,7 +382,7 @@ export const generateCharts = async (
   const statistic = await store.testsStatistic();
   const testResults = await store.allTestResults();
 
-  return chartLayout.reduce((acc, chartOptions) => {
+  return charts.reduce((acc, chartOptions) => {
     const chartId = randomUUID();
 
     let chart: GeneratedChartData | undefined;

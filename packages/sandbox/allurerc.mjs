@@ -1,6 +1,6 @@
 import { defineConfig } from "allure";
 
-const chartData = [
+const chartLayout = [
   {
     type: "trend",
     dataType: "status",
@@ -66,7 +66,7 @@ export default defineConfig({
         singleFile: false,
         reportLanguage: "en",
         open: false,
-        chartLayout: chartData
+        charts: chartLayout
       },
     },
     dashboard: {
@@ -74,7 +74,7 @@ export default defineConfig({
         singleFile: false,
         reportName: "HelloWorld-Dashboard",
         reportLanguage: "en",
-        layout: chartData,
+        layout: chartLayout,
       },
     },
     csv: {

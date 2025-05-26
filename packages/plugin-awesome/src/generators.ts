@@ -315,7 +315,7 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
     layout = "base",
-    chartLayout = [],
+    charts = [],
     defaultSection = "",
   } = payload;
   const compile = Handlebars.compile(template);
@@ -324,7 +324,7 @@ export const generateStaticFiles = async (
   const bodyTags: string[] = [];
   const sections: string[] = [];
 
-  if (chartLayout) {
+  if (charts) {
     sections.push("charts");
   }
 

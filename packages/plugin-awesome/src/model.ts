@@ -16,7 +16,7 @@ export type AwesomeOptions = {
     name: string;
   };
   filter?: (testResult: TestResult) => boolean;
-  chartLayout?: ChartOptions[];
+  charts?: ChartOptions[];
   sections?: string[];
   defaultSection?: string;
 };
