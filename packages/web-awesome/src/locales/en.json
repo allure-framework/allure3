@@ -28,7 +28,10 @@
     "enable-filter": "params('Enable \"{filter}\" filter')",
     "flaky": "Flaky",
     "retry": "Retry",
-    "new": "New"
+    "new": "New",
+    "fixed": "Fixed",
+    "regressed": "Regressed",
+    "malfuctioned": "Malfuctioned"
   },
   "sort-by": {
     "sort-by-text": "Sort by:",
@@ -155,5 +158,11 @@
     "pie": {
       "title": "Test Success Rate"
     }
+  },
+  "transitions": {
+    "new": "New",
+    "fixed": "Fixed",
+    "regressed": "Regressed",
+    "malfuctioned": "Malfuctioned"
   }
 }

@@ -79,9 +79,10 @@ export type AwesomeTestResult = Omit<
 
 export type AwesomeTreeLeaf = Pick<
   AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "new" | "retry" | "retriesCount"
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount"
 > & {
   nodeId: string;
+  transitionText?: string;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
