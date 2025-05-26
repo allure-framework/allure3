@@ -1,23 +1,27 @@
-import { formatDuration, MeaningfulTestStatus } from "@allurereport/core-api";
+import { formatDuration, type TestStatusTransition } from "@allurereport/core-api";
 import { Text } from "@/components/Typography";
 import { TreeItemMetaIcon } from "../TreeItemMetaIcon";
 import { TreeItemRetries } from "../TreeItemRetries";
 import styles from "./styles.scss";
+import { Tag } from "@/components/Tag";
+import { transitionToTagSkin } from "./utils";
+import { allureIcons, SvgIcon } from "@/components/SvgIcon";
 
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
-  new?: boolean;
-  newFrom?: MeaningfulTestStatus;
+  transition?: TestStatusTransition;
+  transitionText?: string;
 }
 
-export const TreeItemInfo = ({ duration, retriesCount, flaky: flakyTest, new: newTest, newFrom }: TreeItemInfoProps) => {
+export const TreeItemInfo = ({ duration, retriesCount, flaky, transition, transitionText }: TreeItemInfoProps) => {
   const formattedDuration = formatDuration(duration);
 
   return (
     <div className={styles["item-info"]}>
-      {flakyTest && <TreeItemMetaIcon type="flaky" />}
+      {transition && <Tag data-testid={`tree-leaf-transition-${transition}`} skin={transitionToTagSkin(transition)}>{transitionText}</Tag>}
+      {flaky && <SvgIcon data-testid="tree-leaf-flaky" id={allureIcons.lineIconBomb2} />}
       <TreeItemRetries retriesCount={retriesCount} />
       <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
         {formattedDuration}
