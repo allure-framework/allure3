@@ -20,9 +20,12 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
   const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
   const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
-  const newMatched = !filterOptions?.filter?.new || leaf.new;
+  const newMatched = !filterOptions?.filter?.new || leaf.transition === "new";
+  const fixedMatched = !filterOptions?.filter?.fixed || leaf.transition === "fixed";
+  const regressedMatched = !filterOptions?.filter?.regressed || leaf.transition === "regressed";
+  const malfuctionedMatched = !filterOptions?.filter?.malfuctioned || leaf.transition === "malfuctioned";
 
-  return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched].every(Boolean);
+  return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched, fixedMatched, regressedMatched, malfuctionedMatched].every(Boolean);
 };
 
 const leafComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
