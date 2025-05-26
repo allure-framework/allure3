@@ -188,7 +188,7 @@ export class AllureService {
     const form = new FormData();
 
     form.set("report", reportUuid);
-    form.set("key", key);
+    form.set("filename", key);
     form.set("file", content);
 
     await this.#client.post("/api/reports/upload", form, {

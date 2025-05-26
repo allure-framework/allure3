@@ -50,6 +50,13 @@ const template = `<!DOCTYPE html>
 </head>
 <body>
     <div id="app"></div>
+    <script>
+      const reportUuid = "{{ reportUuid }}";
+      const cookieName = "reportUuid";
+      const newValue = reportUuid;
+
+      document.cookie = \`\${cookieName}=\${newValue};path = /;max-age=31536000\`;
+    </script>
     ${createBaseUrlScript()}
     <script>
       window.allure = window.allure || {};
@@ -335,6 +342,7 @@ export const generateStaticFiles = async (
       if (key === "main.css") {
         headTags.push(createStylesLinkTag(fileName));
       }
+
       if (key === "main.js") {
         bodyTags.push(createScriptTag(fileName));
       }
@@ -351,9 +359,9 @@ export const generateStaticFiles = async (
   } else {
     const mainJs = manifest["main.js"];
     const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
-    const mainJsContentBuffer = await readFile(mainJsSource);
+    const mainJsContent = await readFile(mainJsSource);
 
-    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
+    bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));
   }
 
   const reportOptions: AwesomeReportOptions = {
