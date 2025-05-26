@@ -143,18 +143,18 @@ test.describe("new tests", () => {
     // Classic new test
     const passedNewTest = treeLeaves
       .filter({ has: page.getByText(passedTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
+      .getByTestId("tree-leaf-transition-new");
     await expect(passedNewTest).toBeVisible();
 
     const failedNewTest = treeLeaves
       .filter({ has: page.getByText(failedTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
+      .getByTestId("tree-leaf-transition-new");
     await expect(failedNewTest).toBeVisible();
 
     // Non-new test
     const nonNew = treeLeaves
       .filter({ has: page.getByText(flakyTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
+      .getByTestId("tree-leaf-transition-new");
     await expect(nonNew).not.toBeVisible();
   });
 
