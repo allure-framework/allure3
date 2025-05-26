@@ -17,7 +17,7 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
         acc.flaky = (acc.flaky ?? 0) + 1;
       }
 
-      if (tr.new) {
+      if (tr.transition === "new") {
         acc.new = (acc.new ?? 0) + 1;
       }
 

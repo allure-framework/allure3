@@ -1,4 +1,4 @@
-import type { HistoryTestResult, TestResult, MeaningfulTestStatus } from "@allurereport/core-api";
+import type { HistoryTestResult, TestResult, TestStatusTransition } from "@allurereport/core-api";
 
 const NON_MEANINGFUL_HISTORY_STATUSES = ["unknown", "skipped"];
 
@@ -23,22 +23,23 @@ export const isHistoricallyNew = (tr: TestResult, history: HistoryTestResult[] =
     return meaningfulHistory[meaningfulHistory.length - 1].status !== tr.status;
 };
 
+// TODO: Rename this functions to transition statuses (like isNewPassed -> isFixed)
 export const isNewPassed = (tr: TestResult, history: HistoryTestResult[] = []) => isHistoricallyNew(tr, history) && tr.status === "passed";
 
 export const isNewFailed = (tr: TestResult, history: HistoryTestResult[] = []) => isHistoricallyNew(tr, history) && tr.status === "failed";
 
 export const isNewBroken = (tr: TestResult, history: HistoryTestResult[] = []) => isHistoricallyNew(tr, history) && tr.status === "broken";
 
-export const getLastMeaningfulTestStatus = (tr: TestResult, history: HistoryTestResult[] = []): MeaningfulTestStatus | undefined => {
+export const getStatusTransition = (tr: TestResult, history: HistoryTestResult[] = []): TestStatusTransition | undefined => {
     const meaningfulHistory = getMeaningfulHistory(history);
 
-    if (meaningfulHistory.length === 0) {
-        return undefined;
-    }
-
-    const previousMeaningfulHistoryTestResult = meaningfulHistory[meaningfulHistory.length - 1];
-
-    if (isHistoricallyNew(tr, meaningfulHistory)) {
-        return previousMeaningfulHistoryTestResult.status as MeaningfulTestStatus;
+    if (isNew(meaningfulHistory)) {
+        return "new";
+    } else if (isNewPassed(tr, history)) {
+        return "fixed";
+    } else if (isNewFailed(tr, history)) {
+        return "regressed";
+    } else if (isNewBroken(tr, history)) {
+        return "malfuctioned";
     }
 };
