@@ -1,7 +1,9 @@
 import { type Statistic, type TestStatus, formatDuration } from "@allurereport/core-api";
+import { capitalize } from "@allurereport/web-commons";
 import { Heading, StatusLabel, SuccessRatePieChart, Text, getChartData } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { MetadataRow } from "@/components/MetadataRow";
+import type { MetadataProps } from "@/components/MetadataRow/MetadataItem";
+import MetadataItem, { MetadataTestType } from "@/components/MetadataRow/MetadataItem";
 import { currentLocaleIso, useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
@@ -77,11 +79,24 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
             { label: "passed", value: stats?.passed },
             { label: "skipped", value: stats?.skipped },
             { label: "unknown", value: stats?.unknown },
-          ].map(({ label, value }) => (
-            <MetadataRow key={label} status={label} label={t(label)}>
-              {value ?? 0}
-            </MetadataRow>
-          ))}
+          ]
+            .filter((item) => item.value)
+            .map(({ label, value }) => {
+              const props = {
+                title: capitalize(t(label)),
+                count: value,
+                status: label,
+              } as MetadataProps;
+
+              return (
+                <MetadataItem
+                  data-testid={`metadata-item-${label}`}
+                  key={label}
+                  props={props}
+                  renderComponent={MetadataTestType}
+                />
+              );
+            })}
         </div>
       </div>
       <div className={styles["report-card-chart-wrapper"]}>
