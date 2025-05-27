@@ -8,10 +8,12 @@ import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
+  const navigateUrl = new URL(item.id, item.url);
+
   return (
-    <div className={styles["test-result-prev-status"]} onClick={() => window.open(item.url, "_blank")}>
+    <a className={styles["test-result-prev-status"]} href={navigateUrl.toString()} target={"_blank"} rel={"noreferrer"}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
-    </div>
+    </a>
   );
 };
 const TestResultPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {

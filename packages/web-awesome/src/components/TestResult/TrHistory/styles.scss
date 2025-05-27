@@ -20,6 +20,8 @@
   padding: 4px 4px 4px 4px;
   width: 100%;
   align-items: flex-start;
+  text-decoration: none;
+  color: var(--on-text-primary);
 
   &:hover {
     background: var(--bg-control-flat-medium);

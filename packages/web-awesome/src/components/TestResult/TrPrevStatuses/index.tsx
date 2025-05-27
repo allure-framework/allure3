@@ -3,16 +3,27 @@ import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-co
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
-import { navigateTo } from "@/stores/router";
 import { capitalize } from "@/utils/capitalize";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
+  if (!item.url) {
+    return (
+      <div className={styles["test-result-prev-status"]}>
+        <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
+      </div>
+    );
+  }
+
+  const navigateUrl = new URL(item.url);
+
+  navigateUrl.hash = item.id;
+
   return (
-    <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`${item.id}`)}>
+    <a className={styles["test-result-prev-status"]} href={navigateUrl.toString()}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
-    </div>
+    </a>
   );
 };
 const TrPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {

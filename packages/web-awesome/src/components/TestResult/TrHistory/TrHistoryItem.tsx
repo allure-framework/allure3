@@ -1,7 +1,7 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
 import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { ArrowButton } from "@/components/ArrowButton";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrHistory/styles.scss";
@@ -16,9 +16,52 @@ export const TrHistoryItem: FunctionalComponent<{
   const convertedStop = timestampToDate(stop);
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
-  const navigateUrl = new URL(url);
+  const navigateUrl = useMemo(() => {
+    if (!url) {
+      return undefined;
+    }
 
-  navigateUrl.hash = id;
+    const navUrl = new URL(url);
+
+    navUrl.hash = id;
+
+    return navUrl.toString();
+  }, [url]);
+  const renderExternalLink = () => {
+    if (!navigateUrl) {
+      return null;
+    }
+
+    return (
+      <TooltipWrapper tooltipText={t("openInNewTab")}>
+        <IconButton
+          href={navigateUrl.toString()}
+          target={"_blank"}
+          icon={allureIcons.lineGeneralLinkExternal}
+          style={"ghost"}
+          size={"s"}
+          className={styles["test-result-history-item-link"]}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        />
+      </TooltipWrapper>
+    );
+  };
+  const renderItemContent = () => {
+    return (
+      <>
+        <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
+        <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
+        <div className={styles["test-result-history-item-info"]}>
+          <Text type="ui" size={"s"} className={styles["item-time"]}>
+            {formattedDuration}
+          </Text>
+          {renderExternalLink()}
+        </div>
+      </>
+    );
+  };
 
   return (
     <div>
@@ -28,33 +71,13 @@ export const TrHistoryItem: FunctionalComponent<{
             <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
           </span>
         )}
-        <div
-          className={styles["test-result-history-item-wrap"]}
-          onClick={(e) => {
-            e.stopPropagation();
-            window.open(navigateUrl.toString());
-          }}
-        >
-          <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-          <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
-          <div className={styles["test-result-history-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
-            <TooltipWrapper tooltipText={t("openInNewTab")}>
-              <IconButton
-                icon={allureIcons.lineGeneralLinkExternal}
-                style={"ghost"}
-                size={"s"}
-                className={styles["test-result-history-item-link"]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(navigateUrl.toString(), "_blank");
-                }}
-              />
-            </TooltipWrapper>
-          </div>
-        </div>
+        {navigateUrl ? (
+          <a href={navigateUrl} className={styles["test-result-history-item-wrap"]}>
+            {renderItemContent()}
+          </a>
+        ) : (
+          <div className={styles["test-result-history-item-wrap"]}>{renderItemContent()}</div>
+        )}
       </div>
       {isOpened && error && (
         <div>

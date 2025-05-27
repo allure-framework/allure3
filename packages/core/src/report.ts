@@ -99,7 +99,7 @@ export class AllureReport {
     }
 
     if (allureServiceConfig) {
-      this.#history = new AllureRemoteHistory(this.#allureService!, this.#store);
+      this.#history = new AllureRemoteHistory(this.#allureService!);
     } else if (historyPath) {
       this.#history = new AllureLocalHistory(historyPath);
     }
@@ -116,14 +116,6 @@ export class AllureReport {
 
   get validationResults() {
     return this.#qualityGate.result;
-  }
-
-  async readGitBranch() {
-    try {
-      return getGitBranch();
-    } catch (err) {
-      return undefined;
-    }
   }
 
   readDirectory = async (resultsDir: string) => {
@@ -176,10 +168,6 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    // if (this.#history) {
-    //   await this.#history.readHistory();
-    // }
-
     await this.#store.readHistory();
 
     if (this.#stage === "running") {
