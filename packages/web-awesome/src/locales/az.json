@@ -139,5 +139,21 @@
   },
   "errors": {
     "missedAttachment": "Əlavə tapılmadı"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Qrafiklər"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trend qrafiki: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Ciddilik"
+      }
+    },
+    "pie": {
+      "title": "Test Uğur Dərəcəsi"
+    }
   }
 }

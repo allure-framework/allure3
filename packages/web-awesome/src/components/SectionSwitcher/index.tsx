@@ -1,6 +1,6 @@
 import type { VNode } from "preact";
-import { Charts } from "@/components/Sections/Charts";
-import { Report } from "@/components/Sections/Report";
+import { Charts } from "@/components/Charts";
+import { Report } from "@/components/Report";
 import { currentSection } from "@/stores/sections";
 import * as styles from "./styles.scss";
 

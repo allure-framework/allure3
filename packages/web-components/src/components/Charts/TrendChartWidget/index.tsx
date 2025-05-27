@@ -1,9 +1,12 @@
-import { TrendChart, TrendChartKind, makeSymlogScale } from "@allurereport/web-components";
-import type { Serie, Slice } from "@allurereport/web-components";
 import type { CSSProperties } from "preact/compat";
 import { useCallback, useMemo, useState } from "preact/hooks";
-import { useI18n } from "@/stores/locale";
-import { Widget } from "../Widget";
+import type { Serie, Slice } from "@/components/Charts/TrendChart";
+import { TrendChart, TrendChartKind, makeSymlogScale } from "@/components/Charts/TrendChart";
+import { Widget } from "@/components/Widget";
+
+interface TrendChartWidgetPropsTranslates {
+  "no-results": string;
+}
 
 interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
   title: string;
@@ -14,6 +17,7 @@ interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> 
   height?: CSSProperties["height"];
   width?: CSSProperties["width"];
   rootAriaLabel?: string;
+  translates: TrendChartWidgetPropsTranslates;
 }
 
 export const TrendChartWidget = ({
@@ -25,11 +29,11 @@ export const TrendChartWidget = ({
   height = 400,
   width = "100%",
   rootAriaLabel,
+  translates,
 }: TrendChartWidgetProps) => {
-  const { t } = useI18n("empty");
   const [selectedSliceIds, setSelectedSliceIds] = useState<string[]>([]);
 
-  const emptyLabel = t("no-results");
+  const emptyLabel = translates["no-results"];
 
   const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
 

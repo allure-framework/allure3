@@ -9,12 +9,12 @@ import "@/assets/scss/index.scss";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModalComponent } from "@/components/Modal";
-import { SectionSwitcher } from "@/components/Sections/SectionSwitcher";
+import { SectionSwitcher } from "@/components/SectionSwitcher";
 import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
-import { getLayout, isLayoutLoading, isSplitMode, layoutStore } from "@/stores/layout";
+import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { currentSection, getSection } from "@/stores/sections";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
@@ -32,6 +32,7 @@ const Loader = () => {
 };
 
 const App = () => {
+  const className = styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
   const testResultId = route.value.params?.testResultId ?? null;
   const prefetchData = async () => {
@@ -86,13 +87,9 @@ const App = () => {
       {!prefetched && <Loader />}
       {prefetched && (
         <div className={styles.main}>
-          <Header
-            className={styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`]}
-          />
+          <Header className={className} />
           <SectionSwitcher />
-          <Footer
-            className={styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`]}
-          />
+          <Footer className={className} />
           <ModalComponent />
         </div>
       )}

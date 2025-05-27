@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "Allegato non trovato"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Grafici"
+  },
+  "charts": {
+    "trend": {
+      "title": "Grafico di tendenza: {{type}}",
+      "type": {
+        "status": "Stato",
+        "severity": "Gravità"
+      }
+    },
+    "pie": {
+      "title": "Tasso di successo dei test"
+    }
   }
 }

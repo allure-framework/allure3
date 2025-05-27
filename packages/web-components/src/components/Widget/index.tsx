@@ -1,6 +1,6 @@
-import { Heading } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import * as styles from "./styles.scss";
+import { Heading } from "@/components/Typography";
+import styles from "./styles.scss";
 
 interface WidgetProps {
   title: string;

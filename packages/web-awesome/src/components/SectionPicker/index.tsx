@@ -1,4 +1,5 @@
 import { DropdownButton, Menu, SvgIcon, allureIcons } from "@allurereport/web-components";
+import { useI18n } from "@/stores";
 import { availableSections, currentSection, setSection } from "@/stores/sections";
 import * as styles from "./styles.scss";
 
@@ -6,16 +7,18 @@ export type SectionItem = {
   name: string;
   logo: string;
 };
-const defaultSection: SectionItem = { name: "Report", logo: allureIcons.reportLogo };
+
+const defaultSection: SectionItem = { name: "report", logo: allureIcons.reportLogo };
 
 const sectionMap: Record<string, SectionItem> = {
   default: defaultSection,
-  charts: { name: "Charts", logo: allureIcons.lineChartsBarChartSquare },
-  categories: { name: "Categories", logo: allureIcons.lineAlertsAlertCircle },
+  charts: { name: "charts", logo: allureIcons.lineChartsBarChartSquare },
 };
 
 export const SectionPicker = () => {
   const selectedSection = sectionMap[currentSection.value] || defaultSection;
+  const { t } = useI18n("sections");
+
   return (
     <Menu
       size="m"
@@ -24,7 +27,7 @@ export const SectionPicker = () => {
         <DropdownButton
           style="ghost"
           size="m"
-          text={selectedSection.name}
+          text={t(selectedSection.name)}
           icon={selectedSection.logo}
           isExpanded={isOpened}
           onClick={onClick}
@@ -41,7 +44,7 @@ export const SectionPicker = () => {
           >
             <div className={styles["menu-item"]}>
               <SvgIcon id={sectionMap[value]?.logo} size={"s"} />
-              {sectionMap[value]?.name || value}
+              {t(sectionMap[value]?.name) || value}
             </div>
           </Menu.ItemWithCheckmark>
         ))}

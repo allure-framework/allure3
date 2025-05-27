@@ -1,18 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { capitalize } from "@allurereport/web-commons";
-import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
+import {
+  Grid,
+  GridItem,
+  Loadable,
+  PageLoader,
+  SuccessRatePieChart,
+  TrendChartWidget,
+  Widget,
+} from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import { type ChartData, ChartType, dashboardStore, fetchDashboardData } from "@/stores/dashboard";
+import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { useI18n } from "@/stores/locale";
-import { TrendChartWidget } from "./components/TrendChartWidget";
-import { Widget } from "./components/Widget";
+import type { ChartData } from "@/utils/charts";
+import { ChartType } from "@/utils/charts";
 import * as styles from "./styles.scss";
 
-const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: any) => string) => {
+const getChartWidgetByType = (
+  chartData: ChartData,
+  { t, empty }: Record<string, (key: string, options?: any) => string>,
+) => {
   switch (chartData.type) {
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
+      const translates = empty("no-results");
 
       return (
         <TrendChartWidget
@@ -21,6 +33,7 @@ const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: a
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
+          translates={{ "no-results": translates }}
         />
       );
     }
@@ -40,20 +53,21 @@ const getChartWidgetByType = (chartData: ChartData, t: (key: string, options?: a
   }
 };
 
-export const Dashboard = () => {
+export const Charts = () => {
   const { t } = useI18n("charts");
+  const { t: empty } = useI18n("empty");
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchChartsData();
   }, []);
 
   return (
     <Loadable
-      source={dashboardStore}
+      source={chartsStore}
       renderLoader={() => <PageLoader />}
       renderData={(data) => {
         const charts = Object.entries(data).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, t);
+          const chartWidget = getChartWidgetByType(value, { t, empty });
 
           return (
             <GridItem key={chartId} className={styles["overview-grid-item"]}>

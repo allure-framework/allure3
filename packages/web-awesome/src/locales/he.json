@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "הקובץ המצורף לא נמצא"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "גרפים"
+  },
+  "charts": {
+    "trend": {
+      "title": "תרשים מגמה: {{type}}",
+      "type": {
+        "status": "סטטוס",
+        "severity": "חומרה"
+      }
+    },
+    "pie": {
+      "title": "שיעור הצלחת הבדיקות"
+    }
   }
 }

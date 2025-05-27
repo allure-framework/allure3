@@ -139,5 +139,21 @@
   },
   "errors": {
     "missedAttachment": "Attachment not found"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Graphs"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trend Chart: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Severity"
+      }
+    },
+    "pie": {
+      "title": "Test Success Rate"
+    }
   }
 }

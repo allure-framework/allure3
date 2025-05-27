@@ -136,5 +136,21 @@
   },
   "errors": {
     "missedAttachment": "Nie znaleziono załącznika"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Wykresy"
+  },
+  "charts": {
+    "trend": {
+      "title": "Wykres trendu: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Ważność"
+      }
+    },
+    "pie": {
+      "title": "Wskaźnik powodzenia testów"
+    }
   }
 }

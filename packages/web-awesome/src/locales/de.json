@@ -138,5 +138,22 @@
   },
   "errors": {
     "missedAttachment": "Anhang nicht gefunden"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Graphen"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trenddiagramm: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Schweregrad"
+      }
+    },
+    "pie": {
+      "title": "Testerfolgsrate"
+    }
   }
+
 }

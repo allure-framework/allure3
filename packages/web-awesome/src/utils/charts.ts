@@ -1,27 +1,23 @@
-import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { severityLevels, statusesList } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
-import { signal } from "@preact/signals";
-import type { StoreSignalState } from "@/stores/types";
+import { type SeverityLevel, type TestStatus, severityLevels, statusesList } from "@allurereport/core-api";
 
 export enum ChartType {
   Trend = "trend",
   Pie = "pie",
 }
 
-enum ChartDataType {
+export enum ChartDataType {
   Status = "status",
   Severity = "severity",
 }
 
-type ChartId = string;
+export type ChartId = string;
 
-interface Point {
+export interface Point {
   x: Date | string | number;
   y: number;
 }
 
-interface Slice {
+export interface Slice {
   min: number;
   max: number;
   metadata: { executionId: string };
@@ -54,13 +50,13 @@ export interface TrendChartData {
   title?: string;
 }
 
-interface PieSlice {
+export interface PieSlice {
   status: TestStatus;
   count: number;
   d: string | null;
 }
 
-interface ResponsePieChartData {
+export interface ResponsePieChartData {
   type: ChartType.Pie;
   title?: string;
   percentage: number;
@@ -68,12 +64,9 @@ interface ResponsePieChartData {
 }
 
 export type PieChartData = ResponsePieChartData;
-
 export type ChartData = TrendChartData | PieChartData;
-
-type ChartsResponse = Partial<Record<ChartId, ResponseTrendChartData | ResponsePieChartData>>;
-
-type ChartsData = Record<ChartId, ChartData>;
+export type ChartsResponse = Partial<Record<ChartId, ResponseTrendChartData | ResponsePieChartData>>;
+export type ChartsData = Record<ChartId, ChartData>;
 
 const statusColors: Record<TestStatus, string> = {
   failed: "var(--bg-support-capella)",
@@ -82,7 +75,6 @@ const statusColors: Record<TestStatus, string> = {
   skipped: "var(--bg-support-rau)",
   unknown: "var(--bg-support-skat)",
 };
-
 const severityColors: Record<SeverityLevel, string> = {
   blocker: "var(--bg-support-capella)",
   critical: "var(--bg-support-atlas)",
@@ -90,12 +82,6 @@ const severityColors: Record<SeverityLevel, string> = {
   minor: "var(--bg-support-rau)",
   trivial: "var(--bg-support-skat)",
 };
-
-export const dashboardStore = signal<StoreSignalState<ChartsData>>({
-  loading: true,
-  error: undefined,
-  data: undefined,
-});
 
 /**
  * Helper function to create chart data for different chart types
@@ -105,7 +91,7 @@ export const dashboardStore = signal<StoreSignalState<ChartsData>>({
  * @param getColor - Function to get the color
  * @returns TrendChartData or undefined if the chart data is not available
  */
-const createTrendChartData = <T extends TestStatus | SeverityLevel>(
+export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,
   getGroups: () => readonly T[],
   getColor: (group: T) => string,
@@ -144,20 +130,21 @@ const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   };
 };
 
-const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
   createTrendChartData(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => statusesList,
     (status) => statusColors[status],
   );
-const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+
+export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
   createTrendChartData(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
   );
 
-const createaTrendChartData = (
+export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
   res: ChartsResponse,
@@ -169,7 +156,7 @@ const createaTrendChartData = (
   }
 };
 
-const createCharts = (res: ChartsResponse): ChartsData => {
+export const createCharts = (res: ChartsResponse): ChartsData => {
   return Object.entries(res).reduce((acc, [chartId, chart]) => {
     if (chart.type === ChartType.Trend) {
       acc[chartId] = createaTrendChartData(chartId, chart, res);
@@ -179,28 +166,4 @@ const createCharts = (res: ChartsResponse): ChartsData => {
 
     return acc;
   }, {} as ChartsData);
-};
-
-export const fetchDashboardData = async () => {
-  dashboardStore.value = {
-    ...dashboardStore.value,
-    loading: true,
-    error: undefined,
-  };
-
-  try {
-    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json");
-
-    dashboardStore.value = {
-      data: createCharts(res),
-      error: undefined,
-      loading: false,
-    };
-  } catch (err) {
-    dashboardStore.value = {
-      data: undefined,
-      error: err.message,
-      loading: false,
-    };
-  }
 };
