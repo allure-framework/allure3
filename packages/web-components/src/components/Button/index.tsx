@@ -90,6 +90,12 @@ type BaseBtnProps = {
    * @default true
    */
   focusable?: boolean;
+  /**
+   * URL to navigate to when the button is clicked
+   * If provided, the button will be rendered as an anchor element
+   */
+  href?: string;
+  target?: HTMLAnchorElement["target"];
   className?: string;
   dataTestId?: string;
 };
@@ -111,43 +117,62 @@ const BaseBtn = (props: BaseBtnProps) => {
     isDropdownButton = false,
     isActive = false,
     focusable = true,
+    href,
+    target = "_self",
     className,
     ...rest
   } = props;
-
   const isButtonDisabled = isDisabled || isPending;
 
+  // Common props for both button and anchor
+  const commonProps = {
+    ...rest,
+    tabIndex: focusable ? 0 : -1,
+    className: clsx(
+      styles.button,
+      isIconButton && styles.buttonIcon,
+      styles[`size_${size}`],
+      styles[`icon_size_${iconSize}`],
+      styles[`style_${style}`],
+      action === "danger" && styles.danger,
+      action === "positive" && styles.positive,
+      isPending && styles.pending,
+      fullWidth && styles.fullWidth,
+      !isButtonDisabled && isActive && styles.active,
+      className,
+    ),
+    onClick,
+  };
+
+  // Common content for both button and anchor
+  const content = (
+    <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
+      {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
+      {!isIconButton && <span className={styles.text}>{text}</span>}
+      {isDropdownButton && <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />}
+      <span className={styles.spinner} aria-hidden={!isPending}>
+        <Spinner />
+      </span>
+    </Text>
+  );
+
+  if (href) {
+    return (
+      <a
+        {...commonProps}
+        href={href}
+        target={target}
+        aria-disabled={isButtonDisabled ? "true" : undefined}
+        style={isButtonDisabled ? { pointerEvents: "none" } : undefined}
+      >
+        {content}
+      </a>
+    );
+  }
+
   return (
-    <button
-      {...rest}
-      tabIndex={focusable ? 0 : -1}
-      className={clsx(
-        styles.button,
-        isIconButton && styles.buttonIcon,
-        styles[`size_${size}`],
-        styles[`icon_size_${iconSize}`],
-        styles[`style_${style}`],
-        action === "danger" && styles.danger,
-        action === "positive" && styles.positive,
-        isPending && styles.pending,
-        fullWidth && styles.fullWidth,
-        !isButtonDisabled && isActive && styles.active,
-        className,
-      )}
-      disabled={isButtonDisabled}
-      onClick={onClick}
-      type={type}
-    >
-      <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
-        {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
-        {!isIconButton && <span className={styles.text}>{text}</span>}
-        {isDropdownButton && (
-          <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />
-        )}
-        <span className={styles.spinner} aria-hidden={!isPending}>
-          <Spinner />
-        </span>
-      </Text>
+    <button {...commonProps} disabled={isButtonDisabled} type={type}>
+      {content}
     </button>
   );
 };
