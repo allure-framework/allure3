@@ -6,7 +6,7 @@ import * as styles from "./styles.scss";
 const icons: Record<string, string> = {
   flaky: allureIcons.lineIconBomb2,
   retries: allureIcons.lineArrowsRefreshCcw1,
-  new: allureIcons.lineAlertsNotificationBox,
+  new: allureIcons.lineAlertsNew,
 };
 
 export const MetadataWithIcon: FunctionComponent<MetadataProps> = ({ type, count }) => (

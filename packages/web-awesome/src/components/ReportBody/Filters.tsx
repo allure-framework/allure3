@@ -6,10 +6,10 @@ import * as styles from "./styles.scss";
 const filterIcons: Record<TreeFilters, string> = {
   flaky: allureIcons.lineIconBomb2,
   retry: allureIcons.lineArrowsRefreshCcw1,
-  new: allureIcons.lineAlertsNotificationBox,
-  fixed: allureIcons.solidCheckCircle,
-  regressed: allureIcons.solidXCircle,
-  malfuctioned: allureIcons.solidAlertCircle,
+  new: allureIcons.lineAlertsNew,
+  fixed: allureIcons.lineAlertsFixed,
+  regressed: allureIcons.lineAlertsRegressed,
+  malfuctioned: allureIcons.lineAlertsMalfunctioned,
 };
 
 const MENU_KEYS = ["flaky", "retry", "new", "fixed", "regressed", "malfuctioned"] as TreeFilters[];

@@ -6,6 +6,10 @@ import environment from "@/assets/svg/environment.svg";
 import github from "@/assets/svg/github.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
+import lineAlertsNew from "@/assets/svg/line-alerts-new.svg";
+import lineAlertsMalfunctioned from "@/assets/svg/line-alerts-malfunctioned.svg";
+import lineAlertsFixed from "@/assets/svg/line-alerts-fixed.svg";
+import lineAlertsRegressed from "@/assets/svg/line-alerts-regressed.svg";
 import lineArrowsChevronDownDouble from "@/assets/svg/line-arrows-chevron-down-double.svg";
 import lineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import lineArrowsChevronRight from "@/assets/svg/line-arrows-chevron-right.svg";
@@ -76,6 +80,10 @@ export const allureIcons = {
   draggable: draggable.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
   lineAlertsNotificationBox: lineAlertsNotificationBox.id,
+  lineAlertsNew: lineAlertsNew.id,
+  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
+  lineAlertsFixed: lineAlertsFixed.id,
+  lineAlertsRegressed: lineAlertsRegressed.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
   lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
   lineArrowsChevronRight: lineArrowsChevronRight.id,
