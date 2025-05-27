@@ -4,13 +4,12 @@ import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
 import { capitalize } from "@/utils/capitalize";
-import { navigateTo } from "@/utils/navigate";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
   return (
-    <div className={styles["test-result-prev-status"]} onClick={() => navigateTo(`testresult/${item.id}`)}>
+    <div className={styles["test-result-prev-status"]} onClick={() => window.open(item.url, "_blank")}>
       <SvgIcon id={allureIcons.lineShapesDotCircle} className={styles[`status-${item?.status}`]} />
     </div>
   );
