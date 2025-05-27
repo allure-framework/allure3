@@ -31,7 +31,6 @@ import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
