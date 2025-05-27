@@ -380,7 +380,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     return [...this.#historyPoints]
       .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => ({ ...dp.testResults[tr.historyId!] }));
+      .map((dp) => ({
+        ...dp.testResults[tr.historyId!],
+        url: dp.url ? new URL(tr.id, dp.url).toString() : "",
+      }));
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {

@@ -43,6 +43,7 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureService: AllureService | undefined;
   readonly #publish: boolean;
+  #reportUrl?: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -193,7 +194,7 @@ export class AllureReport {
 
     // create remote report to publish files into
     if (this.#allureService && this.#publish) {
-      await this.#allureService.createReport({
+      this.#reportUrl = await this.#allureService.createReport({
         reportUuid: this.#reportUuid,
         reportName: this.#reportName,
       });
@@ -259,6 +260,8 @@ export class AllureReport {
           }),
         ),
       );
+
+      console.info(`The report has been published: ${this.#reportUrl}`);
     });
 
     const outputDirFiles = await readdir(this.#output);
@@ -290,7 +293,13 @@ export class AllureReport {
     if (this.#history) {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
+      const historyDataPoint = createHistory(
+        this.#reportUuid,
+        this.#reportName,
+        testCases,
+        testResults,
+        this.#reportUrl,
+      );
 
       await this.#store.appendHistory(historyDataPoint);
     }

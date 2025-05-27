@@ -169,7 +169,7 @@ export class AllureService {
       },
     );
 
-    return joinPosix(this.#url, data.id);
+    return data.url;
   }
 
   async addReportFile(payload: { reportUuid: string; key: string; file?: Buffer; filepath?: string }) {

@@ -24,7 +24,10 @@ const createHistoryItems = (testResults: TestResult[]) => {
     })
     .reduce(
       (previousValue, currentValue) => {
-        previousValue[currentValue.historyId] = currentValue;
+        previousValue[currentValue.historyId] = {
+          ...currentValue,
+          url: "",
+        };
         return previousValue;
       },
       {} as Record<string, HistoryTestResult>,
@@ -36,6 +39,7 @@ export const createHistory = (
   reportName: string = "Allure Report",
   testCases: TestCase[],
   testResults: TestResult[],
+  remoteUrl: string = "",
 ): HistoryDataPoint => {
   const knownTestCaseIds = testCases.map((tc) => tc.id);
 
@@ -46,6 +50,7 @@ export const createHistory = (
     knownTestCaseIds,
     testResults: createHistoryItems(testResults),
     metrics: {},
+    url: remoteUrl,
   };
 };
 

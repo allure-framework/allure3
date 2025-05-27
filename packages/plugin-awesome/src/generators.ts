@@ -51,11 +51,8 @@ const template = `<!DOCTYPE html>
 <body>
     <div id="app"></div>
     <script>
-      const reportUuid = "{{ reportUuid }}";
-      const cookieName = "reportUuid";
-      const newValue = reportUuid;
-
-      document.cookie = \`\${cookieName}=\${newValue};path = /;max-age=31536000\`;
+      document.cookie = "reportUuid=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
+      document.cookie = "reportUuid={{ reportUuid }};path = /;max-age=31536000";
     </script>
     ${createBaseUrlScript()}
     <script>
