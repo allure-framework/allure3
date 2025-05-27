@@ -1,5 +1,12 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
-import { type AllureStore, type Plugin, type PluginContext, preciseTreeLabels } from "@allurereport/plugin-api";
+import { getWorstStatus } from "@allurereport/core-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
+  preciseTreeLabels,
+} from "@allurereport/plugin-api";
 import { convertTestResult } from "./converters.js";
 import {
   generateAttachmentsData,
@@ -92,6 +99,22 @@ export class Allure2Plugin implements Plugin {
       reportUuid: context.reportUuid,
     });
   };
+
+  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
+    const allTrs = await store.allTestResults();
+    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
+    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
+
+    return {
+      name: this.options.reportName || context.reportName,
+      stats: await store.testsStatistic(),
+      status: worstStatus ?? "passed",
+      duration,
+      createdAt,
+      plugin: "Allure2",
+    };
+  }
 
   update = async (context: PluginContext, store: AllureStore) => {
     await this.#generate(context, store);

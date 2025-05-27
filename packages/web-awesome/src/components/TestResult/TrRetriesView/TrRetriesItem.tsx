@@ -21,7 +21,9 @@ export const TrRetriesItem: FunctionalComponent<{
   return (
     <div>
       <div className={styles["test-result-retries-item-header"]} onClick={() => setIsOpen(!isOpened)}>
-        {Boolean(error) && <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />}
+        {Boolean(error.trace || error.message) && (
+          <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />
+        )}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
           <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
@@ -41,7 +43,7 @@ export const TrRetriesItem: FunctionalComponent<{
           </div>
         </div>
       </div>
-      {isOpened && error && (
+      {isOpened && (error.message || error.trace) && (
         <div className={styles["test-result-retries-item-content"]}>
           <TrError {...error} status={status} />
         </div>

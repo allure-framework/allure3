@@ -1,8 +1,10 @@
 import { type Statistic, type TestStatus, formatDuration } from "@allurereport/core-api";
+import { capitalize } from "@allurereport/web-commons";
 import { Heading, StatusLabel, SuccessRatePieChart, Text, getChartData } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { MetadataRow } from "@/components/MetadataRow";
-import { useI18n } from "@/stores";
+import type { MetadataProps } from "@/components/MetadataRow/MetadataItem";
+import MetadataItem, { MetadataTestType } from "@/components/MetadataRow/MetadataItem";
+import { currentLocaleIso, useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
 export type ReportCardProps = {
@@ -11,12 +13,30 @@ export type ReportCardProps = {
   status: TestStatus;
   stats: Statistic;
   duration: number;
+  plugin?: string;
+  createdAt?: number;
 };
 
-export const ReportCard: FunctionalComponent<ReportCardProps> = ({ href, status, stats, name, duration }) => {
+export const ReportCard: FunctionalComponent<ReportCardProps> = ({
+  href,
+  status,
+  stats,
+  name,
+  duration,
+  plugin,
+  createdAt,
+}) => {
   const { t } = useI18n("summary");
   const { percentage, slices } = getChartData(stats);
   const formattedDuration = formatDuration(duration);
+  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  });
 
   return (
     <a
@@ -26,15 +46,22 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({ href, status,
       target={"_blank"}
       rel="noreferrer"
     >
-      <div className={styles["report-card-chart-wrapper"]}>
-        <SuccessRatePieChart className={styles["report-card-chart"]} slices={slices} percentage={percentage} />
-      </div>
-      <div>
+      <div className={styles["report-card-content"]}>
+        {plugin && (
+          <Text type={"ui"} tag={"div"} size={"s"} className={styles["report-card-plugin"]}>
+            {plugin}
+          </Text>
+        )}
         <div className={styles["report-card-title"]}>
           <Heading tag={"h2"} size={"s"}>
             {name}
           </Heading>
         </div>
+        {formattedCreatedAt && (
+          <Text tag={"div"} size={"s"} className={styles["report-card-created-at"]}>
+            {formattedCreatedAt}
+          </Text>
+        )}
         <div className={styles["report-card-status"]}>
           <StatusLabel status={status}>{t(status)}</StatusLabel>
           <Text type={"ui"} size={"s"}>
@@ -45,25 +72,35 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({ href, status,
           </Text>
         </div>
         <div className={styles["report-card-metadata"]}>
-          <li>
-            <MetadataRow label={t("passed")}>{stats?.passed ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("failed")}>{stats?.failed ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("broken")}>{stats?.broken ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("skipped")}>{stats?.skipped ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("unknown")}>{stats?.unknown ?? 0}</MetadataRow>
-          </li>
-          <li>
-            <MetadataRow label={t("total")}>{stats?.total ?? 0}</MetadataRow>
-          </li>
+          {[
+            { label: "total", value: stats?.total },
+            { label: "failed", value: stats?.failed },
+            { label: "broken", value: stats?.broken },
+            { label: "passed", value: stats?.passed },
+            { label: "skipped", value: stats?.skipped },
+            { label: "unknown", value: stats?.unknown },
+          ]
+            .filter((item) => item.value)
+            .map(({ label, value }) => {
+              const props = {
+                title: capitalize(t(label)),
+                count: value,
+                status: label,
+              } as MetadataProps;
+
+              return (
+                <MetadataItem
+                  data-testid={`metadata-item-${label}`}
+                  key={label}
+                  props={props}
+                  renderComponent={MetadataTestType}
+                />
+              );
+            })}
         </div>
+      </div>
+      <div className={styles["report-card-chart-wrapper"]}>
+        <SuccessRatePieChart className={styles["report-card-chart"]} slices={slices} percentage={percentage} />
       </div>
     </a>
   );

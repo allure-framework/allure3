@@ -15,6 +15,7 @@ import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
 import { lstat, opendir, readdir, realpath, rename, rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { join as joinPosix } from "node:path/posix";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { createHistory, writeHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
@@ -199,7 +200,7 @@ export class AllureReport {
 
       summaries.push({
         ...summary,
-        href: join("/", id),
+        href: joinPosix("/", id, "/"),
       });
     });
 
