@@ -21,9 +21,9 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({ duration, r
 
   return (
     <div className={styles["item-info"]}>
-      {transition && <Tag data-testid={`tree-leaf-transition-${transition}`} skin={transitionToTagSkin(transition)}>{transitionText}</Tag>}
       {flaky && <SvgIcon data-testid="tree-leaf-flaky" id={allureIcons.lineIconBomb2} />}
       <TreeItemRetries retriesCount={retriesCount} />
+      {transition && <Tag data-testid={`tree-leaf-transition-${transition}`} skin={transitionToTagSkin(transition)}>{transitionText}</Tag>}
       <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
         {formattedDuration}
       </Text>

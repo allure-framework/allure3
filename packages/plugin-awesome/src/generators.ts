@@ -126,7 +126,8 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
 
     convertedTr.history = await store.historyByTrId(tr.id);
     convertedTr.retries = await store.retriesByTrId(tr.id);
-    convertedTr.retry = convertedTr.retries.length > 0;
+    convertedTr.retriesCount = convertedTr.retries.length;
+    convertedTr.retry = convertedTr.retriesCount > 0;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
@@ -185,9 +186,9 @@ export const generateTree = async (
   const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,
-    ({ id, name, status, duration, flaky, transition, start, retriesCount }) => ({
+    ({ id, name, status, duration, flaky, transition, start, retry, retriesCount }) => ({
       nodeId: id,
-      retry: Boolean(retriesCount),
+      retry,
       retriesCount,
       name,
       status,
