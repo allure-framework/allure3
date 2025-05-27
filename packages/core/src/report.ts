@@ -287,7 +287,6 @@ export class AllureReport {
       }
 
       await rm(reportPath, { recursive: true });
-      return;
     }
 
     if (this.#history) {

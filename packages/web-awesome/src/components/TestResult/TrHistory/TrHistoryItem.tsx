@@ -6,19 +6,19 @@ import { ArrowButton } from "@/components/ArrowButton";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
-import { navigateTo, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export const TrHistoryItem: FunctionalComponent<{
   testResultItem: HistoryTestResult;
 }> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
-  const { status, error, stop, duration, id } = testResultItem;
+  const { status, error, stop, duration, id, url } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
   const formattedDuration = formatDuration(duration as number);
   const { t } = useI18n("controls");
+  const navigateUrl = new URL(url);
 
-  const navigateUrl = id;
+  navigateUrl.hash = id;
 
   return (
     <div>
@@ -32,7 +32,7 @@ export const TrHistoryItem: FunctionalComponent<{
           className={styles["test-result-history-item-wrap"]}
           onClick={(e) => {
             e.stopPropagation();
-            navigateTo(navigateUrl);
+            window.open(navigateUrl.toString());
           }}
         >
           <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
@@ -49,7 +49,7 @@ export const TrHistoryItem: FunctionalComponent<{
                 className={styles["test-result-history-item-link"]}
                 onClick={(e) => {
                   e.stopPropagation();
-                  openInNewTab(navigateUrl);
+                  window.open(navigateUrl.toString(), "_blank");
                 }}
               />
             </TooltipWrapper>

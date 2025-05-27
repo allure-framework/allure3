@@ -117,11 +117,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
 
     const repoData = await this.repoData();
-    const historyPoints = await this.#history.readHistory(repoData?.branch);
 
-    this.#historyPoints = historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
+    this.#historyPoints = (await this.#history.readHistory(repoData?.branch)) ?? [];
 
-    return this.#historyPoints ?? [];
+    this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
+
+    return this.#historyPoints;
   }
 
   async appendHistory(history: HistoryDataPoint): Promise<void> {
@@ -380,10 +381,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     return [...this.#historyPoints]
       .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => ({
-        ...dp.testResults[tr.historyId!],
-        url: dp.url ? new URL(tr.id, dp.url).toString() : "",
-      }));
+      .map((dp) => {
+        if (!dp.url) {
+          return dp.testResults[tr.historyId!];
+        }
+
+        const url = new URL(dp.url);
+
+        url.hash = tr.id;
+
+        return {
+          ...dp.testResults[tr.historyId!],
+          url: url.toString(),
+        };
+      });
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
