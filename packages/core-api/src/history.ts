@@ -18,7 +18,7 @@ export interface HistoryTestResult {
 
   labels?: TestLabel[];
 
-  // TODO url
+  url: string;
 }
 
 /**
@@ -31,6 +31,7 @@ export interface HistoryDataPoint {
   knownTestCaseIds: string[];
   testResults: Record<string, HistoryTestResult>;
   metrics: Record<string, number>;
+  url: string;
 }
 
 /**
