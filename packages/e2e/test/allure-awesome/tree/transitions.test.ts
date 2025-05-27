@@ -35,7 +35,7 @@ const getRandomUUID = () => {
   return crypto.randomUUID();
 };
 
-test.describe("new status tests", () => {
+test.describe("status transitions", () => {
   test.beforeAll(async () => {
     const now = Date.now();
 
