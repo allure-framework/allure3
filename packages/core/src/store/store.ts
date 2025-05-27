@@ -34,7 +34,6 @@ import { isFlaky } from "../utils/flaky.js";
 import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {

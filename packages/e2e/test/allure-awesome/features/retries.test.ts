@@ -98,12 +98,12 @@ test.describe("retries", () => {
   });
 
   test("should show retry icon in the tree for tests with retries", async ({ page }) => {
-    const retryIcons = page.getByTestId("tree-item-retries");
+    const retryIcons = page.getByTestId("tree-leaf-retries");
 
     await expect(retryIcons).toHaveCount(2);
 
-    const testWithRetriesIcon = treePage.getLeafByTitle("0 sample test").getByTestId("tree-item-retries");
-    const anotherTestWithRetriesIcon = treePage.getLeafByTitle("1 sample test").getByTestId("tree-item-retries");
+    const testWithRetriesIcon = treePage.getLeafByTitle("0 sample test").getByTestId("tree-leaf-retries");
+    const anotherTestWithRetriesIcon = treePage.getLeafByTitle("1 sample test").getByTestId("tree-leaf-retries");
 
     await expect(testWithRetriesIcon).toContainText("2");
     await expect(anotherTestWithRetriesIcon).toContainText("1");
