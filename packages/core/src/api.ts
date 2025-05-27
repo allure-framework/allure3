@@ -46,5 +46,6 @@ export interface FullConfig {
     url?: string;
     project?: string;
     accessToken?: string;
+    publish?: boolean;
   };
 }
