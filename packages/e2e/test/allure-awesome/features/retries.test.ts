@@ -110,7 +110,8 @@ test.describe("retries", () => {
   });
 
   test("metadata shows correct count of retries", async () => {
-    const { total, retries } = await treePage.getMetadataValues();
+    const total = await treePage.getMetadataValue("total");
+    const retries = await treePage.getMetadataValue("retries");
 
     expect(total).toBe("3");
     expect(retries).toBe("2");

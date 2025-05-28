@@ -165,7 +165,8 @@ test.describe("flaky", () => {
   });
 
   test("metadata shows correct count of flaky tests", async () => {
-    const { total, flaky } = await treePage.getMetadataValues();
+    const total = await treePage.getMetadataValue("total");
+    const flaky = await treePage.getMetadataValue("flaky");
 
     expect(total).toBe("2");
     expect(flaky).toBe("1");
