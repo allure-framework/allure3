@@ -13,8 +13,8 @@ export const TrHistoryItem: FunctionalComponent<{
 }> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
   const { status, error, stop, duration, id, url } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
+  const convertedStop = stop ? timestampToDate(stop) : undefined;
+  const formattedDuration = duration ? formatDuration(duration) : undefined;
   const { t } = useI18n("controls");
   const navigateUrl = useMemo(() => {
     if (!url) {
@@ -52,11 +52,13 @@ export const TrHistoryItem: FunctionalComponent<{
     return (
       <>
         <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-        <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
+        {convertedStop && <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>}
         <div className={styles["test-result-history-item-info"]}>
-          <Text type="ui" size={"s"} className={styles["item-time"]}>
-            {formattedDuration}
-          </Text>
+          {formattedDuration && (
+            <Text type="ui" size={"s"} className={styles["item-time"]}>
+              {formattedDuration}
+            </Text>
+          )}
           {renderExternalLink()}
         </div>
       </>
@@ -64,7 +66,7 @@ export const TrHistoryItem: FunctionalComponent<{
   };
 
   return (
-    <div>
+    <div data-testid={"test-result-history-item"}>
       <div className={styles["test-result-history-item-header"]}>
         {Boolean(error) && (
           <span onClick={() => setIsOpen(!isOpened)}>
