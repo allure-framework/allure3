@@ -30,7 +30,7 @@ const getChartWidgetByType = (
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
-          translates={{ "no-results": empty("no-results") }}
+          translations={{ "no-results": empty("no-results") }}
         />
       );
     }
