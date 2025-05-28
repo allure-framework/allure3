@@ -4,7 +4,7 @@ import type { Serie, Slice } from "@/components/Charts/TrendChart";
 import { TrendChart, TrendChartKind, makeSymlogScale } from "@/components/Charts/TrendChart";
 import { Widget } from "@/components/Widget";
 
-interface TrendChartWidgetPropsTranslates {
+interface TrendChartWidgetPropsTranslations {
   "no-results": string;
 }
 
@@ -17,7 +17,7 @@ interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> 
   height?: CSSProperties["height"];
   width?: CSSProperties["width"];
   rootAriaLabel?: string;
-  translates: TrendChartWidgetPropsTranslates;
+  translations: TrendChartWidgetPropsTranslations;
 }
 
 export const TrendChartWidget = ({
@@ -29,11 +29,11 @@ export const TrendChartWidget = ({
   height = 400,
   width = "100%",
   rootAriaLabel,
-  translates,
+  translations,
 }: TrendChartWidgetProps) => {
   const [selectedSliceIds, setSelectedSliceIds] = useState<string[]>([]);
 
-  const emptyLabel = translates["no-results"];
+  const emptyLabel = translations["no-results"];
 
   const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
 
