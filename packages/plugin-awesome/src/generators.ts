@@ -324,7 +324,7 @@ export const generateStaticFiles = async (
   const bodyTags: string[] = [];
   const sections: string[] = [];
 
-  if (charts) {
+  if (charts.length) {
     sections.push("charts");
   }
 
