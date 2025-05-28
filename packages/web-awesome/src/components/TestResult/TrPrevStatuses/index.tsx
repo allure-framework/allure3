@@ -49,7 +49,7 @@ export const TrPrevStatuses: FunctionalComponent<TrPrevStatusesProps> = ({ histo
   return (
     <div className={styles["test-result-prev-statuses"]}>
       {history?.slice(0, 6).map((item, key) => (
-        <div key={key} className={styles["test-result-prev-status"]}>
+        <div key={key} data-testid={"test-result-prev-status"} className={styles["test-result-prev-status"]}>
           <TooltipWrapper key={key} tooltipComponent={<TrPrevStatusTooltip item={item} />}>
             <TrPrevStatus item={item} />
           </TooltipWrapper>
