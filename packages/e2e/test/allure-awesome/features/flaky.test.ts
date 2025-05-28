@@ -29,6 +29,7 @@ test.describe("flaky", () => {
           name: reportName,
           timestamp: 1745926867897,
           knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
+          url: "",
           testResults: {
             [historyId]: {
               id: "42dffbf3bb12f89807c85206c3f993a2",
@@ -39,6 +40,7 @@ test.describe("flaky", () => {
               stop: 1745926874782,
               duration: 1000,
               labels: [],
+              url: "",
             },
             "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
               id: "181c008c6d519b30bd3279dded351bd3",
@@ -49,6 +51,7 @@ test.describe("flaky", () => {
               stop: 1745926878782,
               duration: 1000,
               labels: [],
+              url: "",
             },
           },
           metrics: {},
@@ -58,6 +61,7 @@ test.describe("flaky", () => {
           name: reportName,
           timestamp: 1745926884436,
           knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
+          url: "",
           testResults: {
             "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
               id: "67175da7a4eded923ad6d8dda76f2838",
@@ -68,6 +72,7 @@ test.describe("flaky", () => {
               stop: 1745926895322,
               duration: 1000,
               labels: [],
+              url: "",
             },
             [historyId]: {
               id: "1373936b78555e2d7646b6f7eccb5b83",
@@ -78,6 +83,7 @@ test.describe("flaky", () => {
               stop: 1745926891322,
               duration: 1000,
               labels: [],
+              url: "",
             },
           },
           metrics: {},
@@ -87,6 +93,7 @@ test.describe("flaky", () => {
           name: reportName,
           timestamp: 1745926887428,
           knownTestCaseIds: [testCaseId, "54511e33b8d1887a829f815f468563a9"],
+          url: "",
           testResults: {
             "54511e33b8d1887a829f815f468563a9.d41d8cd98f00b204e9800998ecf8427e": {
               id: "b40702a85e54a2f8dcc6cfdf791170dd",
@@ -97,6 +104,7 @@ test.describe("flaky", () => {
               stop: 1745926898309,
               duration: 1000,
               labels: [],
+              url: "",
             },
             [historyId]: {
               id: "218637ff0c630613e70a149cda54bdf2",
@@ -107,6 +115,7 @@ test.describe("flaky", () => {
               stop: now - 4000,
               duration: 1000,
               labels: [],
+              url: "",
             },
           },
           metrics: {},
@@ -148,7 +157,7 @@ test.describe("flaky", () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter flaky tests with flaky status using flaky filter", async ({ page }) => {
+  test("should be able to filter flaky tests with flaky status using flaky filter", async () => {
     await expect(treePage.leafLocator).toHaveCount(2);
     await treePage.toggleFlakyFilter();
     await expect(treePage.leafLocator).toHaveCount(1);
