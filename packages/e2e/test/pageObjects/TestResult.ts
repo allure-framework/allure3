@@ -33,6 +33,9 @@ export class TestResultPage extends PageObject {
   codeAttachmentContentLocator: Locator;
   videoAttachmentContentLocator: Locator;
 
+  historyItemLocator: Locator;
+  prevStatusLocator: Locator;0
+
   constructor(readonly page: Page) {
     super(page);
 
@@ -66,6 +69,9 @@ export class TestResultPage extends PageObject {
     this.imageAttachmentContentLocator = page.getByTestId("image-attachment-content");
     this.codeAttachmentContentLocator = page.getByTestId("code-attachment-content");
     this.videoAttachmentContentLocator = page.getByTestId("video-attachment-content");
+
+    this.historyItemLocator = page.getByTestId("test-result-history-item");
+    this.prevStatusLocator = page.getByTestId("test-result-prev-status");
   }
 
   tabById(id: string) {
@@ -74,6 +80,10 @@ export class TestResultPage extends PageObject {
 
   get envTabLocator() {
     return this.tabById("environments");
+  }
+
+  get historyTabLocator() {
+    return this.tabById("history");
   }
 
   get attachmentsTabLocator() {
