@@ -1,8 +1,7 @@
 import type { DefaultTestStepResult, TestStepResult } from "@allurereport/core-api";
-import { Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
 import { TrError } from "@/components/TestResult/TrError";

@@ -1,7 +1,6 @@
-import { Counter, Text } from "@allurereport/web-components";
+import { ArrowButton, Counter, Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { ArrowButton } from "@/components/ArrowButton";
 import * as styles from "./styles.scss";
 
 interface MetadataButtonProps {
@@ -19,7 +18,7 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
   ...rest
 }) => {
   return (
-    <div
+    <button
       {...rest}
       className={clsx(styles["report-metadata-header"], isOpened && styles["report-metadata-header-opened"])}
       type={"button"}
@@ -34,7 +33,8 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
         iconSize={"s"}
         buttonSize={"s"}
         className={styles["report-metadata-header-arrow"]}
+        tag={"div"}
       />
-    </div>
+    </button>
   );
 };

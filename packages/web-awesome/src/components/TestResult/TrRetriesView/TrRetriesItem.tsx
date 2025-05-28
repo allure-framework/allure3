@@ -1,9 +1,8 @@
 import { formatDuration } from "@allurereport/core-api";
-import { IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
-import { ArrowButton } from "@/components/ArrowButton";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 import { navigateTo } from "@/stores/router";

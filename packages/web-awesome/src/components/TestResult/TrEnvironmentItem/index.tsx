@@ -1,9 +1,8 @@
 import { formatDuration } from "@allurereport/core-api";
-import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import cx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { navigateTo, openInNewTab } from "@/stores/router";

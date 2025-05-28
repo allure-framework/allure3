@@ -27,12 +27,12 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
+  getPieChartData,
 } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getPieChartData } from "./charts/getPieChart.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import { filterEnv } from "./environments.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";

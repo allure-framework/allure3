@@ -24,7 +24,7 @@ const getChartWidgetByType = (
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
-      const translates = empty("no-results");
+      const translations = empty("no-results");
 
       return (
         <TrendChartWidget
@@ -33,7 +33,7 @@ const getChartWidgetByType = (
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
-          translates={{ "no-results": translates }}
+          translations={{ "no-results": translations }}
         />
       );
     }

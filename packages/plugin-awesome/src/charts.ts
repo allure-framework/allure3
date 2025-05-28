@@ -1,11 +1,9 @@
 import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { getPieChartDataDashboard, getSeverityTrendData, getStatusTrendData } from "@allurereport/web-commons";
 import { randomUUID } from "crypto";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
-import { getPieChartDataDashboard } from "./charts/getPieChartDashboard.js";
-import { getSeverityTrendData } from "./charts/getSeverityTrendData.js";
-import { getStatusTrendData } from "./charts/getStatusTrendData.js";
 import type { AwesomeOptions } from "./model.js";
 import type { AwesomeDataWriter } from "./writer.js";
 
