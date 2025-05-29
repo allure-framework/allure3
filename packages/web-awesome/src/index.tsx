@@ -52,6 +52,7 @@ const App = () => {
 
     if (currentEnvironment.value) {
       await fetchEnvTreesData([currentEnvironment.value]);
+      await fetchEnvStats(environmentsStore.value.data);
     } else {
       await fetchEnvTreesData(environmentsStore.value.data);
       await fetchEnvStats(environmentsStore.value.data);
