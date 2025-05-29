@@ -31,7 +31,7 @@
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
-    "malfuctioned": "Sınıq"
+    "malfunctioned": "Sınıq"
   },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
@@ -163,6 +163,6 @@
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
-    "malfuctioned": "Sınıq"
+    "malfunctioned": "Sınıq"
   }
 }

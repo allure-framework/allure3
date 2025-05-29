@@ -31,7 +31,7 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfuctioned": "Felaktig"
+    "malfunctioned": "Felaktig"
   },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
@@ -162,6 +162,6 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfuctioned": "Felaktig"
+    "malfunctioned": "Felaktig"
   }
 }

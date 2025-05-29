@@ -31,7 +31,7 @@
     "new": "חדש",
     "fixed": "מתוקן",
     "regressed": "נסוג",
-    "malfuctioned": "פגום"
+    "malfunctioned": "פגום"
   },
   "sort-by": {
     "sort-by-text": "מיין לפי:",
@@ -162,6 +162,6 @@
     "new": "חדש",
     "fixed": "מתוקן",
     "regressed": "נסוג",
-    "malfuctioned": "פגום"
+    "malfunctioned": "פגום"
   }
 }

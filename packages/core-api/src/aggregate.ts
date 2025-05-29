@@ -1,7 +1,7 @@
 export type DiffStatistic = {
   regressed?: number;
   fixed?: number;
-  malfuctioned?: number;
+  malfunctioned?: number;
   new?: number;
 };
 

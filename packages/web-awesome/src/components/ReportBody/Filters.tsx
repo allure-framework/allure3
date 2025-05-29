@@ -9,10 +9,10 @@ const filterIcons: Record<TreeFilters, string> = {
   new: allureIcons.lineAlertsNew,
   fixed: allureIcons.lineAlertsFixed,
   regressed: allureIcons.lineAlertsRegressed,
-  malfuctioned: allureIcons.lineAlertsMalfunctioned,
+  malfunctioned: allureIcons.lineAlertsMalfunctioned,
 };
 
-const MENU_KEYS = ["flaky", "retry", "new", "fixed", "regressed", "malfuctioned"] as TreeFilters[];
+const MENU_KEYS = ["flaky", "retry", "new", "fixed", "regressed", "malfunctioned"] as TreeFilters[];
 
 export const Filters = () => {
   const { t } = useI18n("filters");

@@ -31,7 +31,7 @@
     "new": "Nouveaux",
     "fixed": "Corrigés",
     "regressed": "Régression",
-    "malfuctioned": "Défectueux"
+    "malfunctioned": "Défectueux"
   },
   "sort-by": {
     "sort-by-text": "Trier par :",
@@ -162,6 +162,6 @@
     "new": "Nouveau",
     "fixed": "Corrigés",
     "regressed": "Régression",
-    "malfuctioned": "Défectueux"
+    "malfunctioned": "Défectueux"
   }
 }

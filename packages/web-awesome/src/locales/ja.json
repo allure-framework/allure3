@@ -31,7 +31,7 @@
     "new": "新しい",
     "fixed": "修正済み",
     "regressed": "退行",
-    "malfuctioned": "故障"
+    "malfunctioned": "故障"
   },
   "sort-by": {
     "sort-by-text": "並べ替え:",
@@ -162,6 +162,6 @@
     "new": "新規",
     "fixed": "修正済み",
     "regressed": "退行",
-    "malfuctioned": "故障"
+    "malfunctioned": "故障"
   }
 }

@@ -31,7 +31,7 @@
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
-    "malfuctioned": "Defekt"
+    "malfunctioned": "Defekt"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -162,6 +162,6 @@
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
-    "malfuctioned": "Defekt"
+    "malfunctioned": "Defekt"
   }
 }

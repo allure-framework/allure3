@@ -31,7 +31,7 @@
     "new": "Նոր",
     "fixed": "Ուղղված",
     "regressed": "Ռեգրեսիա",
-    "malfuctioned": "Կոտրված"
+    "malfunctioned": "Կոտրված"
   },
   "sort-by": {
     "sort-by-text": "Դասավորել ըստ:",
@@ -162,6 +162,6 @@
     "new": "Նոր",
     "fixed": "Ուղղված",
     "regressed": "Ռեգրեսիա",
-    "malfuctioned": "Կոտրված"
+    "malfunctioned": "Կոտրված"
   }
 }

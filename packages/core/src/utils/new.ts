@@ -40,6 +40,6 @@ export const getStatusTransition = (tr: TestResult, history: HistoryTestResult[]
     } else if (isNewFailed(tr, history)) {
         return "regressed";
     } else if (isNewBroken(tr, history)) {
-        return "malfuctioned";
+        return "malfunctioned";
     }
 };

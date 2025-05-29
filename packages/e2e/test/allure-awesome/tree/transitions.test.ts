@@ -3,8 +3,10 @@ import { Stage, Status, label } from "allure-js-commons";
 import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import crypto from "crypto";
+import { TreePage } from "../../pageObjects/index.js";
 
 let bootstrap: ReportBootstrap;
+let treePage: TreePage;
 
 const reportName = "Sample allure report";
 
@@ -168,6 +170,9 @@ test.describe("status transitions", () => {
 
   test.beforeEach(async ({ browserName, page }) => {
     await label("env", browserName);
+
+    treePage = new TreePage(page);
+
     await page.goto(bootstrap.url);
   });
 
@@ -175,55 +180,69 @@ test.describe("status transitions", () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter new tests with using freshely new status filter", async ({ page }) => {
-    await expect(page.getByTestId("tree-leaf")).toHaveCount(4);
+  test("should be able to filter fixed tests with using freshely fixed status filter", async () => {
+    await expect(treePage.leafLocator).toHaveCount(4);
 
-    // Open filters
-    await page.getByTestId("filters-button").click();
-
-    // Select new filter
-    await page.getByTestId("new-filter").click();
+    // Select freshely fixed filter
+    await treePage.toggleFixedFilter();
 
     // Verify only tests with freshely new status are visible
-    const treeLeaves = page.getByTestId("tree-leaf");
-    await expect(treeLeaves).toHaveCount(1);
+    await expect(treePage.leafLocator).toHaveCount(1);
 
     // Verify the test names are correct for tests with freshely new status
-    await expect(page.getByText(newTestName, { exact: true })).toBeVisible();
-    await expect(page.getByText(newPassedTestName, { exact: true })).not.toBeVisible();
-    await expect(page.getByText(newFailedTestName, { exact: true })).not.toBeVisible();
-    await expect(page.getByText(newBrokenTestName, { exact: true })).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).not.toBeVisible();
 
-    // Disable new filter
-    await page.getByTestId("new-filter").click();
+    // Disable fixed filter
+    await treePage.toggleFixedFilter();
 
     // Verify all tests are visible again
-    await expect(page.getByTestId("tree-leaf")).toHaveCount(4);
+    await expect(treePage.leafLocator).toHaveCount(4);
   });
 
-  /* test("should show new icon only for new tests in the tree", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
+  test("should be able to filter regressed tests with using freshely regressed status filter", async () => {
+    await expect(treePage.leafLocator).toHaveCount(4);
 
-    // Classic new test
-    const passedNewTest = treeLeaves
-      .filter({ has: page.getByText(passedTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
-    await expect(passedNewTest).toBeVisible();
+    // Select freshely fixed filter
+    await treePage.toggleRegressedFilter();
 
-    const failedNewTest = treeLeaves
-      .filter({ has: page.getByText(failedTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
-    await expect(failedNewTest).toBeVisible();
+    // Verify only tests with freshely regressed status are visible
+    await expect(treePage.leafLocator).toHaveCount(1);
 
-    // Non-new test
-    const nonNew = treeLeaves
-      .filter({ has: page.getByText(flakyTestName, { exact: true }) })
-      .getByTestId("tree-item-meta-icon-new");
-    await expect(nonNew).not.toBeVisible();
+    // Verify the test names are correct for tests with freshely regressed status
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).not.toBeVisible();
+
+    // Disable regressed filter
+    await treePage.toggleRegressedFilter();
+
+    // Verify all tests are visible again
+    await expect(treePage.leafLocator).toHaveCount(4);
   });
 
-  test("metadata shows correct count of new tests", async ({ page }) => {
-    await expect(page.getByTestId("metadata-item-total").getByTestId("metadata-value")).toHaveText("3");
-    await expect(page.getByTestId("metadata-item-new").getByTestId("metadata-value")).toHaveText("2");
-  });*/
+  test("should be able to filter malfunctioned tests with using freshely malfunctioned status filter", async () => {
+    await expect(treePage.leafLocator).toHaveCount(4);
+
+    // Select freshely malfunctioned filter
+    await treePage.toggleMalfuctionedFilter();
+
+    // Verify only tests with freshely malfunctioned status are visible
+    await expect(treePage.leafLocator).toHaveCount(1);
+
+    // Verify the test names are correct for tests with freshely malfunctioned status
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).toBeVisible();
+
+    // Disable malfunctioned filter
+    await treePage.toggleMalfuctionedFilter();
+
+    // Verify all tests are visible again
+    await expect(treePage.leafLocator).toHaveCount(4);
+  });
 });

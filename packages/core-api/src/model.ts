@@ -2,7 +2,7 @@ import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
-export type TestStatusTransition = "regressed" | "fixed" | "malfuctioned" | "new";
+export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "new";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
 /**

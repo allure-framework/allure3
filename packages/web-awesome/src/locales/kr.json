@@ -31,7 +31,7 @@
     "new": "새로운",
     "fixed": "수정됨",
     "regressed": "퇴행",
-    "malfuctioned": "고장"
+    "malfunctioned": "고장"
   },
   "sort-by": {
     "sort-by-text": "정렬 기준:",
@@ -162,6 +162,6 @@
     "new": "새로운",
     "fixed": "수정됨",
     "regressed": "퇴행",
-    "malfuctioned": "고장"
+    "malfunctioned": "고장"
   }
 }
