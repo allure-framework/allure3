@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "עוד מסננים",
-    "enable-filter": "אפשר מסנן \"{filter}\"",
+    "enable-filter": "אפשר מסנן \"{{filter}}\"",
     "flaky": "לא יציב",
     "retry": "חוזר",
     "new": "חדש",
