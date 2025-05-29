@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Daha çox filtr",
-    "enable-filter": "\"{filter}\" filtrlərini aktiv edin",
+    "enable-filter": "\"{{filter}}\" filtrlərini aktiv edin",
     "flaky": "Etibarsız",
     "retry": "Təkrar",
     "new": "Yeni",

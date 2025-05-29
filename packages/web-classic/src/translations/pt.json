@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Mais filtros",
-    "enable-filter": "Habilitar filtro para \"{filter}\"",
+    "enable-filter": "Habilitar filtro para \"{{filter}}\"",
     "flaky": "Instável",
     "retry": "Repetir",
     "new": "Novo"

@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "更多过滤器",
-    "enable-filter": "启用 \"{filter}\" 过滤器",
+    "enable-filter": "启用 \"{{filter}}\" 过滤器",
     "flaky": "不稳定",
     "retry": "重试",
     "new": "新的"

@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Meer filters",
-    "enable-filter": "Filter \"{filter}\" inschakelen",
+    "enable-filter": "Filter \"{{filter}}\" inschakelen",
     "flaky": "Onstabiel",
     "retry": "Opnieuw proberen",
     "new": "Nieuw",

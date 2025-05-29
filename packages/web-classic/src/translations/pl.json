@@ -22,7 +22,7 @@
   },
   "filters": {
     "more-filters": "Filtry",
-    "enable-filter": "Filtruj po \"{filter}\"",
+    "enable-filter": "Filtruj po \"{{filter}}\"",
     "flaky": "Niestabilne",
     "retry": "Powtórne",
     "new": "Nowe"

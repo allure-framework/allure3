@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Լրացուցիչ ֆիլտրեր",
-    "enable-filter": "Միացնել \"{filter}\" ֆիլտրը",
+    "enable-filter": "Միացնել \"{{filter}}\" ֆիլտրը",
     "flaky": "Անհուսալի",
     "retry": "Կրկնություն",
     "new": "Նոր",
