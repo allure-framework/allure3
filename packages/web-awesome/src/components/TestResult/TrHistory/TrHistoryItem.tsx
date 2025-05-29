@@ -2,7 +2,6 @@ import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
@@ -26,7 +25,7 @@ export const TrHistoryItem: FunctionalComponent<{
     navUrl.hash = id;
 
     return navUrl.toString();
-  }, [url]);
+  }, [id, url]);
   const renderExternalLink = () => {
     if (!navigateUrl) {
       return null;
