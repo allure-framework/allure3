@@ -31,7 +31,7 @@
     "new": "新的",
     "fixed": "已修复",
     "regressed": "已回归",
-    "malfuctioned": "已损坏"
+    "malfunctioned": "已损坏"
   },
   "sort-by": {
     "sort-by-text": "排序依据:",
@@ -162,6 +162,6 @@
     "new": "新的",
     "fixed": "已修复",
     "regressed": "已回归",
-    "malfuctioned": "已损坏"
+    "malfunctioned": "已损坏"
   }
 }

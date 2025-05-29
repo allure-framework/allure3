@@ -31,7 +31,7 @@
     "new": "Nuovi",
     "fixed": "Corretti",
     "regressed": "Regrediti",
-    "malfuctioned": "Danneggiati"
+    "malfunctioned": "Danneggiati"
   },
   "sort-by": {
     "sort-by-text": "Ordina per:",
@@ -162,6 +162,6 @@
     "new": "Nuovo",
     "fixed": "Corretto",
     "regressed": "Regredito",
-    "malfuctioned": "Danneggiato"
+    "malfunctioned": "Danneggiato"
   }
 }

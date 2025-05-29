@@ -31,7 +31,7 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfuctioned": "Defect"
+    "malfunctioned": "Defect"
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -162,6 +162,6 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfuctioned": "Defect"
+    "malfunctioned": "Defect"
   }
 }
