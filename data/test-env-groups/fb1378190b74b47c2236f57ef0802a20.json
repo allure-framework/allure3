@@ -1,1 +1,1 @@
-{"id":"fb1378190b74b47c2236f57ef0802a20","fullName":"test/junitxml.test.ts#junit xml reader statuses skipped should parse an empty element","name":"should parse an empty element","status":"passed","testResultsByEnv":{"default":"a03ead32fa614e14796c0293988fdd1c"}}
+{"id":"fb1378190b74b47c2236f57ef0802a20","fullName":"test/junitxml.test.ts#junit xml reader statuses skipped should parse an empty element","name":"should parse an empty element","status":"passed","testResultsByEnv":{"default":"30c739295e5c449b72fd47a2016f8fc0"}}
