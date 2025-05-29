@@ -28,7 +28,7 @@
     "new": "Nowe",
     "fixed": "Naprawione",
     "regressed": "Zaregresowane",
-    "malfuctioned": "Uszkodzone"
+    "malfunctioned": "Uszkodzone"
   },
   "sort-by": {
     "sort-by-text": "Sortuj po:",
@@ -160,6 +160,6 @@
     "new": "Nowy",
     "fixed": "Naprawiony",
     "regressed": "Zaregresowany",
-    "malfuctioned": "Uszkodzony"
+    "malfunctioned": "Uszkodzony"
   }
 }

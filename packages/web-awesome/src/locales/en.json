@@ -31,7 +31,7 @@
     "new": "New",
     "fixed": "Fixed",
     "regressed": "Regressed",
-    "malfuctioned": "Malfuctioned"
+    "malfunctioned": "Malfuctioned"
   },
   "sort-by": {
     "sort-by-text": "Sort by:",
@@ -163,6 +163,6 @@
     "new": "New",
     "fixed": "Fixed",
     "regressed": "Regressed",
-    "malfuctioned": "Malfuctioned"
+    "malfunctioned": "Malfuctioned"
   }
 }

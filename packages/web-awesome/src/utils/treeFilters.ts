@@ -23,7 +23,7 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
   const newMatched = !filterOptions?.filter?.new || leaf.transition === "new";
   const fixedMatched = !filterOptions?.filter?.fixed || leaf.transition === "fixed";
   const regressedMatched = !filterOptions?.filter?.regressed || leaf.transition === "regressed";
-  const malfuctionedMatched = !filterOptions?.filter?.malfuctioned || leaf.transition === "malfuctioned";
+  const malfuctionedMatched = !filterOptions?.filter?.malfunctioned || leaf.transition === "malfunctioned";
 
   return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched, fixedMatched, regressedMatched, malfuctionedMatched].every(Boolean);
 };

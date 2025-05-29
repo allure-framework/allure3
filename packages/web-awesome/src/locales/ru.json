@@ -28,7 +28,7 @@
     "new": "Новые",
     "fixed": "Исправленные",
     "regressed": "Регрессированные",
-    "malfuctioned": "Сломанные"
+    "malfunctioned": "Сломанные"
   },
   "sort-by": {
     "sort-by-text": "Сортировать по:",
@@ -160,6 +160,6 @@
     "new": "Новый",
     "fixed": "Исправленный",
     "regressed": "Регрессированный",
-    "malfuctioned": "Сломанный"
+    "malfunctioned": "Сломанный"
   }
 }

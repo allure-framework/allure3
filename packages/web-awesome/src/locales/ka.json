@@ -31,7 +31,7 @@
     "new": "ახალი",
     "fixed": "გასწორებული",
     "regressed": "რეგრესია",
-    "malfuctioned": "დაზიანებული"
+    "malfunctioned": "დაზიანებული"
   },
   "sort-by": {
     "sort-by-text": "დალაგება:",
@@ -162,6 +162,6 @@
     "new": "ახალი",
     "fixed": "გასწორებული",
     "regressed": "რეგრესია",
-    "malfuctioned": "დაზიანებული"
+    "malfunctioned": "დაზიანებული"
   }
 }

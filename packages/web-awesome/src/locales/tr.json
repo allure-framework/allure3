@@ -31,7 +31,7 @@
     "new": "Yeni",
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
-    "malfuctioned": "Bozuk"
+    "malfunctioned": "Bozuk"
   },
   "sort-by": {
     "sort-by-text": "Sıralama ölçütü:",
@@ -162,6 +162,6 @@
     "new": "Yeni",
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
-    "malfuctioned": "Bozuk"
+    "malfunctioned": "Bozuk"
   }
 }

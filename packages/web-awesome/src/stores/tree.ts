@@ -8,7 +8,7 @@ import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
 export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
 export type TreeDirection = "asc" | "desc";
-export type TreeFilters = "flaky" | "retry" | "new" | "fixed" | "regressed" | "malfuctioned";
+export type TreeFilters = "flaky" | "retry" | "new" | "fixed" | "regressed" | "malfunctioned";
 export type TreeFiltersState = {
   query: string;
   status: AwesomeStatus;
@@ -61,7 +61,7 @@ export const treeFiltersStore = signal<TreeFiltersState>(
       new: false,
       fixed: false,
       regressed: false,
-      malfuctioned: false,
+      malfunctioned: false,
     },
     sortBy: "order",
     direction: "asc",
@@ -109,7 +109,7 @@ export const clearTreeFilters = () => {
       new: false,
       fixed: false,
       regressed: false,
-      malfuctioned: false,
+      malfunctioned: false,
     },
     sortBy: "order",
     direction: "asc",

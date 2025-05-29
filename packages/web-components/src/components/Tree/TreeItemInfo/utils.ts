@@ -9,7 +9,7 @@ export const transitionToTagSkin = (transition: TestStatusTransition): TagSkin |
       return "successful";
     case "regressed":
       return "failed";
-    case "malfuctioned":
+    case "malfunctioned":
       return "warning";
     default:
         return undefined;
