@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "추가 필터",
-    "enable-filter": "\"{filter}\" 필터 활성화",
+    "enable-filter": "\"{{filter}}\" 필터 활성화",
     "flaky": "불안정함",
     "retry": "재시도",
     "new": "새로운",
