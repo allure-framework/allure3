@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "Bilaga hittades inte"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Grafer"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trenddiagram: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Allvarlighetsgrad"
+      }
+    },
+    "pie": {
+      "title": "Testframgångsfrekvens"
+    }
   }
 }

@@ -6,15 +6,17 @@ import { render } from "preact";
 import "preact/debug";
 import { useEffect, useState } from "preact/hooks";
 import "@/assets/scss/index.scss";
-import { BaseLayout } from "@/components/BaseLayout";
+import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
 import { ModalComponent } from "@/components/Modal";
-import { SplitLayout } from "@/components/SplitLayout";
+import { SectionSwitcher } from "@/components/SectionSwitcher";
 import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
-import { getLayout, isLayoutLoading, isSplitMode } from "@/stores/layout";
+import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
+import { currentSection, getSection } from "@/stores/sections";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
@@ -30,13 +32,19 @@ const Loader = () => {
 };
 
 const App = () => {
+  const className = styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
-  const { id: testResultId } = route.value;
+  const testResultId = route.value.params?.testResultId ?? null;
   const prefetchData = async () => {
     const fns = [ensureReportDataReady, fetchReportStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
 
     if (globalThis) {
-      fns.unshift(getLocale, getLayout as () => Promise<void>, getTheme as () => Promise<void>);
+      fns.unshift(
+        getSection as () => Promise<void>,
+        getLocale,
+        getLayout as () => Promise<void>,
+        getTheme as () => Promise<void>,
+      );
     }
 
     await waitForI18next;
@@ -64,24 +72,28 @@ const App = () => {
   }, [testResultId, currentEnvironment]);
 
   useEffect(() => {
+    const onHashChange = () => handleHashChange();
+
     handleHashChange();
-    globalThis.addEventListener("hashchange", () => handleHashChange());
+    globalThis.addEventListener("hashchange", onHashChange);
 
     return () => {
-      globalThis.removeEventListener("hashchange", () => handleHashChange());
+      globalThis.removeEventListener("hashchange", onHashChange);
     };
   }, []);
 
   return (
-    <div className={styles.main}>
+    <>
       {!prefetched && <Loader />}
       {prefetched && (
-        <>
-          {isSplitMode.value ? <SplitLayout /> : <BaseLayout />}
+        <div className={styles.main}>
+          <Header className={className} />
+          <SectionSwitcher />
+          <Footer className={className} />
           <ModalComponent />
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

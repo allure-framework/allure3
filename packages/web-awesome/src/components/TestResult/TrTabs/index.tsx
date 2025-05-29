@@ -1,7 +1,7 @@
 import { Text } from "@allurereport/web-components";
 import { type ComponentChildren, createContext } from "preact";
 import { useContext, useEffect, useState } from "preact/hooks";
-import { activeTab, navigateTo, route } from "@/stores/router";
+import { activeSubTab, activeTab, navigateTo, route } from "@/stores/router";
 import * as styles from "./styles.scss";
 
 type TrTabsContextT = {
@@ -39,16 +39,17 @@ export const TrTabsList = (props: { children: ComponentChildren }) => {
 };
 
 export const TrTab = (props: { id: string; children: ComponentChildren }) => {
+  const { testResultId } = route.value.params;
   const { currentTab, setCurrentTab } = useTestResultTabsContext();
   const { id, children } = props;
-  const isActiveFromUrl = activeTab.value === id;
+  const isActiveFromUrl = activeSubTab.value === id;
   const isCurrentTab = isActiveFromUrl ? isActiveFromUrl : currentTab === id;
 
   useEffect(() => {
     if (isActiveFromUrl) {
       setCurrentTab(id);
     }
-  }, [activeTab.value]);
+  }, [activeSubTab.value]);
 
   const handleTabClick = () => {
     if (isCurrentTab) {
@@ -57,7 +58,10 @@ export const TrTab = (props: { id: string; children: ComponentChildren }) => {
     setCurrentTab(id);
     navigateTo({
       ...route.value,
-      params: { ...route.value.params, tabName: id !== "overview" ? id : "" },
+      params: {
+        testResultId,
+        subTab: id || null,
+      },
     });
   };
 

@@ -22,6 +22,8 @@ const namespaces = [
   "split",
   "modal",
   "environments",
+  "charts",
+  "sections",
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);

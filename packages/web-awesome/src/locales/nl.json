@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "Bijlage niet gevonden"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Grafieken"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trendgrafiek: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Ernst"
+      }
+    },
+    "pie": {
+      "title": "Test slagingspercentage"
+    }
   }
 }

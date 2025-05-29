@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "Ek bulunamadı"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Grafikler"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trend Grafiği: {{type}}",
+      "type": {
+        "status": "Durum",
+        "severity": "Önem Derecesi"
+      }
+    },
+    "pie": {
+      "title": "Test Başarı Oranı"
+    }
   }
 }

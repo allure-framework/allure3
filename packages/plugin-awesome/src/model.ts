@@ -1,4 +1,5 @@
 import type { EnvironmentsConfig, TestResult } from "@allurereport/core-api";
+import type { ChartOptions } from "./charts.js";
 
 export type AwesomeOptions = {
   reportName?: string;
@@ -15,6 +16,9 @@ export type AwesomeOptions = {
     name: string;
   };
   filter?: (testResult: TestResult) => boolean;
+  charts?: ChartOptions[];
+  sections?: string[];
+  defaultSection?: string;
 };
 
 export type TemplateManifest = Record<string, string>;

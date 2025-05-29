@@ -3,3 +3,8 @@ export * from "./static.js";
 export * from "./attachments.js";
 export * from "./i18n.js";
 export * from "./strings.js";
+export * from "./charts.js";
+export * from "./charts/getPieChart.js";
+export * from "./charts/getPieChartDashboard.js";
+export * from "./charts/getSeverityTrendData.js";
+export * from "./charts/getStatusTrendData.js";

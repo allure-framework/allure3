@@ -1,10 +1,8 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType } from "@allurereport/web-commons";
-import { Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
-import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 

@@ -22,6 +22,8 @@ export type AwesomeReportOptions = {
   createdAt: number;
   reportUuid: string;
   layout?: Layout;
+  defaultSection?: string;
+  sections?: string[];
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -97,4 +99,4 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
 // TODO: add worst status
 export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
   testResults: AwesomeTestResult[];
-}
+};

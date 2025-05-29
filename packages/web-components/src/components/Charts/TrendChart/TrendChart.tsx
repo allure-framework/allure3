@@ -3,7 +3,7 @@ import type { Point } from "@nivo/line";
 import type { FunctionalComponent } from "preact";
 import { useCallback, useMemo } from "preact/hooks";
 import { defaultTrendChartAxisBottomConfig, defaultTrendChartConfig } from "./config";
-import * as styles from "./styles.scss";
+import styles from "./styles.scss";
 import { nivoTheme } from "./theme";
 import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";

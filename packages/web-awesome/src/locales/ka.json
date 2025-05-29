@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "დანართი ვერ მოიძებნა"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "გრაფიკები"
+  },
+  "charts": {
+    "trend": {
+      "title": "ტრენდის გრაფიკი: {{type}}",
+      "type": {
+        "status": "სტატუსი",
+        "severity": "სიმძიმე"
+      }
+    },
+    "pie": {
+      "title": "ტესტების წარმატების მაჩვენებელი"
+    }
   }
 }

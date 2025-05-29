@@ -2,12 +2,25 @@
   position: relative;
   max-width: 1920px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 
   &:hover {
     .split {
       opacity: 1;
     }
   }
+}
+
+.layout {
+  flex: 1 1 auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .split {
@@ -42,4 +55,12 @@
     visibility: visible;
     opacity: 1;
   }
+}
+
+.layout-base {
+  max-width: 920px;
+  margin: auto;
+}
+
+.layout-split {
 }

@@ -4,7 +4,6 @@
   background: var(--bg-base-secondary);
   color: var(--on-text-primary);
   font-size: 14px;
-  min-height: 100vh;
 }
 
 .wrapper {
@@ -22,7 +21,6 @@
   width: 100%;
   overflow: hidden;
   overflow-y: scroll;
-  height: calc(100vh - var(--footer-header-sizes));
   position: relative;
 }
 
@@ -69,8 +67,8 @@
 .side-by-side {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   justify-content: space-between;
+  height: 100%;
 }
 
 .empty {

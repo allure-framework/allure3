@@ -137,5 +137,21 @@
   },
   "errors": {
     "missedAttachment": "Anexo não encontrado"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Gráficos"
+  },
+  "charts": {
+    "trend": {
+      "title": "Gráfico de tendência: {{type}}",
+      "type": {
+        "status": "Estado",
+        "severity": "Severidade"
+      }
+    },
+    "pie": {
+      "title": "Taxa de sucesso dos testes"
+    }
   }
 }

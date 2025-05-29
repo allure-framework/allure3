@@ -31,7 +31,7 @@ const Loader = () => {
 };
 
 export const SplitLayout = () => {
-  const { id: testResultId } = route.value;
+  const testResultId = route.value.params?.testResultId ?? null;
   const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
 
   const { t } = useI18n("controls");
@@ -69,9 +69,7 @@ export const SplitLayout = () => {
 
   return (
     <div className={styles["side-by-side"]} data-testId={"split-layout"}>
-      <Header className={styles.header} />
       <SideBySide left={cachedMain} right={<TrView />} />
-      <Footer />
     </div>
   );
 };

@@ -21,7 +21,7 @@ export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
   const { currentTab } = useTabsContext();
-  const { id: routeId } = route.value;
+  const routeId = route.value.params?.testResultId;
 
   return (
     <Loadable

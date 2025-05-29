@@ -1,0 +1,89 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { capitalize } from "@allurereport/web-commons";
+import {
+  Grid,
+  GridItem,
+  Loadable,
+  PageLoader,
+  SuccessRatePieChart,
+  TrendChartWidget,
+  Widget,
+} from "@allurereport/web-components";
+import { useEffect } from "preact/hooks";
+import { chartsStore, fetchChartsData } from "@/stores/chart";
+import { useI18n } from "@/stores/locale";
+import type { ChartData } from "@/utils/charts";
+import { ChartType } from "@/utils/charts";
+import * as styles from "./styles.scss";
+
+const getChartWidgetByType = (
+  chartData: ChartData,
+  { t, empty }: Record<string, (key: string, options?: any) => string>,
+) => {
+  switch (chartData.type) {
+    case ChartType.Trend: {
+      const type = t(`trend.type.${chartData.dataType}`);
+      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
+      const translations = empty("no-results");
+
+      return (
+        <TrendChartWidget
+          title={title}
+          items={chartData.items}
+          slices={chartData.slices}
+          min={chartData.min}
+          max={chartData.max}
+          translations={{ "no-results": translations }}
+        />
+      );
+    }
+    case ChartType.Pie: {
+      const title = chartData.title ?? t("pie.title");
+
+      return (
+        <Widget title={title}>
+          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
+            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
+              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
+            </div>
+          </div>
+        </Widget>
+      );
+    }
+  }
+};
+
+export const Charts = () => {
+  const { t } = useI18n("charts");
+  const { t: empty } = useI18n("empty");
+
+  useEffect(() => {
+    fetchChartsData();
+  }, []);
+
+  return (
+    <Loadable
+      source={chartsStore}
+      renderLoader={() => <PageLoader />}
+      renderData={(data) => {
+        const charts = Object.entries(data).map(([chartId, value]) => {
+          const chartWidget = getChartWidgetByType(value, { t, empty });
+
+          return (
+            <GridItem key={chartId} className={styles["overview-grid-item"]}>
+              {chartWidget}
+            </GridItem>
+          );
+        });
+
+        return (
+          <div className={styles.overview}>
+            <Grid kind="swap" className={styles["overview-grid"]}>
+              {charts}
+            </Grid>
+          </div>
+        );
+      }}
+    />
+  );
+};

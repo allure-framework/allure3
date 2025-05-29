@@ -138,5 +138,21 @@
   },
   "errors": {
     "missedAttachment": "添付ファイルが見つかりません"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "グラフ"
+  },
+  "charts": {
+    "trend": {
+      "title": "トレンドチャート: {{type}}",
+      "type": {
+        "status": "ステータス",
+        "severity": "重要度"
+      }
+    },
+    "pie": {
+      "title": "テスト成功率"
+    }
   }
 }
