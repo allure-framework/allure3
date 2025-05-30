@@ -1,1 +1,1 @@
-{"id":"e161d96617e61ba0072218d54d2b3232","fullName":"test/config.test.ts#getPluginId cuts off npm package scope and returns the rest part","name":"cuts off npm package scope and returns the rest part","status":"passed","testResultsByEnv":{"default":"3fe51c2845549b7fa2a8cf85987b6a6c"}}
+{"id":"e161d96617e61ba0072218d54d2b3232","fullName":"test/config.test.ts#getPluginId cuts off npm package scope and returns the rest part","name":"cuts off npm package scope and returns the rest part","status":"passed","testResultsByEnv":{"default":"8cd0fbf77c562e87cef4b715e93fccfa"}}
