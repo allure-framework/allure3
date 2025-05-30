@@ -1,1 +1,1 @@
-{"id":"de3362c0a8e4f49c1061a7e01dce0939","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing nested directory","name":"should watch not existing nested directory","status":"passed","testResultsByEnv":{"default":"592198d7d8792b6289b90f08879ad531"}}
+{"id":"de3362c0a8e4f49c1061a7e01dce0939","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing nested directory","name":"should watch not existing nested directory","status":"passed","testResultsByEnv":{"default":"a6736df4485fbfb7a0f9a69ac44b5f14"}}
