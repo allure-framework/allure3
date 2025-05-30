@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
-import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import crypto from "crypto";
 import { TreePage } from "../../pageObjects/index.js";
+import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
+import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
@@ -100,9 +100,9 @@ test.describe("status transitions", () => {
                 status: Status.PASSED,
                 start: 1746612100009,
                 stop: 1746612101009,
-                    duration: 1000,
-                    labels: [],
-                  },
+                duration: 1000,
+                labels: [],
+              },
               [newPassedTestHistoryId]: {
                 id: getRandomUUID(),
                 name: newPassedTestName,
@@ -110,9 +110,9 @@ test.describe("status transitions", () => {
                 status: Status.FAILED,
                 start: 1746612100009,
                 stop: 1746612101009,
-                    duration: 1000,
-                    labels: [],
-                  },
+                duration: 1000,
+                labels: [],
+              },
               [newBrokenTestHistoryId]: {
                 id: getRandomUUID(),
                 name: newBrokenTestName,
@@ -121,8 +121,8 @@ test.describe("status transitions", () => {
                 start: 1746612100009,
                 stop: 1746612101009,
                 duration: 1000,
-                    labels: [],
-                  },
+                labels: [],
+              },
             },
             metrics: {},
           },

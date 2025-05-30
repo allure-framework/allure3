@@ -29,9 +29,9 @@ import type {
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
+import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-import { getStatusTransition } from "../utils/new.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -391,14 +391,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async testsStatistic(filter?: TestResultFilter) {
     const all = await this.allTestResults();
 
-    const allWithStats = await Promise.all(all.map(async (tr) => {
-      const retries = await this.retriesByTr(tr);
+    const allWithStats = await Promise.all(
+      all.map(async (tr) => {
+        const retries = await this.retriesByTr(tr);
 
-      return {
-        ...tr,
-        retries,
-      };
-    }));
+        return {
+          ...tr,
+          retries,
+        };
+      }),
+    );
 
     return getTestResultsStats(allWithStats, filter);
   }

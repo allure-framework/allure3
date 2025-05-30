@@ -25,7 +25,16 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
   const regressedMatched = !filterOptions?.filter?.regressed || leaf.transition === "regressed";
   const malfuctionedMatched = !filterOptions?.filter?.malfunctioned || leaf.transition === "malfunctioned";
 
-  return [queryMatched, statusMatched, flakyMatched, retryMatched, newMatched, fixedMatched, regressedMatched, malfuctionedMatched].every(Boolean);
+  return [
+    queryMatched,
+    statusMatched,
+    flakyMatched,
+    retryMatched,
+    newMatched,
+    fixedMatched,
+    regressedMatched,
+    malfuctionedMatched,
+  ].every(Boolean);
 };
 
 const leafComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
