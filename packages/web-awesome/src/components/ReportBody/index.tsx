@@ -1,10 +1,11 @@
 import { statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components";
-import { reportStatsStore } from "@/stores";
+import { reportStatsStore, statsByEnvStore } from "@/stores";
+import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { treeFiltersStore } from "@/stores/tree";
+import { setTreeStatus, treeFiltersStore } from "@/stores/tree";
 import { capitalize } from "@/utils/capitalize";
-import { Tab, Tabs, TabsList } from "../Tabs";
+import { Tab, Tabs, TabsList, useTabsContext } from "../Tabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
@@ -15,6 +16,7 @@ const ALL_TAB = "total";
 
 const Header = () => {
   const { t } = useI18n("statuses");
+  const { currentTab, setCurrentTab } = useTabsContext();
 
   return (
     <header className={styles.header}>
@@ -22,21 +24,30 @@ const Header = () => {
       <div className={styles.headerRow}>
         <TabsList>
           <Loadable
-            source={reportStatsStore}
+            source={statsByEnvStore}
             renderData={(stats) => {
-              const allStatuses = statusesList
-                .map((status) => ({ status, value: stats[status] }))
-                .filter(({ value }) => value)
-                .map(({ status, value }) => (
-                  <Tab data-testid={`tab-${status}`} key={status} id={status}>
-                    {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />
-                  </Tab>
-                ));
+              const currentEnv = stats[currentEnvironment.value] || reportStatsStore.value.data;
+              const statList = statusesList
+                .map((status) => {
+                  return { status, value: currentEnv[status] };
+                })
+                .filter(({ value }) => value);
+              const isStatListHaveCurrentTab = statList.filter(({ status }) => status === currentTab);
+              if (!isStatListHaveCurrentTab.length && currentTab !== "total") {
+                setCurrentTab("total");
+                setTreeStatus("total");
+              }
+
+              const allStatuses = statList.map(({ status, value }) => (
+                <Tab data-testid={`tab-${status}`} key={status} id={status}>
+                  {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />
+                </Tab>
+              ));
 
               return (
                 <>
                   <Tab data-testid="tab-all" id={ALL_TAB}>
-                    {capitalize(t("total"))} <Counter count={stats?.total ?? 0} size="s" />
+                    {capitalize(t("total"))} <Counter count={currentEnv?.total ?? 0} size="s" />
                   </Tab>
                   {allStatuses}
                 </>

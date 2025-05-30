@@ -167,13 +167,16 @@ export const fetchEnvTreesData = async (envs: string[]) => {
       envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`)),
     );
 
+    const previous = treeStore.value.data;
     treeStore.value = {
-      data: envs.reduce(
-        (acc, env, index) => ({
-          ...acc,
-          [env]: data[index],
-        }),
-        {},
+      data: envsToFetch.reduce(
+        (acc, env, index) => {
+          return {
+            ...acc,
+            [env]: data[index],
+          };
+        },
+        { ...previous },
       ),
       loading: false,
       error: undefined,
