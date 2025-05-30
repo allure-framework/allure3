@@ -48,7 +48,14 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
       <Text data-testid="tree-leaf-title" className={styles["item-title"]}>
         {name}
       </Text>
-      <TreeItemInfo data-testid="tree-leaf-info" duration={duration} flaky={flaky} retriesCount={retriesCount} transition={transition} transitionText={transitionText} />
+      <TreeItemInfo
+        data-testid="tree-leaf-info"
+        duration={duration}
+        flaky={flaky}
+        retriesCount={retriesCount}
+        transition={transition}
+        transitionText={transitionText}
+      />
     </div>
   );
 };

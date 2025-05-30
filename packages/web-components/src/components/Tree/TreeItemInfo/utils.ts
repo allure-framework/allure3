@@ -12,6 +12,6 @@ export const transitionToTagSkin = (transition: TestStatusTransition): TagSkin |
     case "malfunctioned":
       return "warning";
     default:
-        return undefined;
+      return undefined;
   }
 };

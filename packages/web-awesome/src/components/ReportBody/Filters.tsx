@@ -1,6 +1,6 @@
 import { Button, Menu, Toggle, allureIcons } from "@allurereport/web-components";
 import { useI18n } from "@/stores/locale";
-import { setTreeFilter, type TreeFilters, treeFiltersStore } from "@/stores/tree";
+import { type TreeFilters, setTreeFilter, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
 const filterIcons: Record<TreeFilters, string> = {

@@ -1,13 +1,13 @@
-import type { FunctionComponent } from "preact";
-import styles from "./styles.scss";
 import clsx from "clsx";
+import type { FunctionComponent } from "preact";
 import { Text } from "@/components/Typography";
+import styles from "./styles.scss";
 
 export type TagSkin = "successful" | "failed" | "warning" | "neutral";
 
 export interface TagProps {
-  className?: string;
-  skin?: TagSkin;
+  "className"?: string;
+  "skin"?: TagSkin;
   "data-testid"?: string;
 }
 
