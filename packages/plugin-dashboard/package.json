@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-dashboard",
-  "version": "3.0.0-beta.13",
+  "version": "3.0.0-beta.14",
   "description": "Allure Dashboard Plugin – plugin for generating dashboard with a mix of charts",
   "keywords": [
     "allure",
