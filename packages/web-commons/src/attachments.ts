@@ -90,19 +90,40 @@ export const attachmentType = (type?: string) => {
         icon: "file",
       };
     case "text/xml":
-    case "application/xml":
-    case "application/json":
     case "text/json":
     case "text/yaml":
-    case "application/yaml":
-    case "application/x-yaml":
+    case "text/javascript":
+    case "text/typescript":
+    case "text/ruby":
+    case "text/python":
+    case "text/php":
+    case "text/java":
+    case "text/csharp":
+    case "text/cpp":
+    case "text/c":
+    case "text/go":
+    case "text/rust":
+    case "text/swift":
+    case "text/kotlin":
+    case "text/scala":
+    case "text/perl":
+    case "text/r":
+    case "text/dart":
+    case "text/lua":
+    case "text/haskell":
+    case "text/sql":
     case "text/x-yaml":
     case "text/css":
+    case "application/yaml":
+    case "application/x-yaml":
+    case "application/xml":
+    case "application/json":
       return {
         type: "code",
         icon: "file",
       };
     case "text/plain":
+    case "text/markdown":
     case "text/*":
       return {
         type: "text",
