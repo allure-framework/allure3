@@ -6,8 +6,8 @@ import styles from "./styles.scss";
 export type TagSkin = "successful" | "failed" | "warning" | "neutral";
 
 export interface TagProps {
-  className?: string;
-  skin?: TagSkin;
+  "className"?: string;
+  "skin"?: TagSkin;
   "data-testid"?: string;
 }
 

@@ -3,7 +3,6 @@ import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import styles from "./styles.scss";
-import type { TestStatus } from "@allurereport/core-api";
 
 interface TestStatusIconProps {
   status?: TestStatus;
