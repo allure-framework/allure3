@@ -2,6 +2,7 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
+import cx from "clsx";
 import { useState } from "preact/hooks";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
@@ -13,6 +14,27 @@ const iconMap: Record<string, string> = {
   "application/xml": lineFilesFileAttachment2,
   "text/html": lineFilesFileAttachment2,
   "text/csv": lineFilesFileAttachment2,
+  "text/markdown": lineFilesFileAttachment2,
+  "text/javascript": lineFilesFileAttachment2,
+  "text/typescript": lineFilesFileAttachment2,
+  "text/ruby": lineFilesFileAttachment2,
+  "text/python": lineFilesFileAttachment2,
+  "text/php": lineFilesFileAttachment2,
+  "text/java": lineFilesFileAttachment2,
+  "text/csharp": lineFilesFileAttachment2,
+  "text/cpp": lineFilesFileAttachment2,
+  "text/c": lineFilesFileAttachment2,
+  "text/go": lineFilesFileAttachment2,
+  "text/rust": lineFilesFileAttachment2,
+  "text/swift": lineFilesFileAttachment2,
+  "text/kotlin": lineFilesFileAttachment2,
+  "text/scala": lineFilesFileAttachment2,
+  "text/perl": lineFilesFileAttachment2,
+  "text/r": lineFilesFileAttachment2,
+  "text/dart": lineFilesFileAttachment2,
+  "text/lua": lineFilesFileAttachment2,
+  "text/haskell": lineFilesFileAttachment2,
+  "text/sql": lineFilesFileAttachment2,
   "text/tab-separated-values": lineFilesFileAttachment2,
   "text/css": lineFilesFileAttachment2,
   "text/uri-list": lineFilesFileAttachment2,
@@ -42,7 +64,9 @@ export const TrAttachment: FunctionComponent<{
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
         data-testid={"test-result-attachment-header"}
-        className={styles["test-result-attachment-header"]}
+        className={cx(styles["test-result-attachment-header"], {
+          [styles.empty]: !isValidComponentType,
+        })}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen((prev) => !prev);

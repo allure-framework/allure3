@@ -40,7 +40,6 @@
   align-items: flex-start;
   gap: 4px;
   transition: background-color 300ms;
-  cursor: pointer;
   padding: 4px 8px 4px 6px;
   min-height: 32px;
 
@@ -121,8 +120,11 @@
   align-items: center;
   gap: 4px;
   transition: background-color 300ms;
-  cursor: pointer;
   padding: 4px 8px 4px 6px;
+
+  &:not(.empty) {
+    cursor: pointer;
+  }
 
   &:hover {
     background: var(--bg-control-flat-medium);

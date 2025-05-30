@@ -45,9 +45,11 @@ export const Attachment: FunctionalComponent<AttachmentTestStepResultProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       const result = (await fetchAttachment(id, ext, contentType as string)) || null;
+
       setLoaded(true);
       setAttachment(result);
     };
+
     fetchData();
   }, [contentType, id, ext]);
 
