@@ -17,8 +17,6 @@
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "@anatine/zod-mock": "^3.14.0",
-    "@faker-js/faker": "^9.7.0",
     "@playwright/test": "^1.48.2",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
@@ -35,8 +33,7 @@
     "eslint-plugin-no-null": "^1.0.2",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "prettier": "^3.3.3",
-    "rimraf": "^6.0.1",
-    "zod": "^3.24.3"
+    "rimraf": "^6.0.1"
   },
   "packageManager": "yarn@4.3.1"
 }

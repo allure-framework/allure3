@@ -3,7 +3,6 @@ import type { FunctionComponent } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Tag } from "@/components/Tag";
 import { Text } from "@/components/Typography";
-import { TreeItemMetaIcon } from "../TreeItemMetaIcon";
 import { TreeItemRetries } from "../TreeItemRetries";
 import styles from "./styles.scss";
 import { transitionToTagSkin } from "./utils";
