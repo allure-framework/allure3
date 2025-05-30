@@ -24,14 +24,13 @@ export const isHistoricallyNew = (tr: TestResult, history: HistoryTestResult[] =
   return meaningfulHistory[meaningfulHistory.length - 1].status !== tr.status;
 };
 
-// TODO: Rename this functions to transition statuses (like isNewPassed -> isFixed)
-export const isNewPassed = (tr: TestResult, history: HistoryTestResult[] = []) =>
+export const isFixed = (tr: TestResult, history: HistoryTestResult[] = []) =>
   isHistoricallyNew(tr, history) && tr.status === "passed";
 
-export const isNewFailed = (tr: TestResult, history: HistoryTestResult[] = []) =>
+export const isRegressed = (tr: TestResult, history: HistoryTestResult[] = []) =>
   isHistoricallyNew(tr, history) && tr.status === "failed";
 
-export const isNewBroken = (tr: TestResult, history: HistoryTestResult[] = []) =>
+export const isMalfunctioned = (tr: TestResult, history: HistoryTestResult[] = []) =>
   isHistoricallyNew(tr, history) && tr.status === "broken";
 
 export const getStatusTransition = (
@@ -42,11 +41,11 @@ export const getStatusTransition = (
 
   if (isNew(meaningfulHistory)) {
     return "new";
-  } else if (isNewPassed(tr, history)) {
+  } else if (isFixed(tr, history)) {
     return "fixed";
-  } else if (isNewFailed(tr, history)) {
+  } else if (isRegressed(tr, history)) {
     return "regressed";
-  } else if (isNewBroken(tr, history)) {
+  } else if (isMalfunctioned(tr, history)) {
     return "malfunctioned";
   }
 };
