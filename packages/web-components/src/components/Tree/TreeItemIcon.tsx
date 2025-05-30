@@ -1,10 +1,11 @@
+import type { TestStatus } from "@allurereport/core-api";
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import styles from "./styles.scss";
 
 interface TestStatusIconProps {
-  status?: "failed" | "broken" | "passed" | "skipped" | "unknown";
+  status?: TestStatus;
   className?: string;
   classNameIcon?: string;
 }

@@ -22,10 +22,13 @@
   },
   "filters": {
     "more-filters": "Фильтры",
-    "enable-filter": "Включить фильтр по \"{filter}\"",
+    "enable-filter": "Включить фильтр по \"{{filter}}\"",
     "flaky": "Нестабильные",
     "retry": "Повторенные",
-    "new": "Новые"
+    "new": "Новые",
+    "fixed": "Исправленные",
+    "regressed": "Регрессированные",
+    "malfunctioned": "Сломанные"
   },
   "sort-by": {
     "sort-by-text": "Сортировать по:",
@@ -152,5 +155,11 @@
     "pie": {
       "title": "Успешность тестирования"
     }
+  },
+  "transitions": {
+    "new": "Новый",
+    "fixed": "Исправленный",
+    "regressed": "Регрессированный",
+    "malfunctioned": "Сломанный"
   }
 }

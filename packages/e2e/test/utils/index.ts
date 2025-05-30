@@ -2,7 +2,7 @@ import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurerep
 import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
-import type { Attachment, TestResult } from "allure-js-commons";
+import type { TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

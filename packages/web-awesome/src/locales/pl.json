@@ -22,10 +22,13 @@
   },
   "filters": {
     "more-filters": "Filtry",
-    "enable-filter": "Filtruj po \"{filter}\"",
+    "enable-filter": "Filtruj po \"{{filter}}\"",
     "flaky": "Niestabilne",
     "retry": "Powtórne",
-    "new": "Nowe"
+    "new": "Nowe",
+    "fixed": "Naprawione",
+    "regressed": "Zaregresowane",
+    "malfunctioned": "Uszkodzone"
   },
   "sort-by": {
     "sort-by-text": "Sortuj po:",
@@ -152,5 +155,11 @@
     "pie": {
       "title": "Wskaźnik powodzenia testów"
     }
+  },
+  "transitions": {
+    "new": "Nowy",
+    "fixed": "Naprawiony",
+    "regressed": "Zaregresowany",
+    "malfunctioned": "Uszkodzony"
   }
 }

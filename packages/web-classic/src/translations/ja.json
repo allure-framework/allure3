@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "さらにフィルター",
-    "enable-filter": "\"{filter}\" フィルターを有効にする",
+    "enable-filter": "\"{{filter}}\" フィルターを有効にする",
     "flaky": "不安定",
     "retry": "再試行",
     "new": "新しい"

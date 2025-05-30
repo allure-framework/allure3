@@ -40,6 +40,7 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     retries: [],
     breadcrumbs: [],
     retry: false,
+    transition: tr.transition,
   };
 };
 
