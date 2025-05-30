@@ -2,6 +2,7 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
+import cx from "clsx";
 import { useState } from "preact/hooks";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
@@ -63,7 +64,9 @@ export const TrAttachment: FunctionComponent<{
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
         data-testid={"test-result-attachment-header"}
-        className={styles["test-result-attachment-header"]}
+        className={cx(styles["test-result-attachment-header"], {
+          [styles.empty]: !isValidComponentType,
+        })}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen((prev) => !prev);
