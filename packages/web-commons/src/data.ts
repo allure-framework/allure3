@@ -66,7 +66,11 @@ export const loadReportData = async (name: string): Promise<string> => {
   });
 };
 
-export const reportDataUrl = async (path: string, contentType = "application/octet-stream", cacheSafe = false) => {
+export const reportDataUrl = async (
+  path: string,
+  contentType: string = "application/octet-stream",
+  params?: { bustCache: boolean },
+) => {
   if (globalThis.allureReportData) {
     const [dataKey] = path.split("?");
     const value = await loadReportData(dataKey);
@@ -83,15 +87,15 @@ export const reportDataUrl = async (path: string, contentType = "application/oct
     url.searchParams.set("live_reload_hash", liveReloadHash);
   }
 
-  if (cacheSafe && cacheKey) {
+  if (params?.bustCache && cacheKey) {
     url.searchParams.set("v", cacheKey);
   }
 
   return url.toString();
 };
 
-export const fetchReportJsonData = async <T>(path: string, bustCache = false) => {
-  const url = await reportDataUrl(path, undefined, bustCache);
+export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
+  const url = await reportDataUrl(path, undefined, params);
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {

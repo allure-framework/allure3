@@ -19,7 +19,7 @@ export const fetchStats = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<Statistic>("widgets/allure_statistic.json", true);
+    const res = await fetchReportJsonData<Statistic>("widgets/allure_statistic.json", { bustCache: true });
 
     statsStore.value = {
       data: res,

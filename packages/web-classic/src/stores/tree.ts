@@ -110,7 +110,7 @@ export const fetchTreeData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/tree.json", true);
+    const res = await fetchReportJsonData<AwesomeTree>("widgets/tree.json", { bustCache: true });
 
     treeStore.value = {
       data: res,

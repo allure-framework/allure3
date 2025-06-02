@@ -18,10 +18,9 @@ export const fetchVariables = async (env: string = "default") => {
   };
 
   try {
-    const res = await fetchReportJsonData<string[]>(
-      env ? `widgets/${env}/variables.json` : "widgets/variables.json",
-      true,
-    );
+    const res = await fetchReportJsonData<string[]>(env ? `widgets/${env}/variables.json` : "widgets/variables.json", {
+      bustCache: true,
+    });
 
     variables.value = {
       data: {

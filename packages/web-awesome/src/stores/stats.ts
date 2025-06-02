@@ -26,7 +26,7 @@ export const fetchReportStats = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<Statistic>("widgets/statistic.json", true);
+    const res = await fetchReportJsonData<Statistic>("widgets/statistic.json", { bustCache: true });
 
     reportStatsStore.value = {
       data: res,
@@ -58,7 +58,7 @@ export const fetchEnvStats = async (envs: string[]) => {
 
   try {
     const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/statistic.json`, true)),
+      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/statistic.json`, { bustCache: true })),
     );
 
     statsByEnvStore.value = {

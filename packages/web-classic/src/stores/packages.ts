@@ -110,7 +110,7 @@ export const fetchPackagesData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/packages.json", true);
+    const res = await fetchReportJsonData<AwesomeTree>("widgets/packages.json", { bustCache: true });
 
     packagesStore.value = {
       data: res,
