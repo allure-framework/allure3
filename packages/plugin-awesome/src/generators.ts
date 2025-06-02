@@ -371,6 +371,7 @@ export const generateStaticFiles = async (
     createdAt: Date.now(),
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    cacheKey: Date.now().toString(),
     layout,
     allureVersion,
     sections,

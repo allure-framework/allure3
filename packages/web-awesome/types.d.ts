@@ -24,6 +24,7 @@ export type AwesomeReportOptions = {
   layout?: Layout;
   defaultSection?: string;
   sections?: string[];
+  cacheKey: string;
 };
 
 export type AwesomeFixtureResult = Omit<
