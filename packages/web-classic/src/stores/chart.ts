@@ -16,7 +16,7 @@ export const fetchPieChartData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData("widgets/allure_pie_chart.json");
+    const res = await fetchReportJsonData("widgets/allure_pie_chart.json", true);
 
     pieChartStore.value = {
       data: res,

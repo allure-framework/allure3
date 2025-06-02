@@ -17,7 +17,7 @@ export const fetchEnvInfo = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<EnvironmentItem[]>("widgets/allure_environment.json");
+    const res = await fetchReportJsonData<EnvironmentItem[]>("widgets/allure_environment.json", true);
 
     envInfoStore.value = {
       data: res,

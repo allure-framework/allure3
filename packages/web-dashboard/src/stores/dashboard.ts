@@ -189,7 +189,7 @@ export const fetchDashboardData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json");
+    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json", true);
 
     dashboardStore.value = {
       data: createCharts(res),

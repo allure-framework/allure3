@@ -21,7 +21,7 @@ export const testResultNavStore = signal<StoreSignalState<TrNavStoreState>>({
 
 export const fetchTestResultNav = async (env?: string) => {
   try {
-    const data = await fetchReportJsonData<string[]>(env ? `widgets/${env}/nav.json` : "widgets/nav.json");
+    const data = await fetchReportJsonData<string[]>(env ? `widgets/${env}/nav.json` : "widgets/nav.json", true);
 
     testResultNavStore.value = {
       data,
@@ -49,7 +49,7 @@ export const fetchTestResult = async (testResultId: string) => {
   };
 
   try {
-    const data = await fetchReportJsonData<AwesomeTestResult>(`data/test-results/${testResultId}.json`);
+    const data = await fetchReportJsonData<AwesomeTestResult>(`data/test-results/${testResultId}.json`, true);
 
     testResultStore.value = {
       data: { ...testResultStore.value.data, [testResultId]: data },

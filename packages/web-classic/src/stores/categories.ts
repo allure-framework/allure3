@@ -110,7 +110,7 @@ export const fetchCategoriesData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/categories.json");
+    const res = await fetchReportJsonData<AwesomeTree>("widgets/categories.json", true);
 
     categoriesStore.value = {
       data: res,
