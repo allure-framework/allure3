@@ -1,7 +1,7 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
-import { StoreSignalState } from "@/stores/types";
+import type { StoreSignalState } from "@/stores/types";
 
 export const envInfoStore = signal<StoreSignalState<EnvironmentItem[]>>({
   loading: false,
@@ -17,7 +17,7 @@ export const fetchEnvInfo = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<EnvironmentItem[]>("widgets/allure_environment.json");
+    const res = await fetchReportJsonData<EnvironmentItem[]>("widgets/allure_environment.json", { bustCache: true });
 
     envInfoStore.value = {
       data: res,

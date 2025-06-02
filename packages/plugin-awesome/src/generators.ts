@@ -363,14 +363,16 @@ export const generateStaticFiles = async (
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
+  const now = Date.now();
   const reportOptions: AwesomeReportOptions = {
     reportName,
     logo,
     theme,
     reportLanguage,
-    createdAt: Date.now(),
+    createdAt: now,
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    cacheKey: now.toString(),
     layout,
     allureVersion,
     sections,

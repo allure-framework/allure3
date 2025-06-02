@@ -158,7 +158,7 @@ export const fetchTrendData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<TrendResponse>("widgets/history-trend.json");
+    const res = await fetchReportJsonData<TrendResponse>("widgets/history-trend.json", { bustCache: true });
 
     trendStore.value = {
       data: {

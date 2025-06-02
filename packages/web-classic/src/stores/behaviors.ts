@@ -110,7 +110,7 @@ export const fetchBehaviorsData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/behaviors.json");
+    const res = await fetchReportJsonData<AwesomeTree>("widgets/behaviors.json", { bustCache: true });
 
     behaviorsStore.value = {
       data: res,

@@ -7,6 +7,7 @@ import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import TerserPlugin from "terser-webpack-plugin";
 
 const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,19 @@ export default (env, argv) => {
       assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[hash:8].[ext]`,
     },
     devtool: devMode ? "inline-source-map" : false,
+    optimization: {
+      minimize: !devMode,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              drop_console: false,
+              drop_debugger: false,
+            },
+          },
+        }),
+      ],
+    },
     module: {
       rules: [
         {

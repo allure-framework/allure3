@@ -32,7 +32,7 @@ export const fetchEnvironments = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<string[]>("widgets/environments.json");
+    const res = await fetchReportJsonData<string[]>("widgets/environments.json", { bustCache: true });
 
     environmentsStore.value = {
       data: res,
