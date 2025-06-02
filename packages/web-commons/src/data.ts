@@ -90,8 +90,8 @@ export const reportDataUrl = async (path: string, contentType = "application/oct
   return url.toString();
 };
 
-export const fetchReportJsonData = async <T>(path: string, safeCache = false) => {
-  const url = await reportDataUrl(path, undefined, safeCache);
+export const fetchReportJsonData = async <T>(path: string, bustCache = false) => {
+  const url = await reportDataUrl(path, undefined, bustCache);
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {
