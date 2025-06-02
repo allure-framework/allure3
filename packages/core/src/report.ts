@@ -24,6 +24,7 @@ import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
 import type { AllureStoreEvents } from "./utils/event.js";
 import { Events } from "./utils/event.js";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -226,6 +227,21 @@ export class AllureReport {
 
       await plugin.done?.(context, this.#store);
 
+      // publish only Allure Awesome reports
+      if (plugin instanceof AwesomePlugin && this.#history && this.#allureService && this.#publish && Object.keys(pluginFiles).length) {
+        await Promise.all(
+          Object.entries(pluginFiles).map(([key, filepath]) =>
+            this.#allureService?.addReportFile({
+              reportUuid: this.#reportUuid,
+              key,
+              filepath,
+            }),
+          ),
+        );
+
+        console.info(`The report has been published: ${this.#reportUrl}`);
+      }
+
       const summary = await plugin?.info?.(context, this.#store);
 
       if (!summary) {
@@ -236,28 +252,6 @@ export class AllureReport {
         ...summary,
         href: `${id}/`,
       });
-    });
-
-    if (this.#history) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
-
-      if (!this.#allureService || !this.#publish || !Object.keys(pluginFiles).length) {
-        return;
-      }
-
-      await Promise.all(
-        Object.entries(pluginFiles).map(([key, filepath]) =>
-          this.#allureService?.addReportFile({
-            reportUuid: this.#reportUuid,
-            key,
-            filepath,
-          }),
-        ),
-      );
-
-      console.info(`The report has been published: ${this.#reportUrl}`);
     });
 
     const outputDirFiles = await readdir(this.#output);
