@@ -68,7 +68,7 @@ export const loadReportData = async (name: string): Promise<string> => {
 
 export const reportDataUrl = async (path: string, contentType = "application/octet-stream", cacheSafe = false) => {
   if (globalThis.allureReportData) {
-    const dataKey = path.replace(/\?\S+$/, "");
+    const [dataKey] = path.split("?");
     const value = await loadReportData(dataKey);
 
     return `data:${contentType};base64,${value}`;
