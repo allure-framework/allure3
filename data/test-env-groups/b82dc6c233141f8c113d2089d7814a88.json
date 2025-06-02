@@ -1,1 +1,1 @@
-{"id":"b82dc6c233141f8c113d2089d7814a88","fullName":"test/utils/status.test.ts#statusToPriority should return -1 when no status is given","name":"should return -1 when no status is given","status":"passed","testResultsByEnv":{"default":"822f3e4a9a6ccd6d3589ab3754879d10"}}
+{"id":"b82dc6c233141f8c113d2089d7814a88","fullName":"test/utils/status.test.ts#statusToPriority should return -1 when no status is given","name":"should return -1 when no status is given","status":"passed","testResultsByEnv":{"default":"a66330618995507763d92cf844dc9541"}}
