@@ -37,3 +37,13 @@ it("serves .bin files", async () => {
   expect(res.headers["content-type"]).toBe("application/octet-stream");
   expect(res.data).not.toBeUndefined();
 });
+
+it("serves files with query parameters", async () => {
+  server = await serve({ port, servePath });
+  const res = await axios.get(`http://localhost:${port}/sample?attachment`, {
+    timeout: 100,
+  });
+
+  expect(res.headers["content-type"]).toBe("application/octet-stream");
+  expect(res.data).not.toBeUndefined();
+});

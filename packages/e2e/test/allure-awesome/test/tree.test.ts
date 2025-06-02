@@ -79,7 +79,7 @@ test.describe("commons", () => {
     });
   });
 
-  test("all types of tests are displayed", async () => {
+  test("all types of tests are displayed", async ({ page }) => {
     await expect(treePage.leafLocator).toHaveCount(5);
 
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");

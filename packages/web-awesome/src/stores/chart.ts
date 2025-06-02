@@ -18,7 +18,7 @@ export const fetchPieChartData = async (env: string) => {
   };
 
   try {
-    const res = await fetchReportJsonData(env ? `widgets/${env}/pie_chart.json` : "widgets/pie_chart.json");
+    const res = await fetchReportJsonData(env ? `widgets/${env}/pie_chart.json` : "widgets/pie_chart.json", true);
 
     pieChartStore.value = {
       data: res,
@@ -47,7 +47,7 @@ export const fetchChartsData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json");
+    const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json", true);
 
     chartsStore.value = {
       data: createCharts(res),

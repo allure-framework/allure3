@@ -32,7 +32,7 @@ export const fetchEnvironments = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<string[]>("widgets/environments.json");
+    const res = await fetchReportJsonData<string[]>("widgets/environments.json", true);
 
     environmentsStore.value = {
       data: res,
@@ -60,7 +60,7 @@ export const fetchTestEnvGroup = async (id: string) => {
   };
 
   try {
-    const res = await fetchReportJsonData<TestEnvGroup | undefined>(`data/test-env-groups/${id}.json`);
+    const res = await fetchReportJsonData<TestEnvGroup | undefined>(`data/test-env-groups/${id}.json`, true);
 
     testEnvGroupsStore.value = {
       data: {
