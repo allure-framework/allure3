@@ -164,7 +164,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
 
   try {
     const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`, true)),
+      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`, { bustCache: true })),
     );
 
     const previous = treeStore.value.data;
