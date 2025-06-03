@@ -4,6 +4,8 @@ import { arc, pie } from "d3-shape";
 
 export type BasePieSlice = Pick<PieSlice, "status" | "count">;
 
+export const DEFAULT_CHART_HISTORY_LIMIT = 10;
+
 export const d3Arc = arc<PieArcDatum<BasePieSlice>>().innerRadius(40).outerRadius(50).cornerRadius(2).padAngle(0.03);
 
 export const d3Pie = pie<BasePieSlice>()

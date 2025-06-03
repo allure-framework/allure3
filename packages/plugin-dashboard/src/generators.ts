@@ -6,6 +6,7 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
+  DEFAULT_CHART_HISTORY_LIMIT,
 } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
@@ -87,13 +88,14 @@ const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const { dataType } = options;
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 
   if (dataType === ChartData.Status) {
-    return getStatusTrendData(statistic, context.reportName, historyDataPoints, options);
+    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
   } else if (dataType === ChartData.Severity) {
-    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, options);
+    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
   }
 };
 
