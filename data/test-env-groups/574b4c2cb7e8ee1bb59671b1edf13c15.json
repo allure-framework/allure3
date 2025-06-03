@@ -1,1 +1,1 @@
-{"id":"574b4c2cb7e8ee1bb59671b1edf13c15","fullName":"test/allure1.test.ts#allure1 reader labels special labels should set testCaseId from label","name":"should set testCaseId from label","status":"passed","testResultsByEnv":{"default":"5ea7bf17aaea92c2917e475e6e52555c"}}
+{"id":"574b4c2cb7e8ee1bb59671b1edf13c15","fullName":"test/allure1.test.ts#allure1 reader labels special labels should set testCaseId from label","name":"should set testCaseId from label","status":"passed","testResultsByEnv":{"default":"4be260bc407aac6305dcd68b02934ac0"}}
