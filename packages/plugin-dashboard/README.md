@@ -66,7 +66,7 @@ Trend charts allow you to track metrics over time. Available configurations:
   type: "trend",
   dataType: "status",
   mode: "percent", // optional, default: "raw"
-  limit: 10, // optional: limit number of builds
+  limit: 10, // optional: limit number of builds, default: 10
   title: "Custom Status Trend", // optional
   metadata: { // optional
     executionIdAccessor: (executionOrder) => `build-${executionOrder}`,
