@@ -1,1 +1,1 @@
-{"id":"694256159b977dbd98bb171305b7d129","fullName":"test/index.test.ts#watchDirectory calls the callback when file is changed","name":"calls the callback when file is changed","status":"passed","testResultsByEnv":{"default":"1b4d5f2c4b0bc9fbb30fb0e4d71bb917"}}
+{"id":"694256159b977dbd98bb171305b7d129","fullName":"test/index.test.ts#watchDirectory calls the callback when file is changed","name":"calls the callback when file is changed","status":"passed","testResultsByEnv":{"default":"5adc3be70c3168e956b2b6be325e19bd"}}
