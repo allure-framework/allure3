@@ -1,10 +1,20 @@
 /* eslint-disable max-lines */
-import type { HistoryDataPoint } from "@allurereport/core-api";
+import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it } from "vitest";
 import { DefaultAllureStore } from "../../src/store/store.js";
+
+class AllureTestHistory implements AllureHistory {
+  constructor(readonly history: HistoryDataPoint[]) {}
+
+  async readHistory(): Promise<HistoryDataPoint[]> {
+    return this.history;
+  }
+
+  async appendHistory(): Promise<void> {}
+}
 
 const readerId = "store.test.ts";
 
@@ -1290,9 +1300,13 @@ describe("history", () => {
         metrics: {},
       },
     ];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
+
     const historyDataPoints = await store.allHistoryDataPoints();
 
     expect(historyDataPoints).toEqual([
@@ -1310,9 +1324,13 @@ describe("history", () => {
 
   it("should return empty history data if no history is provided", async () => {
     const history: HistoryDataPoint[] = [];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
+
     const historyDataPoints = await store.allHistoryDataPoints();
 
     expect(historyDataPoints).toHaveLength(0);
@@ -1335,18 +1353,21 @@ describe("history", () => {
         metrics: {},
       },
     ];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
 
     const tr1: RawTestResult = {
       name: "test result 1",
       historyId: "some",
     };
+
     await store.visitTestResult(tr1, { readerId });
 
     const [tr] = await store.allTestResults();
-
     const historyTestResults = await store.historyByTrId(tr.id);
 
     expect(historyTestResults).toHaveLength(0);
@@ -1371,18 +1392,21 @@ describe("history", () => {
         metrics: {},
       },
     ];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
 
     const tr1: RawTestResult = {
       name: "test result 1",
       testId,
     };
+
     await store.visitTestResult(tr1, { readerId });
 
     const [tr] = await store.allTestResults();
-
     const historyTestResults = await store.historyByTrId(tr.id);
 
     expect(historyTestResults).toEqual([
@@ -1442,9 +1466,12 @@ describe("history", () => {
         metrics: {},
       },
     ];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1523,9 +1550,12 @@ describe("history", () => {
         metrics: {},
       },
     ];
+    const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
-      history,
+      history: testHistory,
     });
+
+    await store.readHistory();
 
     const tr1: RawTestResult = {
       name: "test result 1",

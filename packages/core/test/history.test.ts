@@ -3,7 +3,7 @@ import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
 import { afterEach, beforeEach, expect, it } from "vitest";
-import { readHistory, writeHistory } from "../src/history.js";
+import { AllureLocalHistory, writeHistory } from "../src/history.js";
 
 let tmp: string;
 beforeEach(async () => {
@@ -17,26 +17,30 @@ afterEach(async () => {
 });
 
 it("should read empty file", async () => {
-  const fileName = randomUUID() + ".json";
+  const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
+  const history = new AllureLocalHistory(historyPath);
+
   await writeFile(historyPath, "", { encoding: "utf8" });
 
-  const result = await readHistory(historyPath);
+  const result = await history.readHistory();
+
   expect(result).toEqual([]);
 });
 
 it("should process file that doesn't exists", async () => {
-  const fileName = randomUUID() + ".json";
+  const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
+  const history = new AllureLocalHistory(historyPath);
+  const result = await history.readHistory();
 
-  const result = await readHistory(historyPath);
   expect(result).toEqual([]);
 });
 
 it("should create history file", async () => {
-  const fileName = randomUUID() + ".json";
+  const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-
+  const history = new AllureLocalHistory(historyPath);
   const data = {
     uuid: randomUUID(),
     timestamp: new Date().getTime(),
@@ -45,19 +49,22 @@ it("should create history file", async () => {
     knownTestCaseIds: [],
     metrics: {},
   };
+
   await writeHistory(historyPath, data);
 
   const stats = await stat(historyPath);
 
   expect(stats.isFile()).toBeTruthy();
 
-  const result = await readHistory(historyPath);
+  const result = await history.readHistory();
+
   expect(result).toEqual([expect.objectContaining(data)]);
 });
 
 it("should append data to existing history file", async () => {
-  const fileName = randomUUID() + ".json";
+  const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
+  const history = new AllureLocalHistory(historyPath);
 
   await writeFile(historyPath, "", { encoding: "utf8" });
 
@@ -75,13 +82,15 @@ it("should append data to existing history file", async () => {
 
   expect(stats.isFile()).toBeTruthy();
 
-  const result = await readHistory(historyPath);
+  const result = await history.readHistory();
+
   expect(result).toEqual([expect.objectContaining(data)]);
 });
 
 it("should read multiple data points from history file", async () => {
-  const fileName = randomUUID() + ".json";
+  const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
+  const history = new AllureLocalHistory(historyPath);
 
   await writeFile(historyPath, "", { encoding: "utf8" });
 
@@ -120,7 +129,8 @@ it("should read multiple data points from history file", async () => {
 
   expect(stats.isFile()).toBeTruthy();
 
-  const result = await readHistory(historyPath);
+  const result = await history.readHistory();
+
   expect(result).toEqual([
     expect.objectContaining(data1),
     expect.objectContaining(data2),
