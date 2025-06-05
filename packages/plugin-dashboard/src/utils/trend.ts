@@ -108,7 +108,7 @@ const calculatePercentValues = <T extends TrendDataType>(
 
     points[pointId] = {
       x: executionId,
-      y: (value / total) * 100,
+      y: Number(((value / total) * 100).toFixed(2)),
     };
 
     series[item].push(pointId);
