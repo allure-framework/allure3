@@ -1,1 +1,1 @@
-{"id":"9756692fc97d480a1d6136c482caf0db","fullName":"test/junitxml.test.ts#junit xml reader should ignore invalid root element","name":"should ignore invalid root element","status":"passed","testResultsByEnv":{"default":"555e134d45fee00c3711601298c22a50"}}
+{"id":"9756692fc97d480a1d6136c482caf0db","fullName":"test/junitxml.test.ts#junit xml reader should ignore invalid root element","name":"should ignore invalid root element","status":"passed","testResultsByEnv":{"default":"0ffa1b4090fc60cc0b2bfa7e090d4645"}}

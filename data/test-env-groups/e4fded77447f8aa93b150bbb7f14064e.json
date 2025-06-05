@@ -1,1 +1,1 @@
-{"id":"e4fded77447f8aa93b150bbb7f14064e","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a canceled test case","name":"should parse a canceled test case","status":"passed","testResultsByEnv":{"default":"db456f5888640651be9b0751a96e7a28"}}
+{"id":"e4fded77447f8aa93b150bbb7f14064e","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a canceled test case","name":"should parse a canceled test case","status":"passed","testResultsByEnv":{"default":"06810ed7b078176ef7975cd43f70adf4"}}
