@@ -29,6 +29,7 @@ import type {
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
+import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
@@ -139,8 +140,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
 
-    // Make flaky status more accurate
+    // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
+    testResult.transition = getStatusTransition(testResult, trHistory);
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
@@ -391,12 +393,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     const allWithStats = await Promise.all(
       all.map(async (tr) => {
-        const trHistory = await this.historyByTr(tr);
         const retries = await this.retriesByTr(tr);
 
         return {
           ...tr,
-          flaky: isFlaky(tr, trHistory),
           retries,
         };
       }),

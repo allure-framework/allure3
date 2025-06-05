@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Fler filter",
-    "enable-filter": "Aktivera filtret \"{filter}\"",
+    "enable-filter": "Aktivera filtret \"{{filter}}\"",
     "flaky": "Ostadig",
     "retry": "Försök igen",
-    "new": "Ny"
+    "new": "Ny",
+    "fixed": "Åtgärdad",
+    "regressed": "Regresserad",
+    "malfunctioned": "Felaktig"
   },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Testframgångsfrekvens"
     }
+  },
+  "transitions": {
+    "new": "Ny",
+    "fixed": "Åtgärdad",
+    "regressed": "Regresserad",
+    "malfunctioned": "Felaktig"
   }
 }

@@ -15,11 +15,13 @@ import {
   toggleTree,
   treeStore,
 } from "@/stores/tree";
+import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
+  const { t: tTransitions } = useI18n("transitions");
   const { currentTab } = useTabsContext();
   const routeId = route.value.params?.testResultId;
 
@@ -59,6 +61,8 @@ export const TreeList = () => {
           );
         }
 
+        const treeLocalizer = createTreeLocalizer(tTransitions);
+
         // render single tree for single environment
         if (environmentsStore.value.data.length === 1) {
           return (
@@ -69,7 +73,7 @@ export const TreeList = () => {
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
                 navigateTo={navigateTo}
-                tree={filteredTree.value.default}
+                tree={treeLocalizer(filteredTree.value.default)}
                 statusFilter={currentTab as AwesomeStatus}
                 routeId={routeId}
                 root
@@ -89,7 +93,7 @@ export const TreeList = () => {
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
                 navigateTo={navigateTo}
-                tree={currentTree}
+                tree={treeLocalizer(currentTree)}
                 statusFilter={currentTab as AwesomeStatus}
                 routeId={routeId}
                 root
@@ -141,7 +145,7 @@ export const TreeList = () => {
                         toggleTree={toggleTree}
                         statusFilter={currentTab}
                         navigateTo={navigateTo}
-                        tree={value}
+                        tree={treeLocalizer(value)}
                         routeId={routeId}
                         root
                       />

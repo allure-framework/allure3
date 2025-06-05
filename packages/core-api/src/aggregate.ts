@@ -1,4 +1,11 @@
-export type Statistic = {
+export type DiffStatistic = {
+  regressed?: number;
+  fixed?: number;
+  malfunctioned?: number;
+  new?: number;
+};
+
+export type Statistic = DiffStatistic & {
   failed?: number;
   broken?: number;
   passed?: number;

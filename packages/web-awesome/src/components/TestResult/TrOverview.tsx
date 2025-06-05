@@ -1,4 +1,3 @@
-import type { TestStatus } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/BaseLayout/styles.scss";
