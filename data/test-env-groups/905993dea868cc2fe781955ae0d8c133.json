@@ -1,1 +1,1 @@
-{"id":"905993dea868cc2fe781955ae0d8c133","fullName":"test/utils/commands.test.ts#createCommand throws when action is falsy","name":"throws when action is falsy","status":"passed","testResultsByEnv":{"default":"8d64c5f86f9bf9c16c15b45357cc7f0c"}}
+{"id":"905993dea868cc2fe781955ae0d8c133","fullName":"test/utils/commands.test.ts#createCommand throws when action is falsy","name":"throws when action is falsy","status":"passed","testResultsByEnv":{"default":"70e8bbf285fcde923abadac6a0155638"}}
