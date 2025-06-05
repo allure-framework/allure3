@@ -8,7 +8,7 @@ const isAllureClassicFlaky = (tr: TestResult, history: HistoryTestResult[]) => {
     return false;
   }
 
-  const limitedLastHistory = history.slice(-MAX_LAST_HISTORY_SIZE);
+  const limitedLastHistory = history.slice(0, MAX_LAST_HISTORY_SIZE);
   const limitedLastHistoryStatuses = limitedLastHistory.map((h) => h.status);
 
   return (
