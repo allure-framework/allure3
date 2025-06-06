@@ -19,3 +19,15 @@ AllureServiceMock.prototype.login = vi.fn();
 AllureServiceMock.prototype.logout = vi.fn();
 
 AllureServiceMock.prototype.profile = vi.fn();
+
+AllureServiceMock.prototype.createProject = vi.fn();
+
+AllureServiceMock.prototype.projects = vi.fn();
+
+AllureServiceMock.prototype.deleteProject = vi.fn();
+
+AllureServiceMock.prototype.appendHistory = vi.fn();
+
+AllureServiceMock.prototype.downloadHistory = vi.fn();
+
+AllureServiceMock.prototype.createReport = vi.fn();
