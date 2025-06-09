@@ -1,8 +1,9 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService } from "@allurereport/service";
+import { AllureService, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { green, red, yellow } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
+import { logError } from "../../utils/logs.js";
 
 type CommandOptions = {
   config?: string;
@@ -25,43 +26,64 @@ export const ProjectsListCommandAction = async (options?: CommandOptions) => {
   }
 
   const service = new AllureService(config.allureService);
-  const projects = await service.projects();
 
-  if (projects.length === 0) {
+  try {
+    const projects = await service.projects();
+
+    if (projects.length === 0) {
+      // eslint-disable-next-line no-console
+      console.info(yellow("No projects found. Create a new one with `allure project-create` command"));
+      return;
+    }
+
+    const res = await prompts({
+      type: "select",
+      name: "project",
+      message: "Select a project",
+      choices: projects.map((project) => ({
+        title: project.name,
+        value: project.name,
+      })),
+    });
+
+    if (!res?.project) {
+      // eslint-disable-next-line no-console
+      console.error(red("No project selected"));
+      process.exit(1);
+      return;
+    }
+
+    const lines: string[] = [
+      "Insert following code into your Allure Config file, to enable Allure Service features for the project:",
+      "",
+      green("{"),
+      green("  allureService: {"),
+      green(`    project: "${res.project}"`),
+      green("  }"),
+      green("}"),
+    ];
+
     // eslint-disable-next-line no-console
-    console.info(yellow("No projects found. Create a new one with `allure project-create` command"));
-    return;
+    console.info(lines.join("\n"));
+  } catch (error) {
+    if (error instanceof KnownError) {
+      // eslint-disable-next-line no-console
+      console.error(red(`Failed to get projects: ${error.message}`));
+      process.exit(1);
+      return;
+    }
+
+    if (error instanceof UnknownError) {
+      const logFilePath = await logError("Failed to get projects due to unexpected error", error?.stack);
+
+      // eslint-disable-next-line no-console
+      console.error(red(`Failed to get projects due to unexpected error. Check logs for more details: ${logFilePath}`));
+      process.exit(1);
+      return;
+    }
+
+    throw error;
   }
-
-  const res = await prompts({
-    type: "select",
-    name: "project",
-    message: "Select a project",
-    choices: projects.map((project) => ({
-      title: project.name,
-      value: project.name,
-    })),
-  });
-
-  if (!res?.project) {
-    // eslint-disable-next-line no-console
-    console.error(red("No project selected"));
-    process.exit(1);
-    return;
-  }
-
-  const lines: string[] = [
-    "Insert following code into your Allure Config file, to enable Allure Service features for the project:",
-    "",
-    green("{"),
-    green("  allureService: {"),
-    green(`    project: "${res.project}"`),
-    green("  }"),
-    green("}"),
-  ];
-
-  // eslint-disable-next-line no-console
-  console.info(lines.join("\n"));
 };
 
 export const ProjectsListCommand = createCommand({

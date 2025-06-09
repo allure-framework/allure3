@@ -1,8 +1,9 @@
 import { getGitRepoName, readConfig } from "@allurereport/core";
-import { AllureService } from "@allurereport/service";
+import { AllureService, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
+import { logError } from "../../utils/logs.js";
 
 type CommandOptions = {
   config?: string;
@@ -52,21 +53,43 @@ export const ProjectsCreateCommandAction = async (projectName?: string, options?
     return;
   }
 
-  const project = await service.createProject({
-    name,
-  });
-  const lines: string[] = [
-    `The "${green(project.name)}" has been created. Insert following code into your Allure Config file, to enable Allure Service features for the project:`,
-    "",
-    green("{"),
-    green("  allureService: {"),
-    green(`    project: "${project.name}"`),
-    green("  }"),
-    green("}"),
-  ];
+  try {
+    const project = await service.createProject({
+      name,
+    });
+    const lines: string[] = [
+      `The "${green(project.name)}" has been created. Insert following code into your Allure Config file, to enable Allure Service features for the project:`,
+      "",
+      green("{"),
+      green("  allureService: {"),
+      green(`    project: "${project.name}"`),
+      green("  }"),
+      green("}"),
+    ];
 
-  // eslint-disable-next-line no-console
-  console.info(lines.join("\n"));
+    // eslint-disable-next-line no-console
+    console.info(lines.join("\n"));
+  } catch (error) {
+    if (error instanceof KnownError) {
+      // eslint-disable-next-line no-console
+      console.error(red(`Failed to create project: ${error.message}`));
+      process.exit(1);
+      return;
+    }
+
+    if (error instanceof UnknownError) {
+      const logFilePath = await logError("Failed to create project due to unexpected error", error?.stack);
+
+      // eslint-disable-next-line no-console
+      console.error(
+        red(`Failed to create project due to unexpected error. Check logs for more details: ${logFilePath}`),
+      );
+      process.exit(1);
+      return;
+    }
+
+    throw error;
+  }
 };
 
 export const ProjectsCreateCommand = createCommand({
