@@ -26,6 +26,8 @@ const getChartWidgetByType = (
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
       const translations = empty("no-results");
 
+      console.log("%cgetChartWidgetByType", "color: magenta", chartData);
+
       return (
         <TrendChartWidget
           title={title}
