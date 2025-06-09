@@ -1,6 +1,6 @@
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
 import type { AllureService } from "./service.js";
-import { NotFoundError } from "./utils/http.js";
+import { KnownError } from "./utils/http.js";
 
 export class AllureRemoteHistory implements AllureHistory {
   constructor(readonly allureService: AllureService) {}
@@ -13,7 +13,7 @@ export class AllureRemoteHistory implements AllureHistory {
 
       return res;
     } catch (err) {
-      if (err instanceof NotFoundError) {
+      if (err instanceof KnownError && err.status === 404) {
         return [];
       }
 

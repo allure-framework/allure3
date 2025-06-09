@@ -1,8 +1,9 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService } from "@allurereport/service";
+import { AllureService, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectsDeleteCommandAction } from "../../../src/commands/projects/delete.js";
+import { logError } from "../../../src/utils/logs.js";
 import { AllureServiceMock } from "../../utils.js";
 
 vi.mock("prompts", () => ({
@@ -10,6 +11,10 @@ vi.mock("prompts", () => ({
 }));
 vi.spyOn(console, "info");
 vi.spyOn(console, "error");
+vi.mock("../../../src/utils/logs.js", async (importOriginal) => ({
+  ...(await importOriginal()),
+  logError: vi.fn(),
+}));
 vi.mock("@allurereport/service", async (importOriginal) => {
   const utils = await import("../../utils.js");
 
@@ -100,6 +105,81 @@ describe("projects delete command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No project name is provided"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
     expect(AllureServiceMock.prototype.deleteProject).not.toHaveBeenCalled();
+  });
+
+  it("should print known service-error without logs writing", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error");
+    // @ts-ignore
+    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
+    (AllureServiceMock.prototype.deleteProject as Mock).mockRejectedValueOnce(
+      new KnownError("Failed to delete project", 401),
+    );
+    (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
+    (logError as Mock).mockResolvedValueOnce("logs.txt");
+
+    await ProjectsDeleteCommandAction("qux");
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to delete project"));
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it("should print unknown service-error with logs writing", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error");
+    // @ts-ignore
+    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
+    (AllureServiceMock.prototype.deleteProject as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
+    (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
+
+    await ProjectsDeleteCommandAction("qux");
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to delete project due to unexpected error"),
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(logError).toHaveBeenCalled();
+  });
+
+  it("should just throw if unknown error is not instance of KnownError or UnknownError", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
+    (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
+    (AllureServiceMock.prototype.deleteProject as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
+
+    await expect(ProjectsDeleteCommandAction("qux")).rejects.toThrow("Unexpected error");
+  });
+
+  it("should print unknown service-error with logs writing", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
+  });
+
+  it("should print unknown service-error with logs writing", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
   });
 
   it("should forcily delete a project without confirmation", async () => {

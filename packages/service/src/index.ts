@@ -1,3 +1,3 @@
 export * from "./service.js";
 export * from "./history.js";
-export { AuthenticationError, BadRequestError, InternalServerError, NotFoundError } from "./utils/http.js";
+export { KnownError, UnknownError } from "./utils/http.js";

@@ -7,6 +7,7 @@ import type {
   ReportFiles,
   ResultFile,
 } from "@allurereport/plugin-api";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureService } from "@allurereport/service";
@@ -24,7 +25,6 @@ import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
 import type { AllureStoreEvents } from "./utils/event.js";
 import { Events } from "./utils/event.js";
-import AwesomePlugin from "@allurereport/plugin-awesome";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -91,19 +91,11 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
-
-    if (allureServiceConfig) {
-      this.#allureService = new AllureService(allureServiceConfig);
-    }
-
-    if (allureServiceConfig) {
-      this.#history = new AllureRemoteHistory(this.#allureService!);
-    } else if (historyPath) {
-      this.#history = new AllureLocalHistory(historyPath);
-    }
+    this.#history = this.#allureService
+      ? new AllureRemoteHistory(this.#allureService)
+      : new AllureLocalHistory(historyPath);
   }
 
   // TODO: keep it until we understand how to handle shared test results
@@ -183,10 +175,12 @@ export class AllureReport {
 
     // create remote report to publish files into
     if (this.#allureService && this.#publish) {
-      this.#reportUrl = await this.#allureService.createReport({
+      const { url } = await this.#allureService.createReport({
         reportUuid: this.#reportUuid,
         reportName: this.#reportName,
       });
+
+      this.#reportUrl = url;
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
@@ -228,7 +222,13 @@ export class AllureReport {
       await plugin.done?.(context, this.#store);
 
       // publish only Allure Awesome reports
-      if (plugin instanceof AwesomePlugin && this.#history && this.#allureService && this.#publish && Object.keys(pluginFiles).length) {
+      if (
+        plugin instanceof AwesomePlugin &&
+        this.#history &&
+        this.#allureService &&
+        this.#publish &&
+        Object.keys(pluginFiles).length
+      ) {
         await Promise.all(
           Object.entries(pluginFiles).map(([key, filepath]) =>
             this.#allureService?.addReportFile({
@@ -238,8 +238,6 @@ export class AllureReport {
             }),
           ),
         );
-
-        console.info(`The report has been published: ${this.#reportUrl}`);
       }
 
       const summary = await plugin?.info?.(context, this.#store);
@@ -295,6 +293,10 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       await generateSummary(this.#output, summaries);
+    }
+
+    if (this.#reportUrl) {
+      console.info(`The report has been published: ${this.#reportUrl}`);
     }
   };
 

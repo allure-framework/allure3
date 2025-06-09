@@ -1,7 +1,8 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService } from "@allurereport/service";
+import { AllureService, KnownError, UnknownError } from "@allurereport/service";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../utils/commands.js";
+import { logError } from "../utils/logs.js";
 
 type CommandOptions = {
   config?: string;
@@ -25,9 +26,29 @@ export const LogoutCommandAction = async (options?: CommandOptions) => {
 
   const service = new AllureService(config.allureService);
 
-  await service.logout();
-  // eslint-disable-next-line no-console
-  console.info(green("Logged out"));
+  try {
+    await service.logout();
+    // eslint-disable-next-line no-console
+    console.info(green("Logged out"));
+  } catch (error) {
+    if (error instanceof KnownError) {
+      // eslint-disable-next-line no-console
+      console.error(red(`Failed to logout: ${error.message}`));
+      process.exit(1);
+      return;
+    }
+
+    if (error instanceof UnknownError) {
+      const logFilePath = await logError("Failed to logout due to unexpected error", error?.stack);
+
+      // eslint-disable-next-line no-console
+      console.error(red(`Failed to logout due to unexpected error. Check logs for more details: ${logFilePath}`));
+      process.exit(1);
+      return;
+    }
+
+    throw error;
+  }
 };
 
 export const LogoutCommand = createCommand({

@@ -2,6 +2,7 @@ import { type HistoryDataPoint } from "@allurereport/core-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AllureRemoteHistory } from "../src/history.js";
 import { type AllureService } from "../src/service.js";
+import { KnownError } from "../src/utils/http.js";
 import { HttpClientMock } from "./utils.js";
 
 const { AllureService: AllureServiceClass } = await import("../src/service.js");
@@ -65,6 +66,20 @@ describe("AllureRemoteHistory", () => {
         },
       });
       expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should return empty array if history is not found", async () => {
+      HttpClientMock.prototype.get.mockRejectedValue(new KnownError("History not found", 404));
+
+      const result = await history.readHistory(fixtures.branch);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should throw another unexpected errors", async () => {
+      HttpClientMock.prototype.get.mockRejectedValue(new Error("Unexpected error"));
+
+      await expect(history.readHistory(fixtures.branch)).rejects.toThrow("Unexpected error");
     });
   });
 
