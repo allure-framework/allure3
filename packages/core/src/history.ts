@@ -23,12 +23,13 @@ const createHistoryItems = (testResults: TestResult[]) => {
       };
     })
     .reduce(
-      (previousValue, currentValue) => {
-        previousValue[currentValue.historyId] = {
-          ...currentValue,
+      (acc, item) => {
+        acc[item.historyId] = {
+          ...item,
           url: "",
         };
-        return previousValue;
+
+        return acc;
       },
       {} as Record<string, HistoryTestResult>,
     );
