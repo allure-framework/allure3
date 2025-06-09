@@ -10,7 +10,7 @@ import type {
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureRemoteHistory, AllureService } from "@allurereport/service";
+import { AllureRemoteHistory, AllureService, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -288,7 +288,18 @@ export class AllureReport {
         this.#reportUrl,
       );
 
-      await this.#store.appendHistory(historyDataPoint);
+      try {
+        await this.#store.appendHistory(historyDataPoint);
+      } catch (err) {
+        if (err instanceof KnownError) {
+          console.error("Failed to append history", err.message);
+        } else if (err instanceof UnknownError) {
+          // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
+          console.error("Failed to append history due to unexpected error", err.message);
+        } else {
+          throw err;
+        }
+      }
     }
 
     if (summaries.length > 1) {
