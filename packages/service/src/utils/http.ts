@@ -55,12 +55,12 @@ export const createServiceHttpClient = (
             ...payload,
             headers,
           });
+        } else {
+          res = await client[method](endpoint, {
+            ...payload,
+            headers,
+          });
         }
-
-        res = await client[method](endpoint, {
-          ...payload,
-          headers,
-        });
 
         return res.data;
       } catch (err) {
