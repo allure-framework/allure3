@@ -60,7 +60,7 @@ export const testFixtureResultRawToState = (
 
     ...processTimings(raw),
 
-    steps: convertSteps(stateData, raw.steps),
+    steps: convertSteps(stateData, raw.steps).convertedSteps,
     sourceMetadata: {
       readerId: context.readerId,
       metadata: context.metadata ?? {},
@@ -107,7 +107,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     hidden: false,
 
     labels,
-    steps: convertSteps(stateData, raw.steps),
+    steps: convertSteps(stateData, raw.steps).convertedSteps,
     parameters,
     links: convertLinks(raw.links),
 
@@ -262,32 +262,53 @@ const convertLabel = (label: RawTestLabel): TestLabel => {
 const convertSteps = (
   stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
   steps: RawStep[] | undefined,
-): TestStepResult[] => steps?.filter(notNull)?.map((step) => convertStep(stateData, step)) ?? [];
+): { convertedSteps: TestStepResult[]; messages: Set<string> } => {
+  const convertedStepData = steps?.filter(notNull)?.map((step) => convertStep(stateData, step)) ?? [];
+  return {
+    convertedSteps: convertedStepData.map(({ convertedStep }) => convertedStep),
+    messages: new Set(
+      convertedStepData.reduce((acc, { messages }) => {
+        if (messages) {
+          acc.push(...messages);
+        }
+        return acc;
+      }, [] as string[]),
+    ),
+  };
+};
 
 const convertStep = (
   stateData: Pick<StateData, "attachments" | "visitAttachmentLink">,
   step: RawStep,
-): TestStepResult => {
+): { convertedStep: TestStepResult; messages?: Set<string> } => {
   if (step.type === "step") {
-    const subSteps = convertSteps(stateData, step.steps);
-    const isMessageInSubSteps =
-      !!step.message && subSteps.some((s) => s.type === "step" && s?.message === step.message);
+    const { message } = step;
+    const { convertedSteps: subSteps, messages } = convertSteps(stateData, step.steps);
+    const hasSimilarErrorInSubSteps = !!message && messages.has(message);
+    if (message && !hasSimilarErrorInSubSteps) {
+      messages.add(message);
+    }
 
     return {
-      stepId: md5(`${step.name}${step.start}`),
-      name: step.name ?? __unknown,
-      status: step.status ?? defaultStatus,
-      steps: subSteps,
-      parameters: convertParameters(step.parameters),
-      ...processTimings(step),
-      type: "step",
-      hasSimilarErrorInSubSteps: isMessageInSubSteps ?? undefined,
-      message: isMessageInSubSteps ? undefined : step.message,
-      trace: isMessageInSubSteps ? undefined : step.trace,
+      convertedStep: {
+        stepId: md5(`${step.name}${step.start}`),
+        name: step.name ?? __unknown,
+        status: step.status ?? defaultStatus,
+        steps: subSteps,
+        parameters: convertParameters(step.parameters),
+        ...processTimings(step),
+        type: "step",
+        message,
+        trace: step.trace,
+        hasSimilarErrorInSubSteps,
+      },
+      messages,
     };
   }
   return {
-    ...processAttachmentLink(stateData, step),
+    convertedStep: {
+      ...processAttachmentLink(stateData, step),
+    },
   };
 };
 
