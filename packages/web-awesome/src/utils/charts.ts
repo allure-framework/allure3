@@ -1,16 +1,5 @@
 import { type SeverityLevel, type TestStatus, severityLevels, statusesList } from "@allurereport/core-api";
-
-export enum ChartType {
-  Trend = "trend",
-  Pie = "pie",
-}
-
-export enum ChartDataType {
-  Status = "status",
-  Severity = "severity",
-}
-
-export type ChartId = string;
+import { type ChartMode, ChartType, ChartDataType, type ChartId } from "@allurereport/web-commons";
 
 export interface Point {
   x: Date | string | number;
@@ -23,15 +12,18 @@ export interface Slice {
   metadata: { executionId: string };
 }
 
-interface ResponseTrendChartData {
+export type SeriesType = TestStatus | SeverityLevel;
+
+interface ResponseTrendChartData<GroupBy extends string = SeriesType> {
   type: ChartType.Trend;
   dataType: ChartDataType;
+  mode: ChartMode;
   title?: string;
   min: number;
   max: number;
   points: Record<string, Point>;
   slices: Record<string, Slice>;
-  series: Record<TestStatus | SeverityLevel, string[]>;
+  series: Record<GroupBy, string[]>;
 }
 
 interface TrendChartItem {
@@ -43,6 +35,7 @@ interface TrendChartItem {
 export interface TrendChartData {
   type: ChartType.Trend;
   dataType: ChartDataType;
+  mode: ChartMode;
   min: number;
   max: number;
   items: TrendChartItem[];
@@ -103,10 +96,14 @@ export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
 
   const items = getGroups().reduce((acc, group) => {
     const pointsByGroupBy =
-      chart.series[group]?.map((pointId) => ({
-        x: chart.points[pointId].x,
-        y: chart.points[pointId].y,
-      })) ?? [];
+      chart.series[group]?.map((pointId) => {
+        const point = chart.points[pointId];
+
+        return {
+          x: point.x,
+          y: point.y,
+        };
+      }) ?? [];
 
     if (pointsByGroupBy.length) {
       acc.push({
@@ -122,6 +119,7 @@ export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   return {
     type: chart.type,
     dataType: chart.dataType,
+    mode: chart.mode,
     title: chart.title,
     items,
     slices: Object.values(chart.slices),
