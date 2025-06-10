@@ -79,6 +79,7 @@ export const getSeverityTrendData = (
     {
       type: chartOptions.type,
       dataType: chartOptions.dataType,
+      mode: chartOptions.mode,
       title: chartOptions.title,
       points: {},
       slices: {},

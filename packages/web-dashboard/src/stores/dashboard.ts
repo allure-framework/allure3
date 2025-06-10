@@ -1,18 +1,8 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { ChartType, ChartDataType, type ChartMode, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-
-export enum ChartType {
-  Trend = "trend",
-  Pie = "pie",
-}
-
-enum ChartDataType {
-  Status = "status",
-  Severity = "severity",
-}
 
 type ChartId = string;
 
@@ -30,6 +20,7 @@ interface Slice {
 interface ResponseTrendChartData {
   type: ChartType.Trend;
   dataType: ChartDataType;
+  mode: ChartMode;
   title?: string;
   min: number;
   max: number;
@@ -47,6 +38,7 @@ interface TrendChartItem {
 export interface TrendChartData {
   type: ChartType.Trend;
   dataType: ChartDataType;
+  mode: ChartMode;
   min: number;
   max: number;
   items: TrendChartItem[];
@@ -136,6 +128,7 @@ const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   return {
     type: chart.type,
     dataType: chart.dataType,
+    mode: chart.mode,
     title: chart.title,
     items,
     slices: Object.values(chart.slices),

@@ -88,7 +88,7 @@ const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const newOptions = { limit:  DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 
