@@ -1,5 +1,5 @@
-import type { DefaultTestStepResult, TestStepResult } from "@allurereport/core-api";
-import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import type { DefaultTestStepResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import { ArrowButton, Code, SvgIcon, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { MetadataList } from "@/components/Metadata";
@@ -19,6 +19,7 @@ export const TrStepParameters = (props: { parameters: DefaultTestStepResult["par
     </div>
   );
 };
+
 export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
 

@@ -1,3 +1,5 @@
+@import "~@allurereport/web-components/mixins.scss";
+
 .test-result-steps {
   padding-right: 24px;
 
@@ -221,4 +223,32 @@
 
 .html-attachment-preview {
   padding: 0 16px;
+}
+
+.item-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-status-icon {
+  &.status-passed {
+    color: var(--bg-support-castor);
+  }
+
+  &.status-failed {
+    color: var(--bg-support-capella);
+  }
+
+  &.status-broken {
+    color: var(--bg-support-atlas);
+  }
+
+  &.status-skipped {
+    color: var(--bg-support-rau);
+  }
+
+  &.status-unknown {
+    color: var(--bg-support-skat);
+  }
 }
