@@ -1,1 +1,1 @@
-{"id":"0f89a02d126c7a141b1c0c05da87ad6f","fullName":"test/junitxml.test.ts#junit xml reader attachments stderr should ignore a missing system-err","name":"should ignore a missing system-err","status":"passed","testResultsByEnv":{"default":"d9604f9e284d72a12d0613da821c771f"}}
+{"id":"0f89a02d126c7a141b1c0c05da87ad6f","fullName":"test/junitxml.test.ts#junit xml reader attachments stderr should ignore a missing system-err","name":"should ignore a missing system-err","status":"passed","testResultsByEnv":{"default":"9ff6dd650adf1c08a382e6c46ff3b896"}}
