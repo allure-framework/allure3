@@ -25,17 +25,22 @@ import lineFilesClipboardCheck from "@/assets/svg/line-files-clipboard-check.svg
 import lineFilesFile2 from "@/assets/svg/line-files-file-2.svg";
 import lineFilesFileAttachment2 from "@/assets/svg/line-files-file-attachment-2.svg";
 import lineFilesFolder from "@/assets/svg/line-files-folder.svg";
+import lineGeneralCheckCircle from "@/assets/svg/line-general-check-circle.svg";
 import lineGeneralCheck from "@/assets/svg/line-general-check.svg";
 import lineGeneralChecklist3 from "@/assets/svg/line-general-checklist3.svg";
 import lineGeneralCopy3 from "@/assets/svg/line-general-copy-3.svg";
 import lineGeneralDownloadCloud from "@/assets/svg/line-general-download-cloud.svg";
 import lineGeneralEqual from "@/assets/svg/line-general-equal.svg";
 import lineGeneralEye from "@/assets/svg/line-general-eye.svg";
+import lineGeneralHelpCircle from "@/assets/svg/line-general-help-circle.svg";
 import lineGeneralHomeLine from "@/assets/svg/line-general-home-line.svg";
+import lineGeneralInfoCircle from "@/assets/svg/line-general-info-circle.svg";
 import lineGeneralLink1 from "@/assets/svg/line-general-link-1.svg";
 import lineGeneralLinkExternal from "@/assets/svg/line-general-link-external.svg";
+import lineGeneralMinusCircle from "@/assets/svg/line-general-minus-circle.svg";
 import lineGeneralSearchMd from "@/assets/svg/line-general-search-md.svg";
 import lineGeneralSettings1 from "@/assets/svg/line-general-settings-1.svg";
+import lineGeneralXCircle from "@/assets/svg/line-general-x-circle.svg";
 import lineGeneralXClose from "@/assets/svg/line-general-x-close.svg";
 import lineGeneralZap from "@/assets/svg/line-general-zap.svg";
 import lineHelpersFlag from "@/assets/svg/line-helpers-flag.svg";
@@ -125,6 +130,11 @@ export const allureIcons = {
   spinner: spinner.id,
   view: view.id,
   viewOff: viewOff.id,
+  lineGeneralCheckCircle: lineGeneralCheckCircle.id,
+  lineGeneralHelpCircle: lineGeneralHelpCircle.id,
+  lineGeneralInfoCircle: lineGeneralInfoCircle.id,
+  lineGeneralMinusCircle: lineGeneralMinusCircle.id,
+  lineGeneralXCircle: lineGeneralXCircle.id,
 };
 
 export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
