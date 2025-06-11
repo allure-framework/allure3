@@ -10,7 +10,5 @@ export const SectionSwitcher = () => {
     charts: <Charts />,
   };
 
-  console.log("%cSectionSwitcher", "color: magenta", sectionMap);
-
-  return <div className={styles.layout}>{sectionMap["charts"] || sectionMap.report}</div>;
+  return <div className={styles.layout}>{sectionMap[currentSection.value] || sectionMap.report}</div>;
 };
