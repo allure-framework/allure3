@@ -28,45 +28,6 @@ export const getLastSignificantStatus = (history: HistoryTestResult[] = []): str
 };
 
 /**
- * @description Checks if the test result is switched to another significant status.
- * @param tr - The test result to check.
- * @param history - The history of test results.
- * @returns `true` if the test result is switched to a new status, `false` otherwise.
- */
-export const hasStatusTransition = (tr: TestResult, history: HistoryTestResult[] = []) => {
-  const lastStatus = getLastSignificantStatus(history);
-
-  return !lastStatus || lastStatus !== tr.status;
-};
-
-/**
- * @description Checks if the test result is changed to passed status from another status.
- * @param tr - The test result to check.
- * @param history - The history of test results.
- * @returns `true` if the test result is in fixed transition status, `false` otherwise.
- */
-export const isFixed = (tr: TestResult, history: HistoryTestResult[] = []) =>
-  hasStatusTransition(tr, history) && tr.status === "passed";
-
-/**
- * @description Checks if the test result is changed to failed status from another status.
- * @param tr - The test result to check.
- * @param history - The history of test results.
- * @returns `true` if the test result is in regressed transition status, `false` otherwise.
- */
-export const isRegressed = (tr: TestResult, history: HistoryTestResult[] = []) =>
-  hasStatusTransition(tr, history) && tr.status === "failed";
-
-/**
- * @description Checks if the test result is changed to broken status from another status.
- * @param tr - The test result to check.
- * @param history - The history of test results.
- * @returns `true` if the test result is in malfunctioned transition status, `false` otherwise.
- */
-export const isMalfunctioned = (tr: TestResult, history: HistoryTestResult[] = []) =>
-  hasStatusTransition(tr, history) && tr.status === "broken";
-
-/**
  * @description Gets the status transition of the test result if any.
  * @param tr - The test result to check.
  * @param history - The history of test results.
