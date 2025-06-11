@@ -50,8 +50,8 @@
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
+    "@vitest/runner": "^2.1.9",
+    "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.0.9",
     "allure-vitest": "^3.0.9",
     "eslint": "^8.57.0",
@@ -64,6 +64,6 @@
     "rimraf": "^6.0.1",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

@@ -32,8 +32,17 @@
   "resolutions": {
     "backbone.marionette@npm:3.5.1/backbone": "^1.6.0",
     "backbone.marionette@npm:3.5.1/underscore": "^1.13.6",
+    "braces": "^3.0.3",
+    "esbuild": "^0.24.2",
+    "http-proxy-middleware": "^2.0.9",
+    "micromatch": "^4.0.8",
+    "nanoid": "^3.3.8",
+    "path-to-regexp": "^0.1.12",
     "react": "npm:@preact/compat@*",
-    "react-dom": "npm:@preact/compat@*"
+    "react-dom": "npm:@preact/compat@*",
+    "semver": "^7.5.2",
+    "tar": "^6.2.1",
+    "vite": "^5.4.17"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",

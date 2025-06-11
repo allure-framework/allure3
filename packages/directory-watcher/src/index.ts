@@ -1,4 +1,5 @@
 import { watch as chokidarWatch } from "chokidar";
+import type { EventName } from "chokidar/handler.js";
 import console from "node:console";
 
 /**
@@ -20,7 +21,7 @@ import console from "node:console";
  */
 const watchDirectory = (
   directory: string,
-  handler: (eventName: "add" | "addDir" | "change" | "unlink" | "unlinkDir", path: string) => void | Promise<void>,
+  handler: (eventName: EventName, path: string) => void | Promise<void>,
   options: { usePolling?: boolean; ignoreInitial?: boolean } = {},
 ) => {
   const { usePolling = false, ignoreInitial = false } = options;

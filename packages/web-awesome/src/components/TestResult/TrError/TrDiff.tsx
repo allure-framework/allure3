@@ -2,7 +2,6 @@ import { Button, Code, CodeViewer } from "@allurereport/web-components";
 import type { BaseOptions, Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";
-import { ac } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 import * as styles from "@/components/TestResult/TrError/styles.scss";
 import { useI18n } from "@/stores";
 
