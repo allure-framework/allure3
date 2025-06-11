@@ -43,12 +43,12 @@
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
+    "@vitest/runner": "^2.1.9",
+    "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.0.9",
     "allure-playwright": "^3.0.9",
     "allure-vitest": "^3.0.9",
-    "axios": "^1.7.7",
+    "axios": "^1.9.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -60,6 +60,6 @@
     "npm-run-all2": "^7.0.1",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }
