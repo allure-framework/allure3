@@ -33,6 +33,14 @@
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq"
   },
+  "filters.description": {
+    "flaky": "Son 5 işdə \"uğurlu\" və sonra \"uğursuz\" olan test nəticələrini göstərir, bu da qeyri-sabit davranışı göstərir",
+    "retry": "Status dəyişikliyi olmadan yenidən işə salınan test nəticələrini göstərir",
+    "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
+    "fixed": "Statusu \"uğurlu\" olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan test nəticələrini göstərir",
+    "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" olan test nəticələrini göstərir",
+    "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" olan test nəticələrini göstərir"
+  },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
     "sort-by-category": "Sıralamaq üzrə",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Nəticə tapılmadı",
     "no-tests-found": "Nəticə tapılmadı",
+    "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Əlavə məlumatı mövcud deyil",
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
@@ -164,5 +173,11 @@
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq"
+  },
+  "transitions.description": {
+    "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
+    "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
+    "regressed": "Əvvəl \"uğurlu\" olan, indi \"uğursuz\" olan test",
+    "malfunctioned": "Əvvəl \"uğurlu\" olan, indi \"sınıq\" olan test"
   }
 }

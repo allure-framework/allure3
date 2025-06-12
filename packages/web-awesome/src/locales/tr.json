@@ -31,7 +31,15 @@
     "new": "Yeni",
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
-    "malfunctioned": "Bozuk"
+    "malfunctioned": "Bozuk",
+    "description": {
+      "flaky": "Son 5 çalıştırmada \"başarılı\" olup sonra \"başarısız\" olan test sonuçlarını göster, bu da kararsız davranışı gösterir",
+      "retry": "Durum değişikliği olmadan yeniden çalıştırılan test sonuçlarını göster",
+      "new": "Bu raporda ilk kez görünen test sonuçlarını göster",
+      "fixed": "\"başarısız\" veya \"bozuk\" durumundan \"başarılı\" durumuna değişen test sonuçlarını göster",
+      "regressed": "\"başarılı\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
+      "malfunctioned": "\"başarılı\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sıralama ölçütü:",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Sonuç yok",
     "no-tests-found": "Sonuç bulunamadı",
+    "no-message-provided": "Mesaj belirtilmedi",
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
@@ -162,6 +171,12 @@
     "new": "Yeni",
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
-    "malfunctioned": "Bozuk"
+    "malfunctioned": "Bozuk",
+    "description": {
+      "new": "Bu test sonucunun rapordaki ilk görünümü",
+      "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",
+      "regressed": "Daha önce \"başarılı\" olan test artık \"başarısız\"",
+      "malfunctioned": "Daha önce \"başarılı\" olan test artık \"bozuk\""
+    }
   }
 }
