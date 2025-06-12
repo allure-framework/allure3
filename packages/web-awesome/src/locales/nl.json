@@ -31,7 +31,15 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfunctioned": "Defect"
+    "malfunctioned": "Defect",
+    "description": {
+      "flaky": "Toont testresultaten die \"geslaagd\" en vervolgens \"mislukt\" zijn binnen de laatste 5 runs, wat wijst op onstabiel gedrag",
+      "retry": "Toont testresultaten die opnieuw zijn uitgevoerd zonder statuswijzigingen",
+      "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
+      "fixed": "Toont testresultaten die zijn gewijzigd van \"mislukt\" of \"gebroken\" naar \"geslaagd\" status",
+      "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"mislukt\" status",
+      "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"gebroken\" status"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Geen resultaten",
     "no-tests-found": "Geen resultaten gevonden",
+    "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
@@ -162,6 +171,12 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfunctioned": "Defect"
+    "malfunctioned": "Defect",
+    "description": {
+      "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
+      "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
+      "regressed": "Eerder \"geslaagd\" test die nu \"mislukt\" is",
+      "malfunctioned": "Eerder \"geslaagd\" test die nu \"gebroken\" is"
+    }
   }
 }

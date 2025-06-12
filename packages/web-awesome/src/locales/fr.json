@@ -33,6 +33,14 @@
     "regressed": "Régression",
     "malfunctioned": "Défectueux"
   },
+  "filters.description": {
+    "flaky": "Affiche les résultats des tests qui ont \"réussi\" puis \"échoué\" lors des 5 dernières exécutions, indiquant un comportement instable",
+    "retry": "Affiche les résultats des tests qui ont été réexécutés sans changement de statut",
+    "new": "Affiche les résultats des tests qui apparaissent pour la première fois dans ce rapport",
+    "fixed": "Affiche les résultats des tests qui sont passés du statut \"échoué\" ou \"cassé\" à \"réussi\"",
+    "regressed": "Affiche les résultats des tests qui sont passés du statut \"réussi\" à \"échoué\"",
+    "malfunctioned": "Affiche les résultats des tests qui sont passés du statut \"réussi\" à \"cassé\""
+  },
   "sort-by": {
     "sort-by-text": "Trier par :",
     "sort-by-category": "Trier par",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Aucun résultat",
     "no-tests-found": "Aucun résultat trouvé",
+    "no-message-provided": "Aucun message fourni",
     "clear-filters": "Effacer les filtres",
     "no-attachments-results": "Aucune information sur les pièces jointes disponible",
     "no-history-results": "Aucune information sur l'historique disponible",
@@ -163,5 +172,11 @@
     "fixed": "Corrigés",
     "regressed": "Régression",
     "malfunctioned": "Défectueux"
+  },
+  "transitions.description": {
+    "new": "Première apparition de ce résultat de test dans le rapport",
+    "fixed": "Test précédemment \"échoué\" ou \"cassé\" qui est maintenant \"réussi\"",
+    "regressed": "Test précédemment \"réussi\" qui est maintenant \"échoué\"",
+    "malfunctioned": "Test précédemment \"réussi\" qui est maintenant \"cassé\""
   }
 }

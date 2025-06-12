@@ -24,14 +24,22 @@
     "search-placeholder": "Name oder ID"
   },
   "filters": {
-    "more-filters": "Weitere Filter",
-    "enable-filter": "Filter für \"{{filter}}\" aktivieren",
+    "more-filters": "Filter",
+    "enable-filter": "Filter nach \"{{filter}}\" aktivieren",
     "flaky": "Instabil",
-    "retry": "Wiederholen",
+    "retry": "Wiederholt",
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt"
+  },
+  "filters.description": {
+    "flaky": "Zeigt Testergebnisse, die in den letzten 5 Durchläufen \"erfolgreich\" waren und dann \"fehlgeschlagen\" sind, was auf instabiles Verhalten hinweist",
+    "retry": "Zeigt Testergebnisse, die ohne Statusänderung wiederholt wurden",
+    "new": "Zeigt Testergebnisse, die zum ersten Mal in diesem Bericht erscheinen",
+    "fixed": "Zeigt Testergebnisse, die den Status von \"fehlgeschlagen\" oder \"defekt\" zu \"erfolgreich\" geändert haben",
+    "regressed": "Zeigt Testergebnisse, die den Status von \"erfolgreich\" zu \"fehlgeschlagen\" geändert haben",
+    "malfunctioned": "Zeigt Testergebnisse, die den Status von \"erfolgreich\" zu \"defekt\" geändert haben"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -65,7 +73,8 @@
   "empty": {
     "no-results": "Keine Ergebnisse",
     "no-tests-found": "Keine Ergebnisse gefunden",
-    "clear-filters": "Filter löschen",
+    "no-message-provided": "Keine Nachricht vorhanden",
+    "clear-filters": "Filter zurücksetzen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
@@ -163,5 +172,11 @@
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt"
+  },
+  "transitions.description": {
+    "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
+    "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
+    "regressed": "Zuvor \"erfolgreich\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
+    "malfunctioned": "Zuvor \"erfolgreich\" gewesener Test, der jetzt \"defekt\" ist"
   }
 }

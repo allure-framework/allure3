@@ -31,7 +31,15 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfunctioned": "Felaktig"
+    "malfunctioned": "Felaktig",
+    "description": {
+      "flaky": "Visa testresultat som \"godkändes\" och sedan \"misslyckades\" inom de senaste 5 körningarna, vilket indikerar instabilt beteende",
+      "retry": "Visa testresultat som kördes om utan statusändringar",
+      "new": "Visa testresultat som visas för första gången i denna rapport",
+      "fixed": "Visa testresultat som ändrades från \"misslyckad\" eller \"trasig\" till \"godkänd\" status",
+      "regressed": "Visa testresultat som ändrades från \"godkänd\" till \"misslyckad\" status",
+      "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" till \"trasig\" status"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Inga resultat",
     "no-tests-found": "Inga resultat hittades",
+    "no-message-provided": "Inget meddelande angavs",
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-history-results": "Ingen historik information tillgänglig",
@@ -162,6 +171,12 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfunctioned": "Felaktig"
+    "malfunctioned": "Felaktig",
+    "description": {
+      "new": "Första förekomsten av detta testresultat i rapporten",
+      "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
+      "regressed": "Tidigare \"godkänd\" test som nu är \"misslyckad\"",
+      "malfunctioned": "Tidigare \"godkänd\" test som nu är \"trasig\""
+    }
   }
 }

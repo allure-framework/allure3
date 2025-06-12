@@ -31,7 +31,15 @@
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
-    "malfunctioned": "Defeituoso"
+    "malfunctioned": "Defeituoso",
+    "description": {
+      "flaky": "Mostra resultados de testes que \"passaram\" e depois \"falharam\" nas últimas 5 execuções, indicando comportamento instável",
+      "retry": "Mostra resultados de testes que foram executados novamente sem alterações de status",
+      "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
+      "fixed": "Mostra resultados de testes que mudaram de status \"falhou\" ou \"quebrado\" para \"aprovado\"",
+      "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"falhou\"",
+      "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"quebrado\""
+    }
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Sem resultados",
     "no-tests-found": "Nenhum resultado encontrado",
+    "no-message-provided": "Nenhuma mensagem fornecida",
     "clear-filters": "Limpar filtros",
     "no-attachments-results": "Nenhuma informação de anexos disponível",
     "no-history-results": "Nenhuma informação de histórico disponível",
@@ -161,6 +170,12 @@
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
-    "malfunctioned": "Defeituoso"
+    "malfunctioned": "Defeituoso",
+    "description": {
+      "new": "Primeira ocorrência deste resultado de teste no relatório",
+      "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
+      "regressed": "Teste anteriormente \"aprovado\" que agora está \"falhou\"",
+      "malfunctioned": "Teste anteriormente \"aprovado\" que agora está \"quebrado\""
+    }
   }
 }
