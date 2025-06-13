@@ -1,6 +1,6 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 
-export type AwesomeOptions = {
+export type ClassicOptions = {
   reportName?: string;
   singleFile?: boolean;
   logo?: string;
@@ -17,9 +17,9 @@ export type AwesomeOptions = {
 
 export type TemplateManifest = Record<string, string>;
 
-export type AwesomePluginOptions = AwesomeOptions;
+export type ClassicPluginOptions = ClassicOptions;
 
-export interface AwesomeCategory {
+export interface ClassicCategory {
   name: string;
   description?: string;
   descriptionHtml?: string;
