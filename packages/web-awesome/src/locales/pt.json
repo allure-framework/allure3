@@ -31,15 +31,15 @@
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
-    "malfunctioned": "Defeituoso",
-    "description": {
-      "flaky": "Mostra resultados de testes que \"passaram\" e depois \"falharam\" nas últimas 5 execuções, indicando comportamento instável",
-      "retry": "Mostra resultados de testes que foram executados novamente sem alterações de status",
-      "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
-      "fixed": "Mostra resultados de testes que mudaram de status \"falhou\" ou \"quebrado\" para \"aprovado\"",
-      "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"falhou\"",
-      "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"quebrado\""
-    }
+    "malfunctioned": "Defeituoso"
+  },
+  "filters.description": {
+    "flaky": "Mostra resultados de testes que \"passaram\" e depois \"falharam\" nas últimas 5 execuções, indicando comportamento instável",
+    "retry": "Mostra resultados de testes que foram executados novamente sem alterações de status",
+    "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
+    "fixed": "Mostra resultados de testes que mudaram de status \"falhou\" ou \"quebrado\" para \"aprovado\"",
+    "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"falhou\"",
+    "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"quebrado\""
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
@@ -53,18 +53,18 @@
     "status": "Estado"
   },
   "sort-by.directions": {
-    "order-desc": "Mais recente – Mais antigo",
-    "order-asc": "Mais antigo – Mais recente",
+    "order-desc": "Mais recente – Mais antigo",
+    "order-asc": "Mais antigo – Mais recente",
     "order-asc-short": "Antigo",
     "order-desc-short": "Recente",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Como na lista de filtros",
     "status-desc": "Invertido",
     "status-asc-short": "Regular",
@@ -117,6 +117,7 @@
     "showMore": "Mostrar mais",
     "copy": "Copiar",
     "at": "em",
+    "variables": "Variáveis",
     "openPwTrace": "Abrir Playwright Trace"
   },
   "controls": {
@@ -170,12 +171,12 @@
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
-    "malfunctioned": "Defeituoso",
-    "description": {
-      "new": "Primeira ocorrência deste resultado de teste no relatório",
-      "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
-      "regressed": "Teste anteriormente \"aprovado\" que agora está \"falhou\"",
-      "malfunctioned": "Teste anteriormente \"aprovado\" que agora está \"quebrado\""
-    }
+    "malfunctioned": "Defeituoso"
+  },
+  "transitions.description": {
+    "new": "Primeira ocorrência deste resultado de teste no relatório",
+    "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
+    "regressed": "Teste anteriormente \"aprovado\" que agora está \"falhou\"",
+    "malfunctioned": "Teste anteriormente \"aprovado\" que agora está \"quebrado\""
   }
 }
