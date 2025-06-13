@@ -4,16 +4,7 @@ import {
   InvalidTokenError,
   decryptExchangeToken,
   generateExchangeToken,
-  generateTokenizedEndpointURL,
 } from "../../src/utils/token.js";
-
-describe("generateTokenizedEndpointURL", () => {
-  it("should generate a valid tokenized endpoint URL", () => {
-    const url = generateTokenizedEndpointURL("token", "https://example.com");
-
-    expect(url).toBe("https://example.com/?token=token");
-  });
-});
 
 describe("decryptExchangeToken", () => {
   it("should throw an error if the token is invalid", () => {

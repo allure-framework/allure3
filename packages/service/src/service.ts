@@ -3,18 +3,21 @@ import { type Config } from "@allurereport/plugin-api";
 import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 import open from "open";
-import { DEFAULT_HISTORY_SERVICE_URL } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 import { decryptExchangeToken, deleteAccessToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
-export class AllureService {
+export class AllureServiceClient {
   readonly #client: HttpClient;
   readonly #url: string;
   readonly #pollingDelay: number;
   project: string | undefined;
 
   constructor(readonly config: Config["allureService"] & { pollingDelay?: number }) {
-    this.#url = config?.url ?? DEFAULT_HISTORY_SERVICE_URL;
+    if (!config.url) {
+      throw new Error("Allure service URL is required!");
+    }
+
+    this.#url = config.url;
     this.#client = createServiceHttpClient(this.#url, config?.accessToken);
     this.#pollingDelay = config?.pollingDelay ?? 2500;
     this.project = config?.project;

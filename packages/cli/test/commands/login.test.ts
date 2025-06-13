@@ -1,9 +1,9 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginCommandAction } from "../../src/commands/login.js";
 import { logError } from "../../src/utils/logs.js";
-import { AllureServiceMock } from "../utils.js";
+import { AllureServiceClientMock } from "../utils.js";
 
 vi.mock("../../src/utils/logs.js", async (importOriginal) => {
   return {
@@ -16,7 +16,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 
   return {
     ...(await importOriginal()),
-    AllureService: utils.AllureServiceMock,
+    AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
 vi.mock("@allurereport/core", async (importOriginal) => {
@@ -47,7 +47,7 @@ describe("login command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(AllureServiceMock.prototype.login).not.toHaveBeenCalled();
+    expect(AllureServiceClientMock.prototype.login).not.toHaveBeenCalled();
   });
 
   it("should print known service-error without logs writting", async () => {
@@ -56,7 +56,7 @@ describe("login command", () => {
         url: "https://allure.example.com",
       },
     });
-    (AllureServiceMock.prototype.login as Mock).mockRejectedValueOnce(new KnownError("Failed to login", 401));
+    (AllureServiceClientMock.prototype.login as Mock).mockRejectedValueOnce(new KnownError("Failed to login", 401));
 
     const consoleErrorSpy = vi.spyOn(console, "error");
     // @ts-ignore
@@ -77,7 +77,7 @@ describe("login command", () => {
       },
     });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
-    (AllureServiceMock.prototype.login as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
+    (AllureServiceClientMock.prototype.login as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error", 500));
 
     const consoleErrorSpy = vi.spyOn(console, "error");
     // @ts-ignore
@@ -87,7 +87,9 @@ describe("login command", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to login due to unexpected error. Check logs for more details: logs.txt"),
+      expect.stringContaining(
+        "Failed to login due to unexpected error (status 500). Check logs for more details: logs.txt",
+      ),
     );
     expect(processExitSpy).toHaveBeenCalledWith(1);
     expect(logError).toHaveBeenCalled();
@@ -99,7 +101,7 @@ describe("login command", () => {
         url: "https://allure.example.com",
       },
     });
-    (AllureServiceMock.prototype.login as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
+    (AllureServiceClientMock.prototype.login as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
 
     await expect(LoginCommandAction()).rejects.toThrow("Unexpected error");
   });
@@ -107,9 +109,9 @@ describe("login command", () => {
   it("should initialize allure service and call login method", async () => {
     await LoginCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureService).toHaveBeenCalledWith({ url: "https://allure.example.com" });
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient).toHaveBeenCalledWith({ url: "https://allure.example.com" });
     // eslint-disable-next-line
-    expect(AllureService.prototype.login).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient.prototype.login).toHaveBeenCalledTimes(1);
   });
 });

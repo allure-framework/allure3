@@ -1,10 +1,10 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectsListCommandAction } from "../../../src/commands/projects/list.js";
 import { logError } from "../../../src/utils/logs.js";
-import { AllureServiceMock } from "../../utils.js";
+import { AllureServiceClientMock } from "../../utils.js";
 
 vi.mock("prompts", () => ({
   default: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 
   return {
     ...(await importOriginal()),
-    AllureService: utils.AllureServiceMock,
+    AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
 vi.mock("../../../src/utils/logs.js", async (importOriginal) => ({
@@ -51,29 +51,29 @@ describe("projects list command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(AllureServiceMock.prototype.projects).not.toHaveBeenCalled();
+    expect(AllureServiceClientMock.prototype.projects).not.toHaveBeenCalled();
   });
 
   it("should log a message if there are no projects", async () => {
     const consoleInfoSpy = vi.spyOn(console, "info");
-    AllureServiceMock.prototype.projects.mockResolvedValue([]);
+    AllureServiceClientMock.prototype.projects.mockResolvedValue([]);
 
     await ProjectsListCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.projects).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.projects).toHaveBeenCalledTimes(1);
     expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining("No projects found. Create a new one"));
   });
 
   it("should prompt to select a project and log config if selected", async () => {
     const consoleInfoSpy = vi.spyOn(console, "info");
-    AllureServiceMock.prototype.projects.mockResolvedValue([{ name: "foo" }, { name: "bar" }]);
+    AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }, { name: "bar" }]);
     (prompts as unknown as Mock).mockResolvedValue({ project: "foo" });
 
     await ProjectsListCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.projects).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.projects).toHaveBeenCalledTimes(1);
     expect(prompts).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "select",
@@ -98,7 +98,7 @@ describe("projects list command", () => {
         url: "https://allure.example.com",
       },
     });
-    (AllureServiceMock.prototype.projects as Mock).mockRejectedValueOnce(
+    (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(
       new KnownError("Failed to list projects", 401),
     );
 
@@ -121,7 +121,7 @@ describe("projects list command", () => {
       },
     });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
-    (AllureServiceMock.prototype.projects as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
+    (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
     await ProjectsListCommandAction();
 
@@ -140,7 +140,7 @@ describe("projects list command", () => {
       },
     });
 
-    (AllureServiceMock.prototype.projects as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
+    (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
 
     await expect(ProjectsListCommandAction()).rejects.toThrow("Unexpected error");
   });
@@ -149,7 +149,7 @@ describe("projects list command", () => {
     const consoleErrorSpy = vi.spyOn(console, "error");
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-    AllureServiceMock.prototype.projects.mockResolvedValue([{ name: "foo" }]);
+    AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }]);
     (prompts as unknown as Mock).mockResolvedValue({});
 
     await ProjectsListCommandAction();

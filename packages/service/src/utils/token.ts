@@ -1,24 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { EOL } from "node:os";
-import {
-  ALLURE_ACCESS_TOKEN_PATH,
-  ALLURE_FILES_DIRNAME,
-  ALLURE_LOGIN_EXCHANGE_TOKEN_PATH,
-  DEFAULT_HISTORY_SERVICE_URL,
-} from "../model.js";
-
-export const generateTokenizedEndpointURL = (
-  token: string,
-  endpoint: string,
-  historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL,
-) => {
-  const url = new URL(endpoint, historyServiceURL);
-
-  url.searchParams.set("token", token);
-
-  return url.toString();
-};
+import { ALLURE_ACCESS_TOKEN_PATH, ALLURE_FILES_DIRNAME, ALLURE_LOGIN_EXCHANGE_TOKEN_PATH } from "../model.js";
 
 export class InvalidTokenError extends Error {
   constructor() {

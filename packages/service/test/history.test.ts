@@ -1,11 +1,11 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AllureRemoteHistory } from "../src/history.js";
-import { type AllureService } from "../src/service.js";
+import { type AllureServiceClient } from "../src/service.js";
 import { KnownError } from "../src/utils/http.js";
 import { HttpClientMock } from "./utils.js";
 
-const { AllureService: AllureServiceClass } = await import("../src/service.js");
+const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 
 const fixtures = {
   project: "project",
@@ -36,12 +36,12 @@ beforeEach(() => {
 });
 
 describe("AllureRemoteHistory", () => {
-  let service: AllureService;
+  let serviceClient: AllureServiceClient;
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    service = new AllureServiceClass({ url: fixtures.url, project: fixtures.project });
-    history = new AllureRemoteHistory(service);
+    serviceClient = new AllureServiceClientClass({ url: fixtures.url, project: fixtures.project });
+    history = new AllureRemoteHistory(serviceClient);
   });
 
   describe("readHistory", () => {

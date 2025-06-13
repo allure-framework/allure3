@@ -1,5 +1,5 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../utils/commands.js";
 import { logError } from "../utils/logs.js";
@@ -24,25 +24,29 @@ export const LoginCommandAction = async (options?: CommandOptions) => {
     return;
   }
 
-  const service = new AllureService(config.allureService);
+  const serviceClient = new AllureServiceClient(config.allureService);
 
   try {
-    await service.login();
+    await serviceClient.login();
     // eslint-disable-next-line no-console
     console.info(green("Logged in"));
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to login: ${error.message}`));
+      console.error(red(`Failed to login: ${error.message} (${error.status})`));
       process.exit(1);
       return;
     }
 
     if (error instanceof UnknownError) {
-      const logFilePath = await logError("Failed to login due to unexpected error", error?.stack);
+      const logFilePath = await logError(error?.message ?? "Failed to login due to unexpected error", error.stack);
 
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to login due to unexpected error. Check logs for more details: ${logFilePath}`));
+      console.error(
+        red(
+          `Failed to login due to unexpected error (status ${error.status}). Check logs for more details: ${logFilePath}`,
+        ),
+      );
       process.exit(1);
       return;
     }

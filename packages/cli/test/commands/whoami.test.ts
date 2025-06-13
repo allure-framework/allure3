@@ -1,16 +1,16 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { WhoamiCommandAction } from "../../src/commands/whoami.js";
 import { logError } from "../../src/utils/logs.js";
-import { AllureServiceMock } from "../utils.js";
+import { AllureServiceClientMock } from "../utils.js";
 
 vi.mock("@allurereport/service", async (importOriginal) => {
   const utils = await import("../utils.js");
 
   return {
     ...(await importOriginal()),
-    AllureService: utils.AllureServiceMock,
+    AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
 vi.mock("@allurereport/core", async (importOriginal) => {
@@ -45,7 +45,7 @@ describe("logout command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(AllureServiceMock.prototype.profile).not.toHaveBeenCalled();
+    expect(AllureServiceClientMock.prototype.profile).not.toHaveBeenCalled();
   });
 
   it("should print known service-error without logs writing", async () => {
@@ -59,7 +59,9 @@ describe("logout command", () => {
       },
     });
 
-    (AllureServiceMock.prototype.profile as Mock).mockRejectedValueOnce(new KnownError("Failed to get profile", 401));
+    (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(
+      new KnownError("Failed to get profile", 401),
+    );
 
     await WhoamiCommandAction();
 
@@ -80,7 +82,7 @@ describe("logout command", () => {
       },
     });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
-    (AllureServiceMock.prototype.profile as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
+    (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
     await WhoamiCommandAction();
 
@@ -99,20 +101,20 @@ describe("logout command", () => {
       },
     });
 
-    (AllureServiceMock.prototype.profile as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
+    (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
 
     await expect(WhoamiCommandAction()).rejects.toThrow("Unexpected error");
   });
 
   it("should initialize allure service and call logout method", async () => {
-    AllureServiceMock.prototype.profile.mockResolvedValueOnce({
+    AllureServiceClientMock.prototype.profile.mockResolvedValueOnce({
       email: "example@allurereport.org",
     });
 
     await WhoamiCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureService).toHaveBeenCalledWith({ url: "https://allure.example.com" });
-    expect(AllureServiceMock.prototype.profile).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClient).toHaveBeenCalledWith({ url: "https://allure.example.com" });
+    expect(AllureServiceClientMock.prototype.profile).toHaveBeenCalledTimes(1);
   });
 });
