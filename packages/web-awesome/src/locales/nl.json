@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Meer filters",
-    "enable-filter": "Filter \"{filter}\" inschakelen",
+    "enable-filter": "Filter \"{{filter}}\" inschakelen",
     "flaky": "Onstabiel",
     "retry": "Opnieuw proberen",
-    "new": "Nieuw"
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect"
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Test slagingspercentage"
     }
+  },
+  "transitions": {
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect"
   }
 }

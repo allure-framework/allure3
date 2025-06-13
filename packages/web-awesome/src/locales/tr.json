@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Daha fazla filtre",
-    "enable-filter": "\"{filter}\" filtresini etkinleştir",
+    "enable-filter": "\"{{filter}}\" filtresini etkinleştir",
     "flaky": "İstikrarsız",
     "retry": "Tekrar",
-    "new": "Yeni"
+    "new": "Yeni",
+    "fixed": "Düzeltildi",
+    "regressed": "Geri Döndü",
+    "malfunctioned": "Bozuk"
   },
   "sort-by": {
     "sort-by-text": "Sıralama ölçütü:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Test Başarı Oranı"
     }
+  },
+  "transitions": {
+    "new": "Yeni",
+    "fixed": "Düzeltildi",
+    "regressed": "Geri Döndü",
+    "malfunctioned": "Bozuk"
   }
 }

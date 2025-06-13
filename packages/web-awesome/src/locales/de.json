@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Weitere Filter",
-    "enable-filter": "Filter für \"{filter}\" aktivieren",
+    "enable-filter": "Filter für \"{{filter}}\" aktivieren",
     "flaky": "Instabil",
     "retry": "Wiederholen",
-    "new": "Neu"
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfunctioned": "Defekt"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Testerfolgsrate"
     }
+  },
+  "transitions": {
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfunctioned": "Defekt"
   }
 }

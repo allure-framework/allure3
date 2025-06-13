@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "추가 필터",
-    "enable-filter": "\"{filter}\" 필터 활성화",
+    "enable-filter": "\"{{filter}}\" 필터 활성화",
     "flaky": "불안정함",
     "retry": "재시도",
-    "new": "새로운"
+    "new": "새로운",
+    "fixed": "수정됨",
+    "regressed": "퇴행",
+    "malfunctioned": "고장"
   },
   "sort-by": {
     "sort-by-text": "정렬 기준:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "테스트 성공률"
     }
+  },
+  "transitions": {
+    "new": "새로운",
+    "fixed": "수정됨",
+    "regressed": "퇴행",
+    "malfunctioned": "고장"
   }
 }

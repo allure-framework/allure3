@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Daha çox filtr",
-    "enable-filter": "\"{filter}\" filtrlərini aktiv edin",
+    "enable-filter": "\"{{filter}}\" filtrlərini aktiv edin",
     "flaky": "Etibarsız",
     "retry": "Təkrar",
-    "new": "Yeni"
+    "new": "Yeni",
+    "fixed": "Düzəldilmiş",
+    "regressed": "Reqressiya",
+    "malfunctioned": "Sınıq"
   },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
@@ -155,5 +158,11 @@
     "pie": {
       "title": "Test Uğur Dərəcəsi"
     }
+  },
+  "transitions": {
+    "new": "Yeni",
+    "fixed": "Düzəldilmiş",
+    "regressed": "Reqressiya",
+    "malfunctioned": "Sınıq"
   }
 }

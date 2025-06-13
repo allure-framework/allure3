@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Plus de filtres",
-    "enable-filter": "Activer le filtre \"{filter}\"",
+    "enable-filter": "Activer le filtre \"{{filter}}\"",
     "flaky": "Instables",
     "retry": "Réessais",
-    "new": "Nouveaux"
+    "new": "Nouveaux",
+    "fixed": "Corrigés",
+    "regressed": "Régression",
+    "malfunctioned": "Défectueux"
   },
   "sort-by": {
     "sort-by-text": "Trier par :",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Taux de réussite des tests"
     }
+  },
+  "transitions": {
+    "new": "Nouveau",
+    "fixed": "Corrigés",
+    "regressed": "Régression",
+    "malfunctioned": "Défectueux"
   }
 }
