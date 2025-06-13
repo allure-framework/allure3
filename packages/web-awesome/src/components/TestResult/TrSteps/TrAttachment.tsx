@@ -6,6 +6,7 @@ import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
+import { openModal } from "@/stores/modal";
 
 const { lineImagesImage, lineFilesFileAttachment2, playwrightLogo } = allureIcons;
 
@@ -60,6 +61,17 @@ export const TrAttachment: FunctionComponent<{
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType.type as string);
 
+  const expandAttachment = (event: Event) => {
+    event.stopPropagation();
+    if (componentType.type !== "image") {
+      return;
+    }
+    openModal({
+      data: item,
+      component: <Attachment item={item} previewable={true} />,
+    });
+  };
+
   return (
     <div data-testid={"test-result-attachment"} className={styles["test-result-step"]}>
       <div
@@ -96,7 +108,7 @@ export const TrAttachment: FunctionComponent<{
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
-          <div className={styles["test-result-attachment-content"]}>
+          <div className={styles["test-result-attachment-content"]} role={"button"} onClick={expandAttachment}>
             <Attachment item={item} />
           </div>
         </div>
