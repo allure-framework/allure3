@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { capitalize } from "@allurereport/web-commons";
+import { capitalize, ChartType } from "@allurereport/web-commons";
 import {
   Grid,
   GridItem,
@@ -13,7 +13,6 @@ import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { useI18n } from "@/stores/locale";
 import type { ChartData } from "@/utils/charts";
-import { ChartType } from "@/utils/charts";
 import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (
@@ -29,6 +28,7 @@ const getChartWidgetByType = (
       return (
         <TrendChartWidget
           title={title}
+          mode={chartData.mode}
           items={chartData.items}
           slices={chartData.slices}
           min={chartData.min}

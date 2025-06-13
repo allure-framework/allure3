@@ -10,7 +10,10 @@ export enum ChartData {
   Severity = "severity",
 }
 
-export type ChartMode = "raw" | "percent";
+export enum ChartMode {
+  Raw = "raw",
+  Percent = "percent",
+}
 
 export type ChartId = string;
 
@@ -64,6 +67,8 @@ export type GenericTrendChartData<Metadata extends BaseMetadata, SeriesType exte
   type: ChartType.Trend;
   // Data type of the chart
   dataType: ChartData;
+  // Chart mode to know type of values on Y-axis
+  mode: ChartMode;
   // Title of the chart
   title?: string;
   // Points for all series

@@ -1,10 +1,11 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
-import type {
-  BaseTrendSliceMetadata,
-  GenericTrendChartData,
-  TrendChartOptions,
-  TrendPoint,
-  TrendPointId,
+import {
+  type BaseTrendSliceMetadata,
+  type GenericTrendChartData,
+  type TrendChartOptions,
+  type TrendPoint,
+  type TrendPointId,
+  ChartMode,
 } from "../model.js";
 
 // Common type for trend data operations
@@ -108,7 +109,7 @@ const calculatePercentValues = <T extends TrendDataType>(
 
     points[pointId] = {
       x: executionId,
-      y: Number(((value / total) * 100).toFixed(2)),
+      y: value / total,
     };
 
     series[item].push(pointId);
@@ -173,12 +174,12 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   itemType: readonly T[],
   chartOptions: TrendChartOptions,
 ): GenericTrendChartData<M, T> => {
-  const { type, dataType, title, mode = "raw", metadata = {} } = chartOptions;
+  const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
   const { executionIdAccessor, executionNameAccessor } = metadata;
   const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
   const { points, series } =
-    mode === "percent"
+    mode === ChartMode.Percent
       ? calculatePercentValues(stats, executionId, itemType)
       : calculateRawValues(stats, executionId, itemType);
 
@@ -208,6 +209,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   return {
     type,
     dataType,
+    mode,
     title,
     points,
     slices,

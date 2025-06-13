@@ -1,6 +1,6 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { fetchReportJsonData, type ChartId } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
@@ -16,8 +16,6 @@ interface Slice {
 }
 
 type ChartType = "status" | "severity";
-
-type ChartId = string;
 
 interface ChartData {
   type: ChartType;

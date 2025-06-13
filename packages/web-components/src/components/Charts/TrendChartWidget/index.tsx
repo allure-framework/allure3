@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "preact/hooks";
 import type { Serie, Slice } from "@/components/Charts/TrendChart";
 import { TrendChart, TrendChartKind, makeSymlogScale } from "@/components/Charts/TrendChart";
 import { Widget } from "@/components/Widget";
+import { ChartMode } from "@allurereport/web-commons";
 
 interface TrendChartWidgetPropsTranslations {
   "no-results": string;
@@ -10,6 +11,7 @@ interface TrendChartWidgetPropsTranslations {
 
 interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> {
   title: string;
+  mode: ChartMode;
   items: readonly Serie[];
   slices: readonly TSlice[];
   min: number;
@@ -22,6 +24,7 @@ interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> 
 
 export const TrendChartWidget = ({
   title,
+  mode,
   items,
   slices,
   min,
@@ -36,6 +39,7 @@ export const TrendChartWidget = ({
   const emptyLabel = translations["no-results"];
 
   const yScale = useMemo(() => makeSymlogScale(min, max, { constant: 8 }), [max, min]);
+  const yFormat = useMemo(() => (mode === ChartMode.Percent ? " >-.2%" : " >-.2f"), [mode]);
 
   const handleSliceClick = useCallback((slice: Slice) => {
     const executionIds = slice.points.reduce((acc, point) => {
@@ -65,6 +69,7 @@ export const TrendChartWidget = ({
         rootAriaLabel={rootAriaLabel}
         colors={({ color }) => color}
         yScale={yScale}
+        yFormat={yFormat}
         onSliceClick={handleSliceClick}
         onSliceTouchEnd={handleSliceClick}
       />

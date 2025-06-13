@@ -20,12 +20,15 @@ export enum ChartType {
   Pie = "pie",
 }
 
-export enum ChartData {
+export enum ChartDataType {
   Status = "status",
   Severity = "severity",
 }
 
-export type ChartMode = "raw" | "percent";
+export enum ChartMode {
+  Raw = "raw",
+  Percent = "percent",
+}
 
 export type ChartId = string;
 
@@ -39,7 +42,7 @@ export type TrendMetadataFnOverrides = {
 
 export type TrendChartOptions = {
   type: ChartType.Trend;
-  dataType: ChartData;
+  dataType: ChartDataType;
   mode?: ChartMode;
   title?: string;
   limit?: number;
@@ -78,7 +81,9 @@ export type GenericTrendChartData<Metadata extends BaseMetadata, SeriesType exte
   // Type of the chart
   type: ChartType.Trend;
   // Data type of the chart
-  dataType: ChartData;
+  dataType: ChartDataType;
+  // Chart mode to know type of values on Y-axis
+  mode: ChartMode;
   // Title of the chart
   title?: string;
   // Points for all series
@@ -242,7 +247,7 @@ const calculatePercentValues = <T extends TrendDataType>(
 
     points[pointId] = {
       x: executionId,
-      y: Number(((value / total) * 100).toFixed(2)),
+      y: value / total,
     };
 
     series[item].push(pointId);
@@ -307,12 +312,12 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   itemType: readonly T[],
   chartOptions: TrendChartOptions,
 ): GenericTrendChartData<M, T> => {
-  const { type, dataType, title, mode = "raw", metadata = {} } = chartOptions;
+  const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
   const { executionIdAccessor, executionNameAccessor } = metadata;
   const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
   const { points, series } =
-    mode === "percent"
+    mode === ChartMode.Percent
       ? calculatePercentValues(stats, executionId, itemType)
       : calculateRawValues(stats, executionId, itemType);
 
@@ -342,6 +347,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   return {
     type,
     dataType,
+    mode,
     title,
     points,
     slices,
