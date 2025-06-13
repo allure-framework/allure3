@@ -7,6 +7,7 @@ const namespaces = [
   "empty",
   "execution",
   "filters",
+  "filters.description",
   "search",
   "severity",
   "sort-by",
@@ -25,6 +26,7 @@ const namespaces = [
   "charts",
   "sections",
   "transitions",
+  "transitions.description",
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
