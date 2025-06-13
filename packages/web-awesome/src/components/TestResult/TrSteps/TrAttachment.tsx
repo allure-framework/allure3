@@ -108,7 +108,7 @@ export const TrAttachment: FunctionComponent<{
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
-          <div className={styles["test-result-attachment-content"]} onClick={expandAttachment}>
+          <div className={styles["test-result-attachment-content"]} role={"button"} onClick={expandAttachment}>
             <Attachment item={item} />
           </div>
         </div>
