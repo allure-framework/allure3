@@ -40,8 +40,8 @@ import { basename, join } from "node:path";
 import { matchCategories } from "./categories.js";
 import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { AwesomeCategory, AwesomeOptions, TemplateManifest } from "./model.js";
-import type { AwesomeDataWriter, ReportFile } from "./writer.js";
+import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
+import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
 
@@ -120,7 +120,7 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore) => {
+export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
   let convertedTrs: AwesomeTestResult[] = [];
 
@@ -129,7 +129,7 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
-    const categories: AwesomeCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
+    const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
     const matchedCategories = matchCategories(categories, {
       message: error?.message,
       trace: error?.trace,
@@ -172,7 +172,7 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
 };
 
 export const generateTree = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   treeName: string,
   labels: string[],
   tests: AwesomeTestResult[],
@@ -206,22 +206,22 @@ export const generateTree = async (
   await writer.writeWidget(`${treeName}.json`, tree);
 };
 
-export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
+export const generateEnvironmentJson = async (writer: ClassicDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);
 };
 
-export const generateStatistic = async (writer: AwesomeDataWriter, statistic: Statistic) => {
+export const generateStatistic = async (writer: ClassicDataWriter, statistic: Statistic) => {
   await writer.writeWidget("allure_statistic.json", statistic);
 };
 
-export const generatePieChart = async (writer: AwesomeDataWriter, statistic: Statistic) => {
+export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
   const chartData = getChartData(statistic);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
 
 export const generateAttachmentsFiles = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
@@ -241,7 +241,7 @@ export const generateAttachmentsFiles = async (
   return result;
 };
 
-export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
+export const generateHistoryDataPoints = async (writer: ClassicDataWriter, store: AllureStore) => {
   const result = new Map<string, string>();
   const allHistoryPoints = await store.allHistoryDataPoints();
 
@@ -253,7 +253,7 @@ export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store
 };
 
 export const generateStaticFiles = async (
-  payload: AwesomeOptions & {
+  payload: ClassicOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
@@ -341,7 +341,7 @@ export const generateStaticFiles = async (
 };
 
 export const generateTreeByCategories = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   treeName: string,
   tests: AwesomeTestResult[],
 ) => {

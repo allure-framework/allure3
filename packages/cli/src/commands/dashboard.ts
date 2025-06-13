@@ -1,8 +1,13 @@
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import DashboardPlugin, { type DashboardPluginOptions } from "@allurereport/plugin-dashboard";
 import * as console from "node:console";
+import { realpath } from "node:fs/promises";
+import process from "node:process";
 import { createCommand } from "../utils/commands.js";
 
 type DashboardCommandOptions = {
+  cwd?: string;
+  config?: string;
   output?: string;
   reportName?: string;
   reportLanguage?: string;
@@ -12,17 +17,25 @@ type DashboardCommandOptions = {
 };
 
 export const DashboardCommandAction = async (resultsDir: string, options: DashboardCommandOptions) => {
+  const cwd = await realpath(options.cwd ?? process.cwd());
   const before = new Date().getTime();
-  const { output, reportName: name, ...rest } = options;
-  const config = await resolveConfig({
-    output,
-    name,
-    plugins: {
-      "@allurereport/plugin-dashboard": {
-        options: rest,
-      },
+  const { config: configPath, output, reportName: name, ...rest } = options;
+  const defaultDashboardOptions = {
+    ...rest,
+    reportLanguage: rest.reportLanguage ?? "en",
+  } as DashboardPluginOptions;
+  const config = enforcePlugin(
+    await readConfig(cwd, configPath, {
+      output,
+      name,
+    }),
+    {
+      id: "dashboard",
+      enabled: true,
+      options: defaultDashboardOptions,
+      plugin: new DashboardPlugin(defaultDashboardOptions),
     },
-  });
+  );
   const allureReport = new AllureReport(config);
 
   await allureReport.start();
@@ -38,6 +51,18 @@ export const DashboardCommand = createCommand({
   name: "dashboard <resultsDir>",
   description: "Generates Allure Dashboard report based on provided Allure Results",
   options: [
+    [
+      "--config, -c <file>",
+      {
+        description: "The path Allure config file",
+      },
+    ],
+    [
+      "--cwd <cwd>",
+      {
+        description: "The working directory for the command to run (Default: current working directory)",
+      },
+    ],
     [
       "--output, -o <file>",
       {

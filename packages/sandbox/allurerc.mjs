@@ -66,7 +66,7 @@ export default defineConfig({
         singleFile: false,
         reportLanguage: "en",
         open: false,
-        charts: chartLayout
+        charts: chartLayout,
       },
     },
     dashboard: {
@@ -88,5 +88,4 @@ export default defineConfig({
       },
     },
   },
-},
-);
+});
