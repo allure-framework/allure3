@@ -2,7 +2,7 @@ import { type HistoryDataPoint } from "@allurereport/core-api";
 import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
 import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vitest";
-import { type AllureService } from "../src/service.js";
+import { type AllureServiceClient } from "../src/service.js";
 import { HttpClientMock, createHttpClientMock } from "./utils.js";
 
 const fixtures = {
@@ -28,7 +28,7 @@ const fixtures = {
 };
 
 const open = await import("open");
-const { AllureService: AllureServiceClass } = await import("../src/service.js");
+const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 const { writeExchangeToken, decryptExchangeToken, writeAccessToken, deleteAccessToken } = await import(
   "../src/utils/token.js"
 );
@@ -50,22 +50,22 @@ vi.mock("../src/utils/token.js", () => ({
   deleteAccessToken: vi.fn(async () => {}),
 }));
 
-describe("AllureService", () => {
-  let service: AllureService;
+describe("AllureServiceClient", () => {
+  let serviceClient: AllureServiceClient;
 
   beforeEach(() => {
     vi.clearAllTimers();
     // vi.useFakeTimers();
     vi.clearAllMocks();
 
-    service = new AllureServiceClass({ url: fixtures.url, project: fixtures.project, pollingDelay: 100 });
+    serviceClient = new AllureServiceClientClass({ url: fixtures.url, project: fixtures.project, pollingDelay: 100 });
   });
 
   describe("login", () => {
     it("should create a new exchange token", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ accessToken: fixtures.accessToken });
 
-      await service.login();
+      await serviceClient.login();
 
       expect(writeExchangeToken).toHaveBeenCalled();
     });
@@ -73,7 +73,7 @@ describe("AllureService", () => {
     it("should open the connect url with the exchange token", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ accessToken: fixtures.accessToken });
 
-      await service.login();
+      await serviceClient.login();
 
       expect(open.default).toHaveBeenCalledWith(
         `https://service.allurereport.org/connect?token=${fixtures.decryptedToken}`,
@@ -83,7 +83,7 @@ describe("AllureService", () => {
     it("should write and return the retrieved access token", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ accessToken: fixtures.accessToken });
 
-      const result = await service.login();
+      const result = await serviceClient.login();
 
       expect(writeAccessToken).toHaveBeenCalledWith(fixtures.accessToken);
       expect(result).toBe(fixtures.accessToken);
@@ -97,7 +97,7 @@ describe("AllureService", () => {
       HttpClientMock.prototype.post.mockResolvedValueOnce({ accessToken: undefined });
       HttpClientMock.prototype.post.mockResolvedValueOnce({ accessToken: fixtures.accessToken });
 
-      const res = await service.login();
+      const res = await serviceClient.login();
 
       expect(HttpClientMock.prototype.post).toHaveBeenCalledTimes(4);
       expect(res).toBe(fixtures.accessToken);
@@ -106,7 +106,7 @@ describe("AllureService", () => {
 
   describe("logout", () => {
     it("should delete the access token", async () => {
-      await service.logout();
+      await serviceClient.logout();
 
       expect(deleteAccessToken).toHaveBeenCalled();
     });
@@ -116,7 +116,7 @@ describe("AllureService", () => {
     it("should return the user profile", async () => {
       HttpClientMock.prototype.get.mockResolvedValue({ email: fixtures.email });
 
-      const res = await service.profile();
+      const res = await serviceClient.profile();
 
       expect(res).toEqual({ email: fixtures.email });
     });
@@ -126,7 +126,7 @@ describe("AllureService", () => {
     it("should return the list of projects", async () => {
       HttpClientMock.prototype.get.mockResolvedValue([{ id: fixtures.project, name: fixtures.project }]);
 
-      const res = await service.projects();
+      const res = await serviceClient.projects();
 
       expect(res).toEqual([{ id: fixtures.project, name: fixtures.project }]);
     });
@@ -136,7 +136,7 @@ describe("AllureService", () => {
     it("should create a new project", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ id: fixtures.project, name: fixtures.project });
 
-      const res = await service.createProject({ name: fixtures.project });
+      const res = await serviceClient.createProject({ name: fixtures.project });
 
       expect(res).toEqual({ id: fixtures.project, name: fixtures.project });
     });
@@ -146,7 +146,7 @@ describe("AllureService", () => {
     it("should delete a project", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ id: fixtures.project, name: fixtures.project });
 
-      const res = await service.deleteProject({ name: fixtures.project });
+      const res = await serviceClient.deleteProject({ name: fixtures.project });
 
       expect(res).toEqual({ id: fixtures.project, name: fixtures.project });
     });
@@ -154,16 +154,16 @@ describe("AllureService", () => {
 
   describe("appendHistory", () => {
     it("should throw an error if the project is not set", async () => {
-      service = new AllureServiceClass({ url: fixtures.url });
+      serviceClient = new AllureServiceClientClass({ url: fixtures.url });
 
       // @ts-ignore
-      await expect(service.appendHistory({ history: fixtures.history })).rejects.toThrow("Project is not set");
+      await expect(serviceClient.appendHistory({ history: fixtures.history })).rejects.toThrow("Project is not set");
     });
 
     it("should append history data point", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ id: fixtures.project, name: fixtures.project });
 
-      const res = await service.appendHistory({ history: fixtures.history, branch: "main" });
+      const res = await serviceClient.appendHistory({ history: fixtures.history, branch: "main" });
 
       expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/history/append", {
         headers: {
@@ -181,16 +181,16 @@ describe("AllureService", () => {
 
   describe("downloadHistory", () => {
     it("should throw an error if the project is not set", async () => {
-      service = new AllureServiceClass({ url: fixtures.url });
+      serviceClient = new AllureServiceClientClass({ url: fixtures.url });
 
       // @ts-ignore
-      await expect(service.downloadHistory()).rejects.toThrow("Project is not set");
+      await expect(serviceClient.downloadHistory()).rejects.toThrow("Project is not set");
     });
 
     it("should download history", async () => {
       HttpClientMock.prototype.get.mockResolvedValue([fixtures.history]);
 
-      const res = await service.downloadHistory({ branch: "main" });
+      const res = await serviceClient.downloadHistory({ branch: "main" });
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history/download", {
         params: {
@@ -204,16 +204,16 @@ describe("AllureService", () => {
 
   describe("createReport", () => {
     it("should throw an error if the project is not set", async () => {
-      service = new AllureServiceClass({ url: fixtures.url });
+      serviceClient = new AllureServiceClientClass({ url: fixtures.url });
 
       // @ts-ignore
-      await expect(service.createReport({ name: fixtures.report })).rejects.toThrow("Project is not set");
+      await expect(serviceClient.createReport({ name: fixtures.report })).rejects.toThrow("Project is not set");
     });
 
     it("should create a new report", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({ id: fixtures.report, name: fixtures.report });
 
-      const res = await service.createReport({ reportName: fixtures.report, reportUuid: fixtures.report });
+      const res = await serviceClient.createReport({ reportName: fixtures.report, reportUuid: fixtures.report });
 
       expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/create", {
         body: {
@@ -228,7 +228,7 @@ describe("AllureService", () => {
 
   describe("addReportFile", () => {
     it("should throw an error unless a file or filepath is provided", async () => {
-      await expect(service.addReportFile({ reportUuid: fixtures.report, key: fixtures.key })).rejects.toThrow(
+      await expect(serviceClient.addReportFile({ reportUuid: fixtures.report, key: fixtures.key })).rejects.toThrow(
         "File or filepath is required",
       );
     });
@@ -237,14 +237,18 @@ describe("AllureService", () => {
       (readFile as MockedFunction<typeof readFile>).mockRejectedValue(new Error("File not found"));
 
       await expect(
-        service.addReportFile({ reportUuid: fixtures.report, key: fixtures.key, filepath: "not-existing-file.txt" }),
+        serviceClient.addReportFile({
+          reportUuid: fixtures.report,
+          key: fixtures.key,
+          filepath: "not-existing-file.txt",
+        }),
       ).rejects.toThrow("File not found");
     });
 
     it("should upload a given file", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({});
 
-      const res = await service.addReportFile({
+      const res = await serviceClient.addReportFile({
         reportUuid: fixtures.report,
         key: fixtures.key,
         file: Buffer.from("test"),
@@ -270,7 +274,11 @@ describe("AllureService", () => {
     (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("test"));
     HttpClientMock.prototype.post.mockResolvedValue({});
 
-    const res = await service.addReportFile({ reportUuid: fixtures.report, key: fixtures.key, filepath: "test.txt" });
+    const res = await serviceClient.addReportFile({
+      reportUuid: fixtures.report,
+      key: fixtures.key,
+      filepath: "test.txt",
+    });
 
     const form = new FormData();
 

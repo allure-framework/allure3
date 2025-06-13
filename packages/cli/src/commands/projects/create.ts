@@ -1,5 +1,5 @@
 import { getGitRepoName, readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
@@ -25,7 +25,7 @@ export const ProjectsCreateCommandAction = async (projectName?: string, options?
     return;
   }
 
-  const service = new AllureService(config.allureService);
+  const serviceClient = new AllureServiceClient(config.allureService);
   let name = projectName;
 
   // try to retrieve project name from git repo
@@ -54,7 +54,7 @@ export const ProjectsCreateCommandAction = async (projectName?: string, options?
   }
 
   try {
-    const project = await service.createProject({
+    const project = await serviceClient.createProject({
       name,
     });
     const lines: string[] = [
@@ -72,17 +72,22 @@ export const ProjectsCreateCommandAction = async (projectName?: string, options?
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to create project: ${error.message}`));
+      console.error(red(`Failed to create project: ${error.message} (${error.status})`));
       process.exit(1);
       return;
     }
 
     if (error instanceof UnknownError) {
-      const logFilePath = await logError("Failed to create project due to unexpected error", error?.stack);
+      const logFilePath = await logError(
+        error?.message ?? "Failed to create project due to unexpected error",
+        error.stack,
+      );
 
       // eslint-disable-next-line no-console
       console.error(
-        red(`Failed to create project due to unexpected error. Check logs for more details: ${logFilePath}`),
+        red(
+          `Failed to create project due to unexpected error (status ${error.status}). Check logs for more details: ${logFilePath}`,
+        ),
       );
       process.exit(1);
       return;

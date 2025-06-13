@@ -20,9 +20,12 @@ export class KnownError extends Error {
  * We can't print the error's message directly to the user, so we need to add additionaly logic to handle it
  */
 export class UnknownError extends Error {
-  constructor(message: string) {
+  status: number;
+
+  constructor(message: string, status: number) {
     super(message);
     this.name = "UnknownError";
+    this.status = status;
   }
 }
 
@@ -74,7 +77,7 @@ export const createServiceHttpClient = (
           throw new KnownError(err.message, status);
         }
 
-        throw new UnknownError(err.message);
+        throw new UnknownError(err.message, status);
       }
     };
 

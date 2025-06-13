@@ -1,10 +1,10 @@
 import { getGitRepoName, readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectsCreateCommandAction } from "../../../src/commands/projects/create.js";
 import { logError } from "../../../src/utils/logs.js";
-import { AllureServiceMock } from "../../utils.js";
+import { AllureServiceClientMock } from "../../utils.js";
 
 vi.spyOn(console, "info");
 vi.mock("prompts", () => ({
@@ -15,7 +15,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 
   return {
     ...(await importOriginal()),
-    AllureService: utils.AllureServiceMock,
+    AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
 vi.mock("@allurereport/core", async (importOriginal) => ({
@@ -61,7 +61,7 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    (AllureServiceMock.prototype.createProject as Mock).mockRejectedValueOnce(
+    (AllureServiceClientMock.prototype.createProject as Mock).mockRejectedValueOnce(
       new KnownError("Failed to create project", 401),
     );
 
@@ -84,7 +84,9 @@ describe("projects create command", () => {
       },
     });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
-    (AllureServiceMock.prototype.createProject as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
+    (AllureServiceClientMock.prototype.createProject as Mock).mockRejectedValueOnce(
+      new UnknownError("Unexpected error"),
+    );
 
     await ProjectsCreateCommandAction("foo");
 
@@ -102,7 +104,7 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    (AllureServiceMock.prototype.createProject as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
+    (AllureServiceClientMock.prototype.createProject as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
 
     await expect(ProjectsCreateCommandAction("foo")).rejects.toThrow("Unexpected error");
   });
@@ -115,15 +117,15 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    AllureServiceMock.prototype.createProject.mockResolvedValueOnce({
+    AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
       name: "foo",
     });
 
     await ProjectsCreateCommandAction("foo");
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledWith({
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledWith({
       name: "foo",
     });
     expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
@@ -138,16 +140,16 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    AllureServiceMock.prototype.createProject.mockResolvedValueOnce({
+    AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
       name: "bar",
     });
     (getGitRepoName as Mock).mockResolvedValue("bar");
 
     await ProjectsCreateCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledWith({
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledWith({
       name: "bar",
     });
     expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
@@ -162,7 +164,7 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    AllureServiceMock.prototype.createProject.mockResolvedValueOnce({
+    AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
       name: "baz",
     });
     (getGitRepoName as Mock).mockRejectedValue(new Error("No git repo found"));
@@ -172,9 +174,9 @@ describe("projects create command", () => {
 
     await ProjectsCreateCommandAction();
 
-    expect(AllureService).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceMock.prototype.createProject).toHaveBeenCalledWith({
+    expect(AllureServiceClient).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
+    expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledWith({
       name: "baz",
     });
     expect(consoleInfoSpy).toHaveBeenCalledTimes(1);

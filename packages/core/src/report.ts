@@ -10,7 +10,7 @@ import type {
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureRemoteHistory, AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -42,7 +42,7 @@ export class AllureReport {
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
-  readonly #allureService: AllureService | undefined;
+  readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #publish: boolean;
   #reportUrl?: string;
   #state?: Record<string, PluginState>;
@@ -65,7 +65,7 @@ export class AllureReport {
       allureService: allureServiceConfig,
     } = opts;
 
-    this.#allureService = allureServiceConfig ? new AllureService(allureServiceConfig) : undefined;
+    this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
     this.#publish = allureServiceConfig?.publish ?? false;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
@@ -73,8 +73,8 @@ export class AllureReport {
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
 
-    if (this.#allureService) {
-      this.#history = new AllureRemoteHistory(this.#allureService);
+    if (this.#allureServiceClient) {
+      this.#history = new AllureRemoteHistory(this.#allureServiceClient);
     } else if (historyPath) {
       this.#history = new AllureLocalHistory(historyPath);
     }
@@ -93,8 +93,8 @@ export class AllureReport {
     this.#output = output;
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
-    this.#history = this.#allureService
-      ? new AllureRemoteHistory(this.#allureService)
+    this.#history = this.#allureServiceClient
+      ? new AllureRemoteHistory(this.#allureServiceClient)
       : new AllureLocalHistory(historyPath);
   }
 
@@ -174,8 +174,8 @@ export class AllureReport {
     this.#stage = "running";
 
     // create remote report to publish files into
-    if (this.#allureService && this.#publish) {
-      const { url } = await this.#allureService.createReport({
+    if (this.#allureServiceClient && this.#publish) {
+      const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.#reportUuid,
         reportName: this.#reportName,
       });
@@ -225,13 +225,13 @@ export class AllureReport {
       if (
         plugin instanceof AwesomePlugin &&
         this.#history &&
-        this.#allureService &&
+        this.#allureServiceClient &&
         this.#publish &&
         Object.keys(pluginFiles).length
       ) {
         await Promise.all(
           Object.entries(pluginFiles).map(([key, filepath]) =>
-            this.#allureService?.addReportFile({
+            this.#allureServiceClient?.addReportFile({
               reportUuid: this.#reportUuid,
               key,
               filepath,

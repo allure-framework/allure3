@@ -1,5 +1,5 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { green, red, yellow } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
@@ -25,10 +25,10 @@ export const ProjectsListCommandAction = async (options?: CommandOptions) => {
     return;
   }
 
-  const service = new AllureService(config.allureService);
+  const serviceClient = new AllureServiceClient(config.allureService);
 
   try {
-    const projects = await service.projects();
+    const projects = await serviceClient.projects();
 
     if (projects.length === 0) {
       // eslint-disable-next-line no-console
@@ -68,16 +68,23 @@ export const ProjectsListCommandAction = async (options?: CommandOptions) => {
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to get projects: ${error.message}`));
+      console.error(red(`Failed to get projects: ${error.message} (${error.status})`));
       process.exit(1);
       return;
     }
 
     if (error instanceof UnknownError) {
-      const logFilePath = await logError("Failed to get projects due to unexpected error", error?.stack);
+      const logFilePath = await logError(
+        error?.message ?? "Failed to get projects due to unexpected error",
+        error.stack,
+      );
 
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to get projects due to unexpected error. Check logs for more details: ${logFilePath}`));
+      console.error(
+        red(
+          `Failed to get projects due to unexpected error (status ${error.status}). Check logs for more details: ${logFilePath}`,
+        ),
+      );
       process.exit(1);
       return;
     }

@@ -1,5 +1,5 @@
 import { readConfig } from "@allurereport/core";
-import { AllureService, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../utils/commands.js";
 import { logError } from "../utils/logs.js";
@@ -24,10 +24,10 @@ export const WhoamiCommandAction = async (options?: CommandOptions) => {
     return;
   }
 
-  const service = new AllureService(config.allureService);
+  const serviceClient = new AllureServiceClient(config.allureService);
 
   try {
-    const profile = await service.profile();
+    const profile = await serviceClient.profile();
     const lines: string[] = [`You are logged in as "${profile.email}"`];
 
     if (config.allureService?.project) {
@@ -39,16 +39,23 @@ export const WhoamiCommandAction = async (options?: CommandOptions) => {
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to get profile: ${error.message}`));
+      console.error(red(`Failed to get profile: ${error.message} (${error.status})`));
       process.exit(1);
       return;
     }
 
     if (error instanceof UnknownError) {
-      const logFilePath = await logError("Failed to get profile due to unexpected error", error?.stack);
+      const logFilePath = await logError(
+        error?.message ?? "Failed to get profile due to unexpected error",
+        error.stack,
+      );
 
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to get profile due to unexpected error. Check logs for more details: ${logFilePath}`));
+      console.error(
+        red(
+          `Failed to get profile due to unexpected error (status ${error.status}). Check logs for more details: ${logFilePath}`,
+        ),
+      );
       process.exit(1);
       return;
     }
