@@ -1,4 +1,5 @@
 import {
+  type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
@@ -6,6 +7,7 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
+  type RepoData,
   type ReportVariables,
   type TestCase,
   type TestEnvGroup,
@@ -29,6 +31,7 @@ import type {
 import type { EventEmitter } from "node:events";
 import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
+import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
@@ -48,7 +51,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #attachmentContents: Map<string, ResultFile>;
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
-  readonly #history: HistoryDataPoint[];
+  readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
@@ -63,8 +66,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
+  #historyPoints: HistoryDataPoint[] = [];
+  #repoData?: RepoData;
+
   constructor(params?: {
-    history?: HistoryDataPoint[];
+    history?: AllureHistory;
     known?: KnownTestFailure[];
     eventEmitter?: EventEmitter<AllureStoreEvents>;
     defaultLabels?: DefaultLabelsConfig;
@@ -72,7 +78,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     reportVariables?: ReportVariables;
   }) {
     const {
-      history = [],
+      history,
       known = [],
       eventEmitter,
       defaultLabels = {},
@@ -86,7 +92,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#testCases = new Map<string, TestCase>();
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
-    this.#history = [...history].sort(compareBy("timestamp", reverse(ordinal())));
+    this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
     this.#eventEmitter = eventEmitter;
@@ -101,6 +107,53 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       .forEach((key) => {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
+  }
+
+  // history state
+
+  async readHistory(): Promise<HistoryDataPoint[]> {
+    if (!this.#history) {
+      return [];
+    }
+
+    const repoData = await this.repoData();
+
+    this.#historyPoints = (await this.#history.readHistory(repoData?.branch)) ?? [];
+
+    this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
+
+    return this.#historyPoints;
+  }
+
+  async appendHistory(history: HistoryDataPoint): Promise<void> {
+    if (!this.#history) {
+      return;
+    }
+
+    const repoData = await this.repoData();
+
+    this.#historyPoints.push(history);
+
+    await this.#history.appendHistory(history, repoData?.branch);
+  }
+
+  // git state
+
+  async repoData() {
+    if (this.#repoData) {
+      return this.#repoData;
+    }
+
+    try {
+      this.#repoData = {
+        name: await getGitRepoName(),
+        branch: await getGitBranch(),
+      };
+
+      return this.#repoData;
+    } catch (err) {
+      return undefined;
+    }
   }
 
   // test methods
@@ -141,6 +194,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     // Make flaky status more accurate
     const trHistory = await this.historyByTr(testResult);
+
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
@@ -267,7 +321,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPoints(): Promise<HistoryDataPoint[]> {
-    return this.#history;
+    return this.#historyPoints;
   }
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
@@ -325,9 +379,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    return [...this.#history]
+    return [...this.#historyPoints]
       .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => ({ ...dp.testResults[tr.historyId!] }));
+      .map((dp) => {
+        if (!dp.url) {
+          return dp.testResults[tr.historyId!];
+        }
+
+        const url = new URL(dp.url);
+
+        url.hash = tr.id;
+
+        return {
+          ...dp.testResults[tr.historyId!],
+          url: url.toString(),
+        };
+      });
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {

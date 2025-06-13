@@ -1,14 +1,14 @@
+import * as core from "@allurereport/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AllureReportMock } from "../utils.js";
-
-const core = await import("@allurereport/core");
-const { ClassicCommandAction } = await import("../../src/commands/classic.js");
+import { ClassicCommandAction } from "../../src/commands/classic.js";
 
 vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
+  const utils = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
-    AllureReport: AllureReportMock,
+    AllureReport: utils.AllureReportMock,
   };
 });
 
@@ -36,7 +36,6 @@ describe("classic command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-classic",
@@ -91,7 +90,6 @@ describe("classic command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: fixtures.reportName,
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-classic",

@@ -1,14 +1,14 @@
+import * as core from "@allurereport/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AllureReportMock } from "../utils.js";
-
-const core = await import("@allurereport/core");
-const { CsvCommandAction } = await import("../../src/commands/csv.js");
+import { CsvCommandAction } from "../../src/commands/csv.js";
 
 vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
+  const utils = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
-    AllureReport: AllureReportMock,
+    AllureReport: utils.AllureReportMock,
   };
 });
 
@@ -36,7 +36,6 @@ describe("csv command", () => {
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Allure Report",
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-csv",
@@ -83,7 +82,6 @@ describe("csv command", () => {
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-csv",

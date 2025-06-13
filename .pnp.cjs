@@ -91,6 +91,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/sandbox"\
     },\
     {\
+      "name": "@allurereport/service",\
+      "reference": "workspace:packages/service"\
+    },\
+    {\
       "name": "@allurereport/static-server",\
       "reference": "workspace:packages/static-server"\
     },\
@@ -148,6 +152,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-testplan", ["workspace:packages/plugin-testplan"]],\
     ["@allurereport/reader", ["workspace:packages/reader"]],\
     ["@allurereport/reader-api", ["workspace:packages/reader-api"]],\
+    ["@allurereport/service", ["workspace:packages/service"]],\
     ["@allurereport/static-server", ["workspace:packages/static-server"]],\
     ["@allurereport/summary", ["workspace:packages/summary"]],\
     ["@allurereport/web-allure2", ["workspace:packages/web-allure2"]],\
@@ -220,6 +225,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/summary", "workspace:packages/summary"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -310,6 +316,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/e2e", "workspace:packages/e2e"],\
           ["@allurereport/core", "workspace:packages/core"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
@@ -756,6 +763,37 @@ const RAW_RUNTIME_STATE =
           ["rimraf", "npm:6.0.1"],\
           ["ts-node", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2"],\
           ["tslib", "npm:2.7.0"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@allurereport/service", [\
+      ["workspace:packages/service", {\
+        "packageLocation": "./packages/service/",\
+        "packageDependencies": [\
+          ["@allurereport/service", "workspace:packages/service"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
+          ["@types/eslint", "npm:8.56.12"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["@vitest/snapshot", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.0.9"],\
+          ["axios", "npm:1.8.4"],\
+          ["eslint", "npm:8.57.1"],\
+          ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
+          ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
+          ["eslint-plugin-jsdoc", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:50.6.0"],\
+          ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
+          ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
+          ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["open", "npm:10.1.0"],\
+          ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
         ],\
@@ -11746,6 +11784,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/prompts", [\
+      ["npm:2.4.9", {\
+        "packageLocation": "./.yarn/cache/@types-prompts-npm-2.4.9-a99ca98ad4-69b8372f4c.zip/node_modules/@types/prompts/",\
+        "packageDependencies": [\
+          ["@types/prompts", "npm:2.4.9"],\
+          ["@types/node", "npm:20.11.21"],\
+          ["kleur", "npm:3.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/prop-types", [\
       ["npm:15.7.14", {\
         "packageLocation": "./.yarn/cache/@types-prop-types-npm-15.7.14-4ccaa07795-d0c5407b9c.zip/node_modules/@types/prop-types/",\
@@ -13604,11 +13653,13 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-server-reload", "workspace:packages/plugin-server-reload"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
+          ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/lodash.omit", "npm:4.5.9"],\
           ["@types/node", "npm:20.17.9"],\
+          ["@types/prompts", "npm:2.4.9"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -13623,6 +13674,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["lodash.omit", "npm:4.5.0"],\
+          ["prompts", "npm:2.4.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"],\
@@ -14265,6 +14317,16 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["axios", [\
+      ["npm:1.8.4", {\
+        "packageLocation": "./.yarn/cache/axios-npm-1.8.4-8cf735eb2b-a10f0dd836.zip/node_modules/axios/",\
+        "packageDependencies": [\
+          ["axios", "npm:1.8.4"],\
+          ["follow-redirects", "virtual:a313c479c5c7e54d9ec8fbeeea69ff640f56b8989ea2dff42351a3fa5c4061fb80a52d8ede0f0826a181a216820c2d2c3f15da881e7fdf31cef1c446e42f0c45#npm:1.15.9"],\
+          ["form-data", "npm:4.0.1"],\
+          ["proxy-from-env", "npm:1.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:1.9.0", {\
         "packageLocation": "./.yarn/cache/axios-npm-1.9.0-007b36cf56-a2f90bba56.zip/node_modules/axios/",\
         "packageDependencies": [\
@@ -21621,6 +21683,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["kleur", [\
+      ["npm:3.0.3", {\
+        "packageLocation": "./.yarn/cache/kleur-npm-3.0.3-f6f53649a4-0c0ecaf00a.zip/node_modules/kleur/",\
+        "packageDependencies": [\
+          ["kleur", "npm:3.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["kolorist", [\
       ["npm:1.8.0", {\
         "packageLocation": "./.yarn/cache/kolorist-npm-1.8.0-2cc04dcc05-71d5d12295.zip/node_modules/kolorist/",\
@@ -25273,6 +25344,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["prompts", [\
+      ["npm:2.4.2", {\
+        "packageLocation": "./.yarn/cache/prompts-npm-2.4.2-f5d25d5eea-c52536521a.zip/node_modules/prompts/",\
+        "packageDependencies": [\
+          ["prompts", "npm:2.4.2"],\
+          ["kleur", "npm:3.0.3"],\
+          ["sisteransi", "npm:1.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["prop-types", [\
       ["npm:15.8.1", {\
         "packageLocation": "./.yarn/cache/prop-types-npm-15.8.1-17c71ee7ee-7d959caec0.zip/node_modules/prop-types/",\
@@ -26669,6 +26751,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["simple-code-frame", "npm:1.3.0"],\
           ["kolorist", "npm:1.8.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sisteransi", [\
+      ["npm:1.0.5", {\
+        "packageLocation": "./.yarn/cache/sisteransi-npm-1.0.5-af60cc0cfa-aba6438f46.zip/node_modules/sisteransi/",\
+        "packageDependencies": [\
+          ["sisteransi", "npm:1.0.5"]\
         ],\
         "linkType": "HARD"\
       }]\
