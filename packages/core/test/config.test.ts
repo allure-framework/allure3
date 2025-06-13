@@ -3,7 +3,16 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { findConfig, getPluginId, resolveConfig, resolvePlugin, validateConfig } from "../src/config.js";
+import type { FullConfig, PluginInstance } from "../src/api.js";
+import {
+  enforcePlugin,
+  findConfig,
+  getPluginId,
+  getPluginInstance,
+  resolveConfig,
+  resolvePlugin,
+  validateConfig,
+} from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
 
 class PluginFixture {}
@@ -239,5 +248,89 @@ describe("resolveConfig", () => {
     await expect(resolveConfig(fixture)).rejects.toThrow(
       "The provided Allure config contains unsupported fields: unsupportedField",
     );
+  });
+});
+
+describe("getPluginInstance", () => {
+  it("should return plugin instance for the given plugin", () => {
+    const fixture = {
+      id: "awesome",
+      enabled: true,
+      options: {
+        groupBy: ["test"],
+      },
+      plugin: new PluginFixture(),
+    };
+    const config = {
+      plugins: [fixture],
+    } as unknown as FullConfig;
+
+    const pluginInstance = getPluginInstance(config, ({ plugin }) => plugin instanceof PluginFixture);
+
+    expect(pluginInstance).toEqual(fixture);
+  });
+
+  it("should return first matched plugin instance when there are more same plugins definition than one", () => {
+    const fixture1 = {
+      id: "awesome1",
+      enabled: true,
+      options: {
+        groupBy: ["test"],
+      },
+      plugin: new PluginFixture(),
+    };
+    const fixture2 = {
+      id: "awesome2",
+      enabled: true,
+      options: {
+        groupBy: ["test2"],
+      },
+      plugin: new PluginFixture(),
+    };
+    const config = {
+      plugins: [fixture1, fixture2],
+    } as unknown as FullConfig;
+
+    const pluginInstance = getPluginInstance(config, ({ plugin }) => plugin instanceof PluginFixture);
+
+    expect(pluginInstance).toEqual(fixture1);
+  });
+});
+
+describe.only("enforcePlugin", () => {
+  it("should keep original config if plugin instance is already present", () => {
+    const fixture = {
+      id: "awesome",
+      enabled: true,
+      options: {
+        groupBy: ["test"],
+      },
+      plugin: new PluginFixture(),
+    } as PluginInstance;
+    const config = {
+      plugins: [fixture, fixture],
+    } as unknown as FullConfig;
+    const newConfig = enforcePlugin(config, fixture);
+
+    expect(newConfig).toEqual({
+      plugins: [fixture],
+    });
+  });
+
+  it("should set given plugin instance to the config if it's not present", () => {
+    const fixture = {
+      id: "awesome",
+      enabled: true,
+      options: {
+        groupBy: ["test"],
+      },
+      plugin: new PluginFixture(),
+    } as PluginInstance;
+    const config = {
+      plugins: [],
+    } as unknown as FullConfig;
+    const newConfig = enforcePlugin(config, fixture);
+
+    expect(newConfig.plugins).toContainEqual(fixture);
   });
 });

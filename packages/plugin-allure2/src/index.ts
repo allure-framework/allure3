@@ -1,3 +1,2 @@
-import { Allure2Plugin } from "./plugin.js";
-
-export default Allure2Plugin;
+export type { Allure2PluginOptions } from "./model.js";
+export { Allure2Plugin as default } from "./plugin.js";
