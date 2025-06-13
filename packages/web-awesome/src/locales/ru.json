@@ -53,22 +53,22 @@
     "status": "Статус"
   },
   "sort-by.directions": {
-    "order-asc": "Поздние – Ранние",
-    "order-desc": "Ранние – Поздние",
+    "order-desc": "Ранние – Поздние",
+    "order-asc": "Поздние – Ранние",
     "order-asc-short": "Поздние",
     "order-desc-short": "Ранние",
-    "alphabet-asc": "Я – А",
-    "alphabet-desc": "А – Я",
-    "alphabet-asc-short": "Я – А",
-    "alphabet-desc-short": "Я – А",
-    "duration-asc": "9 – 1",
-    "duration-desc": "1 – 9",
-    "duration-asc-short": "9 – 1",
-    "duration-desc-short": "1 – 9",
-    "status-asc": "Инвертировано",
-    "status-desc": "Как в списке фильтра",
-    "status-asc-short": "Инвертировано",
-    "status-desc-short": "По обычному"
+    "alphabet-asc": "А – Я",
+    "alphabet-desc": "Я – А",
+    "alphabet-asc-short": "А – Я",
+    "alphabet-desc-short": "Я – А",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "Как в списке фильтра",
+    "status-desc": "Инвертировано",
+    "status-asc-short": "По обычному",
+    "status-desc-short": "Инвертировано"
   },
   "empty": {
     "no-results": "Нет результатов",
@@ -83,7 +83,6 @@
     "no-environments-results": "Информация об окружениях отсутствует"
   },
   "severity": {
-    "name": "Важность",
     "blocker": "блокер",
     "critical": "критическая",
     "normal": "обычная",
@@ -91,8 +90,8 @@
     "trivial": "минимальная"
   },
   "execution": {
-    "body": "Тело теста",
     "name": "Выполнение",
+    "body": "Тело теста",
     "setup": "Подготовка",
     "teardown": "Завершение"
   },
@@ -123,9 +122,9 @@
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",
-    "downloadAttachment": "Загрузить вложение",
     "nextTR": "Следующий тест",
     "prevTR": "Предыдущий тест",
+    "downloadAttachment": "Загрузить вложение",
     "backto": "Вернуться на",
     "clipboard": "Скопировать в буфер обмена",
     "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",
@@ -153,7 +152,7 @@
     "missedAttachment": "Вложение не найдено"
   },
   "sections": {
-    "report": "Report",
+    "report": "Отчет",
     "charts": "Графики"
   },
   "charts": {

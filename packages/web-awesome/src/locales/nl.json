@@ -31,15 +31,15 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfunctioned": "Defect",
-    "description": {
-      "flaky": "Toont testresultaten die \"geslaagd\" en vervolgens \"mislukt\" zijn binnen de laatste 5 runs, wat wijst op onstabiel gedrag",
-      "retry": "Toont testresultaten die opnieuw zijn uitgevoerd zonder statuswijzigingen",
-      "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
-      "fixed": "Toont testresultaten die zijn gewijzigd van \"mislukt\" of \"gebroken\" naar \"geslaagd\" status",
-      "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"mislukt\" status",
-      "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"gebroken\" status"
-    }
+    "malfunctioned": "Defect"
+  },
+  "filters.description": {
+    "flaky": "Toont testresultaten die \"geslaagd\" en vervolgens \"mislukt\" zijn binnen de laatste 5 runs, wat wijst op onstabiel gedrag",
+    "retry": "Toont testresultaten die opnieuw zijn uitgevoerd zonder statuswijzigingen",
+    "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
+    "fixed": "Toont testresultaten die zijn gewijzigd van \"mislukt\" of \"gebroken\" naar \"geslaagd\" status",
+    "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"mislukt\" status",
+    "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"gebroken\" status"
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -53,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Laatste – Eerste",
-    "order-asc": "Eerste – Laatste",
+    "order-desc": "Laatste – Eerste",
+    "order-asc": "Eerste – Laatste",
     "order-asc-short": "Eerste",
     "order-desc-short": "Laatste",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Zoals in de filterlijst",
     "status-desc": "Omgekeerd",
     "status-asc-short": "Normaal",
@@ -171,12 +171,12 @@
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfunctioned": "Defect",
-    "description": {
-      "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
-      "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
-      "regressed": "Eerder \"geslaagd\" test die nu \"mislukt\" is",
-      "malfunctioned": "Eerder \"geslaagd\" test die nu \"gebroken\" is"
-    }
+    "malfunctioned": "Defect"
+  },
+  "transitions.description": {
+    "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
+    "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
+    "regressed": "Eerder \"geslaagd\" test die nu \"mislukt\" is",
+    "malfunctioned": "Eerder \"geslaagd\" test die nu \"gebroken\" is"
   }
 }

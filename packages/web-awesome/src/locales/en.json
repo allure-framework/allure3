@@ -38,7 +38,7 @@
     "retry": "Show test results that were rerun with no status changes",
     "new": "Show test results that appear for the first time in this report",
     "fixed": "Show test results that changed to \"passed\" status from \"failed\" or \"broken\" status",
-    "regressed": "Show test results that changed to \"failed\" status from \"passed\" status", 
+    "regressed": "Show test results that changed to \"failed\" status from \"passed\" status",
     "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" status"
   },
   "sort-by": {

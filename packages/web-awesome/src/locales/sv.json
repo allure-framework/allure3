@@ -31,15 +31,15 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfunctioned": "Felaktig",
-    "description": {
-      "flaky": "Visa testresultat som \"godkändes\" och sedan \"misslyckades\" inom de senaste 5 körningarna, vilket indikerar instabilt beteende",
-      "retry": "Visa testresultat som kördes om utan statusändringar",
-      "new": "Visa testresultat som visas för första gången i denna rapport",
-      "fixed": "Visa testresultat som ändrades från \"misslyckad\" eller \"trasig\" till \"godkänd\" status",
-      "regressed": "Visa testresultat som ändrades från \"godkänd\" till \"misslyckad\" status",
-      "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" till \"trasig\" status"
-    }
+    "malfunctioned": "Felaktig"
+  },
+  "filters.description": {
+    "flaky": "Visa testresultat som \"godkändes\" och sedan \"misslyckades\" inom de senaste 5 körningarna, vilket indikerar instabilt beteende",
+    "retry": "Visa testresultat som kördes om utan statusändringar",
+    "new": "Visa testresultat som visas för första gången i denna rapport",
+    "fixed": "Visa testresultat som ändrades från \"misslyckad\" eller \"trasig\" till \"godkänd\" status",
+    "regressed": "Visa testresultat som ändrades från \"godkänd\" till \"misslyckad\" status",
+    "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" till \"trasig\" status"
   },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
@@ -53,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Senast – Tidigare",
-    "order-asc": "Tidigare – Senast",
+    "order-desc": "Senast – Tidigare",
+    "order-asc": "Tidigare – Senast",
     "order-asc-short": "Tidigare",
     "order-desc-short": "Senast",
-    "alphabet-asc": "A – Ö",
-    "alphabet-desc": "Ö – A",
-    "alphabet-asc-short": "A – Ö",
-    "alphabet-desc-short": "Ö – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Ö",
+    "alphabet-desc": "Ö – A",
+    "alphabet-asc-short": "A – Ö",
+    "alphabet-desc-short": "Ö – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Som i filterlistan",
     "status-desc": "Omvänd",
     "status-asc-short": "Vanlig",
@@ -171,12 +171,12 @@
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfunctioned": "Felaktig",
-    "description": {
-      "new": "Första förekomsten av detta testresultat i rapporten",
-      "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
-      "regressed": "Tidigare \"godkänd\" test som nu är \"misslyckad\"",
-      "malfunctioned": "Tidigare \"godkänd\" test som nu är \"trasig\""
-    }
+    "malfunctioned": "Felaktig"
+  },
+  "transitions.description": {
+    "new": "Första förekomsten av detta testresultat i rapporten",
+    "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
+    "regressed": "Tidigare \"godkänd\" test som nu är \"misslyckad\"",
+    "malfunctioned": "Tidigare \"godkänd\" test som nu är \"trasig\""
   }
 }
