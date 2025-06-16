@@ -1,7 +1,7 @@
 import { AllureReport, readConfig } from "@allurereport/core";
-import ClassicPlugin from "@allurereport/plugin-classic";
+import Allure2Plugin from "@allurereport/plugin-allure2";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassicCommandAction } from "../../src/commands/classic.js";
+import { ClassicLegacyCommandAction } from "../../src/commands/allure2.js";
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
@@ -16,25 +16,23 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("classic command", () => {
+describe("allure2 command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
     const resultsDir = "foo/bar/allure-results";
 
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await ClassicCommandAction(resultsDir, {});
+    await ClassicLegacyCommandAction(resultsDir, {});
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "classic",
+            id: "allure2",
             enabled: true,
-            options: {
-              groupBy: undefined,
-            },
-            plugin: expect.any(ClassicPlugin),
+            options: expect.objectContaining({}),
+            plugin: expect.any(Allure2Plugin),
           }),
         ]),
       }),
@@ -47,31 +45,34 @@ describe("classic command", () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-classic-plugin",
+          id: "my-allure2-plugin",
           enabled: true,
           options: {
-            groupBy: ["foo", "bar"],
+            reportLanguage: "en",
+            singleFile: true,
           },
-          plugin: new ClassicPlugin({
-            groupBy: ["foo", "bar"],
+          plugin: new Allure2Plugin({
+            reportLanguage: "en",
+            singleFile: true,
           }),
         },
       ],
     });
 
-    await ClassicCommandAction(resultsDir, {});
+    await ClassicLegacyCommandAction(resultsDir, {});
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-classic-plugin",
+            id: "my-allure2-plugin",
             enabled: true,
-            options: {
-              groupBy: ["foo", "bar"],
-            },
-            plugin: expect.any(ClassicPlugin),
+            options: expect.objectContaining({
+              reportLanguage: "en",
+              singleFile: true,
+            }),
+            plugin: expect.any(Allure2Plugin),
           }),
         ]),
       }),
@@ -81,20 +82,16 @@ describe("classic command", () => {
   it("should initialize allure report with provided command line options", async () => {
     const fixtures = {
       resultsDir: "foo/bar/allure-results",
-      reportName: "Custom Allure Report",
+      reportName: "Custom Allure2 Report",
       output: "./custom/output/path",
-      knownIssues: "./custom/known/issues/path",
-      historyPath: "./custom/history/path",
-      reportLanguage: "es",
+      reportLanguage: "en",
       singleFile: true,
       config: "./custom/allurerc.mjs",
     };
 
-    await ClassicCommandAction(fixtures.resultsDir, {
+    await ClassicLegacyCommandAction(fixtures.resultsDir, {
       reportName: fixtures.reportName,
       output: fixtures.output,
-      knownIssues: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
       reportLanguage: fixtures.reportLanguage,
       singleFile: fixtures.singleFile,
       config: fixtures.config,
@@ -102,8 +99,6 @@ describe("classic command", () => {
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
-      historyPath: fixtures.historyPath,
-      knownIssuesPath: fixtures.knownIssues,
       name: fixtures.reportName,
       output: fixtures.output,
     });
@@ -112,14 +107,13 @@ describe("classic command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "classic",
+            id: "allure2",
             enabled: true,
-            options: {
-              groupBy: undefined,
+            options: expect.objectContaining({
               reportLanguage: fixtures.reportLanguage,
               singleFile: fixtures.singleFile,
-            },
-            plugin: expect.any(ClassicPlugin),
+            }),
+            plugin: expect.any(Allure2Plugin),
           }),
         ]),
       }),
