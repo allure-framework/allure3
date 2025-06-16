@@ -37,6 +37,18 @@
   outline-offset: var(--allure-btn-focus-ring-offset);
   outline: var(--allure-btn-focus-ring-offset) solid transparent;
 
+  &:is(a) {
+    display: inline-flex;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &:is(a)[aria-disabled="true"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
   &.fullWidth {
     width: 100%;
     max-width: 100%;

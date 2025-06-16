@@ -1,3 +1,4 @@
+import type { AllureHistory } from "@allurereport/core-api";
 import type {
   Plugin,
   PluginContext,
@@ -6,8 +7,10 @@ import type {
   ReportFiles,
   ResultFile,
 } from "@allurereport/plugin-api";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
+import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
@@ -16,7 +19,7 @@ import { readFileSync } from "node:fs";
 import { lstat, opendir, readdir, realpath, rename, rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
-import { createHistory, writeHistory } from "./history.js";
+import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
@@ -36,10 +39,12 @@ export class AllureReport {
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
   readonly #events: Events;
   readonly #qualityGate: QualityGate;
-  readonly #appendHistory: boolean;
-  readonly #historyPath: string;
   readonly #realTime: any;
   readonly #output: string;
+  readonly #history: AllureHistory | undefined;
+  readonly #allureServiceClient: AllureServiceClient | undefined;
+  readonly #publish: boolean;
+  #reportUrl?: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -48,30 +53,37 @@ export class AllureReport {
       name,
       readers = [allure1, allure2, cucumberjson, junitXml, attachments],
       plugins = [],
-      history,
       known,
       reportFiles,
       qualityGate,
       realTime,
-      appendHistory,
       historyPath,
       defaultLabels = {},
       variables = {},
       environments,
       output,
+      allureService: allureServiceConfig,
     } = opts;
+
+    this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
+    this.#publish = allureServiceConfig?.publish ?? false;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
-    this.#appendHistory = appendHistory ?? true;
-    this.#historyPath = historyPath;
+
+    if (this.#allureServiceClient) {
+      this.#history = new AllureRemoteHistory(this.#allureServiceClient);
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory(historyPath);
+    }
+
     this.#store = new DefaultAllureStore({
       eventEmitter: this.#eventEmitter,
       reportVariables: variables,
       environmentsConfig: environments,
-      history,
+      history: this.#history,
       known,
       defaultLabels,
     });
@@ -79,9 +91,11 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-
     // TODO: where should we execute quality gate?
     this.#qualityGate = new QualityGate(qualityGate);
+    this.#history = this.#allureServiceClient
+      ? new AllureRemoteHistory(this.#allureServiceClient)
+      : new AllureLocalHistory(historyPath);
   }
 
   // TODO: keep it until we understand how to handle shared test results
@@ -147,13 +161,27 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    await this.#store.readHistory();
+
     if (this.#stage === "running") {
       throw new Error("the report is already started");
     }
+
     if (this.#stage === "done") {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
+
     this.#stage = "running";
+
+    // create remote report to publish files into
+    if (this.#allureServiceClient && this.#publish) {
+      const { url } = await this.#allureServiceClient.createReport({
+        reportUuid: this.#reportUuid,
+        reportName: this.#reportName,
+      });
+
+      this.#reportUrl = url;
+    }
 
     await this.#eachPlugin(true, async (plugin, context) => {
       await plugin.start?.(context, this.#store, this.#events);
@@ -189,7 +217,28 @@ export class AllureReport {
     this.#stage = "done";
 
     await this.#eachPlugin(false, async (plugin, context, id) => {
+      const pluginFiles = (await context.state.get("files")) ?? {};
+
       await plugin.done?.(context, this.#store);
+
+      // publish only Allure Awesome reports
+      if (
+        plugin instanceof AwesomePlugin &&
+        this.#history &&
+        this.#allureServiceClient &&
+        this.#publish &&
+        Object.keys(pluginFiles).length
+      ) {
+        await Promise.all(
+          Object.entries(pluginFiles).map(([key, filepath]) =>
+            this.#allureServiceClient?.addReportFile({
+              reportUuid: this.#reportUuid,
+              key,
+              filepath,
+            }),
+          ),
+        );
+      }
 
       const summary = await plugin?.info?.(context, this.#store);
 
@@ -202,14 +251,6 @@ export class AllureReport {
         href: `${id}/`,
       });
     });
-
-    if (this.#appendHistory) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.#reportUuid, this.#reportName, testCases, testResults);
-
-      await writeHistory(this.#historyPath, historyDataPoint);
-    }
 
     const outputDirFiles = await readdir(this.#output);
 
@@ -234,11 +275,39 @@ export class AllureReport {
       }
 
       await rm(reportPath, { recursive: true });
-      return;
+    }
+
+    if (this.#history) {
+      const testResults = await this.#store.allTestResults();
+      const testCases = await this.#store.allTestCases();
+      const historyDataPoint = createHistory(
+        this.#reportUuid,
+        this.#reportName,
+        testCases,
+        testResults,
+        this.#reportUrl,
+      );
+
+      try {
+        await this.#store.appendHistory(historyDataPoint);
+      } catch (err) {
+        if (err instanceof KnownError) {
+          console.error("Failed to append history", err.message);
+        } else if (err instanceof UnknownError) {
+          // TODO: append log here? is it right to interact with the console here or we need to emit errors to the main process and render them outside?
+          console.error("Failed to append history due to unexpected error", err.message);
+        } else {
+          throw err;
+        }
+      }
     }
 
     if (summaries.length > 1) {
       await generateSummary(this.#output, summaries);
+    }
+
+    if (this.#reportUrl) {
+      console.info(`The report has been published: ${this.#reportUrl}`);
     }
   };
 
@@ -265,7 +334,20 @@ export class AllureReport {
         continue;
       }
 
-      const pluginFiles = new PluginFiles(this.#reportFiles, id);
+      if (initState) {
+        await pluginState.set("files", {});
+      }
+
+      const pluginFiles = new PluginFiles(this.#reportFiles, id, async (key, filepath) => {
+        const currentPluginState = this.#getPluginState(false, id);
+        const files: Record<string, string> | undefined = await currentPluginState?.get("files");
+
+        if (!files) {
+          return;
+        }
+
+        files[key] = filepath;
+      });
       const pluginContext: PluginContext = {
         allureVersion: version,
         reportUuid: this.#reportUuid,

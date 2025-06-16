@@ -12,12 +12,18 @@ import {
   HistoryCommand,
   KnownIssueCommand,
   LogCommand,
+  LoginCommand,
+  LogoutCommand,
   OpenCommand,
+  ProjectsCreateCommand,
+  ProjectsDeleteCommand,
+  ProjectsListCommand,
   QualityGateCommand,
   RunCommand,
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
+  WhoamiCommand,
 } from "./commands/index.js";
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
@@ -41,6 +47,12 @@ const commands = [
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
+  LoginCommand,
+  LogoutCommand,
+  WhoamiCommand,
+  ProjectsCreateCommand,
+  ProjectsDeleteCommand,
+  ProjectsListCommand,
 ];
 
 commands.forEach((command) => {
@@ -48,7 +60,8 @@ commands.forEach((command) => {
 });
 
 cli.on("command:*", () => {
-  console.error("Invalid command: %s", cli.args.join(" "));
+  console.error(`Invalid command: "${cli.args.join(" ")}"`);
+  console.error("See --help for a list of available commands");
   process.exit(1);
 });
 

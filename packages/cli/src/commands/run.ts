@@ -8,13 +8,16 @@ import {
 } from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
 import { PathResultFile } from "@allurereport/reader-api";
+import { KnownError } from "@allurereport/service";
 import * as console from "node:console";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
+import { red } from "yoctocolors";
 import { createCommand } from "../utils/commands.js";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
+import { logError } from "../utils/logs.js";
 
 export type RunCommandOptions = {
   config?: string;
@@ -137,66 +140,78 @@ export const RunCommandAction = async (options: RunCommandOptions) => {
     }
   }
 
-  const allureReport = new AllureReport({
-    ...config,
-    realTime: false,
-    plugins: [
-      ...(config.plugins?.length
-        ? config.plugins
-        : [
-            {
-              id: "awesome",
-              enabled: true,
-              options: {},
-              plugin: new Awesome({
-                reportName: config.name,
-              }),
-            },
-          ]),
-    ],
-  });
+  try {
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: false,
+      plugins: [
+        ...(config.plugins?.length
+          ? config.plugins
+          : [
+              {
+                id: "awesome",
+                enabled: true,
+                options: {},
+                plugin: new Awesome({
+                  reportName: config.name,
+                }),
+              },
+            ]),
+      ],
+    });
 
-  await allureReport.start();
+    await allureReport.start();
 
-  let code = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
+    let code = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
 
-  for (let rerun = 0; rerun < maxRerun; rerun++) {
-    const failed = await allureReport.store.failedTestResults();
+    for (let rerun = 0; rerun < maxRerun; rerun++) {
+      const failed = await allureReport.store.failedTestResults();
 
-    if (failed.length === 0) {
-      console.log("no failed tests is detected.");
-      break;
+      if (failed.length === 0) {
+        console.log("no failed tests is detected.");
+        break;
+      }
+
+      const testPlan = createTestPlan(failed);
+
+      console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
+      logTests(failed);
+
+      const tmpDir = await mkdtemp(join(tmpdir(), "allure-run-"));
+      const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
+      await writeFile(testPlanPath, JSON.stringify(testPlan));
+
+      code = await runTests(
+        allureReport,
+        cwd,
+        command,
+        commandArgs,
+        {
+          ALLURE_TESTPLAN_PATH: testPlanPath,
+          ALLURE_RERUN: `${rerun}`,
+        },
+        silent,
+      );
+
+      await rm(tmpDir, { recursive: true });
+      logTests(await allureReport.store.allTestResults());
     }
 
-    const testPlan = createTestPlan(failed);
+    await allureReport.done();
+    await allureReport.validate();
 
-    console.log(`rerun number ${rerun} of ${testPlan.tests.length} tests:`);
-    logTests(failed);
+    process.exit(code ?? allureReport.exitCode);
+  } catch (error) {
+    if (error instanceof KnownError) {
+      // eslint-disable-next-line no-console
+      console.error(red(error.message));
+      process.exit(1);
+      return;
+    }
 
-    const tmpDir = await mkdtemp(join(tmpdir(), "allure-run-"));
-    const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
-    await writeFile(testPlanPath, JSON.stringify(testPlan));
-
-    code = await runTests(
-      allureReport,
-      cwd,
-      command,
-      commandArgs,
-      {
-        ALLURE_TESTPLAN_PATH: testPlanPath,
-        ALLURE_RERUN: `${rerun}`,
-      },
-      silent,
-    );
-
-    await rm(tmpDir, { recursive: true });
-    logTests(await allureReport.store.allTestResults());
+    await logError("Failed to run tests using Allure due to unexpected error", error as Error);
+    process.exit(1);
   }
-
-  await allureReport.done();
-  await allureReport.validate();
-
-  process.exit(code ?? allureReport.exitCode);
 };
 
 export const RunCommand = createCommand({

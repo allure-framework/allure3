@@ -1,14 +1,14 @@
+import * as core from "@allurereport/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AllureReportMock } from "../utils.js";
-
-const core = await import("@allurereport/core");
-const { SlackCommandAction } = await import("../../src/commands/slack.js");
+import { SlackCommandAction } from "../../src/commands/slack.js";
 
 vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
+  const utils = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
-    AllureReport: AllureReportMock,
+    AllureReport: utils.AllureReportMock,
   };
 });
 
@@ -43,7 +43,6 @@ describe("slack command", () => {
     expect(core.AllureReport).toHaveBeenCalledTimes(1);
     expect(core.AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "plugin-slack",

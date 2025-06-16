@@ -39,6 +39,12 @@ export interface Config {
   plugins?: Record<string, PluginDescriptor>;
   qualityGate?: QualityGateConfig;
   appendHistory?: boolean;
+  allureService?: {
+    url?: string;
+    project?: string;
+    accessToken?: string;
+    publish?: boolean;
+  };
 }
 
 export const defineConfig = (allureConfig: Config): Config => {
