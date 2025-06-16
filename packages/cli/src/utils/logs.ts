@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { red } from "yoctocolors";
 
 const LOGS_DIRECTORY = join(homedir(), ".allure", "logs");
 
@@ -27,25 +28,27 @@ export const readLogs = async () => {
 };
 
 /**
- * Log an error to the logs file
- * Returns the path to the logs file
+ * Write the given error to the logs file and prints the given message to the console
+ * @param message The message to print to the console
+ * @param error The error to write to the logs file
  */
-export const logError = async (message: string, trace?: string) => {
+export const logError = async (message: string, error: Error) => {
   let logs = await readLogs();
 
   if (!logs) {
-    logs += `${new Date().toISOString()}[ERROR] ${message}\n`;
+    logs += `${new Date().toISOString()}[ERROR] ${error.message}\n`;
   } else {
-    logs += `\n${new Date().toISOString()}[ERROR] ${message}\n`;
+    logs += `\n${new Date().toISOString()}[ERROR] ${error.message}\n`;
   }
 
-  if (trace) {
-    logs += `${trace}\n`;
+  if (error.stack) {
+    logs += `${error.stack}\n`;
   }
 
   const logFilePath = join(LOGS_DIRECTORY, getLogFileName());
 
   await writeFile(logFilePath, logs, "utf-8");
 
-  return logFilePath;
+  // eslint-disable-next-line no-console
+  console.error(red(`${message}. Check logs for more details: ${logFilePath}`));
 };

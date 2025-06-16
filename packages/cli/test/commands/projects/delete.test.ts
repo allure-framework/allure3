@@ -132,10 +132,6 @@ describe("projects delete command", () => {
   });
 
   it("should print unknown service-error with logs writing", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     (readConfig as Mock).mockResolvedValueOnce({
       allureService: {
         url: "https://allure.example.com",
@@ -145,27 +141,14 @@ describe("projects delete command", () => {
       new UnknownError("Unexpected error"),
     );
     (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
+    // @ts-ignore
+    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
     await ProjectsDeleteCommandAction("qux");
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to delete project due to unexpected error"),
-    );
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith("Failed to delete project due to unexpected error", expect.any(Error));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(logError).toHaveBeenCalled();
-  });
-
-  it("should just throw if unknown error is not instance of KnownError or UnknownError", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
-    (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
-    (AllureServiceClientMock.prototype.deleteProject as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
-
-    await expect(ProjectsDeleteCommandAction("qux")).rejects.toThrow("Unexpected error");
   });
 
   it("should print unknown service-error with logs writing", async () => {

@@ -1,5 +1,5 @@
 import { readConfig } from "@allurereport/core";
-import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError } from "@allurereport/service";
 import prompts from "prompts";
 import { green, red } from "yoctocolors";
 import { createCommand } from "../../utils/commands.js";
@@ -59,28 +59,13 @@ export const ProjectsDeleteCommandAction = async (projectName?: string, options?
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
-      console.error(red(`Failed to delete project: ${error.message} (${error.status})`));
+      console.error(red(error.message));
       process.exit(1);
       return;
     }
 
-    if (error instanceof UnknownError) {
-      const logFilePath = await logError(
-        error?.message ?? "Failed to delete project due to unexpected error",
-        error.stack,
-      );
-
-      // eslint-disable-next-line no-console
-      console.error(
-        red(
-          `Failed to delete project due to unexpected error (status ${error.status}). Check logs for more details: ${logFilePath}`,
-        ),
-      );
-      process.exit(1);
-      return;
-    }
-
-    throw error;
+    await logError("Failed to delete project due to unexpected error", error as Error);
+    process.exit(1);
   }
 };
 

@@ -111,7 +111,6 @@ describe("projects list command", () => {
   });
 
   it("should print unknown service-error with logs writing", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
@@ -125,24 +124,9 @@ describe("projects list command", () => {
 
     await ProjectsListCommandAction();
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to get projects due to unexpected error"),
-    );
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError).toHaveBeenCalledWith("Failed to get projects due to unexpected error", expect.any(Error));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(logError).toHaveBeenCalled();
-  });
-
-  it("should just throw if unknown error is not instance of KnownError or UnknownError", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
-
-    (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
-
-    await expect(ProjectsListCommandAction()).rejects.toThrow("Unexpected error");
   });
 
   it("should exit with error if no project is selected", async () => {

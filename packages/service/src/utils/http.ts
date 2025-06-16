@@ -6,12 +6,9 @@ import { readAccessToken } from "./token.js";
  * The error that was explicitly thrown by the service. We can print the error's message as is to the user
  */
 export class KnownError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
+  constructor(message: string) {
     super(message);
     this.name = "KnownError";
-    this.status = status;
   }
 }
 
@@ -20,12 +17,12 @@ export class KnownError extends Error {
  * We can't print the error's message directly to the user, so we need to add additionaly logic to handle it
  */
 export class UnknownError extends Error {
-  status: number;
+  stack?: string;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, stack?: string) {
     super(message);
     this.name = "UnknownError";
-    this.status = status;
+    this.stack = stack;
   }
 }
 
@@ -74,10 +71,19 @@ export const createServiceHttpClient = (
         const { status = 500 } = (err as AxiosError).response ?? {};
 
         if (status < 500) {
-          throw new KnownError(err.message, status);
+          throw new KnownError(err.response?.data ?? err.message);
         }
 
-        throw new UnknownError(err.message, status);
+        // @ts-ignore
+        const { response, message, errors, stack } = err;
+
+        /**
+         * Trying to get axios actual error message
+         * Original error message from the server usually locates in the `error.response.data` field
+         * But when the error happened somewhere else, the error can be located in `error.errors` field
+         * As a fallback, we just use original axios error message
+         */
+        throw new UnknownError(response?.data ?? errors?.[0]?.message?.trim?.() ?? message, stack);
       }
     };
 

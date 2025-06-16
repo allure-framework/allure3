@@ -1,5 +1,5 @@
 import { getGitRepoName, readConfig } from "@allurereport/core";
-import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import { AllureServiceClient, KnownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectsCreateCommandAction } from "../../../src/commands/projects/create.js";
@@ -71,42 +71,6 @@ describe("projects create command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to create project"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
     expect(logError).not.toHaveBeenCalled();
-  });
-
-  it("should print unknown service-error with logs writing", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
-    (logError as Mock).mockResolvedValueOnce("logs.txt");
-    (AllureServiceClientMock.prototype.createProject as Mock).mockRejectedValueOnce(
-      new UnknownError("Unexpected error"),
-    );
-
-    await ProjectsCreateCommandAction("foo");
-
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to create project due to unexpected error"),
-    );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
-    expect(logError).toHaveBeenCalled();
-  });
-
-  it("should throw an error if the service throws an unknown error", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
-    (AllureServiceClientMock.prototype.createProject as Mock).mockRejectedValueOnce(new Error("Unexpected error"));
-
-    await expect(ProjectsCreateCommandAction("foo")).rejects.toThrow("Unexpected error");
   });
 
   it("should create a project with a provided name", async () => {
