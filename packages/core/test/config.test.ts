@@ -297,7 +297,7 @@ describe("getPluginInstance", () => {
   });
 });
 
-describe.only("enforcePlugin", () => {
+describe("enforcePlugin", () => {
   it("should keep original config if plugin instance is already present", () => {
     const fixture = {
       id: "awesome",
