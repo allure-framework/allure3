@@ -15,8 +15,8 @@ export default (env, argv) => {
     entry: "./src/index.js",
     output: {
       path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[hash:8].js",
-      assetModuleFilename: `[name]-[hash:8][ext]`,
+      filename: "app-[fullhash:8].js",
+      assetModuleFilename: `[name]-[fullhash:8][ext]`,
     },
     module: {
       rules: [
@@ -27,7 +27,7 @@ export default (env, argv) => {
         },
         {
           test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, "css-loader"]
+          use: [MiniCssExtractPlugin.loader, "css-loader"],
         },
         {
           test: /\.scss$/,
@@ -44,7 +44,7 @@ export default (env, argv) => {
               loader: "sass-loader",
               options: {
                 api: "modern",
-              }
+              },
             },
           ],
         },
@@ -53,10 +53,7 @@ export default (env, argv) => {
           use: {
             loader: "handlebars-loader",
             options: {
-              helperDirs: [
-                utils.root("src/helpers"),
-                utils.root("src/blocks"),
-              ],
+              helperDirs: [utils.root("src/helpers"), utils.root("src/blocks")],
             },
           },
         },
@@ -96,7 +93,7 @@ export default (env, argv) => {
         },
       }),
       new MiniCssExtractPlugin({
-        filename: "styles-[hash:8].css",
+        filename: "styles-[fullhash:8].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
@@ -115,7 +112,7 @@ export default (env, argv) => {
   if (SINGLE_FILE_MODE) {
     config.optimization = {
       splitChunks: false,
-    }
+    };
     config.plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,

@@ -6,9 +6,12 @@ import { readAccessToken } from "./token.js";
  * The error that was explicitly thrown by the service. We can print the error's message as is to the user
  */
 export class KnownError extends Error {
-  constructor(message: string) {
+  status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "KnownError";
+    this.status = status;
   }
 }
 
@@ -71,7 +74,7 @@ export const createServiceHttpClient = (
         const { status = 500 } = (err as AxiosError).response ?? {};
 
         if (status < 500) {
-          throw new KnownError(err.response?.data ?? err.message);
+          throw new KnownError(err.response?.data ?? err.message, status);
         }
 
         // @ts-ignore

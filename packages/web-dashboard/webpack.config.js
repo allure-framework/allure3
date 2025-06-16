@@ -1,3 +1,4 @@
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { dirname, join } from "node:path";
@@ -6,7 +7,6 @@ import { fileURLToPath } from "node:url";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
-import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 
 const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
@@ -17,8 +17,8 @@ export default (env, argv) => {
     entry: "./src/index.tsx",
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: devMode ? "app.js" : "app-[hash:8].js",
-      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[hash:8].[ext]`,
+      filename: devMode ? "app.js" : "app-[fullhash:8].js",
+      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[fullhash:8].[ext]`,
     },
     devtool: devMode ? "inline-source-map" : false,
     module: {
@@ -74,7 +74,7 @@ export default (env, argv) => {
         DEVELOPMENT: devMode,
       }),
       new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[hash:8].css",
+        filename: devMode ? "styles.css" : "styles-[fullhash:8].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
