@@ -1,14 +1,14 @@
-import * as core from "@allurereport/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AllureReport, readConfig } from "@allurereport/core";
+import LogPlugin from "@allurereport/plugin-log";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { LogCommandAction } from "../../src/commands/log.js";
 
-vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
-  const utils = await import("../utils.js");
-
+  const { AllureReportMock } = await import("../utils.js");
   return {
     ...(await importOriginal()),
-    AllureReport: utils.AllureReportMock,
+    readConfig: vi.fn(),
+    AllureReport: AllureReportMock,
   };
 });
 
@@ -17,80 +17,102 @@ beforeEach(() => {
 });
 
 describe("log command", () => {
-  it("should initialize allure report with a correct default plugin options", async () => {
+  it("should initialize allure report with default plugin options when config doesn't exist", async () => {
     const resultsDir = "foo/bar/allure-results";
+
+    (readConfig as Mock).mockResolvedValueOnce({});
 
     await LogCommandAction(resultsDir, {});
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-log": {
-          options: {
-            groupBy: undefined,
-            allSteps: undefined,
-            withTrace: undefined,
-          },
-        },
-      }),
-    });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Allure Report",
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "plugin-log",
+            id: "log",
             enabled: true,
-            options: {
-              groupBy: undefined,
-              allSteps: undefined,
-              withTrace: undefined,
-            },
+            options: expect.objectContaining({}),
+            plugin: expect.any(LogPlugin),
           }),
         ]),
       }),
     );
   });
 
-  it("should initialize allure report with a provided plugin options", async () => {
+  it("should initialize allure report with provided plugin options when config exists", async () => {
+    const resultsDir = "foo/bar/allure-results";
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [
+        {
+          id: "my-log-plugin",
+          enabled: true,
+          options: {
+            allSteps: true,
+            withTrace: true,
+            groupBy: "features",
+          },
+          plugin: new LogPlugin({
+            allSteps: true,
+            withTrace: true,
+            groupBy: "features",
+          }),
+        },
+      ],
+    });
+
+    await LogCommandAction(resultsDir, {});
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "my-log-plugin",
+            enabled: true,
+            options: expect.objectContaining({
+              allSteps: true,
+              withTrace: true,
+              groupBy: "features",
+            }),
+            plugin: expect.any(LogPlugin),
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("should initialize allure report with provided command line options", async () => {
     const fixtures = {
       resultsDir: "foo/bar/allure-results",
       allSteps: true,
       withTrace: true,
-      groupBy: "none",
-    };
+      groupBy: "suites",
+      config: "./custom/allurerc.mjs",
+    } as const;
 
     await LogCommandAction(fixtures.resultsDir, {
       allSteps: fixtures.allSteps,
       withTrace: fixtures.withTrace,
-      groupBy: fixtures.groupBy as "none",
+      groupBy: fixtures.groupBy,
+      config: fixtures.config,
     });
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-log": {
-          options: {
-            groupBy: fixtures.groupBy,
-            allSteps: fixtures.allSteps,
-            withTrace: fixtures.withTrace,
-          },
-        },
-      }),
-    });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config);
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "plugin-log",
+            id: "log",
             enabled: true,
-            options: {
-              groupBy: fixtures.groupBy,
+            options: expect.objectContaining({
               allSteps: fixtures.allSteps,
               withTrace: fixtures.withTrace,
-            },
+              groupBy: fixtures.groupBy,
+            }),
+            plugin: expect.any(LogPlugin),
           }),
         ]),
       }),
