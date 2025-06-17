@@ -1,1 +1,0 @@
-{"id":"70f99415fbc5fec9be6d818d6c6fe16b","fullName":"allure-awesome/tree/flaky.test.ts:210:3","name":"should be able to filter flaky tests with flaky status using flaky filter","status":"passed","testResultsByEnv":{"chromium":"a69ec30bdbd4f812801d40644fbaced2","firefox":"b08ebf993c393bf80ae103ad342c8efb","safari":"ee08cefc2db491f0ea2db3ff0af41b93"}}

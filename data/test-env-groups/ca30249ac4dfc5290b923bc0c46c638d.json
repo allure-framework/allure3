@@ -1,0 +1,1 @@
+{"id":"ca30249ac4dfc5290b923bc0c46c638d","fullName":"test/commands/projects/list.test.ts#projects list command should exit with error if no project is selected","name":"should exit with error if no project is selected","status":"passed","testResultsByEnv":{"default":"6adecfbc4b746a4ce43cdfeda10c0d59"}}

@@ -1,0 +1,1 @@
+{"id":"7714cde785382ad688217677e403606f","fullName":"test/commands/login.test.ts#login command should throw an error if there is not allure service url in the config","name":"should throw an error if there is not allure service url in the config","status":"passed","testResultsByEnv":{"default":"82ed5a67135f1e56ef3f05f11976f50e"}}

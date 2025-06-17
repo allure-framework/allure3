@@ -1,0 +1,1 @@
+{"id":"e82e6ccf5684c3a58dc35d795cebe8f2","fullName":"test/commands/projects/create.test.ts#projects create command should create a project with a name retrieved from git repo","name":"should create a project with a name retrieved from git repo","status":"passed","testResultsByEnv":{"default":"52a9628d2787938aa11490dabb02eb59"}}
