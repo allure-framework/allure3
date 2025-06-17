@@ -8,7 +8,6 @@ import {
   makeReportConfig,
   makeTestCaseId,
   makeTestResult,
-  makeTestResults,
 } from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
@@ -34,25 +33,21 @@ test.describe("new tests", () => {
       stage: Stage.FINISHED,
     });
 
-    const testResults = makeTestResults(3, (index) => {
-      if (index === 0) {
-        return {
-          name: passedTestName,
-          fullName: passedTestFullname,
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-        };
-      } else if (index === 1) {
-        return {
-          name: failedTestName,
-          fullName: failedTestFullname,
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-        };
-      }
-
-      return flakyTestResult;
-    });
+    const testResults = [
+      makeTestResult({
+        name: passedTestName,
+        fullName: passedTestFullname,
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+      }),
+      makeTestResult({
+        name: failedTestName,
+        fullName: failedTestFullname,
+        status: Status.FAILED,
+        stage: Stage.FINISHED,
+      }),
+      flakyTestResult,
+    ];
 
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
