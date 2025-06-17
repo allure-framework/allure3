@@ -1,9 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import crypto from "crypto";
 import { TreePage } from "../../pageObjects/index.js";
-import { makeHistoryId, makeTestCaseId } from "../utils/mocks.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
+import {
+  makeHistory,
+  makeHistoryTestResults,
+  makeReportConfig,
+  makeTestCaseId,
+  makeHistoryId,
+  makeTestResult,
+} from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
@@ -33,138 +39,69 @@ const newBrokenTestFullname = "sample.js#New BROKEN test";
 const newBrokenTestTestCaseId = makeTestCaseId(newBrokenTestFullname);
 const newBrokenTestHistoryId = makeHistoryId(newBrokenTestFullname);
 
-const getRandomUUID = () => {
-  return crypto.randomUUID();
-};
-
 test.describe("status transitions", () => {
   test.beforeAll(async () => {
-    const now = Date.now();
+    const testResults = [
+      makeTestResult({
+        name: newTestName,
+        fullName: newTestFullname,
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+      }),
+      makeTestResult({
+        name: newPassedTestName,
+        fullName: newPassedTestFullname,
+        historyId: newPassedTestHistoryId,
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+      }),
+      makeTestResult({
+        name: newFailedTestName,
+        fullName: newFailedTestFullname,
+        historyId: newFailedTestHistoryId,
+        status: Status.FAILED,
+        stage: Stage.FINISHED,
+      }),
+      makeTestResult({
+        name: newBrokenTestName,
+        fullName: newBrokenTestFullname,
+        historyId: newBrokenTestHistoryId,
+        status: Status.BROKEN,
+        stage: Stage.FINISHED,
+      }),
+    ];
 
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: reportName,
-        appendHistory: true,
-        historyPath: "history.jsonl",
-        knownIssuesPath: undefined,
-        history: [
-          {
-            uuid: getRandomUUID(),
-            name: reportName,
-            timestamp: 1746612096098,
-            knownTestCaseIds: [newFailedTestTestCaseId, newPassedTestTestCaseId, newBrokenTestTestCaseId],
-            testResults: {
-              [newFailedTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newFailedTestName,
-                fullName: newFailedTestFullname,
-                status: Status.PASSED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-              [newPassedTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newPassedTestName,
-                fullName: newPassedTestFullname,
-                status: Status.FAILED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-              [newBrokenTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newBrokenTestName,
-                fullName: newBrokenTestFullname,
-                status: Status.FAILED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-            },
-            metrics: {},
-          },
-          {
-            uuid: getRandomUUID(),
-            name: reportName,
-            timestamp: 1746612147646,
-            knownTestCaseIds: [newFailedTestTestCaseId, newPassedTestTestCaseId, newBrokenTestTestCaseId],
-            testResults: {
-              [newFailedTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newFailedTestName,
-                fullName: newFailedTestFullname,
-                status: Status.PASSED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-              [newPassedTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newPassedTestName,
-                fullName: newPassedTestFullname,
-                status: Status.FAILED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-              [newBrokenTestHistoryId]: {
-                id: getRandomUUID(),
-                name: newBrokenTestName,
-                fullName: newBrokenTestFullname,
-                status: Status.FAILED,
-                start: 1746612100009,
-                stop: 1746612101009,
-                duration: 1000,
-                labels: [],
-              },
-            },
-            metrics: {},
-          },
-        ],
-      },
-      testResults: [
-        {
-          name: newTestName,
-          fullName: newTestFullname,
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: now,
-          stop: now + 1000,
-        },
-        {
-          name: newPassedTestName,
-          fullName: newPassedTestFullname,
-          historyId: newPassedTestHistoryId,
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: now + 2000,
-          stop: now + 3000,
-        },
-        {
+    const history = makeHistory(6, () => ({
+      name: reportName,
+      knownTestCaseIds: [newFailedTestTestCaseId, newPassedTestTestCaseId, newBrokenTestTestCaseId],
+      testResults: makeHistoryTestResults([
+        makeTestResult({
           name: newFailedTestName,
           fullName: newFailedTestFullname,
-          historyId: newFailedTestHistoryId,
+          status: Status.PASSED,
+          stage: Stage.FINISHED,
+        }),
+        makeTestResult({
+          name: newPassedTestName,
+          fullName: newPassedTestFullname,
           status: Status.FAILED,
           stage: Stage.FINISHED,
-          start: now + 4000,
-          stop: now + 5000,
-        },
-        {
+        }),
+        makeTestResult({
           name: newBrokenTestName,
           fullName: newBrokenTestFullname,
-          historyId: newBrokenTestHistoryId,
-          status: Status.BROKEN,
+          status: Status.FAILED,
           stage: Stage.FINISHED,
-          start: now + 6000,
-          stop: now + 7000,
-        },
-      ],
+        }),
+      ]),
+    }));
+
+    bootstrap = await bootstrapReport({
+      reportConfig: makeReportConfig({
+        name: reportName,
+        history,
+      }),
+      testResults,
     });
   });
 

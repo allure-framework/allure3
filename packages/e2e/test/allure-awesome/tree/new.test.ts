@@ -49,14 +49,16 @@ test.describe("new tests", () => {
       flakyTestResult,
     ];
 
+    const history = makeHistory(6, () => ({
+      name: reportName,
+      knownTestCaseIds: [testCaseId],
+      testResults: makeHistoryTestResults([flakyTestResult]),
+    }));
+
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
         name: reportName,
-        history: makeHistory(6, () => ({
-          name: reportName,
-          knownTestCaseIds: [testCaseId],
-          testResults: makeHistoryTestResults([flakyTestResult]),
-        })),
+        history,
       }),
       testResults,
     });
