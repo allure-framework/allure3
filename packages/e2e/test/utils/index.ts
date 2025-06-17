@@ -31,28 +31,6 @@ export const randomNumber = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-/**
- * Make simplified test case id from test's full name
- *
- * @param fullName Test case full name
- * @returns Test case id
- */
-export const makeTestCaseId = (fullName: string) => md5(fullName);
-
-/**
- * Make simplified history id from test's full name and parameters
- *
- * @param fullName Test case full name
- * @param parameters Test case parameters
- * @returns History id
- */
-export const makeHistoryId = (fullName: string, strParameters = "") => {
-  const testCaseId = makeTestCaseId(fullName);
-  const parametersMd5 = md5(strParameters);
-
-  return `${testCaseId}.${parametersMd5}`;
-};
-
 export const generateReport = async (payload: GeneratorParams) => {
   const { reportConfig, reportDir, resultsDir, testResults, attachments = [] } = payload;
   const report = new AllureReport({
