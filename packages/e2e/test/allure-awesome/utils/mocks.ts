@@ -5,14 +5,7 @@ import { faker } from "@faker-js/faker";
 import { Stage, Status, type TestResult } from "allure-js-commons";
 import _times from "lodash.times";
 
-/**
- * Type for item generator functions
- */
 export type ItemMaker<T> = (index: number, params: T) => Partial<T>;
-
-/**
- * Type for report configuration
- */
 export type ReportConfig = Omit<FullConfig, "output" | "reportFiles" | "plugins">;
 
 export const MIN_DURATION = 1000;
@@ -164,8 +157,11 @@ export const makeHistory = (
   count: number,
   maker: ItemMaker<HistoryDataPoint>,
 ): HistoryDataPoint[] => {
+  const now = generateDate();
+
   return _times(count, (index) => {
-    const timestamp = generateDate() - index * MAX_DURATION; // MAX_DURATION is used to not overlap with previous history items
+    // Timestamp is decreasing to reflect the most recent to the oldest history items
+    const timestamp = now - index * MAX_DURATION; // MAX_DURATION is used to not overlap with previous history items
     const historyItem = makeHistoryItem({ timestamp });
 
     return Object.assign(historyItem, maker(index, historyItem));
