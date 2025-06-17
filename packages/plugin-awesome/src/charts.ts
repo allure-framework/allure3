@@ -1,6 +1,6 @@
 import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { getPieChartDataDashboard, getSeverityTrendData, getStatusTrendData, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/web-commons";
+import { ChartDataType, getPieChartDataDashboard, getSeverityTrendData, getStatusTrendData, DEFAULT_CHART_HISTORY_LIMIT, ChartType, ChartMode } from "@allurereport/web-commons";
 import { randomUUID } from "crypto";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
@@ -18,18 +18,6 @@ export const d3Pie = pie<BasePieSlice>()
 
 export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
-export enum ChartType {
-  Trend = "trend",
-  Pie = "pie",
-}
-
-export enum ChartData {
-  Status = "status",
-  Severity = "severity",
-}
-
-export type ChartMode = "raw" | "percent";
-
 export type ChartId = string;
 
 export type ExecutionIdFn = (executionOrder: number) => string;
@@ -42,7 +30,7 @@ export type TrendMetadataFnOverrides = {
 
 export type TrendChartOptions = {
   type: ChartType.Trend;
-  dataType: ChartData;
+  dataType: ChartDataType;
   mode?: ChartMode;
   title?: string;
   limit?: number;
@@ -81,7 +69,9 @@ export type GenericTrendChartData<Metadata extends BaseMetadata, SeriesType exte
   // Type of the chart
   type: ChartType.Trend;
   // Data type of the chart
-  dataType: ChartData;
+  dataType: ChartDataType;
+  // Chart mode to know type of values on Y-axis
+  mode: ChartMode;
   // Title of the chart
   title?: string;
   // Points for all series
@@ -245,7 +235,7 @@ const calculatePercentValues = <T extends TrendDataType>(
 
     points[pointId] = {
       x: executionId,
-      y: Number(((value / total) * 100).toFixed(2)),
+      y: value / total,
     };
 
     series[item].push(pointId);
@@ -310,12 +300,12 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   itemType: readonly T[],
   chartOptions: TrendChartOptions,
 ): GenericTrendChartData<M, T> => {
-  const { type, dataType, title, mode = "raw", metadata = {} } = chartOptions;
+  const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
   const { executionIdAccessor, executionNameAccessor } = metadata;
   const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
   const { points, series } =
-    mode === "percent"
+    mode === ChartMode.Percent
       ? calculatePercentValues(stats, executionId, itemType)
       : calculateRawValues(stats, executionId, itemType);
 
@@ -345,6 +335,7 @@ export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends 
   return {
     type,
     dataType,
+    mode,
     title,
     points,
     slices,
@@ -416,13 +407,13 @@ export const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const newOptions = { limit:DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 
-  if (dataType === ChartData.Status) {
+  if (dataType === ChartDataType.Status) {
     return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
-  } else if (dataType === ChartData.Severity) {
+  } else if (dataType === ChartDataType.Severity) {
     return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
   }
 };
