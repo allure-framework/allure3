@@ -2,91 +2,77 @@ import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
+import {
+  makeHistoryId,
+  makeReportConfig,
+  makeTestResults,
+} from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 
-test.beforeEach(async ({ browserName, page }) => {
-  await label("env", browserName);
+const reportName = "Sample allure report";
+const firstTestWithRetries = "0 sample test";
+const firstTestWithRetriesFullname = "sample.js#0 sample test";
+const firstTestWithRetriesHistoryId = makeHistoryId(firstTestWithRetriesFullname);
 
-  treePage = new TreePage(page);
+const secondTestWithRetriesName = "1 sample test";
+const secondTestWithRetriesFullname = "sample.js#1 sample test";
+const secondTestWithRetriesHistoryId = makeHistoryId(secondTestWithRetriesFullname);
 
-  if (bootstrap) {
-    await page.goto(bootstrap.url);
-  }
-});
-
-test.afterAll(async () => {
-  await bootstrap?.shutdown?.();
-});
+const testWithoutRetriesName = "2 sample test";
+const testWithoutRetriesFullname = "sample.js#2 sample test";
+const testWithoutRetriesHistoryId = makeHistoryId(testWithoutRetriesFullname);
 
 test.describe("retries", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        knownIssuesPath: undefined,
-      },
-      testResults: [
-        {
-          name: "0 sample test",
-          fullName: "sample.js#0 sample test",
-          historyId: "foo",
-          status: Status.FAILED,
+    const testResults = makeTestResults(6, (index) => {
+      if ([0, 1, 2].includes(index)) {
+        return {
+          name: firstTestWithRetries,
+          fullName: firstTestWithRetriesFullname,
+          historyId: firstTestWithRetriesHistoryId,
+          status: index % 2 === 0 ? Status.FAILED : Status.PASSED,
           stage: Stage.FINISHED,
-          start: 0,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-        {
-          name: "0 sample test",
-          fullName: "sample.js#0 sample test",
-          historyId: "foo",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-        {
-          name: "0 sample test",
-          fullName: "sample.js#0 sample test",
-          historyId: "foo",
+        };
+      } else if ([3, 4].includes(index)) {
+        return {
+          name: secondTestWithRetriesName,
+          fullName: secondTestWithRetriesFullname,
+          historyId: secondTestWithRetriesHistoryId,
           status: Status.PASSED,
           stage: Stage.FINISHED,
-          start: 2000,
-        },
-        {
-          name: "1 sample test",
-          fullName: "sample.js#1 sample test",
-          historyId: "bar",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 3000,
-        },
-        {
-          name: "1 sample test",
-          fullName: "sample.js#1 sample test",
-          historyId: "bar",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 4000,
-        },
-        {
-          name: "2 sample test",
-          fullName: "sample.js#2 sample test",
-          historyId: "baz",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 5000,
-        },
-      ],
+        };
+      }
+
+      return {
+        name: testWithoutRetriesName,
+        fullName: testWithoutRetriesFullname,
+        historyId: testWithoutRetriesHistoryId,
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+      };
     });
+
+    bootstrap = await bootstrapReport({
+      reportConfig: makeReportConfig({
+        name: reportName,
+        appendHistory: false,
+      }),
+      testResults,
+    });
+  });
+
+  test.beforeEach(async ({ browserName, page }) => {
+    await label("env", browserName);
+
+    treePage = new TreePage(page);
+
+    await page.goto(bootstrap.url);
+  });
+
+  test.afterAll(async () => {
+    await bootstrap?.shutdown?.();
   });
 
   test("shows only tests with retries", async () => {
@@ -102,10 +88,10 @@ test.describe("retries", () => {
 
     await expect(retryIcons).toHaveCount(2);
 
-    const testWithRetriesIcon = treePage.getLeafByTitle("0 sample test").getByTestId("tree-leaf-retries");
-    const anotherTestWithRetriesIcon = treePage.getLeafByTitle("1 sample test").getByTestId("tree-leaf-retries");
+    const firstTestWithRetriesIcon = treePage.getLeafByTitle(firstTestWithRetries).getByTestId("tree-leaf-retries");
+    const anotherTestWithRetriesIcon = treePage.getLeafByTitle(secondTestWithRetriesName).getByTestId("tree-leaf-retries");
 
-    await expect(testWithRetriesIcon).toContainText("2");
+    await expect(firstTestWithRetriesIcon).toContainText("2");
     await expect(anotherTestWithRetriesIcon).toContainText("1");
   });
 
