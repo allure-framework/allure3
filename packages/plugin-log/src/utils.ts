@@ -117,7 +117,8 @@ export const printStep = (step: DefaultTestStepResult, options?: PrintFunctionOp
   });
 };
 
-export const printSummary = (results: TestResult[]) => {
+export const printSummary = (results: TestResult[], options: { total: number; filtered: number }) => {
+  const { total, filtered } = options;
   const statsCounters = {
     passed: 0,
     failed: 0,
@@ -168,7 +169,12 @@ export const printSummary = (results: TestResult[]) => {
     return;
   }
 
-  console.info(`Total tests: ${results.length}`);
+  if (total === filtered) {
+    console.info(`Total tests: ${filtered}`);
+  } else {
+    console.info(`Total tests: ${filtered} (of ${total})`);
+  }
+
   console.info(`Tests: ${stringifiedCounters.join(" | ")}`);
   console.info(`Duration: ${yellow((totalDuration / 1000).toString())}s`);
 };
