@@ -118,9 +118,11 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/static-server": "workspace:*"
+    "@faker-js/faker": "npm:^9.8.0"
     "@playwright/test": "npm:^1.48.2"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
+    "@types/lodash.times": "npm:^4.3.9"
     "@types/node": "npm:^20.17.9"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
@@ -133,6 +135,7 @@ __metadata:
     eslint-plugin-n: "npm:^17.10.1"
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    lodash.times: "npm:^4.3.2"
     prettier: "npm:^3.3.3"
     rimraf: "npm:^6.0.1"
   languageName: unknown
@@ -4544,6 +4547,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^9.8.0":
+  version: 9.8.0
+  resolution: "@faker-js/faker@npm:9.8.0"
+  checksum: 10/d7d7940ba7f2bd0d266d507bb7a33ec5099654da624dc8647d7cfd2e908b75ba06ed7dd0ec3b771a18600a734f420370b3cecd1ee5d4799993b1ee3505f866d8
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^1.6.0":
   version: 1.6.8
   resolution: "@floating-ui/core@npm:1.6.8"
@@ -6926,6 +6936,15 @@ __metadata:
   dependencies:
     "@types/lodash": "npm:*"
   checksum: 10/5be43f3598d6b1fa481fe7046e9e15e2225f547e0e309746c2b87f4e4fa8705e96c564e2762a9312e73e2a223d701ab893b122c506500de49a4b9fb40fb6d17c
+  languageName: node
+  linkType: hard
+
+"@types/lodash.times@npm:^4.3.9":
+  version: 4.3.9
+  resolution: "@types/lodash.times@npm:4.3.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 10/452374b3db98bb805e77b3a53955aa76c1e78a7d48c400b08d48b6424ed9328ad826d98364b82506ea2756089320503d3a5797a1456bcdac11451763be536e62
   languageName: node
   linkType: hard
 
@@ -14471,6 +14490,13 @@ __metadata:
   version: 4.5.0
   resolution: "lodash.omit@npm:4.5.0"
   checksum: 10/f5c67cd1df11f1275662060febb629a4d4e7b547c4bea66454508b5e6096162c2af882aab1ff8cb5dcf2b328f22252416de6ca9c1334588f6310edfac525e511
+  languageName: node
+  linkType: hard
+
+"lodash.times@npm:^4.3.2":
+  version: 4.3.2
+  resolution: "lodash.times@npm:4.3.2"
+  checksum: 10/b2eb8ceddb7f3e46f1f1e29dd3e004b84cfcb9d3b3a7e4dc9409512856f9dfa4de9f8e8ba812c1672572ad5e4093299022da85b4f6b0cd2b07a58d8b8e188802
   languageName: node
   linkType: hard
 

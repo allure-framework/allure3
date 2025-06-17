@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import crypto from "crypto";
 import { TreePage } from "../../pageObjects/index.js";
-import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
+import { makeHistoryId, makeTestCaseId } from "../utils/mocks.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
