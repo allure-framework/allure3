@@ -29,9 +29,9 @@ const nonFlakyHistoryId = makeHistoryId(nonFlakyTestFullname);
 test.describe("flaky", () => {
   test.beforeAll(async () => {
     const historyItemsCount = 6;
-    // History: flaky: PASSED -> Rest is in FAILED state
+    // History: flaky: FAILED -> PASSED -> Rest is in FAILED state
     const flakyHistoryResults = makeTestResults(historyItemsCount, (index) => {
-      if (index === 0) {
+      if (index === 1) {
         return {
           name: flakyTestName,
           fullName: flakyTestFullname,
