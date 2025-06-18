@@ -50,10 +50,6 @@ const template = `<!DOCTYPE html>
 </head>
 <body>
     <div id="app"></div>
-    <script>
-      document.cookie = "reportUuid=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
-      document.cookie = "reportUuid={{ reportUuid }};path = /;max-age=31536000";
-    </script>
     ${createBaseUrlScript()}
     <script>
       window.allure = window.allure || {};
