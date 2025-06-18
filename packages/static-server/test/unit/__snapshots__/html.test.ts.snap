@@ -1,7 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`live > doesn't inject live reload script to html attachments 1`] = `"<h1>hello world</h1>"`;
-
 exports[`live > doesn't inject live reload script to html with attachment query parameter 1`] = `
 "<!doctype html>
 <html lang="en">
