@@ -71,26 +71,26 @@ test.describe("status transitions", () => {
       }),
     ];
 
-    const history = makeHistory(6, () => ({
+    const history = makeHistory(8, (index) => ({
       name: reportName,
       knownTestCaseIds: [newFailedTestTestCaseId, newPassedTestTestCaseId, newBrokenTestTestCaseId],
       testResults: makeHistoryTestResults([
         makeTestResult({
           name: newFailedTestName,
           fullName: newFailedTestFullname,
-          status: Status.PASSED,
+          status: index % 2 === 0 ? Status.PASSED : Status.SKIPPED,
           stage: Stage.FINISHED,
         }),
         makeTestResult({
           name: newPassedTestName,
           fullName: newPassedTestFullname,
-          status: Status.FAILED,
+          status: index % 3 === 0 ? Status.FAILED : Status.SKIPPED,
           stage: Stage.FINISHED,
         }),
         makeTestResult({
           name: newBrokenTestName,
           fullName: newBrokenTestFullname,
-          status: Status.FAILED,
+          status: index % 4 === 0 ? Status.FAILED : Status.SKIPPED,
           stage: Stage.FINISHED,
         }),
       ]),
