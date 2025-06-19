@@ -31,10 +31,10 @@
     font-display: swap;
     font-weight: 300 700;
     src:
-      url("~@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff2 supports variations"),
-      url("~@allurereport/web-components/fonts/pt-root-ui_vf.woff2") format("woff2-variations"),
-      url("~@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff supports variations"),
-      url("~@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff-variations");
+      url("@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff2 supports variations"),
+      url("@allurereport/web-components/fonts/pt-root-ui_vf.woff2") format("woff2-variations"),
+      url("@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff supports variations"),
+      url("@allurereport/web-components/fonts/pt-root-ui_vf.woff") format("woff-variations");
   }
 
   @font-face {
@@ -42,9 +42,9 @@
     font-display: swap;
     font-weight: 100 800;
     src:
-      url("~@allurereport/web-components/fonts/JetBrainsMono_vf.woff2") format("woff2 supports variations"),
-      url("~@allurereport/web-components/fonts/JetBrainsMono_vf.woff2") format("woff2-variations"),
-      url("~@allurereport/web-components/fonts/JetBrainsMono_vf.woff") format("woff supports variations"),
-      url("~@allurereport/web-components/fonts/JetBrainsMono_vf.woff") format("woff-variations");
+      url("@allurereport/web-components/fonts/JetBrainsMono_vf.woff2") format("woff2 supports variations"),
+      url("@allurereport/web-components/fonts/JetBrainsMono_vf.woff2") format("woff2-variations"),
+      url("@allurereport/web-components/fonts/JetBrainsMono_vf.woff") format("woff supports variations"),
+      url("@allurereport/web-components/fonts/JetBrainsMono_vf.woff") format("woff-variations");
   }
 }
