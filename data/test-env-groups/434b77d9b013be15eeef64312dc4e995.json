@@ -1,1 +1,1 @@
-{"id":"434b77d9b013be15eeef64312dc4e995","fullName":"test/junitxml.test.ts#junit xml reader should parse single test with name and status","name":"should parse single test with name and status","status":"passed","testResultsByEnv":{"default":"5d938729840340ec515bb3e43ebe1785"}}
+{"id":"434b77d9b013be15eeef64312dc4e995","fullName":"test/junitxml.test.ts#junit xml reader should parse single test with name and status","name":"should parse single test with name and status","status":"passed","testResultsByEnv":{"default":"068e4c416effbd4fb2bd3c29e1b2c3a5"}}
