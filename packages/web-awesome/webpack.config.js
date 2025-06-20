@@ -18,8 +18,8 @@ export default (env, argv) => {
     entry: "./src/index.tsx",
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: devMode ? "app.js" : "app-[fullhash:8].js",
-      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[fullhash:8].[ext]`,
+      filename: devMode ? "app.js" : "app-[fullhash].js",
+      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[contenthash].[ext]`,
     },
     devtool: devMode ? "inline-source-map" : false,
     optimization: {
@@ -88,7 +88,7 @@ export default (env, argv) => {
         DEVELOPMENT: devMode,
       }),
       new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[fullhash:8].css",
+        filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
