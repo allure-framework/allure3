@@ -1,3 +1,2 @@
-import { AwesomePlugin } from "./plugin.js";
-
-export default AwesomePlugin;
+export type { ClassicPluginOptions } from "./model.js";
+export { ClassicPlugin as default } from "./plugin.js";

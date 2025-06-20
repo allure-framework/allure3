@@ -1,8 +1,13 @@
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { default as AwesomePlugin, type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 import * as console from "node:console";
+import { realpath } from "node:fs/promises";
+import process from "node:process";
 import { createCommand } from "../utils/commands.js";
 
 type AwesomeCommandOptions = {
+  cwd?: string;
+  config?: string;
   output?: string;
   reportName?: string;
   reportLanguage?: string;
@@ -14,22 +19,35 @@ type AwesomeCommandOptions = {
 };
 
 export const AwesomeCommandAction = async (resultsDir: string, options: AwesomeCommandOptions) => {
+  const cwd = await realpath(options.cwd ?? process.cwd());
   const before = new Date().getTime();
-  const { output, reportName: name, historyPath, knownIssues: knownIssuesPath, groupBy, ...rest } = options;
-  const config = await resolveConfig({
+  const {
+    config: configPath,
     output,
-    name,
+    reportName,
     historyPath,
-    knownIssuesPath,
-    plugins: {
-      "@allurereport/plugin-awesome": {
-        options: {
-          ...rest,
-          groupBy: groupBy?.split(","),
-        },
-      },
+    knownIssues: knownIssuesPath,
+    groupBy,
+    ...rest
+  } = options;
+  const defaultAwesomeOptions = {
+    ...rest,
+    groupBy: groupBy?.split(","),
+  } as AwesomePluginOptions;
+  const config = enforcePlugin(
+    await readConfig(cwd, configPath, {
+      output,
+      name: reportName,
+      knownIssuesPath,
+      historyPath,
+    }),
+    {
+      id: "awesome",
+      enabled: true,
+      options: defaultAwesomeOptions,
+      plugin: new AwesomePlugin(defaultAwesomeOptions),
     },
-  });
+  );
   const allureReport = new AllureReport(config);
 
   await allureReport.start();
@@ -45,6 +63,18 @@ export const AwesomeCommand = createCommand({
   name: "awesome <resultsDir>",
   description: "Generates Allure Awesome report based on provided Allure Results",
   options: [
+    [
+      "--config, -c <file>",
+      {
+        description: "The path Allure config file",
+      },
+    ],
+    [
+      "--cwd <cwd>",
+      {
+        description: "The working directory for the command to run (Default: current working directory)",
+      },
+    ],
     [
       "--output, -o <file>",
       {

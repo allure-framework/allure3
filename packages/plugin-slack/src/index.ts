@@ -1,3 +1,1 @@
-import { SlackPlugin } from "./plugin.js";
-
-export default SlackPlugin;
+export { SlackPlugin as default, type SlackPluginOptions } from "./plugin.js";

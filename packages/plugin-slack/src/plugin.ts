@@ -1,7 +1,7 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 
-interface SlackPluginOptions {
+export interface SlackPluginOptions {
   channel?: string;
   token?: string;
 }

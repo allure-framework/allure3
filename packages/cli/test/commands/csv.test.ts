@@ -1,14 +1,14 @@
-import * as core from "@allurereport/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AllureReport, readConfig } from "@allurereport/core";
+import CsvPlugin from "@allurereport/plugin-csv";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { CsvCommandAction } from "../../src/commands/csv.js";
 
-vi.spyOn(core, "resolveConfig");
 vi.mock("@allurereport/core", async (importOriginal) => {
-  const utils = await import("../utils.js");
-
+  const { AllureReportMock } = await import("../utils.js");
   return {
     ...(await importOriginal()),
-    AllureReport: utils.AllureReportMock,
+    readConfig: vi.fn(),
+    AllureReport: AllureReportMock,
   };
 });
 
@@ -17,81 +17,96 @@ beforeEach(() => {
 });
 
 describe("csv command", () => {
-  it("should initialize allure report with a correct default plugin options", async () => {
+  it("should initialize allure report with default plugin options when config doesn't exist", async () => {
     const resultsDir = "foo/bar/allure-results";
+
+    (readConfig as Mock).mockResolvedValueOnce({});
 
     await CsvCommandAction(resultsDir, {});
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-csv": {
-          options: {
-            groupBy: undefined,
-          },
-        },
-      }),
-    });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Allure Report",
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "plugin-csv",
+            id: "csv",
             enabled: true,
-            options: {
-              groupBy: undefined,
-            },
+            options: expect.objectContaining({}),
+            plugin: expect.any(CsvPlugin),
           }),
         ]),
       }),
     );
   });
 
-  it("should initialize allure report with a provided plugin options", async () => {
+  it("should initialize allure report with provided plugin options when config exists", async () => {
+    const resultsDir = "foo/bar/allure-results";
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [
+        {
+          id: "my-csv-plugin",
+          enabled: true,
+          options: {
+            separator: ";",
+            disableHeaders: true,
+          },
+          plugin: new CsvPlugin({
+            separator: ";",
+            disableHeaders: true,
+          }),
+        },
+      ],
+    });
+
+    await CsvCommandAction(resultsDir, {});
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "my-csv-plugin",
+            enabled: true,
+            options: expect.objectContaining({
+              separator: ";",
+              disableHeaders: true,
+            }),
+            plugin: expect.any(CsvPlugin),
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("should initialize allure report with provided command line options", async () => {
     const fixtures = {
       separator: ";",
       disableHeaders: true,
       resultsDir: "foo/bar/allure-results",
-      output: "./custom/output/path",
-      knownIssues: "./custom/known/issues/path",
+      config: "./custom/allurerc.mjs",
     };
 
     await CsvCommandAction(fixtures.resultsDir, {
-      output: fixtures.output,
-      knownIssues: fixtures.knownIssues,
       separator: fixtures.separator,
       disableHeaders: fixtures.disableHeaders,
+      config: fixtures.config,
     });
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-csv": {
-          options: {
-            groupBy: undefined,
-            separator: fixtures.separator,
-            disableHeaders: fixtures.disableHeaders,
-            output: fixtures.output,
-            knownIssues: fixtures.knownIssues,
-          },
-        },
-      }),
-    });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {});
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "plugin-csv",
+            id: "csv",
             enabled: true,
-            options: {
-              disableHeaders: fixtures.disableHeaders,
-              knownIssues: fixtures.knownIssues,
-              output: fixtures.output,
+            options: expect.objectContaining({
               separator: fixtures.separator,
-            },
+              disableHeaders: fixtures.disableHeaders,
+            }),
+            plugin: expect.any(CsvPlugin),
           }),
         ]),
       }),
