@@ -8,24 +8,25 @@ export class LogPlugin implements Plugin {
   constructor(readonly options: LogPluginOptions = {}) {}
 
   done = async (context: PluginContext, store: AllureStore) => {
-    const { groupBy = "suite" } = this.options ?? {};
+    const { groupBy = "suite", filter = () => true } = this.options ?? {};
     const allTestResults = await store.allTestResults();
+    const filteredTestResults = allTestResults.filter(filter);
 
     if (groupBy === "none") {
-      allTestResults.forEach((test) => {
+      filteredTestResults.forEach((test) => {
         printTest(test, this.options);
       });
 
       console.log("");
 
-      printSummary(Array.from(allTestResults));
+      printSummary(filteredTestResults, { total: allTestResults.length, filtered: filteredTestResults.length });
       return;
     }
 
     const groupedTests = await store.testResultsByLabel(groupBy);
 
     Object.keys(groupedTests).forEach((key) => {
-      const tests = groupedTests[key];
+      const tests = groupedTests[key].filter(filter);
 
       if (tests.length === 0) {
         // skip empty groups
@@ -45,6 +46,9 @@ export class LogPlugin implements Plugin {
       console.log("");
     });
 
-    printSummary(Array.from(allTestResults));
+    printSummary(filteredTestResults, {
+      total: allTestResults.length,
+      filtered: filteredTestResults.length,
+    });
   };
 }

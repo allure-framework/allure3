@@ -18,6 +18,7 @@ export default defineConfig({
     log: {
       options: {
         groupBy: "none",
+        filter: ({ status }) => status === "failed" || status === "broken",
       },
     },
   },
