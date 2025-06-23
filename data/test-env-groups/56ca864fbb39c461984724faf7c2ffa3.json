@@ -1,0 +1,1 @@
+{"id":"56ca864fbb39c461984724faf7c2ffa3","fullName":"test/commands/dashboard.test.ts#dashboard command should initialize allure report with provided plugin options when config exists","name":"should initialize allure report with provided plugin options when config exists","status":"passed","testResultsByEnv":{"default":"aa3fbd3837b8b4ede6a66ab4a445e7f6"}}

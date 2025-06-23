@@ -1,0 +1,1 @@
+{"id":"bc83b6870b364a1b9ba9ac36f2080b8a","fullName":"test/commands/awesome.test.ts#awesome command should initialize allure report with default plugin options when config doesn't exist","name":"should initialize allure report with default plugin options when config doesn't exist","status":"passed","testResultsByEnv":{"default":"39f42b2f7d1128b0bb3fe74b57396591"}}
