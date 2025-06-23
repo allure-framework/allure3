@@ -1,3 +1,2 @@
-import { LogPlugin } from "./plugin.js";
-
-export default LogPlugin;
+export { type LogPluginOptions } from "./model.js";
+export { LogPlugin as default } from "./plugin.js";

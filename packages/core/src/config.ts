@@ -49,10 +49,11 @@ export const findConfig = async (cwd: string, configPath?: string) => {
 };
 
 export interface ConfigOverride {
-  name?: string;
-  output?: string;
-  historyPath?: string;
-  knownIssuesPath?: string;
+  name?: Config["name"];
+  output?: Config["output"];
+  historyPath?: Config["historyPath"];
+  knownIssuesPath?: Config["knownIssuesPath"];
+  plugins?: Config["plugins"];
 }
 
 /**
@@ -107,7 +108,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const variables = config.variables ?? {};
   const environments = config.environments ?? {};
   const plugins =
-    Object.keys(config?.plugins ?? {}).length === 0
+    Object.keys(override?.plugins ?? config?.plugins ?? {}).length === 0
       ? {
           awesome: {
             options: {},
@@ -141,6 +142,39 @@ export const readConfig = async (
   const config = cfg ? await loadConfig(cfg) : { ...defaultConfig };
 
   return await resolveConfig(config, override);
+};
+
+/**
+ * Returns the plugin instance that matches the given predicate
+ * If there are more than one instance that matches the predicate, returns the first one
+ * @param config
+ * @param predicate
+ */
+export const getPluginInstance = (config: FullConfig, predicate: (plugin: PluginInstance) => boolean) => {
+  return config?.plugins?.find(predicate);
+};
+
+/**
+ * Enforces the plugin instance in the config
+ * If the plugin instance is not present, it will be added to the config as a single plugin in it
+ * If the plugin instance is already present, it will be used as a single plugin in it
+ * @param config
+ * @param pluginInstance
+ */
+export const enforcePlugin = (config: FullConfig, pluginInstance: PluginInstance) => {
+  const newConfig = { ...config };
+  const instance = getPluginInstance(
+    newConfig,
+    (item) => item.plugin.constructor === pluginInstance.plugin.constructor,
+  );
+
+  if (!instance) {
+    newConfig.plugins = [pluginInstance];
+  } else {
+    newConfig.plugins = [instance];
+  }
+
+  return newConfig;
 };
 
 export const resolvePlugin = async (path: string) => {

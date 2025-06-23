@@ -1,8 +1,13 @@
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import Allure2Plugin, { type Allure2PluginOptions } from "@allurereport/plugin-allure2";
 import * as console from "node:console";
+import { realpath } from "node:fs/promises";
+import process from "node:process";
 import { createCommand } from "../utils/commands.js";
 
 type ClassicCommandOptions = {
+  cwd?: string;
+  config?: string;
   output?: string;
   reportName?: string;
   reportLanguage?: string;
@@ -12,19 +17,26 @@ type ClassicCommandOptions = {
 };
 
 export const ClassicLegacyCommandAction = async (resultsDir: string, options: ClassicCommandOptions) => {
+  const cwd = await realpath(options.cwd ?? process.cwd());
   const before = new Date().getTime();
-  const { output, reportName: name, historyPath, knownIssues: knownIssuesPath, ...rest } = options;
-  const config = await resolveConfig({
-    output,
-    name,
-    historyPath,
-    knownIssuesPath,
-    plugins: {
-      "@allurereport/plugin-allure2": {
-        options: rest,
-      },
+  const { config: configPath, output, reportName, historyPath, knownIssues: knownIssuesPath, ...rest } = options;
+  const defaultAllure2Options = {
+    ...rest,
+  } as Allure2PluginOptions;
+  const config = enforcePlugin(
+    await readConfig(cwd, configPath, {
+      output,
+      name: reportName,
+      knownIssuesPath,
+      historyPath,
+    }),
+    {
+      id: "allure2",
+      enabled: true,
+      options: defaultAllure2Options,
+      plugin: new Allure2Plugin(defaultAllure2Options),
     },
-  });
+  );
   const allureReport = new AllureReport(config);
 
   await allureReport.start();
@@ -40,6 +52,18 @@ export const ClassicLegacyCommand = createCommand({
   name: "allure2 <resultsDir>",
   description: "Generates Allure Classic report based on provided Allure Results",
   options: [
+    [
+      "--config, -c <file>",
+      {
+        description: "The path Allure config file",
+      },
+    ],
+    [
+      "--cwd <cwd>",
+      {
+        description: "The working directory for the command to run (Default: current working directory)",
+      },
+    ],
     [
       "--output, -o <file>",
       {

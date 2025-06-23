@@ -6,7 +6,7 @@ export * from "./utils/stats.js";
 export * from "./utils/git.js";
 export * from "./history.js";
 export * from "./known.js";
-export { resolveConfig, readConfig } from "./config.js";
+export { resolveConfig, readConfig, getPluginInstance, enforcePlugin } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
 export * from "./qualityGate.js";

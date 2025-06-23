@@ -1,8 +1,13 @@
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import CsvPlugin, { type CsvPluginOptions } from "@allurereport/plugin-csv";
 import * as console from "node:console";
+import { realpath } from "node:fs/promises";
+import process from "node:process";
 import { createCommand } from "../utils/commands.js";
 
 type CsvCommandOptions = {
+  cwd?: string;
+  config?: string;
   separator?: string;
   disableHeaders?: boolean;
   output?: string;
@@ -10,14 +15,25 @@ type CsvCommandOptions = {
 };
 
 export const CsvCommandAction = async (resultsDir: string, options: CsvCommandOptions) => {
+  const cwd = await realpath(options.cwd ?? process.cwd());
   const before = new Date().getTime();
-  const config = await resolveConfig({
-    plugins: {
-      "@allurereport/plugin-csv": {
-        options,
-      },
+  const { config: configPath, output, knownIssues: knownIssuesPath, separator, disableHeaders } = options;
+  const defaultCsvOptions = {
+    separator,
+    disableHeaders,
+  } as CsvPluginOptions;
+  const config = enforcePlugin(
+    await readConfig(cwd, configPath, {
+      output,
+      knownIssuesPath,
+    }),
+    {
+      id: "csv",
+      enabled: true,
+      options: defaultCsvOptions,
+      plugin: new CsvPlugin(defaultCsvOptions),
     },
-  });
+  );
   const allureReport = new AllureReport(config);
 
   await allureReport.start();
@@ -33,6 +49,18 @@ export const CsvCommand = createCommand({
   name: "csv <resultsDir>",
   description: "Generates CSV report based on provided Allure Results",
   options: [
+    [
+      "--config, -c <file>",
+      {
+        description: "The path Allure config file",
+      },
+    ],
+    [
+      "--cwd <cwd>",
+      {
+        description: "The working directory for the command to run (Default: current working directory)",
+      },
+    ],
     [
       "--output, -o <file>",
       {
