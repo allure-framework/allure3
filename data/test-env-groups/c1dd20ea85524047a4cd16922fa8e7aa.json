@@ -1,1 +1,1 @@
-{"id":"c1dd20ea85524047a4cd16922fa8e7aa","fullName":"test/allure1.test.ts#allure1 reader descriptions should treat missing type as markdown","name":"should treat missing type as markdown","status":"passed","testResultsByEnv":{"default":"73a7120f32b742de208f4e83d5292afe"}}
+{"id":"c1dd20ea85524047a4cd16922fa8e7aa","fullName":"test/allure1.test.ts#allure1 reader descriptions should treat missing type as markdown","name":"should treat missing type as markdown","status":"passed","testResultsByEnv":{"default":"4b1014d7162f4e71fd31ee5598089967"}}

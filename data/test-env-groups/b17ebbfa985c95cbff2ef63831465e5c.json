@@ -1,1 +1,1 @@
-{"id":"b17ebbfa985c95cbff2ef63831465e5c","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should finish initial scan on abort","name":"should finish initial scan on abort","status":"passed","testResultsByEnv":{"default":"a6bc60929d872d98807a7e9ed4a6794a"}}
+{"id":"b17ebbfa985c95cbff2ef63831465e5c","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should finish initial scan on abort","name":"should finish initial scan on abort","status":"passed","testResultsByEnv":{"default":"172430cdcc46556e96147e9292c1a5e6"}}

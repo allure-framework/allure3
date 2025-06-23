@@ -1,1 +1,1 @@
-{"id":"c694d343970e01c6f8c9d4d25703a449","fullName":"test/index.test.ts#watchDirectory doesn't call the callback when unwatched","name":"doesn't call the callback when unwatched","status":"passed","testResultsByEnv":{"default":"6fde23ae5502d683a8bfba8135541ad0"}}
+{"id":"c694d343970e01c6f8c9d4d25703a449","fullName":"test/index.test.ts#watchDirectory doesn't call the callback when unwatched","name":"doesn't call the callback when unwatched","status":"passed","testResultsByEnv":{"default":"dd9d0baaf6d119be8d2949d67e344cb3"}}

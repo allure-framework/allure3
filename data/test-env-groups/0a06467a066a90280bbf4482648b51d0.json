@@ -1,1 +1,1 @@
-{"id":"0a06467a066a90280bbf4482648b51d0","fullName":"test/allure1.test.ts#allure1 reader fullName should use the suite's title if no name defined","name":"should use the suite's title if no name defined","status":"passed","testResultsByEnv":{"default":"2a33d431098e59b751cdd16ebc0829d8"}}
+{"id":"0a06467a066a90280bbf4482648b51d0","fullName":"test/allure1.test.ts#allure1 reader fullName should use the suite's title if no name defined","name":"should use the suite's title if no name defined","status":"passed","testResultsByEnv":{"default":"fdd30271d7b955fb21b1bace1e150482"}}
