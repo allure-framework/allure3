@@ -34,12 +34,12 @@
     "malfunctioned": "Malfuctioned"
   },
   "filters.description": {
-    "flaky": "Show test results that \"passed\" and then \"failed\" within the last 5 runs, indicating unstable behavior",
-    "retry": "Show test results that were rerun with no status changes",
+    "flaky": "Show unstable tests",
+    "retry": "Show test results that were rerun",
     "new": "Show test results that appear for the first time in this report",
-    "fixed": "Show test results that changed to \"passed\" status from \"failed\" or \"broken\" status",
-    "regressed": "Show test results that changed to \"failed\" status from \"passed\" status",
-    "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" status"
+    "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
+    "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
+    "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status"
   },
   "sort-by": {
     "sort-by-text": "Sort by:",
@@ -174,9 +174,9 @@
     "malfunctioned": "Malfuctioned"
   },
   "transitions.description": {
-    "new": "First occurrence of this test result in the report",
-    "fixed": "Previously \"failed\" or \"broken\" test that is now \"passed\"",
-    "regressed": "Previously \"passed\" test that is now \"failed\"",
-    "malfunctioned": "Previously \"passed\" test that is now \"broken\""
+    "new": "The first occurrence of this test result in the report",
+    "fixed": "A previously \"failed\" or \"broken\" test that is now \"passed\"",
+    "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
+    "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\""
   }
 }
