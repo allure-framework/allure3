@@ -18,7 +18,7 @@ const componentsByAttachmentType: Record<string, any> = {
   uri: AttachmentCode,
   css: AttachmentCode,
   table: AttachmentCode,
-  html: AttachmentCode,
+  html: HtmlPreview,
   text: AttachmentCode,
   video: AttachmentVideo,
 };
