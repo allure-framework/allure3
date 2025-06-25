@@ -34,12 +34,12 @@
     "malfunctioned": "Defeituoso"
   },
   "filters.description": {
-    "flaky": "Mostra resultados de testes que \"passaram\" e depois \"falharam\" nas últimas 5 execuções, indicando comportamento instável",
-    "retry": "Mostra resultados de testes que foram executados novamente sem alterações de status",
+    "flaky": "Mostrar testes instáveis",
+    "retry": "Mostra resultados de testes que foram executados novamente",
     "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
-    "fixed": "Mostra resultados de testes que mudaram de status \"falhou\" ou \"quebrado\" para \"aprovado\"",
-    "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"falhou\"",
-    "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" para \"quebrado\""
+    "fixed": "Mostra testes que agora estão aprovados mas que anteriormente \"falharam\" ou \"quebraram\"",
+    "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"quebrado\" para \"falhou\"",
+    "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"falhou\" para \"quebrado\""
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Primeira ocorrência deste resultado de teste no relatório",
     "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
-    "regressed": "Teste anteriormente \"aprovado\" que agora está \"falhou\"",
-    "malfunctioned": "Teste anteriormente \"aprovado\" que agora está \"quebrado\""
+    "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
+    "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\""
   }
 }

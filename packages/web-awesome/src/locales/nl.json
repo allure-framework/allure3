@@ -34,12 +34,12 @@
     "malfunctioned": "Defect"
   },
   "filters.description": {
-    "flaky": "Toont testresultaten die \"geslaagd\" en vervolgens \"mislukt\" zijn binnen de laatste 5 runs, wat wijst op onstabiel gedrag",
-    "retry": "Toont testresultaten die opnieuw zijn uitgevoerd zonder statuswijzigingen",
+    "flaky": "Onstabiele tests weergeven",
+    "retry": "Testresultaten weergeven die opnieuw zijn uitgevoerd",
     "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
-    "fixed": "Toont testresultaten die zijn gewijzigd van \"mislukt\" of \"gebroken\" naar \"geslaagd\" status",
-    "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"mislukt\" status",
-    "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" naar \"gebroken\" status"
+    "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
+    "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
+    "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status"
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
     "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
-    "regressed": "Eerder \"geslaagd\" test die nu \"mislukt\" is",
-    "malfunctioned": "Eerder \"geslaagd\" test die nu \"gebroken\" is"
+    "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
+    "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is"
   }
 }
