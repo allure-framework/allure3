@@ -1,1 +1,1 @@
-{"id":"14182324a2d8d7ea6722a2edd47fa07f","fullName":"test/detect.test.ts#detectContentType should detect sample.gif as image/gif","name":"should detect sample.gif as image/gif","status":"passed","testResultsByEnv":{"default":"12a583bf9bdd749c64b6325e7f58fa5e"}}
+{"id":"14182324a2d8d7ea6722a2edd47fa07f","fullName":"test/detect.test.ts#detectContentType should detect sample.gif as image/gif","name":"should detect sample.gif as image/gif","status":"passed","testResultsByEnv":{"default":"6729f9bef84ed098880f312b69f0cbff"}}

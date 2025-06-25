@@ -1,1 +1,1 @@
-{"id":"c6803ea6c6bb9a5209f702d017272067","fullName":"test/config.test.ts#resolveConfig should allow to override given known issues path","name":"should allow to override given known issues path","status":"passed","testResultsByEnv":{"default":"aa6e066279e73dd16b8efce7dc632d92"}}
+{"id":"c6803ea6c6bb9a5209f702d017272067","fullName":"test/config.test.ts#resolveConfig should allow to override given known issues path","name":"should allow to override given known issues path","status":"passed","testResultsByEnv":{"default":"1099c168d7d4312808bbddc16f2325db"}}
