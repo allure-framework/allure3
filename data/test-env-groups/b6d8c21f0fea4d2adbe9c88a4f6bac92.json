@@ -1,1 +1,1 @@
-{"id":"b6d8c21f0fea4d2adbe9c88a4f6bac92","fullName":"src/components/Button/Button.test.tsx#IconButton renders as an anchor when href is provided","name":"renders as an anchor when href is provided","status":"passed","testResultsByEnv":{"default":"f37fb5d07cafe6d089b9d919fcc051ea"}}
+{"id":"b6d8c21f0fea4d2adbe9c88a4f6bac92","fullName":"src/components/Button/Button.test.tsx#IconButton renders as an anchor when href is provided","name":"renders as an anchor when href is provided","status":"passed","testResultsByEnv":{"default":"2ceda01e2936bb0a0bbd792d141d71f4"}}
