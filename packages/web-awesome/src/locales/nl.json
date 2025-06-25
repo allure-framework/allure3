@@ -33,6 +33,14 @@
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect"
   },
+  "filters.description": {
+    "flaky": "Onstabiele tests weergeven",
+    "retry": "Testresultaten weergeven die opnieuw zijn uitgevoerd",
+    "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
+    "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
+    "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
+    "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status"
+  },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
     "sort-by-category": "Sorteren op",
@@ -45,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Laatste – Eerste",
-    "order-asc": "Eerste – Laatste",
+    "order-desc": "Laatste – Eerste",
+    "order-asc": "Eerste – Laatste",
     "order-asc-short": "Eerste",
     "order-desc-short": "Laatste",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Zoals in de filterlijst",
     "status-desc": "Omgekeerd",
     "status-asc-short": "Normaal",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Geen resultaten",
     "no-tests-found": "Geen resultaten gevonden",
+    "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
@@ -163,5 +172,11 @@
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect"
+  },
+  "transitions.description": {
+    "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
+    "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
+    "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
+    "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is"
   }
 }

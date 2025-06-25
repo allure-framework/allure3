@@ -33,6 +33,14 @@
     "regressed": "Regresado",
     "malfunctioned": "Defectuoso"
   },
+  "filters.description": {
+    "flaky": "Mostrar pruebas inestables",
+    "retry": "Mostrar resultados de pruebas que se volvieron a ejecutar",
+    "new": "Mostrar resultados de pruebas que aparecen por primera vez en este informe",
+    "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
+    "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
+    "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\""
+  },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
     "sort-by-category": "Ordenar por",
@@ -45,18 +53,18 @@
     "status": "Estado"
   },
   "sort-by.directions": {
-    "order-desc": "Más reciente – Más antiguo",
-    "order-asc": "Más antiguo – Más reciente",
+    "order-desc": "Más reciente – Más antiguo",
+    "order-asc": "Más antiguo – Más reciente",
     "order-asc-short": "Antiguo",
     "order-desc-short": "Reciente",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Como en la lista de filtros",
     "status-desc": "Invertido",
     "status-asc-short": "Regular",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Sin resultados",
     "no-tests-found": "No se encontraron resultados",
+    "no-message-provided": "No se proporcionó mensaje",
     "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
     "no-history-results": "No hay información de historial disponible",
@@ -163,5 +172,11 @@
     "fixed": "Corregido",
     "regressed": "Regresado",
     "malfunctioned": "Defectuoso"
+  },
+  "transitions.description": {
+    "new": "Primera aparición de este resultado de prueba en el informe",
+    "fixed": "Prueba que anteriormente \"falló\" o estaba \"rota\" y ahora está \"aprobada\"",
+    "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
+    "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\""
   }
 }

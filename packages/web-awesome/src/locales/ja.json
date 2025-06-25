@@ -24,14 +24,22 @@
     "search-placeholder": "名前またはID"
   },
   "filters": {
-    "more-filters": "さらにフィルター",
-    "enable-filter": "\"{{filter}}\" フィルターを有効にする",
+    "more-filters": "フィルター",
+    "enable-filter": "\"{{filter}}\"フィルターを有効にする",
     "flaky": "不安定",
-    "retry": "再試行",
-    "new": "新しい",
+    "retry": "再実行",
+    "new": "新規",
     "fixed": "修正済み",
     "regressed": "退行",
-    "malfunctioned": "故障"
+    "malfunctioned": "破損"
+  },
+  "filters.description": {
+    "flaky": "不安定なテストを表示",
+    "retry": "再実行されたテスト結果を表示します",
+    "new": "このレポートで初めて表示されるテスト結果を表示します",
+    "fixed": "現在「成功」しているが、以前「失敗」または「破損」していたテストを表示します",
+    "regressed": "ステータスが「成功」または「破損」から「失敗」に変更されたテスト結果を表示します",
+    "malfunctioned": "ステータスが「成功」または「失敗」から「破損」に変更されたテスト結果を表示します"
   },
   "sort-by": {
     "sort-by-text": "並べ替え:",
@@ -63,8 +71,9 @@
     "status-desc-short": "逆順"
   },
   "empty": {
-    "no-results": "結果がありません",
+    "no-results": "結果なし",
     "no-tests-found": "結果が見つかりません",
+    "no-message-provided": "メッセージが提供されていません",
     "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
@@ -162,6 +171,12 @@
     "new": "新規",
     "fixed": "修正済み",
     "regressed": "退行",
-    "malfunctioned": "故障"
+    "malfunctioned": "破損"
+  },
+  "transitions.description": {
+    "new": "このテスト結果がレポートに初めて表示される",
+    "fixed": "以前「失敗」または「破損」だったテストが「成功」になった",
+    "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
+    "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった"
   }
 }

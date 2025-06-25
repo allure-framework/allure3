@@ -33,6 +33,14 @@
     "regressed": "已回归",
     "malfunctioned": "已损坏"
   },
+  "filters.description": {
+    "flaky": "显示不稳定的测试",
+    "retry": "显示重新运行的测试结果",
+    "new": "显示在此报告中首次出现的测试结果",
+    "fixed": "显示现在通过但之前\"失败\"或\"损坏\"的测试",
+    "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
+    "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果"
+  },
   "sort-by": {
     "sort-by-text": "排序依据:",
     "sort-by-category": "排序类别",
@@ -45,18 +53,18 @@
     "status": "状态"
   },
   "sort-by.directions": {
-    "order-desc": "最新 – 最早",
-    "order-asc": "最早 – 最新",
+    "order-desc": "最新 – 最早",
+    "order-asc": "最早 – 最新",
     "order-asc-short": "最早",
     "order-desc-short": "最新",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "按照过滤列表",
     "status-desc": "反转",
     "status-asc-short": "正常",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "没有结果",
     "no-tests-found": "未找到结果",
+    "no-message-provided": "未提供消息",
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
     "no-history-results": "没有历史信息",
@@ -163,5 +172,11 @@
     "fixed": "已修复",
     "regressed": "已回归",
     "malfunctioned": "已损坏"
+  },
+  "transitions.description": {
+    "new": "此测试结果在报告中的首次出现",
+    "fixed": "之前\"失败\"或\"损坏\"的测试现在\"通过\"了",
+    "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
+    "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了"
   }
 }

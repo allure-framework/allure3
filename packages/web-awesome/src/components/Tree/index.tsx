@@ -1,4 +1,5 @@
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
+import { useMemo } from "preact/hooks";
 import type { AwesomeStatus } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useTabsContext } from "@/components/Tabs";
@@ -22,8 +23,17 @@ export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tTransitions } = useI18n("transitions");
+  const { t: tooltip } = useI18n("transitions.description");
   const { currentTab } = useTabsContext();
   const routeId = route.value.params?.testResultId;
+
+  const localizers = useMemo(
+    () => ({
+      tooltip,
+      value: tTransitions,
+    }),
+    [tTransitions, tooltip],
+  );
 
   return (
     <Loadable
@@ -61,7 +71,7 @@ export const TreeList = () => {
           );
         }
 
-        const treeLocalizer = createTreeLocalizer(tTransitions);
+        const treeLocalizer = createTreeLocalizer(localizers);
 
         // render single tree for single environment
         if (environmentsStore.value.data.length === 1) {

@@ -24,14 +24,22 @@
     "search-placeholder": "Name oder ID"
   },
   "filters": {
-    "more-filters": "Weitere Filter",
-    "enable-filter": "Filter für \"{{filter}}\" aktivieren",
+    "more-filters": "Filter",
+    "enable-filter": "Filter nach \"{{filter}}\" aktivieren",
     "flaky": "Instabil",
-    "retry": "Wiederholen",
+    "retry": "Wiederholt",
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt"
+  },
+  "filters.description": {
+    "flaky": "Instabile Tests anzeigen",
+    "retry": "Testergebnisse anzeigen, die wiederholt wurden",
+    "new": "Testergebnisse anzeigen, die zum ersten Mal in diesem Bericht erscheinen",
+    "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
+    "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
+    "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -45,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Neueste – Älteste",
-    "order-asc": "Älteste – Neueste",
+    "order-desc": "Neueste – Älteste",
+    "order-asc": "Älteste – Neueste",
     "order-asc-short": "Älteste",
     "order-desc-short": "Neueste",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Wie in der Filterliste",
     "status-desc": "Umgekehrt",
     "status-asc-short": "Normal",
@@ -65,7 +73,8 @@
   "empty": {
     "no-results": "Keine Ergebnisse",
     "no-tests-found": "Keine Ergebnisse gefunden",
-    "clear-filters": "Filter löschen",
+    "no-message-provided": "Keine Nachricht vorhanden",
+    "clear-filters": "Filter zurücksetzen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
@@ -163,5 +172,11 @@
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt"
+  },
+  "transitions.description": {
+    "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
+    "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
+    "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
+    "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist"
   }
 }
