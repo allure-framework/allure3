@@ -12,7 +12,7 @@ const ansiTrace = (text: string) =>
     fg: "var(--on-text-primary)",
   }).toHtml(text);
 
-const isAnsi = (text?: string): boolean => typeof text === "string" && ansiRegex.test(text);
+const isAnsi = (text?: string): boolean => typeof text === "string" && new RegExp(ansiRegex).test(text);
 
 export const AttachmentCode: FunctionalComponent<{
   item: AttachmentTestStepResult;
