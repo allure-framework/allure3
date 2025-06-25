@@ -34,12 +34,12 @@
     "malfunctioned": "Uszkodzone"
   },
   "filters.description": {
-    "flaky": "Pokaż wyniki testów, które \"zdały\", a następnie \"nie zdały\" w ciągu ostatnich 5 uruchomień, co wskazuje na niestabilne zachowanie",
-    "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie bez zmiany statusu",
+    "flaky": "Pokaż niestabilne testy",
+    "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie",
     "new": "Pokaż wyniki testów, które po raz pierwszy pojawiają się w tym raporcie",
-    "fixed": "Pokaż wyniki testów, które zmieniły status z \"nieudany\" lub \"uszkodzony\" na \"udany\"",
-    "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" na \"nieudany\"",
-    "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" na \"uszkodzony\""
+    "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
+    "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"uszkodzony\" na \"nieudany\"",
+    "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"nieudany\" na \"uszkodzony\""
   },
   "sort-by": {
     "sort-by-text": "Sortuj po:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",
     "fixed": "Wcześniej \"nieudany\" lub \"uszkodzony\" test, który teraz jest \"udany\"",
-    "regressed": "Wcześniej \"udany\" test, który teraz jest \"nieudany\"",
-    "malfunctioned": "Wcześniej \"udany\" test, który teraz jest \"uszkodzony\""
+    "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
+    "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\""
   }
 }

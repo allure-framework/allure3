@@ -34,12 +34,12 @@
     "malfunctioned": "Danneggiati"
   },
   "filters.description": {
-    "flaky": "Mostra i risultati dei test che sono stati \"superati\" e poi \"falliti\" nelle ultime 5 esecuzioni, indicando un comportamento instabile",
-    "retry": "Mostra i risultati dei test che sono stati rieseguiti senza cambiamento di stato",
+    "flaky": "Mostra test instabili",
+    "retry": "Mostra i risultati dei test che sono stati rieseguiti",
     "new": "Mostra i risultati dei test che appaiono per la prima volta in questo report",
-    "fixed": "Mostra i risultati dei test che sono passati dallo stato \"fallito\" o \"danneggiato\" a \"superato\"",
-    "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" a \"fallito\"",
-    "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" a \"danneggiato\""
+    "fixed": "Mostra test che ora sono superati ma che erano precedentemente \"falliti\" o \"danneggiati\"",
+    "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"danneggiato\" a \"fallito\"",
+    "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"fallito\" a \"danneggiato\""
   },
   "sort-by": {
     "sort-by-text": "Ordina per:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Prima apparizione di questo risultato del test nel report",
     "fixed": "Test precedentemente \"fallito\" o \"danneggiato\" che ora è \"superato\"",
-    "regressed": "Test precedentemente \"superato\" che ora è \"fallito\"",
-    "malfunctioned": "Test precedentemente \"superato\" che ora è \"danneggiato\""
+    "regressed": "Test precedentemente \"superato\" o \"danneggiato\" che ora è \"fallito\"",
+    "malfunctioned": "Test precedentemente \"superato\" o \"fallito\" che ora è \"danneggiato\""
   }
 }

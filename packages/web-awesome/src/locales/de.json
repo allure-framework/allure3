@@ -34,12 +34,12 @@
     "malfunctioned": "Defekt"
   },
   "filters.description": {
-    "flaky": "Zeigt Testergebnisse, die in den letzten 5 Durchläufen \"erfolgreich\" waren und dann \"fehlgeschlagen\" sind, was auf instabiles Verhalten hinweist",
-    "retry": "Zeigt Testergebnisse, die ohne Statusänderung wiederholt wurden",
-    "new": "Zeigt Testergebnisse, die zum ersten Mal in diesem Bericht erscheinen",
-    "fixed": "Zeigt Testergebnisse, die den Status von \"fehlgeschlagen\" oder \"defekt\" zu \"erfolgreich\" geändert haben",
-    "regressed": "Zeigt Testergebnisse, die den Status von \"erfolgreich\" zu \"fehlgeschlagen\" geändert haben",
-    "malfunctioned": "Zeigt Testergebnisse, die den Status von \"erfolgreich\" zu \"defekt\" geändert haben"
+    "flaky": "Instabile Tests anzeigen",
+    "retry": "Testergebnisse anzeigen, die wiederholt wurden",
+    "new": "Testergebnisse anzeigen, die zum ersten Mal in diesem Bericht erscheinen",
+    "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
+    "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
+    "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben"
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
     "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
-    "regressed": "Zuvor \"erfolgreich\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
-    "malfunctioned": "Zuvor \"erfolgreich\" gewesener Test, der jetzt \"defekt\" ist"
+    "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
+    "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist"
   }
 }

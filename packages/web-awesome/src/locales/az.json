@@ -34,12 +34,12 @@
     "malfunctioned": "Sınıq"
   },
   "filters.description": {
-    "flaky": "Son 5 işdə \"uğurlu\" və sonra \"uğursuz\" olan test nəticələrini göstərir, bu da qeyri-sabit davranışı göstərir",
-    "retry": "Status dəyişikliyi olmadan yenidən işə salınan test nəticələrini göstərir",
+    "flaky": "Qeyri-sabit testləri göstərir",
+    "retry": "Yenidən işə salınan test nəticələrini göstərir",
     "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
-    "fixed": "Statusu \"uğurlu\" olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan test nəticələrini göstərir",
-    "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" olan test nəticələrini göstərir",
-    "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" olan test nəticələrini göstərir"
+    "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
+    "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
+    "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir"
   },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
     "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
-    "regressed": "Əvvəl \"uğurlu\" olan, indi \"uğursuz\" olan test",
-    "malfunctioned": "Əvvəl \"uğurlu\" olan, indi \"sınıq\" olan test"
+    "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
+    "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test"
   }
 }

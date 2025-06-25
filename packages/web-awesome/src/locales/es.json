@@ -34,12 +34,12 @@
     "malfunctioned": "Defectuoso"
   },
   "filters.description": {
-    "flaky": "Muestra resultados de pruebas que \"pasaron\" y luego \"fallaron\" en las últimas 5 ejecuciones, lo que indica un comportamiento inestable",
-    "retry": "Muestra resultados de pruebas que se volvieron a ejecutar sin cambios de estado",
-    "new": "Muestra resultados de pruebas que aparecen por primera vez en este informe",
-    "fixed": "Muestra resultados de pruebas que cambiaron de estado \"fallido\" o \"roto\" a \"aprobado\"",
-    "regressed": "Muestra resultados de pruebas que cambiaron de estado \"aprobado\" a \"fallido\"",
-    "malfunctioned": "Muestra resultados de pruebas que cambiaron de estado \"aprobado\" a \"roto\""
+    "flaky": "Mostrar pruebas inestables",
+    "retry": "Mostrar resultados de pruebas que se volvieron a ejecutar",
+    "new": "Mostrar resultados de pruebas que aparecen por primera vez en este informe",
+    "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
+    "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
+    "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\""
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",
@@ -176,7 +176,7 @@
   "transitions.description": {
     "new": "Primera aparición de este resultado de prueba en el informe",
     "fixed": "Prueba que anteriormente \"falló\" o estaba \"rota\" y ahora está \"aprobada\"",
-    "regressed": "Prueba que anteriormente estaba \"aprobada\" y ahora \"falló\"",
-    "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" y ahora está \"rota\""
+    "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
+    "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\""
   }
 }
