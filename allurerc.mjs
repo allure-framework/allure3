@@ -3,7 +3,7 @@ import { env } from "node:process";
 
 const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN } = env;
 
-export default defineConfig({
+const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
   plugins: {
@@ -34,10 +34,15 @@ export default defineConfig({
       matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "webkit"),
     },
   },
-  allureService: {
+};
+
+if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN) {
+  config.allureService = {
     url: ALLURE_SERVICE_URL,
     project: "allure3",
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
     publish: true,
-  },
-});
+  };
+}
+
+export default defineConfig(config);
