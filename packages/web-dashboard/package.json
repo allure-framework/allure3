@@ -92,7 +92,7 @@
     "vitest": "^2.1.9",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.1.0",
+    "webpack-dev-server": "^5.2.1",
     "webpack-manifest-plugin": "^5.0.0"
   }
 }
