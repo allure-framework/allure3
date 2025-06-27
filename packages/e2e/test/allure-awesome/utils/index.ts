@@ -14,6 +14,7 @@ export const bootstrapReport = async (
 ) => {
   return baseBootstrapReport({
     ...params,
+    history: params.history ?? [],
     reportConfig: {
       ...params.reportConfig,
       plugins: [

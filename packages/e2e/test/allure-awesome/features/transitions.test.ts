@@ -99,8 +99,8 @@ test.describe("status transitions", () => {
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
         name: reportName,
-        history,
       }),
+      history,
       testResults,
     });
   });

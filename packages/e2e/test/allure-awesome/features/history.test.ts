@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
-import { makeHistoryId, makeTestCaseId } from "../../utils/index.js";
+import { makeHistoryId, makeTestCaseId } from "../utils/mocks.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -76,7 +76,6 @@ test.describe("history", () => {
     test.beforeAll(async () => {
       bootstrap = await bootstrapReport({
         reportConfig: { ...fixtures.reportConfig },
-        history: [],
         testResults: [...fixtures.testResults],
       });
     });

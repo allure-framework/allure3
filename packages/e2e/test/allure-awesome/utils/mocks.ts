@@ -134,6 +134,7 @@ export const makeHistoryItem = (
     metrics = {},
     knownTestCaseIds = [],
     testResults = {},
+    url = "",
     ...rest
   } = params || {};
 
@@ -144,6 +145,7 @@ export const makeHistoryItem = (
     knownTestCaseIds,
     testResults,
     metrics,
+    url,
     ...rest,
   };
 };
@@ -178,6 +180,7 @@ export const makeHistoryTestResult = (testResult: TestResult): HistoryTestResult
     stop: testResult.stop,
     duration: testResult.stop && testResult.start ? testResult.stop - testResult.start : undefined,
     labels: testResult.labels || [],
+    url: "",
     ...testResult,
   };
 };
@@ -208,14 +211,12 @@ export const makeReportConfig = (params?: Partial<ReportConfig>): ReportConfig =
     appendHistory = true,
     historyPath = "history.jsonl",
     knownIssuesPath = undefined,
-    history = [],
     ...rest
   } = params || {};
 
   return {
     name,
     appendHistory,
-    history,
     historyPath,
     knownIssuesPath,
     ...rest,

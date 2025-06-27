@@ -58,8 +58,8 @@ test.describe("new tests", () => {
     bootstrap = await bootstrapReport({
       reportConfig: makeReportConfig({
         name: reportName,
-        history,
       }),
+      history,
       testResults,
     });
   });
