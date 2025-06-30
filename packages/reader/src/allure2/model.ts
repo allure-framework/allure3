@@ -67,6 +67,7 @@ interface ExecutableItem {
   parameters?: Parameter[];
   start?: number;
   stop?: number;
+  titlePath?: string[];
 }
 
 export type FixtureResult = ExecutableItem;

@@ -11,6 +11,7 @@ import {
   type ReportFiles,
   type ResultFile,
   type TestResultFilter,
+  createTreeByTitlePath,
   filterTree,
 } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
@@ -183,7 +184,7 @@ export const generateTree = async (
   tests: AwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const TTree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     visibleTests,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retry, retriesCount }) => ({
@@ -201,6 +202,21 @@ export const generateTree = async (
     (group, leaf) => {
       incrementStatistic(group.statistic, leaf.status);
     },
+  );
+
+  const tree = createTreeByTitlePath<AwesomeTestResult>(
+    tests,
+    (t) => t.titlePath || [],
+    ({ id, name, status, duration, flaky, start, retries }) => ({
+      nodeId: id,
+      name,
+      status,
+      duration,
+      flaky,
+      start,
+      retry: !!retries?.length,
+      retriesCount: retries?.length || 0,
+    }),
   );
 
   // @ts-ignore

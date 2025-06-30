@@ -8069,6 +8069,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"allure-js-commons@npm:3.3.0, allure-js-commons@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "allure-js-commons@npm:3.3.0"
+  dependencies:
+    md5: "npm:^2.3.0"
+  peerDependencies:
+    allure-playwright: 3.3.0
+  peerDependenciesMeta:
+    allure-playwright:
+      optional: true
+  checksum: 10/f9f66712341e30d9b46706b728937dd25fa46d369dc9bc56d4985c7e5de247b6e83989e6807a83fe46b2dfce76fbb7eff1801f1f2d9f6d861e122bfab77389e7
+  languageName: node
+  linkType: hard
+
 "allure-playwright@npm:^3.0.9":
   version: 3.0.9
   resolution: "allure-playwright@npm:3.0.9"
@@ -8100,6 +8114,18 @@ __metadata:
     "@vitest/runner": ">=1.3.0"
     vitest: ">=1.3.0"
   checksum: 10/9a0a8dd2f9bd741ab6b4a1eb820b73a2c3536330244f5225392aa2b03995e008897fa26416a56cb9afc63eb0645316aa9bd02e53186a0c9030e10350ce780ce7
+  languageName: node
+  linkType: hard
+
+"allure-vitest@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "allure-vitest@npm:3.3.0"
+  dependencies:
+    allure-js-commons: "npm:3.3.0"
+  peerDependencies:
+    "@vitest/runner": ">=1.3.0"
+    vitest: ">=1.3.0"
+  checksum: 10/a98dc38eb2d18a1734643bdbfecb4b6656f62943f0f7975a90d38d9e7df1a6d78eefa76451a25d45862840186efe0134252265bbf906e4f95b2c61f0a8bbcb2b
   languageName: node
   linkType: hard
 
@@ -17487,8 +17513,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     allure: "workspace:*"
-    allure-js-commons: "npm:^3.0.9"
-    allure-vitest: "npm:^3.0.9"
+    allure-js-commons: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"

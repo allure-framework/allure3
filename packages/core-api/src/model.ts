@@ -67,6 +67,8 @@ export interface TestResult {
 
   retries?: TestResult[];
   categories?: any;
+
+  titlePath?: string[];
 }
 
 export interface TestEnvGroup {
@@ -93,6 +95,7 @@ export interface TestFixtureResult {
   steps: TestStepResult[];
 
   sourceMetadata: SourceMetadata;
+  titlePath?: string[];
 }
 
 export type TestStepResult = DefaultTestStepResult | AttachmentTestStepResult;
