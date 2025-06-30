@@ -53,7 +53,7 @@ const createTree = <T, L, G>(
     let parentGroups = [root];
 
     for (const layer of itemGroups) {
-      if (layer.length === 0) {
+      if (layer?.length === 0) {
         break;
       }
 
@@ -328,4 +328,88 @@ export const transformTree = <L, G>(
   transformGroupLeaves(root as TreeGroup<G>);
 
   return tree;
+};
+
+/**
+ * Creates tree by Title path
+ * @param tests
+ * @param getTitlePath
+ * @param getLeaf
+ */
+export const createTreeByTitlePath = <T extends Partial<TestResult>>(
+  tests: T[],
+  getTitlePath: (item: T) => string[],
+  getLeaf: (item: T) => any & { nodeId: string; status: string },
+): {
+  root: { groups: string[]; leaves: string[] };
+  groupsById: Record<string, any>;
+  leavesById: Record<string, any>;
+} => {
+  const root: { groups: string[]; leaves: string[] } = { groups: [], leaves: [] };
+  const groupsById: Record<string, any> = {};
+  const leavesById: Record<string, any> = {};
+  const groupPathToId = new Map<string, string>();
+  let groupOrder = 1;
+
+  for (const test of tests) {
+    const path = getTitlePath(test);
+    if (!Array.isArray(path) || path.length === 0) {
+      continue;
+    }
+
+    let parentGroupId: string | undefined;
+    const pathParts: string[] = [];
+
+    for (const part of path) {
+      pathParts.push(part);
+      const key = pathParts.join("/");
+      let groupId = groupPathToId.get(key);
+
+      if (!groupId) {
+        groupId = md5(key);
+        groupPathToId.set(key, groupId);
+
+        const group = {
+          nodeId: groupId,
+          name: part,
+          statistic: {},
+        };
+
+        groupsById[groupId] = group;
+
+        if (parentGroupId) {
+          const parent = groupsById[parentGroupId];
+          if (!parent.groups) {
+            parent.groups = [];
+          }
+          parent.groups.push(groupId);
+        } else {
+          root.groups.push(groupId);
+        }
+      }
+
+      const titlePathGroup = groupsById[groupId];
+      titlePathGroup.statistic.total = (titlePathGroup.statistic.total || 0) + 1;
+      titlePathGroup.statistic[(test as TestResult).status] =
+        (titlePathGroup.statistic[(test as TestResult).status] || 0) + 1;
+
+      parentGroupId = groupId;
+    }
+
+    const leaf = getLeaf(test);
+    leaf.groupOrder = groupOrder++;
+    leavesById[leaf.nodeId] = leaf;
+
+    if (parentGroupId) {
+      const group = groupsById[parentGroupId];
+      if (!group.leaves) {
+        group.leaves = [];
+      }
+      group.leaves.push(leaf.nodeId as string);
+    } else {
+      root.leaves.push(leaf.nodeId as string);
+    }
+  }
+
+  return { root, groupsById, leavesById };
 };
