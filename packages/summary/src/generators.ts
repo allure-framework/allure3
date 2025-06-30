@@ -30,20 +30,11 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
-export const readTemplateManifest = async (): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve("@allurereport/web-summary/dist/manifest.json");
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
-
-  return JSON.parse(templateManifest);
-};
-
 export const generateSummaryStaticFiles = async (payload: { summaries: PluginSummary[] }) => {
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest();
   const bodyTags: string[] = [];
 
-  const mainJs = manifest["main.js"];
-  const mainJsSource = require.resolve(`@allurereport/web-summary/dist/${mainJs}`);
+  const mainJsSource = require.resolve("@allurereport/web-summary/dist/main.js");
   const mainJsContentBuffer = await readFile(mainJsSource);
 
   bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));

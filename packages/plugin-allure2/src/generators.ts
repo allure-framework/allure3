@@ -81,12 +81,13 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
 
 export const readManifestEntry = async (options: {
   fileName: string;
+  fileHref: string;
   singleFile?: boolean;
   mimeType: string;
   reportFiles: ReportFiles;
   inserter: (content: string) => string;
 }) => {
-  const { fileName, singleFile, mimeType, inserter, reportFiles } = options;
+  const { fileName, fileHref, singleFile, mimeType, inserter, reportFiles } = options;
   const filePath = require.resolve(join("@allurereport/web-allure2/dist", singleFile ? "single" : "multi", fileName));
   const scriptContentBuffer = await readFile(filePath);
 
@@ -96,7 +97,7 @@ export const readManifestEntry = async (options: {
 
   await reportFiles.addFile(fileName, scriptContentBuffer);
 
-  return inserter(fileName);
+  return inserter(fileHref);
 };
 
 export const generateStaticFiles = async (payload: {
@@ -115,12 +116,14 @@ export const generateStaticFiles = async (payload: {
   const bodyTags: string[] = [];
 
   for (const key in manifest) {
-    const fileName = manifest[key];
-    const filePath = require.resolve(join("@allurereport/web-allure2/dist", singleFile ? "single" : "multi", fileName));
+    // file path including query parameter for cache busting
+    const fileHref = manifest[key];
+    const filePath = require.resolve(join("@allurereport/web-allure2/dist", singleFile ? "single" : "multi", key));
 
     if (key === "favicon.ico") {
       const tag = await readManifestEntry({
-        fileName,
+        fileName: key,
+        fileHref,
         singleFile,
         reportFiles,
         inserter: createFaviconLinkTag,
@@ -133,7 +136,8 @@ export const generateStaticFiles = async (payload: {
 
     if (key === "main.css") {
       const tag = await readManifestEntry({
-        fileName,
+        fileName: key,
+        fileHref,
         singleFile,
         reportFiles,
         inserter: createStylesLinkTag,
@@ -146,7 +150,8 @@ export const generateStaticFiles = async (payload: {
 
     if (key === "main.js") {
       const tag = await readManifestEntry({
-        fileName,
+        fileName: key,
+        fileHref,
         singleFile,
         reportFiles,
         inserter: createScriptTag,

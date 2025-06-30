@@ -1,12 +1,12 @@
 import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import {
+  DEFAULT_CHART_HISTORY_LIMIT,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  DEFAULT_CHART_HISTORY_LIMIT,
 } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
@@ -88,7 +88,7 @@ const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const newOptions = { limit:  DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 
@@ -192,20 +192,19 @@ export const generateStaticFiles = async (
 
   if (!payload.singleFile) {
     for (const key in manifest) {
-      const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-dashboard/dist", singleFile ? "single" : "multi", fileName),
-      );
+      // file path including query parameter for cache busting
+      const fileHref = manifest[key];
+      const filePath = require.resolve(join("@allurereport/web-dashboard/dist", singleFile ? "single" : "multi", key));
 
       if (key.includes(".woff")) {
-        headTags.push(createFontLinkTag(fileName));
+        headTags.push(createFontLinkTag(fileHref));
       }
 
       if (key === "main.css") {
-        headTags.push(createStylesLinkTag(fileName));
+        headTags.push(createStylesLinkTag(fileHref));
       }
       if (key === "main.js") {
-        bodyTags.push(createScriptTag(fileName));
+        bodyTags.push(createScriptTag(fileHref));
       }
 
       // we don't need to handle another files in single file mode

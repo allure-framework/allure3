@@ -330,21 +330,20 @@ export const generateStaticFiles = async (
 
   if (!payload.singleFile) {
     for (const key in manifest) {
-      const fileName = manifest[key];
-      const filePath = require.resolve(
-        join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", fileName),
-      );
+      // file path including query parameter for cache busting
+      const fileHref = manifest[key];
+      const filePath = require.resolve(join("@allurereport/web-awesome/dist", singleFile ? "single" : "multi", key));
 
       if (key.includes(".woff")) {
-        headTags.push(createFontLinkTag(fileName));
+        headTags.push(createFontLinkTag(fileHref));
       }
 
       if (key === "main.css") {
-        headTags.push(createStylesLinkTag(fileName));
+        headTags.push(createStylesLinkTag(fileHref));
       }
 
       if (key === "main.js") {
-        bodyTags.push(createScriptTag(fileName));
+        bodyTags.push(createScriptTag(fileHref));
       }
 
       // we don't need to handle another files in single file mode
@@ -357,8 +356,7 @@ export const generateStaticFiles = async (
       await reportFiles.addFile(basename(filePath), fileContent);
     }
   } else {
-    const mainJs = manifest["main.js"];
-    const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
+    const mainJsSource = require.resolve("@allurereport/web-awesome/dist/single/main.js");
     const mainJsContent = await readFile(mainJsSource);
 
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContent.toString("base64")}`));

@@ -1,4 +1,5 @@
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -8,15 +9,16 @@ import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 import * as utils from "./webpack/utils.js";
 
 const { SINGLE_FILE_MODE } = env;
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const buildHash = randomBytes(8).toString("hex");
+const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
   const config = {
     entry: "./src/index.js",
     output: {
-      path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[fullhash:8].js",
-      assetModuleFilename: `[name]-[fullhash:8][ext]`,
+      path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
+      filename: "main.js",
+      assetModuleFilename: "[name][ext]",
     },
     module: {
       rules: [
@@ -93,18 +95,29 @@ export default (env, argv) => {
         },
       }),
       new MiniCssExtractPlugin({
-        filename: "styles-[fullhash:8].css",
+        filename: "main.css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
         publicPath: "",
+        generate: (seed, files) => {
+          const manifest = Object.entries(files).reduce(
+            (acc, [, file]) => ({
+              ...acc,
+              [file.path]: `${file.path}?v=${buildHash}`,
+            }),
+            {},
+          );
+
+          return manifest;
+        },
       }),
     ],
     resolve: {
       modules: ["node_modules"],
       extensions: [".js", ".json"],
       alias: {
-        "@": join(__dirname, "src"),
+        "@": join(baseDir, "src"),
       },
     },
   };

@@ -1,6 +1,7 @@
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,7 @@ import webpack from "webpack";
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 
 const { SINGLE_FILE_MODE } = env;
+const buildHash = randomBytes(8).toString("hex");
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
@@ -18,8 +20,8 @@ export default (env, argv) => {
     entry: "./src/index.tsx",
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: devMode ? "app.js" : "app-[fullhash].js",
-      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[contenthash].[ext]`,
+      filename: "main.js",
+      assetModuleFilename: "[name][ext]",
     },
     devtool: devMode ? "inline-source-map" : false,
     optimization: {
@@ -88,11 +90,22 @@ export default (env, argv) => {
         DEVELOPMENT: devMode,
       }),
       new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[contenthash].css",
+        filename: "main.css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
         publicPath: "",
+        generate: (seed, files) => {
+          const manifest = Object.entries(files).reduce(
+            (acc, [, file]) => ({
+              ...acc,
+              [file.path]: `${file.path}?v=${buildHash}`,
+            }),
+            {},
+          );
+
+          return manifest;
+        },
       }),
     ],
     resolve: {
