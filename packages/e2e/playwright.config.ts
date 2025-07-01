@@ -14,7 +14,7 @@ export default defineConfig({
     {
       name: "safari",
       use: { ...devices["Desktop Safari"] },
-    }
+    },
   ],
   reporter: [
     ["line"],
@@ -22,9 +22,13 @@ export default defineConfig({
       "allure-playwright",
       {
         resultsDir: "./out/allure-results",
-        globalLabels: [
-          { name: "module", value: "e2e" },
-        ],
+        globalLabels: [{ name: "module", value: "e2e" }],
+        links: {
+          issue: {
+            urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
+            nameTemplate: "Issue #%s",
+          },
+        },
       },
     ],
   ],
