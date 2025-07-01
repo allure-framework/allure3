@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { CommonPage } from "./Common.js";
+import { StepResultFixture } from "./StepResult.js";
 
 export class TestResultPage extends CommonPage {
   titleLocator: Locator;
@@ -76,6 +77,13 @@ export class TestResultPage extends CommonPage {
 
   tabById(id: string) {
     return this.page.getByTestId(`test-result-tab-${id}`);
+  }
+
+  /**
+   * Returns a fixture for a top-level step of the current test.
+   */
+  getStepByName(stepName: string) {
+    return new StepResultFixture(this, stepName);
   }
 
   get envTabLocator() {
