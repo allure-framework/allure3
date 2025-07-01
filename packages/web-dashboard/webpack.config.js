@@ -17,8 +17,9 @@ export default (env, argv) => {
     entry: "./src/index.tsx",
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: devMode ? "app.js" : "app-[fullhash:8].js",
-      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[fullhash:8].[ext]`,
+      filename: devMode ? "app.js" : "app-[fullhash].js",
+      // assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[fullhash:8].[ext]`,
+      assetModuleFilename: "[name][ext]",
     },
     devtool: devMode ? "inline-source-map" : false,
     module: {

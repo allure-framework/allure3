@@ -12,6 +12,7 @@
     "t": "yarn allure run -- vitest run"
   },
   "devDependencies": {
+    "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",

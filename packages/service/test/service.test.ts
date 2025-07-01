@@ -228,9 +228,9 @@ describe("AllureServiceClient", () => {
 
   describe("addReportFile", () => {
     it("should throw an error unless a file or filepath is provided", async () => {
-      await expect(serviceClient.addReportFile({ reportUuid: fixtures.report, key: fixtures.key })).rejects.toThrow(
-        "File or filepath is required",
-      );
+      await expect(
+        serviceClient.addReportFile({ reportUuid: fixtures.report, filename: fixtures.key }),
+      ).rejects.toThrow("File or filepath is required");
     });
 
     it("should throw an error if the provided filename points to a non-existing file", async () => {
@@ -239,7 +239,7 @@ describe("AllureServiceClient", () => {
       await expect(
         serviceClient.addReportFile({
           reportUuid: fixtures.report,
-          key: fixtures.key,
+          filename: fixtures.key,
           filepath: "not-existing-file.txt",
         }),
       ).rejects.toThrow("File not found");
@@ -250,7 +250,7 @@ describe("AllureServiceClient", () => {
 
       const res = await serviceClient.addReportFile({
         reportUuid: fixtures.report,
-        key: fixtures.key,
+        filename: fixtures.key,
         file: Buffer.from("test"),
       });
 
@@ -276,7 +276,7 @@ describe("AllureServiceClient", () => {
 
     const res = await serviceClient.addReportFile({
       reportUuid: fixtures.report,
-      key: fixtures.key,
+      filename: fixtures.key,
       filepath: "test.txt",
     });
 

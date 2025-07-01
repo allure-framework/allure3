@@ -17733,6 +17733,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sandbox@workspace:packages/sandbox"
   dependencies:
+    "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"

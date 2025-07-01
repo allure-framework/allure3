@@ -15,8 +15,9 @@ export default (env, argv) => {
     entry: "./src/index.js",
     output: {
       path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[fullhash:8].js",
-      assetModuleFilename: `[name]-[fullhash:8][ext]`,
+      filename: "app-[fullhash].js",
+      // assetModuleFilename: `[name]-[fullhash:8][ext]`,
+      assetModuleFilename: "[name][ext]",
     },
     module: {
       rules: [

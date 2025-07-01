@@ -43,7 +43,6 @@ export interface Config {
     url?: string;
     project?: string;
     accessToken?: string;
-    publish?: boolean;
   };
 }
 
