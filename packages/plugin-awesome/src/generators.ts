@@ -184,8 +184,9 @@ export const generateTree = async (
   tests: AwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const TTree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    visibleTests,
+  const testsWithoutTitlePath = visibleTests.filter((test) => !test.titlePath?.length);
+  const treeByLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    testsWithoutTitlePath,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retry, retriesCount }) => ({
       nodeId: id,
@@ -219,12 +220,21 @@ export const generateTree = async (
     }),
   );
 
-  // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.hidden);
-  sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+  const mergedTree = {
+    root: {
+      groups: [...tree.root.groups, ...(treeByLabels.root.groups as string[])],
+      leaves: [...tree.root.leaves, ...(treeByLabels.root.leaves as string[])],
+    },
+    groupsById: { ...tree.groupsById, ...treeByLabels.groupsById },
+    leavesById: { ...tree.leavesById, ...treeByLabels.leavesById },
+  };
 
-  await writer.writeWidget(treeFilename, tree);
+  // @ts-ignore
+  filterTree(mergedTree, (leaf) => !leaf.hidden);
+  sortTree(mergedTree, nullsLast(compareBy("start", ordinal())));
+  transformTree(mergedTree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+
+  await writer.writeWidget(treeFilename, mergedTree);
 };
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
