@@ -1,7 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
-import { PageObject } from "./pageObject.js";
+import { CommonPage } from "./Common.js";
 
-export class TestResultPage extends PageObject {
+export class TestResultPage extends CommonPage {
   titleLocator: Locator;
   fullnameLocator: Locator;
   fullnameCopyLocator: Locator;
@@ -34,7 +34,7 @@ export class TestResultPage extends PageObject {
   videoAttachmentContentLocator: Locator;
 
   historyItemLocator: Locator;
-  prevStatusLocator: Locator;0
+  prevStatusLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
