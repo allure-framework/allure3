@@ -5,6 +5,7 @@ import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import {
   makeHistoryId,
   makeReportConfig,
+  makeTestResultNames,
   makeTestResults,
 } from "../utils/mocks.js";
 
@@ -12,16 +13,14 @@ let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 
 const reportName = "Sample allure report";
-const firstTestWithRetries = "0 sample test";
-const firstTestWithRetriesFullname = "sample.js#0 sample test";
+
+const { name: firstTestWithRetries, fullName: firstTestWithRetriesFullname } = makeTestResultNames("first test with retries");
 const firstTestWithRetriesHistoryId = makeHistoryId(firstTestWithRetriesFullname);
 
-const secondTestWithRetriesName = "1 sample test";
-const secondTestWithRetriesFullname = "sample.js#1 sample test";
+const { name: secondTestWithRetriesName, fullName: secondTestWithRetriesFullname } = makeTestResultNames("second test with retries");
 const secondTestWithRetriesHistoryId = makeHistoryId(secondTestWithRetriesFullname);
 
-const testWithoutRetriesName = "2 sample test";
-const testWithoutRetriesFullname = "sample.js#2 sample test";
+const { name: testWithoutRetriesName, fullName: testWithoutRetriesFullname } = makeTestResultNames("test without retries");
 const testWithoutRetriesHistoryId = makeHistoryId(testWithoutRetriesFullname);
 
 test.describe("retries", () => {

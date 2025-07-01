@@ -1,20 +1,21 @@
-import type { FullConfig } from "@allurereport/core";
 import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 import {
   type GeneratorParams,
   type ReportBootstrap,
   bootstrapReport as baseBootstrapReport,
 } from "../../utils/index.js";
+import type { ReportConfig } from "../../types.js";
+
+export type BootstrapReportParams = Omit<GeneratorParams, "rootDir" | "reportDir" | "resultsDir" | "reportConfig"> & {
+  reportConfig: ReportConfig;
+};
 
 export const bootstrapReport = async (
-  params: Omit<GeneratorParams, "rootDir" | "reportDir" | "resultsDir" | "reportConfig"> & {
-    reportConfig: Omit<FullConfig, "output" | "reportFiles" | "plugins" | "historyPath">;
-  },
+  params: BootstrapReportParams,
   pluginConfig?: AwesomePluginOptions,
 ) => {
   return baseBootstrapReport({
     ...params,
-    history: params.history ?? [],
     reportConfig: {
       ...params.reportConfig,
       plugins: [

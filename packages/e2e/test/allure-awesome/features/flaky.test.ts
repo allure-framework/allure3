@@ -10,19 +10,19 @@ import {
   makeHistoryTestResults,
   makeReportConfig,
   makeTestResults,
+  makeTestResultNames,
 } from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 
-const reportName = "Sample allure report with flaky tests";
-const flakyTestName = "Classic flaky test";
-const flakyTestFullname = "sample.js#Classic flaky test";
+const reportName = "Sample allure report";
+
+const { name: flakyTestName, fullName: flakyTestFullname } = makeTestResultNames("flaky test");
 const flakyTestCaseId = makeTestCaseId(flakyTestFullname);
 const flakyHistoryId = makeHistoryId(flakyTestFullname);
 
-const nonFlakyTestName = "Non-flaky test";
-const nonFlakyTestFullname = "sample.js#Non-flaky test";
+const { name: nonFlakyTestName, fullName: nonFlakyTestFullname } = makeTestResultNames("non-flaky test");
 const nonFlakyTestCaseId = makeTestCaseId(nonFlakyTestFullname);
 const nonFlakyHistoryId = makeHistoryId(nonFlakyTestFullname);
 
@@ -108,15 +108,15 @@ test.describe("flaky", () => {
     await expect(treePage.leafLocator).toHaveCount(2);
     await treePage.toggleFlakyFilter();
     await expect(treePage.leafLocator).toHaveCount(1);
-    await expect(treePage.getLeafByTitle("Classic flaky test")).toBeVisible();
-    await expect(treePage.getLeafByTitle("Non-flaky test")).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(flakyTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(nonFlakyTestName)).not.toBeVisible();
     await treePage.toggleFlakyFilter();
     await expect(treePage.leafLocator).toHaveCount(2);
   });
 
   test("should show flaky icon only for flaky tests in the tree", async () => {
-    await expect(treePage.getLeafByTitle("Classic flaky test").getByTestId("tree-leaf-flaky")).toBeVisible();
-    await expect(treePage.getLeafByTitle("Non-flaky test").getByTestId("tree-leaf-flaky")).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(flakyTestName).getByTestId("tree-leaf-flaky")).toBeVisible();
+    await expect(treePage.getLeafByTitle(nonFlakyTestName).getByTestId("tree-leaf-flaky")).not.toBeVisible();
   });
 
   test("metadata shows correct count of flaky tests", async () => {

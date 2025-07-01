@@ -9,6 +9,7 @@ import {
   makeTestCaseId,
   makeHistoryId,
   makeTestResult,
+  makeTestResultNames,
 } from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
@@ -17,25 +18,21 @@ let treePage: TreePage;
 const reportName = "Sample allure report";
 
 // Totally new test
-const newTestName = "New test 1";
-const newTestFullname = "sample.js#New test 1";
+const { name: newTestName, fullName: newTestFullname } = makeTestResultNames("new test");
 
-// New status tests means that the test changed meaningful status (passed, failed, broken) to another meaningful one
+// New status tests means that the test changed significant status (passed, failed, broken) to another significant one
 // New FAILED test
-const newFailedTestName = "New FAILED test";
-const newFailedTestFullname = "sample.js#New FAILED test";
+const { name: newFailedTestName, fullName: newFailedTestFullname } = makeTestResultNames("new failed test");
 const newFailedTestTestCaseId = makeTestCaseId(newFailedTestFullname);
 const newFailedTestHistoryId = makeHistoryId(newFailedTestFullname);
 
 // New PASSED test
-const newPassedTestName = "New PASSED test";
-const newPassedTestFullname = "sample.js#New PASSED test";
+const { name: newPassedTestName, fullName: newPassedTestFullname } = makeTestResultNames("new passed test");
 const newPassedTestTestCaseId = makeTestCaseId(newPassedTestFullname);
 const newPassedTestHistoryId = makeHistoryId(newPassedTestFullname);
 
 // New BROKEN test
-const newBrokenTestName = "New BROKEN test";
-const newBrokenTestFullname = "sample.js#New BROKEN test";
+const { name: newBrokenTestName, fullName: newBrokenTestFullname } = makeTestResultNames("new broken test");
 const newBrokenTestTestCaseId = makeTestCaseId(newBrokenTestFullname);
 const newBrokenTestHistoryId = makeHistoryId(newBrokenTestFullname);
 

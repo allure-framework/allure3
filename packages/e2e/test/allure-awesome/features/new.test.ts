@@ -2,33 +2,25 @@ import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
-import {
-  makeHistory,
-  makeHistoryTestResults,
-  makeReportConfig,
-  makeTestCaseId,
-  makeTestResult,
-} from "../utils/mocks.js";
+import { makeHistory, makeHistoryTestResults, makeReportConfig, makeTestCaseId, makeTestResult, makeTestResultNames } from "../utils/mocks.js";
+
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 
 const reportName = "Sample allure report";
-const flakyTestName = "Test with history";
-const flakyTestFullname = "sample.js#Test with history";
-const testCaseId = makeTestCaseId(flakyTestFullname);
 
-const passedTestName = "New PASSED test 1";
-const passedTestFullname = "sample.js#New PASSED test 1";
+const { name: ordinaryTestName, fullName: ordinaryTestFullname } = makeTestResultNames("ordinary test");
+const testCaseId = makeTestCaseId(ordinaryTestFullname);
 
-const failedTestName = "New FAILED test 2";
-const failedTestFullname = "sample.js#New FAILED test 2";
+const { name: passedTestName, fullName: passedTestFullname } = makeTestResultNames("new passed test");
+const { name: failedTestName, fullName: failedTestFullname } = makeTestResultNames("new failed test");
 
 test.describe("new tests", () => {
   test.beforeAll(async () => {
-    const flakyTestResult = makeTestResult({
-      name: flakyTestName,
-      fullName: flakyTestFullname,
+    const ordinaryTestResult = makeTestResult({
+      name: ordinaryTestName,
+      fullName: ordinaryTestFullname,
       status: Status.FAILED,
       stage: Stage.FINISHED,
     });
@@ -46,13 +38,13 @@ test.describe("new tests", () => {
         status: Status.FAILED,
         stage: Stage.FINISHED,
       }),
-      flakyTestResult,
+      ordinaryTestResult,
     ];
 
     const history = makeHistory(6, () => ({
       name: reportName,
       knownTestCaseIds: [testCaseId],
-      testResults: makeHistoryTestResults([flakyTestResult]),
+      testResults: makeHistoryTestResults([ordinaryTestResult]),
     }));
 
     bootstrap = await bootstrapReport({
@@ -88,7 +80,7 @@ test.describe("new tests", () => {
     // Verify the test names are correct for tests with new status
     await expect(treePage.getLeafByTitle(passedTestName)).toBeVisible();
     await expect(treePage.getLeafByTitle(failedTestName)).toBeVisible();
-    await expect(treePage.getLeafByTitle(flakyTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(ordinaryTestName)).not.toBeVisible();
 
     // Disable filter by new status
     await treePage.toggleNewFilter();
@@ -103,7 +95,7 @@ test.describe("new tests", () => {
     await expect(treePage.getLeafByTitle(failedTestName).getByTestId("tree-leaf-transition-new")).toBeVisible();
 
     // Non-new test
-    await expect(treePage.getLeafByTitle(flakyTestName).getByTestId("tree-leaf-transition-new")).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(ordinaryTestName).getByTestId("tree-leaf-transition-new")).not.toBeVisible();
   });
 
   test("metadata shows correct count of new tests", async () => {

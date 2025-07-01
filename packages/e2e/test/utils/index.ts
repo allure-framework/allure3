@@ -1,6 +1,5 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import { type HistoryDataPoint } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import type { TestResult } from "allure-js-commons";

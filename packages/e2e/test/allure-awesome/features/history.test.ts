@@ -1,61 +1,40 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
-import { makeHistoryId, makeTestCaseId } from "../utils/mocks.js";
+import { makeHistory, makeHistoryId, makeHistoryTestResults, makeReportConfig, makeTestCaseId, makeTestResult, makeTestResultNames } from "../utils/mocks.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 let testResultPage: TestResultPage;
 
-const now = Date.now();
 const reportName = "Allure report with history";
-const testName = "sample test";
-const fullName = `sample.js#${testName}`;
+const { name: testName, fullName } = makeTestResultNames("sample test");
+
 const testCaseId = makeTestCaseId(fullName);
 const historyId = makeHistoryId(fullName);
+
+const testResult = makeTestResult({
+  name: testName,
+  fullName,
+  status: Status.PASSED,
+  stage: Stage.FINISHED,
+  historyId,
+});
+
+const history = makeHistory(1, () => ({
+  name: reportName,
+  knownTestCaseIds: [testCaseId],
+  testResults: makeHistoryTestResults([testResult]),
+}));
+
 const fixtures = {
   url: "http://allurereport.org/report/1",
-  reportConfig: {
+  reportConfig: makeReportConfig({
     name: reportName,
-    appendHistory: true,
-    knownIssuesPath: undefined,
-  },
-  history: [
-    {
-      uuid: "dc4d9432-ebef-4e0f-b121-37fcf0383023",
-      name: reportName,
-      timestamp: now + 1000,
-      knownTestCaseIds: [testCaseId],
-      url: "",
-      testResults: {
-        [historyId]: {
-          id: "b40702a85e54a2f8dcc6cfdf791170dd",
-          name: testName,
-          status: Status.PASSED,
-          start: now,
-          stop: now + 1000,
-          duration: 1000,
-          labels: [],
-          url: "",
-          fullName,
-        },
-      },
-      metrics: {},
-    },
-  ],
-  testResults: [
-    {
-      name: testName,
-      status: Status.PASSED,
-      stage: Stage.FINISHED,
-      start: now + 4000,
-      stop: now + 5000,
-      duration: 1000,
-      fullName,
-      historyId,
-    },
-  ],
+  }),
+  history,
+  testResults: [testResult],
 };
 
 test.beforeEach(async ({ browserName, page }) => {

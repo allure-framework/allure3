@@ -1,12 +1,11 @@
-import type { FullConfig } from "@allurereport/core";
 import type { HistoryDataPoint, HistoryTestResult } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import { faker } from "@faker-js/faker";
 import { Stage, Status, type TestResult } from "allure-js-commons";
 import _times from "lodash.times";
+import type { ReportConfig } from "../../types.js";
 
 export type ItemMaker<T> = (index: number, params: T) => Partial<T>;
-export type ReportConfig = Omit<FullConfig, "output" | "reportFiles" | "plugins">;
 
 export const MIN_DURATION = 1000;
 export const MAX_DURATION = 10000;
@@ -20,6 +19,13 @@ export const generateUuid = () => faker.string.uuid();
  * Generates a random word using faker
  */
 export const generateWord = () => faker.lorem.word();
+
+/**
+ * Generates a unique name by combining a prefix and a random word
+ * @param prefix - Prefix for the name
+ * @returns Unique name
+ */
+export const generateUniqueName = (prefix: string) => `${prefix}: ${generateWord()}`;
 
 /**
  * Generates a random recent date timestamp
@@ -43,6 +49,16 @@ export const generateArrayElement = <T>(arr: T[]) => faker.helpers.arrayElement(
  * Generates a random duration between 1 and 10 seconds
  */
 export const generateDuration = () => faker.number.int({ min: MIN_DURATION, max: MAX_DURATION });
+
+/**
+ * Generates a unique name and full name for a test case
+ * @param prefix - Prefix for the name
+ * @returns Object containing name and fullName
+ */
+export const makeTestResultNames = (prefix: string): Pick<TestResult, "name" | "fullName"> => ({
+  name: generateUniqueName(prefix),
+  fullName: generateUniqueName(`${prefix}: fullName`),
+});
 
 /**
  * Generates a test case ID by hashing the full name
@@ -209,7 +225,6 @@ export const makeReportConfig = (params?: Partial<ReportConfig>): ReportConfig =
   const {
     name = generateWord(),
     appendHistory = true,
-    historyPath = "history.jsonl",
     knownIssuesPath = undefined,
     ...rest
   } = params || {};
@@ -217,7 +232,6 @@ export const makeReportConfig = (params?: Partial<ReportConfig>): ReportConfig =
   return {
     name,
     appendHistory,
-    historyPath,
     knownIssuesPath,
     ...rest,
   };
