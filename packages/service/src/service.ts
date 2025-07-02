@@ -253,6 +253,6 @@ export class AllureServiceClient {
       },
     });
 
-    return joinPosix(this.#url, reportUuid, key);
+    return joinPosix(this.#url, reportUuid, filename);
   }
 }

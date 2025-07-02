@@ -224,19 +224,18 @@ export class AllureReport {
       if (this.#allureServiceClient && publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
 
-        for (const [key, filepath] of Object.entries(pluginFiles)) {
+        for (const [filename, filepath] of Object.entries(pluginFiles)) {
           // publish data-files separately
-          if (/^(data|widgets|index\.html$)/.test(key)) {
+          if (/^(data|widgets|index\.html$)/.test(filename)) {
             this.#allureServiceClient.addReportFile({
               reportUuid: this.#reportUuid,
               pluginId: id,
-              // TODO: rename
-              key,
+              filename,
               filepath,
             });
           } else {
             this.#allureServiceClient.addReportAsset({
-              filename: key,
+              filename,
               filepath,
             });
           }
