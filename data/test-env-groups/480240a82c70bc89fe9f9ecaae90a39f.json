@@ -1,1 +1,1 @@
-{"id":"480240a82c70bc89fe9f9ecaae90a39f","fullName":"test/allure1.test.ts#allure1 reader labels special labels should convert issue labels to links","name":"should convert issue labels to links","status":"passed","testResultsByEnv":{"default":"ee0ea76e64a6ec27ca5bcb5441ba7e82"}}
+{"id":"480240a82c70bc89fe9f9ecaae90a39f","fullName":"test/allure1.test.ts#allure1 reader labels special labels should convert issue labels to links","name":"should convert issue labels to links","status":"passed","testResultsByEnv":{"default":"339a7338a3e8977d53f4ebc782de4ace"}}

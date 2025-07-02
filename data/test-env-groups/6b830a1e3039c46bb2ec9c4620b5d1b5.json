@@ -1,0 +1,1 @@
+{"id":"6b830a1e3039c46bb2ec9c4620b5d1b5","fullName":"test/store/convert.test.ts#testResultRawToState a converted step should mark the message if it's contained in a sub-step","name":"should mark the message if it's contained in a sub-step","status":"passed","testResultsByEnv":{"default":"b5f1915368aa4e7a28dc641135b19052"}}
