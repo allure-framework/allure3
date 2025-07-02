@@ -1,7 +1,8 @@
 import { type Locator, type Page } from "@playwright/test";
-import { PageObject } from "./pageObject.js";
+import { CommonPage } from "./Common.js";
+import { StepResultFixture } from "./StepResult.js";
 
-export class TestResultPage extends PageObject {
+export class TestResultPage extends CommonPage {
   titleLocator: Locator;
   fullnameLocator: Locator;
   fullnameCopyLocator: Locator;
@@ -34,7 +35,7 @@ export class TestResultPage extends PageObject {
   videoAttachmentContentLocator: Locator;
 
   historyItemLocator: Locator;
-  prevStatusLocator: Locator;0
+  prevStatusLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -76,6 +77,13 @@ export class TestResultPage extends PageObject {
 
   tabById(id: string) {
     return this.page.getByTestId(`test-result-tab-${id}`);
+  }
+
+  /**
+   * Returns a fixture for a top-level step of the current test.
+   */
+  getStepByName(stepName: string) {
+    return new StepResultFixture(this, stepName);
   }
 
   get envTabLocator() {

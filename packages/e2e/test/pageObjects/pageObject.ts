@@ -4,11 +4,13 @@ import { attachment } from "allure-js-commons";
 export class PageObject {
   constructor(readonly page: Page) {}
 
-  async screenshot(name: string = "screenshot") {
-    const screenshot = await this.page.screenshot({
+  async screenshot() {
+    return await this.page.screenshot({
       fullPage: true,
     });
+  }
 
-    await attachment(name, screenshot, "image/png");
+  async attachScreenshot(name: string = "screenshot") {
+    await attachment(name, await this.screenshot(), "image/png");
   }
 }

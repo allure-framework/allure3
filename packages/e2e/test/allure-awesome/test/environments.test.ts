@@ -1,12 +1,11 @@
 import { type Page, expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { CommonPage, TestResultPage, TreePage } from "../../pageObjects/index.js";
+import { CommonPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
 let commonPage: CommonPage;
 let treePage: TreePage;
-let testResultPage: TestResultPage;
 
 const now = Date.now();
 const fixtures = {
@@ -86,7 +85,6 @@ test.beforeEach(async ({ page, browserName }) => {
 
   commonPage = new CommonPage(page);
   treePage = new TreePage(page);
-  testResultPage = new TestResultPage(page);
 
   bootstrap = await bootstrapReport({
     reportConfig: {
