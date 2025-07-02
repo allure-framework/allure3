@@ -207,7 +207,6 @@ export const generateTree = async (
 
   const tree = createTreeByTitlePath<AwesomeTestResult>(
     tests,
-    (t) => t.titlePath || [],
     ({ id, name, status, duration, flaky, start, retries }) => ({
       nodeId: id,
       name,
@@ -218,12 +217,16 @@ export const generateTree = async (
       retry: !!retries?.length,
       retriesCount: retries?.length || 0,
     }),
+    undefined,
+    (group, leaf) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
   );
 
   const mergedTree = {
     root: {
-      groups: [...tree.root.groups, ...(treeByLabels.root.groups as string[])],
-      leaves: [...tree.root.leaves, ...(treeByLabels.root.leaves as string[])],
+      groups: [...tree.root.groups!, ...(treeByLabels.root.groups as string[])],
+      leaves: [...tree.root.leaves!, ...(treeByLabels.root.leaves as string[])],
     },
     groupsById: { ...tree.groupsById, ...treeByLabels.groupsById },
     leavesById: { ...tree.leavesById, ...treeByLabels.leavesById },
