@@ -53,7 +53,7 @@ const createTree = <T, L, G>(
     let parentGroups = [root];
 
     for (const layer of itemGroups) {
-      if (layer?.length === 0) {
+      if (layer.length === 0) {
         break;
       }
 
