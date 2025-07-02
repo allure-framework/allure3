@@ -95,7 +95,6 @@ export interface TestFixtureResult {
   steps: TestStepResult[];
 
   sourceMetadata: SourceMetadata;
-  titlePath?: string[];
 }
 
 export type TestStepResult = DefaultTestStepResult | AttachmentTestStepResult;
