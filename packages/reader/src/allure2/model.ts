@@ -67,7 +67,6 @@ interface ExecutableItem {
   parameters?: Parameter[];
   start?: number;
   stop?: number;
-  titlePath?: string[];
 }
 
 export type FixtureResult = ExecutableItem;
@@ -80,6 +79,7 @@ export interface TestResult extends ExecutableItem {
   testCaseId?: string;
   labels?: Label[];
   links?: Link[];
+  titlePath?: string[];
 }
 
 export interface TestResultContainer {

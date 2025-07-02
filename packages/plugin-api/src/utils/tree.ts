@@ -330,12 +330,6 @@ export const transformTree = <L, G>(
   return tree;
 };
 
-/**
- * Creates tree by Title path
- * @param tests
- * @param getTitlePath
- * @param getLeaf
- */
 export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
   data: T[],
   leafFactory?: (item: T) => TreeLeaf<L>,
