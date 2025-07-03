@@ -73,6 +73,7 @@ export class AwesomePlugin implements Plugin {
 
     await generateStaticFiles({
       ...this.options,
+      id: context.id,
       allureVersion: context.allureVersion,
       reportFiles: context.reportFiles,
       reportDataFiles,
