@@ -7,6 +7,8 @@ import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporte
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 
 export type GeneratorParams = {
   history?: HistoryDataPoint[];
@@ -35,12 +37,14 @@ export const randomNumber = (min: number, max: number): number => {
 
 export const generateReport = async (payload: GeneratorParams) => {
   const { reportConfig, rootDir, reportDir, resultsDir, testResults, attachments = [], history = [] } = payload;
-  const historyPath = resolve(rootDir, "history.jsonl");
+  const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
+
+  if (!existsSync(historyPath)) {
+    await writeFile(historyPath, "");
+  }
 
   if (history.length > 0) {
-    await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"));
-  } else {
-    await writeFile(historyPath, "");
+    await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"), { encoding: "utf-8" });
   }
 
   const report = new AllureReport({
