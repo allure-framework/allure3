@@ -208,7 +208,7 @@ export const generateTree = async (
 
   const tree = createTreeByTitlePath<AwesomeTestResult>(
     testsWithTitlePath,
-    ({ id, name, status, duration, flaky, start, retries }) => ({
+    ({ id, name, status, duration, flaky, start, retries, transition }) => ({
       nodeId: id,
       name,
       status,
@@ -217,6 +217,7 @@ export const generateTree = async (
       start,
       retry: !!retries?.length,
       retriesCount: retries?.length || 0,
+      transition,
     }),
     undefined,
     (group, leaf) => {
