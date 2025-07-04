@@ -11,6 +11,7 @@ import {
   type ReportFiles,
   type ResultFile,
   type TestResultFilter,
+  createTreeByTitlePath,
   filterTree,
 } from "@allurereport/plugin-api";
 import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
@@ -183,8 +184,10 @@ export const generateTree = async (
   tests: AwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    visibleTests,
+  const testsWithoutTitlePath = visibleTests.filter((test) => !test.titlePath?.length);
+  const testsWithTitlePath = visibleTests.filter((test) => test.titlePath?.length);
+  const treeByLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    testsWithoutTitlePath,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retry, retriesCount }) => ({
       nodeId: id,
@@ -203,12 +206,45 @@ export const generateTree = async (
     },
   );
 
-  // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.hidden);
-  sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+  const tree = createTreeByTitlePath<AwesomeTestResult>(
+    testsWithTitlePath,
+    ({ id, name, status, duration, flaky, start, retries, transition }) => ({
+      nodeId: id,
+      name,
+      status,
+      duration,
+      flaky,
+      start,
+      retry: !!retries?.length,
+      retriesCount: retries?.length || 0,
+      transition,
+    }),
+    undefined,
+    (group, leaf) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
+  );
 
-  await writer.writeWidget(treeFilename, tree);
+  const mergedLeavesById = { ...tree.leavesById, ...treeByLabels.leavesById };
+  const mergedGroupsById = { ...tree.groupsById, ...treeByLabels.groupsById };
+  const uniqueLeafIds = Array.from(new Set([...(tree.root.leaves ?? []), ...(treeByLabels.root.leaves ?? [])]));
+  const uniqueGroupIds = Array.from(new Set([...(tree.root.groups ?? []), ...(treeByLabels.root.groups ?? [])]));
+
+  const mergedTree = {
+    root: {
+      groups: uniqueGroupIds,
+      leaves: uniqueLeafIds,
+    },
+    groupsById: mergedGroupsById,
+    leavesById: mergedLeavesById,
+  };
+
+  // @ts-ignore
+  filterTree(mergedTree, (leaf) => !leaf.hidden);
+  sortTree(mergedTree, nullsLast(compareBy("start", ordinal())));
+  transformTree(mergedTree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+
+  await writer.writeWidget(treeFilename, mergedTree);
 };
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {

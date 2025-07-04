@@ -146,6 +146,7 @@ export const allure2: ResultsReader = {
 const processTestResult = async (visitor: ResultsVisitor, result: Partial<TestResult>, originalFileName: string) => {
   const dest: RawTestResult = {
     uuid: ensureString(result.uuid),
+    titlePath: result?.titlePath?.length ? result.titlePath : [],
     fullName: ensureString(result.fullName),
     name: ensureString(result.name),
     testId: ensureString(result.testCaseId),
