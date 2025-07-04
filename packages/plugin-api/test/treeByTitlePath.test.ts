@@ -1,5 +1,4 @@
 import type { TestResult } from "@allurereport/core-api";
-import { incrementStatistic } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createTreeByTitlePath } from "../src/utils/tree.js";
