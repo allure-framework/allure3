@@ -51,7 +51,7 @@
     "highlight.js": "^10.7.3",
     "i18next": "^8.4.3",
     "jquery": "^3.7.1",
-    "postcss": "^8.4.47",
+    "postcss": "^8.5.0",
     "sortablejs": "^1.15.3",
     "split.js": "^1.6.5",
     "underscore": "^1.13.7",
