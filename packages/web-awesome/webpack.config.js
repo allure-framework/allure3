@@ -1,6 +1,7 @@
 import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -19,7 +20,7 @@ export default (env, argv) => {
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
-      assetModuleFilename: `[name][ext]`,
+      assetModuleFilename: "[name][ext]",
     },
     devtool: devMode ? "inline-source-map" : false,
     optimization: {

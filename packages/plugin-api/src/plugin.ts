@@ -18,6 +18,8 @@ export interface PluginState {
 }
 
 export interface PluginContext {
+  id: string;
+  publish: boolean;
   state: PluginState;
   allureVersion: string;
   reportUuid: string;
@@ -27,6 +29,7 @@ export interface PluginContext {
 
 export interface PluginSummary {
   href?: string;
+  remoteHref?: string;
   name: string;
   stats: Statistic;
   status: TestStatus;

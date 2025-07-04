@@ -1,7 +1,9 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
+import { getReportOptions } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
+import type { AwesomeReportOptions } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
@@ -10,6 +12,7 @@ import { timestampToDate } from "@/utils/time";
 export const TrHistoryItem: FunctionalComponent<{
   testResultItem: HistoryTestResult;
 }> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
+  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
   const { status, error, stop, duration, id, url } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = stop ? timestampToDate(stop) : undefined;
@@ -20,12 +23,13 @@ export const TrHistoryItem: FunctionalComponent<{
       return undefined;
     }
 
-    const navUrl = new URL(url);
+    const { origin, pathname } = new URL(url);
+    const navUrl = new URL([pathname, reportOptions.id].join("/"), origin);
 
     navUrl.hash = id;
 
     return navUrl.toString();
-  }, [id, url]);
+  }, [reportOptions, id, url]);
   const renderExternalLink = () => {
     if (!navigateUrl) {
       return null;
