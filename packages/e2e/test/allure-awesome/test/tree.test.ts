@@ -113,6 +113,7 @@ test.describe("commons", () => {
       broken: "1",
       skipped: "1",
       unknown: "1",
+      new: "5",
     });
   });
 

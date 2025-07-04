@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "Լրացուցիչ ֆիլտրեր",
-    "enable-filter": "Միացնել \"{filter}\" ֆիլտրը",
+    "enable-filter": "Միացնել \"{{filter}}\" ֆիլտրը",
     "flaky": "Անհուսալի",
     "retry": "Կրկնություն",
-    "new": "Նոր"
+    "new": "Նոր",
+    "fixed": "Ուղղված",
+    "regressed": "Ռեգրեսիա",
+    "malfunctioned": "Կոտրված"
   },
   "sort-by": {
     "sort-by-text": "Դասավորել ըստ:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "Թեստերի հաջողության գործակից"
     }
+  },
+  "transitions": {
+    "new": "Նոր",
+    "fixed": "Ուղղված",
+    "regressed": "Ռեգրեսիա",
+    "malfunctioned": "Կոտրված"
   }
 }

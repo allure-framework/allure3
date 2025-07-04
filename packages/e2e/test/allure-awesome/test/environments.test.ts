@@ -175,12 +175,13 @@ test.describe("environments", () => {
   });
 
   test("should render statistics for all environments by default", async ({ page }) => {
-    const stats = await treePage.getMetadataValues();
+    const total = await treePage.getMetadataValue("total");
+    const passed = await treePage.getMetadataValue("passed");
 
     await page.pause();
 
-    expect(stats.passed).toEqual("4");
-    expect(stats.total).toEqual("4");
+    expect(passed).toEqual("4");
+    expect(total).toEqual("4");
   });
 
   test("shouldn't render any environment for test result which doesn't match any environment", async ({ page }) => {

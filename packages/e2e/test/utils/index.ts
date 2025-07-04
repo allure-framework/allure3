@@ -1,6 +1,5 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import { type HistoryDataPoint } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import type { TestResult } from "allure-js-commons";
@@ -8,6 +7,8 @@ import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporte
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 
 export type GeneratorParams = {
   history?: HistoryDataPoint[];
@@ -34,36 +35,16 @@ export const randomNumber = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-/**
- * Make simplified test case id from test's full name
- *
- * @param fullName Test case full name
- * @returns Test case id
- */
-export const makeTestCaseId = (fullName: string) => md5(fullName);
-
-/**
- * Make simplified history id from test's full name and parameters
- *
- * @param fullName Test case full name
- * @param strParameters Test case parameters
- * @returns History id
- */
-export const makeHistoryId = (fullName: string, strParameters = "") => {
-  const testCaseId = makeTestCaseId(fullName);
-  const parametersMd5 = md5(strParameters);
-
-  return `${testCaseId}.${parametersMd5}`;
-};
-
 export const generateReport = async (payload: GeneratorParams) => {
   const { reportConfig, rootDir, reportDir, resultsDir, testResults, attachments = [], history = [] } = payload;
-  const historyPath = resolve(rootDir, "history.jsonl");
+  const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
+
+  if (!existsSync(historyPath)) {
+    await writeFile(historyPath, "");
+  }
 
   if (history.length > 0) {
-    await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"));
-  } else {
-    await writeFile(historyPath, "");
+    await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"), { encoding: "utf-8" });
   }
 
   const report = new AllureReport({

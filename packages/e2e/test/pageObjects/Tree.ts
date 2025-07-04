@@ -23,6 +23,7 @@ export class TreePage extends CommonPage {
   metadataSkippedLocator: Locator;
   metadataBrokenLocator: Locator;
   metadataUnknownLocator: Locator;
+  metadataNewLocator: Locator;
 
   envSectionButtonLocator: Locator;
   envSectionContentLocator: Locator;
@@ -32,6 +33,11 @@ export class TreePage extends CommonPage {
 
   retryFilterLocator: Locator;
   flakyFilterLocator: Locator;
+  newFilterLocator: Locator;
+
+  fixedFilterLocator: Locator;
+  regressedFilterLocator: Locator;
+  malfuctionedFilterLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -56,6 +62,7 @@ export class TreePage extends CommonPage {
     this.metadataBrokenLocator = page.getByTestId("metadata-item-broken");
     this.metadataSkippedLocator = page.getByTestId("metadata-item-skipped");
     this.metadataUnknownLocator = page.getByTestId("metadata-item-unknown");
+    this.metadataNewLocator = page.getByTestId("metadata-item-new");
 
     this.envSectionContentLocator = page.getByTestId("tree-section-env-content");
     this.envSectionButtonLocator = page.getByTestId("tree-section-env-button");
@@ -65,6 +72,11 @@ export class TreePage extends CommonPage {
 
     this.retryFilterLocator = page.getByTestId("retry-filter");
     this.flakyFilterLocator = page.getByTestId("flaky-filter");
+    this.newFilterLocator = page.getByTestId("new-filter");
+
+    this.fixedFilterLocator = page.getByTestId("fixed-filter");
+    this.regressedFilterLocator = page.getByTestId("regressed-filter");
+    this.malfuctionedFilterLocator = page.getByTestId("malfunctioned-filter");
   }
 
   getNthLeafLocator(n: number) {
@@ -114,7 +126,7 @@ export class TreePage extends CommonPage {
   }
 
   async getMetadataValue(
-    metadata: "total" | "retries" | "flaky" | "passed" | "failed" | "skipped" | "broken" | "unknown" = "total",
+    metadata: "total" | "retries" | "flaky" | "passed" | "failed" | "skipped" | "broken" | "unknown" | "new" = "total",
   ) {
     let baseLocator: Locator;
 
@@ -143,6 +155,9 @@ export class TreePage extends CommonPage {
       case "unknown":
         baseLocator = this.metadataUnknownLocator;
         break;
+      case "new":
+        baseLocator = this.metadataNewLocator;
+        break;
       default:
         throw new Error(`Unknown metadata: ${metadata as string}`);
     }
@@ -159,6 +174,7 @@ export class TreePage extends CommonPage {
       total: await this.getMetadataValue("total"),
       retries: await this.getMetadataValue("retries"),
       flaky: await this.getMetadataValue("flaky"),
+      new: await this.getMetadataValue("new"),
       passed: await this.getMetadataValue("passed"),
       failed: await this.getMetadataValue("failed"),
       skipped: await this.getMetadataValue("skipped"),
@@ -215,15 +231,33 @@ export class TreePage extends CommonPage {
     await this.filtersMenuLocator.waitFor({ state: "hidden" });
   }
 
-  async toggleRetryFilter() {
+  async toggleFilter(filter: Locator) {
     await this.openFilterMenu();
-    await this.retryFilterLocator.click();
+    await filter.click();
     await this.closeFilterMenu();
   }
 
+  async toggleRetryFilter() {
+    await this.toggleFilter(this.retryFilterLocator);
+  }
+
   async toggleFlakyFilter() {
-    await this.openFilterMenu();
-    await this.flakyFilterLocator.click();
-    await this.closeFilterMenu();
+    await this.toggleFilter(this.flakyFilterLocator);
+  }
+
+  async toggleNewFilter() {
+    await this.toggleFilter(this.newFilterLocator);
+  }
+
+  async toggleFixedFilter() {
+    await this.toggleFilter(this.fixedFilterLocator);
+  }
+
+  async toggleRegressedFilter() {
+    await this.toggleFilter(this.regressedFilterLocator);
+  }
+
+  async toggleMalfuctionedFilter() {
+    await this.toggleFilter(this.malfuctionedFilterLocator);
   }
 }

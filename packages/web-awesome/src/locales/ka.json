@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "დამატებითი ფილტრები",
-    "enable-filter": "ჩართეთ ფილტრი \"{filter}\"",
+    "enable-filter": "ჩართეთ ფილტრი \"{{filter}}\"",
     "flaky": "არასტაბილური",
     "retry": "ხელახალი",
-    "new": "ახალი"
+    "new": "ახალი",
+    "fixed": "გასწორებული",
+    "regressed": "რეგრესია",
+    "malfunctioned": "დაზიანებული"
   },
   "sort-by": {
     "sort-by-text": "დალაგება:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "ტესტების წარმატების მაჩვენებელი"
     }
+  },
+  "transitions": {
+    "new": "ახალი",
+    "fixed": "გასწორებული",
+    "regressed": "რეგრესია",
+    "malfunctioned": "დაზიანებული"
   }
 }

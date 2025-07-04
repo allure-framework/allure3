@@ -5,7 +5,11 @@ import draggable from "@/assets/svg/draggable.svg";
 import environment from "@/assets/svg/environment.svg";
 import github from "@/assets/svg/github.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
+import lineAlertsFixed from "@/assets/svg/line-alerts-fixed.svg";
+import lineAlertsMalfunctioned from "@/assets/svg/line-alerts-malfunctioned.svg";
+import lineAlertsNew from "@/assets/svg/line-alerts-new.svg";
 import lineAlertsNotificationBox from "@/assets/svg/line-alerts-notification-box.svg";
+import lineAlertsRegressed from "@/assets/svg/line-alerts-regressed.svg";
 import lineArrowsChevronDownDouble from "@/assets/svg/line-arrows-chevron-down-double.svg";
 import lineArrowsChevronDown from "@/assets/svg/line-arrows-chevron-down.svg";
 import lineArrowsChevronRight from "@/assets/svg/line-arrows-chevron-right.svg";
@@ -62,6 +66,7 @@ import solidAlertCircle from "@/assets/svg/solid-alert-circle.svg";
 import solidCheckCircle from "@/assets/svg/solid-check-circle.svg";
 import solidHelpCircle from "@/assets/svg/solid-help-circle.svg";
 import solidMinusCircle from "@/assets/svg/solid-minus-circle.svg";
+import solidPlusCircle from "@/assets/svg/solid-plus-circle.svg";
 import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
 import viewOff from "@/assets/svg/view-off.svg";
@@ -75,6 +80,10 @@ export const allureIcons = {
   draggable: draggable.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
   lineAlertsNotificationBox: lineAlertsNotificationBox.id,
+  lineAlertsNew: lineAlertsNew.id,
+  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
+  lineAlertsFixed: lineAlertsFixed.id,
+  lineAlertsRegressed: lineAlertsRegressed.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
   lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
   lineArrowsChevronRight: lineArrowsChevronRight.id,
@@ -127,6 +136,7 @@ export const allureIcons = {
   solidHelpCircle: solidHelpCircle.id,
   solidMinusCircle: solidMinusCircle.id,
   solidXCircle: solidXCircle.id,
+  solidPlusCircle: solidPlusCircle.id,
   spinner: spinner.id,
   view: view.id,
   viewOff: viewOff.id,

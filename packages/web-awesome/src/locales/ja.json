@@ -25,10 +25,13 @@
   },
   "filters": {
     "more-filters": "さらにフィルター",
-    "enable-filter": "\"{filter}\" フィルターを有効にする",
+    "enable-filter": "\"{{filter}}\" フィルターを有効にする",
     "flaky": "不安定",
     "retry": "再試行",
-    "new": "新しい"
+    "new": "新しい",
+    "fixed": "修正済み",
+    "regressed": "退行",
+    "malfunctioned": "故障"
   },
   "sort-by": {
     "sort-by-text": "並べ替え:",
@@ -154,5 +157,11 @@
     "pie": {
       "title": "テスト成功率"
     }
+  },
+  "transitions": {
+    "new": "新規",
+    "fixed": "修正済み",
+    "regressed": "退行",
+    "malfunctioned": "故障"
   }
 }

@@ -24,6 +24,7 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
     { total: trsToProcess.length } as Statistic,
   );
 };
+
 const fixtures: any = {
   testResults: {
     passed: {
