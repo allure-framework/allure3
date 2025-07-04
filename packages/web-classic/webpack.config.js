@@ -17,8 +17,7 @@ export default (env, argv) => {
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
-      // assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[fullhash:8].[ext]`,
-      assetModuleFilename: "[name][ext]",
+      assetModuleFilename: `[name][ext]`,
     },
     devtool: devMode ? "inline-source-map" : false,
     module: {
@@ -73,7 +72,7 @@ export default (env, argv) => {
         DEVELOPMENT: devMode,
       }),
       new MiniCssExtractPlugin({
-        filename: devMode ? "styles.css" : "styles-[fullhash:8].css",
+        filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
