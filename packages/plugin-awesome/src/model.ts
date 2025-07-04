@@ -19,6 +19,7 @@ export type AwesomeOptions = {
   charts?: ChartOptions[];
   sections?: string[];
   defaultSection?: string;
+  publish?: boolean;
 };
 
 export type TemplateManifest = Record<string, string>;

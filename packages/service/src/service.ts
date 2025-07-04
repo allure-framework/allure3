@@ -161,19 +161,37 @@ export class AllureServiceClient {
     return this.#client.post<{ url: string }>("/api/reports/create", {
       body: {
         project: this.project,
-        name: reportName,
+        reportName,
+        reportUuid,
+      },
+    });
+  }
+
+  /**
+   * Marks report as a completed one
+   * Use when all report files have been uploaded
+   * @param payload
+   */
+  async completeReport(payload: { reportUuid: string }) {
+    const { reportUuid } = payload;
+
+    if (!this.project) {
+      throw new Error("Project is not set");
+    }
+
+    return this.#client.post("/api/reports/complete", {
+      body: {
         id: reportUuid,
       },
     });
   }
 
   /**
-   * Adds a file to an existing report
-   * If the report doesn't exist, it will be created
+   * Uploads report asset which can be shared between multiple reports at once
    * @param payload
    */
-  async addReportFile(payload: { reportUuid: string; key: string; file?: Buffer; filepath?: string }) {
-    const { reportUuid, key, file, filepath } = payload;
+  async addReportAsset(payload: { filename: string; file?: Buffer; filepath?: string }) {
+    const { filename, file, filepath } = payload;
 
     if (!file && !filepath) {
       throw new Error("File or filepath is required");
@@ -187,8 +205,45 @@ export class AllureServiceClient {
 
     const form = new FormData();
 
-    form.set("report", reportUuid);
-    form.set("filename", key);
+    form.set("filename", filename);
+    form.set("file", content);
+
+    return this.#client.post("/api/assets/upload", {
+      body: form,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
+
+  /**
+   * Adds a file to an existing report
+   * If the report doesn't exist, it will be created
+   * @param payload
+   */
+  async addReportFile(payload: {
+    reportUuid: string;
+    pluginId: string;
+    filename: string;
+    file?: Buffer;
+    filepath?: string;
+  }) {
+    const { reportUuid, filename, file, filepath, pluginId } = payload;
+
+    if (!file && !filepath) {
+      throw new Error("File or filepath is required");
+    }
+
+    let content = file;
+
+    if (!content) {
+      content = await readFile(filepath!);
+    }
+
+    const form = new FormData();
+
+    form.set("reportUuid", reportUuid);
+    form.set("filename", joinPosix(pluginId, filename));
     form.set("file", content);
 
     await this.#client.post("/api/reports/upload", {
@@ -198,6 +253,6 @@ export class AllureServiceClient {
       },
     });
 
-    return joinPosix(this.#url, reportUuid, key);
+    return joinPosix(this.#url, reportUuid, filename);
   }
 }

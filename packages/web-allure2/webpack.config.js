@@ -11,12 +11,13 @@ const { SINGLE_FILE_MODE } = env;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
+  const devMode = argv?.mode === "development";
   const config = {
     entry: "./src/index.js",
     output: {
       path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[fullhash:8].js",
-      assetModuleFilename: `[name]-[fullhash:8][ext]`,
+      filename: devMode ? "app.js" : "app-[fullhash].js",
+      assetModuleFilename: `[name][ext]`,
     },
     module: {
       rules: [
@@ -61,12 +62,6 @@ export default (env, argv) => {
           test: /translations\/\D+\.json$/,
           type: "asset/source",
         },
-        // FIXME: how can we solve the problem with svg in css?
-        // {
-        //   test: /\.svg$/,
-        //   type: "asset/inline",
-        //   resourceQuery: /inline/,
-        // },
         {
           test: /\.svg$/,
           loader: "svg-sprite-loader",
@@ -93,7 +88,7 @@ export default (env, argv) => {
         },
       }),
       new MiniCssExtractPlugin({
-        filename: "styles-[fullhash:8].css",
+        filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({

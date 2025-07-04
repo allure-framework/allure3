@@ -19,7 +19,7 @@ export default (env, argv) => {
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
       filename: devMode ? "app.js" : "app-[fullhash].js",
-      assetModuleFilename: devMode ? `[name].[ext]` : `[name]-[contenthash].[ext]`,
+      assetModuleFilename: `[name][ext]`,
     },
     devtool: devMode ? "inline-source-map" : false,
     optimization: {

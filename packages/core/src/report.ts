@@ -7,7 +7,6 @@ import type {
   ReportFiles,
   ResultFile,
 } from "@allurereport/plugin-api";
-import AwesomePlugin from "@allurereport/plugin-awesome";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
@@ -43,7 +42,7 @@ export class AllureReport {
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
-  readonly #publish: boolean;
+
   #reportUrl?: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
@@ -66,7 +65,6 @@ export class AllureReport {
     } = opts;
 
     this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
-    this.#publish = allureServiceConfig?.publish ?? false;
     this.#reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
@@ -109,6 +107,10 @@ export class AllureReport {
 
   get validationResults() {
     return this.#qualityGate.result;
+  }
+
+  get #publish() {
+    return this.#plugins.some(({ enabled, options }) => enabled && options.publish);
   }
 
   readDirectory = async (resultsDir: string) => {
@@ -216,28 +218,28 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#stage = "done";
 
-    await this.#eachPlugin(false, async (plugin, context, id) => {
-      const pluginFiles = (await context.state.get("files")) ?? {};
-
+    await this.#eachPlugin(false, async (plugin, context, { id, publish }) => {
       await plugin.done?.(context, this.#store);
 
-      // publish only Allure Awesome reports
-      if (
-        plugin instanceof AwesomePlugin &&
-        this.#history &&
-        this.#allureServiceClient &&
-        this.#publish &&
-        Object.keys(pluginFiles).length
-      ) {
-        await Promise.all(
-          Object.entries(pluginFiles).map(([key, filepath]) =>
-            this.#allureServiceClient?.addReportFile({
+      if (this.#allureServiceClient && publish) {
+        const pluginFiles = (await context.state.get("files")) ?? {};
+
+        for (const [filename, filepath] of Object.entries(pluginFiles)) {
+          // publish data-files separately
+          if (/^(data|widgets|index\.html$)/.test(filename)) {
+            this.#allureServiceClient.addReportFile({
               reportUuid: this.#reportUuid,
-              key,
+              pluginId: id,
+              filename,
               filepath,
-            }),
-          ),
-        );
+            });
+          } else {
+            this.#allureServiceClient.addReportAsset({
+              filename,
+              filepath,
+            });
+          }
+        }
       }
 
       const summary = await plugin?.info?.(context, this.#store);
@@ -313,20 +315,18 @@ export class AllureReport {
 
   #eachPlugin = async (
     initState: boolean,
-    consumer: (plugin: Plugin, context: PluginContext, id: string) => Promise<void>,
+    consumer: (plugin: Plugin, context: PluginContext, options: { id: string; publish: boolean }) => Promise<void>,
   ) => {
     if (initState) {
       // reset state on start;
       this.#state = {};
     }
 
-    for (const descriptor of this.#plugins) {
-      if (!descriptor.enabled) {
+    for (const { enabled, id, plugin, options } of this.#plugins) {
+      if (!enabled) {
         continue;
       }
 
-      const id = descriptor.id;
-      const plugin = descriptor.plugin;
       const pluginState = this.#getPluginState(initState, id);
 
       if (!pluginState) {
@@ -357,7 +357,7 @@ export class AllureReport {
       };
 
       try {
-        await consumer.call(this, plugin, pluginContext, id);
+        await consumer.call(this, plugin, pluginContext, { id, publish: !!options?.publish });
 
         if (initState) {
           this.#state![id] = pluginState;

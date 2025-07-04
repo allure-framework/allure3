@@ -4,11 +4,11 @@ import AwesomePlugin from "@allurereport/plugin-awesome";
 import { serve } from "@allurereport/static-server";
 import type { TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
+import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { existsSync } from "node:fs";
-import { randomUUID } from "node:crypto";
 
 export type GeneratorParams = {
   history?: HistoryDataPoint[];
@@ -37,13 +37,15 @@ export const randomNumber = (min: number, max: number): number => {
 
 export const generateReport = async (payload: GeneratorParams) => {
   const { reportConfig, rootDir, reportDir, resultsDir, testResults, attachments = [], history = [] } = payload;
+
+  const hasHistory = history.length > 0;
   const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
 
   if (!existsSync(historyPath)) {
     await writeFile(historyPath, "");
   }
 
-  if (history.length > 0) {
+  if (hasHistory) {
     await writeFile(historyPath, history.map((item) => JSON.stringify(item)).join("\n"), { encoding: "utf-8" });
   }
 
@@ -51,7 +53,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     ...reportConfig,
     output: reportDir,
     reportFiles: new FileSystemReportFiles(reportDir),
-    historyPath,
+    historyPath: hasHistory ? historyPath : undefined,
   });
   const runtime = new ReporterRuntime({
     writer: new FileSystemWriter({

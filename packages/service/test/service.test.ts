@@ -24,7 +24,8 @@ const fixtures = {
     name: "test",
   } as HistoryDataPoint,
   report: "report",
-  key: "key",
+  filename: "filename",
+  pluginId: "sample",
 };
 
 const open = await import("open");
@@ -217,9 +218,9 @@ describe("AllureServiceClient", () => {
 
       expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/create", {
         body: {
-          id: fixtures.report,
           project: fixtures.project,
-          name: fixtures.report,
+          reportUuid: fixtures.report,
+          reportName: fixtures.report,
         },
       });
       expect(res).toEqual({ id: fixtures.report, name: fixtures.report });
@@ -228,21 +229,13 @@ describe("AllureServiceClient", () => {
 
   describe("addReportFile", () => {
     it("should throw an error unless a file or filepath is provided", async () => {
-      await expect(serviceClient.addReportFile({ reportUuid: fixtures.report, key: fixtures.key })).rejects.toThrow(
-        "File or filepath is required",
-      );
-    });
-
-    it("should throw an error if the provided filename points to a non-existing file", async () => {
-      (readFile as MockedFunction<typeof readFile>).mockRejectedValue(new Error("File not found"));
-
       await expect(
         serviceClient.addReportFile({
           reportUuid: fixtures.report,
-          key: fixtures.key,
-          filepath: "not-existing-file.txt",
+          pluginId: fixtures.pluginId,
+          filename: fixtures.filename,
         }),
-      ).rejects.toThrow("File not found");
+      ).rejects.toThrow("File or filepath is required");
     });
 
     it("should upload a given file", async () => {
@@ -250,14 +243,15 @@ describe("AllureServiceClient", () => {
 
       const res = await serviceClient.addReportFile({
         reportUuid: fixtures.report,
-        key: fixtures.key,
+        pluginId: fixtures.pluginId,
+        filename: fixtures.filename,
         file: Buffer.from("test"),
       });
 
       const form = new FormData();
 
-      form.set("report", fixtures.report);
-      form.set("filename", fixtures.key);
+      form.set("reportUuid", fixtures.report);
+      form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
       form.set("file", Buffer.from("test") as unknown as Blob);
 
       expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/upload", {
@@ -266,32 +260,84 @@ describe("AllureServiceClient", () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.key));
+      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.filename));
+    });
+
+    it("should upload a file from a filepath", async () => {
+      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("test"));
+      HttpClientMock.prototype.post.mockResolvedValue({});
+
+      const res = await serviceClient.addReportFile({
+        reportUuid: fixtures.report,
+        pluginId: fixtures.pluginId,
+        filename: fixtures.filename,
+        filepath: "test.txt",
+      });
+
+      const form = new FormData();
+
+      form.set("reportUuid", fixtures.report);
+      form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
+      form.set("file", Buffer.from("test") as unknown as Blob);
+
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/upload", {
+        body: form,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.filename));
     });
   });
 
-  it("should upload a file from a filepath", async () => {
-    (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("test"));
-    HttpClientMock.prototype.post.mockResolvedValue({});
-
-    const res = await serviceClient.addReportFile({
-      reportUuid: fixtures.report,
-      key: fixtures.key,
-      filepath: "test.txt",
+  describe("addReportAsset", () => {
+    it("should throw an error unless a file or filepath is provided", async () => {
+      await expect(serviceClient.addReportAsset({ filename: fixtures.filename })).rejects.toThrow(
+        "File or filepath is required",
+      );
     });
 
-    const form = new FormData();
+    it("should upload a given file", async () => {
+      HttpClientMock.prototype.post.mockResolvedValue({});
 
-    form.set("report", fixtures.report);
-    form.set("filename", fixtures.key);
-    form.set("file", Buffer.from("test") as unknown as Blob);
+      const res = await serviceClient.addReportAsset({
+        filename: fixtures.filename,
+        file: Buffer.from("test"),
+      });
 
-    expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/upload", {
-      body: form,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      const form = new FormData();
+      form.set("filename", fixtures.filename);
+      form.set("file", Buffer.from("test") as unknown as Blob);
+
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/assets/upload", {
+        body: form,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      expect(res).toEqual({});
     });
-    expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.key));
+
+    it("should upload a file from a filepath", async () => {
+      (readFile as MockedFunction<typeof readFile>).mockResolvedValue(Buffer.from("test"));
+      HttpClientMock.prototype.post.mockResolvedValue({});
+
+      const res = await serviceClient.addReportAsset({
+        filename: fixtures.filename,
+        filepath: "test.txt",
+      });
+
+      const form = new FormData();
+      form.set("filename", fixtures.filename);
+      form.set("file", Buffer.from("test") as unknown as Blob);
+
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/assets/upload", {
+        body: form,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      expect(res).toEqual({});
+    });
   });
 });
