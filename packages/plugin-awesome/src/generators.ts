@@ -185,6 +185,7 @@ export const generateTree = async (
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
   const testsWithoutTitlePath = visibleTests.filter((test) => !test.titlePath?.length);
+  const testsWithTitlePath = visibleTests.filter((test) => test.titlePath?.length);
   const treeByLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     testsWithoutTitlePath,
     labels,
@@ -206,7 +207,7 @@ export const generateTree = async (
   );
 
   const tree = createTreeByTitlePath<AwesomeTestResult>(
-    tests,
+    testsWithTitlePath,
     ({ id, name, status, duration, flaky, start, retries }) => ({
       nodeId: id,
       name,
@@ -223,13 +224,18 @@ export const generateTree = async (
     },
   );
 
+  const mergedLeavesById = { ...tree.leavesById, ...treeByLabels.leavesById };
+  const mergedGroupsById = { ...tree.groupsById, ...treeByLabels.groupsById };
+  const uniqueLeafIds = Array.from(new Set([...(tree.root.leaves ?? []), ...(treeByLabels.root.leaves ?? [])]));
+  const uniqueGroupIds = Array.from(new Set([...(tree.root.groups ?? []), ...(treeByLabels.root.groups ?? [])]));
+
   const mergedTree = {
     root: {
-      groups: [...tree.root.groups!, ...(treeByLabels.root.groups as string[])],
-      leaves: [...tree.root.leaves!, ...(treeByLabels.root.leaves as string[])],
+      groups: uniqueGroupIds,
+      leaves: uniqueLeafIds,
     },
-    groupsById: { ...tree.groupsById, ...treeByLabels.groupsById },
-    leavesById: { ...tree.leavesById, ...treeByLabels.leavesById },
+    groupsById: mergedGroupsById,
+    leavesById: mergedLeavesById,
   };
 
   // @ts-ignore
