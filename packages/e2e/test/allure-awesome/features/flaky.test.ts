@@ -3,14 +3,14 @@ import { Stage, Status, label } from "allure-js-commons";
 import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import {
-  makeTestCaseId,
-  makeHistoryId,
-  makeTestResult,
   makeHistory,
+  makeHistoryId,
   makeHistoryTestResults,
   makeReportConfig,
-  makeTestResults,
+  makeTestCaseId,
+  makeTestResult,
   makeTestResultNames,
+  makeTestResults,
 } from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
