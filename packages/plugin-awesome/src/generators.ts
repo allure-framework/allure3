@@ -1,6 +1,7 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
+  type TreeData,
   compareBy,
   incrementStatistic,
   nullsLast,
@@ -11,10 +12,13 @@ import {
   type ReportFiles,
   type ResultFile,
   type TestResultFilter,
+  createTreeByLabels,
   createTreeByTitlePath,
   filterTree,
+  preciseTreeLabels,
+  sortTree,
+  transformTree,
 } from "@allurereport/plugin-api";
-import { createTreeByLabels, sortTree, transformTree } from "@allurereport/plugin-api";
 import type {
   AwesomeFixtureResult,
   AwesomeReportOptions,
@@ -184,68 +188,108 @@ export const generateTree = async (
   tests: AwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const testsWithoutTitlePath = visibleTests.filter((test) => !test.titlePath?.length);
-  const testsWithTitlePath = visibleTests.filter((test) => test.titlePath?.length);
-  const treeByLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    testsWithoutTitlePath,
-    labels,
-    ({ id, name, status, duration, flaky, transition, start, retry, retriesCount }) => ({
-      nodeId: id,
-      retry,
-      retriesCount,
-      name,
-      status,
-      start,
-      duration,
-      flaky,
-      transition,
-    }),
-    undefined,
-    (group, leaf) => {
-      incrementStatistic(group.statistic, leaf.status);
-    },
-  );
 
-  const tree = createTreeByTitlePath<AwesomeTestResult>(
-    testsWithTitlePath,
-    ({ id, name, status, duration, flaky, start, retries, transition }) => ({
-      nodeId: id,
-      name,
-      status,
-      duration,
-      flaky,
-      start,
-      retry: !!retries?.length,
-      retriesCount: retries?.length || 0,
-      transition,
-    }),
-    undefined,
-    (group, leaf) => {
-      incrementStatistic(group.statistic, leaf.status);
-    },
-  );
-
-  const mergedLeavesById = { ...tree.leavesById, ...treeByLabels.leavesById };
-  const mergedGroupsById = { ...tree.groupsById, ...treeByLabels.groupsById };
-  const uniqueLeafIds = Array.from(new Set([...(tree.root.leaves ?? []), ...(treeByLabels.root.leaves ?? [])]));
-  const uniqueGroupIds = Array.from(new Set([...(tree.root.groups ?? []), ...(treeByLabels.root.groups ?? [])]));
-
-  const mergedTree = {
-    root: {
-      groups: uniqueGroupIds,
-      leaves: uniqueLeafIds,
-    },
-    groupsById: mergedGroupsById,
-    leavesById: mergedLeavesById,
-  };
+  const tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> = labels.length
+    ? buildTreeByLabels(visibleTests, labels)
+    : buildTreeByTitlePath(visibleTests);
 
   // @ts-ignore
-  filterTree(mergedTree, (leaf) => !leaf.hidden);
-  sortTree(mergedTree, nullsLast(compareBy("start", ordinal())));
-  transformTree(mergedTree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
+  filterTree(tree, (leaf) => !leaf.hidden);
+  sortTree(tree, nullsLast(compareBy("start", ordinal())));
+  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
-  await writer.writeWidget(treeFilename, mergedTree);
+  await writer.writeWidget(treeFilename, tree);
 };
+
+const buildTreeByLabels = (
+  tests: AwesomeTestResult[],
+  labels: string[],
+): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
+  return createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    tests,
+    labels,
+    leafFactory,
+    undefined,
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  );
+};
+
+const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
+  const testsWithTitlePath: AwesomeTestResult[] = [];
+  const testsWithoutTitlePath: AwesomeTestResult[] = [];
+
+  for (const test of tests) {
+    if (Array.isArray(test.titlePath) && test.titlePath.length > 0) {
+      testsWithTitlePath.push(test);
+    } else {
+      testsWithoutTitlePath.push(test);
+    }
+  }
+
+  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
+    testsWithTitlePath,
+    leafFactory,
+    undefined,
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  );
+
+  const defaultLabels = preciseTreeLabels(["parentSuite", "suite", "subSuite"], testsWithoutTitlePath, ({ labels }) =>
+    labels.map(({ name }) => name),
+  );
+  // fallback if integrations return empty titlePath
+  const treeByDefaultLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    testsWithoutTitlePath,
+    defaultLabels,
+    leafFactory,
+    undefined,
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  );
+
+  const mergedLeavesById = { ...treeByTitlePath.leavesById, ...treeByDefaultLabels.leavesById } as Record<
+    string,
+    AwesomeTreeLeaf
+  >;
+  const mergedGroupsById = { ...treeByTitlePath.groupsById, ...treeByDefaultLabels.groupsById };
+
+  const mergedRootLeaves = Array.from(
+    new Set([...(treeByTitlePath.root.leaves ?? []), ...(treeByDefaultLabels.root.leaves ?? [])]),
+  );
+
+  const mergedRootGroups = Array.from(
+    new Set([...(treeByTitlePath.root.groups ?? []), ...(treeByDefaultLabels.root.groups ?? [])]),
+  );
+
+  return {
+    root: {
+      leaves: mergedRootLeaves,
+      groups: mergedRootGroups,
+    },
+    leavesById: mergedLeavesById,
+    groupsById: mergedGroupsById,
+  };
+};
+
+const leafFactory = ({
+  id,
+  name,
+  status,
+  duration,
+  flaky,
+  start,
+  transition,
+  retry,
+  retriesCount,
+}: AwesomeTestResult): AwesomeTreeLeaf => ({
+  nodeId: id,
+  name,
+  status,
+  duration,
+  flaky,
+  start,
+  retry,
+  retriesCount,
+  transition,
+});
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);

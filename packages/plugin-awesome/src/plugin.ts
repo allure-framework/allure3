@@ -37,11 +37,16 @@ export class AwesomePlugin implements Plugin {
     await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, this.options.filter);
-    const treeLabels = preciseTreeLabels(
-      !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
-      convertedTrs,
-      ({ labels }) => labels.map(({ name }) => name),
-    );
+    const hasGroupBy = groupBy.length > 0;
+
+    const treeLabels = hasGroupBy
+      ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
+      : [];
+    // const treeLabels = preciseTreeLabels(
+    //   !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
+    //   convertedTrs,
+    //   ({ labels }) => labels.map(({ name }) => name),
+    // );
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
