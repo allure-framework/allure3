@@ -1186,6 +1186,7 @@ const RAW_RUNTIME_STATE =
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/dompurify", "npm:3.2.0"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/md5", "npm:2.3.5"],\
           ["@types/node", "npm:20.17.9"],\
@@ -1204,6 +1205,7 @@ const RAW_RUNTIME_STATE =
           ["clsx", "npm:2.1.1"],\
           ["css-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.1.2"],\
           ["d3-shape", "npm:3.2.0"],\
+          ["dompurify", "npm:3.2.6"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.5.0"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
@@ -11433,6 +11435,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/dompurify", [\
+      ["npm:3.2.0", {\
+        "packageLocation": "./.yarn/cache/@types-dompurify-npm-3.2.0-7e83ea50aa-0194dd9024.zip/node_modules/@types/dompurify/",\
+        "packageDependencies": [\
+          ["@types/dompurify", "npm:3.2.0"],\
+          ["dompurify", "npm:3.2.6"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/eslint", [\
       ["npm:8.56.10", {\
         "packageLocation": "./.yarn/cache/@types-eslint-npm-8.56.10-957cc305f5-0cdd914b94.zip/node_modules/@types/eslint/",\
@@ -11921,6 +11933,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@types-sortablejs-npm-1.15.8-72981d09e4-aea58b08cf.zip/node_modules/@types/sortablejs/",\
         "packageDependencies": [\
           ["@types/sortablejs", "npm:1.15.8"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/trusted-types", [\
+      ["npm:2.0.7", {\
+        "packageLocation": "./.yarn/cache/@types-trusted-types-npm-2.0.7-a07fc44f59-8e4202766a.zip/node_modules/@types/trusted-types/",\
+        "packageDependencies": [\
+          ["@types/trusted-types", "npm:2.0.7"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -17367,6 +17388,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["domhandler", "npm:5.0.3"],\
           ["domelementtype", "npm:2.3.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["dompurify", [\
+      ["npm:3.2.6", {\
+        "packageLocation": "./.yarn/cache/dompurify-npm-3.2.6-8d2a7542b7-b91631ed0e.zip/node_modules/dompurify/",\
+        "packageDependencies": [\
+          ["dompurify", "npm:3.2.6"],\
+          ["@types/trusted-types", "npm:2.0.7"]\
         ],\
         "linkType": "HARD"\
       }]\

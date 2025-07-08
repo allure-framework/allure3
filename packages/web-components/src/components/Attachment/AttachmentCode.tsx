@@ -1,4 +1,5 @@
 import { type AttachmentTestStepResult } from "@allurereport/core-api";
+import { sanitizeAnsiHtml } from "../../utils/sanitize";
 import AnsiToHtml from "ansi-to-html";
 import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
@@ -32,7 +33,7 @@ export const AttachmentCode: FunctionalComponent<{
           data-testid="code-attachment-content"
           key={item?.link?.id}
           className={`language-${ext} line-numbers`}
-          dangerouslySetInnerHTML={{ __html: ansiTrace(rawText) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeAnsiHtml(ansiTrace(rawText)) }}
         />
       ) : (
         <pre
