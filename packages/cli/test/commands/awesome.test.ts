@@ -1,5 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import type { AwesomePluginOptions } from "@allurereport/plugin-awesome";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { AwesomeCommandAction } from "../../src/commands/awesome.js";
 
@@ -123,6 +124,53 @@ describe("awesome command", () => {
               singleFile: fixtures.singleFile,
               logo: fixtures.logo,
             },
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("should prioritize CLI options", async () => {
+    const optionsFromConfigFile: AwesomePluginOptions = {
+      groupBy: ["foo", "bar"],
+      logo: "./config/logo.png",
+      singleFile: false,
+      reportLanguage: "en",
+    };
+    const optionsFromCli: AwesomePluginOptions = {
+      groupBy: ["baz", "qux"],
+      logo: "./custom/logo.png",
+      singleFile: true,
+      reportLanguage: "ru",
+    };
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [
+        {
+          id: "my-awesome-plugin",
+          enabled: true,
+          options: optionsFromConfigFile,
+          plugin: new AwesomePlugin(optionsFromConfigFile),
+        },
+      ],
+    });
+
+    await AwesomeCommandAction("foo/bar/allure-results", {
+      reportLanguage: optionsFromCli.reportLanguage,
+      singleFile: optionsFromCli.singleFile,
+      logo: optionsFromCli.logo,
+      groupBy: optionsFromCli.groupBy!.join(","),
+    });
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "my-awesome-plugin",
+            enabled: true,
+            options: optionsFromCli,
+            plugin: expect.any(AwesomePlugin),
           }),
         ]),
       }),
