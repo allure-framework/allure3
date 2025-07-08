@@ -11,8 +11,8 @@ export interface TagProps {
   "data-testid"?: string;
 }
 
-export const Tag: FunctionComponent<TagProps> = ({ className, skin, children, "data-testid": testId }) => (
-  <Text className={clsx(styles.tag, className, skin && styles[skin])} bold size="s" type="ui" data-testid={testId}>
+export const Tag: FunctionComponent<TagProps> = ({ className, skin, children, "data-testid": dataTestId }) => (
+  <Text className={clsx(styles.tag, className, skin && styles[skin])} bold size="s" type="ui" data-testid={dataTestId}>
     {children}
   </Text>
 );

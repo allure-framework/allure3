@@ -28,8 +28,6 @@ test.describe("commons", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
       },
       testResults: [
@@ -79,7 +77,7 @@ test.describe("commons", () => {
     });
   });
 
-  test("all types of tests are displayed", async ({ page }) => {
+  test("all types of tests are displayed", async () => {
     await expect(treePage.leafLocator).toHaveCount(5);
 
     await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
@@ -166,10 +164,9 @@ test.describe("SearchBox component with debounce", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: [],
-          historyPath: "",
           knownIssuesPath: "",
         },
+        history: [],
         testResults: [
           {
             name: "0 sample passed test",
@@ -215,8 +212,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -282,8 +277,6 @@ test.describe("suites", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
       },
       testResults: [
@@ -342,8 +335,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
           defaultLabels: {
             parentSuite: "Assign me please!",
@@ -412,8 +403,6 @@ test.describe("features", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -463,8 +452,6 @@ test.describe("stories", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [

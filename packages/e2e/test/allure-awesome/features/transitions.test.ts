@@ -4,10 +4,10 @@ import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import {
   makeHistory,
+  makeHistoryId,
   makeHistoryTestResults,
   makeReportConfig,
   makeTestCaseId,
-  makeHistoryId,
   makeTestResult,
   makeTestResultNames,
 } from "../utils/mocks.js";
