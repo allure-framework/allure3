@@ -16,7 +16,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
   const { status, message, trace, stop, duration, id } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
+  const formattedDuration = duration ? formatDuration(duration) : undefined;
   const { t } = useI18n("controls");
 
   const navigateUrl = `testresult/${id}`;
@@ -37,11 +37,13 @@ export const TestResultHistoryItem: FunctionalComponent<{
           }}
         >
           <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-          <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
+          {convertedStop && <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>}
           <div className={styles["test-result-history-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
+            {formattedDuration && (
+              <Text type="ui" size={"s"} className={styles["item-time"]}>
+                {formattedDuration}
+              </Text>
+            )}
             <TooltipWrapper tooltipText={t("openInNewTab")}>
               <IconButton
                 icon={allureIcons.lineGeneralLinkExternal}

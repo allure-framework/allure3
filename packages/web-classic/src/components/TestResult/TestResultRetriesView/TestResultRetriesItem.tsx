@@ -15,7 +15,7 @@ export const TestResultRetriesItem: FunctionalComponent<{
   const { id, status, message, trace, stop, duration } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
+  const formattedDuration = duration ? formatDuration(duration) : undefined;
   const navigateUrl = `testresult/${id}`;
 
   return (
@@ -24,11 +24,13 @@ export const TestResultRetriesItem: FunctionalComponent<{
         {Boolean(message) && <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
+          {convertedStop && <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>}
           <div className={styles["test-result-retries-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
+            {formattedDuration && (
+              <Text type="ui" size={"s"} className={styles["item-time"]}>
+                {formattedDuration}
+              </Text>
+            )}
             <IconButton
               icon={allureIcons.lineGeneralLinkExternal}
               style={"ghost"}
