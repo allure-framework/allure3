@@ -1,5 +1,5 @@
 import type { FunctionalComponent } from "preact";
-import { sanitizeAttachmentHtml } from "../../utils/sanitize";
+import { sanitizeAttachmentHtml } from "@allurereport/web-commons";
 import styles from "./styles.scss";
 
 // TODO: use proper type here

@@ -878,13 +878,16 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
+    "@types/dompurify": "npm:^3.2.0"
     "@types/eslint": "npm:^8.56.11"
+    "@types/jsdom": "npm:^21.1.7"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     allure-js-commons: "npm:^3.0.9"
     allure-vitest: "npm:^3.0.9"
     d3-shape: "npm:^3.2.0"
+    dompurify: "npm:^3.2.6"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -892,6 +895,7 @@ __metadata:
     eslint-plugin-n: "npm:^17.10.1"
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    jsdom: "npm:^26.1.0"
     rimraf: "npm:^6.0.1"
     tslib: "npm:^2.7.0"
     typescript: "npm:^5.6.3"
@@ -6921,6 +6925,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jsdom@npm:^21.1.7":
+  version: 21.1.7
+  resolution: "@types/jsdom@npm:21.1.7"
+  dependencies:
+    "@types/node": "npm:*"
+    "@types/tough-cookie": "npm:*"
+    parse5: "npm:^7.0.0"
+  checksum: 10/a5ee54aec813ac928ef783f69828213af4d81325f584e1fe7573a9ae139924c40768d1d5249237e62d51b9a34ed06bde059c86c6b0248d627457ec5e5d532dfa
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:*, @types/json-schema@npm:^7.0.15, @types/json-schema@npm:^7.0.3, @types/json-schema@npm:^7.0.8, @types/json-schema@npm:^7.0.9":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
@@ -7173,6 +7188,13 @@ __metadata:
   version: 1.15.8
   resolution: "@types/sortablejs@npm:1.15.8"
   checksum: 10/aea58b08cf45f5e9633707a8df0df1212595c731bbdfd29805487138fdd0d8c51fa5c741999738a645c1e801d43a92ba0d3fb5b45625b52e247c56588aef6c55
+  languageName: node
+  linkType: hard
+
+"@types/tough-cookie@npm:*":
+  version: 4.0.5
+  resolution: "@types/tough-cookie@npm:4.0.5"
+  checksum: 10/01fd82efc8202670865928629697b62fe9bf0c0dcbc5b1c115831caeb073a2c0abb871ff393d7df1ae94ea41e256cb87d2a5a91fd03cdb1b0b4384e08d4ee482
   languageName: node
   linkType: hard
 
@@ -10558,6 +10580,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"decimal.js@npm:^10.5.0":
+  version: 10.6.0
+  resolution: "decimal.js@npm:10.6.0"
+  checksum: 10/c0d45842d47c311d11b38ce7ccc911121953d4df3ebb1465d92b31970eb4f6738a065426a06094af59bee4b0d64e42e7c8984abd57b6767c64ea90cf90bb4a69
+  languageName: node
+  linkType: hard
+
 "deep-eql@npm:^5.0.1":
   version: 5.0.2
   resolution: "deep-eql@npm:5.0.2"
@@ -11102,6 +11131,13 @@ __metadata:
   version: 4.5.0
   resolution: "entities@npm:4.5.0"
   checksum: 10/ede2a35c9bce1aeccd055a1b445d41c75a14a2bb1cd22e242f20cf04d236cdcd7f9c859eb83f76885327bfae0c25bf03303665ee1ce3d47c5927b98b0e3e3d48
+  languageName: node
+  linkType: hard
+
+"entities@npm:^6.0.0":
+  version: 6.0.1
+  resolution: "entities@npm:6.0.1"
+  checksum: 10/62af1307202884349d2867f0aac5c60d8b57102ea0b0e768b16246099512c28e239254ad772d6834e7e14cb1b6f153fc3d0c031934e3183b086c86d3838d874a
   languageName: node
   linkType: hard
 
@@ -14154,6 +14190,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jsdom@npm:^26.1.0":
+  version: 26.1.0
+  resolution: "jsdom@npm:26.1.0"
+  dependencies:
+    cssstyle: "npm:^4.2.1"
+    data-urls: "npm:^5.0.0"
+    decimal.js: "npm:^10.5.0"
+    html-encoding-sniffer: "npm:^4.0.0"
+    http-proxy-agent: "npm:^7.0.2"
+    https-proxy-agent: "npm:^7.0.6"
+    is-potential-custom-element-name: "npm:^1.0.1"
+    nwsapi: "npm:^2.2.16"
+    parse5: "npm:^7.2.1"
+    rrweb-cssom: "npm:^0.8.0"
+    saxes: "npm:^6.0.0"
+    symbol-tree: "npm:^3.2.4"
+    tough-cookie: "npm:^5.1.1"
+    w3c-xmlserializer: "npm:^5.0.0"
+    webidl-conversions: "npm:^7.0.0"
+    whatwg-encoding: "npm:^3.1.1"
+    whatwg-mimetype: "npm:^4.0.0"
+    whatwg-url: "npm:^14.1.1"
+    ws: "npm:^8.18.0"
+    xml-name-validator: "npm:^5.0.0"
+  peerDependencies:
+    canvas: ^3.0.0
+  peerDependenciesMeta:
+    canvas:
+      optional: true
+  checksum: 10/39d78c4889cac20826393400dce1faed1666e9244fe0c8342a8f08c315375878e6be7fcfe339a33d6ff1a083bfe9e71b16d56ecf4d9a87db2da8c795925ea8c1
+  languageName: node
+  linkType: hard
+
 "jsesc@npm:^2.5.1":
   version: 2.5.2
   resolution: "jsesc@npm:2.5.2"
@@ -15650,6 +15719,15 @@ __metadata:
     json-parse-even-better-errors: "npm:^2.3.0"
     lines-and-columns: "npm:^1.1.6"
   checksum: 10/62085b17d64da57f40f6afc2ac1f4d95def18c4323577e1eced571db75d9ab59b297d1d10582920f84b15985cbfc6b6d450ccbf317644cfa176f3ed982ad87e2
+  languageName: node
+  linkType: hard
+
+"parse5@npm:^7.0.0":
+  version: 7.3.0
+  resolution: "parse5@npm:7.3.0"
+  dependencies:
+    entities: "npm:^6.0.0"
+  checksum: 10/b0e48be20b820c655b138b86fa6fb3a790de6c891aa2aba536524f8027b4dca4fe538f11a0e5cf2f6f847d120dbb9e4822dcaeb933ff1e10850a2ef0154d1d88
   languageName: node
   linkType: hard
 
@@ -19206,12 +19284,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tough-cookie@npm:^5.1.1":
+  version: 5.1.2
+  resolution: "tough-cookie@npm:5.1.2"
+  dependencies:
+    tldts: "npm:^6.1.32"
+  checksum: 10/de430e6e6d34b794137e05b8ac2aa6b74ebbe6cdceb4126f168cf1e76101162a4b2e0e7587c3b70e728bd8654fc39958b2035be7619ee6f08e7257610ba4cd04
+  languageName: node
+  linkType: hard
+
 "tr46@npm:^5.0.0":
   version: 5.0.0
   resolution: "tr46@npm:5.0.0"
   dependencies:
     punycode: "npm:^2.3.1"
   checksum: 10/29155adb167d048d3c95d181f7cb5ac71948b4e8f3070ec455986e1f34634acae50ae02a3c8d448121c3afe35b76951cd46ed4c128fd80264280ca9502237a3e
+  languageName: node
+  linkType: hard
+
+"tr46@npm:^5.1.0":
+  version: 5.1.1
+  resolution: "tr46@npm:5.1.1"
+  dependencies:
+    punycode: "npm:^2.3.1"
+  checksum: 10/833a0e1044574da5790148fd17866d4ddaea89e022de50279967bcd6b28b4ce0d30d59eb3acf9702b60918975b3bad481400337e3a2e6326cffa5c77b874753d
   languageName: node
   linkType: hard
 
@@ -20273,6 +20369,16 @@ __metadata:
     tr46: "npm:^5.0.0"
     webidl-conversions: "npm:^7.0.0"
   checksum: 10/3afd325de6cf3a367820ce7c3566a1f78eb1409c4f27b1867c74c76dab096d26acedf49a8b9b71db53df7d806ec2e9ae9ed96990b2f7d1abe6ecf1fe753af6eb
+  languageName: node
+  linkType: hard
+
+"whatwg-url@npm:^14.1.1":
+  version: 14.2.0
+  resolution: "whatwg-url@npm:14.2.0"
+  dependencies:
+    tr46: "npm:^5.1.0"
+    webidl-conversions: "npm:^7.0.0"
+  checksum: 10/f0a95b0601c64f417c471536a2d828b4c16fe37c13662483a32f02f183ed0f441616609b0663fb791e524e8cd56d9a86dd7366b1fc5356048ccb09b576495e7c
   languageName: node
   linkType: hard
 

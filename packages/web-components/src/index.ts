@@ -31,4 +31,4 @@ export * from "./components/Charts/SuccessRatePieChart";
 export * from "./components/Charts/TrendChart";
 
 // Export sanitization utilities
-export * from "./utils/sanitize";
+// Sanitize utilities moved to web-commons

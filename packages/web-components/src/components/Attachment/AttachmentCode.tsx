@@ -1,5 +1,5 @@
 import { type AttachmentTestStepResult } from "@allurereport/core-api";
-import { sanitizeAnsiHtml } from "../../utils/sanitize";
+import { sanitizeAnsiHtml } from "@allurereport/web-commons";
 import AnsiToHtml from "ansi-to-html";
 import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
