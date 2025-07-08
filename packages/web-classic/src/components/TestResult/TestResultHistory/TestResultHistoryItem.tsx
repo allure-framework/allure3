@@ -16,10 +16,38 @@ export const TestResultHistoryItem: FunctionalComponent<{
   const { status, message, trace, stop, duration, id } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
+  const formattedDuration = duration ? formatDuration(duration) : undefined;
   const { t } = useI18n("controls");
 
   const navigateUrl = `testresult/${id}`;
+
+  const renderItemContent = () => {
+    return (
+      <>
+        <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
+        {convertedStop && <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>}
+        <div className={styles["test-result-history-item-info"]}>
+          {formattedDuration && (
+            <Text type="ui" size={"s"} className={styles["item-time"]}>
+              {formattedDuration}
+            </Text>
+          )}
+          <TooltipWrapper tooltipText={t("openInNewTab")}>
+            <IconButton
+              icon={allureIcons.lineGeneralLinkExternal}
+              style={"ghost"}
+              size={"s"}
+              className={styles["test-result-history-item-link"]}
+              onClick={(e) => {
+                e.stopPropagation();
+                openInNewTab(navigateUrl);
+              }}
+            />
+          </TooltipWrapper>
+        </div>
+      </>
+    );
+  };
 
   return (
     <div>
@@ -36,25 +64,7 @@ export const TestResultHistoryItem: FunctionalComponent<{
             navigateTo(navigateUrl);
           }}
         >
-          <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-          <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
-          <div className={styles["test-result-history-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
-            <TooltipWrapper tooltipText={t("openInNewTab")}>
-              <IconButton
-                icon={allureIcons.lineGeneralLinkExternal}
-                style={"ghost"}
-                size={"s"}
-                className={styles["test-result-history-item-link"]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openInNewTab(navigateUrl);
-                }}
-              />
-            </TooltipWrapper>
-          </div>
+          {renderItemContent()}
         </div>
       </div>
       {isOpened && message && (
