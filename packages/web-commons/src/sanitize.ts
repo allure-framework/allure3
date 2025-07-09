@@ -1,19 +1,21 @@
 import DOMPurify, { type Config } from "dompurify";
 
-// Use globalThis.DOMPurify if available (test env), otherwise use the default import (browser build)
-// @ts-ignore
-const DOMPurifyInstance = typeof globalThis !== 'undefined' && globalThis.DOMPurify ? globalThis.DOMPurify : DOMPurify;
+// Default DOMPurify instance - will work in browser, undefined in Node.js
+const defaultDOMPurify = DOMPurify;
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
  * @param html - The HTML content to sanitize
  * @param options - DOMPurify configuration options
+ * @param customDOMPurify - Optional custom DOMPurify instance for testing
  * @returns Sanitized HTML string
  */
-export const sanitizeHtml = (html: string, options?: Config): string => {
+export const sanitizeHtml = (html: string, options?: Config, customDOMPurify?: typeof DOMPurify): string => {
   if (!html || typeof html !== "string") {
     return "";
   }
+
+  const DOMPurifyInstance = customDOMPurify || defaultDOMPurify;
 
   // Use DOMPurify's built-in HTML profile, with optional extra tags/attrs
   const defaultOptions: Config = {
@@ -33,12 +35,15 @@ export const sanitizeHtml = (html: string, options?: Config): string => {
 /**
  * Sanitizes ANSI-to-HTML converted content specifically for code display
  * @param html - The HTML content from ANSI conversion
+ * @param customDOMPurify - Optional custom DOMPurify instance for testing
  * @returns Sanitized HTML string safe for code display
  */
-export const sanitizeAnsiHtml = (html: string): string => {
+export const sanitizeAnsiHtml = (html: string, customDOMPurify?: typeof DOMPurify): string => {
   if (!html || typeof html !== "string") {
     return "";
   }
+
+  const DOMPurifyInstance = customDOMPurify || defaultDOMPurify;
 
   // Use minimal profile for ANSI-converted content - only allow span with style
   const ansiOptions: Config = {
@@ -56,12 +61,15 @@ export const sanitizeAnsiHtml = (html: string): string => {
 /**
  * Sanitizes HTML content for attachment previews with minimal allowed content
  * @param html - The HTML content to sanitize
+ * @param customDOMPurify - Optional custom DOMPurify instance for testing
  * @returns Sanitized HTML string safe for attachment preview
  */
-export const sanitizeAttachmentHtml = (html: string): string => {
+export const sanitizeAttachmentHtml = (html: string, customDOMPurify?: typeof DOMPurify): string => {
   if (!html || typeof html !== "string") {
     return "";
   }
+
+  const DOMPurifyInstance = customDOMPurify || defaultDOMPurify;
 
   // Use DOMPurify's built-in HTML profile, but further restrict dangerous elements
   const attachmentOptions: Config = {

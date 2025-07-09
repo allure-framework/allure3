@@ -29,6 +29,3 @@ export * from "./components/ThemeButton";
 export * from "./components/Charts/TrendChartWidget";
 export * from "./components/Charts/SuccessRatePieChart";
 export * from "./components/Charts/TrendChart";
-
-// Export sanitization utilities
-// Sanitize utilities moved to web-commons
