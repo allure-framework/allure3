@@ -1,1 +1,1 @@
-{"id":"c0ff31378017c3fe597b79e78543dfba","fullName":"test/utils/token.test.ts#decryptExchangeToken should throw an error if the token is invalid","name":"should throw an error if the token is invalid","status":"passed","testResultsByEnv":{"default":"5bbf13fc0710b03c34678d2f7fd59929"}}
+{"id":"c0ff31378017c3fe597b79e78543dfba","fullName":"test/utils/token.test.ts#decryptExchangeToken should throw an error if the token is invalid","name":"should throw an error if the token is invalid","status":"passed","testResultsByEnv":{"default":"541b1eb44cb59ccdd79dd055c57c2743"}}

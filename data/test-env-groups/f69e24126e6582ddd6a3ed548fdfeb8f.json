@@ -1,1 +1,1 @@
-{"id":"f69e24126e6582ddd6a3ed548fdfeb8f","fullName":"test/utils/commands.test.ts#createCommand throws when command is not provided","name":"throws when command is not provided","status":"passed","testResultsByEnv":{"default":"96da77fe7e3813d3343e821d2b09b2a3"}}
+{"id":"f69e24126e6582ddd6a3ed548fdfeb8f","fullName":"test/utils/commands.test.ts#createCommand throws when command is not provided","name":"throws when command is not provided","status":"passed","testResultsByEnv":{"default":"24ab62072128e0bbc3a06a41b0d48c7a"}}
