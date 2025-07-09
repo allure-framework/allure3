@@ -140,9 +140,7 @@ export const makeTestResults = (count: number, maker: ItemMaker<TestResult>): Te
  * Generates a history item with random data
  * @param params - Additional parameters to override defaults
  */
-export const makeHistoryItem = (
-  params?: Partial<HistoryDataPoint>,
-): HistoryDataPoint => {
+export const makeHistoryItem = (params?: Partial<HistoryDataPoint>): HistoryDataPoint => {
   const {
     uuid = generateUuid(),
     name = generateWord(),
@@ -171,10 +169,7 @@ export const makeHistoryItem = (
  * @param count - Number of history items to generate
  * @param maker - Function to customize each history item
  */
-export const makeHistory = (
-  count: number,
-  maker: ItemMaker<HistoryDataPoint>,
-): HistoryDataPoint[] => {
+export const makeHistory = (count: number, maker: ItemMaker<HistoryDataPoint>): HistoryDataPoint[] => {
   const now = generateDate();
 
   return _times(count, (index) => {
@@ -222,12 +217,7 @@ export const makeHistoryTestResults = (testResults: TestResult[] = []): Record<s
  * @param params - Additional parameters to override defaults
  */
 export const makeReportConfig = (params?: Partial<ReportConfig>): ReportConfig => {
-  const {
-    name = generateWord(),
-    appendHistory = true,
-    knownIssuesPath = undefined,
-    ...rest
-  } = params || {};
+  const { name = generateWord(), appendHistory = true, knownIssuesPath = undefined, ...rest } = params || {};
 
   return {
     name,

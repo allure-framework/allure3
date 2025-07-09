@@ -2,25 +2,23 @@ import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
-import {
-  makeHistoryId,
-  makeReportConfig,
-  makeTestResultNames,
-  makeTestResults,
-} from "../utils/mocks.js";
+import { makeHistoryId, makeReportConfig, makeTestResultNames, makeTestResults } from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 
 const reportName = "Sample allure report";
 
-const { name: firstTestWithRetries, fullName: firstTestWithRetriesFullname } = makeTestResultNames("first test with retries");
+const { name: firstTestWithRetries, fullName: firstTestWithRetriesFullname } =
+  makeTestResultNames("first test with retries");
 const firstTestWithRetriesHistoryId = makeHistoryId(firstTestWithRetriesFullname);
 
-const { name: secondTestWithRetriesName, fullName: secondTestWithRetriesFullname } = makeTestResultNames("second test with retries");
+const { name: secondTestWithRetriesName, fullName: secondTestWithRetriesFullname } =
+  makeTestResultNames("second test with retries");
 const secondTestWithRetriesHistoryId = makeHistoryId(secondTestWithRetriesFullname);
 
-const { name: testWithoutRetriesName, fullName: testWithoutRetriesFullname } = makeTestResultNames("test without retries");
+const { name: testWithoutRetriesName, fullName: testWithoutRetriesFullname } =
+  makeTestResultNames("test without retries");
 const testWithoutRetriesHistoryId = makeHistoryId(testWithoutRetriesFullname);
 
 test.describe("retries", () => {
@@ -88,7 +86,9 @@ test.describe("retries", () => {
     await expect(retryIcons).toHaveCount(2);
 
     const firstTestWithRetriesIcon = treePage.getLeafByTitle(firstTestWithRetries).getByTestId("tree-leaf-retries");
-    const anotherTestWithRetriesIcon = treePage.getLeafByTitle(secondTestWithRetriesName).getByTestId("tree-leaf-retries");
+    const anotherTestWithRetriesIcon = treePage
+      .getLeafByTitle(secondTestWithRetriesName)
+      .getByTestId("tree-leaf-retries");
 
     await expect(firstTestWithRetriesIcon).toContainText("2");
     await expect(anotherTestWithRetriesIcon).toContainText("1");

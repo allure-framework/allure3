@@ -33,6 +33,14 @@
     "regressed": "Regresserad",
     "malfunctioned": "Felaktig"
   },
+  "filters.description": {
+    "flaky": "Visa ostadiga tester",
+    "retry": "Visa testresultat som kördes om",
+    "new": "Visa testresultat som visas för första gången i denna rapport",
+    "fixed": "Visa tester som nu är godkända men som tidigare var \"misslyckade\" eller \"trasiga\"",
+    "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
+    "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status"
+  },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
     "sort-by-category": "Sortera efter",
@@ -45,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Senast – Tidigare",
-    "order-asc": "Tidigare – Senast",
+    "order-desc": "Senast – Tidigare",
+    "order-asc": "Tidigare – Senast",
     "order-asc-short": "Tidigare",
     "order-desc-short": "Senast",
-    "alphabet-asc": "A – Ö",
-    "alphabet-desc": "Ö – A",
-    "alphabet-asc-short": "A – Ö",
-    "alphabet-desc-short": "Ö – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Ö",
+    "alphabet-desc": "Ö – A",
+    "alphabet-asc-short": "A – Ö",
+    "alphabet-desc-short": "Ö – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Som i filterlistan",
     "status-desc": "Omvänd",
     "status-asc-short": "Vanlig",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Inga resultat",
     "no-tests-found": "Inga resultat hittades",
+    "no-message-provided": "Inget meddelande angavs",
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
     "no-history-results": "Ingen historik information tillgänglig",
@@ -163,5 +172,11 @@
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
     "malfunctioned": "Felaktig"
+  },
+  "transitions.description": {
+    "new": "Första förekomsten av detta testresultat i rapporten",
+    "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
+    "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
+    "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\""
   }
 }

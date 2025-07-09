@@ -33,6 +33,14 @@
     "regressed": "Geri Döndü",
     "malfunctioned": "Bozuk"
   },
+  "filters.description": {
+    "flaky": "İstikrarsız testleri göster",
+    "retry": "Yeniden çalıştırılan test sonuçlarını göster",
+    "new": "Bu raporda ilk kez görünen test sonuçlarını göster",
+    "fixed": "Şimdi başarılı olan ancak daha önce \"başarısız\" veya \"bozuk\" olan testleri göster",
+    "regressed": "\"başarılı\" veya \"bozuk\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
+    "malfunctioned": "\"başarılı\" veya \"başarısız\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster"
+  },
   "sort-by": {
     "sort-by-text": "Sıralama ölçütü:",
     "sort-by-category": "Sıralama",
@@ -45,18 +53,18 @@
     "status": "Durum"
   },
   "sort-by.directions": {
-    "order-desc": "Son – İlk",
-    "order-asc": "İlk – Son",
+    "order-desc": "Son – İlk",
+    "order-asc": "İlk – Son",
     "order-asc-short": "İlk",
     "order-desc-short": "Son",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Filtre listesi gibi",
     "status-desc": "Ters",
     "status-asc-short": "Normal",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Sonuç yok",
     "no-tests-found": "Sonuç bulunamadı",
+    "no-message-provided": "Mesaj belirtilmedi",
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
@@ -163,5 +172,11 @@
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
     "malfunctioned": "Bozuk"
+  },
+  "transitions.description": {
+    "new": "Bu test sonucunun rapordaki ilk görünümü",
+    "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",
+    "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
+    "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\""
   }
 }

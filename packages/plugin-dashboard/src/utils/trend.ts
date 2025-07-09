@@ -1,11 +1,11 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import {
   type BaseTrendSliceMetadata,
+  ChartMode,
   type GenericTrendChartData,
   type TrendChartOptions,
   type TrendPoint,
   type TrendPointId,
-  ChartMode,
 } from "../model.js";
 
 // Common type for trend data operations
