@@ -1,1 +1,1 @@
-{"id":"9ebf667e7f38ebf22510a76f2e9f1982","fullName":"test/cucumberjson.test.ts#cucumberjson reader should ignore a file with no .json extension","name":"should ignore a file with no .json extension","status":"passed","testResultsByEnv":{"default":"a76f88c47face0ed8b86adf660f4a9d0"}}
+{"id":"9ebf667e7f38ebf22510a76f2e9f1982","fullName":"test/cucumberjson.test.ts#cucumberjson reader should ignore a file with no .json extension","name":"should ignore a file with no .json extension","status":"passed","testResultsByEnv":{"default":"f2e9d9a5593980860b2c4581f77c997b"}}
