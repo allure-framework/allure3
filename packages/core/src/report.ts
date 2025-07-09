@@ -209,6 +209,7 @@ export class AllureReport {
 
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
+    const remoteHrefs: string[] = [];
 
     if (this.#stage !== "running") {
       throw new Error(initRequired);
@@ -250,7 +251,8 @@ export class AllureReport {
 
       if (context.publish) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
-        console.info(`The report for "${context.id}" plugin has been published and availabe at: ${summary.remoteHref}`);
+
+        remoteHrefs.push(summary.remoteHref);
       }
 
       summaries.push({
@@ -314,6 +316,14 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       await generateSummary(this.#output, summaries);
+    }
+
+    if (remoteHrefs.length > 0) {
+      console.info("Next reports have been published:");
+
+      remoteHrefs.forEach((href) => {
+        console.info(`- ${href}`);
+      });
     }
   };
 
