@@ -1,1 +1,1 @@
-{"id":"95b4fa5f639de9e02638a7203568db84","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should finish last iteration on abort","name":"should finish last iteration on abort","status":"passed","testResultsByEnv":{"default":"03d60cee386bfc96cece9202a5b51777"}}
+{"id":"95b4fa5f639de9e02638a7203568db84","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should finish last iteration on abort","name":"should finish last iteration on abort","status":"passed","testResultsByEnv":{"default":"70a13049787cad424d94a7925f71009e"}}
