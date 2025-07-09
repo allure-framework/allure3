@@ -1,1 +1,1 @@
-{"id":"7432620742dff726fba1e8596e0621cb","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns green badge for passed status","name":"returns green badge for passed status","status":"passed","testResultsByEnv":{"default":"3f24920c9c912c6412e9a10372cee0f0"}}
+{"id":"7432620742dff726fba1e8596e0621cb","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns green badge for passed status","name":"returns green badge for passed status","status":"passed","testResultsByEnv":{"default":"06f1cc01d78f7b93d1f75e8fa4215dba"}}
