@@ -42,7 +42,8 @@
     "react-dom": "npm:@preact/compat@*",
     "semver": "^7.5.2",
     "tar": "^6.2.1",
-    "vite": "^5.4.17"
+    "vite": "^5.4.17",
+    "webpack": "^5.99.9"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
