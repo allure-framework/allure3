@@ -37,11 +37,11 @@ export const getStatusTransition = (
   tr: TestResult,
   history: HistoryTestResult[] = [],
 ): TestStatusTransition | undefined => {
-  const lastStatus = getLastSignificantStatus(history);
-
-  if (!lastStatus) {
+  if (isNew(history)) {
     return "new";
   }
+
+  const lastStatus = getLastSignificantStatus(history);
 
   if (lastStatus !== tr.status) {
     switch (tr.status) {
