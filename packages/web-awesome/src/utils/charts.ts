@@ -1,5 +1,5 @@
 import { type SeverityLevel, type TestStatus, severityLevels, statusesList } from "@allurereport/core-api";
-import { type ChartMode, ChartType, ChartDataType, type ChartId } from "@allurereport/web-commons";
+import { ChartDataType, type ChartId, type ChartMode, ChartType } from "@allurereport/web-commons";
 
 export interface Point {
   x: Date | string | number;

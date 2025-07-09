@@ -1,4 +1,4 @@
-import { Button, Menu, Toggle, allureIcons } from "@allurereport/web-components";
+import { Button, Menu, Toggle, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { useI18n } from "@/stores/locale";
 import { type TreeFilters, setTreeFilter, treeFiltersStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -16,31 +16,34 @@ const MENU_KEYS = ["flaky", "retry", "new", "fixed", "regressed", "malfunctioned
 
 export const Filters = () => {
   const { t } = useI18n("filters");
+  const { t: tooltip } = useI18n("filters.description");
   const hasFilter = MENU_KEYS.some((key) => treeFiltersStore.value.filter[key]);
 
   const renderFilterItem = (filter: TreeFilters, value: boolean) => {
     return (
-      <Menu.Item
-        closeMenuOnClick={false}
-        ariaLabel={t("enable-filter", { filter: t(filter) })}
-        onClick={() => {
-          setTreeFilter(filter, !value);
-        }}
-        leadingIcon={filterIcons[filter]}
-        rightSlot={
-          <div className={styles.filterToggle}>
-            <Toggle
-              focusable={false}
-              value={value}
-              label={t("enable-filter", { filter: t(filter) })}
-              data-testid={`${filter}-filter`}
-              onChange={(changeValue) => setTreeFilter(filter, changeValue)}
-            />
-          </div>
-        }
-      >
-        {t(filter)}
-      </Menu.Item>
+      <TooltipWrapper tooltipText={tooltip(filter)}>
+        <Menu.Item
+          closeMenuOnClick={false}
+          ariaLabel={t("enable-filter", { filter: t(filter) })}
+          onClick={() => {
+            setTreeFilter(filter, !value);
+          }}
+          leadingIcon={filterIcons[filter]}
+          rightSlot={
+            <div className={styles.filterToggle}>
+              <Toggle
+                focusable={false}
+                value={value}
+                label={t("enable-filter", { filter: t(filter) })}
+                data-testid={`${filter}-filter`}
+                onChange={(changeValue) => setTreeFilter(filter, changeValue)}
+              />
+            </div>
+          }
+        >
+          {t(filter)}
+        </Menu.Item>
+      </TooltipWrapper>
     );
   };
 

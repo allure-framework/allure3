@@ -33,6 +33,14 @@
     "regressed": "Regressed",
     "malfunctioned": "Malfuctioned"
   },
+  "filters.description": {
+    "flaky": "Show unstable tests",
+    "retry": "Show test results that were rerun",
+    "new": "Show test results that appear for the first time in this report",
+    "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
+    "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
+    "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status"
+  },
   "sort-by": {
     "sort-by-text": "Sort by:",
     "sort-by-category": "Sort by",
@@ -164,5 +172,11 @@
     "fixed": "Fixed",
     "regressed": "Regressed",
     "malfunctioned": "Malfuctioned"
+  },
+  "transitions.description": {
+    "new": "The first occurrence of this test result in the report",
+    "fixed": "A previously \"failed\" or \"broken\" test that is now \"passed\"",
+    "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
+    "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\""
   }
 }

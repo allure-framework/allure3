@@ -33,6 +33,14 @@
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq"
   },
+  "filters.description": {
+    "flaky": "Qeyri-sabit testləri göstərir",
+    "retry": "Yenidən işə salınan test nəticələrini göstərir",
+    "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
+    "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
+    "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
+    "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir"
+  },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",
     "sort-by-category": "Sıralamaq üzrə",
@@ -45,18 +53,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Sonuncu – Birinci",
-    "order-asc": "Birinci – Sonuncu",
+    "order-desc": "Sonuncu – Birinci",
+    "order-asc": "Birinci – Sonuncu",
     "order-asc-short": "Birinci",
     "order-desc-short": "Sonuncu",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Filtr siyahısına uyğun",
     "status-desc": "Tərsinə çevrilmiş",
     "status-asc-short": "Adi",
@@ -65,6 +73,7 @@
   "empty": {
     "no-results": "Nəticə tapılmadı",
     "no-tests-found": "Nəticə tapılmadı",
+    "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Əlavə məlumatı mövcud deyil",
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
@@ -101,16 +110,15 @@
     "history": "Tarixçə",
     "attachments": "Əlavələr",
     "retries": "Təkrarlar",
-    "environment_one": "Mühit",
-    "environment_other": "Mühitlər",
+    "environments": "Mühitlər",
     "error": "Səhv",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "at": "üçün",
-    "openPwTrace": "Playwright Trace aç",
-    "variables": "Dəyişənlər"
+    "variables": "Dəyişənlər",
+    "openPwTrace": "Playwright Trace aç"
   },
   "controls": {
     "newTabAttachment": "Yeni sekmede aç",
@@ -164,5 +172,11 @@
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq"
+  },
+  "transitions.description": {
+    "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
+    "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
+    "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
+    "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test"
   }
 }

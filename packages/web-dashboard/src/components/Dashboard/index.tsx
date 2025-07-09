@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { capitalize, ChartType } from "@allurereport/web-commons";
+import { ChartType, capitalize } from "@allurereport/web-commons";
 import {
   Grid,
   GridItem,

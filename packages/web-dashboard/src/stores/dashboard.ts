@@ -1,6 +1,6 @@
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
-import { ChartType, ChartDataType, type ChartMode, fetchReportJsonData, type ChartId } from "@allurereport/web-commons";
+import { ChartDataType, type ChartId, type ChartMode, ChartType, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 

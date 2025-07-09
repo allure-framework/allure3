@@ -83,6 +83,7 @@ export type AwesomeTreeLeaf = Pick<
 > & {
   nodeId: string;
   transitionText?: string;
+  transitionTooltip?: string;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

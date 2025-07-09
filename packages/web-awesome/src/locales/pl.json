@@ -5,7 +5,10 @@
     "broken": "uszkodzony",
     "skipped": "pominęty",
     "unknown": "nieznany",
-    "total": "wszystkie"
+    "total": "wszystkie",
+    "flakyTests": "niestabilny",
+    "newTests": "nowy",
+    "retryTests": "powtórzony"
   },
   "testSummary": {
     "total": "Wszystkie",
@@ -30,6 +33,14 @@
     "regressed": "Zaregresowane",
     "malfunctioned": "Uszkodzone"
   },
+  "filters.description": {
+    "flaky": "Pokaż niestabilne testy",
+    "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie",
+    "new": "Pokaż wyniki testów, które po raz pierwszy pojawiają się w tym raporcie",
+    "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
+    "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"uszkodzony\" na \"nieudany\"",
+    "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"nieudany\" na \"uszkodzony\""
+  },
   "sort-by": {
     "sort-by-text": "Sortuj po:",
     "sort-by-category": "Sortuj po",
@@ -42,26 +53,27 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-asc": "Późnejsze – Wcześniejsze",
-    "order-desc": "Wcześniejsze – Późnejsze",
+    "order-desc": "Wcześniejsze – Późnejsze",
+    "order-asc": "Późnejsze – Wcześniejsze",
     "order-asc-short": "Późnejsze",
     "order-desc-short": "Wcześniejsze",
-    "alphabet-asc": "Z – A",
-    "alphabet-desc": "A – Z",
-    "alphabet-asc-short": "Z – A",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "9 – 1",
-    "duration-desc": "1 – 9",
-    "duration-asc-short": "9 – 1",
-    "duration-desc-short": "1 – 9",
-    "status-asc": "Invertowany",
-    "status-desc": "Jak w liście filtrów",
-    "status-asc-short": "Invertowany",
-    "status-desc-short": "Domyślnie"
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "Jak w liście filtrów",
+    "status-desc": "Invertowany",
+    "status-asc-short": "Domyślnie",
+    "status-desc-short": "Invertowany"
   },
   "empty": {
     "no-results": "Brak wyników",
     "no-tests-found": "Nie znaleziono wyników",
+    "no-message-provided": "Nie podano komunikatu",
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
     "no-history-results": "Brak dostępnych informacji o historii",
@@ -71,7 +83,6 @@
     "no-environments-results": "Brak dostępnych informacji o środowiskach"
   },
   "severity": {
-    "name": "Ważność",
     "blocker": "bloker",
     "critical": "krytyczna",
     "normal": "zwykła",
@@ -79,8 +90,8 @@
     "trivial": "minimalna"
   },
   "execution": {
-    "body": "Ciało testu",
     "name": "Wykonanie",
+    "body": "Ciało testu",
     "setup": "Przygotowanie",
     "teardown": "Zakończenie"
   },
@@ -111,9 +122,9 @@
   },
   "controls": {
     "newTabAttachment": "Otwórz w nowej zakładce",
-    "downloadAttachment": "Załaduj załącznik",
     "nextTR": "Następny test",
     "prevTR": "Poprzedni test",
+    "downloadAttachment": "Załaduj załącznik",
     "backto": "Wróć do",
     "clipboard": "Skopuj do schowka",
     "clipboardError": "Błąd. Najprawdopodobniej Twoja przeglądarka nie obsługuje tej funkcji",
@@ -161,5 +172,11 @@
     "fixed": "Naprawiony",
     "regressed": "Zaregresowany",
     "malfunctioned": "Uszkodzony"
+  },
+  "transitions.description": {
+    "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",
+    "fixed": "Wcześniej \"nieudany\" lub \"uszkodzony\" test, który teraz jest \"udany\"",
+    "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
+    "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\""
   }
 }

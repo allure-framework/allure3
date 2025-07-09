@@ -227,7 +227,8 @@ export class TreePage extends CommonPage {
 
   async closeFilterMenu() {
     await this.filtersMenuLocator.waitFor({ state: "visible" });
-    await this.filtersButtonLocator.click();
+    // This will close the Tooltip on Filters without interfering with Tooltip bubble
+    await this.page.keyboard.press("Escape");
     await this.filtersMenuLocator.waitFor({ state: "hidden" });
   }
 
