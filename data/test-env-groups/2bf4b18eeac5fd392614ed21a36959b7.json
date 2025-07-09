@@ -1,1 +1,1 @@
-{"id":"2bf4b18eeac5fd392614ed21a36959b7","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a skipped test case","name":"should parse a skipped test case","status":"passed","testResultsByEnv":{"default":"0f7744bdbd662cf49a15c425abea92cc"}}
+{"id":"2bf4b18eeac5fd392614ed21a36959b7","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a skipped test case","name":"should parse a skipped test case","status":"passed","testResultsByEnv":{"default":"049696172e07e9e83eb8d75e44f9b4f4"}}

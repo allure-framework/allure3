@@ -1,1 +1,1 @@
-{"id":"2591fdb33276022dc9b48d19098cfd8b","fullName":"test/service.test.ts#AllureServiceClient logout should delete the access token","name":"should delete the access token","status":"passed","testResultsByEnv":{"default":"53f467b553bd6679760667d87087ad35"}}
+{"id":"2591fdb33276022dc9b48d19098cfd8b","fullName":"test/service.test.ts#AllureServiceClient logout should delete the access token","name":"should delete the access token","status":"passed","testResultsByEnv":{"default":"5a1d7180c7350f7b6c0d46419dd73e27"}}

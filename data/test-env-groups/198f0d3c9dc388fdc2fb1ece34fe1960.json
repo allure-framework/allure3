@@ -1,1 +1,1 @@
-{"id":"198f0d3c9dc388fdc2fb1ece34fe1960","fullName":"test/index.test.ts#watchDirectory calls the callback when file is deleted","name":"calls the callback when file is deleted","status":"passed","testResultsByEnv":{"default":"31336c95ebbe5868180b69a5e3e5c057"}}
+{"id":"198f0d3c9dc388fdc2fb1ece34fe1960","fullName":"test/index.test.ts#watchDirectory calls the callback when file is deleted","name":"calls the callback when file is deleted","status":"passed","testResultsByEnv":{"default":"492e428d23c8957fef54490124a8635d"}}

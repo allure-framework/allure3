@@ -1,1 +1,1 @@
-{"id":"2893cfd58fa1e45de7bd72aa4042f6ce","fullName":"test/allure1.test.ts#allure1 reader labels should not add a suite label if already exists","name":"should not add a suite label if already exists","status":"passed","testResultsByEnv":{"default":"c6403f32342ade56a2933bf610e95256"}}
+{"id":"2893cfd58fa1e45de7bd72aa4042f6ce","fullName":"test/allure1.test.ts#allure1 reader labels should not add a suite label if already exists","name":"should not add a suite label if already exists","status":"passed","testResultsByEnv":{"default":"a003a5d85cbfe86862338d97364ad6d4"}}
