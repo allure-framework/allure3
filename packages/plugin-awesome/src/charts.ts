@@ -1,6 +1,14 @@
 import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { ChartDataType, getPieChartDataDashboard, getSeverityTrendData, getStatusTrendData, DEFAULT_CHART_HISTORY_LIMIT, ChartType, ChartMode } from "@allurereport/web-commons";
+import {
+  ChartDataType,
+  ChartMode,
+  ChartType,
+  DEFAULT_CHART_HISTORY_LIMIT,
+  getPieChartDataDashboard,
+  getSeverityTrendData,
+  getStatusTrendData,
+} from "@allurereport/web-commons";
 import { randomUUID } from "crypto";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
@@ -407,7 +415,7 @@ export const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const newOptions = { limit:DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 

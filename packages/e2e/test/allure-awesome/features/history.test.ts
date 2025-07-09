@@ -1,8 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
-import { makeHistory, makeHistoryId, makeHistoryTestResults, makeReportConfig, makeTestCaseId, makeTestResult, makeTestResultNames } from "../utils/mocks.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
+import {
+  makeHistory,
+  makeHistoryId,
+  makeHistoryTestResults,
+  makeReportConfig,
+  makeTestCaseId,
+  makeTestResult,
+  makeTestResultNames,
+} from "../utils/mocks.js";
 
 let bootstrap: ReportBootstrap;
 let treePage: TreePage;

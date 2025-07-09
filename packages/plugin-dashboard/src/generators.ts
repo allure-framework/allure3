@@ -1,12 +1,12 @@
 import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import {
+  DEFAULT_CHART_HISTORY_LIMIT,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  DEFAULT_CHART_HISTORY_LIMIT,
 } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
@@ -88,7 +88,7 @@ const generateTrendChart = (
   },
   context: PluginContext,
 ): TrendChartData | undefined => {
-  const newOptions = { limit:  DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 

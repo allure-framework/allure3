@@ -1,9 +1,9 @@
+import { ChartMode } from "@allurereport/web-commons";
 import type { CSSProperties } from "preact/compat";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import type { Serie, Slice } from "@/components/Charts/TrendChart";
 import { TrendChart, TrendChartKind, makeSymlogScale } from "@/components/Charts/TrendChart";
 import { Widget } from "@/components/Widget";
-import { ChartMode } from "@allurereport/web-commons";
 
 interface TrendChartWidgetPropsTranslations {
   "no-results": string;
