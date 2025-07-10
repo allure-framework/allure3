@@ -294,6 +294,7 @@ export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store
 
 export const generateStaticFiles = async (
   payload: AwesomeOptions & {
+    id: string;
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
@@ -302,6 +303,7 @@ export const generateStaticFiles = async (
   },
 ) => {
   const {
+    id,
     reportName = "Allure Report",
     reportLanguage = "en",
     singleFile,
@@ -363,7 +365,8 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const reportOptions: AwesomeReportOptions = {
+  const reportOptions: AwesomeReportOptions & { id: string } = {
+    id,
     reportName,
     logo,
     theme,

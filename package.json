@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/monorepo",
-  "version": "3.0.0-beta.15",
+  "version": "3.0.0-beta.16",
   "private": true,
   "description": "Allure framework TypeScript implementation",
   "keywords": [],
@@ -38,11 +38,13 @@
     "micromatch": "^4.0.8",
     "nanoid": "^3.3.8",
     "path-to-regexp": "^0.1.12",
+    "postcss": "^8.4.31",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
     "semver": "^7.5.2",
     "tar": "^6.2.1",
-    "vite": "^5.4.17"
+    "vite": "^5.4.17",
+    "webpack": "^5.99.9"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
