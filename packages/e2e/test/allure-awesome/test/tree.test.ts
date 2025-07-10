@@ -29,6 +29,7 @@ test.describe("commons", () => {
         name: "Sample allure report",
         appendHistory: false,
         knownIssuesPath: undefined,
+        groupBy: ["parentSuite", "suite", "subSuite"],
       },
       testResults: [
         {
@@ -165,6 +166,7 @@ test.describe("SearchBox component with debounce", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: "",
+          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         history: [],
         testResults: [
@@ -213,6 +215,7 @@ test.describe("suites", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
+          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -278,6 +281,7 @@ test.describe("suites", () => {
         name: "Sample allure report",
         appendHistory: false,
         knownIssuesPath: undefined,
+        groupBy: ["parentSuite", "suite", "subSuite"],
       },
       testResults: [
         {
@@ -339,6 +343,7 @@ test.describe("suites", () => {
           defaultLabels: {
             parentSuite: "Assign me please!",
           },
+          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -404,6 +409,7 @@ test.describe("features", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
+          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -453,6 +459,7 @@ test.describe("stories", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
+          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {

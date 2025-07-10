@@ -42,6 +42,7 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     breadcrumbs: [],
     retry: false,
     transition: tr.transition,
+    titlePath: tr.titlePath || [],
   };
 };
 
