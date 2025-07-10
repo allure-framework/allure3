@@ -42,11 +42,6 @@ export class AwesomePlugin implements Plugin {
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
-    // const treeLabels = preciseTreeLabels(
-    //   !groupBy.length ? ["parentSuite", "suite", "subSuite"] : groupBy,
-    //   convertedTrs,
-    //   ({ labels }) => labels.map(({ name }) => name),
-    // );
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
