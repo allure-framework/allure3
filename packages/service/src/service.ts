@@ -242,11 +242,10 @@ export class AllureServiceClient {
 
     const form = new FormData();
 
-    form.set("reportUuid", reportUuid);
     form.set("filename", joinPosix(pluginId, filename));
     form.set("file", content);
 
-    await this.#client.post("/api/reports/upload", {
+    await this.#client.post(`/api/reports/upload/${reportUuid}`, {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",

@@ -201,10 +201,11 @@ const resolvePlugins = async (plugins: Record<string, PluginDescriptor>) => {
 
   for (const id in plugins) {
     const pluginConfig = plugins[id];
+    const pluginId = getPluginId(id);
     const Plugin = await resolvePlugin(pluginConfig.import ?? id);
 
     pluginInstances.push({
-      id: getPluginId(id),
+      id: pluginId,
       enabled: pluginConfig.enabled ?? true,
       options: pluginConfig.options ?? {},
       plugin: new Plugin(pluginConfig.options),
