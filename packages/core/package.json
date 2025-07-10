@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.0.0-beta.15",
+  "version": "3.0.0-beta.16",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"

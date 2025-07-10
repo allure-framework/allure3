@@ -29,7 +29,6 @@ const { version } = JSON.parse(readFileSync(new URL("../package.json", import.me
 const initRequired = "report is not initialised. Call the start() method first.";
 
 export class AllureReport {
-  readonly #reportUuid: string;
   readonly #reportName: string;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
@@ -42,10 +41,11 @@ export class AllureReport {
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
-
-  #reportUrl?: string;
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
+
+  readonly reportUuid: string;
+  reportUrl?: string;
 
   constructor(opts: FullConfig) {
     const {
@@ -65,7 +65,7 @@ export class AllureReport {
     } = opts;
 
     this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
-    this.#reportUuid = randomUUID();
+    this.reportUuid = randomUUID();
     this.#reportName = name;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
@@ -178,11 +178,11 @@ export class AllureReport {
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish) {
       const { url } = await this.#allureServiceClient.createReport({
-        reportUuid: this.#reportUuid,
+        reportUuid: this.reportUuid,
         reportName: this.#reportName,
       });
 
-      this.#reportUrl = url;
+      this.reportUrl = url;
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
@@ -209,6 +209,7 @@ export class AllureReport {
 
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
+    const remoteHrefs: string[] = [];
 
     if (this.#stage !== "running") {
       throw new Error(initRequired);
@@ -218,18 +219,18 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#stage = "done";
 
-    await this.#eachPlugin(false, async (plugin, context, { id, publish }) => {
+    await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
 
-      if (this.#allureServiceClient && publish) {
+      if (this.#allureServiceClient && context.publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
 
         for (const [filename, filepath] of Object.entries(pluginFiles)) {
           // publish data-files separately
           if (/^(data|widgets|index\.html$)/.test(filename)) {
             this.#allureServiceClient.addReportFile({
-              reportUuid: this.#reportUuid,
-              pluginId: id,
+              reportUuid: this.reportUuid,
+              pluginId: context.id,
               filename,
               filepath,
             });
@@ -248,11 +249,26 @@ export class AllureReport {
         return;
       }
 
+      if (context.publish) {
+        summary.remoteHref = `${this.reportUrl}/${context.id}/`;
+
+        remoteHrefs.push(summary.remoteHref);
+      }
+
       summaries.push({
         ...summary,
-        href: `${id}/`,
+        href: `${context.id}/`,
       });
+
+      // expose summary.json file to the FS to make possible to use it in the integrations
+      context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
+
+    if (this.#publish) {
+      await this.#allureServiceClient?.completeReport({
+        reportUuid: this.reportUuid,
+      });
+    }
 
     const outputDirFiles = await readdir(this.#output);
 
@@ -282,13 +298,7 @@ export class AllureReport {
     if (this.#history) {
       const testResults = await this.#store.allTestResults();
       const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(
-        this.#reportUuid,
-        this.#reportName,
-        testCases,
-        testResults,
-        this.#reportUrl,
-      );
+      const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
 
       try {
         await this.#store.appendHistory(historyDataPoint);
@@ -308,15 +318,16 @@ export class AllureReport {
       await generateSummary(this.#output, summaries);
     }
 
-    if (this.#reportUrl) {
-      console.info(`The report has been published: ${this.#reportUrl}`);
+    if (remoteHrefs.length > 0) {
+      console.info("Next reports have been published:");
+
+      remoteHrefs.forEach((href) => {
+        console.info(`- ${href}`);
+      });
     }
   };
 
-  #eachPlugin = async (
-    initState: boolean,
-    consumer: (plugin: Plugin, context: PluginContext, options: { id: string; publish: boolean }) => Promise<void>,
-  ) => {
+  #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
     if (initState) {
       // reset state on start;
       this.#state = {};
@@ -349,15 +360,17 @@ export class AllureReport {
         files[key] = filepath;
       });
       const pluginContext: PluginContext = {
+        id,
+        publish: !!options?.publish,
         allureVersion: version,
-        reportUuid: this.#reportUuid,
+        reportUuid: this.reportUuid,
         reportName: this.#reportName,
         state: pluginState,
         reportFiles: pluginFiles,
       };
 
       try {
-        await consumer.call(this, plugin, pluginContext, { id, publish: !!options?.publish });
+        await consumer.call(this, plugin, pluginContext);
 
         if (initState) {
           this.#state![id] = pluginState;

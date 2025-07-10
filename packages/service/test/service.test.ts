@@ -250,11 +250,10 @@ describe("AllureServiceClient", () => {
 
       const form = new FormData();
 
-      form.set("reportUuid", fixtures.report);
       form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
       form.set("file", Buffer.from("test") as unknown as Blob);
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/upload", {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/upload/${fixtures.report}`, {
         body: form,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -276,11 +275,10 @@ describe("AllureServiceClient", () => {
 
       const form = new FormData();
 
-      form.set("reportUuid", fixtures.report);
       form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
       form.set("file", Buffer.from("test") as unknown as Blob);
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports/upload", {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/upload/${fixtures.report}`, {
         body: form,
         headers: {
           "Content-Type": "multipart/form-data",
