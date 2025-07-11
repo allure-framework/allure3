@@ -173,7 +173,7 @@ describe("azure", () => {
         }
       });
 
-      expect(azure.jobUID).toBe("project123_67890");
+      expect(azure.jobUid).toBe("project123_67890");
     });
   });
 
@@ -193,7 +193,7 @@ describe("azure", () => {
         }
       });
 
-      expect(azure.jobURL).toBe("https://dev.azure.com/organization/project123/_build?definitionId=67890");
+      expect(azure.jobUrl).toBe("https://dev.azure.com/organization/project123/_build?definitionId=67890");
     });
   });
 
@@ -217,7 +217,7 @@ describe("azure", () => {
         }
       });
 
-      expect(azure.jobRunUID).toBe("12345");
+      expect(azure.jobRunUid).toBe("12345");
     });
   });
 
@@ -237,7 +237,7 @@ describe("azure", () => {
         }
       });
 
-      expect(azure.jobRunURL).toBe("https://dev.azure.com/organization/project123/_build/results?buildId=12345");
+      expect(azure.jobRunUrl).toBe("https://dev.azure.com/organization/project123/_build/results?buildId=12345");
     });
   });
 

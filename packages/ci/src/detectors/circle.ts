@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv, parseURLPath } from "../utils.js";
 
@@ -13,7 +14,7 @@ const getJobURL = (): string => {
 };
 
 export const circle: Detector = {
-  type: "circleci",
+  type: CI.Circle,
 
   get detected(): boolean {
     const hasEnv = getEnv("CIRCLECI") !== "";
@@ -23,13 +24,13 @@ export const circle: Detector = {
     return hasEnv && path !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     const jobURL = getJobURL();
 
     return parseURLPath(jobURL);
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return getJobURL();
   },
 
@@ -40,11 +41,11 @@ export const circle: Detector = {
     return `${username}/${reponame}`;
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getEnv("CIRCLE_WORKFLOW_JOB_ID");
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return getJobRunURL();
   },
 

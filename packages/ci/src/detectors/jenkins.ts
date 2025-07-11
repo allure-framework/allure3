@@ -1,18 +1,19 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
 export const jenkins: Detector = {
-  type: "jenkins",
+  type: CI.Jenkins,
 
   get detected(): boolean {
     return getEnv("JENKINS_URL") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return getEnv("JOB_NAME");
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return getEnv("JOB_URL");
   },
 
@@ -20,11 +21,11 @@ export const jenkins: Detector = {
     return getEnv("JOB_BASE_NAME");
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getEnv("BUILD_NUMBER");
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return getEnv("BUILD_URL");
   },
 

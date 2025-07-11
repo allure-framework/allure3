@@ -41,7 +41,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobUID).toBe("12345");
+      expect(gitlab.jobUid).toBe("12345");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -51,7 +51,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobUID).toBe("");
+      expect(gitlab.jobUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -61,7 +61,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobUID).toBe(undefined);
+      expect(gitlab.jobUid).toBe(undefined);
     });
   });
 
@@ -73,7 +73,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobURL).toBe("https://gitlab.com/myorg/myrepo/pipelines");
+      expect(gitlab.jobUrl).toBe("https://gitlab.com/myorg/myrepo/pipelines");
     });
 
     it("should return '/pipelines' when environment variable is not set", () => {
@@ -83,7 +83,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobURL).toBe("/pipelines");
+      expect(gitlab.jobUrl).toBe("/pipelines");
     });
 
     it("should return 'undefined/pipelines' when environment variable is undefined", () => {
@@ -93,7 +93,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobURL).toBe("undefined/pipelines");
+      expect(gitlab.jobUrl).toBe("undefined/pipelines");
     });
   });
 
@@ -137,7 +137,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunUID).toBe("67890");
+      expect(gitlab.jobRunUid).toBe("67890");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -147,7 +147,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunUID).toBe("");
+      expect(gitlab.jobRunUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -157,7 +157,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunUID).toBe(undefined);
+      expect(gitlab.jobRunUid).toBe(undefined);
     });
   });
 
@@ -169,7 +169,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunURL).toBe("https://gitlab.com/myorg/myrepo/-/pipelines/67890");
+      expect(gitlab.jobRunUrl).toBe("https://gitlab.com/myorg/myrepo/-/pipelines/67890");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -179,7 +179,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunURL).toBe("");
+      expect(gitlab.jobRunUrl).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -189,7 +189,7 @@ describe("gitlab", () => {
         }
       });
 
-      expect(gitlab.jobRunURL).toBe(undefined);
+      expect(gitlab.jobRunUrl).toBe(undefined);
     });
   });
 

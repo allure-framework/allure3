@@ -181,7 +181,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobUID).toBe("build/my-project");
+      expect(amazon.jobUid).toBe("build/my-project");
     });
 
     it("should return buildbatch/project for batch build", () => {
@@ -199,7 +199,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobUID).toBe("buildbatch/my-batch");
+      expect(amazon.jobUid).toBe("buildbatch/my-batch");
     });
 
     it("should return pipeline/pipelineName for pipeline build", () => {
@@ -213,7 +213,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobUID).toBe("pipeline/my-pipeline");
+      expect(amazon.jobUid).toBe("pipeline/my-pipeline");
     });
   });
 
@@ -225,7 +225,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobURL).toBe(
+      expect(amazon.jobUrl).toBe(
         "https://console.aws.amazon.com/codebuild/home?region=us-east-1#/projects/my-project/view/new",
       );
     });
@@ -241,7 +241,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobURL).toBe(
+      expect(amazon.jobUrl).toBe(
         "https://console.aws.amazon.com/codesuite/codepipeline/pipelines/my-pipeline/view?region=us-east-1",
       );
     });
@@ -281,7 +281,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobRunUID).toBe("1234567890");
+      expect(amazon.jobRunUid).toBe("1234567890");
     });
 
     it("should return the correct job run UID for pipeline build", () => {
@@ -295,7 +295,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobRunUID).toBe("guid");
+      expect(amazon.jobRunUid).toBe("guid");
     });
   });
 
@@ -307,7 +307,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobRunURL).toBe(
+      expect(amazon.jobRunUrl).toBe(
         "https://console.aws.amazon.com/codebuild/home?region=us-east-1#/builds/my-project:1234567890/view/new",
       );
     });
@@ -323,7 +323,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobRunURL).toBe(
+      expect(amazon.jobRunUrl).toBe(
         "https://console.aws.amazon.com/codesuite/codepipeline/pipelines/my-pipeline/executions//timeline?region=us-east-1",
       );
     });
@@ -339,7 +339,7 @@ describe("amazon", () => {
         }
       });
 
-      expect(amazon.jobRunURL).toBe(
+      expect(amazon.jobRunUrl).toBe(
         "https://console.aws.amazon.com/codesuite/codebuild/123456789012/projects/my-batch/batch/my-batch:abcdef",
       );
     });

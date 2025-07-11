@@ -12,10 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@allurereport/ci@workspace:packages/ci":
+"@allurereport/ci@workspace:*, @allurereport/ci@workspace:packages/ci":
   version: 0.0.0-use.local
   resolution: "@allurereport/ci@workspace:packages/ci"
   dependencies:
+    "@allurereport/core-api": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
     "@types/node": "npm:^20.17.9"
@@ -66,6 +67,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/core@workspace:packages/core"
   dependencies:
+    "@allurereport/ci": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-allure2": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"

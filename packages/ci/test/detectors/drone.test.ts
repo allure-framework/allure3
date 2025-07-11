@@ -105,7 +105,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobUID).toBe("myorg/myrepo");
+      expect(drone.jobUid).toBe("myorg/myrepo");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -115,7 +115,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobUID).toBe("");
+      expect(drone.jobUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -125,7 +125,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobUID).toBe(undefined);
+      expect(drone.jobUid).toBe(undefined);
     });
   });
 
@@ -140,7 +140,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobURL).toBe("https://drone.example.com/myorg/myrepo/");
+      expect(drone.jobUrl).toBe("https://drone.example.com/myorg/myrepo/");
     });
   });
 
@@ -164,7 +164,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobRunUID).toBe("12345");
+      expect(drone.jobRunUid).toBe("12345");
     });
   });
 
@@ -176,7 +176,7 @@ describe("drone", () => {
         }
       });
 
-      expect(drone.jobRunURL).toBe("https://drone.example.com/myorg/myrepo/12345");
+      expect(drone.jobRunUrl).toBe("https://drone.example.com/myorg/myrepo/12345");
     });
   });
 

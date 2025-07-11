@@ -141,7 +141,7 @@ describe("circle", () => {
       });
       (parseURLPath as Mock).mockReturnValue("gh/myorg/myrepo");
 
-      expect(circle.jobUID).toBe("gh/myorg/myrepo");
+      expect(circle.jobUid).toBe("gh/myorg/myrepo");
     });
   });
 
@@ -156,7 +156,7 @@ describe("circle", () => {
         }
       });
 
-      expect(circle.jobURL).toBe("https://circleci.com/gh/myorg/myrepo");
+      expect(circle.jobUrl).toBe("https://circleci.com/gh/myorg/myrepo");
     });
   });
 
@@ -183,7 +183,7 @@ describe("circle", () => {
         }
       });
 
-      expect(circle.jobRunUID).toBe("12345-abcde-67890");
+      expect(circle.jobRunUid).toBe("12345-abcde-67890");
     });
   });
 
@@ -195,7 +195,7 @@ describe("circle", () => {
         }
       });
 
-      expect(circle.jobRunURL).toBe("https://circleci.com/gh/myorg/myrepo/12345");
+      expect(circle.jobRunUrl).toBe("https://circleci.com/gh/myorg/myrepo/12345");
     });
   });
 

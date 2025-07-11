@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
@@ -8,17 +9,17 @@ export const getJobURL = (): string => {
 };
 
 export const bitbucket: Detector = {
-  type: "bitbucket",
+  type: CI.Bitbucket,
 
   get detected(): boolean {
     return getEnv("BITBUCKET_PIPELINE_UUID") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return getEnv("BITBUCKET_REPO_FULL_NAME");
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return getJobURL();
   },
 
@@ -26,12 +27,12 @@ export const bitbucket: Detector = {
     return getEnv("BITBUCKET_REPO_FULL_NAME");
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getEnv("BITBUCKET_PIPELINE_UUID");
   },
 
-  get jobRunURL(): string {
-    return `${getJobURL()}/results/${this.jobRunUID}`;
+  get jobRunUrl(): string {
+    return `${getJobURL()}/results/${this.jobRunUid}`;
   },
 
   get jobRunName(): string {
