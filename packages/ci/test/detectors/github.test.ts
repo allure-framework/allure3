@@ -177,4 +177,44 @@ describe("github", () => {
       expect(github.jobRunBranch).toBe("refs/heads/main");
     });
   });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL when ref name has /merge suffix", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "123/merge";
+        }
+
+        if (key === "GITHUB_SERVER_URL") {
+          return "https://github.com";
+        }
+
+        if (key === "GITHUB_REPOSITORY") {
+          return "myorg/myrepo";
+        }
+      });
+
+      expect(github.pullRequestUrl).toBe("https://github.com/myorg/myrepo/pull/123");
+    });
+
+    it("should return empty string when ref name doesn't have /merge suffix", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "main";
+        }
+      });
+
+      expect(github.pullRequestUrl).toBe("");
+    });
+
+    it("should return empty string when ref name is empty", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "";
+        }
+      });
+
+      expect(github.pullRequestUrl).toBe("");
+    });
+  });
 });

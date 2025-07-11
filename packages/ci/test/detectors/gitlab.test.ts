@@ -256,4 +256,54 @@ describe("gitlab", () => {
       expect(gitlab.jobRunBranch).toBe(undefined);
     });
   });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_MERGE_REQUEST_IID") {
+          return "123";
+        }
+
+        if (key === "CI_PROJECT_URL") {
+          return "https://gitlab.com/myorg/myrepo";
+        }
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("https://gitlab.com/myorg/myrepo/-/merge_requests/123");
+    });
+
+    it("should return empty string when CI_MERGE_REQUEST_IID is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_MERGE_REQUEST_IID") {
+          return "";
+        }
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("");
+    });
+
+    it("should return empty string when CI_MERGE_REQUEST_IID is undefined", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_MERGE_REQUEST_IID") {
+          return undefined;
+        }
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("");
+    });
+
+    it("should handle custom GitLab instance hosts", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_MERGE_REQUEST_IID") {
+          return "123";
+        }
+
+        if (key === "CI_PROJECT_URL") {
+          return "https://gitlab.example.com/myorg/myrepo";
+        }
+      });
+
+      expect(gitlab.pullRequestUrl).toBe("https://gitlab.example.com/myorg/myrepo/-/merge_requests/123");
+    });
+  });
 });

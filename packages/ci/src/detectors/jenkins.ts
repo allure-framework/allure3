@@ -36,4 +36,12 @@ export const jenkins: Detector = {
   get jobRunBranch(): string {
     return "";
   },
+
+  get pullRequestUrl(): string {
+    return "";
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
 };

@@ -42,4 +42,20 @@ export const bitbucket: Detector = {
   get jobRunBranch(): string {
     return getEnv("BITBUCKET_BRANCH");
   },
+
+  get pullRequestUrl(): string {
+    const prId = getEnv("BITBUCKET_PR_ID");
+
+    if (!prId) {
+      return "";
+    }
+
+    const origin = getEnv("BITBUCKET_GIT_HTTP_ORIGIN");
+
+    return `${origin}/pull-requests/${prId}`;
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
 };
