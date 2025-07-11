@@ -1,0 +1,55 @@
+import { CI } from "@allurereport/core-api";
+import { type Detector } from "../model.js";
+import { getEnv } from "../utils.js";
+
+export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI");
+
+export const getBuildID = (): string => getEnv("BUILD_BUILDID");
+
+export const getDefinitionID = (): string => getEnv("SYSTEM_DEFINITIONID");
+
+export const getProjectID = (): string => getEnv("SYSTEM_TEAMPROJECTID");
+
+export const azure: Detector = {
+  type: CI.Azure,
+
+  get detected(): boolean {
+    return getEnv("SYSTEM_DEFINITIONID") !== "";
+  },
+
+  get jobUid(): string {
+    return `${getProjectID()}_${getDefinitionID()}`;
+  },
+
+  get jobUrl(): string {
+    return `${getRootURL()}/${getProjectID()}/_build?definitionId=${getDefinitionID()}`;
+  },
+
+  get jobName(): string {
+    return getEnv("BUILD_DEFINITIONNAME");
+  },
+
+  get jobRunUid(): string {
+    return getBuildID();
+  },
+
+  get jobRunUrl(): string {
+    return `${getRootURL()}/${getProjectID()}/_build/results?buildId=${getBuildID()}`;
+  },
+
+  get jobRunName(): string {
+    return getEnv("BUILD_BUILDNUMBER");
+  },
+
+  get jobRunBranch(): string {
+    return getEnv("BUILD_SOURCEBRANCHNAME");
+  },
+
+  get pullRequestUrl(): string {
+    return "";
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
+};
