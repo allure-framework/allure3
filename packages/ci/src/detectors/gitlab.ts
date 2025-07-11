@@ -1,18 +1,19 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
 export const gitlab: Detector = {
-  type: "gitlab",
+  type: CI.Gitlab,
 
   get detected(): boolean {
     return getEnv("GITLAB_CI") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return getEnv("CI_PROJECT_ID");
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return `${getEnv("CI_PROJECT_URL")}/pipelines`;
   },
 
@@ -20,11 +21,11 @@ export const gitlab: Detector = {
     return getEnv("CI_PROJECT_NAME");
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getEnv("CI_PIPELINE_ID");
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return getEnv("CI_PIPELINE_URL");
   },
 

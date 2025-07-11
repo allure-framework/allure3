@@ -44,7 +44,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobUID).toBe("myorg/myrepo_CI");
+      expect(github.jobUid).toBe("myorg/myrepo_CI");
     });
 
     it("should return '_' when environment variables are not set", () => {
@@ -54,7 +54,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobUID).toBe("_");
+      expect(github.jobUid).toBe("_");
     });
 
     it("should return 'undefined_undefined' when environment variables are undefined", () => {
@@ -64,7 +64,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobUID).toBe("undefined_undefined");
+      expect(github.jobUid).toBe("undefined_undefined");
     });
   });
 
@@ -82,7 +82,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobURL).toBe("https://github.com/myorg/myrepo/actions?query=workflow%3A%22CI%22");
+      expect(github.jobUrl).toBe("https://github.com/myorg/myrepo/actions?query=workflow%3A%22CI%22");
     });
   });
 
@@ -109,7 +109,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobRunUID).toBe("12345");
+      expect(github.jobRunUid).toBe("12345");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -119,7 +119,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobRunUID).toBe("");
+      expect(github.jobRunUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -129,7 +129,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobRunUID).toBe(undefined);
+      expect(github.jobRunUid).toBe(undefined);
     });
   });
 
@@ -147,7 +147,7 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobRunURL).toBe("https://github.com/myorg/myrepo/actions/runs/12345");
+      expect(github.jobRunUrl).toBe("https://github.com/myorg/myrepo/actions/runs/12345");
     });
   });
 

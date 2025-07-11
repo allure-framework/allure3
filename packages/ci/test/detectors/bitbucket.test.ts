@@ -73,7 +73,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobUID).toBe("myorg/myrepo");
+      expect(bitbucket.jobUid).toBe("myorg/myrepo");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -83,7 +83,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobUID).toBe("");
+      expect(bitbucket.jobUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -93,7 +93,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobUID).toBe(undefined);
+      expect(bitbucket.jobUid).toBe(undefined);
     });
   });
 
@@ -105,7 +105,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobURL).toBe("https://bitbucket.org/myorg/myrepo/pipelines");
+      expect(bitbucket.jobUrl).toBe("https://bitbucket.org/myorg/myrepo/pipelines");
     });
   });
 
@@ -129,7 +129,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobRunUID).toBe("12345-abcde-67890");
+      expect(bitbucket.jobRunUid).toBe("12345-abcde-67890");
     });
   });
 
@@ -144,7 +144,7 @@ describe("bitbucket", () => {
         }
       });
 
-      expect(bitbucket.jobRunURL).toBe("https://bitbucket.org/myorg/myrepo/pipelines/results/12345-abcde-67890");
+      expect(bitbucket.jobRunUrl).toBe("https://bitbucket.org/myorg/myrepo/pipelines/results/12345-abcde-67890");
     });
   });
 

@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
@@ -10,17 +11,17 @@ export const getDefinitionID = (): string => getEnv("SYSTEM_DEFINITIONID");
 export const getProjectID = (): string => getEnv("SYSTEM_TEAMPROJECTID");
 
 export const azure: Detector = {
-  type: "azure",
+  type: CI.Azure,
 
   get detected(): boolean {
     return getEnv("SYSTEM_DEFINITIONID") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return `${getProjectID()}_${getDefinitionID()}`;
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return `${getRootURL()}/${getProjectID()}/_build?definitionId=${getDefinitionID()}`;
   },
 
@@ -28,11 +29,11 @@ export const azure: Detector = {
     return getEnv("BUILD_DEFINITIONNAME");
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getBuildID();
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return `${getRootURL()}/${getProjectID()}/_build/results?buildId=${getBuildID()}`;
   },
 

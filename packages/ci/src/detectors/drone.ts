@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
@@ -13,17 +14,17 @@ export const getJobURL = (): string => {
 };
 
 export const drone: Detector = {
-  type: "drone",
+  type: CI.Drone,
 
   get detected(): boolean {
     return getEnv("DRONE_SYSTEM_HOST") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return getEnv("DRONE_REPO");
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     return getJobURL();
   },
 
@@ -31,11 +32,11 @@ export const drone: Detector = {
     return getEnv("DRONE_REPO");
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getJobRunUID();
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return getJobRunURL();
   },
 

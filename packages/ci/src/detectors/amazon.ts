@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
@@ -35,7 +36,7 @@ export const getPipelineName = (): string => {
 };
 
 export const amazon: Detector = {
-  type: "amazon",
+  type: CI.Amazon,
 
   get detected(): boolean {
     const buildArn = getEnv("CODEBUILD_BUILD_ARN");
@@ -43,7 +44,7 @@ export const amazon: Detector = {
     return buildArn !== "" && parseArnValues(buildArn).length > 0;
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     const buildArn = getEnv("CODEBUILD_BUILD_ARN");
     const pipelineName = getPipelineName();
 
@@ -60,7 +61,7 @@ export const amazon: Detector = {
     }
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     const buildArn = getEnv("CODEBUILD_BUILD_ARN");
     const pipelineName = getPipelineName();
 
@@ -87,7 +88,7 @@ export const amazon: Detector = {
     }
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     const pipelineName = getPipelineName();
 
     if (pipelineName) {
@@ -97,7 +98,7 @@ export const amazon: Detector = {
     }
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     const pipelineName = getPipelineName();
 
     if (pipelineName) {

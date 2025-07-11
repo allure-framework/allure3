@@ -1,11 +1,13 @@
+import type { CI } from "@allurereport/core-api";
+
 export interface Detector {
-  type: string;
+  type: CI;
   detected: boolean;
-  jobUID: string;
-  jobURL: string;
+  jobUid: string;
+  jobUrl: string;
   jobName: string;
-  jobRunUID: string;
-  jobRunURL: string;
+  jobRunUid: string;
+  jobRunUrl: string;
   jobRunName: string;
   jobRunBranch: string;
 }

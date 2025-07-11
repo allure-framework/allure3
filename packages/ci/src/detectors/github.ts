@@ -1,3 +1,4 @@
+import { CI } from "@allurereport/core-api";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
@@ -26,17 +27,17 @@ const getJob = (): string => {
 };
 
 export const github: Detector = {
-  type: "github",
+  type: CI.Github,
 
   get detected(): boolean {
     return getEnv("GITHUB_ACTIONS") !== "";
   },
 
-  get jobUID(): string {
+  get jobUid(): string {
     return `${getRepo()}_${getWorkflow()}`;
   },
 
-  get jobURL(): string {
+  get jobUrl(): string {
     const workflow = encodeURIComponent(`workflow:"${getWorkflow()}"`);
 
     return `${getBaseURL()}/${getRepo()}/actions?query=${workflow}`;
@@ -46,11 +47,11 @@ export const github: Detector = {
     return `${getRepo()} - ${getWorkflow()}`;
   },
 
-  get jobRunUID(): string {
+  get jobRunUid(): string {
     return getRunID();
   },
 
-  get jobRunURL(): string {
+  get jobRunUrl(): string {
     return `${getBaseURL()}/${getRepo()}/actions/runs/${getRunID()}`;
   },
 

@@ -29,6 +29,9 @@
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
     "test": "rimraf ./out && vitest run"
   },
+  "dependencies": {
+    "@allurereport/core-api": "workspace:*"
+  },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",

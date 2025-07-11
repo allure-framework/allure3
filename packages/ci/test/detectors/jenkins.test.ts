@@ -41,7 +41,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobUID).toBe("my-jenkins-job");
+      expect(jenkins.jobUid).toBe("my-jenkins-job");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -51,7 +51,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobUID).toBe("");
+      expect(jenkins.jobUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -61,7 +61,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobUID).toBe(undefined);
+      expect(jenkins.jobUid).toBe(undefined);
     });
   });
 
@@ -73,7 +73,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobURL).toBe("https://jenkins.example.com/job/my-jenkins-job");
+      expect(jenkins.jobUrl).toBe("https://jenkins.example.com/job/my-jenkins-job");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -83,7 +83,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobURL).toBe("");
+      expect(jenkins.jobUrl).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -93,7 +93,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobURL).toBe(undefined);
+      expect(jenkins.jobUrl).toBe(undefined);
     });
   });
 
@@ -137,7 +137,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunUID).toBe("42");
+      expect(jenkins.jobRunUid).toBe("42");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -147,7 +147,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunUID).toBe("");
+      expect(jenkins.jobRunUid).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -157,7 +157,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunUID).toBe(undefined);
+      expect(jenkins.jobRunUid).toBe(undefined);
     });
   });
 
@@ -169,7 +169,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunURL).toBe("https://jenkins.example.com/job/my-jenkins-job/42");
+      expect(jenkins.jobRunUrl).toBe("https://jenkins.example.com/job/my-jenkins-job/42");
     });
 
     it("should return empty string when environment variable is not set", () => {
@@ -179,7 +179,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunURL).toBe("");
+      expect(jenkins.jobRunUrl).toBe("");
     });
 
     it("should return undefined when environment variable is undefined", () => {
@@ -189,7 +189,7 @@ describe("jenkins", () => {
         }
       });
 
-      expect(jenkins.jobRunURL).toBe(undefined);
+      expect(jenkins.jobRunUrl).toBe(undefined);
     });
   });
 
