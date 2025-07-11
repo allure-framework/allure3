@@ -10,4 +10,6 @@ export interface Detector {
   jobRunUrl: string;
   jobRunName: string;
   jobRunBranch: string;
+  pullRequestName: string;
+  pullRequestUrl: string;
 }

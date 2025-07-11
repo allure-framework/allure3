@@ -47,4 +47,12 @@ export const drone: Detector = {
   get jobRunBranch(): string {
     return getEnv("DRONE_BRANCH");
   },
+
+  get pullRequestUrl(): string {
+    return "";
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
 };

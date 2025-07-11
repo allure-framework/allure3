@@ -56,4 +56,12 @@ export const circle: Detector = {
   get jobRunBranch(): string {
     return getEnv("CIRCLE_BRANCH");
   },
+
+  get pullRequestUrl(): string {
+    return "";
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
 };

@@ -1,30 +1,15 @@
 import { CI } from "@allurereport/core-api";
+import { join } from "node:path/posix";
 import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
-const getBaseURL = (): string => {
-  return getEnv("GITHUB_SERVER_URL");
-};
+const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
 
-const getRunID = (): string => {
-  return getEnv("GITHUB_RUN_ID");
-};
+const getRunID = () => getEnv("GITHUB_RUN_ID");
 
-const getRunNumber = (): string => {
-  return getEnv("GITHUB_RUN_NUMBER");
-};
+const getWorkflow = () => getEnv("GITHUB_WORKFLOW");
 
-const getRepo = (): string => {
-  return getEnv("GITHUB_REPOSITORY");
-};
-
-const getWorkflow = (): string => {
-  return getEnv("GITHUB_WORKFLOW");
-};
-
-const getJob = (): string => {
-  return getEnv("GITHUB_JOB");
-};
+const getRepo = () => getEnv("GITHUB_REPOSITORY");
 
 export const github: Detector = {
   type: CI.Github,
@@ -56,10 +41,33 @@ export const github: Detector = {
   },
 
   get jobRunName(): string {
-    return `${getJob()} #${getRunNumber()}`;
+    const runNumber = getEnv("GITHUB_RUN_NUMBER");
+    const job = getEnv("GITHUB_JOB");
+
+    return `${job} #${runNumber}`;
   },
 
   get jobRunBranch(): string {
     return getEnv("GITHUB_REF");
+  },
+
+  get pullRequestUrl(): string {
+    const pullRequestSuffixRe = /\/merge$/;
+    const refName = getEnv("GITHUB_REF_NAME");
+
+    if (!pullRequestSuffixRe.test(refName)) {
+      return "";
+    }
+
+    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
+    const serverUrl = getEnv("GITHUB_SERVER_URL");
+    const repo = getRepo();
+    const pathname = join(repo, "pull", pullRequestNumber);
+
+    return new URL(pathname, serverUrl).toString();
+  },
+
+  get pullRequestName(): string {
+    return "";
   },
 };

@@ -44,4 +44,12 @@ export const azure: Detector = {
   get jobRunBranch(): string {
     return getEnv("BUILD_SOURCEBRANCHNAME");
   },
+
+  get pullRequestUrl(): string {
+    return "";
+  },
+
+  get pullRequestName(): string {
+    return "";
+  },
 };

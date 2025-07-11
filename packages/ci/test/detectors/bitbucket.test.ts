@@ -171,4 +171,39 @@ describe("bitbucket", () => {
       expect(bitbucket.jobRunBranch).toBe("main");
     });
   });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BITBUCKET_PR_ID") {
+          return "123";
+        }
+        if (key === "BITBUCKET_GIT_HTTP_ORIGIN") {
+          return "https://bitbucket.org/myorg/myrepo";
+        }
+      });
+
+      expect(bitbucket.pullRequestUrl).toBe("https://bitbucket.org/myorg/myrepo/pull-requests/123");
+    });
+
+    it("should return empty string when BITBUCKET_PR_ID is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BITBUCKET_PR_ID") {
+          return "";
+        }
+      });
+
+      expect(bitbucket.pullRequestUrl).toBe("");
+    });
+
+    it("should return empty string when BITBUCKET_PR_ID is undefined", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BITBUCKET_PR_ID") {
+          return undefined;
+        }
+      });
+
+      expect(bitbucket.pullRequestUrl).toBe("");
+    });
+  });
 });

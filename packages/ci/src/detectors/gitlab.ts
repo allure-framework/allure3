@@ -36,4 +36,20 @@ export const gitlab: Detector = {
   get jobRunBranch(): string {
     return getEnv("CI_COMMIT_REF_NAME");
   },
+
+  get pullRequestUrl(): string {
+    const mergeRequestIID = getEnv("CI_MERGE_REQUEST_IID");
+
+    if (!mergeRequestIID) {
+      return "";
+    }
+
+    const projectUrl = getEnv("CI_PROJECT_URL");
+
+    return `${projectUrl}/-/merge_requests/${mergeRequestIID}`;
+  },
+
+  get pullRequestName(): string {
+    return getEnv("CI_MERGE_REQUEST_TITLE");
+  },
 };
