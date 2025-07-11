@@ -12,6 +12,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@allurereport/ci@workspace:packages/ci":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/ci@workspace:packages/ci"
+  dependencies:
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/snapshot": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.9"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/core-api@workspace:*, @allurereport/core-api@workspace:packages/core-api":
   version: 0.0.0-use.local
   resolution: "@allurereport/core-api@workspace:packages/core-api"
