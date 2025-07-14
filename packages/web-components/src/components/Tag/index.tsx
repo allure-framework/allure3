@@ -3,7 +3,15 @@ import type { FunctionComponent } from "preact";
 import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
 
-export type TagSkin = "successful" | "failed" | "warning" | "neutral";
+export type TagSkin =
+  | "successful"
+  | "failed"
+  | "warning"
+  | "neutral"
+  | "successful-light"
+  | "failed-light"
+  | "warning-light"
+  | "neutral-light";
 
 export interface TagProps {
   "className"?: string;

@@ -4,13 +4,13 @@ import type { TagSkin } from "@/components/Tag";
 export const transitionToTagSkin = (transition: TestStatusTransition): TagSkin | undefined => {
   switch (transition) {
     case "new":
-      return "neutral";
+      return "neutral-light";
     case "fixed":
-      return "successful";
+      return "successful-light";
     case "regressed":
-      return "failed";
+      return "failed-light";
     case "malfunctioned":
-      return "warning";
+      return "warning-light";
     default:
       return undefined;
   }

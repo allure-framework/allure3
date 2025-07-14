@@ -23,6 +23,7 @@ export { StatusLabel } from "./components/StatusLabel";
 export { ReportLogoFull } from "./components/ReportLogoFull";
 export { ReportLogo } from "./components/ReportLogo";
 export { Widget } from "./components/Widget";
+export * from "./components/Tag";
 export * from "./components/Grid";
 export * from "./components/LanguagePicker";
 export * from "./components/ThemeButton";
