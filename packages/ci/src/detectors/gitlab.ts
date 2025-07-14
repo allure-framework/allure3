@@ -1,9 +1,8 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
-export const gitlab: Detector = {
-  type: CI.Gitlab,
+export const gitlab: CiDescriptor = {
+  type: CiType.Gitlab,
 
   get detected(): boolean {
     return getEnv("GITLAB_CI") !== "";

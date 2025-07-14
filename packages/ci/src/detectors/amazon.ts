@@ -1,5 +1,4 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;
@@ -35,8 +34,8 @@ export const getPipelineName = (): string => {
   return initiator.match(PIPELINE_REGEXP)?.[1] ?? "";
 };
 
-export const amazon: Detector = {
-  type: CI.Amazon,
+export const amazon: CiDescriptor = {
+  type: CiType.Amazon,
 
   get detected(): boolean {
     const buildArn = getEnv("CODEBUILD_BUILD_ARN");

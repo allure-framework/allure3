@@ -1,9 +1,8 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
-export const jenkins: Detector = {
-  type: CI.Jenkins,
+export const jenkins: CiDescriptor = {
+  type: CiType.Jenkins,
 
   get detected(): boolean {
     return getEnv("JENKINS_URL") !== "";

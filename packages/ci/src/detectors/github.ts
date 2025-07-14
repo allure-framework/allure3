@@ -1,6 +1,5 @@
-import { CI } from "@allurereport/core-api";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { join } from "node:path/posix";
-import { type Detector } from "../model.js";
 import { getEnv } from "../utils.js";
 
 const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
@@ -11,8 +10,8 @@ const getWorkflow = () => getEnv("GITHUB_WORKFLOW");
 
 const getRepo = () => getEnv("GITHUB_REPOSITORY");
 
-export const github: Detector = {
-  type: CI.Github,
+export const github: CiDescriptor = {
+  type: CiType.Github,
 
   get detected(): boolean {
     return getEnv("GITHUB_ACTIONS") !== "";

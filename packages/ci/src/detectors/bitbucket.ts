@@ -1,5 +1,4 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
 export const getJobURL = (): string => {
@@ -8,8 +7,8 @@ export const getJobURL = (): string => {
   return `${origin}/pipelines`;
 };
 
-export const bitbucket: Detector = {
-  type: CI.Bitbucket,
+export const bitbucket: CiDescriptor = {
+  type: CiType.Bitbucket,
 
   get detected(): boolean {
     return getEnv("BITBUCKET_PIPELINE_UUID") !== "";

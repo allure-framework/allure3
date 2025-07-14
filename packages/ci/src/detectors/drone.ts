@@ -1,5 +1,4 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
 export const getJobRunUID = (): string => getEnv("CI_BUILD_NUMBER");
@@ -13,8 +12,8 @@ export const getJobURL = (): string => {
   return jobRunURL.replace(jobRunUID, "");
 };
 
-export const drone: Detector = {
-  type: CI.Drone,
+export const drone: CiDescriptor = {
+  type: CiType.Drone,
 
   get detected(): boolean {
     return getEnv("DRONE_SYSTEM_HOST") !== "";

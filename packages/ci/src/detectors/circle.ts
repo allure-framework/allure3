@@ -1,5 +1,4 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv, parseURLPath } from "../utils.js";
 
 export const getBuildNumber = (): string => getEnv("CIRCLE_BUILD_NUM");
@@ -13,8 +12,8 @@ const getJobURL = (): string => {
   return jobRunURL.replace(`/${buildNumber}`, "");
 };
 
-export const circle: Detector = {
-  type: CI.Circle,
+export const circle: CiDescriptor = {
+  type: CiType.Circle,
 
   get detected(): boolean {
     const hasEnv = getEnv("CIRCLECI") !== "";

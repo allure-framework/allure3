@@ -1,5 +1,4 @@
-import { CI } from "@allurereport/core-api";
-import { type Detector } from "../model.js";
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { getEnv } from "../utils.js";
 
 export const getRootURL = (): string => getEnv("SYSTEM_COLLECTIONURI");
@@ -10,8 +9,8 @@ export const getDefinitionID = (): string => getEnv("SYSTEM_DEFINITIONID");
 
 export const getProjectID = (): string => getEnv("SYSTEM_TEAMPROJECTID");
 
-export const azure: Detector = {
-  type: CI.Azure,
+export const azure: CiDescriptor = {
+  type: CiType.Azure,
 
   get detected(): boolean {
     return getEnv("SYSTEM_DEFINITIONID") !== "";
