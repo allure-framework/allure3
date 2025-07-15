@@ -1,1 +1,1 @@
-{"id":"acb5299e664640f4e5032566d8846994","fullName":"test/service.test.ts#AllureServiceClient login should return the access token","name":"should return the access token","status":"passed","testResultsByEnv":{"default":"09647b5593fb7a3e77badda943aa182e"}}
+{"id":"acb5299e664640f4e5032566d8846994","fullName":"test/service.test.ts#AllureServiceClient login should return the access token","name":"should return the access token","status":"passed","testResultsByEnv":{"default":"3b1ddbe490c2cdda6086a3dc5ce2bfa7"}}

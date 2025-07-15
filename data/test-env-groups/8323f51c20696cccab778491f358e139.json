@@ -1,1 +1,1 @@
-{"id":"8323f51c20696cccab778491f358e139","fullName":"allure-awesome/features/new.test.ts:77:3","name":"should be able to filter new tests with using new filter","status":"passed","testResultsByEnv":{"chromium":"c4b699e48d137733b7261a86d821c74e","firefox":"82511c30561ae656a3c10e79789447bb","safari":"810b6fa7f39a32561e45bb207435fcd1"}}
+{"id":"8323f51c20696cccab778491f358e139","fullName":"allure-awesome/features/new.test.ts:77:3","name":"should be able to filter new tests with using new filter","status":"passed","testResultsByEnv":{"default":"b0796d985869e2df807f1ab7d678ad71"}}

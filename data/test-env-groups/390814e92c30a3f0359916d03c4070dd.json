@@ -1,1 +1,1 @@
-{"id":"390814e92c30a3f0359916d03c4070dd","fullName":"allure-awesome/test/tree.test.ts:161:3","name":"should update value with debounce and clear input","status":"passed","testResultsByEnv":{"chromium":"d8fe3c6cb0d72a952958cdd57d25f38e","firefox":"f2bde1d1df0326b69342ad413d05d22c","safari":"1f9befcf061525cc758dd6d225f629a1"}}
+{"id":"390814e92c30a3f0359916d03c4070dd","fullName":"allure-awesome/test/tree.test.ts:162:3","name":"should update value with debounce and clear input","status":"passed","testResultsByEnv":{"default":"a20e1eaf17405100792926cacaba65cf"}}

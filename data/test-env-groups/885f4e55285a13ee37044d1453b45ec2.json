@@ -1,1 +1,1 @@
-{"id":"885f4e55285a13ee37044d1453b45ec2","fullName":"allure-awesome/test/steps.test.ts:142:3","name":"unique errors are always rendered","status":"passed","testResultsByEnv":{"chromium":"fb51fe117cff2b8552f927fdbbd15368","firefox":"5f1e36dbc58bc7eec2f04609bc95c0cb","safari":"3271d85ec34917dad0eea54650e3c6f7"}}
+{"id":"885f4e55285a13ee37044d1453b45ec2","fullName":"allure-awesome/test/steps.test.ts:142:3","name":"unique errors are always rendered","status":"passed","testResultsByEnv":{"default":"a7b431661c37d87477e856124e698c31"}}

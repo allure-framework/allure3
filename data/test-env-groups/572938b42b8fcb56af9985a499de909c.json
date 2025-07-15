@@ -1,1 +1,1 @@
-{"id":"572938b42b8fcb56af9985a499de909c","fullName":"allure-awesome/features/new.test.ts:98:3","name":"should show new icon only for new tests in the tree","status":"passed","testResultsByEnv":{"chromium":"4d647e13ae20fc25419bbf009fa80145","firefox":"9da0df3e4fd3fa03a569b6863e5d4578","safari":"f47498281d1be2001f1e4e8798aeb683"}}
+{"id":"572938b42b8fcb56af9985a499de909c","fullName":"allure-awesome/features/new.test.ts:98:3","name":"should show new icon only for new tests in the tree","status":"passed","testResultsByEnv":{"default":"deeef248b4e700bc699be7a06ff14a81"}}

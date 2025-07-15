@@ -1,1 +1,1 @@
-{"id":"c84aee2533a0035e3d90977afc19a491","fullName":"allure-awesome/test/steps.test.ts:124:3","name":"the same error is only rendered at the leaf level","status":"passed","testResultsByEnv":{"chromium":"f3b107ec352ac4374cf50873f2d2b088","firefox":"198edda899e1696588e2309a7f4fbc65","safari":"09160747c4c356b0f03bfba3f548dadf"}}
+{"id":"c84aee2533a0035e3d90977afc19a491","fullName":"allure-awesome/test/steps.test.ts:124:3","name":"the same error is only rendered at the leaf level","status":"passed","testResultsByEnv":{"default":"ef2a11d456452eb13aba72a150b63ec7"}}
