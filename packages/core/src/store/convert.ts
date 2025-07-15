@@ -118,6 +118,7 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
       readerId: context.readerId,
       metadata: context.metadata ?? {},
     },
+    titlePath: raw.titlePath ?? [],
   };
 };
 

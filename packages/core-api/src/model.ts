@@ -67,6 +67,8 @@ export interface TestResult {
 
   retries?: TestResult[];
   categories?: any;
+
+  titlePath?: string[];
 }
 
 export interface TestEnvGroup {
