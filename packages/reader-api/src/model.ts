@@ -20,6 +20,7 @@ export interface RawFixtureResult {
   actual?: string;
 
   steps?: RawStep[];
+  titlePath?: string[];
 }
 
 export interface RawTestResult {
@@ -61,6 +62,7 @@ export interface RawTestResult {
 
   labels?: RawTestLabel[];
   links?: RawTestLink[];
+  titlePath?: string[];
 }
 
 export interface RawTestLabel {
