@@ -1,12 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { sanitizeHtml, sanitizeAnsiHtml, sanitizeAttachmentHtml } from "../src/sanitize.js";
-import { sanitizer } from "./utils/dompurify.js";
 
 describe("XSS Sanitization", () => {
   describe("sanitizeHtml", () => {
     it("should remove script tags", () => {
       const maliciousHtml = '<p>Hello</p><script>alert("XSS")</script><p>World</p>';
-      const sanitized = sanitizeHtml(maliciousHtml, undefined, sanitizer);
+      const sanitized = sanitizeHtml(maliciousHtml);
       expect(sanitized).toContain('<p>Hello</p>');
       expect(sanitized).toContain('<p>World</p>');
       expect(sanitized).not.toContain('<script>');
@@ -15,7 +14,7 @@ describe("XSS Sanitization", () => {
 
     it("should remove event handlers", () => {
       const maliciousHtml = '<img src="-" onerror="alert(\'XSS\')" alt="test">';
-      const sanitized = sanitizeHtml(maliciousHtml, undefined, sanitizer);
+      const sanitized = sanitizeHtml(maliciousHtml);
       expect(sanitized).toContain('<img');
       expect(sanitized).toContain('alt="test"');
       expect(sanitized).not.toContain('onerror');
@@ -24,7 +23,7 @@ describe("XSS Sanitization", () => {
 
     it("should preserve safe HTML", () => {
       const safeHtml = '<p>Hello <strong>World</strong></p>';
-      const sanitized = sanitizeHtml(safeHtml, undefined, sanitizer);
+      const sanitized = sanitizeHtml(safeHtml);
       expect(sanitized).toBe(safeHtml);
     });
   });
@@ -32,7 +31,7 @@ describe("XSS Sanitization", () => {
   describe("sanitizeAnsiHtml", () => {
     it("should remove all potentially dangerous content", () => {
       const maliciousHtml = '<script>alert("XSS")</script><span style="color: red;">Hello</span>';
-      const sanitized = sanitizeAnsiHtml(maliciousHtml, sanitizer);
+      const sanitized = sanitizeAnsiHtml(maliciousHtml);
       expect(sanitized).not.toContain('<script>');
       expect(sanitized).not.toContain('alert("XSS")');
       expect(sanitized).toContain('<span style="color: red;">Hello</span>');
@@ -40,7 +39,7 @@ describe("XSS Sanitization", () => {
 
     it("should preserve ANSI color codes", () => {
       const ansiHtml = '<span style="color: #ff0000;">Red text</span>';
-      const sanitized = sanitizeAnsiHtml(ansiHtml, sanitizer);
+      const sanitized = sanitizeAnsiHtml(ansiHtml);
       expect(sanitized).toContain('<span style="color: #ff0000;">Red text</span>');
     });
   });
@@ -48,7 +47,7 @@ describe("XSS Sanitization", () => {
   describe("sanitizeAttachmentHtml", () => {
     it("should remove dangerous content from attachments", () => {
       const maliciousHtml = '<img src="-" onerror="alert(\'XSS\')" alt="test">';
-      const sanitized = sanitizeAttachmentHtml(maliciousHtml, sanitizer);
+      const sanitized = sanitizeAttachmentHtml(maliciousHtml);
       // Since img tags are forbidden in attachments, it should be removed
       expect(sanitized).not.toContain('<img');
       expect(sanitized).not.toContain('onerror');
@@ -57,7 +56,7 @@ describe("XSS Sanitization", () => {
 
     it("should preserve safe attachment content", () => {
       const safeHtml = '<div><p>Test content</p></div>';
-      const sanitized = sanitizeAttachmentHtml(safeHtml, sanitizer);
+      const sanitized = sanitizeAttachmentHtml(safeHtml);
       expect(sanitized).toBe(safeHtml);
     });
   });
