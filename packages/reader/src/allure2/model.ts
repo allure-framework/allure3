@@ -79,6 +79,7 @@ export interface TestResult extends ExecutableItem {
   testCaseId?: string;
   labels?: Label[];
   links?: Link[];
+  titlePath?: string[];
 }
 
 export interface TestResultContainer {
