@@ -1,7 +1,15 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin from "@allurereport/plugin-log";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { LogCommandAction } from "../../src/commands/log.js";
+import { LogCommand } from "../../src/commands/log.js";
+
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  allSteps: true,
+  withTrace: true,
+  groupBy: "suites",
+  config: "./custom/allurerc.mjs",
+};
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
@@ -18,30 +26,29 @@ beforeEach(() => {
 
 describe("log command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await LogCommandAction(resultsDir, {});
+    const command = new LogCommand();
+
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "log",
-            enabled: true,
-            options: expect.objectContaining({}),
-            plugin: expect.any(LogPlugin),
-          }),
-        ]),
-      }),
-    );
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "log",
+          enabled: true,
+          options: expect.objectContaining({}),
+          plugin: expect.any(LogPlugin),
+        }),
+      ]),
+    });
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -61,7 +68,12 @@ describe("log command", () => {
       ],
     });
 
-    await LogCommandAction(resultsDir, {});
+    const command = new LogCommand();
+
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -70,11 +82,11 @@ describe("log command", () => {
           expect.objectContaining({
             id: "my-log-plugin",
             enabled: true,
-            options: expect.objectContaining({
+            options: {
               allSteps: true,
               withTrace: true,
               groupBy: "features",
-            }),
+            },
             plugin: expect.any(LogPlugin),
           }),
         ]),
@@ -83,20 +95,16 @@ describe("log command", () => {
   });
 
   it("should initialize allure report with provided command line options", async () => {
-    const fixtures = {
-      resultsDir: "foo/bar/allure-results",
-      allSteps: true,
-      withTrace: true,
-      groupBy: "suites",
-      config: "./custom/allurerc.mjs",
-    } as const;
+    const command = new LogCommand();
 
-    await LogCommandAction(fixtures.resultsDir, {
-      allSteps: fixtures.allSteps,
-      withTrace: fixtures.withTrace,
-      groupBy: fixtures.groupBy,
-      config: fixtures.config,
-    });
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+    command.allSteps = fixtures.allSteps;
+    command.withTrace = fixtures.withTrace;
+    command.groupBy = fixtures.groupBy;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config);

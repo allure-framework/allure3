@@ -2,9 +2,15 @@ import { getGitRepoName, readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ProjectsCreateCommandAction } from "../../../src/commands/projects/create.js";
+import { ProjectsCreateCommand } from "../../../src/commands/projects/create.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../../utils.js";
+
+const fixtures = {
+  config: "./custom/allurerc.mjs",
+  cwd: ".",
+  projectName: "foo",
+};
 
 vi.spyOn(console, "info");
 vi.mock("prompts", () => ({
@@ -43,8 +49,12 @@ describe("projects create command", () => {
     const consoleErrorSpy = vi.spyOn(console, "error");
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
+    const command = new ProjectsCreateCommand();
 
-    await ProjectsCreateCommandAction();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
@@ -65,7 +75,13 @@ describe("projects create command", () => {
       new KnownError("Failed to create project", 401),
     );
 
-    await ProjectsCreateCommandAction("foo");
+    const command = new ProjectsCreateCommand();
+
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = [fixtures.projectName];
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to create project"));
@@ -85,7 +101,12 @@ describe("projects create command", () => {
       name: "foo",
     });
 
-    await ProjectsCreateCommandAction("foo");
+    const command = new ProjectsCreateCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = [fixtures.projectName];
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
@@ -109,7 +130,11 @@ describe("projects create command", () => {
     });
     (getGitRepoName as Mock).mockResolvedValue("bar");
 
-    await ProjectsCreateCommandAction();
+    const command = new ProjectsCreateCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
@@ -136,7 +161,11 @@ describe("projects create command", () => {
       name: "baz",
     });
 
-    await ProjectsCreateCommandAction();
+    const command = new ProjectsCreateCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.createProject).toHaveBeenCalledTimes(1);
@@ -155,7 +184,11 @@ describe("projects create command", () => {
     (getGitRepoName as Mock).mockRejectedValue(new Error("No git repo found"));
     (prompts as unknown as Mock).mockResolvedValue(undefined);
 
-    await ProjectsCreateCommandAction();
+    const command = new ProjectsCreateCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No project name provided!"));

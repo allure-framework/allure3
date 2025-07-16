@@ -2,9 +2,15 @@ import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ProjectsDeleteCommandAction } from "../../../src/commands/projects/delete.js";
+import { ProjectsDeleteCommand } from "../../../src/commands/projects/delete.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../../utils.js";
+
+const fixtures = {
+  config: "./custom/allurerc.mjs",
+  cwd: ".",
+  projectName: "foo",
+};
 
 vi.mock("prompts", () => ({
   default: vi.fn(),
@@ -46,7 +52,11 @@ describe("projects delete command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await ProjectsDeleteCommandAction();
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
@@ -58,11 +68,17 @@ describe("projects delete command", () => {
     const consoleInfoSpy = vi.spyOn(console, "info");
     AllureServiceClientMock.prototype.deleteProject.mockResolvedValue({});
 
-    await ProjectsDeleteCommandAction("foo", { force: true });
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = fixtures.projectName;
+    command.force = true;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ name: "foo" });
+    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ name: fixtures.projectName });
     expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
     expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining("Project has been deleted"));
   });
@@ -73,7 +89,13 @@ describe("projects delete command", () => {
     (prompts as unknown as Mock).mockResolvedValue({ value: true });
     AllureServiceClientMock.prototype.deleteProject.mockResolvedValue({});
 
-    await ProjectsDeleteCommandAction("bar");
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = "bar";
+    command.force = false;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);
@@ -88,22 +110,15 @@ describe("projects delete command", () => {
 
     (prompts as unknown as Mock).mockResolvedValue({ value: false });
 
-    await ProjectsDeleteCommandAction("baz");
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = "baz";
+    command.force = false;
+
+    await command.execute();
 
     expect(processExitSpy).toHaveBeenCalledWith(0);
-    expect(AllureServiceClientMock.prototype.deleteProject).not.toHaveBeenCalled();
-  });
-
-  it("should exit with an error if no project name is provided", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
-    await ProjectsDeleteCommandAction(undefined);
-
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No project name is provided"));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
     expect(AllureServiceClientMock.prototype.deleteProject).not.toHaveBeenCalled();
   });
 
@@ -123,7 +138,13 @@ describe("projects delete command", () => {
     (prompts as unknown as Mock).mockResolvedValueOnce({ value: true });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
 
-    await ProjectsDeleteCommandAction("qux");
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = "qux";
+    command.force = false;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to delete project"));
@@ -144,27 +165,17 @@ describe("projects delete command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await ProjectsDeleteCommandAction("qux");
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = "qux";
+    command.force = false;
+
+    await command.execute();
 
     expect(logError).toHaveBeenCalledTimes(1);
     expect(logError).toHaveBeenCalledWith("Failed to delete project due to unexpected error", expect.any(Error));
     expect(processExitSpy).toHaveBeenCalledWith(1);
-  });
-
-  it("should print unknown service-error with logs writing", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
-  });
-
-  it("should print unknown service-error with logs writing", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    });
   });
 
   it("should forcily delete a project without confirmation", async () => {
@@ -173,7 +184,13 @@ describe("projects delete command", () => {
     AllureServiceClientMock.prototype.deleteProject.mockResolvedValue({});
     (prompts as unknown as Mock).mockResolvedValue({ value: false });
 
-    await ProjectsDeleteCommandAction("qux", { force: true });
+    const command = new ProjectsDeleteCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+    command.projectName = "qux";
+    command.force = true;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);

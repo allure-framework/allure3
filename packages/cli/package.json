@@ -46,7 +46,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "cac": "^6.7.14",
+    "clipanion": "^4.0.0-rc.4",
     "lodash.omit": "^4.5.0",
     "prompts": "^2.4.2",
     "yoctocolors": "^2.1.1"

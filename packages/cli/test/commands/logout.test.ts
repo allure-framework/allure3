@@ -1,9 +1,14 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { LogoutCommandAction } from "../../src/commands/logout.js";
+import { LogoutCommand } from "../../src/commands/logout.js";
 import { logError } from "../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../utils.js";
+
+const fixtures = {
+  config: "./custom/allurerc.mjs",
+  cwd: ".",
+};
 
 vi.mock("../../src/utils/logs.js", async (importOriginal) => {
   return {
@@ -42,7 +47,11 @@ describe("logout command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await LogoutCommandAction();
+    const command = new LogoutCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
@@ -62,7 +71,11 @@ describe("logout command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await LogoutCommandAction();
+    const command = new LogoutCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to logout"));
@@ -82,7 +95,11 @@ describe("logout command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await LogoutCommandAction();
+    const command = new LogoutCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(logError).toHaveBeenCalledTimes(1);
     expect(logError).toHaveBeenCalledWith("Failed to logout due to unexpected error", expect.any(Error));
@@ -90,7 +107,11 @@ describe("logout command", () => {
   });
 
   it("should initialize allure service and call logout method", async () => {
-    await LogoutCommandAction();
+    const command = new LogoutCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClient).toHaveBeenCalledWith({ url: "https://allure.example.com" });
