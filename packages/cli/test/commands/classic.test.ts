@@ -1,10 +1,22 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import ClassicPlugin from "@allurereport/plugin-classic";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassicCommandAction } from "../../src/commands/classic.js";
+import { ClassicCommand } from "../../src/commands/classic.js";
+
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  reportName: "Custom Allure Report",
+  output: "./custom/output/path",
+  knownIssues: "./custom/known/issues/path",
+  historyPath: "./custom/history/path",
+  reportLanguage: "es",
+  singleFile: true,
+  config: "./custom/allurerc.mjs",
+};
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -18,32 +30,28 @@ beforeEach(() => {
 
 describe("classic command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await ClassicCommandAction(resultsDir, {});
+    const command = new ClassicCommand();
+
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "classic",
-            enabled: true,
-            options: {
-              groupBy: undefined,
-            },
-            plugin: expect.any(ClassicPlugin),
-          }),
-        ]),
-      }),
-    );
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "classic",
+          enabled: true,
+          plugin: expect.any(ClassicPlugin),
+        }),
+      ]),
+    });
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -59,7 +67,12 @@ describe("classic command", () => {
       ],
     });
 
-    await ClassicCommandAction(resultsDir, {});
+    const command = new ClassicCommand();
+
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -79,26 +92,19 @@ describe("classic command", () => {
   });
 
   it("should initialize allure report with provided command line options", async () => {
-    const fixtures = {
-      resultsDir: "foo/bar/allure-results",
-      reportName: "Custom Allure Report",
-      output: "./custom/output/path",
-      knownIssues: "./custom/known/issues/path",
-      historyPath: "./custom/history/path",
-      reportLanguage: "es",
-      singleFile: true,
-      config: "./custom/allurerc.mjs",
-    };
+    const command = new ClassicCommand();
 
-    await ClassicCommandAction(fixtures.resultsDir, {
-      reportName: fixtures.reportName,
-      output: fixtures.output,
-      knownIssues: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
-      reportLanguage: fixtures.reportLanguage,
-      singleFile: fixtures.singleFile,
-      config: fixtures.config,
-    });
+    command.cwd = ".";
+    command.resultsDir = [fixtures.resultsDir];
+    command.reportName = fixtures.reportName;
+    command.output = fixtures.output;
+    command.knownIssues = fixtures.knownIssues;
+    command.historyPath = fixtures.historyPath;
+    command.reportLanguage = fixtures.reportLanguage;
+    command.singleFile = fixtures.singleFile;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
@@ -114,11 +120,10 @@ describe("classic command", () => {
           expect.objectContaining({
             id: "classic",
             enabled: true,
-            options: {
-              groupBy: undefined,
+            options: expect.objectContaining({
               reportLanguage: fixtures.reportLanguage,
               singleFile: fixtures.singleFile,
-            },
+            }),
             plugin: expect.any(ClassicPlugin),
           }),
         ]),

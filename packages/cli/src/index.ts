@@ -1,11 +1,11 @@
-import { cac } from "cac";
+import { Cli } from "clipanion";
 import console from "node:console";
 import { readFileSync } from "node:fs";
-import { cwd } from "node:process";
+import { argv, cwd } from "node:process";
 import {
+  Allure2Command,
   AwesomeCommand,
   ClassicCommand,
-  ClassicLegacyCommand,
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
@@ -26,47 +26,41 @@ import {
   WhoamiCommand,
 } from "./commands/index.js";
 
+const [node, app, ...args] = argv;
+
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
-const cli = cac(pkg.name).usage(pkg.description).help().version(pkg.version);
-const commands = [
-  ClassicCommand,
-  ClassicLegacyCommand,
-  AwesomeCommand,
-  CsvCommand,
-  DashboardCommand,
-  GenerateCommand,
-  HistoryCommand,
-  KnownIssueCommand,
-  LogCommand,
-  OpenCommand,
-  QualityGateCommand,
-  RunCommand,
-  SlackCommand,
-  TestPlanCommand,
-  WatchCommand,
-  LoginCommand,
-  LogoutCommand,
-  WhoamiCommand,
-  ProjectsCreateCommand,
-  ProjectsDeleteCommand,
-  ProjectsListCommand,
-];
-
-commands.forEach((command) => {
-  command(cli);
+const cli = new Cli({
+  binaryName: pkg.name,
+  binaryLabel: `${node} ${app}`,
+  binaryVersion: pkg.version,
 });
 
-cli.on("command:*", () => {
-  console.error(`Invalid command: "${cli.args.join(" ")}"`);
-  console.error("See --help for a list of available commands");
-  process.exit(1);
-});
+cli.register(AwesomeCommand);
+cli.register(Allure2Command);
+cli.register(ClassicCommand);
+cli.register(CsvCommand);
+cli.register(DashboardCommand);
+cli.register(GenerateCommand);
+cli.register(HistoryCommand);
+cli.register(KnownIssueCommand);
+cli.register(LogCommand);
+cli.register(LoginCommand);
+cli.register(LogoutCommand);
+cli.register(OpenCommand);
+cli.register(QualityGateCommand);
+cli.register(RunCommand);
+cli.register(SlackCommand);
+cli.register(TestPlanCommand);
+cli.register(WatchCommand);
+cli.register(WhoamiCommand);
+cli.register(ProjectsCreateCommand);
+cli.register(ProjectsDeleteCommand);
+cli.register(ProjectsListCommand);
+cli.runExit(args);
 
 console.log(cwd());
-
-cli.parse();
 
 export { defineConfig } from "@allurereport/plugin-api";

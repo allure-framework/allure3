@@ -2,9 +2,14 @@ import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import prompts from "prompts";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ProjectsListCommandAction } from "../../../src/commands/projects/list.js";
+import { ProjectsListCommand } from "../../../src/commands/projects/list.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../../utils.js";
+
+const fixtures = {
+  config: "./custom/allurerc.mjs",
+  cwd: ".",
+};
 
 vi.mock("prompts", () => ({
   default: vi.fn(),
@@ -46,7 +51,11 @@ describe("projects list command", () => {
     // @ts-ignore
     const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
@@ -58,7 +67,11 @@ describe("projects list command", () => {
     const consoleInfoSpy = vi.spyOn(console, "info");
     AllureServiceClientMock.prototype.projects.mockResolvedValue([]);
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.projects).toHaveBeenCalledTimes(1);
@@ -70,7 +83,11 @@ describe("projects list command", () => {
     AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }, { name: "bar" }]);
     (prompts as unknown as Mock).mockResolvedValue({ project: "foo" });
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.projects).toHaveBeenCalledTimes(1);
@@ -102,7 +119,11 @@ describe("projects list command", () => {
       new KnownError("Failed to list projects", 401),
     );
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to list projects"));
@@ -122,7 +143,11 @@ describe("projects list command", () => {
     (logError as Mock).mockResolvedValueOnce("logs.txt");
     (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(logError).toHaveBeenCalledTimes(1);
     expect(logError).toHaveBeenCalledWith("Failed to get projects due to unexpected error", expect.any(Error));
@@ -136,7 +161,11 @@ describe("projects list command", () => {
     AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }]);
     (prompts as unknown as Mock).mockResolvedValue({});
 
-    await ProjectsListCommandAction();
+    const command = new ProjectsListCommand();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No project selected"));
     expect(processExitSpy).toHaveBeenCalledWith(1);
