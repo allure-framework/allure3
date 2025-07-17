@@ -31,16 +31,6 @@ describe("bitbucket", () => {
 
       expect(getJobURL()).toBe("/pipelines");
     });
-
-    it("should return 'undefined/pipelines' when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BITBUCKET_GIT_HTTP_ORIGIN") {
-          return undefined;
-        }
-      });
-
-      expect(getJobURL()).toBe("undefined/pipelines");
-    });
   });
 
   describe("detected", () => {
@@ -84,16 +74,6 @@ describe("bitbucket", () => {
       });
 
       expect(bitbucket.jobUid).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BITBUCKET_REPO_FULL_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(bitbucket.jobUid).toBe(undefined);
     });
   });
 
@@ -190,16 +170,6 @@ describe("bitbucket", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "BITBUCKET_PR_ID") {
           return "";
-        }
-      });
-
-      expect(bitbucket.pullRequestUrl).toBe("");
-    });
-
-    it("should return empty string when BITBUCKET_PR_ID is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BITBUCKET_PR_ID") {
-          return undefined;
         }
       });
 

@@ -139,7 +139,10 @@ export const amazon: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return "";
+    const sourceVersion = getEnv("CODEBUILD_SOURCE_VERSION");
+    const { branch } = sourceVersion?.match?.(/refs\/heads\/(?<branch>\S+)\^\{(?<commithash>\S+)\}/)?.groups ?? {};
+
+    return branch ?? "";
   },
 
   get pullRequestUrl(): string {

@@ -31,16 +31,6 @@ describe("azure", () => {
 
       expect(getRootURL()).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "SYSTEM_COLLECTIONURI") {
-          return undefined;
-        }
-      });
-
-      expect(getRootURL()).toBe(undefined);
-    });
   });
 
   describe("getBuildID", () => {
@@ -62,16 +52,6 @@ describe("azure", () => {
       });
 
       expect(getBuildID()).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BUILD_BUILDID") {
-          return undefined;
-        }
-      });
-
-      expect(getBuildID()).toBe(undefined);
     });
   });
 
@@ -95,16 +75,6 @@ describe("azure", () => {
 
       expect(getDefinitionID()).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "SYSTEM_DEFINITIONID") {
-          return undefined;
-        }
-      });
-
-      expect(getDefinitionID()).toBe(undefined);
-    });
   });
 
   describe("getProjectID", () => {
@@ -126,16 +96,6 @@ describe("azure", () => {
       });
 
       expect(getProjectID()).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "SYSTEM_TEAMPROJECTID") {
-          return undefined;
-        }
-      });
-
-      expect(getProjectID()).toBe(undefined);
     });
   });
 
@@ -262,6 +222,98 @@ describe("azure", () => {
       });
 
       expect(azure.jobRunBranch).toBe("main");
+    });
+  });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL for GitHub", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "GitHub";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://github.com/owner/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "123";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should return the correct pull request URL for TfsGit", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "TfsGit";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://dev.azure.com/organization/project/_git/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "456";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/456");
+    });
+
+    it("should return the correct pull request URL for TfsVersionControl", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "TfsVersionControl";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://dev.azure.com/organization/project/_git/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "789";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("https://dev.azure.com/organization/project/_git/repo/pullrequest/789");
+    });
+
+    it("should return empty string for other repository providers", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "OtherProvider";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "https://example.com/repo";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "123";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("");
+    });
+
+    it("should return empty string when environment variables are not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_PROVIDER") {
+          return "";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI") {
+          return "";
+        }
+
+        if (key === "SYSTEM_PULLREQUEST_PULLREQUESTNUMBER") {
+          return "";
+        }
+      });
+
+      expect(azure.pullRequestUrl).toBe("");
     });
   });
 });

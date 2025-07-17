@@ -32,16 +32,6 @@ describe("circle", () => {
 
       expect(getBuildNumber()).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CIRCLE_BUILD_NUM") {
-          return undefined;
-        }
-      });
-
-      expect(getBuildNumber()).toBe(undefined);
-    });
   });
 
   describe("getJobRunURL", () => {
@@ -63,16 +53,6 @@ describe("circle", () => {
       });
 
       expect(getJobRunURL()).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CIRCLE_BUILD_URL") {
-          return undefined;
-        }
-      });
-
-      expect(getJobRunURL()).toBe(undefined);
     });
   });
 

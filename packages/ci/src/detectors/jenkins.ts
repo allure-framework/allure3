@@ -33,14 +33,14 @@ export const jenkins: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return "";
+    return getEnv("BRANCH_NAME");
   },
 
   get pullRequestUrl(): string {
-    return "";
+    return getEnv("CHANGE_URL");
   },
 
   get pullRequestName(): string {
-    return "";
+    return getEnv("CHANGE_TITLE");
   },
 };

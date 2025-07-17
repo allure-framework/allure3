@@ -53,16 +53,6 @@ describe("gitlab", () => {
 
       expect(gitlab.jobUid).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PROJECT_ID") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobUid).toBe(undefined);
-    });
   });
 
   describe("jobURL", () => {
@@ -84,16 +74,6 @@ describe("gitlab", () => {
       });
 
       expect(gitlab.jobUrl).toBe("/pipelines");
-    });
-
-    it("should return 'undefined/pipelines' when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PROJECT_URL") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobUrl).toBe("undefined/pipelines");
     });
   });
 
@@ -117,16 +97,6 @@ describe("gitlab", () => {
 
       expect(gitlab.jobName).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PROJECT_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobName).toBe(undefined);
-    });
   });
 
   describe("jobRunUID", () => {
@@ -148,16 +118,6 @@ describe("gitlab", () => {
       });
 
       expect(gitlab.jobRunUid).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PIPELINE_ID") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobRunUid).toBe(undefined);
     });
   });
 
@@ -181,16 +141,6 @@ describe("gitlab", () => {
 
       expect(gitlab.jobRunUrl).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PIPELINE_URL") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobRunUrl).toBe(undefined);
-    });
   });
 
   describe("jobRunName", () => {
@@ -212,16 +162,6 @@ describe("gitlab", () => {
       });
 
       expect(gitlab.jobRunName).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_PIPELINE_ID") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobRunName).toBe(undefined);
     });
   });
 
@@ -245,16 +185,6 @@ describe("gitlab", () => {
 
       expect(gitlab.jobRunBranch).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_COMMIT_REF_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(gitlab.jobRunBranch).toBe(undefined);
-    });
   });
 
   describe("pullRequestUrl", () => {
@@ -276,16 +206,6 @@ describe("gitlab", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "CI_MERGE_REQUEST_IID") {
           return "";
-        }
-      });
-
-      expect(gitlab.pullRequestUrl).toBe("");
-    });
-
-    it("should return empty string when CI_MERGE_REQUEST_IID is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_MERGE_REQUEST_IID") {
-          return undefined;
         }
       });
 

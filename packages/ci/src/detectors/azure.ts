@@ -45,6 +45,18 @@ export const azure: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
+    const repositoryProvider = getEnv("BUILD_REPOSITORY_PROVIDER");
+    const repositoryUrl = getEnv("SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI");
+    const pullRequestNumber = getEnv("SYSTEM_PULLREQUEST_PULLREQUESTNUMBER");
+
+    if (repositoryProvider === "GitHub") {
+      return `${repositoryUrl}/pull/${pullRequestNumber}`;
+    }
+
+    if (repositoryProvider === "TfsGit" || repositoryProvider === "TfsVersionControl") {
+      return `${repositoryUrl}/pullrequest/${pullRequestNumber}`;
+    }
+
     return "";
   },
 

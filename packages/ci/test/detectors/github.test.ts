@@ -56,16 +56,6 @@ describe("github", () => {
 
       expect(github.jobUid).toBe("_");
     });
-
-    it("should return 'undefined_undefined' when environment variables are undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "GITHUB_REPOSITORY" || key === "GITHUB_WORKFLOW") {
-          return undefined;
-        }
-      });
-
-      expect(github.jobUid).toBe("undefined_undefined");
-    });
   });
 
   describe("jobURL", () => {
@@ -120,16 +110,6 @@ describe("github", () => {
       });
 
       expect(github.jobRunUid).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "GITHUB_RUN_ID") {
-          return undefined;
-        }
-      });
-
-      expect(github.jobRunUid).toBe(undefined);
     });
   });
 

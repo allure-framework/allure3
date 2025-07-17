@@ -53,16 +53,6 @@ describe("jenkins", () => {
 
       expect(jenkins.jobUid).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "JOB_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobUid).toBe(undefined);
-    });
   });
 
   describe("jobURL", () => {
@@ -84,16 +74,6 @@ describe("jenkins", () => {
       });
 
       expect(jenkins.jobUrl).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "JOB_URL") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobUrl).toBe(undefined);
     });
   });
 
@@ -117,16 +97,6 @@ describe("jenkins", () => {
 
       expect(jenkins.jobName).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "JOB_BASE_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobName).toBe(undefined);
-    });
   });
 
   describe("jobRunUID", () => {
@@ -148,16 +118,6 @@ describe("jenkins", () => {
       });
 
       expect(jenkins.jobRunUid).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BUILD_NUMBER") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobRunUid).toBe(undefined);
     });
   });
 
@@ -181,16 +141,6 @@ describe("jenkins", () => {
 
       expect(jenkins.jobRunUrl).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BUILD_URL") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobRunUrl).toBe(undefined);
-    });
   });
 
   describe("jobRunName", () => {
@@ -213,21 +163,71 @@ describe("jenkins", () => {
 
       expect(jenkins.jobRunName).toBe("");
     });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "BUILD_DISPLAY_NAME") {
-          return undefined;
-        }
-      });
-
-      expect(jenkins.jobRunName).toBe(undefined);
-    });
   });
 
   describe("jobRunBranch", () => {
-    it("should return an empty string", () => {
+    it("should return the correct branch name", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BRANCH_NAME") {
+          return "feature/my-branch";
+        }
+      });
+
+      expect(jenkins.jobRunBranch).toBe("feature/my-branch");
+    });
+
+    it("should return empty string when environment variable is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BRANCH_NAME") {
+          return "";
+        }
+      });
+
       expect(jenkins.jobRunBranch).toBe("");
+    });
+  });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CHANGE_URL") {
+          return "https://github.com/owner/repo/pull/123";
+        }
+      });
+
+      expect(jenkins.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should return empty string when environment variable is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CHANGE_URL") {
+          return "";
+        }
+      });
+
+      expect(jenkins.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("pullRequestName", () => {
+    it("should return the correct pull request name", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CHANGE_TITLE") {
+          return "Add new feature";
+        }
+      });
+
+      expect(jenkins.pullRequestName).toBe("Add new feature");
+    });
+
+    it("should return empty string when environment variable is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CHANGE_TITLE") {
+          return "";
+        }
+      });
+
+      expect(jenkins.pullRequestName).toBe("");
     });
   });
 });

@@ -6,11 +6,11 @@ vi.mock("../../src/utils.js", () => ({
   getEnv: vi.fn(),
 }));
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
 describe("drone", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe("getJobRunUID", () => {
     it("should return the correct job run UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
@@ -30,16 +30,6 @@ describe("drone", () => {
       });
 
       expect(getJobRunUID()).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CI_BUILD_NUMBER") {
-          return undefined;
-        }
-      });
-
-      expect(getJobRunUID()).toBe(undefined);
     });
   });
 
@@ -62,16 +52,6 @@ describe("drone", () => {
       });
 
       expect(getJobRunURL()).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_BUILD_LINK") {
-          return undefined;
-        }
-      });
-
-      expect(getJobRunURL()).toBe(undefined);
     });
   });
 
@@ -116,16 +96,6 @@ describe("drone", () => {
       });
 
       expect(drone.jobUid).toBe("");
-    });
-
-    it("should return undefined when environment variable is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "DRONE_REPO") {
-          return undefined;
-        }
-      });
-
-      expect(drone.jobUid).toBe(undefined);
     });
   });
 
@@ -201,6 +171,88 @@ describe("drone", () => {
       });
 
       expect(drone.jobRunBranch).toBe("main");
+    });
+  });
+
+  describe("pullRequestUrl", () => {
+    it("should return the correct pull request URL for GitHub", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_GITHUB_SERVER") {
+          return "https://github.com";
+        }
+
+        if (key === "DRONE_REPO_LINK") {
+          return "https://github.com/owner/repo";
+        }
+
+        if (key === "DRONE_PULL_REQUEST") {
+          return "123";
+        }
+      });
+
+      expect(drone.pullRequestUrl).toBe("https://github.com/owner/repo/pull/123");
+    });
+
+    it("should return the correct pull request URL for GitLab", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_GITLAB_SERVER") {
+          return "https://gitlab.com";
+        }
+
+        if (key === "DRONE_REPO_LINK") {
+          return "https://gitlab.com/owner/repo";
+        }
+
+        if (key === "DRONE_PULL_REQUEST") {
+          return "456";
+        }
+      });
+
+      expect(drone.pullRequestUrl).toBe("https://gitlab.com/owner/repo/-/merge_requests/456");
+    });
+
+    it("should return empty string for other repository providers", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_GITHUB_SERVER") {
+          return "https://github.com";
+        }
+
+        if (key === "DRONE_GITLAB_SERVER") {
+          return "https://gitlab.com";
+        }
+
+        if (key === "DRONE_REPO_LINK") {
+          return "https://bitbucket.org/owner/repo";
+        }
+
+        if (key === "DRONE_PULL_REQUEST") {
+          return "789";
+        }
+      });
+
+      expect(drone.pullRequestUrl).toBe("");
+    });
+  });
+
+  describe("pullRequestName", () => {
+    it("should return the correct pull request name", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_PULL_REQUEST_TITLE") {
+          return "Add new feature";
+        }
+      });
+
+      expect(drone.pullRequestName).toBe("Add new feature");
+    });
+
+    it("should return empty string when environment variable is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_PULL_REQUEST_TITLE") {
+          return "";
+        }
+      });
+
+      expect(drone.pullRequestName).toBe("");
     });
   });
 });

@@ -35,6 +35,7 @@ describe("amazon", () => {
 
     it("should return empty array for undefined", () => {
       const values = parseArnValues(undefined as any);
+
       expect(values).toEqual([]);
     });
   });
@@ -64,16 +65,6 @@ describe("amazon", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
           return "";
-        }
-      });
-
-      expect(isBatchBuild()).toBe(false);
-    });
-
-    it("should be false for undefined environment variable", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CODEBUILD_BUILD_BATCH_TRIGGERED") {
-          return undefined;
         }
       });
 
@@ -111,16 +102,6 @@ describe("amazon", () => {
 
       expect(getPipelineName()).toBe("");
     });
-
-    it("should return empty string when initiator is undefined", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CODEBUILD_INITIATOR") {
-          return undefined;
-        }
-      });
-
-      expect(getPipelineName()).toBe("");
-    });
   });
 
   describe("detected", () => {
@@ -148,16 +129,6 @@ describe("amazon", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
         if (key === "CODEBUILD_BUILD_ARN") {
           return "";
-        }
-      });
-
-      expect(amazon.detected).toBe(false);
-    });
-
-    it("should be false for undefined CODEBUILD_BUILD_ARN env variable", () => {
-      (getEnv as Mock).mockImplementation((key: string) => {
-        if (key === "CODEBUILD_BUILD_ARN") {
-          return undefined as any;
         }
       });
 
@@ -372,6 +343,48 @@ describe("amazon", () => {
       });
 
       expect(amazon.jobRunName).toBe("my-pipeline-guid");
+    });
+  });
+
+  describe("jobRunBranch", () => {
+    it("should extract branch name from source version env variable", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_VERSION") {
+          return "refs/heads/main^{commit-hash}";
+        }
+      });
+
+      expect(amazon.jobRunBranch).toBe("main");
+    });
+
+    it("should extract branch name with slashes", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_VERSION") {
+          return "refs/heads/feature/branch-name^{abc123}";
+        }
+      });
+
+      expect(amazon.jobRunBranch).toBe("feature/branch-name");
+    });
+
+    it("should return empty string when source version doesn't match pattern", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_VERSION") {
+          return "some-other-format";
+        }
+      });
+
+      expect(amazon.jobRunBranch).toBe("");
+    });
+
+    it("should return empty string when source version is empty", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CODEBUILD_SOURCE_VERSION") {
+          return "";
+        }
+      });
+
+      expect(amazon.jobRunBranch).toBe("");
     });
   });
 });

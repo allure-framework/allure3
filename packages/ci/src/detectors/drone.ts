@@ -48,10 +48,23 @@ export const drone: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
+    const githubServer = getEnv("DRONE_GITHUB_SERVER");
+    const gitlabServer = getEnv("DRONE_GITLAB_SERVER");
+    const repoLink = getEnv("DRONE_REPO_LINK");
+    const pullRequestNumber = getEnv("DRONE_PULL_REQUEST");
+
+    if (repoLink.startsWith(githubServer)) {
+      return `${repoLink}/pull/${pullRequestNumber}`;
+    }
+
+    if (repoLink.startsWith(gitlabServer)) {
+      return `${repoLink}/-/merge_requests/${pullRequestNumber}`;
+    }
+
     return "";
   },
 
   get pullRequestName(): string {
-    return "";
+    return getEnv("DRONE_PULL_REQUEST_TITLE");
   },
 };
