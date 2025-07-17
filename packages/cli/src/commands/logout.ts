@@ -1,7 +1,8 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
-import process from "node:process";
+import * as console from "node:console";
+import { exit } from "node:process";
 import { green, red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
 
@@ -35,7 +36,7 @@ export class LogoutCommand extends Command {
           "No Allure Service URL is provided. Please provide it in the `allureService.url` field in the `allure.config.js` file",
         ),
       );
-      process.exit(1);
+      exit(1);
       return;
     }
 
@@ -49,12 +50,12 @@ export class LogoutCommand extends Command {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
         console.error(red(error.message));
-        process.exit(1);
+        exit(1);
         return;
       }
 
       await logError("Failed to logout due to unexpected error", error as Error);
-      process.exit(1);
+      exit(1);
     }
   }
 }

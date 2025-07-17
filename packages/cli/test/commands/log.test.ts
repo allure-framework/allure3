@@ -13,6 +13,7 @@ const fixtures = {
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -31,7 +32,7 @@ describe("log command", () => {
     const command = new LogCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -71,7 +72,7 @@ describe("log command", () => {
     const command = new LogCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -98,7 +99,7 @@ describe("log command", () => {
     const command = new LogCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.allSteps = fixtures.allSteps;
     command.withTrace = fixtures.withTrace;
     command.groupBy = fixtures.groupBy;

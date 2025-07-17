@@ -26,7 +26,7 @@ export class WatchCommand extends Command {
     ],
   });
 
-  resultsDir = Option.Rest({ required: 1, name: "The directory with Allure results" });
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",

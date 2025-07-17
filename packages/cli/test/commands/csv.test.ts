@@ -33,7 +33,7 @@ describe("csv command", () => {
     const command = new CsvCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -71,7 +71,7 @@ describe("csv command", () => {
     const command = new CsvCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -97,7 +97,7 @@ describe("csv command", () => {
     const command = new CsvCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.output = fixtures.output;
     command.knownIssues = fixtures.knownIssues;
     command.separator = fixtures.separator;

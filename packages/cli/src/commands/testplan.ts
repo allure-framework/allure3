@@ -18,7 +18,7 @@ export class TestPlanCommand extends Command {
     ],
   });
 
-  resultsDir = Option.Rest({ required: 1, name: "The directory with Allure results" });
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
   output = Option.String("--output,-o", {
     description: "The output file name. Absolute paths are accepted as well",
@@ -29,7 +29,6 @@ export class TestPlanCommand extends Command {
     const resolved = resolve(this.output ?? "./testplan.json");
     const output = dirname(resolved);
     const fileName = basename(resolved);
-
     const config = await resolveConfig({
       output: output,
       plugins: {
@@ -42,7 +41,7 @@ export class TestPlanCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir[0]);
+    await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
 
     const after = new Date().getTime();

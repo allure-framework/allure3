@@ -45,7 +45,7 @@ describe("quality-gate command", () => {
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.config = fixtures.config;
 
     await command.execute();
@@ -58,9 +58,7 @@ describe("quality-gate command", () => {
     expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(fixtures.resultsDir);
     expect(AllureReport.prototype.done).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.validate).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line no-console
     expect(console.error).not.toHaveBeenCalled();
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(exit).not.toHaveBeenCalled();
   });
 
@@ -91,7 +89,7 @@ describe("quality-gate command", () => {
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.config = fixtures.config;
 
     await command.execute();
@@ -99,9 +97,7 @@ describe("quality-gate command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.validate).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line no-console
     expect(console.error).toHaveBeenCalled();
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(exit).toHaveBeenCalledWith(1);
   });
 
@@ -150,7 +146,7 @@ describe("quality-gate command", () => {
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.config = fixtures.config;
 
     await command.execute();
@@ -158,9 +154,7 @@ describe("quality-gate command", () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.validate).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line no-console
     expect(console.error).toHaveBeenCalledTimes(5);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(exit).toHaveBeenCalledWith(1);
   });
 });

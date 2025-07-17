@@ -38,96 +38,29 @@ beforeEach(() => {
 });
 
 describe("open command", () => {
-  // it("should serve the default report directory", async () => {
-  //   const command = new OpenCommand();
-  //   command.cwd = fixtures.cwd;
-  //
-  //   await command.execute();
-  //
-  //   expect(readConfig).toHaveBeenCalledTimes(1);
-  //   expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: undefined });
-  //   expect(serve).toHaveBeenCalledTimes(1);
-  //   expect(serve).toHaveBeenCalledWith({
-  //     port: undefined,
-  //     servePath: "allure-report",
-  //     live: false,
-  //     open: true,
-  //   });
-  // });
-  //
-  // it("should serve a custom report directory", async () => {
-  //   const command = new OpenCommand();
-  //   command.cwd = fixtures.cwd;
-  //   command.reportDir = fixtures.reportDir;
-  //
-  //   await command.execute();
-  //
-  //   expect(readConfig).toHaveBeenCalledTimes(1);
-  //   expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: fixtures.reportDir });
-  //   expect(serve).toHaveBeenCalledTimes(1);
-  //   expect(serve).toHaveBeenCalledWith({
-  //     port: undefined,
-  //     servePath: "allure-report",
-  //     live: false,
-  //     open: true,
-  //   });
-  // });
-  //
-  // it("should serve with custom port", async () => {
-  //   const command = new OpenCommand();
-  //   command.cwd = fixtures.cwd;
-  //   command.port = fixtures.port;
-  //
-  //   await command.execute();
-  //
-  //   expect(readConfig).toHaveBeenCalledTimes(1);
-  //   expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: undefined });
-  //   expect(serve).toHaveBeenCalledTimes(1);
-  //   expect(serve).toHaveBeenCalledWith({
-  //     port: parseInt(fixtures.port, 10),
-  //     servePath: "allure-report",
-  //     live: false,
-  //     open: true,
-  //   });
-  // });
-  //
-  // it("should serve with live reload", async () => {
-  //   const command = new OpenCommand();
-  //   command.cwd = fixtures.cwd;
-  //   command.live = true;
-  //
-  //   await command.execute();
-  //
-  //   expect(readConfig).toHaveBeenCalledTimes(1);
-  //   expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: undefined });
-  //   expect(serve).toHaveBeenCalledTimes(1);
-  //   expect(serve).toHaveBeenCalledWith({
-  //     port: undefined,
-  //     servePath: "allure-report",
-  //     live: true,
-  //     open: true,
-  //   });
-  // });
-  //
-  // it("should serve with custom config", async () => {
-  //   const command = new OpenCommand();
-  //   command.cwd = fixtures.cwd;
-  //   command.config = fixtures.config;
-  //
-  //   await command.execute();
-  //
-  //   expect(readConfig).toHaveBeenCalledTimes(1);
-  //   expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, fixtures.config, { output: undefined });
-  //   expect(serve).toHaveBeenCalledTimes(1);
-  //   expect(serve).toHaveBeenCalledWith({
-  //     port: undefined,
-  //     servePath: "allure-report",
-  //     live: false,
-  //     open: true,
-  //   });
-  // });
+  it("should serve report with the default options", async () => {
+    const command = new OpenCommand();
 
-  it("should serve with all options combined", async () => {
+    command.cwd = fixtures.cwd;
+    command.live = undefined;
+    command.config = undefined;
+    command.reportDir = undefined;
+    command.port = undefined;
+
+    await command.execute();
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: "./allure-report" });
+    expect(serve).toHaveBeenCalledTimes(1);
+    expect(serve).toHaveBeenCalledWith({
+      port: undefined,
+      servePath: "allure-report",
+      live: false,
+      open: true,
+    });
+  });
+
+  it("should serve with custom options", async () => {
     const command = new OpenCommand();
 
     command.cwd = fixtures.cwd;

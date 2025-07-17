@@ -35,7 +35,7 @@ describe("allure2 command", () => {
     const command = new Allure2Command();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -73,7 +73,7 @@ describe("allure2 command", () => {
     const command = new Allure2Command();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -99,7 +99,7 @@ describe("allure2 command", () => {
     const command = new Allure2Command();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.reportName = fixtures.reportName;
     command.output = fixtures.output;
     command.knownIssues = fixtures.knownIssues;

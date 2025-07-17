@@ -20,7 +20,7 @@ export class Allure2Command extends Command {
     ],
   });
 
-  resultsDir = Option.Rest({ required: 1, name: "The directory with Allure results" });
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -81,7 +81,7 @@ export class Allure2Command extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir[0]);
+    await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
 
     const after = new Date().getTime();

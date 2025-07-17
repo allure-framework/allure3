@@ -28,11 +28,31 @@ beforeEach(() => {
 });
 
 describe("known-issue command", () => {
+  it("should initialize allure report and write known issues with default output path", async () => {
+    const command = new KnownIssueCommand();
+
+    command.output = undefined;
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
+
+    expect(resolveConfig).toHaveBeenCalledTimes(1);
+    expect(resolveConfig).toHaveBeenCalledWith({
+      plugins: {},
+    });
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport.prototype.start).toHaveBeenCalledTimes(1);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(1);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(fixtures.resultsDir);
+    expect(AllureReport.prototype.done).toHaveBeenCalledTimes(1);
+    expect(writeKnownIssues).toHaveBeenCalledTimes(1);
+  });
+
   it("should initialize allure report and write known issues with custom output path", async () => {
     const command = new KnownIssueCommand();
 
     command.output = fixtures.output;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 

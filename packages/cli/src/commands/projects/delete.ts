@@ -1,7 +1,8 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
-import process from "node:process";
+import * as console from "node:console";
+import { exit } from "node:process";
 import prompts from "prompts";
 import { green, red } from "yoctocolors";
 import { logError } from "../../utils/logs.js";
@@ -18,7 +19,7 @@ export class ProjectsDeleteCommand extends Command {
     ],
   });
 
-  projectName = Option.String({ required: true });
+  projectName = Option.String({ required: true, name: "Project name" });
 
   force = Option.Boolean("--force", {
     description: "Delete project with no confirmation",
@@ -42,7 +43,7 @@ export class ProjectsDeleteCommand extends Command {
           "No Allure Service URL is provided. Please provide it in the `allureService.url` field in the `allure.config.js` file",
         ),
       );
-      process.exit(1);
+      exit(1);
       return;
     }
 
@@ -56,7 +57,7 @@ export class ProjectsDeleteCommand extends Command {
       });
 
       if (!res.value) {
-        process.exit(0);
+        exit(0);
         return;
       }
     }
@@ -72,12 +73,12 @@ export class ProjectsDeleteCommand extends Command {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
         console.error(red(error.message));
-        process.exit(1);
+        exit(1);
         return;
       }
 
       await logError("Failed to delete project due to unexpected error", error as Error);
-      process.exit(1);
+      exit(1);
     }
   }
 }

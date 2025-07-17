@@ -16,7 +16,7 @@ export class HistoryCommand extends Command {
     ],
   });
 
-  resultsDir = Option.Rest({ required: 1, name: "The directory with Allure results" });
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
   historyPath = Option.String("--history-path,-h", {
     description: "The path to history file",
@@ -37,7 +37,7 @@ export class HistoryCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir[0]);
+    await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
   }
 }

@@ -1,5 +1,7 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import * as console from "node:console";
+import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { LogoutCommand } from "../../src/commands/logout.js";
 import { logError } from "../../src/utils/logs.js";
@@ -34,6 +36,15 @@ vi.mock("@allurereport/core", async (importOriginal) => {
     }),
   };
 });
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  info: vi.fn(),
+  error: vi.fn(),
+}));
+vi.mock("node:process", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exit: vi.fn(),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -43,19 +54,15 @@ describe("logout command", () => {
   it("should throw an error if there is not allure service url in the config", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     const command = new LogoutCommand();
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
     await command.execute();
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
+    expect(exit).toHaveBeenCalledWith(1);
     expect(AllureServiceClientMock.prototype.logout).not.toHaveBeenCalled();
   });
 
@@ -67,19 +74,15 @@ describe("logout command", () => {
     });
     (AllureServiceClientMock.prototype.logout as Mock).mockRejectedValueOnce(new KnownError("Failed to logout", 401));
 
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     const command = new LogoutCommand();
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
     await command.execute();
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to logout"));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Failed to logout"));
+    expect(exit).toHaveBeenCalledWith(1);
     expect(logError).not.toHaveBeenCalled();
   });
 
@@ -92,10 +95,8 @@ describe("logout command", () => {
     (logError as Mock).mockResolvedValueOnce("logs.txt");
     (AllureServiceClientMock.prototype.logout as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     const command = new LogoutCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -103,11 +104,12 @@ describe("logout command", () => {
 
     expect(logError).toHaveBeenCalledTimes(1);
     expect(logError).toHaveBeenCalledWith("Failed to logout due to unexpected error", expect.any(Error));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should initialize allure service and call logout method", async () => {
     const command = new LogoutCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 

@@ -14,7 +14,7 @@ export class OpenCommand extends Command {
     ],
   });
 
-  reportDir = Option.String({ required: false });
+  reportDir = Option.String({ required: false, name: "The directory with Allure results" });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -33,7 +33,7 @@ export class OpenCommand extends Command {
   });
 
   async execute() {
-    const config = await readConfig(this.cwd, this.config, { output: this.reportDir });
+    const config = await readConfig(this.cwd, this.config, { output: this.reportDir ?? "./allure-report" });
 
     await serve({
       port: this.port ? parseInt(this.port, 10) : undefined,
