@@ -18,7 +18,7 @@ export class KnownIssueCommand extends Command {
     ],
   });
 
-  resultsDir = Option.Rest({ name: "The directory with Allure results" });
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
   output = Option.String("--output,-o", {
     description: "The output file name. Absolute paths are accepted as well",
@@ -32,7 +32,7 @@ export class KnownIssueCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir[0]);
+    await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
 
     const targetPath = resolve(outputPath);

@@ -46,7 +46,7 @@ describe("slack command", () => {
     const command = new SlackCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.token = fixtures.token;
     command.channel = fixtures.channel;
 
@@ -74,7 +74,7 @@ describe("slack command", () => {
     const command = new SlackCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.token = fixtures.token;
     command.channel = fixtures.channel;
     command.config = fixtures.config;

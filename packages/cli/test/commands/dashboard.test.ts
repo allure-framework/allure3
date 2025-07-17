@@ -16,6 +16,7 @@ const fixtures = {
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -34,7 +35,7 @@ describe("dashboard command", () => {
     const command = new DashboardCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -73,7 +74,7 @@ describe("dashboard command", () => {
     const command = new DashboardCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -100,7 +101,7 @@ describe("dashboard command", () => {
     const command = new DashboardCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.reportName = fixtures.reportName;
     command.output = fixtures.output;
     command.reportLanguage = fixtures.reportLanguage;

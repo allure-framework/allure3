@@ -36,7 +36,7 @@ describe("awesome command", () => {
     const command = new AwesomeCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -74,7 +74,7 @@ describe("awesome command", () => {
     const command = new AwesomeCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
 
     await command.execute();
 
@@ -99,7 +99,7 @@ describe("awesome command", () => {
     const command = new AwesomeCommand();
 
     command.cwd = ".";
-    command.resultsDir = [fixtures.resultsDir];
+    command.resultsDir = fixtures.resultsDir;
     command.reportName = fixtures.reportName;
     command.output = fixtures.output;
     command.knownIssues = fixtures.knownIssues;
