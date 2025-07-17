@@ -1,4 +1,4 @@
-import { Cli } from "clipanion";
+import { Builtins, Cli } from "clipanion";
 import console from "node:console";
 import { readFileSync } from "node:fs";
 import { argv, cwd } from "node:process";
@@ -59,6 +59,7 @@ cli.register(WhoamiCommand);
 cli.register(ProjectsCreateCommand);
 cli.register(ProjectsDeleteCommand);
 cli.register(ProjectsListCommand);
+cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 
 console.log(cwd());

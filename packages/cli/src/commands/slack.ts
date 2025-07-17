@@ -9,6 +9,7 @@ export class SlackCommand extends Command {
   static paths = [["slack"]];
 
   static usage = Command.Usage({
+    category: "Reports",
     description: "Posts test results into Slack Channel",
     details: "This command posts test results from the provided Allure Results directory to a Slack channel.",
     examples: [

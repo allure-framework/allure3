@@ -55,6 +55,7 @@ describe("logout command", () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
     const command = new LogoutCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -75,6 +76,7 @@ describe("logout command", () => {
     (AllureServiceClientMock.prototype.logout as Mock).mockRejectedValueOnce(new KnownError("Failed to logout", 401));
 
     const command = new LogoutCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 

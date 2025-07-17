@@ -11,6 +11,7 @@ export class ProjectsListCommand extends Command {
   static paths = [["projects", "list"]];
 
   static usage = Command.Usage({
+    category: "Allure Service Projects",
     description: "Shows list of all available projects for current user",
     details:
       "This command lists all available projects for the current user and allows selecting one to get configuration information.",

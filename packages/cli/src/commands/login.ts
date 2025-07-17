@@ -10,6 +10,7 @@ export class LoginCommand extends Command {
   static paths = [["login"]];
 
   static usage = Command.Usage({
+    category: "Allure Service",
     description: "Logs in to the Allure Service",
     details: "This command logs in to the Allure Service using the configuration from the Allure config file.",
     examples: [

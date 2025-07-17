@@ -9,6 +9,7 @@ export class CsvCommand extends Command {
   static paths = [["csv"]];
 
   static usage = Command.Usage({
+    category: "Reports",
     description: "Generates CSV report based on provided Allure Results",
     details: "This command generates a CSV report from the provided Allure Results directory.",
     examples: [

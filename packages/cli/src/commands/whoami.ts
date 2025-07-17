@@ -10,6 +10,7 @@ export class WhoamiCommand extends Command {
   static paths = [["whoami"]];
 
   static usage = Command.Usage({
+    category: "Allure Service",
     description: "Prints information about current user",
     details: "This command prints information about the current user logged in to the Allure Service.",
     examples: [
