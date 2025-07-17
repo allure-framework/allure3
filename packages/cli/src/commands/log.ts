@@ -9,6 +9,7 @@ export class LogCommand extends Command {
   static paths = [["log"]];
 
   static usage = Command.Usage({
+    category: "Reports",
     description: "Prints Allure Results to the console",
     details: "This command prints Allure Results to the console from the provided Allure Results directory.",
     examples: [

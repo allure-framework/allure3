@@ -36,7 +36,6 @@ describe("quality-gate command", () => {
   it("should pass when validation succeeds (exitCode === 0)", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    // Set up the mock to simulate successful validation
     Object.defineProperty(AllureReport.prototype, "exitCode", {
       get: vi.fn(() => 0),
       configurable: true,
@@ -137,7 +136,6 @@ describe("quality-gate command", () => {
           rule: "flakiness",
           expected: "< 1%",
           actual: "3%",
-          // No meta information
         },
       ]),
       configurable: true,

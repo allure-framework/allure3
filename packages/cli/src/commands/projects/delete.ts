@@ -11,6 +11,7 @@ export class ProjectsDeleteCommand extends Command {
   static paths = [["projects", "delete"]];
 
   static usage = Command.Usage({
+    category: "Allure Service Projects",
     description: "Deletes a project",
     details: "This command deletes a project from the Allure Service.",
     examples: [

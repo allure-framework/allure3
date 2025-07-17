@@ -11,6 +11,7 @@ export class ProjectsCreateCommand extends Command {
   static paths = [["projects", "create"]];
 
   static usage = Command.Usage({
+    category: "Allure Service Projects",
     description: "Creates a new project",
     details: "This command creates a new project in the Allure Service.",
     examples: [

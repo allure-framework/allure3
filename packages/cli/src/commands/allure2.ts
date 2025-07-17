@@ -9,6 +9,7 @@ export class Allure2Command extends Command {
   static paths = [["allure2"]];
 
   static usage = Command.Usage({
+    category: "Reports",
     description: "Generates Allure Classic report based on provided Allure Results",
     details: "This command generates an Allure Classic report from the provided Allure Results directory.",
     examples: [

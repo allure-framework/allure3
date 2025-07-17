@@ -57,6 +57,7 @@ describe("projects list command", () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -72,6 +73,7 @@ describe("projects list command", () => {
     AllureServiceClientMock.prototype.projects.mockResolvedValue([]);
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -87,6 +89,7 @@ describe("projects list command", () => {
     (prompts as unknown as Mock).mockResolvedValue({ project: "foo" });
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -119,6 +122,7 @@ describe("projects list command", () => {
     );
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -140,6 +144,7 @@ describe("projects list command", () => {
     (AllureServiceClientMock.prototype.projects as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
@@ -155,6 +160,7 @@ describe("projects list command", () => {
     (prompts as unknown as Mock).mockResolvedValue({});
 
     const command = new ProjectsListCommand();
+
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
 
