@@ -12,6 +12,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@allurereport/ci@workspace:*, @allurereport/ci@workspace:packages/ci":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/ci@workspace:packages/ci"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/snapshot": "npm:^2.1.8"
+    allure-vitest: "npm:^3.0.9"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/core-api@workspace:*, @allurereport/core-api@workspace:packages/core-api":
   version: 0.0.0-use.local
   resolution: "@allurereport/core-api@workspace:packages/core-api"
@@ -41,6 +67,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/core@workspace:packages/core"
   dependencies:
+    "@allurereport/ci": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-allure2": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -8055,6 +8082,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"allure-js-commons@npm:3.3.2":
+  version: 3.3.2
+  resolution: "allure-js-commons@npm:3.3.2"
+  dependencies:
+    md5: "npm:^2.3.0"
+  peerDependencies:
+    allure-playwright: 3.3.2
+  peerDependenciesMeta:
+    allure-playwright:
+      optional: true
+  checksum: 10/05a2772fc4be49fe300f7e4c03dafdb9a1286b2c3422069fc308d7995cf2a7521677a8eaf402c0f15249f2828a2b529843935e89ac3240c9999de5790317e969
+  languageName: node
+  linkType: hard
+
 "allure-playwright@npm:^3.3.0":
   version: 3.3.0
   resolution: "allure-playwright@npm:3.3.0"
@@ -8063,6 +8104,18 @@ __metadata:
   peerDependencies:
     "@playwright/test": ">=1.36.0"
   checksum: 10/0481a9fc51f7cacb6e0deea449f0c541e67cb907c7c97d25e683a7d2658b17486f811e64dd10e26c037b1f4956e770576d34f18a928e0913c01e47e47dad0919
+  languageName: node
+  linkType: hard
+
+"allure-vitest@npm:^3.0.9":
+  version: 3.3.2
+  resolution: "allure-vitest@npm:3.3.2"
+  dependencies:
+    allure-js-commons: "npm:3.3.2"
+  peerDependencies:
+    "@vitest/runner": ">=1.3.0"
+    vitest: ">=1.3.0"
+  checksum: 10/b5a5062224ea76e6aca91104063ab9d5361b40e8d8531a76c557abdf6cc2d78bdf2d119105a1c5b99f6c568dbc8cdf4b1e3c716bc9fea289a6dcfcdc1872c774
   languageName: node
   linkType: hard
 

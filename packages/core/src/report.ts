@@ -1,4 +1,5 @@
-import type { AllureHistory } from "@allurereport/core-api";
+import { detect } from "@allurereport/ci";
+import type { AllureHistory, CiDescriptor } from "@allurereport/core-api";
 import type {
   Plugin,
   PluginContext,
@@ -30,6 +31,7 @@ const initRequired = "report is not initialised. Call the start() method first."
 
 export class AllureReport {
   readonly #reportName: string;
+  readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
@@ -66,7 +68,11 @@ export class AllureReport {
 
     this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
     this.reportUuid = randomUUID();
-    this.#reportName = name;
+    this.#ci = detect();
+
+    const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
+
+    this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#events = new Events(this.#eventEmitter);
     this.#realTime = realTime;
@@ -228,14 +234,14 @@ export class AllureReport {
         for (const [filename, filepath] of Object.entries(pluginFiles)) {
           // publish data-files separately
           if (/^(data|widgets|index\.html$)/.test(filename)) {
-            this.#allureServiceClient.addReportFile({
+            await this.#allureServiceClient.addReportFile({
               reportUuid: this.reportUuid,
               pluginId: context.id,
               filename,
               filepath,
             });
           } else {
-            this.#allureServiceClient.addReportAsset({
+            await this.#allureServiceClient.addReportAsset({
               filename,
               filepath,
             });
@@ -249,6 +255,9 @@ export class AllureReport {
         return;
       }
 
+      summary.pullRequestHref = this.#ci?.pullRequestUrl;
+      summary.jobHref = this.#ci?.jobUrl;
+
       if (context.publish) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
 
@@ -261,7 +270,7 @@ export class AllureReport {
       });
 
       // expose summary.json file to the FS to make possible to use it in the integrations
-      context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
+      await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
     if (this.#publish) {
@@ -367,6 +376,7 @@ export class AllureReport {
         reportName: this.#reportName,
         state: pluginState,
         reportFiles: pluginFiles,
+        ci: this.#ci,
       };
 
       try {
