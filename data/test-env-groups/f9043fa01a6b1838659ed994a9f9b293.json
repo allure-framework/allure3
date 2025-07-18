@@ -1,0 +1,1 @@
+{"id":"f9043fa01a6b1838659ed994a9f9b293","fullName":"test/detectors/amazon.test.ts#amazon jobRunUID should return the correct job run UID for pipeline build","name":"should return the correct job run UID for pipeline build","status":"passed","testResultsByEnv":{"default":"ae48d766426532805b776c9e941267a5"}}

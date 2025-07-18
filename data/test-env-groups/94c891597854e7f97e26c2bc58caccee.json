@@ -1,0 +1,1 @@
+{"id":"94c891597854e7f97e26c2bc58caccee","fullName":"test/detectors/azure.test.ts#azure getBuildID should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"18669e43b1d2d2bd08e645292c7350d3"}}

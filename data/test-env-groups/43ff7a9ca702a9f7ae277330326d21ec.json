@@ -1,0 +1,1 @@
+{"id":"43ff7a9ca702a9f7ae277330326d21ec","fullName":"test/detectors/drone.test.ts#drone getJobRunURL should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"7e52bc40214e7a7da6a7814f83d4940c"}}

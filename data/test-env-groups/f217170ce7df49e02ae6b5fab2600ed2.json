@@ -1,0 +1,1 @@
+{"id":"f217170ce7df49e02ae6b5fab2600ed2","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunName should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"5562b0966bef19addf709b5bea328f5b"}}

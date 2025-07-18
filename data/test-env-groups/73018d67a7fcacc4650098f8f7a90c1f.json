@@ -1,0 +1,1 @@
+{"id":"73018d67a7fcacc4650098f8f7a90c1f","fullName":"test/detectors/drone.test.ts#drone pullRequestUrl should return the correct pull request URL for GitLab","name":"should return the correct pull request URL for GitLab","status":"passed","testResultsByEnv":{"default":"d419192149bb2864c79ff2c47ce29bd8"}}

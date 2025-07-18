@@ -1,0 +1,1 @@
+{"id":"981c04105575f6af3334f7ca8b355307","fullName":"test/detectors/bitbucket.test.ts#bitbucket detected should be true when BITBUCKET_PIPELINE_UUID is set","name":"should be true when BITBUCKET_PIPELINE_UUID is set","status":"passed","testResultsByEnv":{"default":"81f7ec7ae7e3001cfbfaa96454c49eab"}}

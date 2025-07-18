@@ -1,0 +1,1 @@
+{"id":"3923c8b0befd99d70e276f0ffd23e864","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobUID should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"e39f0fdd6373e32ca09fc22894353f97"}}
