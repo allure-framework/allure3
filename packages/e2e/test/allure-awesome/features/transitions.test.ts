@@ -179,4 +179,40 @@ test.describe("status transitions", () => {
     // Verify all tests are visible again
     await expect(treePage.leafLocator).toHaveCount(4);
   });
+
+  test("should show only one Tooltip and change its content on hover different transitions", async () => {
+    await expect(treePage.leafLocator).toHaveCount(4);
+
+    // Hover on the test with 'new' transition
+    await treePage.leafTransitionNewLocator.hover();
+    await expect(treePage.leafTransitionTooltipLocator).toBeVisible();
+    const tooltipText1 = await treePage.leafTransitionTooltipLocator.innerText();
+    await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
+    await treePage.closeTooltip();
+
+    // Hover on the test with 'fixed' transition
+    await treePage.leafTransitionFixedLocator.hover();
+    await expect(treePage.leafTransitionTooltipLocator).toBeVisible();
+    const tooltipText2 = await treePage.leafTransitionTooltipLocator.innerText();
+    await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
+    expect(tooltipText1).not.toBe(tooltipText2);
+    await treePage.closeTooltip();
+
+
+    // Hover on the test with 'regressed' transition
+    await treePage.leafTransitionRegressedLocator.hover();
+    await expect(treePage.leafTransitionTooltipLocator).toBeVisible();
+    const tooltipText3 = await treePage.leafTransitionTooltipLocator.innerText();
+    await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
+    expect(tooltipText2).not.toBe(tooltipText3);
+    await treePage.closeTooltip();
+
+    // Hover on the test with 'malfunctioned' transition
+    await treePage.leafTransitionMalfunctionedLocator.hover();
+    await expect(treePage.leafTransitionTooltipLocator).toBeVisible();
+    const tooltipText4 = await treePage.leafTransitionTooltipLocator.innerText();
+    await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
+    expect(tooltipText3).not.toBe(tooltipText4);
+    await treePage.closeTooltip();
+  });
 });

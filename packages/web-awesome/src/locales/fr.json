@@ -167,12 +167,6 @@
       "title": "Taux de réussite des tests"
     }
   },
-  "transitions": {
-    "new": "Nouveau",
-    "fixed": "Corrigés",
-    "regressed": "Régression",
-    "malfunctioned": "Défectueux"
-  },
   "transitions.description": {
     "new": "Première apparition de ce résultat de test dans le rapport",
     "fixed": "Test précédemment \"échoué\" ou \"cassé\" qui est maintenant \"réussi\"",

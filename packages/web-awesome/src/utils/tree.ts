@@ -4,7 +4,6 @@ import type { AwesomeTreeLeaf } from "types";
 type Localizer = (data: string) => string;
 
 type Localizers = {
-  value: Localizer;
   tooltip: Localizer;
 };
 
@@ -12,7 +11,6 @@ export const createLeafLocalizer =
   (t: Localizers) =>
   (leaf: AwesomeTreeLeaf): AwesomeTreeLeaf => ({
     ...leaf,
-    transitionText: t.value(leaf.transition),
     transitionTooltip: t.tooltip(leaf.transition),
   });
 

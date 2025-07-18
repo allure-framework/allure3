@@ -167,12 +167,6 @@
       "title": "Test Uğur Dərəcəsi"
     }
   },
-  "transitions": {
-    "new": "Yeni",
-    "fixed": "Düzəldilmiş",
-    "regressed": "Reqressiya",
-    "malfunctioned": "Sınıq"
-  },
   "transitions.description": {
     "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
     "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",

@@ -22,7 +22,6 @@ import * as styles from "./styles.scss";
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
-  const { t: tTransitions } = useI18n("transitions");
   const { t: tooltip } = useI18n("transitions.description");
   const { currentTab } = useTabsContext();
   const routeId = route.value.params?.testResultId;
@@ -30,9 +29,8 @@ export const TreeList = () => {
   const localizers = useMemo(
     () => ({
       tooltip,
-      value: tTransitions,
     }),
-    [tTransitions, tooltip],
+    [tooltip],
   );
 
   return (

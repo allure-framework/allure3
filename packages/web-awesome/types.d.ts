@@ -82,7 +82,6 @@ export type AwesomeTreeLeaf = Pick<
   "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount"
 > & {
   nodeId: string;
-  transitionText?: string;
   transitionTooltip?: string;
 };
 

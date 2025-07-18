@@ -11,6 +11,13 @@ export class TreePage extends CommonPage {
   leafStatusBrokenLocator: Locator;
   leafStatusUnknownLocator: Locator;
 
+  leafTransitionNewLocator: Locator;
+  leafTransitionFixedLocator: Locator;
+  leafTransitionRegressedLocator: Locator;
+  leafTransitionMalfunctionedLocator: Locator;
+
+  leafTransitionTooltipLocator: Locator;
+
   sectionsLocator: Locator;
   searchLocator: Locator;
   searchClearLocator: Locator;
@@ -49,6 +56,13 @@ export class TreePage extends CommonPage {
     this.leafStatusSkippedLocator = page.getByTestId("tree-leaf-status-skipped");
     this.leafStatusBrokenLocator = page.getByTestId("tree-leaf-status-broken");
     this.leafStatusUnknownLocator = page.getByTestId("tree-leaf-status-unknown");
+
+    this.leafTransitionNewLocator = page.getByTestId("tree-leaf-transition-new");
+    this.leafTransitionFixedLocator = page.getByTestId("tree-leaf-transition-fixed");
+    this.leafTransitionRegressedLocator = page.getByTestId("tree-leaf-transition-regressed");
+    this.leafTransitionMalfunctionedLocator = page.getByTestId("tree-leaf-transition-malfunctioned");
+
+    this.leafTransitionTooltipLocator = page.getByTestId("tree-leaf-transition-tooltip");
 
     this.sectionsLocator = page.getByTestId("tree-section");
     this.searchLocator = page.getByTestId("search-input");
@@ -225,10 +239,13 @@ export class TreePage extends CommonPage {
     await this.filtersMenuLocator.waitFor({ state: "visible" });
   }
 
+  async closeTooltip() {
+    await this.page.keyboard.press("Escape");
+  }
+
   async closeFilterMenu() {
     await this.filtersMenuLocator.waitFor({ state: "visible" });
-    // This will close the Tooltip on Filters without interfering with Tooltip bubble
-    await this.page.keyboard.press("Escape");
+    await this.closeTooltip();
     await this.filtersMenuLocator.waitFor({ state: "hidden" });
   }
 

@@ -167,12 +167,6 @@
       "title": "Wskaźnik powodzenia testów"
     }
   },
-  "transitions": {
-    "new": "Nowy",
-    "fixed": "Naprawiony",
-    "regressed": "Zaregresowany",
-    "malfunctioned": "Uszkodzony"
-  },
   "transitions.description": {
     "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",
     "fixed": "Wcześniej \"nieudany\" lub \"uszkodzony\" test, który teraz jest \"udany\"",

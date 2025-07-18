@@ -167,12 +167,6 @@
       "title": "Testframgångsfrekvens"
     }
   },
-  "transitions": {
-    "new": "Ny",
-    "fixed": "Åtgärdad",
-    "regressed": "Regresserad",
-    "malfunctioned": "Felaktig"
-  },
   "transitions.description": {
     "new": "Första förekomsten av detta testresultat i rapporten",
     "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",

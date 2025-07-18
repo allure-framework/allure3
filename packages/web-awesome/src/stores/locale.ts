@@ -25,7 +25,6 @@ const namespaces = [
   "environments",
   "charts",
   "sections",
-  "transitions",
   "transitions.description",
 ];
 

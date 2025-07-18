@@ -167,12 +167,6 @@
       "title": "Tasso di successo dei test"
     }
   },
-  "transitions": {
-    "new": "Nuovo",
-    "fixed": "Corretto",
-    "regressed": "Regredito",
-    "malfunctioned": "Danneggiato"
-  },
   "transitions.description": {
     "new": "Prima apparizione di questo risultato del test nel report",
     "fixed": "Test precedentemente \"fallito\" o \"danneggiato\" che ora è \"superato\"",
