@@ -13,10 +13,15 @@ interface TooltipWrapperProps {
   triggerMode?: "hover" | "click";
   autoHideDelay?: number;
   isTriggerActive?: boolean;
+  "data-testid"?: string;
 }
 
-const Tooltip: FunctionalComponent = ({ children }) => (
-  <div className={styles["custom-tooltip"]}>
+interface TooltipProps {
+  "data-testid"?: string;
+}
+
+const Tooltip: FunctionalComponent<TooltipProps> = ({ children, "data-testid": dataTestId }) => (
+  <div className={styles["custom-tooltip"]} data-testid={dataTestId}>
     <Text className="tooltip-content" size={"s"} bold>
       {children}
     </Text>
@@ -32,6 +37,7 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   triggerMode = "hover",
   autoHideDelay = 600,
   isTriggerActive = true,
+  "data-testid": dataTestId,
 }) => {
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLDivElement | null>(null);
@@ -114,7 +120,7 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
     };
   }, []);
 
-  const tooltipContent = tooltipComponent ? tooltipComponent : <Tooltip>{currentText}</Tooltip>;
+  const tooltipContent = tooltipComponent ? tooltipComponent : <Tooltip data-testid={dataTestId}>{currentText}</Tooltip>;
 
   return (
     <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>

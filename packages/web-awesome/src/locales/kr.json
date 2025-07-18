@@ -167,12 +167,6 @@
       "title": "테스트 성공률"
     }
   },
-  "transitions": {
-    "new": "새로운",
-    "fixed": "수정됨",
-    "regressed": "퇴행",
-    "malfunctioned": "고장"
-  },
   "transitions.description": {
     "new": "이 테스트 결과가 보고서에 처음 나타남",
     "fixed": "이전에 \"실패\" 또는 \"손상됨\"이었던 테스트가 이제 \"통과\"됨",

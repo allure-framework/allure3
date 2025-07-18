@@ -1,19 +1,17 @@
 import { type TestStatusTransition, formatDuration } from "@allurereport/core-api";
 import type { FunctionComponent } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
-import { Tag } from "@/components/Tag";
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Text } from "@/components/Typography";
 import { TreeItemRetries } from "../TreeItemRetries";
 import styles from "./styles.scss";
-import { transitionToTagSkin } from "./utils";
+import { transitionToIcon } from "./utils";
 
 export interface TreeItemInfoProps {
   duration?: number;
   retriesCount?: number;
   flaky?: boolean;
   transition?: TestStatusTransition;
-  transitionText?: string;
   transitionTooltip?: string;
 }
 
@@ -22,7 +20,6 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
   retriesCount,
   flaky,
   transition,
-  transitionText,
   transitionTooltip,
 }) => {
   const formattedDuration = formatDuration(duration);
@@ -32,10 +29,12 @@ export const TreeItemInfo: FunctionComponent<TreeItemInfoProps> = ({
       {flaky && <SvgIcon data-testid="tree-leaf-flaky" id={allureIcons.lineIconBomb2} />}
       <TreeItemRetries retriesCount={retriesCount} />
       {transition && (
-        <TooltipWrapper tooltipText={transitionTooltip}>
-          <Tag data-testid={`tree-leaf-transition-${transition}`} skin={transitionToTagSkin(transition)}>
-            {transitionText}
-          </Tag>
+        <TooltipWrapper data-testid="tree-leaf-transition-tooltip" tooltipText={transitionTooltip}>
+          <SvgIcon
+            data-testid={`tree-leaf-transition-${transition}`}
+            id={transitionToIcon(transition)}
+            className={styles["item-info-transition"]}
+          />
         </TooltipWrapper>
       )}
       <Text data-testid="tree-leaf-duration" type="ui" size={"m"} className={styles["item-info-time"]}>
