@@ -111,10 +111,14 @@
 .test-result-error-trace {
   margin-top: 8px;
   padding-left: 8px;
+  background-color: var(--bg-base-secondary);
+  border-radius: 4px;
+  padding: 8px;
 
   pre {
     overflow: scroll;
     padding-bottom: 24px;
+    margin: 0;
   }
 }
 
