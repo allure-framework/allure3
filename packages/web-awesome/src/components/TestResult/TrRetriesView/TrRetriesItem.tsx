@@ -25,7 +25,7 @@ export const TrRetriesItem: FunctionalComponent<{
         )}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
+          {convertedStop && <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>}
           <div className={styles["test-result-retries-item-info"]}>
             {Boolean(formattedDuration) && (
               <Text type="ui" size={"s"} className={styles["item-time"]}>
