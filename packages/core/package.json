@@ -25,6 +25,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@allurereport/ci": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-allure2": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",

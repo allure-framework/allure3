@@ -15,6 +15,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:."\
     },\
     {\
+      "name": "@allurereport/ci",\
+      "reference": "workspace:packages/ci"\
+    },\
+    {\
       "name": "allure",\
       "reference": "workspace:packages/cli"\
     },\
@@ -134,6 +138,7 @@ const RAW_RUNTIME_STATE =
   "enableTopLevelFallback": true,\
   "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
   "fallbackExclusionList": [\
+    ["@allurereport/ci", ["workspace:packages/ci"]],\
     ["@allurereport/core", ["workspace:packages/core"]],\
     ["@allurereport/core-api", ["workspace:packages/core-api"]],\
     ["@allurereport/directory-watcher", ["workspace:packages/directory-watcher"]],\
@@ -207,11 +212,40 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@allurereport/ci", [\
+      ["workspace:packages/ci", {\
+        "packageLocation": "./packages/ci/",\
+        "packageDependencies": [\
+          ["@allurereport/ci", "workspace:packages/ci"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
+          ["@types/eslint", "npm:8.56.12"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["@vitest/snapshot", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:fda7f89ef906eed5bf6d375d1b10409d01bd11fe8eb47181c59995bebfefb12f7e113e92106e6a1e8fe30b3680208e72cf179c18dabf3239d5ab40a4fc2d60d5#npm:3.3.2"],\
+          ["eslint", "npm:8.57.1"],\
+          ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
+          ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
+          ["eslint-plugin-jsdoc", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:50.6.0"],\
+          ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
+          ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
+          ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["rimraf", "npm:6.0.1"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
     ["@allurereport/core", [\
       ["workspace:packages/core", {\
         "packageLocation": "./packages/core/",\
         "packageDependencies": [\
           ["@allurereport/core", "workspace:packages/core"],\
+          ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-allure2", "workspace:packages/plugin-allure2"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
@@ -13574,10 +13608,31 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
+      ["npm:3.3.2", {\
+        "packageLocation": "./.yarn/cache/allure-js-commons-npm-3.3.2-22eb1f766a-05a2772fc4.zip/node_modules/allure-js-commons/",\
+        "packageDependencies": [\
+          ["allure-js-commons", "npm:3.3.2"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
       ["virtual:0b4e5ef295775b4fd0bcf915b00b878d702f681ae50e8093ff07853047e3e8af80ffb30b974463aa2fb1e186b2795b35ac1ec43f73376629f4663e4548ac6d83#npm:3.3.0", {\
         "packageLocation": "./.yarn/__virtual__/allure-js-commons-virtual-e1537e931b/0/cache/allure-js-commons-npm-3.3.0-4064ea1ece-f9f6671234.zip/node_modules/allure-js-commons/",\
         "packageDependencies": [\
           ["allure-js-commons", "virtual:0b4e5ef295775b4fd0bcf915b00b878d702f681ae50e8093ff07853047e3e8af80ffb30b974463aa2fb1e186b2795b35ac1ec43f73376629f4663e4548ac6d83#npm:3.3.0"],\
+          ["@types/allure-playwright", null],\
+          ["allure-playwright", null],\
+          ["md5", "npm:2.3.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/allure-playwright",\
+          "allure-playwright"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:bfa60f5d962d0ab969c24f3e03d4b9c220fa2285bf28252676d3281e50d9630b3c2b925289af83850543d61ea1d93301ff8ba5093cfe5e532e6d97cc0dcc5177#npm:3.3.2", {\
+        "packageLocation": "./.yarn/__virtual__/allure-js-commons-virtual-f44b6b15e2/0/cache/allure-js-commons-npm-3.3.2-22eb1f766a-05a2772fc4.zip/node_modules/allure-js-commons/",\
+        "packageDependencies": [\
+          ["allure-js-commons", "virtual:bfa60f5d962d0ab969c24f3e03d4b9c220fa2285bf28252676d3281e50d9630b3c2b925289af83850543d61ea1d93301ff8ba5093cfe5e532e6d97cc0dcc5177#npm:3.3.2"],\
           ["@types/allure-playwright", null],\
           ["allure-playwright", null],\
           ["md5", "npm:2.3.0"]\
@@ -13634,6 +13689,13 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
+      ["npm:3.3.2", {\
+        "packageLocation": "./.yarn/cache/allure-vitest-npm-3.3.2-de7e44a25d-b5a5062224.zip/node_modules/allure-vitest/",\
+        "packageDependencies": [\
+          ["allure-vitest", "npm:3.3.2"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
       ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.3.0", {\
         "packageLocation": "./.yarn/__virtual__/allure-vitest-virtual-61fa0d2ba0/0/cache/allure-vitest-npm-3.3.0-3dfda6c6ea-a98dc38eb2.zip/node_modules/allure-vitest/",\
         "packageDependencies": [\
@@ -13678,6 +13740,24 @@ const RAW_RUNTIME_STATE =
           ["@types/vitest__runner", null],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:0b4e5ef295775b4fd0bcf915b00b878d702f681ae50e8093ff07853047e3e8af80ffb30b974463aa2fb1e186b2795b35ac1ec43f73376629f4663e4548ac6d83#npm:3.3.0"],\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+        ],\
+        "packagePeers": [\
+          "@types/vitest",\
+          "@types/vitest__runner",\
+          "@vitest/runner",\
+          "vitest"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:fda7f89ef906eed5bf6d375d1b10409d01bd11fe8eb47181c59995bebfefb12f7e113e92106e6a1e8fe30b3680208e72cf179c18dabf3239d5ab40a4fc2d60d5#npm:3.3.2", {\
+        "packageLocation": "./.yarn/__virtual__/allure-vitest-virtual-bfa60f5d96/0/cache/allure-vitest-npm-3.3.2-de7e44a25d-b5a5062224.zip/node_modules/allure-vitest/",\
+        "packageDependencies": [\
+          ["allure-vitest", "virtual:fda7f89ef906eed5bf6d375d1b10409d01bd11fe8eb47181c59995bebfefb12f7e113e92106e6a1e8fe30b3680208e72cf179c18dabf3239d5ab40a4fc2d60d5#npm:3.3.2"],\
+          ["@types/vitest", null],\
+          ["@types/vitest__runner", null],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-js-commons", "virtual:bfa60f5d962d0ab969c24f3e03d4b9c220fa2285bf28252676d3281e50d9630b3c2b925289af83850543d61ea1d93301ff8ba5093cfe5e532e6d97cc0dcc5177#npm:3.3.2"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
         ],\
         "packagePeers": [\
