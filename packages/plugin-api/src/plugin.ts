@@ -1,4 +1,4 @@
-import type { Statistic, TestStatus } from "@allurereport/core-api";
+import type { CiDescriptor, Statistic, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -25,11 +25,14 @@ export interface PluginContext {
   reportUuid: string;
   reportName: string;
   reportFiles: ReportFiles;
+  ci?: CiDescriptor;
 }
 
 export interface PluginSummary {
   href?: string;
   remoteHref?: string;
+  jobHref?: string;
+  pullRequestHref?: string;
   name: string;
   stats: Statistic;
   status: TestStatus;
