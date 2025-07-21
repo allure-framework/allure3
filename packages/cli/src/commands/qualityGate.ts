@@ -1,8 +1,8 @@
-import { AllureReport, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig, runQualityGate, stringifyQualityGateResults } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { exit } from "node:process";
-import { bold, red } from "yoctocolors";
+import { red } from "yoctocolors";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -31,38 +31,26 @@ export class QualityGateCommand extends Command {
 
   async execute() {
     const fullConfig = await readConfig(this.cwd, this.config);
+
+    if (!fullConfig.qualityGate) {
+      console.error(red("Quality gate is not configured"));
+      return;
+    }
+
     const allureReport = new AllureReport(fullConfig);
 
     await allureReport.start();
     await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
-    await allureReport.validate();
 
-    if (allureReport.exitCode === 0) {
+    const results = await runQualityGate(allureReport.store, fullConfig.qualityGate);
+
+    if (results.length === 0) {
       return;
     }
 
-    const failedResults = allureReport.validationResults.filter((result) => !result.success);
+    console.error(stringifyQualityGateResults(results));
 
-    console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
-
-    for (const result of failedResults) {
-      let scope = "";
-
-      switch (result.meta?.type) {
-        case "label":
-          scope = `(label[${result.meta.name}="${result.meta.value}"])`;
-          break;
-        case "parameter":
-          scope = `(parameter[${result.meta.name}="${result.meta.value}"])`;
-          break;
-      }
-
-      console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
-    }
-
-    console.error(red("\nThe process has been exited with code 1"));
-
-    exit(allureReport.exitCode);
+    exit(1);
   }
 }
