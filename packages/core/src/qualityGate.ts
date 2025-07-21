@@ -2,151 +2,131 @@ import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
 import {
   type AllureStore,
   type QualityGateConfig,
-  type QualityGateRules,
-  type QualityGateRulesMeta,
+  type QualityGateRule,
   type QualityGateValidationResult,
-  type QualityGateValidator,
-  type QualityGateValidatorConstructor,
 } from "@allurereport/plugin-api";
+import { bold, gray, red } from "yoctocolors";
 
-// TODO replace abstraction with a helper method
-export abstract class AbstractQualityGateValidator implements QualityGateValidator {
-  constructor(
-    readonly limit: number,
-    readonly meta?: QualityGateRulesMeta,
-  ) {}
-
-  /**
-   * Returns test results from the given store filtered by the validator meta data object
-   * @param store
-   */
-  async getTestResultsFilteredByMeta(store: AllureStore) {
-    const allTrs = await store.allTestResults();
-
-    if (!this.meta) {
-      return allTrs;
-    }
-
-    return allTrs.filter((tr) => {
-      switch (this.meta?.type) {
-        case "label":
-          return tr.labels.some((label) => label.name === this.meta!.name && label.value === this.meta!.value);
-        case "parameter":
-          return tr.parameters.some(
-            (parameter) => parameter.name === this.meta!.name && parameter.value === this.meta!.value,
-          );
-        default:
-          return tr;
-      }
-    });
-  }
-
-  abstract validate(store: AllureStore): Promise<QualityGateValidationResult>;
-}
-
-export class MaxFailuresValidator extends AbstractQualityGateValidator {
-  async validate(store: AllureStore) {
-    const trs = (await this.getTestResultsFilteredByMeta(store)).filter((tr) => !tr.hidden).filter(filterUnsuccessful);
+export const maxFailuresRule: QualityGateRule = {
+  rule: "maxFailures",
+  message: ({ actual, expected }) =>
+    `Maximum number of failed tests ${bold(actual)} is more, than expected ${bold(expected)}`,
+  validate: async (expected: number, store, options) => {
+    const trs = await store.allTestResults({ includeHidden: false });
+    const filteredTrs = !options?.trFilter ? trs : trs.filter(options.trFilter);
+    const failedTrs = filteredTrs.filter(filterUnsuccessful);
 
     return {
-      success: trs.length <= this.limit,
-      rule: "maxFailures",
-      meta: this.meta,
-      expected: this.limit,
-      actual: trs.length,
-    } as QualityGateValidationResult;
-  }
-}
+      success: failedTrs.length <= expected,
+      actual: failedTrs.length,
+      expected,
+    };
+  },
+};
 
-export class MinTestsCountValidator extends AbstractQualityGateValidator {
-  async validate(store: AllureStore) {
-    const trs = (await this.getTestResultsFilteredByMeta(store)).filter((tr) => !tr.hidden);
+export const minTestsCountRule: QualityGateRule = {
+  rule: "minTestsCount",
+  message: ({ actual, expected }) => `Minimum number of tests ${bold(actual)} is less, than expected ${bold(expected)}`,
+  validate: async (expected: number, store, options) => {
+    const trs = await store.allTestResults({ includeHidden: false });
+    const filteredTrs = !options?.trFilter ? trs : trs.filter(options.trFilter);
 
     return {
-      success: trs.length >= this.limit,
-      rule: "minTestsCount",
-      meta: this.meta,
-      expected: this.limit,
-      actual: trs.length,
-    } as QualityGateValidationResult;
-  }
-}
+      success: filteredTrs.length >= expected,
+      actual: filteredTrs.length,
+      expected,
+    };
+  },
+};
 
-export class SuccessRateValidator extends AbstractQualityGateValidator {
-  async validate(store: AllureStore) {
+export const successRateRule: QualityGateRule = {
+  rule: "successRate",
+  message: ({ actual, expected }) => `Success rate ${bold(actual)} is less, than expected ${bold(expected)}`,
+  validate: async (expected: number, store, options) => {
     const knownIssues = await store.allKnownIssues();
-    const trs = (await this.getTestResultsFilteredByMeta(store)).filter((tr) => !tr.hidden);
     const knownIssuesHistoryIds = knownIssues.map((ki) => ki.historyId);
-    const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
-    const passed = unknown.filter(filterSuccessful);
-    const rate = passed.length === 0 ? 0 : passed.length / unknown.length;
+    const trs = await store.allTestResults({ includeHidden: false });
+    const filteredTrs = !options?.trFilter ? trs : trs.filter(options.trFilter);
+    const unknown = filteredTrs
+      .filter((tr) => !tr.hidden)
+      .filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const passedTrs = unknown.filter(filterSuccessful);
+    const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;
 
     return {
-      success: rate >= this.limit,
-      rule: "successRate",
-      meta: this.meta,
-      expected: this.limit,
+      success: rate >= expected,
       actual: rate,
-    } as QualityGateValidationResult;
-  }
-}
+      expected,
+    };
+  },
+};
 
-export class QualityGate {
-  result: QualityGateValidationResult[] = [];
+export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule];
 
-  constructor(readonly config?: QualityGateConfig) {}
+export const runQualityGate = async (
+  store: AllureStore,
+  config?: QualityGateConfig,
+  options?: {
+    includeAll?: boolean;
+  },
+) => {
+  const { rules, use = qualityGateDefaultRules } = config ?? {};
 
-  get exitCode() {
-    return this.result.some((res) => !res.success) ? 1 : 0;
-  }
-
-  get #mappedValidators() {
-    return {
-      maxFailures: MaxFailuresValidator,
-      minTestsCount: MinTestsCountValidator,
-      successRate: SuccessRateValidator,
-      ...this.config?.validators,
-    } as Record<string, QualityGateValidatorConstructor>;
+  if (!rules) {
+    return [];
   }
 
-  #createRulesValidator = (rules: QualityGateRules, meta?: QualityGateRulesMeta) => {
-    const validators: QualityGateValidator[] = [];
+  const results: QualityGateValidationResult[] = [];
 
-    Object.keys(rules).forEach((rule) => {
-      const Validator = this.#mappedValidators[rule];
-
-      if (!Validator) {
-        return;
+  for (const ruleset of rules) {
+    for (const [key, value] of Object.entries(ruleset)) {
+      if (key === "filter" || key === "id") {
+        continue;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const validator = new Validator(rules[rule], meta);
+      const rule = use.findLast((r) => r.rule === key);
 
-      validators.push(validator);
-    });
+      if (!rule) {
+        throw new Error(
+          `Rule ${key} is not provided. Make sure you have provided it in the "use" field of the quality gate config!`,
+        );
+      }
 
-    return validators;
-  };
+      const result = await rule.validate(value, store, {
+        trFilter: ruleset?.filter ?? (() => true),
+      });
 
-  validate = async (store: AllureStore) => {
-    const { rules, enforce = [] } = this.config ?? {};
-    const validators: QualityGateValidator[] = [];
-    const result = [];
+      if (!options?.includeAll && result.success) {
+        continue;
+      }
 
-    if (rules) {
-      validators.push(...this.#createRulesValidator(rules));
+      results.push({
+        ...result,
+        rule: ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule,
+        message: rule.message(result),
+      });
     }
+  }
 
-    enforce.forEach((enforceConfig) => {
-      const { rules: enforceRules, ...meta } = enforceConfig;
+  return results;
+};
 
-      validators.push(...this.#createRulesValidator(enforceRules, meta as unknown as QualityGateRulesMeta));
-    });
+export const stringifyQualityGateResults = (results: QualityGateValidationResult[]): string => {
+  if (results.length === 0) {
+    return "";
+  }
 
-    for (const validator of validators) {
-      result.push(await validator.validate(store));
-    }
+  const lines = [red("Quality Gate failed with following issues:")];
+  const maxMessageLength = Math.max(...results.map((r) => r.message.length));
 
-    this.result = result;
-  };
-}
+  lines.push("");
+
+  results.forEach((result) => {
+    lines.push(` ${red("⨯")} ${result.message.padEnd(maxMessageLength, " ")}    ${gray(result.rule)}`);
+  });
+
+  lines.push("");
+  lines.push(red(`${results.length} quality gate rules have been failed.`));
+
+  return lines.join("\n");
+};

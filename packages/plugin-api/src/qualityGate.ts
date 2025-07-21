@@ -1,58 +1,32 @@
+import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
-export type QualityGateRules = Record<string, any>;
-
-export type QualityGateRulesBaseMeta<T> = {
-  type: T;
+export type QualityGateRules = Record<string, any> & {
+  id?: string;
+  filter?: (tr: TestResult) => boolean;
 };
 
-export type QualityGateLabelsRulesMeta = QualityGateRulesBaseMeta<"label"> & {
-  name: string;
-  value: string;
-};
-
-export type QualityGateParametersRulesMeta = QualityGateRulesBaseMeta<"parameter"> & {
-  name: string;
-  value: string;
-};
-
-export type QualityGateLabelsEnforceConfig = {
-  type: "label";
-  name: string;
-  value: string;
-  rules: QualityGateRules;
-};
-
-export type QualityGateParametersEnforceConfig = {
-  type: "parameter";
-  name: string;
-  value: string;
-  rules: QualityGateRules;
-};
-
-export type QualityGateRulesMeta =
-  | Omit<QualityGateLabelsRulesMeta, "rules">
-  | Omit<QualityGateParametersRulesMeta, "rules">;
-
-export type QualityGateEnforceConfig = QualityGateLabelsEnforceConfig | QualityGateParametersEnforceConfig;
-
-export type QualityGateValidationResult = {
+export type QualityGateRuleResult = {
   success: boolean;
-  rule: string;
-  meta?: QualityGateRulesMeta;
-  expected?: number;
-  actual?: number;
-  message?: string;
+  expected: any;
+  actual: any;
 };
 
-export interface QualityGateValidator {
-  validate(store: AllureStore): Promise<QualityGateValidationResult>;
-}
+export type QualityGateRule = {
+  rule: string;
+  message: (payload: { expected: any, actual: any }) => string;
+  validate: (expected: any, store: AllureStore, options?: QualityGateRuleOptions) => Promise<QualityGateRuleResult>;
+};
 
-export type QualityGateValidatorConstructor = new (limit: number, meta?: QualityGateRulesMeta) => QualityGateValidator;
+export type QualityGateValidationResult = QualityGateRuleResult & Pick<QualityGateRule, "rule"> & {
+  message: string;
+};
+
+export type QualityGateRuleOptions = {
+  trFilter?: (tr: TestResult) => boolean;
+};
 
 export type QualityGateConfig = {
-  rules?: QualityGateRules;
-  enforce?: QualityGateEnforceConfig[];
-  validators?: Record<string, QualityGateValidatorConstructor>;
+  rules?: QualityGateRules[];
+  use?: QualityGateRule[];
 };

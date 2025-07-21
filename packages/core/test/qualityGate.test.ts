@@ -1,18 +1,12 @@
-import {
-  AllureStore,
-  KnownTestFailure,
-  QualityGateConfig,
-  QualityGateLabelsRulesMeta,
-  TestCase,
-  TestResult,
-} from "@allurereport/core-api";
+import type { KnownTestFailure, TestCase, TestResult } from "@allurereport/core-api";
+import type { AllureStore, QualityGateConfig } from "@allurereport/plugin-api";
 import { describe, expect, it } from "vitest";
 import {
-  AbstractQualityGateValidator,
-  MaxFailuresValidator,
-  MinTestsCountValidator,
-  QualityGate,
-  SuccessRateValidator,
+  maxFailuresRule,
+  minTestsCountRule,
+  runQualityGate,
+  stringifyQualityGateResults,
+  successRateRule,
 } from "../src/qualityGate.js";
 
 const fixtures = {
@@ -38,13 +32,6 @@ const fixtures = {
       labels: [{ name: "feature", value: "example" }],
     },
   },
-  rulesMeta: {
-    labels: {
-      type: "label",
-      name: "feature",
-      value: "example",
-    } as QualityGateLabelsRulesMeta,
-  },
   known: [
     {
       historyId: "foobarbaz",
@@ -52,568 +39,359 @@ const fixtures = {
   ] as KnownTestFailure[],
 };
 
-describe("MaxFailuresValidator", () => {
-  describe("without meta", () => {
-    it("fails when there are more failures than allowed", async () => {
-      const validator = new MaxFailuresValidator(0);
-      const store = {
-        allTestResults: async () => [fixtures.trs.failed, fixtures.trs.passed],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 0,
-        actual: 1,
-      });
+describe("maxFailuresRule", () => {
+  it("should fail when there are more failures than allowed", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.failed, fixtures.trs.passed],
+    } as AllureStore;
+    const result = await maxFailuresRule.validate(0, store, {
+      trFilter: () => true,
     });
 
-    it("passes when there are less failures than allowed", async () => {
-      const validator = new MaxFailuresValidator(0);
-      const store = {
-        allTestResults: async () => [fixtures.trs.passed],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0,
-        actual: 0,
-      });
+    expect(result).toEqual({
+      success: false,
+      expected: 0,
+      actual: 1,
     });
   });
 
-  describe("with meta", () => {
-    it("fails when there are more failures than allowed", async () => {
-      const validator = new MaxFailuresValidator(0, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 0,
-        actual: 1,
-      });
+  it("should pass when there are less failures than allowed", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.passed],
+    } as AllureStore;
+    const result = await maxFailuresRule.validate(0, store, {
+      trFilter: () => true,
     });
 
-    it("passes when there are less failures than allowed", async () => {
-      const validator = new MaxFailuresValidator(0, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0,
-        actual: 0,
-      });
-    });
-
-    it("passes when there are failed, but not matched tests", async () => {
-      const validator = new MaxFailuresValidator(0, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [fixtures.trs.failed],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0,
-        actual: 0,
-      });
+    expect(result).toEqual({
+      success: true,
+      expected: 0,
+      actual: 0,
     });
   });
 });
 
-describe("MinTestsCountValidator", () => {
-  describe("without meta", () => {
-    it("fails when there are not enough tests", async () => {
-      const validator = new MinTestsCountValidator(2);
-      const store = {
-        allTestResults: async () => [fixtures.trs.passed],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 2,
-        actual: 1,
-      });
+describe("minTestsCountRule", () => {
+  it("should fail when there are less tests than expected", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.failed, fixtures.trs.passed],
+    } as AllureStore;
+    const result = await minTestsCountRule.validate(3, store, {
+      trFilter: () => true,
     });
 
-    it("passes when there are enough tests", async () => {
-      const validator = new MinTestsCountValidator(2);
-      const store = {
-        allTestResults: async () => [fixtures.trs.passed, fixtures.trs.passed],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 2,
-        actual: 2,
-      });
+    expect(result).toEqual({
+      success: false,
+      expected: 3,
+      actual: 2,
     });
   });
 
-  describe("with meta", () => {
-    it("fails when there are not enough tests", async () => {
-      const validator = new MinTestsCountValidator(2, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 2,
-        actual: 1,
-      });
+  it("should pass when there are more tests than expected", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.passed],
+    } as AllureStore;
+    const result = await minTestsCountRule.validate(2, store, {
+      trFilter: () => true,
     });
 
-    it("passes when there are enough tests", async () => {
-      const validator = new MinTestsCountValidator(1, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 1,
-        actual: 1,
-      });
-    });
-
-    it("passed when there are enough tests matched to the given meta", async () => {
-      const validator = new MinTestsCountValidator(1, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.passed,
-          fixtures.trs.passed,
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 1,
-        actual: 1,
-      });
+    expect(result).toEqual({
+      success: true,
+      expected: 2,
+      actual: 2,
     });
   });
 });
 
-describe("SuccessRateValidator", () => {
-  describe("without meta", () => {
-    it("fails when success rate is less than the limit", async () => {
-      const validator = new SuccessRateValidator(0.5);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.failed,
-          fixtures.trs.failed,
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 0.5,
-        actual: 0.25,
-      });
+describe("successRateRule", () => {
+  it("should fail when success rate is less than the limit", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.passed],
+      allKnownIssues: async () => fixtures.known,
+    } as AllureStore;
+    const result = await successRateRule.validate(1, store, {
+      trFilter: () => true,
     });
 
-    it("passed when success rate is more or equal to the limit", async () => {
-      const validator = new SuccessRateValidator(0.5);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-          fixtures.trs.passed,
-          fixtures.trs.passed,
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0.5,
-        actual: 0.75,
-      });
-    });
-
-    it("excludes known issues from the test results pull", async () => {
-      const validator = new SuccessRateValidator(0.5);
-      const store = {
-        allTestResults: async () => [
-          {
-            ...fixtures.trs.failed,
-            historyId: fixtures.known[0].historyId,
-          },
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-          fixtures.trs.passed,
-          fixtures.trs.passed,
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0.5,
-        actual: 0.75,
-      });
+    expect(result).toEqual({
+      success: false,
+      expected: 1,
+      actual: 0.25,
     });
   });
 
-  describe("with meta", () => {
-    it("fails when success rate is less than the limit", async () => {
-      const validator = new SuccessRateValidator(0.5, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: false,
-        expected: 0.5,
-        actual: 0.25,
-      });
+  it("should pass when success rate is more than the limit", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.failed, fixtures.trs.passed, fixtures.trs.passed, fixtures.trs.passed],
+      allKnownIssues: async () => fixtures.known,
+    } as AllureStore;
+    const result = await successRateRule.validate(0.5, store, {
+      trFilter: () => true,
     });
 
-    it("passed when success rate is more or equal to the limit", async () => {
-      const validator = new SuccessRateValidator(0.5, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0.5,
-        actual: 0.75,
-      });
-    });
-
-    it("excludes known issues from the test results pull", async () => {
-      const validator = new SuccessRateValidator(0.5, fixtures.rulesMeta.labels);
-      const store = {
-        allTestResults: async () => [
-          fixtures.trs.failed,
-          fixtures.trs.passed,
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-            historyId: fixtures.known[0].historyId,
-          },
-          {
-            ...fixtures.trs.failed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-          {
-            ...fixtures.trs.passed,
-            ...fixtures.trsMeta.feature,
-          },
-        ],
-        allKnownIssues: async () => fixtures.known,
-      } as AllureStore;
-      const result = await validator.validate(store);
-
-      expect(result).toMatchObject({
-        success: true,
-        expected: 0.5,
-        actual: 0.75,
-      });
+    expect(result).toEqual({
+      success: true,
+      expected: 0.5,
+      actual: 0.75,
     });
   });
 });
 
-describe("QualityGate", () => {
-  it("executes all validators for root rules", async () => {
+describe("qualityGate", () => {
+  it("should validate test results with a given rules", async () => {
     const config: QualityGateConfig = {
-      rules: {
-        minTestsCount: 5,
-        maxFailures: 5,
-        successRate: 0.5,
-      },
+      rules: [
+        {
+          minTestsCount: 5,
+          maxFailures: 5,
+          successRate: 0.5,
+        },
+      ],
     };
-    const gate = new QualityGate(config);
     const store = {
       allTestResults: async () => [fixtures.trs.passed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed],
       allTestCases: async () => [] as TestCase[],
       allKnownIssues: async () => fixtures.known,
     } as AllureStore;
+    const result = await runQualityGate(store, config);
 
-    await gate.validate(store);
-
-    expect(gate.result).toEqual(
+    expect(result).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           actual: 4,
           expected: 5,
-          meta: undefined,
-          rule: "minTestsCount",
           success: false,
-        }),
-        expect.objectContaining({
-          actual: 3,
-          expected: 5,
-          meta: undefined,
-          rule: "maxFailures",
-          success: true,
+          rule: "minTestsCount",
         }),
         expect.objectContaining({
           actual: 0.25,
           expected: 0.5,
-          meta: undefined,
-          rule: "successRate",
           success: false,
+          rule: "successRate",
         }),
       ]),
     );
   });
 
-  it("executes all validators for enforced rules", async () => {
+  it("should include successful checks only when requested", async () => {
     const config: QualityGateConfig = {
-      enforce: [
+      rules: [
         {
-          type: "label",
-          name: "feature",
-          value: "example",
-          rules: {
-            minTestsCount: 5,
-            maxFailures: 5,
-            successRate: 0.5,
-          },
+          minTestsCount: 5,
+          maxFailures: 5,
+          successRate: 0.5,
         },
       ],
     };
-    const gate = new QualityGate(config);
+    const store = {
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed],
+      allTestCases: async () => [] as TestCase[],
+      allKnownIssues: async () => fixtures.known,
+    } as AllureStore;
+    const result = await runQualityGate(store, config, {
+      includeAll: true,
+    });
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actual: 4,
+          expected: 5,
+          success: false,
+          rule: "minTestsCount",
+        }),
+        expect.objectContaining({
+          actual: 3,
+          expected: 5,
+          success: true,
+          rule: "maxFailures",
+        }),
+        expect.objectContaining({
+          actual: 0.25,
+          expected: 0.5,
+          success: false,
+          rule: "successRate",
+        }),
+      ]),
+    );
+  });
+
+  it("should validate test results with a given rules with custom filter", async () => {
+    const config: QualityGateConfig = {
+      rules: [
+        {
+          minTestsCount: 5,
+          maxFailures: 5,
+          successRate: 0.5,
+          filter: (tr: TestResult) => !!tr.labels.find(({ name, value }) => name === "feature" && value === "example"),
+        },
+      ],
+    };
     const store = {
       allTestResults: async () => [
+        fixtures.trs.passed,
+        fixtures.trs.passed,
+        fixtures.trs.passed,
+        fixtures.trs.failed,
+        fixtures.trs.failed,
+        fixtures.trs.failed,
         {
           ...fixtures.trs.passed,
-          labels: [{ name: "feature", value: "example" }],
+          ...fixtures.trsMeta.feature,
         },
         {
           ...fixtures.trs.failed,
-          labels: [{ name: "feature", value: "example" }],
+          ...fixtures.trsMeta.feature,
         },
         {
           ...fixtures.trs.failed,
-          labels: [{ name: "feature", value: "example" }],
+          ...fixtures.trsMeta.feature,
         },
         {
           ...fixtures.trs.failed,
-          labels: [{ name: "feature", value: "example" }],
+          ...fixtures.trsMeta.feature,
         },
       ],
       allTestCases: async () => [] as TestCase[],
       allKnownIssues: async () => fixtures.known,
     } as AllureStore;
+    const result = await runQualityGate(store, config);
 
-    await gate.validate(store);
-
-    expect(gate.result).toEqual(
+    expect(result).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           actual: 4,
           expected: 5,
-          meta: {
-            type: "label",
-            name: "feature",
-            value: "example",
-          },
-          rule: "minTestsCount",
           success: false,
-        }),
-        expect.objectContaining({
-          actual: 3,
-          expected: 5,
-          meta: {
-            type: "label",
-            name: "feature",
-            value: "example",
-          },
-          rule: "maxFailures",
-          success: true,
         }),
         expect.objectContaining({
           actual: 0.25,
           expected: 0.5,
-          meta: {
-            type: "label",
-            name: "feature",
-            value: "example",
-          },
-          rule: "successRate",
           success: false,
         }),
       ]),
     );
   });
 
-  it("allows to define custom validators", async () => {
-    class MaxHiddenTestsValidator extends AbstractQualityGateValidator {
-      async validate(store: AllureStore) {
-        const allTrs = await store.allTestResults();
-        const invalidTrs = allTrs.filter((tr) => tr.hidden);
-
-        return {
-          success: invalidTrs.length <= this.limit,
-          rule: "maxHiddenTests",
-          meta: this.meta,
-          expected: this.limit,
-          actual: invalidTrs.length,
-        };
-      }
-    }
-
+  it("should allow rule message re-assignment", async () => {
     const config: QualityGateConfig = {
-      rules: {
-        maxHiddenTests: 1,
-      },
-      validators: {
-        maxHiddenTests: MaxHiddenTestsValidator,
-      },
-    };
-    const gate = new QualityGate(config);
-    const store = {
-      allTestResults: async () => [
+      rules: [
         {
-          ...fixtures.trs.passed,
-          hidden: true,
-        },
-        {
-          ...fixtures.trs.passed,
-          hidden: true,
+          minTestsCount: 5,
+          maxFailures: 5,
+          successRate: 0.5,
         },
       ],
+      use: [
+        minTestsCountRule,
+        maxFailuresRule,
+        {
+          ...successRateRule,
+          message: ({ actual, expected }) => `Custom message: ${expected} > ${actual}`,
+        },
+      ],
+    };
+    const store = {
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed],
+      allTestCases: async () => [] as TestCase[],
+      allKnownIssues: async () => fixtures.known,
     } as AllureStore;
+    const result = await runQualityGate(store, config, {
+      includeAll: true,
+    });
 
-    await gate.validate(store);
-
-    expect(gate.result).toEqual(
+    expect(result).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          actual: 4,
+          expected: 5,
           success: false,
-          rule: "maxHiddenTests",
-          expected: 1,
-          actual: 2,
+          rule: "minTestsCount",
+        }),
+        expect.objectContaining({
+          actual: 3,
+          expected: 5,
+          success: true,
+          rule: "maxFailures",
+        }),
+        expect.objectContaining({
+          actual: 0.25,
+          expected: 0.5,
+          success: false,
+          rule: "successRate",
+          message: "Custom message: 0.5 > 0.25",
         }),
       ]),
     );
   });
 
-  it("returns exit code 0 when all rules are passed", async () => {
+  it("should allow rule reassignment", async () => {
     const config: QualityGateConfig = {
-      rules: {
-        maxFailures: 0,
-      },
+      rules: [
+        {
+          successRate: 0.5,
+        },
+      ],
+      use: [
+        {
+          ...successRateRule,
+          message: ({ actual, expected }) => `First custom message: ${expected} > ${actual}`,
+        },
+        {
+          ...successRateRule,
+          message: ({ actual, expected }) => `Second custom message: ${expected} > ${actual}`,
+        },
+      ],
     };
-    const gate = new QualityGate(config);
     const store = {
-      allTestResults: async () => [fixtures.trs.passed],
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed],
+      allTestCases: async () => [] as TestCase[],
+      allKnownIssues: async () => fixtures.known,
     } as AllureStore;
+    const result = await runQualityGate(store, config, {
+      includeAll: true,
+    });
 
-    await gate.validate(store);
-
-    expect(gate.exitCode).toBe(0);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actual: 0.25,
+          expected: 0.5,
+          success: false,
+          rule: "successRate",
+          message: "Second custom message: 0.5 > 0.25",
+        }),
+      ]),
+    );
   });
+});
 
-  it("returns exit code 1 when at least one rule is failed", async () => {
+describe("stringifyQualityGateResults", () => {
+  it("should return a string representation of the quality gate results", async () => {
     const config: QualityGateConfig = {
-      rules: {
-        maxFailures: 0,
-      },
+      rules: [
+        {
+          minTestsCount: 5,
+        },
+        {
+          id: "first",
+          maxFailures: 5,
+        },
+        {
+          id: "second",
+          successRate: 0.5,
+        },
+      ],
     };
-    const gate = new QualityGate(config);
     const store = {
-      allTestResults: async () => [fixtures.trs.failed],
+      allTestResults: async () => [fixtures.trs.passed, fixtures.trs.failed, fixtures.trs.failed, fixtures.trs.failed],
+      allTestCases: async () => [] as TestCase[],
+      allKnownIssues: async () => fixtures.known,
     } as AllureStore;
+    const result = await runQualityGate(store, config, {
+      includeAll: true,
+    });
 
-    await gate.validate(store);
-
-    expect(gate.exitCode).toBe(1);
+    expect(stringifyQualityGateResults(result)).toMatchSnapshot();
   });
 });

@@ -21,7 +21,6 @@ import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
-import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
 import type { AllureStoreEvents } from "./utils/event.js";
 import { Events } from "./utils/event.js";
@@ -38,7 +37,6 @@ export class AllureReport {
   readonly #reportFiles: ReportFiles;
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
   readonly #events: Events;
-  readonly #qualityGate: QualityGate;
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
@@ -56,7 +54,6 @@ export class AllureReport {
       plugins = [],
       known,
       reportFiles,
-      qualityGate,
       realTime,
       historyPath,
       defaultLabels = {},
@@ -96,7 +93,6 @@ export class AllureReport {
     this.#reportFiles = reportFiles;
     this.#output = output;
     // TODO: where should we execute quality gate?
-    this.#qualityGate = new QualityGate(qualityGate);
     this.#history = this.#allureServiceClient
       ? new AllureRemoteHistory(this.#allureServiceClient)
       : new AllureLocalHistory(historyPath);
@@ -105,14 +101,6 @@ export class AllureReport {
   // TODO: keep it until we understand how to handle shared test results
   get store(): DefaultAllureStore {
     return this.#store;
-  }
-
-  get exitCode() {
-    return this.#qualityGate.exitCode;
-  }
-
-  get validationResults() {
-    return this.#qualityGate.result;
   }
 
   get #publish() {
@@ -394,11 +382,4 @@ export class AllureReport {
   #getPluginState(init: boolean, id: string) {
     return init ? new DefaultPluginState({}) : this.#state?.[id];
   }
-
-  /**
-   * Executes quality gate validation to make possible to receive exit code for the entire process
-   */
-  validate = async () => {
-    await this.#qualityGate.validate(this.#store);
-  };
 }
