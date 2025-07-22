@@ -2,6 +2,9 @@ import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export type QualityGateRules = Record<string, any> & {
+  /**
+   * Ruleset identifier to make it possible to visually divide same rules
+   */
   id?: string;
   filter?: (tr: TestResult) => boolean;
 };

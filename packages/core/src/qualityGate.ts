@@ -12,9 +12,12 @@ export const maxFailuresRule: QualityGateRule = {
   message: ({ actual, expected }) =>
     `Maximum number of failed tests ${bold(actual)} is more, than expected ${bold(expected)}`,
   validate: async (expected: number, store, options) => {
+    const knownIssues = await store.allKnownIssues();
+    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
     const trs = await store.allTestResults({ includeHidden: false });
     const filteredTrs = !options?.trFilter ? trs : trs.filter(options.trFilter);
-    const failedTrs = filteredTrs.filter(filterUnsuccessful);
+    const unknown = filteredTrs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const failedTrs = unknown.filter(filterUnsuccessful);
 
     return {
       success: failedTrs.length <= expected,
@@ -44,12 +47,10 @@ export const successRateRule: QualityGateRule = {
   message: ({ actual, expected }) => `Success rate ${bold(actual)} is less, than expected ${bold(expected)}`,
   validate: async (expected: number, store, options) => {
     const knownIssues = await store.allKnownIssues();
-    const knownIssuesHistoryIds = knownIssues.map((ki) => ki.historyId);
+    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
     const trs = await store.allTestResults({ includeHidden: false });
     const filteredTrs = !options?.trFilter ? trs : trs.filter(options.trFilter);
-    const unknown = filteredTrs
-      .filter((tr) => !tr.hidden)
-      .filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const unknown = filteredTrs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
     const passedTrs = unknown.filter(filterSuccessful);
     const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;
 
@@ -63,6 +64,13 @@ export const successRateRule: QualityGateRule = {
 
 export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule];
 
+/**
+ * Executes quality gate with a given config and store
+ * Returns array of validation results
+ * @param store
+ * @param config
+ * @param options
+ */
 export const runQualityGate = async (
   store: AllureStore,
   config?: QualityGateConfig,
@@ -111,6 +119,10 @@ export const runQualityGate = async (
   return results;
 };
 
+/**
+ * Formats quality gate results to a string that can be printed to the console
+ * @param results
+ */
 export const stringifyQualityGateResults = (results: QualityGateValidationResult[]): string => {
   if (results.length === 0) {
     return "";

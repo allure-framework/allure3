@@ -96,23 +96,15 @@ export default defineConfig({
   qualityGate: {
     rules: [
       {
-        maxFailures: 0,
+        minTestsCount: 10,
       },
       {
         id: "first-gate",
-        successRate: 0.9,
+        maxFailures: 1,
       },
       {
         id: "second-gate",
-        minTestsCount: 100,
-      }
-    ],
-    use: [
-      minTestsCountRule,
-      maxFailuresRule,
-      {
-        ...successRateRule,
-        message: ({ actual, expected }) => `Custom message: ${actual} > ${expected}`
+        successRate: 0.9,
       }
     ]
   }
