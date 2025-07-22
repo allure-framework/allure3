@@ -43,6 +43,7 @@ describe("maxFailuresRule", () => {
   it("should fail when there are more failures than allowed", async () => {
     const store = {
       allTestResults: async () => [fixtures.trs.failed, fixtures.trs.passed],
+      allKnownIssues: async () => [] as KnownTestFailure[],
     } as AllureStore;
     const result = await maxFailuresRule.validate(0, store, {
       trFilter: () => true,
@@ -58,6 +59,26 @@ describe("maxFailuresRule", () => {
   it("should pass when there are less failures than allowed", async () => {
     const store = {
       allTestResults: async () => [fixtures.trs.passed, fixtures.trs.passed],
+      allKnownIssues: async () => [] as KnownTestFailure[],
+    } as AllureStore;
+    const result = await maxFailuresRule.validate(0, store, {
+      trFilter: () => true,
+    });
+
+    expect(result).toEqual({
+      success: true,
+      expected: 0,
+      actual: 0,
+    });
+  });
+
+  it("should exclude known issues from the failed tests pool", async () => {
+    const store = {
+      allTestResults: async () => [fixtures.trs.passed, {
+        ...fixtures.trs.failed,
+        historyId: fixtures.known[0].historyId,
+      }],
+      allKnownIssues: async () => fixtures.known,
     } as AllureStore;
     const result = await maxFailuresRule.validate(0, store, {
       trFilter: () => true,
