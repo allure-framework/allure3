@@ -28,7 +28,7 @@ export class DashboardCommand extends Command {
   });
 
   cwd = Option.String("--cwd", {
-    description: "The working directory for the command to run (Default: current working directory)",
+    description: "The working directory for the command to run (default: current working directory)",
   });
 
   output = Option.String("--output,-o", {

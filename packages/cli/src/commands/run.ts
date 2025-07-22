@@ -116,23 +116,23 @@ export class RunCommand extends Command {
   });
 
   cwd = Option.String("--cwd", {
-    description: "The working directory for the command to run (Default: current working directory)",
+    description: "The working directory for the command to run (default: current working directory)",
   });
 
   output = Option.String("--output,-o", {
-    description: "The output file name, allure.csv by default. Accepts absolute paths (Default: ./allure-report)",
+    description: "The output file name, allure.csv by default. Accepts absolute paths (default: ./allure-report)",
   });
 
   reportName = Option.String("--report-name,--name", {
-    description: "The report name (Default: Allure Report)",
+    description: "The report name (default: Allure Report)",
   });
 
   rerun = Option.String("--rerun", {
-    description: "The number of reruns for failed tests (Default: 0)",
+    description: "The number of reruns for failed tests (default: 0)",
   });
 
   silent = Option.Boolean("--silent", {
-    description: "Don't pipe the process output logs to console (Default: 0)",
+    description: "Don't pipe the process output logs to console (default: 0)",
   });
 
   commandToRun = Option.Proxy();

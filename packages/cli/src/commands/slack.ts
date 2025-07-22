@@ -27,7 +27,7 @@ export class SlackCommand extends Command {
   });
 
   cwd = Option.String("--cwd", {
-    description: "The working directory for the command to run (Default: current working directory)",
+    description: "The working directory for the command to run (default: current working directory)",
   });
 
   token = Option.String("--token,-t", {
