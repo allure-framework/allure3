@@ -17,13 +17,14 @@ export type QualityGateRuleResult = {
 
 export type QualityGateRule = {
   rule: string;
-  message: (payload: { expected: any, actual: any }) => string;
+  message: (payload: { expected: any; actual: any }) => string;
   validate: (expected: any, store: AllureStore, options?: QualityGateRuleOptions) => Promise<QualityGateRuleResult>;
 };
 
-export type QualityGateValidationResult = QualityGateRuleResult & Pick<QualityGateRule, "rule"> & {
-  message: string;
-};
+export type QualityGateValidationResult = QualityGateRuleResult &
+  Pick<QualityGateRule, "rule"> & {
+    message: string;
+  };
 
 export type QualityGateRuleOptions = {
   trFilter?: (tr: TestResult) => boolean;
