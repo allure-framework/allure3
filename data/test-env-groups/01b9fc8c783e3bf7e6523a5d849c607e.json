@@ -1,1 +1,1 @@
-{"id":"01b9fc8c783e3bf7e6523a5d849c607e","fullName":"test/detectors/azure.test.ts#azure jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"741268fbe23acf5a6e837134d71fde72"}}
+{"id":"01b9fc8c783e3bf7e6523a5d849c607e","fullName":"test/detectors/azure.test.ts#azure jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"a54cfd7755cadbf20e00579f7ed55127"}}

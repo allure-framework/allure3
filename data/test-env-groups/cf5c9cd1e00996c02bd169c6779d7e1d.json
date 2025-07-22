@@ -1,1 +1,1 @@
-{"id":"cf5c9cd1e00996c02bd169c6779d7e1d","fullName":"test/config.test.ts#resolveConfig should set default name if it's not provided","name":"should set default name if it's not provided","status":"passed","testResultsByEnv":{"default":"cffb1cdec4e91221ba0490017d97fae8"}}
+{"id":"cf5c9cd1e00996c02bd169c6779d7e1d","fullName":"test/config.test.ts#resolveConfig should set default name if it's not provided","name":"should set default name if it's not provided","status":"passed","testResultsByEnv":{"default":"87abf4c08960a1dce5e6db92d0c1a121"}}

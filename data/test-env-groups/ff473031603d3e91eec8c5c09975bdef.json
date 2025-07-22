@@ -1,1 +1,0 @@
-{"id":"ff473031603d3e91eec8c5c09975bdef","fullName":"test/commands/whoami.test.ts#logout command should print known service-error without logs writing","name":"should print known service-error without logs writing","status":"passed","testResultsByEnv":{"default":"c29eefcea0f57bc162ee97bed2c64343"}}

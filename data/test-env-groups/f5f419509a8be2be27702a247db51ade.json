@@ -1,1 +1,0 @@
-{"id":"f5f419509a8be2be27702a247db51ade","fullName":"test/commands/whoami.test.ts#logout command should initialize allure service and call logout method","name":"should initialize allure service and call logout method","status":"passed","testResultsByEnv":{"default":"db95c98e2fd321231a461dafc28785db"}}

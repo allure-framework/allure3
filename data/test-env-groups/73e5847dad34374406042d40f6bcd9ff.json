@@ -1,0 +1,1 @@
+{"id":"73e5847dad34374406042d40f6bcd9ff","fullName":"test/commands/whoami.test.ts#whoami command should print unknown service-error with logs writing","name":"should print unknown service-error with logs writing","status":"passed","testResultsByEnv":{"default":"6805bdfee92e6e154e74f21fe599dfe2"}}

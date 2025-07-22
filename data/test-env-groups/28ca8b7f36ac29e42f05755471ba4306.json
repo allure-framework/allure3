@@ -1,1 +1,0 @@
-{"id":"28ca8b7f36ac29e42f05755471ba4306","fullName":"test/commands/projects/delete.test.ts#projects delete command should exit with an error if no project name is provided","name":"should exit with an error if no project name is provided","status":"passed","testResultsByEnv":{"default":"b4b296d48e0bdbb26276f59b68e78770"}}

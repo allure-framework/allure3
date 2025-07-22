@@ -1,1 +1,1 @@
-{"id":"6867dfec9b8b0b0a53c04466d5e87112","fullName":"test/detectors/gitlab.test.ts#gitlab jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"7d062b9fb5758341c308dd170937acb5"}}
+{"id":"6867dfec9b8b0b0a53c04466d5e87112","fullName":"test/detectors/gitlab.test.ts#gitlab jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"f9004c8cccc8d65115b30129ec7d63b9"}}

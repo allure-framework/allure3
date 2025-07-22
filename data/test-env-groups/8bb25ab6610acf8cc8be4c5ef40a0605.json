@@ -1,1 +1,1 @@
-{"id":"8bb25ab6610acf8cc8be4c5ef40a0605","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for empty string","name":"should return empty array for empty string","status":"passed","testResultsByEnv":{"default":"7a48a7e6b5edd764073c5c855d0d82e7"}}
+{"id":"8bb25ab6610acf8cc8be4c5ef40a0605","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for empty string","name":"should return empty array for empty string","status":"passed","testResultsByEnv":{"default":"1f1aa6789b8d737fe3f96646a039fec7"}}
