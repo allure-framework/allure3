@@ -233,32 +233,32 @@ export class RunCommand extends Command {
         logTests(await allureReport.store.allTestResults());
       }
 
-    await allureReport.done();
+      await allureReport.done();
 
-    // if there is no quality gate config, just exit with the real exit code
-    if (!config.qualityGate) {
-      process.exit(code);
-      return;
-    }
+      // if there is no quality gate config, just exit with the real exit code
+      if (!config.qualityGate) {
+        process.exit(code);
+        return;
+      }
 
-    const validationResults = await runQualityGate(allureReport.store, config.qualityGate);
+      const validationResults = await runQualityGate(allureReport.store, config.qualityGate);
 
-    // all checks are positive, test run is successful
-    if (validationResults.length === 0) {
-      process.exit(0);
-      return;
-    }
+      // all checks are positive, test run is successful
+      if (validationResults.length === 0) {
+        process.exit(0);
+        return;
+      }
 
-    console.error(stringifyQualityGateResults(validationResults));
+      console.error(stringifyQualityGateResults(validationResults));
 
-    process.exit(1);
-  } catch (error) {
-    if (error instanceof KnownError) {
-      // eslint-disable-next-line no-console
-      console.error(red(error.message));
       process.exit(1);
-      return;
-    }
+    } catch (error) {
+      if (error instanceof KnownError) {
+        // eslint-disable-next-line no-console
+        console.error(red(error.message));
+        process.exit(1);
+        return;
+      }
 
       await logError("Failed to run tests using Allure due to unexpected error", error as Error);
       process.exit(1);
