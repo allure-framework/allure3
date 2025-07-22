@@ -34,6 +34,7 @@ export class QualityGateCommand extends Command {
 
     if (!fullConfig.qualityGate) {
       console.error(red("Quality gate is not configured"));
+      exit(1);
       return;
     }
 
@@ -46,6 +47,7 @@ export class QualityGateCommand extends Command {
     const results = await runQualityGate(allureReport.store, fullConfig.qualityGate);
 
     if (results.length === 0) {
+      exit(0);
       return;
     }
 
