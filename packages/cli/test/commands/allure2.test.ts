@@ -1,10 +1,22 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import Allure2Plugin from "@allurereport/plugin-allure2";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { ClassicLegacyCommandAction } from "../../src/commands/allure2.js";
+import { Allure2Command } from "../../src/commands/allure2.js";
+
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  reportName: "Custom Allure2 Report",
+  output: "./custom/output/path",
+  knownIssues: "./custom/known/issues/path",
+  historyPath: "./custom/history/path",
+  reportLanguage: "en",
+  singleFile: true,
+  config: "./custom/allurerc.mjs",
+};
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -18,30 +30,29 @@ beforeEach(() => {
 
 describe("allure2 command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await ClassicLegacyCommandAction(resultsDir, {});
+    const command = new Allure2Command();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "allure2",
-            enabled: true,
-            options: expect.objectContaining({}),
-            plugin: expect.any(Allure2Plugin),
-          }),
-        ]),
-      }),
-    );
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "allure2",
+          enabled: true,
+          options: expect.objectContaining({}),
+          plugin: expect.any(Allure2Plugin),
+        }),
+      ]),
+    });
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -59,7 +70,12 @@ describe("allure2 command", () => {
       ],
     });
 
-    await ClassicLegacyCommandAction(resultsDir, {});
+    const command = new Allure2Command();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -68,10 +84,10 @@ describe("allure2 command", () => {
           expect.objectContaining({
             id: "my-allure2-plugin",
             enabled: true,
-            options: expect.objectContaining({
+            options: {
               reportLanguage: "en",
               singleFile: true,
-            }),
+            },
             plugin: expect.any(Allure2Plugin),
           }),
         ]),
@@ -80,25 +96,24 @@ describe("allure2 command", () => {
   });
 
   it("should initialize allure report with provided command line options", async () => {
-    const fixtures = {
-      resultsDir: "foo/bar/allure-results",
-      reportName: "Custom Allure2 Report",
-      output: "./custom/output/path",
-      reportLanguage: "en",
-      singleFile: true,
-      config: "./custom/allurerc.mjs",
-    };
+    const command = new Allure2Command();
 
-    await ClassicLegacyCommandAction(fixtures.resultsDir, {
-      reportName: fixtures.reportName,
-      output: fixtures.output,
-      reportLanguage: fixtures.reportLanguage,
-      singleFile: fixtures.singleFile,
-      config: fixtures.config,
-    });
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+    command.reportName = fixtures.reportName;
+    command.output = fixtures.output;
+    command.knownIssues = fixtures.knownIssues;
+    command.historyPath = fixtures.historyPath;
+    command.reportLanguage = fixtures.reportLanguage;
+    command.singleFile = fixtures.singleFile;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
+      historyPath: fixtures.historyPath,
+      knownIssuesPath: fixtures.knownIssues,
       name: fixtures.reportName,
       output: fixtures.output,
     });
