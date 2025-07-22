@@ -1,4 +1,10 @@
-import { AllureReport, isFileNotFoundError, readConfig, runQualityGate, stringifyQualityGateResults } from "@allurereport/core";
+import {
+  AllureReport,
+  isFileNotFoundError,
+  readConfig,
+  runQualityGate,
+  stringifyQualityGateResults,
+} from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {

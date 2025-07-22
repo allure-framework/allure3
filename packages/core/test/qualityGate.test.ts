@@ -74,10 +74,13 @@ describe("maxFailuresRule", () => {
 
   it("should exclude known issues from the failed tests pool", async () => {
     const store = {
-      allTestResults: async () => [fixtures.trs.passed, {
-        ...fixtures.trs.failed,
-        historyId: fixtures.known[0].historyId,
-      }],
+      allTestResults: async () => [
+        fixtures.trs.passed,
+        {
+          ...fixtures.trs.failed,
+          historyId: fixtures.known[0].historyId,
+        },
+      ],
       allKnownIssues: async () => fixtures.known,
     } as AllureStore;
     const result = await maxFailuresRule.validate(0, store, {
