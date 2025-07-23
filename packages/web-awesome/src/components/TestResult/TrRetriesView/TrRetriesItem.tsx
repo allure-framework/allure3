@@ -5,15 +5,26 @@ import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
+import { useI18n } from "@/stores/locale";
 import { navigateTo } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
-export const TrRetriesItem: FunctionalComponent<{
+export type TrRetriesItemProps = {
   testResultItem: AwesomeTestResult;
-}> = ({ testResultItem }) => {
+  attempt: number;
+  totalAttempts: number;
+};
+
+export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testResultItem, attempt, totalAttempts }) => {
   const { id, status, error, stop, duration } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = timestampToDate(stop);
+
+  const { t } = useI18n("ui");
+
+  const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
+  const convertedStop = stop ? timestampToDate(stop) : undefined;
+  const retryTitle = convertedStop ? `${retryTitlePrefix} -- ${convertedStop}` : retryTitlePrefix;
+
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
   const navigateUrl = id;
 
@@ -25,7 +36,7 @@ export const TrRetriesItem: FunctionalComponent<{
         )}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
+          <Text className={styles["test-result-retries-item-text"]}>{retryTitle}</Text>
           <div className={styles["test-result-retries-item-info"]}>
             {Boolean(formattedDuration) && (
               <Text type="ui" size={"s"} className={styles["item-time"]}>
