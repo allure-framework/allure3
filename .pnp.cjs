@@ -13582,7 +13582,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.0"],\
-          ["cac", "npm:6.7.14"],\
+          ["clipanion", "virtual:5db02ac3e7cbf7d577ab119ff9f0c06bae50c6e25906569e6029080573d8619fe391fe8c0d94989f3e102063d52c8f5aeb1ac413356763c36e5e29ba3900989d#npm:4.0.0-rc.4"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
@@ -15365,6 +15365,27 @@ const RAW_RUNTIME_STATE =
           ["cli-truncate", "npm:4.0.0"],\
           ["slice-ansi", "npm:5.0.0"],\
           ["string-width", "npm:7.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["clipanion", [\
+      ["npm:4.0.0-rc.4", {\
+        "packageLocation": "./.yarn/cache/clipanion-npm-4.0.0-rc.4-40deb7eb3b-c3a9478331.zip/node_modules/clipanion/",\
+        "packageDependencies": [\
+          ["clipanion", "npm:4.0.0-rc.4"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:5db02ac3e7cbf7d577ab119ff9f0c06bae50c6e25906569e6029080573d8619fe391fe8c0d94989f3e102063d52c8f5aeb1ac413356763c36e5e29ba3900989d#npm:4.0.0-rc.4", {\
+        "packageLocation": "./.yarn/__virtual__/clipanion-virtual-b0bcadf97c/0/cache/clipanion-npm-4.0.0-rc.4-40deb7eb3b-c3a9478331.zip/node_modules/clipanion/",\
+        "packageDependencies": [\
+          ["clipanion", "virtual:5db02ac3e7cbf7d577ab119ff9f0c06bae50c6e25906569e6029080573d8619fe391fe8c0d94989f3e102063d52c8f5aeb1ac413356763c36e5e29ba3900989d#npm:4.0.0-rc.4"],\
+          ["@types/typanion", null],\
+          ["typanion", "npm:3.14.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/typanion"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -28148,6 +28169,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/tween-functions-npm-1.2.0-4c24ac77a5-f145f39187.zip/node_modules/tween-functions/",\
         "packageDependencies": [\
           ["tween-functions", "npm:1.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["typanion", [\
+      ["npm:3.14.0", {\
+        "packageLocation": "./.yarn/cache/typanion-npm-3.14.0-8af344c436-5e88d9e612.zip/node_modules/typanion/",\
+        "packageDependencies": [\
+          ["typanion", "npm:3.14.0"]\
         ],\
         "linkType": "HARD"\
       }]\

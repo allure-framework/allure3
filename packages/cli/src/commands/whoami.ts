@@ -1,70 +1,71 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
+import { Command, Option } from "clipanion";
+import * as console from "node:console";
+import { exit } from "node:process";
 import { green, red } from "yoctocolors";
-import { createCommand } from "../utils/commands.js";
 import { logError } from "../utils/logs.js";
 
-type CommandOptions = {
-  config?: string;
-  cwd?: string;
-};
+export class WhoamiCommand extends Command {
+  static paths = [["whoami"]];
 
-export const WhoamiCommandAction = async (options?: CommandOptions) => {
-  const { config: configPath, cwd } = options ?? {};
-  const config = await readConfig(cwd, configPath);
+  static usage = Command.Usage({
+    category: "Allure Service",
+    description: "Prints information about current user",
+    details: "This command prints information about the current user logged in to the Allure Service.",
+    examples: [
+      ["whoami", "Print information about the current user using the default configuration"],
+      [
+        "whoami --config custom-config.js",
+        "Print information about the current user using a custom configuration file",
+      ],
+    ],
+  });
 
-  if (!config?.allureService?.url) {
-    // eslint-disable-next-line no-console
-    console.error(
-      red(
-        "No Allure Service URL is provided. Please provide it in the `allureService.url` field in the `allure.config.js` file",
-      ),
-    );
-    process.exit(1);
-    return;
-  }
+  config = Option.String("--config,-c", {
+    description: "The path Allure config file",
+  });
 
-  const serviceClient = new AllureServiceClient(config.allureService);
+  cwd = Option.String("--cwd", {
+    description: "The working directory for the command to run (default: current working directory)",
+  });
 
-  try {
-    const profile = await serviceClient.profile();
-    const lines: string[] = [`You are logged in as "${profile.email}"`];
+  async execute() {
+    const config = await readConfig(this.cwd, this.config);
 
-    if (config.allureService?.project) {
-      lines.push(`Current project is "${config.allureService.project}"`);
-    }
-
-    // eslint-disable-next-line no-console
-    console.info(green(lines.join("\n")));
-  } catch (error) {
-    if (error instanceof KnownError) {
+    if (!config?.allureService?.url) {
       // eslint-disable-next-line no-console
-      console.error(red(error.message));
-      process.exit(1);
+      console.error(
+        red(
+          "No Allure Service URL is provided. Please provide it in the `allureService.url` field in the `allure.config.js` file",
+        ),
+      );
+      exit(1);
       return;
     }
 
-    await logError("Failed to get profile due to unexpected error", error as Error);
-    process.exit(1);
-  }
-};
+    const serviceClient = new AllureServiceClient(config.allureService);
 
-export const WhoamiCommand = createCommand({
-  name: "whoami",
-  description: "Prints information about current user",
-  options: [
-    [
-      "--config, -c <file>",
-      {
-        description: "The path Allure config file",
-      },
-    ],
-    [
-      "--cwd <cwd>",
-      {
-        description: "The working directory for the command to run (default: current working directory)",
-      },
-    ],
-  ],
-  action: WhoamiCommandAction,
-});
+    try {
+      const profile = await serviceClient.profile();
+      const lines: string[] = [`You are logged in as "${profile.email}"`];
+
+      if (config.allureService?.project) {
+        lines.push(`Current project is "${config.allureService.project}"`);
+      }
+
+      // eslint-disable-next-line no-console
+      console.info(green(lines.join("\n")));
+    } catch (error) {
+      if (error instanceof KnownError) {
+        // eslint-disable-next-line no-console
+        console.error(red(error.message));
+        exit(1);
+        return;
+      }
+
+      await logError("Failed to get profile due to unexpected error", error as Error);
+      exit(1);
+    }
+  }
+}
