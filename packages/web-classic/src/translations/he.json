@@ -95,6 +95,7 @@
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
     "copy": "העתק",
+    "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-"
   },
   "controls": {
