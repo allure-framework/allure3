@@ -167,12 +167,6 @@
       "title": "Taxa de sucesso dos testes"
     }
   },
-  "transitions": {
-    "new": "Novo",
-    "fixed": "Corrigido",
-    "regressed": "Regredido",
-    "malfunctioned": "Defeituoso"
-  },
   "transitions.description": {
     "new": "Primeira ocorrência deste resultado de teste no relatório",
     "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",

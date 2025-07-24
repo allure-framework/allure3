@@ -68,8 +68,6 @@ import solidHelpCircle from "@/assets/svg/solid-help-circle.svg";
 import solidMinusCircle from "@/assets/svg/solid-minus-circle.svg";
 import solidPlusCircle from "@/assets/svg/solid-plus-circle.svg";
 import solidXCircle from "@/assets/svg/solid-x-circle.svg";
-import solidPlusCircle from "@/assets/svg/solid-plus-circle.svg";
-import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
 import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";

@@ -167,12 +167,6 @@
       "title": "Test slagingspercentage"
     }
   },
-  "transitions": {
-    "new": "Nieuw",
-    "fixed": "Opgelost",
-    "regressed": "Teruggevallen",
-    "malfunctioned": "Defect"
-  },
   "transitions.description": {
     "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
     "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
