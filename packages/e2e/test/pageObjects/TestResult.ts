@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { CommonPage } from "./Common.js";
+import { RetryItemFixture } from "./RetryItem.js";
 import { StepResultFixture } from "./StepResult.js";
 
 export class TestResultPage extends CommonPage {
@@ -35,6 +36,7 @@ export class TestResultPage extends CommonPage {
   videoAttachmentContentLocator: Locator;
 
   historyItemLocator: Locator;
+  retriesItemLocator: Locator;
   prevStatusLocator: Locator;
 
   constructor(readonly page: Page) {
@@ -72,6 +74,7 @@ export class TestResultPage extends CommonPage {
     this.videoAttachmentContentLocator = page.getByTestId("video-attachment-content");
 
     this.historyItemLocator = page.getByTestId("test-result-history-item");
+    this.retriesItemLocator = page.getByTestId("test-result-retries-item");
     this.prevStatusLocator = page.getByTestId("test-result-prev-status");
   }
 
@@ -84,6 +87,16 @@ export class TestResultPage extends CommonPage {
    */
   getStepByName(stepName: string) {
     return new StepResultFixture(this, stepName);
+  }
+
+  /**
+   * Returns a fixture for a retry item at a specific index.
+   *
+   * NOTE: the retries are in the most recent first order, which means index 0 corresponds to the most recent retry in
+   * the list.
+   */
+  getRetry(index: number) {
+    return new RetryItemFixture(this, index);
   }
 
   get envTabLocator() {
