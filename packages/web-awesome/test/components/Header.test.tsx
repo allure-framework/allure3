@@ -98,7 +98,7 @@ describe("components > Header", () => {
 
     expect(CiInfo).not.toHaveBeenCalled();
     expect(screen.queryByTestId("ci-info")).not.toBeInTheDocument();
-  })
+  });
 
   it("should render breadcrumbs when testResultId route parameter exists", () => {
     route.value = {
@@ -113,7 +113,7 @@ describe("components > Header", () => {
     render(<Header />);
 
     expect(screen.getByTestId("breadcrumbs")).toBeInTheDocument();
-  })
+  });
 
   it("shouldn't render breadcrumbs when testResultId route parameter doesn't exists", () => {
     route.value = {
@@ -123,5 +123,5 @@ describe("components > Header", () => {
     render(<Header />);
 
     expect(screen.queryByTestId("breadcrumbs")).not.toBeInTheDocument();
-  })
+  });
 });

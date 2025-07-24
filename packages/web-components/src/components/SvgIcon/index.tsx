@@ -1,16 +1,16 @@
 import { clsx } from "clsx";
 import type { JSX } from "preact";
+import amazon from "@/assets/svg/amazon.svg";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
+import azure from "@/assets/svg/azure.svg";
+import bitbucket from "@/assets/svg/bitbucket.svg";
+import circleci from "@/assets/svg/circleci.svg";
 import draggable from "@/assets/svg/draggable.svg";
+import drone from "@/assets/svg/drone.svg";
 import environment from "@/assets/svg/environment.svg";
-import azure from "@/assets/svg/azure.svg"
-import amazon from "@/assets/svg/amazon.svg"
-import gitlab from "@/assets/svg/gitlab.svg"
-import bitbucket from "@/assets/svg/bitbucket.svg"
-import jenkins from "@/assets/svg/jenkins.svg"
-import drone from "@/assets/svg/drone.svg"
-import circleci from "@/assets/svg/circleci.svg"
 import github from "@/assets/svg/github.svg";
+import gitlab from "@/assets/svg/gitlab.svg";
+import jenkins from "@/assets/svg/jenkins.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsFixed from "@/assets/svg/line-alerts-fixed.svg";
 import lineAlertsMalfunctioned from "@/assets/svg/line-alerts-malfunctioned.svg";

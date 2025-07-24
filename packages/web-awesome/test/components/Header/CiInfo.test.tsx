@@ -78,7 +78,7 @@ describe("components > Header > CiInfo", () => {
     render(<CiInfo ci={ci} />);
 
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  })
+  });
 
   it("should presence pull request url as href when provided", () => {
     const ci = {

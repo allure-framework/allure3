@@ -228,5 +228,5 @@ describe("github", () => {
 
       expect(github.pullRequestName).toBe("");
     });
-  })
+  });
 });

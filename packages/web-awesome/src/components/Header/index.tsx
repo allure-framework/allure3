@@ -1,3 +1,4 @@
+import { getReportOptions } from "@allurereport/web-commons";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 import { HeaderControls } from "@/components/HeaderControls";
@@ -6,10 +7,9 @@ import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
 import { route } from "@/stores/router";
 import { availableSections } from "@/stores/sections";
 import { testResultStore } from "@/stores/testResults";
-import * as styles from "./styles.scss";
-import { getReportOptions } from "@allurereport/web-commons";
 import type { AwesomeReportOptions } from "../../../types";
-import { CiInfo } from "./CiInfo"
+import { CiInfo } from "./CiInfo";
+import * as styles from "./styles.scss";
 
 interface HeaderProps {
   className?: ClassValue;
