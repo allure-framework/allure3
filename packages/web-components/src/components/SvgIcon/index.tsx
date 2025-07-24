@@ -3,6 +3,13 @@ import type { JSX } from "preact";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import draggable from "@/assets/svg/draggable.svg";
 import environment from "@/assets/svg/environment.svg";
+import azure from "@/assets/svg/azure.svg"
+import amazon from "@/assets/svg/amazon.svg"
+import gitlab from "@/assets/svg/gitlab.svg"
+import bitbucket from "@/assets/svg/bitbucket.svg"
+import jenkins from "@/assets/svg/jenkins.svg"
+import drone from "@/assets/svg/drone.svg"
+import circleci from "@/assets/svg/circleci.svg"
 import github from "@/assets/svg/github.svg";
 import lineAlertsAlertCircle from "@/assets/svg/line-alerts-alert-circle.svg";
 import lineAlertsFixed from "@/assets/svg/line-alerts-fixed.svg";
@@ -76,7 +83,14 @@ import styles from "./styles.scss";
 export const allureIcons = {
   arrowsChevronDown: arrowsChevronDown.id,
   environment: environment.id,
+  amazon: amazon.id,
+  azure: azure.id,
+  bitbucket: bitbucket.id,
+  circleci: circleci.id,
+  drone: drone.id,
+  gitlab: gitlab.id,
   github: github.id,
+  jenkins: jenkins.id,
   draggable: draggable.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
   lineAlertsNotificationBox: lineAlertsNotificationBox.id,

@@ -397,6 +397,7 @@ export const generateStaticFiles = async (
     layout = "base",
     charts = [],
     defaultSection = "",
+    ci,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -455,6 +456,7 @@ export const generateStaticFiles = async (
     reportUuid,
     groupBy: groupBy?.length ? groupBy : [],
     cacheKey: now.toString(),
+    ci,
     layout,
     allureVersion,
     sections,

@@ -7,6 +7,9 @@ import { route } from "@/stores/router";
 import { availableSections } from "@/stores/sections";
 import { testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
+import { getReportOptions } from "@allurereport/web-commons";
+import type { AwesomeReportOptions } from "../../../types";
+import { CiInfo } from "./CiInfo"
 
 interface HeaderProps {
   className?: ClassValue;
@@ -14,10 +17,14 @@ interface HeaderProps {
 
 export const Header = ({ className }: HeaderProps) => {
   const testResultId = route.value.params?.testResultId ?? null;
+  const { ci } = getReportOptions<AwesomeReportOptions>();
 
   return (
     <div className={clsx(styles.above, className)}>
       {Boolean(availableSections.value?.length) && <SectionPicker />}
+      {!testResultId && ci && (
+        <CiInfo ci={ci} />
+      )}
       {testResultId && <TrBreadcrumbs testResult={testResultStore.value?.data?.[testResultId]} />}
       <HeaderControls className={styles.right} />
     </div>

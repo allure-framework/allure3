@@ -1,12 +1,25 @@
 import { createRequire } from "node:module";
 import { defineConfig } from "vitest/config";
+import { resolve } from "path";
+import { preact } from "@preact/preset-vite"
 
 const require = createRequire(import.meta.url);
 
 export default defineConfig({
+  plugins: [preact()],
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
   test: {
-    include: ["./test/**/*.test.ts"],
-    setupFiles: [require.resolve("allure-vitest/setup")],
+    environment: "jsdom",
+    include: ["./test/**/*.test.{ts,tsx}"],
+    globals: true,
+    setupFiles: [
+      require.resolve("allure-vitest/setup"),
+      "./vitest.setup.ts",
+    ],
     reporters: [
       "default",
       [
@@ -14,5 +27,17 @@ export default defineConfig({
         { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-awesome" }] },
       ],
     ],
+    // transformMode: {
+    //   web: [/\.[jt]sx?$/],
+    // }
+    // deps: {
+    //   inline: [/\.scss$/],
+    // },
+    // mockReset: true,
+    // css: {
+    //   modules: {
+    //     classNameStrategy: "non-scoped"
+    //   }
+    // }
   },
 });
