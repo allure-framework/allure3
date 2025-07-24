@@ -95,6 +95,7 @@
     "showLess": "덜 보기",
     "showMore": "더 보기",
     "copy": "복사",
+    "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서"
   },
   "controls": {

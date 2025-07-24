@@ -95,6 +95,7 @@
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
+    "attempt": "Cəhd {{attempt}} / {{total}}",
     "at": "üçün"
   },
   "controls": {

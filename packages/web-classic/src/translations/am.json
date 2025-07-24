@@ -95,6 +95,7 @@
     "showLess": "Ցուցադրել պակաս",
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
+    "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "at": "է"
   },
   "controls": {
