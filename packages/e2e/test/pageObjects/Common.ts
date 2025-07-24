@@ -33,10 +33,16 @@ export class CommonPage extends PageObject {
     await this.envPickerLocator.getByText(env).click();
   }
 
+  /**
+   * Reset hover by moving mouse to the neutral position (0,0)
+   */
   async resetHover() {
     await this.page.mouse.move(0, 0);
   }
 
+  /**
+   * Reset click by clicking on the neutral target (body)
+   */
   async resetClick() {
     await this.page.locator("body").click();
   }
