@@ -189,6 +189,7 @@ test.describe("status transitions", () => {
     const tooltipText1 = await treePage.leafTransitionTooltipLocator.innerText();
     await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
     await treePage.closeTooltip();
+    await expect(treePage.leafTransitionTooltipLocator).toBeHidden();
 
     // Hover on the test with 'fixed' transition
     await treePage.leafTransitionFixedLocator.hover();
@@ -197,7 +198,7 @@ test.describe("status transitions", () => {
     await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
     expect(tooltipText1).not.toBe(tooltipText2);
     await treePage.closeTooltip();
-
+    await expect(treePage.leafTransitionTooltipLocator).toBeHidden();
 
     // Hover on the test with 'regressed' transition
     await treePage.leafTransitionRegressedLocator.hover();
@@ -206,6 +207,7 @@ test.describe("status transitions", () => {
     await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
     expect(tooltipText2).not.toBe(tooltipText3);
     await treePage.closeTooltip();
+    await expect(treePage.leafTransitionTooltipLocator).toBeHidden();
 
     // Hover on the test with 'malfunctioned' transition
     await treePage.leafTransitionMalfunctionedLocator.hover();
@@ -214,5 +216,6 @@ test.describe("status transitions", () => {
     await expect(treePage.leafTransitionTooltipLocator).toHaveCount(1);
     expect(tooltipText3).not.toBe(tooltipText4);
     await treePage.closeTooltip();
+    await expect(treePage.leafTransitionTooltipLocator).toBeHidden();
   });
 });

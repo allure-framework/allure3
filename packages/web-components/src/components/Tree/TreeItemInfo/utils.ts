@@ -1,6 +1,6 @@
 import type { TestStatusTransition } from "@allurereport/core-api";
-import type { TagSkin } from "@/components/Tag";
 import { allureIcons } from "@/components/SvgIcon";
+import type { TagSkin } from "@/components/Tag";
 
 export const transitionToTagSkin = (transition: TestStatusTransition): TagSkin | undefined => {
   switch (transition) {

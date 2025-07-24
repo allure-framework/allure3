@@ -32,4 +32,12 @@ export class CommonPage extends PageObject {
     await this.envPickerButtonLocator.click();
     await this.envPickerLocator.getByText(env).click();
   }
+
+  async resetHover() {
+    await this.page.mouse.move(0, 0);
+  }
+
+  async resetClick() {
+    await this.page.locator("body").click();
+  }
 }

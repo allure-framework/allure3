@@ -5,14 +5,14 @@ import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
 
 interface TooltipWrapperProps {
-  tooltipText?: string;
-  tooltipTextAfterClick?: string;
-  tooltipComponent?: FunctionalComponent | VNode;
-  children: VNode;
-  placement?: "top" | "bottom" | "left" | "right";
-  triggerMode?: "hover" | "click";
-  autoHideDelay?: number;
-  isTriggerActive?: boolean;
+  "tooltipText"?: string;
+  "tooltipTextAfterClick"?: string;
+  "tooltipComponent"?: FunctionalComponent | VNode;
+  "children": VNode;
+  "placement"?: "top" | "bottom" | "left" | "right";
+  "triggerMode"?: "hover" | "click";
+  "autoHideDelay"?: number;
+  "isTriggerActive"?: boolean;
   "data-testid"?: string;
 }
 
@@ -120,7 +120,11 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
     };
   }, []);
 
-  const tooltipContent = tooltipComponent ? tooltipComponent : <Tooltip data-testid={dataTestId}>{currentText}</Tooltip>;
+  const tooltipContent = tooltipComponent ? (
+    tooltipComponent
+  ) : (
+    <Tooltip data-testid={dataTestId}>{currentText}</Tooltip>
+  );
 
   return (
     <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={onClick}>
