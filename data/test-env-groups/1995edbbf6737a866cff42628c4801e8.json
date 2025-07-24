@@ -1,1 +1,1 @@
-{"id":"1995edbbf6737a866cff42628c4801e8","fullName":"test/detectors/azure.test.ts#azure jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"75be694bb0a92d771eb91fb55ee00625"}}
+{"id":"1995edbbf6737a866cff42628c4801e8","fullName":"test/detectors/azure.test.ts#azure jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"25b66acf61282142fcab1369cf10e89b"}}

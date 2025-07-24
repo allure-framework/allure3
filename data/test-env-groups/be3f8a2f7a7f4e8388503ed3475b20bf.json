@@ -1,1 +1,1 @@
-{"id":"be3f8a2f7a7f4e8388503ed3475b20bf","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a failed test case","name":"should parse a failed test case","status":"passed","testResultsByEnv":{"default":"410d296ed185cb968eed3d539689751d"}}
+{"id":"be3f8a2f7a7f4e8388503ed3475b20bf","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a failed test case","name":"should parse a failed test case","status":"passed","testResultsByEnv":{"default":"17fd86d83620e4773034712cdeeed9fe"}}
