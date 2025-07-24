@@ -16,15 +16,13 @@ interface HeaderProps {
 }
 
 export const Header = ({ className }: HeaderProps) => {
-  const testResultId = route.value.params?.testResultId ?? null;
+  const testResultId = route.value.params?.testResultId;
   const { ci } = getReportOptions<AwesomeReportOptions>();
 
   return (
     <div className={clsx(styles.above, className)}>
       {Boolean(availableSections.value?.length) && <SectionPicker />}
-      {!testResultId && ci && (
-        <CiInfo ci={ci} />
-      )}
+      {!testResultId && ci && <CiInfo ci={ci} />}
       {testResultId && <TrBreadcrumbs testResult={testResultStore.value?.data?.[testResultId]} />}
       <HeaderControls className={styles.right} />
     </div>

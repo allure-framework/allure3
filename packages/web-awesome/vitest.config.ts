@@ -27,17 +27,5 @@ export default defineConfig({
         { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "web-awesome" }] },
       ],
     ],
-    // transformMode: {
-    //   web: [/\.[jt]sx?$/],
-    // }
-    // deps: {
-    //   inline: [/\.scss$/],
-    // },
-    // mockReset: true,
-    // css: {
-    //   modules: {
-    //     classNameStrategy: "non-scoped"
-    //   }
-    // }
   },
 });
