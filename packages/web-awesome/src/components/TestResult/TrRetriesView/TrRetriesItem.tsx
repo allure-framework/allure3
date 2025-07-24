@@ -29,14 +29,20 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   const navigateUrl = id;
 
   return (
-    <div>
+    <div data-testid="test-result-retries-item">
       <div className={styles["test-result-retries-item-header"]} onClick={() => setIsOpen(!isOpened)}>
         {Boolean(error.trace || error.message) && (
-          <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />
+          <ArrowButton
+            data-testid="test-result-retries-item-arrow-button"
+            isOpened={isOpened}
+            icon={allureIcons.lineArrowsChevronDown}
+          />
         )}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{retryTitle}</Text>
+          <Text data-testid="test-result-retries-item-text" className={styles["test-result-retries-item-text"]}>
+            {retryTitle}
+          </Text>
           <div className={styles["test-result-retries-item-info"]}>
             {Boolean(formattedDuration) && (
               <Text type="ui" size={"s"} className={styles["item-time"]}>
@@ -48,6 +54,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
               style={"ghost"}
               size={"s"}
               className={styles["test-result-retries-item-link"]}
+              data-testid="test-result-retries-item-open-button"
               onClick={() => navigateTo(navigateUrl)}
             />
           </div>
