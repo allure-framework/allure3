@@ -1,1 +1,1 @@
-{"id":"648c6adb3cf7c11c9b0c0f6f8959da62","fullName":"test/detectors/amazon.test.ts#amazon jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"1b37b53090ca1a9fb1d9f6a0d11cd8c1"}}
+{"id":"648c6adb3cf7c11c9b0c0f6f8959da62","fullName":"test/detectors/amazon.test.ts#amazon jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"05790efe8b24442113b463916e85f020"}}

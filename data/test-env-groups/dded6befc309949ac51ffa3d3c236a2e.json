@@ -1,1 +1,1 @@
-{"id":"dded6befc309949ac51ffa3d3c236a2e","fullName":"test/detectors/github.test.ts#github jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"e19eaf7a4b205b2b6d643d3d1a2f267b"}}
+{"id":"dded6befc309949ac51ffa3d3c236a2e","fullName":"test/detectors/github.test.ts#github jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"8a798132c96cd451af86806a05a1312c"}}

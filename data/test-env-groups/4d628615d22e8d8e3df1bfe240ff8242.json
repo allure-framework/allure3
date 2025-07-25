@@ -1,0 +1,1 @@
+{"id":"4d628615d22e8d8e3df1bfe240ff8242","fullName":"test/components/Header.test.tsx#components > Header shouldn't render sections picker when there are no sections available","name":"shouldn't render sections picker when there are no sections available","status":"passed","testResultsByEnv":{"default":"d4d747ed44cfc7d8fc774957f54793c6"}}

@@ -1,1 +1,1 @@
-{"id":"91f2e40e6fca5be710c0468eb1990478","fullName":"test/service.test.ts#AllureServiceClient addReportFile should upload a file from a filepath","name":"should upload a file from a filepath","status":"passed","testResultsByEnv":{"default":"b0b234b8e5a54a65e1aacb0ad94451d4"}}
+{"id":"91f2e40e6fca5be710c0468eb1990478","fullName":"test/service.test.ts#AllureServiceClient addReportFile should upload a file from a filepath","name":"should upload a file from a filepath","status":"passed","testResultsByEnv":{"default":"a1ce266ade5cd95cf66897d60f886f69"}}
