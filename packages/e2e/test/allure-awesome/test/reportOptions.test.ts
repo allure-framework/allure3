@@ -35,13 +35,11 @@ test.beforeEach(async ({ page, browserName }) => {
 
 test.describe("allure-awesome", () => {
   test.describe("report options", () => {
-    test("report title and page title contain give report name", async ({ page }) => {
+    test("should contain title from config in the page title", async ({ page }) => {
       bootstrap = await bootstrapReport({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
           plugins: [
             {
@@ -56,8 +54,10 @@ test.describe("allure-awesome", () => {
       });
       await page.goto(bootstrap.url);
 
-      await expect(commonPage.reportTitleLocator).toHaveText("Sample allure report");
-      expect(await page.title()).toBe("Sample allure report");
+      const pageTitle = await page.title();
+
+      await expect(commonPage.reportTitleLocator).toContainText("Sample allure report");
+      expect(pageTitle).toContain("Sample allure report");
     });
 
     test.describe("layout switching", () => {
@@ -66,8 +66,6 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            history: undefined,
-            historyPath: undefined,
             knownIssuesPath: undefined,
             plugins: [
               {
@@ -95,8 +93,6 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            history: undefined,
-            historyPath: undefined,
             knownIssuesPath: undefined,
             plugins: [
               {
@@ -120,8 +116,6 @@ test.describe("allure-awesome", () => {
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
-            history: undefined,
-            historyPath: undefined,
             knownIssuesPath: undefined,
             plugins: [
               {
@@ -150,8 +144,6 @@ test.describe("allure-awesome", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
           plugins: [
             {

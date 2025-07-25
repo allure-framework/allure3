@@ -2,6 +2,8 @@ import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { join } from "node:path/posix";
 import { getEnv } from "../utils.js";
 
+const pullRequestSuffixRe = /\/merge$/;
+
 const getBaseURL = () => getEnv("GITHUB_SERVER_URL");
 
 const getRunID = () => getEnv("GITHUB_RUN_ID");
@@ -51,7 +53,6 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestUrl(): string {
-    const pullRequestSuffixRe = /\/merge$/;
     const refName = getEnv("GITHUB_REF_NAME");
 
     if (!pullRequestSuffixRe.test(refName)) {
@@ -67,6 +68,14 @@ export const github: CiDescriptor = {
   },
 
   get pullRequestName(): string {
-    return "";
+    const refName = getEnv("GITHUB_REF_NAME");
+
+    if (!pullRequestSuffixRe.test(refName)) {
+      return "";
+    }
+
+    const pullRequestNumber = refName.replace(pullRequestSuffixRe, "");
+
+    return `Pull request #${pullRequestNumber}`;
   },
 };

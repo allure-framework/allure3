@@ -197,4 +197,36 @@ describe("github", () => {
       expect(github.pullRequestUrl).toBe("");
     });
   });
+
+  describe("pullRequestName", () => {
+    it("should return the pull request name when ref name has /merge suffix", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "123/merge";
+        }
+      });
+
+      expect(github.pullRequestName).toBe("Pull request #123");
+    });
+
+    it("should return empty string when ref name doesn't have /merge suffix", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "main";
+        }
+      });
+
+      expect(github.pullRequestName).toBe("");
+    });
+
+    it("should return empty string when ref name is empty", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REF_NAME") {
+          return "";
+        }
+      });
+
+      expect(github.pullRequestName).toBe("");
+    });
+  });
 });
