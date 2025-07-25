@@ -10,7 +10,11 @@ const defaultOptions: Intl.DateTimeFormatOptions = {
   hour12: false,
 };
 
-export const timestampToDate = (timestamp: number, options = defaultOptions) => {
+export const timestampToDate = (timestamp: number | undefined, options = defaultOptions) => {
+  if (timestamp === undefined || timestamp === null) {
+    return undefined;
+  }
+  
   const date = new Date(timestamp);
   const { t } = useI18n("ui");
 
