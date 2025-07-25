@@ -1,4 +1,10 @@
-import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
+import {
+  AllureReport,
+  isFileNotFoundError,
+  readConfig,
+  runQualityGate,
+  stringifyQualityGateResults,
+} from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
@@ -228,9 +234,24 @@ export class RunCommand extends Command {
       }
 
       await allureReport.done();
-      await allureReport.validate();
 
-      process.exit(code ?? allureReport.exitCode);
+      // if there is no quality gate config, just exit with the real exit code
+      if (!config.qualityGate) {
+        process.exit(code);
+        return;
+      }
+
+      const validationResults = await runQualityGate(allureReport.store, config.qualityGate);
+
+      // all checks are positive, test run is successful
+      if (validationResults.length === 0) {
+        process.exit(0);
+        return;
+      }
+
+      console.error(stringifyQualityGateResults(validationResults));
+
+      process.exit(1);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console

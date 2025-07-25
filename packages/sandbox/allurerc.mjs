@@ -1,4 +1,5 @@
 import { defineConfig } from "allure";
+import { qualityGateDefaultRules, minTestsCountRule, maxFailuresRule, successRateRule } from "allure/qualityGate"
 
 const chartLayout = [
   {
@@ -88,8 +89,23 @@ export default defineConfig({
       },
     },
   },
-  allureService: {
-    url: "http://localhost:5173",
-    project: "sandbox",
-  },
+  // allureService: {
+  //   url: "http://localhost:5173",
+  //   project: "sandbox",
+  // },
+  qualityGate: {
+    rules: [
+      {
+        minTestsCount: 10,
+      },
+      {
+        id: "first-gate",
+        maxFailures: 1,
+      },
+      {
+        id: "second-gate",
+        successRate: 0.9,
+      }
+    ]
+  }
 });
