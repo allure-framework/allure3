@@ -58,11 +58,17 @@ export interface GenericTrendChartData<
   min: number;
   // Maximum value on Y-axis of the trend chart
   max: number;
-}
+};
 
-// Specific trend chart data types
-export type StatusTrendChartData = GenericTrendChartData<TestStatus>;
-export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
+export interface StatusMetadata extends BaseTrendSliceMetadata {}
+export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
+export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
+export type StatusTrendChartData = GenericTrendChartData<StatusTrendSliceMetadata, TestStatus>;
+
+export interface SeverityMetadata extends BaseTrendSliceMetadata {}
+export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
+export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
+export type SeverityTrendChartData = GenericTrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
 
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
