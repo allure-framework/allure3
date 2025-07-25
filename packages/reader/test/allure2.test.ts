@@ -720,15 +720,15 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).eq(
-      "{\n" +
-        '  "name": "Passed test",\n' +
-        '  "fullName": "Simple Tests > Passed test",\n' +
-        '  "status": "passed",\n' +
-        '  "start": 1566219149481,\n' +
-        '  "stop": 1566219149485\n' +
-        "}\n",
-    );
+    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
+  "name": "Passed test",
+  "fullName": "Simple Tests > Passed test",
+  "status": "passed",
+  "start": 1566219149481,
+  "stop": 1566219149485
+}
+"
+`);
   });
 
   it("should add attachments without extension", async () => {
@@ -741,15 +741,15 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).eq(
-      "{\n" +
-        '  "name": "Passed test",\n' +
-        '  "fullName": "Simple Tests > Passed test",\n' +
-        '  "status": "passed",\n' +
-        '  "start": 1566219149481,\n' +
-        '  "stop": 1566219149485\n' +
-        "}\n",
-    );
+    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
+  "name": "Passed test",
+  "fullName": "Simple Tests > Passed test",
+  "status": "passed",
+  "start": 1566219149481,
+  "stop": 1566219149485
+}
+"
+`);
   });
 
   it("should add attachments with complex extension", async () => {
@@ -762,15 +762,15 @@ describe("allure2 reader", () => {
     const [file, { readerId }] = visitor.visitAttachmentFile.mock.calls[0];
     expect(readerId).eq("allure2");
     expect(file.getOriginalFileName()).eq(fileName);
-    expect(await file.asUtf8String()).eq(
-      "{\n" +
-        '  "name": "Passed test",\n' +
-        '  "fullName": "Simple Tests > Passed test",\n' +
-        '  "status": "passed",\n' +
-        '  "start": 1566219149481,\n' +
-        '  "stop": 1566219149485\n' +
-        "}\n",
-    );
+    expect(await file.asUtf8String()).toMatchInlineSnapshot(`"{
+  "name": "Passed test",
+  "fullName": "Simple Tests > Passed test",
+  "status": "passed",
+  "start": 1566219149481,
+  "stop": 1566219149485
+}
+"
+`);
   });
 
   it("should parse environment.properties", async () => {
