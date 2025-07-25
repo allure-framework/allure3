@@ -1,1 +1,1 @@
-{"id":"07543d7c8abb37275411801a3dbb52dd","fullName":"test/allure1.test.ts#allure1 reader steps statuses should parse a skipped step","name":"should parse a skipped step","status":"passed","testResultsByEnv":{"default":"58a188f1d166d183cea6a72283e3dfbd"}}
+{"id":"07543d7c8abb37275411801a3dbb52dd","fullName":"test/allure1.test.ts#allure1 reader steps statuses should parse a skipped step","name":"should parse a skipped step","status":"passed","testResultsByEnv":{"default":"67d02e75d6692bb0392c66f722b0aa00"}}
