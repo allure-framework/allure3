@@ -99,13 +99,11 @@ export type GenericTrendChartData<Metadata extends BaseMetadata, SeriesType exte
 };
 
 export interface StatusMetadata extends BaseTrendSliceMetadata {}
-
 export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
 export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
 export type StatusTrendChartData = GenericTrendChartData<StatusTrendSliceMetadata, TestStatus>;
 
 export interface SeverityMetadata extends BaseTrendSliceMetadata {}
-
 export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
 export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
 export type SeverityTrendChartData = GenericTrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
