@@ -1,1 +1,1 @@
-{"id":"74561a69a09509684d2c036f864f3bdc","fullName":"test/detectors/azure.test.ts#azure jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"1a1ce50c5dd43a644d60614cd280b11f"}}
+{"id":"74561a69a09509684d2c036f864f3bdc","fullName":"test/detectors/azure.test.ts#azure jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"bb0ca2ffadb4e67d34ccd07f8ee0567a"}}
