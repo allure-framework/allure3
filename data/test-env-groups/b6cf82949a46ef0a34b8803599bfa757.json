@@ -1,1 +1,1 @@
-{"id":"b6cf82949a46ef0a34b8803599bfa757","fullName":"test/detectors/github.test.ts#github jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"bda004cbdb15f4a2683184827ae98374"}}
+{"id":"b6cf82949a46ef0a34b8803599bfa757","fullName":"test/detectors/github.test.ts#github jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"c7ec9a9ca5a1b1bf696e293d7bb6c85d"}}

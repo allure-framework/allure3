@@ -1,1 +1,1 @@
-{"id":"11158f47de12666c2b8983276471e8c1","fullName":"test/detectors/azure.test.ts#azure jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"b0517d6b4523558fad2b47a1e8df7812"}}
+{"id":"11158f47de12666c2b8983276471e8c1","fullName":"test/detectors/azure.test.ts#azure jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"a5f07b584d87c5416119b6e4b7735d39"}}

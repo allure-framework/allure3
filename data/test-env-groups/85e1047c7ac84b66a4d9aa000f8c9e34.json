@@ -1,1 +1,1 @@
-{"id":"85e1047c7ac84b66a4d9aa000f8c9e34","fullName":"test/detectors/gitlab.test.ts#gitlab detected should be false when GITLAB_CI is not set","name":"should be false when GITLAB_CI is not set","status":"passed","testResultsByEnv":{"default":"582d3698db3d3b8384f1c1c28c2428aa"}}
+{"id":"85e1047c7ac84b66a4d9aa000f8c9e34","fullName":"test/detectors/gitlab.test.ts#gitlab detected should be false when GITLAB_CI is not set","name":"should be false when GITLAB_CI is not set","status":"passed","testResultsByEnv":{"default":"3f22fb5cbcbe7d0fe8e7e001aa0b477a"}}

@@ -1,1 +1,1 @@
-{"id":"45fe98887fd79e9a24a21cdffa556dc0","fullName":"allure-awesome/test/environments.test.ts:169:3","name":"should allow to switch environments using the picker in the header","status":"passed","testResultsByEnv":{"default":"121af664a9336ed0e33d626f1cb96e7e"}}
+{"id":"45fe98887fd79e9a24a21cdffa556dc0","fullName":"allure-awesome/test/environments.test.ts:169:3","name":"should allow to switch environments using the picker in the header","status":"passed","testResultsByEnv":{"default":"9a6f24d1421604ea5f346d074a319b40"}}
