@@ -95,6 +95,7 @@
     "showLess": "Montrer moins",
     "showMore": "Montrer plus",
     "copy": "Copier",
+    "attempt": "Tentative {{attempt}} sur {{total}}",
     "at": "à"
   },
   "controls": {

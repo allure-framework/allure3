@@ -6,16 +6,30 @@ import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
+import { useI18n } from "@/stores";
 import { navigateTo } from "@/utils/navigate";
 import { timestampToDate } from "@/utils/time";
 
-export const TestResultRetriesItem: FunctionalComponent<{
+export type TrRetriesItemProps = {
   testResultItem: TestResult;
-}> = ({ testResultItem }) => {
+  attempt: number;
+  totalAttempts: number;
+};
+
+export const TestResultRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({
+  testResultItem,
+  attempt,
+  totalAttempts,
+}) => {
   const { id, status, message, trace, stop, duration } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
+  const { t } = useI18n("ui");
+
+  const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
+  const convertedStop = stop ? timestampToDate(stop) : undefined;
+  const retryTitle = convertedStop ? `${retryTitlePrefix} -- ${convertedStop}` : retryTitlePrefix;
+
+  const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
   const navigateUrl = `testresult/${id}`;
 
   return (
@@ -24,11 +38,13 @@ export const TestResultRetriesItem: FunctionalComponent<{
         {Boolean(message) && <ArrowButton isOpened={isOpened} icon={allureIcons.lineArrowsChevronDown} />}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
-          <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>
+          <Text className={styles["test-result-retries-item-text"]}>{retryTitle}</Text>
           <div className={styles["test-result-retries-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
+            {Boolean(formattedDuration) && (
+              <Text type="ui" size={"s"} className={styles["item-time"]}>
+                {formattedDuration}
+              </Text>
+            )}
             <IconButton
               icon={allureIcons.lineGeneralLinkExternal}
               style={"ghost"}

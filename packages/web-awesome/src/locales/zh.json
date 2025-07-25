@@ -116,6 +116,7 @@
     "showLess": "显示更少",
     "showMore": "显示更多",
     "copy": "复制",
+    "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace"

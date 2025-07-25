@@ -11,7 +11,14 @@ export const TestResultRetriesView: FunctionalComponent<{ testResult: AwesomeTes
   return (
     <div className={styles["test-result-history"]}>
       {retries.length ? (
-        retries?.map((item, key) => <TestResultRetriesItem testResultItem={item} key={key} />)
+        retries?.map((item, key) => (
+          <TestResultRetriesItem
+            testResultItem={item}
+            key={key}
+            attempt={retries.length - key}
+            totalAttempts={retries.length + 1}
+          />
+        ))
       ) : (
         <div className={styles["test-result-empty"]}>{t("no-retries-results")}</div>
       )}

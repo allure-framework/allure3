@@ -116,6 +116,7 @@
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
     "copy": "Скопировать",
+    "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace"
