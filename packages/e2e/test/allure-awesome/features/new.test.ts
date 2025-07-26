@@ -111,4 +111,13 @@ test.describe("new tests", () => {
     expect(total).toBe("3");
     expect(newCount).toBe("2");
   });
+
+  test("should show tooltip with new filter description on hover", async () => {
+    await treePage.openFilterMenu();
+    await expect(treePage.newFilterLocator).toBeVisible();
+    await treePage.newFilterLocator.hover();
+    await expect(treePage.filterTooltipLocator).toBeVisible();
+    await treePage.closeTooltip();
+    await expect(treePage.filterTooltipLocator).toBeHidden();
+  });
 });

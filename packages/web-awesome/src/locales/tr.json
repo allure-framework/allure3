@@ -167,12 +167,6 @@
       "title": "Test Başarı Oranı"
     }
   },
-  "transitions": {
-    "new": "Yeni",
-    "fixed": "Düzeltildi",
-    "regressed": "Geri Döndü",
-    "malfunctioned": "Bozuk"
-  },
   "transitions.description": {
     "new": "Bu test sonucunun rapordaki ilk görünümü",
     "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",

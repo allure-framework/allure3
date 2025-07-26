@@ -167,12 +167,6 @@
       "title": "Testerfolgsrate"
     }
   },
-  "transitions": {
-    "new": "Neu",
-    "fixed": "Behoben",
-    "regressed": "Regressiert",
-    "malfunctioned": "Defekt"
-  },
   "transitions.description": {
     "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
     "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",

@@ -126,4 +126,13 @@ test.describe("flaky", () => {
     expect(total).toBe("2");
     expect(flaky).toBe("1");
   });
+
+  test("should show tooltip with flaky filter description on hover", async () => {
+    await treePage.openFilterMenu();
+    await expect(treePage.flakyFilterLocator).toBeVisible();
+    await treePage.flakyFilterLocator.hover();
+    await expect(treePage.filterTooltipLocator).toBeVisible();
+    await treePage.closeTooltip();
+    await expect(treePage.filterTooltipLocator).toBeHidden();
+  });
 });

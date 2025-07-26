@@ -13,7 +13,6 @@ interface TreeItemProps {
   retriesCount?: number;
   flaky?: boolean;
   transition?: TestStatusTransition;
-  transitionText?: string;
   transitionTooltip?: string;
   id: string;
   groupOrder: number;
@@ -29,7 +28,6 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   retriesCount,
   flaky,
   transition,
-  transitionText,
   transitionTooltip,
   id,
   marked,
@@ -56,7 +54,6 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
         flaky={flaky}
         retriesCount={retriesCount}
         transition={transition}
-        transitionText={transitionText}
         transitionTooltip={transitionTooltip}
       />
     </div>
