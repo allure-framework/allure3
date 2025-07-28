@@ -1,1 +1,1 @@
-{"id":"5071b4a45839081eafa61f09d0ec0993","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"a41a644ae76b13aa5ffe04864c8d3fe1"}}
+{"id":"5071b4a45839081eafa61f09d0ec0993","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"94e3a6ab02d279727818557397456f94"}}
