@@ -1,1 +1,1 @@
-{"id":"24a8bf8390b01cb12614755b3fc4c6ff","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"b69bca16ec4b9e8a0f6c7f8a4e850bbb"}}
+{"id":"24a8bf8390b01cb12614755b3fc4c6ff","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"3a44bb8620c055677dd48ea19d37d92b"}}
