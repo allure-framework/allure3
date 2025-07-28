@@ -918,7 +918,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/plugin-proposal-object-rest-spread", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:7.20.7"],\
           ["@babel/plugin-transform-runtime", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:7.27.4"],\
           ["@babel/preset-env", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:7.27.2"],\
-          ["@babel/runtime", "npm:7.27.6"],\
+          ["@babel/runtime", "npm:7.28.2"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@typescript-eslint/eslint-plugin", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:8.17.0"],\
@@ -7311,18 +7311,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@babel/runtime", [\
-      ["npm:7.24.4", {\
-        "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.24.4-1a974e2dd0-8ec8ce2c14.zip/node_modules/@babel/runtime/",\
+      ["npm:7.28.2", {\
+        "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.28.2-0c89c5b111-a0965fbdd6.zip/node_modules/@babel/runtime/",\
         "packageDependencies": [\
-          ["@babel/runtime", "npm:7.24.4"],\
-          ["regenerator-runtime", "npm:0.14.1"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:7.27.6", {\
-        "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.27.6-350e7a5827-cc957a12ba.zip/node_modules/@babel/runtime/",\
-        "packageDependencies": [\
-          ["@babel/runtime", "npm:7.27.6"]\
+          ["@babel/runtime", "npm:7.28.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -11162,7 +11154,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@testing-library/dom", "npm:10.4.0"],\
           ["@babel/code-frame", "npm:7.26.2"],\
-          ["@babel/runtime", "npm:7.27.6"],\
+          ["@babel/runtime", "npm:7.28.2"],\
           ["@types/aria-query", "npm:5.0.4"],\
           ["aria-query", "npm:5.3.0"],\
           ["chalk", "npm:4.1.2"],\
@@ -11177,7 +11169,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@testing-library/dom", "npm:8.20.1"],\
           ["@babel/code-frame", "npm:7.26.2"],\
-          ["@babel/runtime", "npm:7.27.6"],\
+          ["@babel/runtime", "npm:7.28.2"],\
           ["@types/aria-query", "npm:5.0.4"],\
           ["aria-query", "npm:5.1.3"],\
           ["chalk", "npm:4.1.2"],\
@@ -20679,7 +20671,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/i18next-virtual-f4c64fbe88/0/cache/i18next-npm-24.0.5-7d35d057eb-d0a310c7a0.zip/node_modules/i18next/",\
         "packageDependencies": [\
           ["i18next", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:24.0.5"],\
-          ["@babel/runtime", "npm:7.27.6"],\
+          ["@babel/runtime", "npm:7.28.2"],\
           ["@types/typescript", null],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
         ],\
@@ -23729,7 +23721,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/polished-npm-4.3.1-96b1782f82-0902fe2eb1.zip/node_modules/polished/",\
         "packageDependencies": [\
           ["polished", "npm:4.3.1"],\
-          ["@babel/runtime", "npm:7.27.6"]\
+          ["@babel/runtime", "npm:7.28.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -25837,21 +25829,12 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["regenerator-runtime", [\
-      ["npm:0.14.1", {\
-        "packageLocation": "./.yarn/cache/regenerator-runtime-npm-0.14.1-a6c97c609a-5db3161abb.zip/node_modules/regenerator-runtime/",\
-        "packageDependencies": [\
-          ["regenerator-runtime", "npm:0.14.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["regenerator-transform", [\
       ["npm:0.15.2", {\
         "packageLocation": "./.yarn/cache/regenerator-transform-npm-0.15.2-109e57a69f-c4fdcb46d1.zip/node_modules/regenerator-transform/",\
         "packageDependencies": [\
           ["regenerator-transform", "npm:0.15.2"],\
-          ["@babel/runtime", "npm:7.24.4"]\
+          ["@babel/runtime", "npm:7.28.2"]\
         ],\
         "linkType": "HARD"\
       }]\
