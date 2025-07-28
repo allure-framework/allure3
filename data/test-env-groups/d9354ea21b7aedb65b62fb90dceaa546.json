@@ -1,1 +1,1 @@
-{"id":"d9354ea21b7aedb65b62fb90dceaa546","fullName":"test/detectors/azure.test.ts#azure detected should be true when SYSTEM_DEFINITIONID is set","name":"should be true when SYSTEM_DEFINITIONID is set","status":"passed","testResultsByEnv":{"default":"7ffed69b36c0a19b9179c7b60a01510b"}}
+{"id":"d9354ea21b7aedb65b62fb90dceaa546","fullName":"test/detectors/azure.test.ts#azure detected should be true when SYSTEM_DEFINITIONID is set","name":"should be true when SYSTEM_DEFINITIONID is set","status":"passed","testResultsByEnv":{"default":"b0935d3828064c8370941978a31e6a93"}}

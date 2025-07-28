@@ -1,1 +1,1 @@
-{"id":"1a48f900728081fe24b623557efe71ab","fullName":"test/resultFile.test.ts#BufferResultFile should return the same bytes when read as buffer","name":"should return the same bytes when read as buffer","status":"passed","testResultsByEnv":{"default":"32c19c41739badcd96052403cf3ac438"}}
+{"id":"1a48f900728081fe24b623557efe71ab","fullName":"test/resultFile.test.ts#BufferResultFile should return the same bytes when read as buffer","name":"should return the same bytes when read as buffer","status":"passed","testResultsByEnv":{"default":"fbc64fa8f5c7563e2f05040fbb53aeeb"}}

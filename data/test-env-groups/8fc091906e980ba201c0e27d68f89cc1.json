@@ -1,1 +1,1 @@
-{"id":"8fc091906e980ba201c0e27d68f89cc1","fullName":"allure-awesome/test/environments.test.ts:177:3","name":"should render statistics for all environments by default","status":"passed","testResultsByEnv":{"default":"a09e2c4ab1181ff83944703637783b24"}}
+{"id":"8fc091906e980ba201c0e27d68f89cc1","fullName":"allure-awesome/test/environments.test.ts:177:3","name":"should render statistics for all environments by default","status":"passed","testResultsByEnv":{"default":"49121c1322146b206b86beb280fde616"}}
