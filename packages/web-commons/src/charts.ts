@@ -1,4 +1,18 @@
-import type { SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  SeverityLevel,
+  TestResult,
+  TestStatus,
+  TrendPointId,
+  BaseMetadata,
+  BaseTrendSliceMetadata,
+  TrendPoint,
+  TrendSlice,
+  GenericTrendChartData,
+  PieSlice,
+  TrendChartOptions,
+  ChartOptions
+} from "@allurereport/core-api";
+import { ChartMode } from "@allurereport/core-api";
 import type { PieArcDatum } from "d3-shape";
 import { arc, pie } from "d3-shape";
 
@@ -15,22 +29,7 @@ export const d3Pie = pie<BasePieSlice>()
 
 export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 
-export enum ChartType {
-  Trend = "trend",
-  Pie = "pie",
-}
-
-export enum ChartDataType {
-  Status = "status",
-  Severity = "severity",
-}
-
-export enum ChartMode {
-  Raw = "raw",
-  Percent = "percent",
-}
-
-export type ChartId = string;
+export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -40,99 +39,17 @@ export type TrendMetadataFnOverrides = {
   executionNameAccessor?: ExecutionNameFn;
 };
 
-export type TrendChartOptions = {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode?: ChartMode;
-  title?: string;
-  limit?: number;
-  metadata?: TrendMetadataFnOverrides;
-};
-
-// Type aliases for meaningful string keys
-export type TrendPointId = string;
-export type TrendSliceId = string;
-
-// Base type for metadata
-export type BaseMetadata = Record<string, unknown>;
-
-export interface BaseTrendSliceMetadata extends Record<string, unknown> {
-  executionId: string;
-  executionName: string;
-}
-
-export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
-
-export type TrendPoint = {
-  x: string;
-  y: number;
-};
-
-export type TrendSlice<Metadata extends BaseMetadata> = {
-  // Minimum value on Y-axis of the trend chart slice
-  min: number;
-  // Maximum value on Y-axis of the trend chart slice
-  max: number;
-  // Metadata about this test execution
-  metadata: TrendSliceMetadata<Metadata>;
-};
-
-export type GenericTrendChartData<Metadata extends BaseMetadata, SeriesType extends string> = {
-  // Type of the chart
-  type: ChartType.Trend;
-  // Data type of the chart
-  dataType: ChartDataType;
-  // Chart mode to know type of values on Y-axis
-  mode: ChartMode;
-  // Title of the chart
-  title?: string;
-  // Points for all series
-  points: Record<TrendPointId, TrendPoint>;
-  // Slices for all series
-  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
-  // Grouping by series, containing array of point IDs for each status
-  series: Record<SeriesType, TrendPointId[]>;
-  // Minimum value on Y-axis of the trend chart
-  min: number;
-  // Maximum value on Y-axis of the trend chart
-  max: number;
-};
-
 export interface StatusMetadata extends BaseTrendSliceMetadata {}
 export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
 export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
-export type StatusTrendChartData = GenericTrendChartData<StatusTrendSliceMetadata, TestStatus>;
+export type StatusTrendChartData = GenericTrendChartData<TestStatus, StatusTrendSliceMetadata>;
 
 export interface SeverityMetadata extends BaseTrendSliceMetadata {}
 export type SeverityTrendSliceMetadata = TrendSliceMetadata<SeverityMetadata>;
 export type SeverityTrendSlice = TrendSlice<SeverityTrendSliceMetadata>;
-export type SeverityTrendChartData = GenericTrendChartData<SeverityTrendSliceMetadata, SeverityLevel>;
+export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel, SeverityTrendSliceMetadata>;
 
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
-
-export type PieChartOptions = {
-  type: ChartType.Pie;
-  title?: string;
-};
-
-export type PieSlice = {
-  status: TestStatus;
-  count: number;
-  d: string | null;
-};
-
-export type PieChartData = {
-  type: ChartType.Pie;
-  title?: string;
-  slices: PieSlice[];
-  percentage: number;
-};
-
-export type GeneratedChartData = TrendChartData | PieChartData;
-
-export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
-
-export type ChartOptions = TrendChartOptions | PieChartOptions;
 
 export type DashboardOptions = {
   reportName?: string;
@@ -261,11 +178,11 @@ const calculatePercentValues = <T extends TrendDataType>(
  * @param itemType - Items for data inclusion.
  * @returns Merged dataset for analysis.
  */
-export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
-  trendData: GenericTrendChartData<M, T>,
-  trendDataPart: GenericTrendChartData<M, T>,
+export const mergeTrendDataGeneric = <T extends TrendDataType, M extends BaseTrendSliceMetadata>(
+  trendData: GenericTrendChartData<T, M>,
+  trendDataPart: GenericTrendChartData<T, M>,
   itemType: readonly T[],
-): GenericTrendChartData<M, T> => {
+): GenericTrendChartData<T, M> => {
   return {
     ...trendData,
     points: {
@@ -303,15 +220,15 @@ export const mergeTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extend
  * @param chartOptions - Chart configuration options.
  * @returns Dataset for trend visualization.
  */
-export const getTrendDataGeneric = <M extends BaseTrendSliceMetadata, T extends TrendDataType>(
+export const getTrendDataGeneric = <T extends TrendDataType, M extends BaseTrendSliceMetadata>(
   stats: Record<T, number>,
   reportName: string,
   executionOrder: number,
   itemType: readonly T[],
   chartOptions: TrendChartOptions,
-): GenericTrendChartData<M, T> => {
+): GenericTrendChartData<T, M> => {
   const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
-  const { executionIdAccessor, executionNameAccessor } = metadata;
+  const { executionIdAccessor, executionNameAccessor } = metadata as TrendMetadataFnOverrides;
   const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
   const { points, series } =
