@@ -1,7 +1,20 @@
 import type { TestStatus, SeverityLevel } from "@allurereport/core-api";
-import type { TrendChartData, ChartId } from "@allurereport/core-api/charts/types";
-import { statusColors, severityColors } from "./colors";
 import { statusesList, severityLevels } from "@allurereport/core-api";
+import { statusColors, severityColors } from "./colors.js";
+
+import type { ChartId, ChartMode, StatusTrendSlice, SeverityTrendSlice, PieSlice } from "../charts.js";
+import { ChartDataType, ChartType } from "../charts.js";
+
+export interface UITrendChartData {
+  type: ChartType.Trend;
+  dataType: ChartDataType;
+  mode: ChartMode;
+  min: number;
+  max: number;
+  items: TrendChartItem[];
+  slices: (StatusTrendSlice | SeverityTrendSlice)[];
+  title?: string;
+}
 
 export interface Point {
   x: Date | string | number;
@@ -15,24 +28,33 @@ export interface TrendChartItem {
 }
 
 export interface ResponseTrendChartData {
-  type: "trend";
-  dataType: "status" | "severity";
-  mode: string;
+  type: ChartType.Trend;
+  dataType: ChartDataType;
+  mode: ChartMode;
   title?: string;
   min: number;
   max: number;
   points: Record<string, Point>;
-  slices: Record<string, any>;
+  slices: Record<string, StatusTrendSlice | SeverityTrendSlice>;
   series: Record<string, string[]>;
 }
 
 export type ChartsResponse = Record<ChartId, ResponseTrendChartData>;
 
+export interface ResponsePieChartData {
+  type: ChartType.Pie;
+  title?: string;
+  percentage: number;
+  slices: PieSlice[];
+}
+
+export type ChartsData = Record<ChartId, ResponseTrendChartData | ResponsePieChartData>;
+
 export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,
   getGroups: () => readonly T[],
   getColor: (group: T) => string,
-): TrendChartData | undefined => {
+): UITrendChartData | undefined => {
   const chart = getChart();
   if (!chart) {
     return undefined;
@@ -68,19 +90,45 @@ export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
     slices: Object.values(chart.slices),
     min: chart.min,
     max: chart.max,
-  } as TrendChartData;
+  } as UITrendChartData;
 };
 
-export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
   createTrendChartData(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => statusesList,
     (status) => statusColors[status],
   );
 
-export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
+export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
   createTrendChartData(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
   );
+
+export const createaTrendChartData = (
+  chartId: string,
+  chartData: ResponseTrendChartData,
+  res: ChartsData,
+): UITrendChartData | undefined => {
+  if (chartData.dataType === ChartDataType.Status) {
+    return createStatusTrendChartData(chartId, res as ChartsResponse);
+  } else if (chartData.dataType === ChartDataType.Severity) {
+    return createSeverityTrendChartData(chartId, res as ChartsResponse);
+  }
+};
+
+export const createCharts = (res: ChartsData): Record<ChartId, UITrendChartData | ResponsePieChartData> => {
+  return Object.entries(res).reduce((acc, [chartId, chart]) => {
+    if (chart.type === ChartType.Trend) {
+      const chartData = createaTrendChartData(chartId, chart, res);
+      if (chartData) {
+        acc[chartId] = chartData;
+      }
+    } else if (chart.type === ChartType.Pie) {
+      acc[chartId] = chart;
+    }
+    return acc;
+  }, {} as Record<ChartId, UITrendChartData | ResponsePieChartData>);
+};
