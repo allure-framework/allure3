@@ -20,4 +20,3 @@ export * from "./utils/testplan.js";
 export * from "./utils/status.js";
 export * from "./utils/environment.js";
 export * from "./charts/types.js";
-export * from "./charts/utils.js";
