@@ -1,35 +1,22 @@
-import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { severityLevels, statusesList } from "@allurereport/core-api";
-import { ChartDataType, type ChartId, type ChartMode, ChartType, fetchReportJsonData } from "@allurereport/web-commons";
+import type {
+  SeverityLevel,
+  TestStatus,
+  TrendPoint,
+  TrendSlice,
+  TrendChartData as CoreTrendChartData,
+  PieChartData as CorePieChartData,
+  ChartId,
+  ChartMode,
+  PieChartData
+} from "@allurereport/core-api";
+import { severityLevels, statusesList, ChartDataType, ChartType } from "@allurereport/core-api";
+import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
-interface Point {
-  x: Date | string | number;
-  y: number;
-}
-
-interface Slice {
-  min: number;
-  max: number;
-  metadata: { executionId: string };
-}
-
-interface ResponseTrendChartData {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  title?: string;
-  min: number;
-  max: number;
-  points: Record<string, Point>;
-  slices: Record<string, Slice>;
-  series: Record<TestStatus | SeverityLevel, string[]>;
-}
-
 interface TrendChartItem {
   id: string;
-  data: Point[];
+  data: TrendPoint[];
   color: string;
 }
 
@@ -40,28 +27,14 @@ export interface TrendChartData {
   min: number;
   max: number;
   items: TrendChartItem[];
-  slices: Slice[];
+  slices: TrendSlice[];
   title?: string;
 }
 
-interface PieSlice {
-  status: TestStatus;
-  count: number;
-  d: string | null;
-}
-
-interface ResponsePieChartData {
-  type: ChartType.Pie;
-  title?: string;
-  percentage: number;
-  slices: PieSlice[];
-}
-
-export type PieChartData = ResponsePieChartData;
 
 export type ChartData = TrendChartData | PieChartData;
 
-type ChartsResponse = Partial<Record<ChartId, ResponseTrendChartData | ResponsePieChartData>>;
+type ChartsResponse = Partial<Record<ChartId, CoreTrendChartData | CorePieChartData>>;
 
 type ChartsData = Record<ChartId, ChartData>;
 
@@ -81,22 +54,8 @@ const severityColors: Record<SeverityLevel, string> = {
   trivial: "var(--bg-support-skat)",
 };
 
-export const dashboardStore = signal<StoreSignalState<ChartsData>>({
-  loading: true,
-  error: undefined,
-  data: undefined,
-});
-
-/**
- * Helper function to create chart data for different chart types
- *
- * @param getChart - Function to get the chart data
- * @param getGroups - Function to get the groups
- * @param getColor - Function to get the color
- * @returns TrendChartData or undefined if the chart data is not available
- */
 const createTrendChartData = <T extends TestStatus | SeverityLevel>(
-  getChart: () => ResponseTrendChartData | undefined,
+  getChart: () => CoreTrendChartData | undefined,
   getGroups: () => readonly T[],
   getColor: (group: T) => string,
 ): TrendChartData | undefined => {
@@ -137,13 +96,14 @@ const createTrendChartData = <T extends TestStatus | SeverityLevel>(
 
 const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
   createTrendChartData(
-    () => res[chartId] as ResponseTrendChartData | undefined,
+    () => res[chartId] && res[chartId].type === ChartType.Trend ? res[chartId] as CoreTrendChartData : undefined,
     () => statusesList,
     (status) => statusColors[status],
   );
+
 const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): TrendChartData | undefined =>
   createTrendChartData(
-    () => res[chartId] as ResponseTrendChartData | undefined,
+    () => res[chartId] && res[chartId].type === ChartType.Trend ? res[chartId] as CoreTrendChartData : undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
   );
@@ -171,6 +131,12 @@ const createCharts = (res: ChartsResponse): ChartsData => {
     return acc;
   }, {} as ChartsData);
 };
+
+export const dashboardStore = signal<StoreSignalState<ChartsData>>({
+  loading: true,
+  error: undefined,
+  data: undefined,
+});
 
 export const fetchDashboardData = async () => {
   dashboardStore.value = {
