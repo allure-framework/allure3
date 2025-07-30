@@ -1,6 +1,6 @@
-import type { HistoryDataPoint, SeverityLevel, TestResult } from "@allurereport/core-api";
+import type { HistoryDataPoint, SeverityLevel, TestResult, TrendChartOptions } from "@allurereport/core-api";
 import { severityLabelName, severityLevels } from "@allurereport/core-api";
-import type { SeverityTrendChartData, TrendChartOptions } from "../charts.js";
+import type { SeverityTrendChartData } from "../charts.js";
 import {
   createEmptySeries,
   createEmptyStats,
