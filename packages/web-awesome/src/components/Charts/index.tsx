@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { type ChartData, capitalize } from "@allurereport/web-commons";
 import { ChartType } from "@allurereport/core-api";
-import { type UIChartData, capitalize } from "@allurereport/web-commons";
 import {
   Grid,
   GridItem,
@@ -16,7 +16,7 @@ import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (
-  chartData: UIChartData,
+  chartData: ChartData,
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
