@@ -1,8 +1,8 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { capitalize } from "@allurereport/web-commons";
 import { Text, TreeItemIcon } from "@allurereport/web-components";
 import clsx from "clsx";
 import { useI18n } from "@/stores";
+import { capitalize } from "@allurereport/web-commons";
 import * as styles from "./styles.scss";
 
 export const TrStatus = ({ status }: { status: TestStatus }) => {

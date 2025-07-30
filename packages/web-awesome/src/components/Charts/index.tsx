@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { type ChartData, capitalize } from "@allurereport/web-commons";
 import { ChartType } from "@allurereport/core-api";
-import { type UIChartData, capitalize } from "@allurereport/web-commons";
 import {
-  ComingSoonChartWidget,
   Grid,
   GridItem,
   Loadable,
@@ -17,7 +16,7 @@ import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (
-  chartData: UIChartData,
+  chartData: ChartData,
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
@@ -50,14 +49,6 @@ const getChartWidgetByType = (
           </div>
         </Widget>
       );
-    }
-    case ChartType.HeatMap:
-    case ChartType.Bar:
-    case ChartType.Funnel:
-    case ChartType.TreeMap: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
     }
   }
 };
