@@ -4,7 +4,7 @@ import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { setTreeStatus, treeFiltersStore } from "@/stores/tree";
-import { capitalize } from "@/utils/capitalize";
+import { capitalize } from "@allurereport/web-commons";
 import { Tab, Tabs, TabsList, useTabsContext } from "../Tabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";

@@ -6,7 +6,7 @@ import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/ReportMetadata/styles.scss";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
+import { capitalize } from "@allurereport/web-commons";
 
 export interface MetadataSummaryProps {
   stats: Statistic;
