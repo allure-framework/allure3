@@ -3,17 +3,6 @@ import { statusesList, severityLevels, ChartType, ChartDataType } from "@allurer
 import { statusColors, severityColors } from "./colors.js";
 import type { StatusTrendSlice, SeverityTrendSlice } from "../charts.js";
 
-export interface UITrendChartData {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  min: number;
-  max: number;
-  items: TrendChartItem[];
-  slices: (StatusTrendSlice | SeverityTrendSlice)[];
-  title?: string;
-}
-
 export interface Point {
   x: Date | string | number;
   y: number;
@@ -46,11 +35,23 @@ export interface ResponsePieChartData {
   slices: PieSlice[];
 }
 
+export interface UITrendChartData {
+  type: ChartType.Trend;
+  dataType: ChartDataType;
+  mode: ChartMode;
+  min: number;
+  max: number;
+  items: TrendChartItem[];
+  slices: (StatusTrendSlice | SeverityTrendSlice)[];
+  title?: string;
+}
 export type UIPieChartData = ResponsePieChartData;
 
-export type ChartsData = Record<ChartId, ResponseTrendChartData | ResponsePieChartData>;
-
+export type ChartData = ResponseTrendChartData | ResponsePieChartData;
 export type UIChartData = UITrendChartData | UIPieChartData;
+
+export type ChartsData = Record<ChartId, ChartData>;
+export type UIChartsData = Record<ChartId, UIChartData>;
 
 export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,

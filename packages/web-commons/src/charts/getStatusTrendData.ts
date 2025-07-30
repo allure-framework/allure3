@@ -1,6 +1,6 @@
-import type { HistoryDataPoint, Statistic } from "@allurereport/core-api";
+import type { HistoryDataPoint, Statistic, TrendChartOptions } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import type { StatusTrendChartData, TrendChartOptions } from "../charts.js";
+import type { StatusTrendChartData } from "../charts.js";
 import {
   createEmptySeries,
   createEmptyStats,
