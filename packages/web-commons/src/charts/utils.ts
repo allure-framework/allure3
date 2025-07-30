@@ -1,9 +1,7 @@
-import type { TestStatus, SeverityLevel } from "@allurereport/core-api";
-import { statusesList, severityLevels } from "@allurereport/core-api";
+import type { TestStatus, SeverityLevel, ChartId, ChartMode, PieSlice } from "@allurereport/core-api";
+import { statusesList, severityLevels, ChartType, ChartDataType } from "@allurereport/core-api";
 import { statusColors, severityColors } from "./colors.js";
-
-import type { ChartId, ChartMode, StatusTrendSlice, SeverityTrendSlice, PieSlice } from "../charts.js";
-import { ChartDataType, ChartType } from "../charts.js";
+import type { StatusTrendSlice, SeverityTrendSlice } from "../charts.js";
 
 export interface UITrendChartData {
   type: ChartType.Trend;
@@ -48,7 +46,11 @@ export interface ResponsePieChartData {
   slices: PieSlice[];
 }
 
+export type UIPieChartData = ResponsePieChartData;
+
 export type ChartsData = Record<ChartId, ResponseTrendChartData | ResponsePieChartData>;
+
+export type UIChartData = UITrendChartData | UIPieChartData;
 
 export const createTrendChartData = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,
@@ -119,7 +121,7 @@ export const createaTrendChartData = (
   }
 };
 
-export const createCharts = (res: ChartsData): Record<ChartId, UITrendChartData | ResponsePieChartData> => {
+export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce((acc, [chartId, chart]) => {
     if (chart.type === ChartType.Trend) {
       const chartData = createaTrendChartData(chartId, chart, res);
@@ -130,5 +132,5 @@ export const createCharts = (res: ChartsData): Record<ChartId, UITrendChartData 
       acc[chartId] = chart;
     }
     return acc;
-  }, {} as Record<ChartId, UITrendChartData | ResponsePieChartData>);
+  }, {} as Record<ChartId, UIChartData>);
 };
