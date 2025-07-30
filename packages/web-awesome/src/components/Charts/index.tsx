@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType, capitalize } from "@allurereport/web-commons";
+import { type ChartData, capitalize } from "@allurereport/web-commons";
+import { ChartType } from "@allurereport/core-api";
 import {
   Grid,
   GridItem,
@@ -12,7 +13,6 @@ import {
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { useI18n } from "@/stores/locale";
-import type { ChartData } from "@/utils/charts";
 import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (
