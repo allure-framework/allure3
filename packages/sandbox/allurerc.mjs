@@ -1,5 +1,7 @@
 import { defineConfig } from "allure";
-// import { maxFailuresRule, minTestsCountRule, qualityGateDefaultRules, successRateRule } from "allure/qualityGate";
+import { createRequire } from "node:module"
+
+const require = createRequire(import.meta.url);
 
 const chartLayout = [
   {
@@ -47,20 +49,20 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-    // "allure2": {
-    //   options: {
-    //     reportName: "HelloWorld",
-    //     singleFile: false,
-    //     reportLanguage: "en",
-    //   },
-    // },
-    // "classic": {
-    //   options: {
-    //     reportName: "HelloWorld",
-    //     singleFile: false,
-    //     reportLanguage: "en",
-    //   },
-    // },
+    "allure2": {
+      options: {
+        reportName: "HelloWorld",
+        singleFile: false,
+        reportLanguage: "en",
+      },
+    },
+    "classic": {
+      options: {
+        reportName: "HelloWorld",
+        singleFile: false,
+        reportLanguage: "en",
+      },
+    },
     "awesome": {
       options: {
         reportName: "HelloWorld",
@@ -70,25 +72,26 @@ export default defineConfig({
         charts: chartLayout,
       },
     },
-    // "dashboard": {
-    //   options: {
-    //     singleFile: false,
-    //     reportName: "HelloWorld-Dashboard",
-    //     reportLanguage: "en",
-    //     layout: chartLayout,
-    //   },
-    // },
-    // "csv": {
-    //   options: {
-    //     fileName: "allure-report.csv",
-    //   },
-    // },
+    "dashboard": {
+      options: {
+        singleFile: false,
+        reportName: "HelloWorld-Dashboard",
+        reportLanguage: "en",
+        layout: chartLayout,
+      },
+    },
+    "csv": {
+      options: {
+        fileName: "allure-report.csv",
+      },
+    },
     "log": {
       options: {
         groupBy: "none",
       },
     },
     "quality-gate": {
+      import: require.resolve("@allurereport/plugin-quality-gate"),
       options: {
         fastFail: true,
         rules: [

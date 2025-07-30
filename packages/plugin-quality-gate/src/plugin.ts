@@ -1,5 +1,5 @@
 import type { TestError, TestResult } from "@allurereport/core-api";
-import {
+import type {
   AllureStore,
   Plugin,
   PluginContext,
@@ -8,12 +8,22 @@ import {
 } from "@allurereport/plugin-api";
 import * as console from "node:console";
 import { gray, red } from "yoctocolors";
-import { QualityGateContext, QualityGatePluginOptions, QualityGateRule, QualityGateRuleMode } from "./model.js";
+import {
+  type QualityGateContext,
+  type QualityGatePluginOptions,
+  type QualityGateRule,
+  QualityGateRuleMode,
+} from "./model.js";
 import { qualityGateDefaultRules } from "./rules.js";
 
 export class QualityGatePlugin implements Plugin {
   #context: QualityGateContext;
   #use: QualityGateRule[];
+  /**
+   * Marks that the plugin has been printed output
+   * Can be used to prevent reporting verification results twice in start subscription and then in done method
+   */
+  #reported: boolean = false;
 
   constructor(private readonly options: QualityGatePluginOptions) {
     this.#context = {
@@ -133,12 +143,18 @@ export class QualityGatePlugin implements Plugin {
         context.dispatcher.sendGlobalError(error);
       });
 
+      if (this.#reported) {
+        return;
+      }
+
       context.dispatcher.sendTerminationRequest(
         1,
         "Quality Gate validation has been failed. Process has been terminated due to fast fail mode is enabled.",
       );
 
       console.error(formattedError);
+
+      this.#reported = true;
     });
   }
 
@@ -161,8 +177,14 @@ export class QualityGatePlugin implements Plugin {
       context.dispatcher.sendGlobalError(error);
     });
 
+    if (this.#reported) {
+      return;
+    }
+
     context.dispatcher.sendTerminationRequest(1, "Quality Gate validation has been failed");
 
     console.error(formattedError);
+
+    this.#reported = true;
   }
 }

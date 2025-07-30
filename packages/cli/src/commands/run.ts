@@ -1,8 +1,4 @@
-import {
-  AllureReport,
-  isFileNotFoundError,
-  readConfig,
-} from "@allurereport/core";
+import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
@@ -23,6 +19,11 @@ import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
 
+export type TestProcessDescriptor = {
+  process: ReturnType<typeof runProcess>;
+  processTerminationPromise: Promise<number | null>;
+};
+
 const runTests = async (
   allureReport: AllureReport,
   cwd: string,
@@ -30,11 +31,9 @@ const runTests = async (
   commandArgs: string[],
   environment: Record<string, string>,
   silent: boolean,
-) => {
+): Promise<TestProcessDescriptor> => {
   let testProcessStarted = false;
-
   const allureResultsWatchers: Map<string, Watcher> = new Map();
-
   const processWatcher = delayedFileProcessingWatcher(
     async (path) => {
       await allureReport.readResult(new PathResultFile(path));
@@ -44,7 +43,6 @@ const runTests = async (
       minProcessingDelay: 1_000,
     },
   );
-
   const allureResultsWatch = allureResultsDirectoriesWatcher(
     cwd,
     async (newAllureResults, deletedAllureResults) => {
@@ -88,21 +86,29 @@ const runTests = async (
 
   const beforeProcess = Date.now();
   const testProcess = runProcess(command, commandArgs, cwd, environment, silent);
-  const code = await terminationOf(testProcess);
-  const afterProcess = Date.now();
 
-  console.log(`process finished with code ${code ?? 0} (${afterProcess - beforeProcess})ms`);
+  return {
+    process: testProcess,
+    // FIXME: at this moment, this is the cheapest way to have the process to control and keep ability to receive original exit code
+    // eslint-disable-next-line no-async-promise-executor
+    processTerminationPromise: new Promise(async (res) => {
+      const code = await terminationOf(testProcess);
+      const afterProcess = Date.now();
 
-  await allureResultsWatch.abort();
+      console.log(`process finished with code ${code ?? 0} (${afterProcess - beforeProcess})ms`);
 
-  for (const [ar, watcher] of allureResultsWatchers) {
-    await watcher.abort();
-    allureResultsWatchers.delete(ar);
-  }
+      await allureResultsWatch.abort();
 
-  await processWatcher.abort();
+      for (const [ar, watcher] of allureResultsWatchers) {
+        await watcher.abort();
+        allureResultsWatchers.delete(ar);
+      }
 
-  return code;
+      await processWatcher.abort();
+
+      return res(code);
+    }),
+  };
 };
 
 export class RunCommand extends Command {
@@ -141,7 +147,7 @@ export class RunCommand extends Command {
     description: "Don't pipe the process output logs to console (default: 0)",
   });
 
-  commandToRun = Option.Proxy();
+  commandToRun = Option.Rest();
 
   async execute() {
     const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
@@ -197,13 +203,22 @@ export class RunCommand extends Command {
 
       await allureReport.start();
 
-      allureReport.realtimeSubscriber.onTerminationRequest(async () => {
-        // TODO: terminate process here and let the report to process the results
-      })
+      let testProcess: TestProcessDescriptor = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
+      let code = await testProcess.processTerminationPromise;
+      let processTerminated = false;
 
-      let code = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
+      allureReport.realtimeSubscriber.onTerminationRequest(async (exitCode) => {
+        processTerminated = true;
+        code = exitCode;
+
+        testProcess.process.kill(1);
+      });
 
       for (let rerun = 0; rerun < maxRerun; rerun++) {
+        if (processTerminated) {
+          break;
+        }
+
         const failed = await allureReport.store.failedTestResults();
 
         if (failed.length === 0) {
@@ -218,9 +233,10 @@ export class RunCommand extends Command {
 
         const tmpDir = await mkdtemp(join(tmpdir(), "allure-run-"));
         const testPlanPath = resolve(tmpDir, `${rerun}-testplan.json`);
+
         await writeFile(testPlanPath, JSON.stringify(testPlan));
 
-        code = await runTests(
+        testProcess = await runTests(
           allureReport,
           cwd,
           command,
@@ -232,11 +248,16 @@ export class RunCommand extends Command {
           silent,
         );
 
+        code = await testProcess.processTerminationPromise;
+
         await rm(tmpDir, { recursive: true });
+
         logTests(await allureReport.store.allTestResults());
       }
 
       await allureReport.done();
+
+      process.exit(code ?? 0);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
