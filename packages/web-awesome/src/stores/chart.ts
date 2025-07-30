@@ -1,10 +1,10 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { fetchReportJsonData, getPieChartData, createCharts } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-import type { ChartsData, ChartsResponse } from "@/utils/charts";
-import { createCharts } from "@/utils/charts";
+import type { ChartsResponse, UIChartsData, TestResultChartData } from "@allurereport/web-commons";
+import type { Statistic } from "@allurereport/core-api";
 
-export const pieChartStore = signal<StoreSignalState<any>>({
+export const pieChartStore = signal<StoreSignalState<TestResultChartData>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -18,12 +18,13 @@ export const fetchPieChartData = async (env: string) => {
   };
 
   try {
-    const res = await fetchReportJsonData(env ? `widgets/${env}/pie_chart.json` : "widgets/pie_chart.json", {
-      bustCache: true,
-    });
+    const res = await fetchReportJsonData<Statistic>(
+      env ? `widgets/${env}/statistic.json` : "widgets/statistic.json",
+      { bustCache: true }
+    );
 
     pieChartStore.value = {
-      data: res,
+      data: getPieChartData(res),
       error: undefined,
       loading: false,
     };
@@ -35,7 +36,7 @@ export const fetchPieChartData = async (env: string) => {
   }
 };
 
-export const chartsStore = signal<StoreSignalState<ChartsData>>({
+export const chartsStore = signal<StoreSignalState<UIChartsData>>({
   loading: true,
   error: undefined,
   data: undefined,
