@@ -8,6 +8,7 @@ import type {
   TestEnvGroup,
   TestFixtureResult,
   TestResult,
+  TestError,
 } from "@allurereport/core-api";
 import type { ResultFile } from "./resultFile.js";
 
@@ -23,6 +24,8 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: () => Promise<TestResult[]>;
+  // global data
+  allGlobalErrors: () => Promise<TestError[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;

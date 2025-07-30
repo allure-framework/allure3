@@ -1,5 +1,5 @@
 import { defineConfig } from "allure";
-import { qualityGateDefaultRules, minTestsCountRule, maxFailuresRule, successRateRule } from "allure/qualityGate"
+// import { maxFailuresRule, minTestsCountRule, qualityGateDefaultRules, successRateRule } from "allure/qualityGate";
 
 const chartLayout = [
   {
@@ -47,21 +47,21 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-    allure2: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-      },
-    },
-    classic: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-      },
-    },
-    awesome: {
+    // "allure2": {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //   },
+    // },
+    // "classic": {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //   },
+    // },
+    "awesome": {
       options: {
         reportName: "HelloWorld",
         singleFile: false,
@@ -70,22 +70,40 @@ export default defineConfig({
         charts: chartLayout,
       },
     },
-    dashboard: {
-      options: {
-        singleFile: false,
-        reportName: "HelloWorld-Dashboard",
-        reportLanguage: "en",
-        layout: chartLayout,
-      },
-    },
-    csv: {
-      options: {
-        fileName: "allure-report.csv",
-      },
-    },
-    log: {
+    // "dashboard": {
+    //   options: {
+    //     singleFile: false,
+    //     reportName: "HelloWorld-Dashboard",
+    //     reportLanguage: "en",
+    //     layout: chartLayout,
+    //   },
+    // },
+    // "csv": {
+    //   options: {
+    //     fileName: "allure-report.csv",
+    //   },
+    // },
+    "log": {
       options: {
         groupBy: "none",
+      },
+    },
+    "quality-gate": {
+      options: {
+        fastFail: true,
+        rules: [
+          {
+            minTestsCount: 10,
+          },
+          {
+            id: "first-gate",
+            maxFailures: 1,
+          },
+          {
+            id: "second-gate",
+            successRate: 0.9,
+          },
+        ],
       },
     },
   },
@@ -93,19 +111,4 @@ export default defineConfig({
   //   url: "http://localhost:5173",
   //   project: "sandbox",
   // },
-  qualityGate: {
-    rules: [
-      {
-        minTestsCount: 10,
-      },
-      {
-        id: "first-gate",
-        maxFailures: 1,
-      },
-      {
-        id: "second-gate",
-        successRate: 0.9,
-      }
-    ]
-  }
 });

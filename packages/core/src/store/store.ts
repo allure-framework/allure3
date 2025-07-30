@@ -13,6 +13,7 @@ import {
   type TestEnvGroup,
   type TestFixtureResult,
   type TestResult,
+  type TestError,
   compareBy,
   getWorstStatus,
   matchEnvironment,
@@ -20,7 +21,14 @@ import {
   ordinal,
   reverse,
 } from "@allurereport/core-api";
-import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type ResultFile,
+  type TestResultFilter,
+  md5,
+  PrivateEventsDispatcher,
+  RealtimeSubscriber,
+} from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawMetadata,
@@ -28,8 +36,6 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import type { EventEmitter } from "node:events";
-import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
@@ -58,7 +64,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
-  readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
+  readonly #runtimeDispatcher?: PrivateEventsDispatcher;
+  readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -67,13 +74,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
+  // TODO:
+  readonly #globalErrors: TestError[] = [];
+
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
-    eventEmitter?: EventEmitter<AllureStoreEvents>;
+    externalDispatcher?: PrivateEventsDispatcher;
+    realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
@@ -81,7 +92,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
-      eventEmitter,
+      externalDispatcher,
+      realtimeSubscriber,
       defaultLabels = {},
       environmentsConfig = {},
       reportVariables = {},
@@ -96,7 +108,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
-    this.#eventEmitter = eventEmitter;
+    this.#runtimeDispatcher = externalDispatcher;
+    this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
     this.#reportVariables = reportVariables;
@@ -108,6 +121,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       .forEach((key) => {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
+
+    this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
+      this.#globalErrors.push(error);
+    });
   }
 
   // history state
@@ -155,6 +172,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } catch (err) {
       return undefined;
     }
+  }
+
+  // global data
+
+  async allGlobalErrors(): Promise<TestError[]> {
+    return this.#globalErrors;
   }
 
   // test methods
@@ -223,7 +246,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
     index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testResult", testResult.id);
+
+    this.#runtimeDispatcher?.sendTestResult(testResult.id);
   }
 
   async visitTestFixtureResult(result: RawFixtureResult, context: ReaderContext): Promise<void> {
@@ -243,7 +267,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       index(this.indexFixturesByTestResult, trId, testFixtureResult);
     });
     index(this.indexAttachmentByFixture, testFixtureResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testFixtureResult", testFixtureResult.id);
+    this.#runtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -274,7 +298,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    this.#eventEmitter?.emit("attachmentFile", id);
+    this.#runtimeDispatcher?.sendAttachmentFile(id);
   }
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {

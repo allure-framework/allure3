@@ -11,4 +11,3 @@ export * from "./known.js";
 export { resolveConfig, readConfig, getPluginInstance, enforcePlugin } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
-export * from "./qualityGate.js";

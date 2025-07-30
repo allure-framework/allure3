@@ -1,6 +1,5 @@
 import type { DefaultLabelsConfig, EnvironmentsConfig, ReportVariables } from "@allurereport/core-api";
 import type { PluginDescriptor } from "./plugin.js";
-import type { QualityGateConfig } from "./qualityGate.js";
 
 export interface Config {
   name?: string;
@@ -37,7 +36,6 @@ export interface Config {
    * Both examples above will do the same thing
    */
   plugins?: Record<string, PluginDescriptor>;
-  qualityGate?: QualityGateConfig;
   appendHistory?: boolean;
   allureService?: {
     url?: string;

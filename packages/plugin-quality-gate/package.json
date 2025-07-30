@@ -1,24 +1,25 @@
 {
-  "name": "allure",
+  "name": "@allurereport/plugin-quality-gate",
   "version": "3.0.0-beta.16",
-  "description": "Allure Commandline Tool",
+  "description": "Allure Plugin to validate tests in the project",
   "keywords": [
     "allure",
     "testing",
-    "report"
+    "report",
+    "plugin",
+    "cli",
+    "stdout"
   ],
   "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./qualityGate": "./dist/qualityGate.js"
+    ".": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": "./cli.js",
   "files": [
     "./dist"
   ],
@@ -27,39 +28,17 @@
     "clean": "rimraf ./dist",
     "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
-    "start": "node ./cli.js",
-    "test": "vitest run"
+    "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
-    "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
-    "@allurereport/directory-watcher": "workspace:*",
-    "@allurereport/plugin-allure2": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/plugin-awesome": "workspace:*",
-    "@allurereport/plugin-classic": "workspace:*",
-    "@allurereport/plugin-csv": "workspace:*",
-    "@allurereport/plugin-dashboard": "workspace:*",
-    "@allurereport/plugin-log": "workspace:*",
-    "@allurereport/plugin-progress": "workspace:*",
-    "@allurereport/plugin-quality-gate": "workspace:*",
-    "@allurereport/plugin-server-reload": "workspace:*",
-    "@allurereport/plugin-slack": "workspace:*",
-    "@allurereport/reader-api": "workspace:*",
-    "@allurereport/service": "workspace:*",
-    "@allurereport/static-server": "workspace:*",
-    "clipanion": "^4.0.0-rc.4",
-    "lodash.omit": "^4.5.0",
-    "prompts": "^2.4.2",
-    "typanion": "^3.14.0",
     "yoctocolors": "^2.1.1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
-    "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
-    "@types/prompts": "^2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",

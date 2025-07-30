@@ -2,8 +2,6 @@ import {
   AllureReport,
   isFileNotFoundError,
   readConfig,
-  runQualityGate,
-  stringifyQualityGateResults,
 } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
@@ -87,6 +85,7 @@ const runTests = async (
   await allureResultsWatch.initialScan();
 
   testProcessStarted = true;
+
   const beforeProcess = Date.now();
   const testProcess = runProcess(command, commandArgs, cwd, environment, silent);
   const code = await terminationOf(testProcess);
@@ -102,6 +101,7 @@ const runTests = async (
   }
 
   await processWatcher.abort();
+
   return code;
 };
 
@@ -159,7 +159,6 @@ export class RunCommand extends Command {
 
     const command = args[0];
     const commandArgs = args.slice(1);
-
     const cwd = await realpath(this.cwd ?? process.cwd());
 
     console.log(`${command} ${commandArgs.join(" ")}`);
@@ -198,6 +197,10 @@ export class RunCommand extends Command {
 
       await allureReport.start();
 
+      allureReport.realtimeSubscriber.onTerminationRequest(async () => {
+        // TODO: terminate process here and let the report to process the results
+      })
+
       let code = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
 
       for (let rerun = 0; rerun < maxRerun; rerun++) {
@@ -234,24 +237,6 @@ export class RunCommand extends Command {
       }
 
       await allureReport.done();
-
-      // if there is no quality gate config, just exit with the real exit code
-      if (!config.qualityGate) {
-        process.exit(code);
-        return;
-      }
-
-      const validationResults = await runQualityGate(allureReport.store, config.qualityGate);
-
-      // all checks are positive, test run is successful
-      if (validationResults.length === 0) {
-        process.exit(0);
-        return;
-      }
-
-      console.error(stringifyQualityGateResults(validationResults));
-
-      process.exit(1);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
