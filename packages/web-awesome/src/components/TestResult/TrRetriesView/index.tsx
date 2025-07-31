@@ -13,7 +13,14 @@ export const TrRetriesView: FunctionalComponent<{
   return (
     <div className={styles["test-result-history"]}>
       {retries.length ? (
-        retries?.map((item, key) => <TrRetriesItem testResultItem={item as unknown as AwesomeTestResult} key={key} />)
+        retries?.map((item, key) => (
+          <TrRetriesItem
+            testResultItem={item as unknown as AwesomeTestResult}
+            key={key}
+            attempt={retries.length - key}
+            totalAttempts={retries.length + 1}
+          />
+        ))
       ) : (
         <div className={styles["test-result-empty"]}>{t("no-retries-results")}</div>
       )}

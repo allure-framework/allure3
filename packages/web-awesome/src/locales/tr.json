@@ -116,6 +116,7 @@
     "showLess": "Daha az göster",
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
+    "attempt": "Deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace'i aç"
