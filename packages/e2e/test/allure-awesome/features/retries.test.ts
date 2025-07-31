@@ -101,6 +101,15 @@ test.describe("retries", () => {
       expect(total).toBe("3");
       expect(retries).toBe("2");
     });
+
+    test("should show tooltip with retries filter description on hover", async () => {
+      await treePage.openFilterMenu();
+      await expect(treePage.retryFilterLocator).toBeVisible();
+      await treePage.retryFilterLocator.hover();
+      await expect(treePage.filterTooltipLocator).toBeVisible();
+      await treePage.closeTooltip();
+      await expect(treePage.filterTooltipLocator).toBeHidden();
+    });
   });
 
   test.describe("test results", () => {
@@ -198,14 +207,5 @@ test.describe("retries", () => {
         await expect(retryAt1.textLocator).toHaveText("Attempt 1 of 3");
       });
     });
-  });
-
-  test("should show tooltip with retries filter description on hover", async () => {
-    await treePage.openFilterMenu();
-    await expect(treePage.retryFilterLocator).toBeVisible();
-    await treePage.retryFilterLocator.hover();
-    await expect(treePage.filterTooltipLocator).toBeVisible();
-    await treePage.closeTooltip();
-    await expect(treePage.filterTooltipLocator).toBeHidden();
   });
 });
