@@ -1,1 +1,1 @@
-{"id":"5766f2e501d8d786aa6f75c1f2e4a676","fullName":"allure-awesome/test/testResult.test.ts:154:5","name":"broken test contains error message and stack","status":"passed","testResultsByEnv":{"default":"b4a21457aa31a6449b0007a4e7735465"}}
+{"id":"5766f2e501d8d786aa6f75c1f2e4a676","fullName":"allure-awesome/test/testResult.test.ts:154:5","name":"broken test contains error message and stack","status":"passed","testResultsByEnv":{"default":"a55e132ad995109e47cfab15e3859963"}}
