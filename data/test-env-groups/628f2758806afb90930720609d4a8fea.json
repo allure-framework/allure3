@@ -1,1 +1,1 @@
-{"id":"628f2758806afb90930720609d4a8fea","fullName":"test/detectors/jenkins.test.ts#jenkins pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"default":"45e4735ba0e1428a416ea529f33a865a"}}
+{"id":"628f2758806afb90930720609d4a8fea","fullName":"test/detectors/jenkins.test.ts#jenkins pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"default":"9c37dde0b62744dc25b25ccf268fde78"}}

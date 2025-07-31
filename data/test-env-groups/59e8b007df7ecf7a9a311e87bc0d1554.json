@@ -1,1 +1,1 @@
-{"id":"59e8b007df7ecf7a9a311e87bc0d1554","fullName":"test/detectors/jenkins.test.ts#jenkins jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"de9c03bc938d34697aac6398a2baa81f"}}
+{"id":"59e8b007df7ecf7a9a311e87bc0d1554","fullName":"test/detectors/jenkins.test.ts#jenkins jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"488b534f35d718873982538720010715"}}
