@@ -95,6 +95,7 @@
     "showLess": "ნაკლების ჩვენება",
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
+    "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე"
   },
   "controls": {
