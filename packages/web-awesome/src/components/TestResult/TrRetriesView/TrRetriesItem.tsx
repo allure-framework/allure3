@@ -23,7 +23,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
 
   const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
   const convertedStop = stop ? timestampToDate(stop) : undefined;
-  const retryTitle = convertedStop ? `${retryTitlePrefix} -- ${convertedStop}` : retryTitlePrefix;
+  const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
 
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
   const navigateUrl = id;
