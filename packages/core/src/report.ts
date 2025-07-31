@@ -23,7 +23,7 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { DefaultAllureStore } from "./store/store.js";
 import {
-  AllureStoreEvents,
+  type AllureStoreEvents,
   ExternalEventsDispatcher,
   InternalEventsDispatcher,
   RealtimeEventsSubscriber,

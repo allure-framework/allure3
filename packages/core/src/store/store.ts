@@ -23,8 +23,8 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
-  PrivateEventsDispatcher,
-  RealtimeSubscriber,
+  type PrivateEventsDispatcher,
+  type RealtimeSubscriber,
   type ResultFile,
   type TestResultFilter,
   md5,
