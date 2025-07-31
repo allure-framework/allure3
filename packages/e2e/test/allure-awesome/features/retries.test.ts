@@ -183,8 +183,8 @@ test.describe("retries", () => {
         const retryAt0 = testResultPage.getRetry(0);
         const retryAt1 = testResultPage.getRetry(1);
 
-        await expect(retryAt0.textLocator).toHaveText(/^Attempt 2 of 3 -- \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
-        await expect(retryAt1.textLocator).toHaveText(/^Attempt 1 of 3 -- \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
+        await expect(retryAt0.textLocator).toHaveText(/^Attempt 2 of 3 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
+        await expect(retryAt1.textLocator).toHaveText(/^Attempt 1 of 3 – \d+\/\d+\/\d+ at \d+:\d+:\d+$/);
       });
 
       test("retry titles of tests with no timestampts have prefixes", async () => {
