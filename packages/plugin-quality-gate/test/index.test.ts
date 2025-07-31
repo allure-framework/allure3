@@ -25,7 +25,7 @@ beforeEach(() => {
 
 describe("QualityGatePlugin", () => {
   describe("general", () => {
-    let context: PluginContext;
+    let context: any;
 
     beforeEach(async () => {
       const testResults = [
@@ -47,7 +47,7 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const store = {
         allTestResults: vi.fn().mockResolvedValue(testResults),
         allKnownIssues: vi.fn().mockResolvedValue([]),
@@ -94,9 +94,9 @@ describe("QualityGatePlugin", () => {
       const store = {} as unknown as AllureStore;
       const realtime = {
         onTestResults: vi.fn(),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).not.toHaveBeenCalled();
     });
@@ -111,9 +111,9 @@ describe("QualityGatePlugin", () => {
       const store = {} as unknown as AllureStore;
       const realtime = {
         onTestResults: vi.fn(),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).not.toHaveBeenCalled();
     });
@@ -128,9 +128,9 @@ describe("QualityGatePlugin", () => {
       const store = {} as unknown as AllureStore;
       const realtime = {
         onTestResults: vi.fn(),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).toHaveBeenCalled();
     });
@@ -148,7 +148,7 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const testResults = [
         { id: "1", status: "passed" } as unknown as TestResult,
         { id: "2", status: "passed" } as unknown as TestResult,
@@ -163,9 +163,9 @@ describe("QualityGatePlugin", () => {
         onTestResults: vi.fn().mockImplementation((callback) => {
           onTestResultsCallback = callback;
         }),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context as unknown as PluginContext, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).toHaveBeenCalled();
       expect(onTestResultsCallback).not.toBeNull();
@@ -193,7 +193,7 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const testResults = [
         { id: "1", status: "passed" } as unknown as TestResult,
         { id: "2", status: "failed" } as unknown as TestResult,
@@ -208,9 +208,9 @@ describe("QualityGatePlugin", () => {
         onTestResults: vi.fn().mockImplementation((callback) => {
           onTestResultsCallback = callback;
         }),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context as unknown as PluginContext, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).toHaveBeenCalled();
       expect(onTestResultsCallback).not.toBeNull();
@@ -222,7 +222,7 @@ describe("QualityGatePlugin", () => {
       expect(fixtures.relativeRule.validate).toHaveBeenCalled();
       expect(context.dispatcher.sendGlobalError).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: `Quality Gate (testRule): message`,
+          message: "Quality Gate (testRule): message",
           actual: 3,
           expected: 5,
         }),
@@ -247,7 +247,7 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const testResults = [
         { id: "1", status: "passed" } as unknown as TestResult,
         { id: "2", status: "failed" } as unknown as TestResult,
@@ -262,9 +262,9 @@ describe("QualityGatePlugin", () => {
         onTestResults: vi.fn().mockImplementation((callback) => {
           onTestResultsCallback = callback;
         }),
-      } as unknown as RealtimeSubscriber;
+      };
 
-      await plugin.start(context, store, realtime);
+      await plugin.start(context as unknown as PluginContext, store, realtime as unknown as RealtimeSubscriber);
 
       expect(realtime.onTestResults).toHaveBeenCalled();
       expect(onTestResultsCallback).not.toBeNull();
@@ -288,12 +288,12 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const store = {
         allTestResults: vi.fn().mockResolvedValue([]),
       } as unknown as AllureStore;
 
-      await plugin.done(context, store);
+      await plugin.done(context as unknown as PluginContext, store);
 
       expect(store.allTestResults).not.toHaveBeenCalled();
       expect(context.dispatcher.sendGlobalError).not.toHaveBeenCalled();
@@ -312,12 +312,12 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const store = {
         allTestResults: vi.fn().mockResolvedValue([]),
       } as unknown as AllureStore;
 
-      await plugin.done(context, store);
+      await plugin.done(context as unknown as PluginContext, store);
 
       expect(store.allTestResults).toHaveBeenCalled();
       expect(context.dispatcher.sendGlobalError).not.toHaveBeenCalled();
@@ -336,7 +336,7 @@ describe("QualityGatePlugin", () => {
           sendGlobalError: vi.fn(),
           sendTerminationRequest: vi.fn(),
         },
-      } as unknown as PluginContext;
+      };
       const testResults = [
         { id: "1", status: "passed" } as unknown as TestResult,
         { id: "2", status: "failed" } as unknown as TestResult,
@@ -345,7 +345,7 @@ describe("QualityGatePlugin", () => {
         allTestResults: vi.fn().mockResolvedValue(testResults),
       } as unknown as AllureStore;
 
-      await plugin.done(context, store);
+      await plugin.done(context as unknown as PluginContext, store);
 
       expect(store.allTestResults).toHaveBeenCalled();
       expect(fixtures.relativeRule.validate).toHaveBeenCalled();

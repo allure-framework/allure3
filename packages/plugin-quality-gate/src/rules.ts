@@ -1,4 +1,4 @@
-import { filterSuccessful, filterUnsuccessful, TestResult } from "@allurereport/core-api";
+import { type TestResult, filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
 import { bold } from "yoctocolors";
 import { type QualityGateRule, QualityGateRuleMode } from "./model.js";
 

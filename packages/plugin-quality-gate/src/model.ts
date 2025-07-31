@@ -17,19 +17,23 @@ export enum QualityGateRuleMode {
 export type QualityGateContext = {
   rulesState: Record<string, any>;
   store?: AllureStore;
-}
+};
 
 export type QualityGateRuleContext = QualityGateContext & {
   state: any;
   id?: string;
   filter?: (tr: TestResult) => boolean;
-}
+};
 
 export type QualityGateRule = {
   rule: string;
   mode: QualityGateRuleMode;
   message: (payload: { expected: any; actual: any }) => string;
-  validate: (trs: TestResult[], expected: any, context: QualityGateRuleContext) => Promise<Pick<QualityGateValidationResult, "success" | "actual" | "expected">>;
+  validate: (
+    trs: TestResult[],
+    expected: any,
+    context: QualityGateRuleContext,
+  ) => Promise<Pick<QualityGateValidationResult, "success" | "actual" | "expected">>;
 };
 
 export type QualityGateRuleOptions = {
