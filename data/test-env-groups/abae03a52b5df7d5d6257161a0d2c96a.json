@@ -1,1 +1,1 @@
-{"id":"abae03a52b5df7d5d6257161a0d2c96a","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a broken test case","name":"should parse a broken test case","status":"passed","testResultsByEnv":{"default":"10324cf5384de172df59b3e5c5a25e0d"}}
+{"id":"abae03a52b5df7d5d6257161a0d2c96a","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a broken test case","name":"should parse a broken test case","status":"passed","testResultsByEnv":{"default":"24ef4b360ed8895576d6bde1a780b054"}}

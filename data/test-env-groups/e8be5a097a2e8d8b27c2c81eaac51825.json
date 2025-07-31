@@ -1,0 +1,1 @@
+{"id":"e8be5a097a2e8d8b27c2c81eaac51825","fullName":"test/xcresult.test.ts#A MAC machine labels a test nested within three suites should have two suites merged into subSuite","name":"should have two suites merged into subSuite","status":"passed","testResultsByEnv":{"default":"8d742c57b3fb1df7f6c219171006e5b9"}}
