@@ -1,4 +1,4 @@
-import type { TestError } from "@allurereport/core-api"
+import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
   PrivateEventsDispatcher,

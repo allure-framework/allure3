@@ -11,9 +11,9 @@ import {
   type ReportVariables,
   type TestCase,
   type TestEnvGroup,
+  type TestError,
   type TestFixtureResult,
   type TestResult,
-  type TestError,
   compareBy,
   getWorstStatus,
   matchEnvironment,
@@ -23,11 +23,11 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  PrivateEventsDispatcher,
+  RealtimeSubscriber,
   type ResultFile,
   type TestResultFilter,
   md5,
-  PrivateEventsDispatcher,
-  RealtimeSubscriber,
 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,

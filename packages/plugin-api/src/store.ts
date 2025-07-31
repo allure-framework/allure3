@@ -6,9 +6,9 @@ import type {
   Statistic,
   TestCase,
   TestEnvGroup,
+  TestError,
   TestFixtureResult,
   TestResult,
-  TestError,
 } from "@allurereport/core-api";
 import type { ResultFile } from "./resultFile.js";
 

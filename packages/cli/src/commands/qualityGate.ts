@@ -1,11 +1,9 @@
-import {AllureReport, enforcePlugin, readConfig} from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import QualityGatePlugin from "@allurereport/plugin-quality-gate";
 import { Command, Option } from "clipanion";
-import QualityGatePlugin from "@allurereport/plugin-quality-gate"
-import * as typanion from "typanion";
-import * as console from "node:console";
+import { realpath } from "node:fs/promises";
 import { exit } from "node:process";
-import { red } from "yoctocolors";
-import {realpath} from "node:fs/promises";
+import * as typanion from "typanion";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -58,8 +56,10 @@ export class QualityGateCommand extends Command {
   async execute() {
     const { maxFailures, minTestsCount, successRate, forceFail, knownIssues } = this;
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const fullConfig = await readConfig(this.cwd, this.config);
-    const rules: Record<string, any> = {}
+    const fullConfig = await readConfig(cwd, this.config, {
+      knownIssuesPath: knownIssues,
+    });
+    const rules: Record<string, any> = {};
 
     if (maxFailures !== undefined) {
       rules.maxFailures = maxFailures;
@@ -78,40 +78,25 @@ export class QualityGateCommand extends Command {
         {
           forceFail,
           rules,
-        }
-      ]
-    }
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        knownIssuesPath: this.knownIssues,
-      }),
-      {
-        id: "quality-gate",
-        enabled: true,
-        options: defaultQualityGateOptions,
-        plugin: new QualityGatePlugin(defaultQualityGateOptions),
-      },
-    );
+        },
+      ],
+    };
+    const config = enforcePlugin(fullConfig, {
+      id: "quality-gate",
+      enabled: true,
+      options: defaultQualityGateOptions,
+      plugin: new QualityGatePlugin(defaultQualityGateOptions),
+    });
     const allureReport = new AllureReport(config);
 
-    // TODO:
-    // allureReport.realtimeSubscriber.onGlobalError(() => {
-    //
-    // })
+    allureReport.realtimeSubscriber.onTerminationRequest((code) => {
+      exit(code);
+    });
 
     await allureReport.start();
     await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
 
-    // const results = await runQualityGate(allureReport.store, fullConfig.qualityGate);
-    //
-    // if (results.length === 0) {
-    //   exit(0);
-    //   return;
-    // }
-    //
-    // console.error(stringifyQualityGateResults(results));
-    //
-    // exit(1);
+    exit(0);
   }
 }
