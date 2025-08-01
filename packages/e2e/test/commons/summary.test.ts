@@ -23,8 +23,6 @@ test.describe("summary", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {
@@ -57,8 +55,6 @@ test.describe("summary", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {
@@ -97,8 +93,6 @@ test.describe("summary", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {
@@ -146,8 +140,6 @@ test.describe("summary", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {

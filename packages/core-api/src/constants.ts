@@ -19,7 +19,9 @@ export const filterByStatus = <T extends { status: TestStatus }>(statuses: Itera
 };
 
 export const filterSuccessful = filterByStatus(successfulStatuses);
+
 export const filterUnsuccessful = filterByStatus(unsuccessfulStatuses);
+
 export const filterIncludedInSuccessRate = filterByStatus(includedInSuccessRate);
 
 export const emptyStatistic: () => Statistic = () => ({ total: 0 });

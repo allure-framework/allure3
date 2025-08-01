@@ -6,7 +6,10 @@
     "skipped": "hoppad över",
     "unknown": "okänd",
     "total": "totalt",
-    "in": "i"
+    "in": "i",
+    "new": "nya tester",
+    "flaky": "instabila tester",
+    "retry": "upprepade tester"
   },
   "empty": {
     "no-reports": "Inga rapporter"
