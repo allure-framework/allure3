@@ -6,6 +6,7 @@ import type {
   Statistic,
   TestCase,
   TestEnvGroup,
+  TestError,
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
@@ -23,6 +24,8 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: () => Promise<TestResult[]>;
+  // global data
+  allGlobalErrors: () => Promise<TestError[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;

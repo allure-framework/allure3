@@ -1,8 +1,9 @@
-import { AllureReport, readConfig } from "@allurereport/core";
+import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import QualityGatePlugin from "@allurereport/plugin-quality-gate";
 import { Command, Option } from "clipanion";
-import * as console from "node:console";
+import { realpath } from "node:fs/promises";
 import { exit } from "node:process";
-import { bold, red } from "yoctocolors";
+import * as typanion from "typanion";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -25,44 +26,77 @@ export class QualityGateCommand extends Command {
     description: "The path Allure config file",
   });
 
+  forceFail = Option.Boolean("--force-fail", {
+    description: "Force the command to fail if there are any rule failures",
+  });
+
+  maxFailures = Option.String("--max-failures", {
+    description: "The maximum number of rule failures to allow before failing the command",
+    validator: typanion.isNumber(),
+  });
+
+  minTestsCount = Option.String("--min-tests-count", {
+    description: "The minimum number of tests to run before validating the quality gate",
+    validator: typanion.isNumber(),
+  });
+
+  successRate = Option.String("--success-rate", {
+    description: "The minimum success rate to allow before failing the command",
+    validator: typanion.isNumber(),
+  });
+
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
+  });
+
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
 
   async execute() {
-    const fullConfig = await readConfig(this.cwd, this.config);
-    const allureReport = new AllureReport(fullConfig);
+    const { maxFailures, minTestsCount, successRate, forceFail, knownIssues } = this;
+    const cwd = await realpath(this.cwd ?? process.cwd());
+    const fullConfig = await readConfig(cwd, this.config, {
+      knownIssuesPath: knownIssues,
+    });
+    const rules: Record<string, any> = {};
+
+    if (maxFailures !== undefined) {
+      rules.maxFailures = maxFailures;
+    }
+
+    if (minTestsCount !== undefined) {
+      rules.minTestsCount = minTestsCount;
+    }
+
+    if (successRate !== undefined) {
+      rules.successRate = successRate;
+    }
+
+    const defaultQualityGateOptions = {
+      rules: [
+        {
+          forceFail,
+          rules,
+        },
+      ],
+    };
+    const config = enforcePlugin(fullConfig, {
+      id: "quality-gate",
+      enabled: true,
+      options: defaultQualityGateOptions,
+      plugin: new QualityGatePlugin(defaultQualityGateOptions),
+    });
+    const allureReport = new AllureReport(config);
+
+    allureReport.realtimeSubscriber.onTerminationRequest((code) => {
+      exit(code);
+    });
 
     await allureReport.start();
     await allureReport.readDirectory(this.resultsDir);
     await allureReport.done();
-    await allureReport.validate();
 
-    if (allureReport.exitCode === 0) {
-      return;
-    }
-
-    const failedResults = allureReport.validationResults.filter((result) => !result.success);
-
-    console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
-
-    for (const result of failedResults) {
-      let scope = "";
-
-      switch (result.meta?.type) {
-        case "label":
-          scope = `(label[${result.meta.name}="${result.meta.value}"])`;
-          break;
-        case "parameter":
-          scope = `(parameter[${result.meta.name}="${result.meta.value}"])`;
-          break;
-      }
-
-      console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
-    }
-
-    console.error(red("\nThe process has been exited with code 1"));
-
-    exit(allureReport.exitCode);
+    exit(0);
   }
 }

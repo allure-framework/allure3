@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`QualityGatePlugin > general > should convert quality gate results to a terminal-friendly string 1`] = `
+"[31mQuality Gate failed with following issues:[39m
+
+ [31m⨯[39m Maximum number of failed tests [1m1[22m is more, than expected [1m0[22m    [90mmaxFailures[39m
+ [31m⨯[39m Minimum number of tests [1m2[22m is less, than expected [1m10[22m          [90mminTestsCount[39m
+ [31m⨯[39m Success rate [1m0.5[22m is less, than expected [1m0.9[22m                  [90msuccessRate[39m
+
+[31m3 quality gate rules have been failed.[39m"
+`;

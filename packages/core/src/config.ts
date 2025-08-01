@@ -72,7 +72,6 @@ export const validateConfig = (config: Config) => {
     "output",
     "historyPath",
     "knownIssuesPath",
-    "qualityGate",
     "plugins",
     "defaultLabels",
     "variables",
@@ -128,7 +127,6 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     appendHistory,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
-    qualityGate: config.qualityGate,
     allureService: config.allureService,
   };
 };

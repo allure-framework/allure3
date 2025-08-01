@@ -21,10 +21,13 @@ import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
-import { QualityGate } from "./qualityGate.js";
 import { DefaultAllureStore } from "./store/store.js";
-import type { AllureStoreEvents } from "./utils/event.js";
-import { Events } from "./utils/event.js";
+import {
+  type AllureStoreEvents,
+  ExternalEventsDispatcher,
+  InternalEventsDispatcher,
+  RealtimeEventsSubscriber,
+} from "./utils/event.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -37,8 +40,9 @@ export class AllureReport {
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
-  readonly #events: Events;
-  readonly #qualityGate: QualityGate;
+  readonly #realtimeSubscriber: RealtimeEventsSubscriber;
+  readonly #internalDispatcher: InternalEventsDispatcher;
+  readonly #externalDispatcher: ExternalEventsDispatcher;
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
@@ -56,7 +60,6 @@ export class AllureReport {
       plugins = [],
       known,
       reportFiles,
-      qualityGate,
       realTime,
       historyPath,
       defaultLabels = {},
@@ -74,7 +77,9 @@ export class AllureReport {
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
-    this.#events = new Events(this.#eventEmitter);
+    this.#externalDispatcher = new ExternalEventsDispatcher(this.#eventEmitter);
+    this.#internalDispatcher = new InternalEventsDispatcher(this.#eventEmitter);
+    this.#realtimeSubscriber = new RealtimeEventsSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
 
     if (this.#allureServiceClient) {
@@ -84,7 +89,8 @@ export class AllureReport {
     }
 
     this.#store = new DefaultAllureStore({
-      eventEmitter: this.#eventEmitter,
+      realtimeSubscriber: this.#realtimeSubscriber,
+      externalDispatcher: this.#internalDispatcher,
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
@@ -96,23 +102,17 @@ export class AllureReport {
     this.#reportFiles = reportFiles;
     this.#output = output;
     // TODO: where should we execute quality gate?
-    this.#qualityGate = new QualityGate(qualityGate);
     this.#history = this.#allureServiceClient
       ? new AllureRemoteHistory(this.#allureServiceClient)
       : new AllureLocalHistory(historyPath);
   }
 
-  // TODO: keep it until we understand how to handle shared test results
   get store(): DefaultAllureStore {
     return this.#store;
   }
 
-  get exitCode() {
-    return this.#qualityGate.exitCode;
-  }
-
-  get validationResults() {
-    return this.#qualityGate.result;
+  get realtimeSubscriber(): RealtimeEventsSubscriber {
+    return this.#realtimeSubscriber;
   }
 
   get #publish() {
@@ -192,13 +192,13 @@ export class AllureReport {
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
-      await plugin.start?.(context, this.#store, this.#events);
+      await plugin.start?.(context, this.#store, this.#realtimeSubscriber);
     });
 
     if (this.#realTime) {
       await this.#update();
 
-      this.#events.onAll(async () => {
+      this.#realtimeSubscriber.onAll(async () => {
         await this.#update();
       });
     }
@@ -221,7 +221,7 @@ export class AllureReport {
       throw new Error(initRequired);
     }
 
-    this.#events.offAll();
+    this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
     this.#stage = "done";
 
@@ -377,6 +377,7 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         ci: this.#ci,
+        dispatcher: this.#externalDispatcher,
       };
 
       try {
@@ -394,11 +395,4 @@ export class AllureReport {
   #getPluginState(init: boolean, id: string) {
     return init ? new DefaultPluginState({}) : this.#state?.[id];
   }
-
-  /**
-   * Executes quality gate validation to make possible to receive exit code for the entire process
-   */
-  validate = async () => {
-    await this.#qualityGate.validate(this.#store);
-  };
 }
