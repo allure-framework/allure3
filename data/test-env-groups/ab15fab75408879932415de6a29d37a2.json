@@ -1,1 +1,1 @@
-{"id":"ab15fab75408879932415de6a29d37a2","fullName":"test/commands/open.test.ts#open command should serve report with the default options","name":"should serve report with the default options","status":"passed","testResultsByEnv":{"default":"c8e621394efb276f88e7c6eaa57e6c2a"}}
+{"id":"ab15fab75408879932415de6a29d37a2","fullName":"test/commands/open.test.ts#open command should serve report with the default options","name":"should serve report with the default options","status":"passed","testResultsByEnv":{"default":"ed955e47dbb0b8dcee038fd2a63546d7"}}
