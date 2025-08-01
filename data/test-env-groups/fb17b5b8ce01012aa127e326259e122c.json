@@ -1,1 +1,1 @@
-{"id":"fb17b5b8ce01012aa127e326259e122c","fullName":"test/detectors/azure.test.ts#azure getBuildID should return the correct build ID","name":"should return the correct build ID","status":"passed","testResultsByEnv":{"default":"b9eec6d85600d36e0ef45d75a6317537"}}
+{"id":"fb17b5b8ce01012aa127e326259e122c","fullName":"test/detectors/azure.test.ts#azure getBuildID should return the correct build ID","name":"should return the correct build ID","status":"passed","testResultsByEnv":{"default":"24e2e5141410edf334982e2b58d0b6a5"}}

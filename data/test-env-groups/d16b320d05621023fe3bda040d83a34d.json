@@ -1,1 +1,1 @@
-{"id":"d16b320d05621023fe3bda040d83a34d","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunBranch should return the correct branch name","name":"should return the correct branch name","status":"passed","testResultsByEnv":{"default":"ddcaf6920376b9318e05e50482218902"}}
+{"id":"d16b320d05621023fe3bda040d83a34d","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunBranch should return the correct branch name","name":"should return the correct branch name","status":"passed","testResultsByEnv":{"default":"9df7b44dbfb2bced7ce8766065c46143"}}

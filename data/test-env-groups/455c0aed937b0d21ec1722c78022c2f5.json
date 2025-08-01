@@ -1,1 +1,1 @@
-{"id":"455c0aed937b0d21ec1722c78022c2f5","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"3c835eb5e3bdc221ea6af021569688b6"}}
+{"id":"455c0aed937b0d21ec1722c78022c2f5","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"default":"36b3e80e70b7c29252de5d421338504a"}}

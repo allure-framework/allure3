@@ -1,1 +1,1 @@
-{"id":"66330865f57c95954af38f93395abc2e","fullName":"test/detectors/circle.test.ts#circle jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"3c5fe1915c1f729afeb2600c8229b570"}}
+{"id":"66330865f57c95954af38f93395abc2e","fullName":"test/detectors/circle.test.ts#circle jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"26d52ae33b94a348c1be884cbf22670f"}}
