@@ -76,6 +76,7 @@ import solidMinusCircle from "@/assets/svg/solid-minus-circle.svg";
 import solidPlusCircle from "@/assets/svg/solid-plus-circle.svg";
 import solidXCircle from "@/assets/svg/solid-x-circle.svg";
 import spinner from "@/assets/svg/spinner.svg";
+import testNew from "@/assets/svg/test-new.svg";
 import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";
 import styles from "./styles.scss";
@@ -159,6 +160,7 @@ export const allureIcons = {
   lineGeneralInfoCircle: lineGeneralInfoCircle.id,
   lineGeneralMinusCircle: lineGeneralMinusCircle.id,
   lineGeneralXCircle: lineGeneralXCircle.id,
+  testNew: testNew.id,
 };
 
 export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {

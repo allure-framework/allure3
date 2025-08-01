@@ -87,7 +87,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
           </Text>
         </div>
         <div className={styles["report-card-metadata-icons"]}>
-          <IconLabel tooltip={capitalize(t("new"))} icon={allureIcons.solidPlusCircle}>
+          <IconLabel tooltip={capitalize(t("new"))} icon={allureIcons.testNew}>
             {newTests?.length ?? 0}
           </IconLabel>
           <IconLabel tooltip={capitalize(t("flaky"))} icon={allureIcons.lineIconBomb2}>
