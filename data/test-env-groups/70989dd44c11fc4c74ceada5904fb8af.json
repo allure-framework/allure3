@@ -1,1 +1,1 @@
-{"id":"70989dd44c11fc4c74ceada5904fb8af","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should handle custom GitLab instance hosts","name":"should handle custom GitLab instance hosts","status":"passed","testResultsByEnv":{"default":"860010643923d8a64d269a2055e30327"}}
+{"id":"70989dd44c11fc4c74ceada5904fb8af","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should handle custom GitLab instance hosts","name":"should handle custom GitLab instance hosts","status":"passed","testResultsByEnv":{"default":"b783e2c803910715f623552bbfb4ced0"}}

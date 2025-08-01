@@ -1,1 +1,1 @@
-{"id":"5b67543f72d66b60660ed0e179332373","fullName":"test/detectors/azure.test.ts#azure jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"b3771a3c109afef3fe01ad9d4720bbf2"}}
+{"id":"5b67543f72d66b60660ed0e179332373","fullName":"test/detectors/azure.test.ts#azure jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"201aabc2efd61e320e70bc8469a8bce5"}}

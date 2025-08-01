@@ -1,1 +1,1 @@
-{"id":"5837c3f9ca46cb83b84e6858406c3a8f","fullName":"test/detectors/azure.test.ts#azure getProjectID should return the correct project ID","name":"should return the correct project ID","status":"passed","testResultsByEnv":{"default":"3244b91fbbe864e578bb970efade7a91"}}
+{"id":"5837c3f9ca46cb83b84e6858406c3a8f","fullName":"test/detectors/azure.test.ts#azure getProjectID should return the correct project ID","name":"should return the correct project ID","status":"passed","testResultsByEnv":{"default":"4438e92aef2df433c7382c76f0517c34"}}

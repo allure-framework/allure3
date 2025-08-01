@@ -1,1 +1,1 @@
-{"id":"7245465a578357ec02d376c4bc3a7a33","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns gray badge for unknown status","name":"returns gray badge for unknown status","status":"passed","testResultsByEnv":{"default":"9546452d4bf8df91ad432c0ab2c86ccd"}}
+{"id":"7245465a578357ec02d376c4bc3a7a33","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns gray badge for unknown status","name":"returns gray badge for unknown status","status":"passed","testResultsByEnv":{"default":"ec9ecc3737a72e19d9e81c0a33600535"}}

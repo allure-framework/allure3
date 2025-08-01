@@ -1,1 +1,1 @@
-{"id":"912366b1f5822de4ea2c312e91aa3fe6","fullName":"test/detect.test.ts#detectContentType should detect short.svg as image/svg+xml","name":"should detect short.svg as image/svg+xml","status":"passed","testResultsByEnv":{"default":"8bc48438b536688b1b3690fc2bf21b77"}}
+{"id":"912366b1f5822de4ea2c312e91aa3fe6","fullName":"test/detect.test.ts#detectContentType should detect short.svg as image/svg+xml","name":"should detect short.svg as image/svg+xml","status":"passed","testResultsByEnv":{"default":"6e1c317a70baf137518f85cb6932069e"}}

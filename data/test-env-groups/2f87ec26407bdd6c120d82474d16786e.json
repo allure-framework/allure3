@@ -1,1 +1,1 @@
-{"id":"2f87ec26407bdd6c120d82474d16786e","fullName":"test/utils/status.test.ts#getWorstStatus should return undefined when no items are given","name":"should return undefined when no items are given","status":"passed","testResultsByEnv":{"default":"3faba2369a3a4f237028cd0997a090f2"}}
+{"id":"2f87ec26407bdd6c120d82474d16786e","fullName":"test/utils/status.test.ts#getWorstStatus should return undefined when no items are given","name":"should return undefined when no items are given","status":"passed","testResultsByEnv":{"default":"3f8aca703bd931b075017d2e232aa176"}}

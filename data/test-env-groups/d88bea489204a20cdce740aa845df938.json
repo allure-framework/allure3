@@ -1,1 +1,1 @@
-{"id":"d88bea489204a20cdce740aa845df938","fullName":"test/detectors/amazon.test.ts#amazon detected should be false for when there is no arn values","name":"should be false for when there is no arn values","status":"passed","testResultsByEnv":{"default":"5e52fb294395d93f3d95409037951a59"}}
+{"id":"d88bea489204a20cdce740aa845df938","fullName":"test/detectors/amazon.test.ts#amazon detected should be false for when there is no arn values","name":"should be false for when there is no arn values","status":"passed","testResultsByEnv":{"default":"a47aa3e144700713fc43474e75da3b60"}}

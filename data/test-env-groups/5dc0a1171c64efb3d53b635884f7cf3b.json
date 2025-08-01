@@ -1,1 +1,1 @@
-{"id":"5dc0a1171c64efb3d53b635884f7cf3b","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be false for non-batch build","name":"should be false for non-batch build","status":"passed","testResultsByEnv":{"default":"285cf624dd57fdb70c0fdf1cb82b3878"}}
+{"id":"5dc0a1171c64efb3d53b635884f7cf3b","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be false for non-batch build","name":"should be false for non-batch build","status":"passed","testResultsByEnv":{"default":"dde89d71e7210c7b20035d68b3d89178"}}

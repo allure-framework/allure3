@@ -1,1 +1,1 @@
-{"id":"7024d63fd7f54670c02b05ee37de63da","fullName":"test/config.test.ts#resolveConfig should set default history path if it's not provided","name":"should set default history path if it's not provided","status":"passed","testResultsByEnv":{"default":"cd9568fb09f309a20944b7ea1c3822f8"}}
+{"id":"7024d63fd7f54670c02b05ee37de63da","fullName":"test/config.test.ts#resolveConfig should set default history path if it's not provided","name":"should set default history path if it's not provided","status":"passed","testResultsByEnv":{"default":"8844b6125f3a97a453411a23bebc1952"}}
