@@ -1,10 +1,10 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
-  AllureStore,
-  Plugin,
-  PluginContext,
-  PluginSummary,
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";

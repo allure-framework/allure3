@@ -1,5 +1,5 @@
-import { TestResult } from "@allurereport/core-api";
-import { SummaryTestResult } from "../plugin.js";
+import type { TestResult } from "@allurereport/core-api";
+import type { SummaryTestResult } from "../plugin.js";
 
 export const convertToSummaryTestResult = (tr: TestResult): SummaryTestResult => ({
   id: tr.id,
