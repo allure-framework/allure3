@@ -58,12 +58,13 @@ const fixtures: any = {
         fixtures.testResults.skipped,
         fixtures.testResults.unknown,
       ]),
+    allNewTestResults: () => Promise.resolve([]),
     testsStatistic: async (filter) => {
       const all = await fixtures.store.allTestResults();
 
       return getTestResultsStats(all, filter);
     },
-  } as AllureStore,
+  } as unknown as AllureStore,
 };
 
 describe("plugin", () => {
@@ -86,6 +87,9 @@ describe("plugin", () => {
           unknown: 1,
           total: 5,
         },
+        newTests: [],
+        flakyTests: [],
+        retryTests: [],
       });
     });
 
@@ -106,6 +110,9 @@ describe("plugin", () => {
           passed: 1,
           total: 1,
         },
+        newTests: [],
+        flakyTests: [],
+        retryTests: [],
       });
     });
   });

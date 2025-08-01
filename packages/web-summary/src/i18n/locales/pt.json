@@ -6,7 +6,10 @@
     "skipped": "ignorado",
     "unknown": "desconhecido",
     "total": "total",
-    "in": "em"
+    "in": "em",
+    "new": "novos testes",
+    "flaky": "testes instáveis",
+    "retry": "testes repetidos"
   },
   "empty": {
     "no-reports": "Nenhum relatório encontrado"

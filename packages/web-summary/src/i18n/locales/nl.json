@@ -6,7 +6,10 @@
     "skipped": "overgeslagen",
     "unknown": "onbekend",
     "total": "totaal",
-    "in": "in"
+    "in": "in",
+    "new": "nieuwe tests",
+    "flaky": "onstabiele tests",
+    "retry": "herhaalde tests"
   },
   "empty": {
     "no-reports": "Geen rapporten gevonden"

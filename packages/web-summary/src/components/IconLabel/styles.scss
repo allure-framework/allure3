@@ -1,0 +1,17 @@
+.icon-label {
+  display: inline-block;
+}
+
+.icon-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-label-icon {
+  color: var(--on-icon-secondary);
+}
+
+.icon-label-text {
+  color: var(--on-text-secondary);
+}
