@@ -38,105 +38,13 @@ export type TrendCalculationResult<T extends TrendDataType> = {
   series: Record<T, TrendPointId[]>;
 };
 
-// Generic structure for trend chart data
-export interface GenericTrendChartData<
-  SeriesType extends string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> {
-  // Type of the chart
-  type: ChartType.Trend;
-  // Data type of the chart
-  dataType: ChartDataType;
-  // Chart mode to know type of values on Y-axis
-  mode: ChartMode;
-  // Title of the chart
-  title?: string;
-  // Points for all series
-  points: Record<TrendPointId, TrendPoint>;
-  // Slices for all series
-  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
-  // Grouping by series, containing array of point IDs for each status
-  series: Record<SeriesType, TrendPointId[]>;
-  // Minimum value on Y-axis of the trend chart
-  min: number;
-  // Maximum value on Y-axis of the trend chart
-  max: number;
-}
-
-// Specific trend chart data types
-export type StatusTrendChartData = GenericTrendChartData<TestStatus>;
-export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
-
-export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
-
-// Bar chart data types
-export interface BarChartData {
-  type: ChartType.Bar;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  title?: string;
-  data: BarStats<string, string>;
-  keys: readonly string[];
-  indexBy: string;
-  groupMode: BarGroupMode;
-}
-
-// Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData;
-export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
-
-export type TrendStats<T extends TrendDataType> = Record<T, number>;
-
-export type BarStats<G extends string, T extends string> = BarGroup<G, T>[];
-
-// Chart options
-export type TrendChartOptions = {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode?: ChartMode;
-  title?: string;
-  limit?: number;
-  metadata?: TrendMetadataFnOverrides;
-};
-
-export type PieChartOptions = {
-  type: ChartType.Pie;
-  title?: string;
-};
-
-export type BarChartOptions = {
-  type: ChartType.Bar;
-  dataType: ChartDataType;
-  mode?: ChartMode;
-  title?: string;
-};
-
-export type ComingSoonChartOptions = {
-  type: ChartType.ComingSoon;
-  title?: string;
-};
-
-export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions;
-
-export interface PieChartData {
-  type: ChartType.Pie;
-  title?: string;
-  slices: PieSlice[];
-  percentage: number;
-}
-
-export interface ComingSoonChartData {
-  type: ChartType.ComingSoon;
-  title?: string;
-}
-
 /**
  * Initializes series record with items as keys and empty arrays.
  * @param items - Items for series record.
  * @returns Record with items as keys and empty arrays.
  */
 export const createEmptySeries = <T extends TrendDataType>(items: readonly T[]): Record<T, string[]> =>
-  items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
+    items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
 
 /**
  * Calculates percentage trend data points and series.
@@ -146,63 +54,63 @@ export const createEmptySeries = <T extends TrendDataType>(items: readonly T[]):
  * @returns Points and series for visualization.
  */
 export const calculatePercentValues = <T extends TrendDataType>(
-  stats: Record<T, number>,
-  executionId: string,
-  itemType: readonly T[],
-): TrendCalculationResult<T> => {
-  const points: Record<TrendPointId, TrendPoint> = {};
-  const series = createEmptySeries(itemType);
-  const values = Object.values<number>(stats);
-  const total = values.reduce<number>((sum, value) => sum + value, 0);
+    stats: Record<T, number>,
+    executionId: string,
+    itemType: readonly T[],
+  ): TrendCalculationResult<T> => {
+    const points: Record<TrendPointId, TrendPoint> = {};
+    const series = createEmptySeries(itemType);
+    const values = Object.values<number>(stats);
+    const total = values.reduce<number>((sum, value) => sum + value, 0);
 
-  if (total === 0) {
+    if (total === 0) {
+      return { points, series };
+    }
+
+    itemType.forEach((item) => {
+      const pointId = `${executionId}-${item}`;
+      const value = stats[item] ?? 0;
+
+      points[pointId] = {
+        x: executionId,
+        y: value / total,
+      };
+
+      series[item].push(pointId);
+    });
+
     return { points, series };
-  }
+  };
 
-  itemType.forEach((item) => {
-    const pointId = `${executionId}-${item}`;
-    const value = stats[item] ?? 0;
-
-    points[pointId] = {
-      x: executionId,
-      y: value / total,
-    };
-
-    series[item].push(pointId);
-  });
-
-  return { points, series };
-};
-
-/**
- * Calculates raw trend data points and series.
- * @param stats - Statistical values for items.
- * @param executionId - Execution context identifier.
- * @param itemType - Items for trend data.
- * @returns Points and series for visualization.
- */
+  /**
+   * Calculates raw trend data points and series.
+   * @param stats - Statistical values for items.
+   * @param executionId - Execution context identifier.
+   * @param itemType - Items for trend data.
+   * @returns Points and series for visualization.
+   */
 const calculateRawValues = <T extends TrendDataType>(
-  stats: Record<T, number>,
-  executionId: string,
-  itemType: readonly T[],
-): TrendCalculationResult<T> => {
-  const points: Record<TrendPointId, TrendPoint> = {};
-  const series = createEmptySeries(itemType);
+    stats: Record<T, number>,
+    executionId: string,
+    itemType: readonly T[],
+  ): TrendCalculationResult<T> => {
+    const points: Record<TrendPointId, TrendPoint> = {};
+    const series = createEmptySeries(itemType);
 
-  itemType.forEach((item) => {
-    const pointId = `${executionId}-${item}`;
-    const value = stats[item] ?? 0;
+    itemType.forEach((item) => {
+      const pointId = `${executionId}-${item}`;
+      const value = stats[item] ?? 0;
 
-    points[pointId] = {
-      x: executionId,
-      y: value,
-    };
+      points[pointId] = {
+        x: executionId,
+        y: value,
+      };
 
-    series[item].push(pointId);
-  });
+      series[item].push(pointId);
+    });
 
-  return { points, series };
-};
+    return { points, series };
+  };
 
 /**
  * Generates trend data from stats and options.
@@ -214,64 +122,65 @@ const calculateRawValues = <T extends TrendDataType>(
  * @returns Dataset for trend visualization.
  */
 export const getTrendDataGeneric = <T extends TrendDataType, M extends BaseTrendSliceMetadata>(
-  stats: Record<T, number>,
-  reportName: string,
-  executionOrder: number,
-  itemType: readonly T[],
-  chartOptions: TrendChartOptions,
-): GenericTrendChartData<T, M> => {
-  const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
-  const { executionIdAccessor, executionNameAccessor } = metadata;
-  const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
+    stats: Record<T, number>,
+    reportName: string,
+    executionOrder: number,
+    itemType: readonly T[],
+    chartOptions: TrendChartOptions,
+  ): GenericTrendChartData<T, M> => {
+    const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
+    const { executionIdAccessor, executionNameAccessor } = metadata as TrendMetadataFnOverrides;
+    const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
-  const { points, series } =
-    mode === ChartMode.Percent
-      ? calculatePercentValues(stats, executionId, itemType)
-      : calculateRawValues(stats, executionId, itemType);
+    const { points, series } =
+      mode === ChartMode.Percent
+        ? calculatePercentValues(stats, executionId, itemType)
+        : calculateRawValues(stats, executionId, itemType);
 
-  const slices: Record<string, { min: number; max: number; metadata: M }> = {};
+    const slices: Record<string, { min: number; max: number; metadata: M }> = {};
 
-  // Create slice
-  const pointsAsArray = Object.values(points);
-  const pointsCount = pointsAsArray.length;
-  const values = pointsAsArray.map((point) => point.y);
-  const min = pointsCount ? Math.min(...values) : 0;
-  const max = pointsCount ? Math.max(...values) : 0;
+    // Create slice
+    const pointsAsArray = Object.values(points);
+    const pointsCount = pointsAsArray.length;
+    const values = pointsAsArray.map((point) => point.y);
+    const min = pointsCount ? Math.min(...values) : 0;
+    const max = pointsCount ? Math.max(...values) : 0;
 
-  // Omit creating slice if there are no points in it
-  if (pointsCount > 0) {
-    const executionName = executionNameAccessor ? executionNameAccessor(executionOrder) : reportName;
+    // Omit creating slice if there are no points in it
+    if (pointsCount > 0) {
+      const executionName = executionNameAccessor ? executionNameAccessor(executionOrder) : reportName;
 
-    slices[executionId] = {
+      slices[executionId] = {
+        min,
+        max,
+        metadata: {
+          executionId,
+          executionName,
+        } as M,
+      };
+    }
+
+    return {
+      type,
+      dataType,
+      mode,
+      title,
+      points,
+      slices,
+      series,
       min,
       max,
-      metadata: {
-        executionId,
-        executionName,
-      } as M,
     };
-  }
-
-  return {
-    type,
-    dataType,
-    mode,
-    title,
-    points,
-    slices,
-    series,
-    min,
-    max,
   };
-};
+
 
 /**
  * Initializes stats record with items as keys and 0 as values.
  * @param items - Items for stats record.
  * @returns Record with items as keys and 0 values.
  */
-export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): TrendStats<T> =>
-  items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as TrendStats<T>);
+export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): Record<T, number> =>
+    items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as Record<T, number>);
 
 /**
  * Normalizes stats record, ensuring all items are represented.
@@ -280,14 +189,17 @@ export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): 
  * @returns Complete stats record with all items.
  */
 export const normalizeStatistic = <T extends TrendDataType>(
-  statistic: Partial<TrendStats<T>>,
-  itemType: readonly T[],
-): TrendStats<T> => {
-  return itemType.reduce((acc, item) => {
-    acc[item] = statistic[item] ?? 0;
-    return acc;
-  }, {} as TrendStats<T>);
-};
+    statistic: Partial<Record<T, number>>,
+    itemType: readonly T[],
+  ): Record<T, number> => {
+    return itemType.reduce(
+      (acc, item) => {
+        acc[item] = statistic[item] ?? 0;
+        return acc;
+      },
+      {} as Record<T, number>,
+    );
+  };
 
 /**
  * Merges two trend data sets into one.
@@ -297,219 +209,36 @@ export const normalizeStatistic = <T extends TrendDataType>(
  * @returns Merged dataset for analysis.
  */
 export const mergeTrendDataGeneric = <T extends TrendDataType, M extends BaseTrendSliceMetadata>(
-  trendData: GenericTrendChartData<T, M>,
-  trendDataPart: GenericTrendChartData<T, M>,
-  itemType: readonly T[],
-): GenericTrendChartData<T, M> => {
-  return {
-    ...trendData,
-    points: {
-      ...trendData.points,
-      ...trendDataPart.points,
-    },
-    slices: {
-      ...trendData.slices,
-      ...trendDataPart.slices,
-    },
-    series: Object.entries(trendDataPart.series).reduce(
-      (series, [group, pointIds]) => {
-        if (Array.isArray(pointIds)) {
-          return {
-            ...series,
-            [group]: [...(trendData.series?.[group as T] || []), ...pointIds],
-          };
-        }
-
-        return series;
-      },
-      trendData.series || createEmptySeries(itemType),
-    ),
-    min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
-    max: Math.max(trendData.max ?? -Infinity, trendDataPart.max),
-  };
-};
-
-export const DEFAULT_CHART_HISTORY_LIMIT = 10;
-
-export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
-  type: chartOptions.type,
-  title: chartOptions?.title,
-  ...getPieChartValues(stats),
-});
-
-export const generatePieChart = (
-  options: PieChartOptions,
-  stores: {
-    statistic: Statistic;
-  },
-): PieChartData => {
-  const { statistic } = stores;
-
-  return getPieChartData(statistic, options);
-};
-
-export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
-  return {
-    type: ChartType.ComingSoon,
-    title: options.title,
-  };
-};
-
-export const generateBarChartGeneric = async <P extends string, T extends string>(
-  options: BarChartOptions,
-  store: AllureStore,
-  dataAccessor: BarDataAccessor<P, T>,
-): Promise<BarChartData | undefined> => {
-  const { type, dataType, title, mode = ChartMode.Raw } = options;
-
-  const currentData = await dataAccessor.getCurrentData(store);
-
-  // Apply mode transformation if needed
-  let processedData = currentData;
-  if (mode === ChartMode.Percent) {
-    processedData = currentData.map((group) => {
-      const { groupId, ...values } = group;
-
-      const total = Object.values<number>(values).reduce((sum, value) => sum + value, 0);
-      const nextValues = Object.keys(values).reduce((acc, valueKey) => {
-        acc[valueKey as T] = (values as BarGroupValues)[valueKey as T] / total;
-
-        return acc;
-      }, {} as BarGroupValues<T>);
-
-      return {
-        groupId,
-        ...nextValues,
-      };
-    });
-  }
-
-  return {
-    type,
-    dataType,
-    mode,
-    title,
-    data: processedData,
-    keys: dataAccessor.getValuesKeys(),
-    groupMode: dataAccessor.getGroupMode(),
-    indexBy: "groupId",
-  };
-};
-
-export interface TrendDataAccessor<T extends TrendDataType> {
-  // Get current data for the specified type
-  getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
-  // Get data from historical point
-  getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
-  // List of all possible values for the type
-  getAllValues: () => readonly T[];
-}
-
-export interface BarDataAccessor<G extends string, T extends string> {
-  // Get current data for the specified type
-  getCurrentData: (store: AllureStore) => Promise<BarStats<G, T>>;
-  // List of all possible values for the group
-  getValuesKeys: () => readonly T[];
-  // Get group mode
-  getGroupMode: () => BarGroupMode;
-}
-
-export const generateTrendChartGeneric = async <T extends TrendDataType>(
-  options: TrendChartOptions,
-  store: AllureStore,
-  context: PluginContext,
-  dataAccessor: TrendDataAccessor<T>,
-): Promise<GenericTrendChartData<T> | undefined> => {
-  const { limit } = options;
-  const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
-
-  // Get all required data
-  const [historyDataPoints, currentData] = await Promise.all([
-    store.allHistoryDataPoints(),
-    dataAccessor.getCurrentData(store),
-  ]);
-
-  // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
-
-  // Convert history points to statistics
-  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyDataPoints.length - historyLimit) : 0;
-  const convertedHistoryPoints = limitedHistoryPoints.map((point: HistoryDataPoint, index: number) => {
-    const originalIndex = firstOriginalIndex + index;
-
+    trendData: GenericTrendChartData<T, M>,
+    trendDataPart: GenericTrendChartData<T, M>,
+    itemType: readonly T[],
+  ): GenericTrendChartData<T, M> => {
     return {
-      name: point.name,
-      originalIndex,
-      statistic: dataAccessor.getHistoricalData(point),
+      ...trendData,
+      points: {
+        ...trendData.points,
+        ...trendDataPart.points,
+      },
+      slices: {
+        ...trendData.slices,
+        ...trendDataPart.slices,
+      },
+      series: Object.entries(trendDataPart.series).reduce(
+        (series, [group, pointIds]) => {
+          if (Array.isArray(pointIds)) {
+            return {
+              ...series,
+              [group]: [...(trendData.series?.[group as T] || []), ...pointIds],
+            };
+          }
+
+          return series;
+        },
+        trendData.series || createEmptySeries(itemType),
+      ),
+      min: Math.min(trendData.min ?? Infinity, trendDataPart.min),
+      max: Math.max(trendData.max ?? -Infinity, trendDataPart.max),
     };
-  });
+  };
 
-  const allValues = dataAccessor.getAllValues();
-
-  // Get current report data
-  const currentTrendData = getTrendDataGeneric(
-    normalizeStatistic(currentData, allValues),
-    context.reportName,
-    historyDataPoints.length + 1, // Always use the full history length for current point order
-    allValues,
-    options,
-  );
-
-  // Process historical data
-  const historicalTrendData = convertedHistoryPoints.reduce(
-    (
-      acc: GenericTrendChartData<T>,
-      historyPoint: { name: string; originalIndex: number; statistic: Record<T, number> },
-    ) => {
-      const trendDataPart = getTrendDataGeneric(
-        normalizeStatistic(historyPoint.statistic, allValues),
-        historyPoint.name,
-        historyPoint.originalIndex + 1,
-        allValues,
-        options,
-      );
-
-      return mergeTrendDataGeneric(acc, trendDataPart, allValues);
-    },
-    {
-      type: options.type,
-      dataType: options.dataType,
-      mode: options.mode,
-      title: options.title,
-      points: {},
-      slices: {},
-      series: createEmptySeries(allValues),
-      min: Infinity,
-      max: -Infinity,
-    } as GenericTrendChartData<T>,
-  );
-
-  // Add current report data as the last item
-  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, allValues);
-};
-
-export const generateTrendChart = async (
-  options: TrendChartOptions,
-  store: AllureStore,
-  context: PluginContext,
-): Promise<TrendChartData | undefined> => {
-  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
-  const { dataType } = newOptions;
-
-  if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
-  } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
-  }
-};
-
-export const generateBarChart = async (
-  options: BarChartOptions,
-  store: AllureStore,
-): Promise<BarChartData | undefined> => {
-  const { dataType } = options;
-
-  if (dataType === ChartDataType.Severity) {
-    return generateBarChartGeneric(options, store, statusBySeverityBarDataAccessor);
-  }
-};
+  export const DEFAULT_CHART_HISTORY_LIMIT = 10;
