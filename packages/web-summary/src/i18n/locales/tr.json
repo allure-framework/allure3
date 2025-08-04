@@ -6,7 +6,10 @@
     "skipped": "atlandı",
     "unknown": "bilinmeyen",
     "total": "toplam",
-    "in": "içinde"
+    "in": "içinde",
+    "new": "yeni testler",
+    "flaky": "kararsız testler",
+    "retry": "tekrar testleri"
   },
   "empty": {
     "no-reports": "Rapor bulunamadı"

@@ -116,6 +116,7 @@
     "showLess": "ნაკლების ჩვენება",
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
+    "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace"

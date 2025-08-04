@@ -116,6 +116,7 @@
     "showLess": "Mostra meno",
     "showMore": "Mostra di più",
     "copy": "Copia",
+    "attempt": "Tentativo {{attempt}} di {{total}}",
     "at": "a",
     "variables": "Variabili",
     "openPwTrace": "Apri Playwright Trace"

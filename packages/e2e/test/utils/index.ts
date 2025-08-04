@@ -15,7 +15,8 @@ export type GeneratorParams = {
   rootDir: string;
   reportDir: string;
   resultsDir: string;
-  testResults: Partial<TestResult>[];
+  testResults?: Partial<TestResult>[];
+  rawTestResults?: Partial<TestResult>[];
   attachments?: { source: string; content: Buffer }[];
   reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath">;
 };
@@ -36,7 +37,16 @@ export const randomNumber = (min: number, max: number): number => {
 };
 
 export const generateReport = async (payload: GeneratorParams) => {
-  const { reportConfig, rootDir, reportDir, resultsDir, testResults, attachments = [], history = [] } = payload;
+  const {
+    reportConfig,
+    rootDir,
+    reportDir,
+    resultsDir,
+    testResults = [],
+    rawTestResults = [],
+    attachments = [],
+    history = [],
+  } = payload;
 
   const hasHistory = history.length > 0;
   const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
@@ -65,6 +75,10 @@ export const generateReport = async (payload: GeneratorParams) => {
   testResults.forEach((tr) => {
     runtime.writeTest(runtime.startTest(tr, [scopeUuid]));
   });
+
+  for (const tr of rawTestResults) {
+    await writeFile(resolve(resultsDir, `${randomUUID()}-result.json`), JSON.stringify(tr));
+  }
 
   for (const attachment of attachments) {
     await writeFile(resolve(resultsDir, attachment.source), attachment.content);

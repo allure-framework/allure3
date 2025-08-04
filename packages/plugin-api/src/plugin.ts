@@ -1,4 +1,4 @@
-import type { CiDescriptor, Statistic, TestStatus } from "@allurereport/core-api";
+import type { CiDescriptor, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -28,6 +28,11 @@ export interface PluginContext {
   ci?: CiDescriptor;
 }
 
+/**
+ * Reduced test result information that can be used in summary
+ */
+export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
+
 export interface PluginSummary {
   href?: string;
   remoteHref?: string;
@@ -38,6 +43,9 @@ export interface PluginSummary {
   status: TestStatus;
   duration: number;
   plugin?: string;
+  newTests?: SummaryTestResult[];
+  flakyTests?: SummaryTestResult[];
+  retryTests?: SummaryTestResult[];
   createdAt?: number;
 }
 
