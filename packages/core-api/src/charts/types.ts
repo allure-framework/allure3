@@ -64,9 +64,12 @@ export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
 // Pie chart types
-export interface PieSlice {
+export interface BasePieSlice {
   status: TestStatus;
   count: number;
+}
+
+export interface PieSlice extends BasePieSlice {
   d: string | null;
 }
 
