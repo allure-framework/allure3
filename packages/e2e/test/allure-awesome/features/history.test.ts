@@ -12,16 +12,10 @@ import {
   makeTestResultNames,
 } from "../utils/mocks.js";
 
-let bootstrap: ReportBootstrap;
-let treePage: TreePage;
-let testResultPage: TestResultPage;
-
 const reportName = "Allure report with history";
 const { name: testName, fullName } = makeTestResultNames("sample test");
-
 const testCaseId = makeTestCaseId(fullName);
 const historyId = makeHistoryId(fullName);
-
 const testResult = makeTestResult({
   name: testName,
   fullName,
@@ -29,13 +23,11 @@ const testResult = makeTestResult({
   stage: Stage.FINISHED,
   historyId,
 });
-
 const history = makeHistory(1, () => ({
   name: reportName,
   knownTestCaseIds: [testCaseId],
   testResults: makeHistoryTestResults([testResult]),
 }));
-
 const fixtures = {
   url: "http://allurereport.org/report/1",
   reportConfig: makeReportConfig({
@@ -45,20 +37,24 @@ const fixtures = {
   testResults: [testResult],
 };
 
-test.beforeEach(async ({ browserName, page }) => {
-  await label("env", browserName);
-
-  treePage = new TreePage(page);
-  testResultPage = new TestResultPage(page);
-
-  await page.goto(bootstrap.url);
-});
-
-test.afterAll(async () => {
-  await bootstrap?.shutdown?.();
-});
-
 test.describe("history", () => {
+  let bootstrap: ReportBootstrap;
+  let treePage: TreePage;
+  let testResultPage: TestResultPage;
+
+  test.beforeEach(async ({ browserName, page }) => {
+    await label("env", browserName);
+
+    treePage = new TreePage(page);
+    testResultPage = new TestResultPage(page);
+
+    await page.goto(bootstrap.url);
+  });
+
+  test.afterAll(async () => {
+    await bootstrap?.shutdown?.();
+  });
+
   test.describe("without history", () => {
     test.beforeAll(async () => {
       bootstrap = await bootstrapReport({

@@ -1,23 +1,25 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { CommonPage, SummaryPage } from "../pageObjects/index.js";
 import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
-let bootstrap: ReportBootstrap;
-let summaryPage: SummaryPage;
-let commonPage: CommonPage;
-
-test.afterAll(async () => {
-  await bootstrap?.shutdown?.();
-});
-
-test.beforeEach(async ({ page }) => {
-  commonPage = new CommonPage(page);
-  summaryPage = new SummaryPage(page);
-});
-
 test.describe("summary", () => {
+  let bootstrap: ReportBootstrap;
+  let summaryPage: SummaryPage;
+  let commonPage: CommonPage;
+
+  test.afterAll(async () => {
+    await bootstrap?.shutdown?.();
+  });
+
+  test.beforeEach(async ({ page, browserName }) => {
+    await label("env", browserName);
+
+    commonPage = new CommonPage(page);
+    summaryPage = new SummaryPage(page);
+  });
+
   test("should not generate summary for a single report", async ({ page }) => {
     bootstrap = await bootstrapReport({
       reportConfig: {

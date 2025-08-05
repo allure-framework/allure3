@@ -1,6 +1,9 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
+  Statistic,
+  TestEnvGroup,
+  TestResult,
   type TreeData,
   compareBy,
   incrementStatistic,
@@ -120,8 +123,13 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
-  const allTr = (await store.allTestResults({ includeHidden: true })).filter((tr) => (filter ? filter(tr) : true));
+export const generateTestResults = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  trs: TestResult[],
+  filter?: TestResultFilter,
+) => {
+  const allTr = trs.filter((tr) => (filter ? filter(tr) : true));
   let convertedTrs: AwesomeTestResult[] = [];
 
   for (const tr of allTr) {
@@ -164,9 +172,7 @@ export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeT
   }
 };
 
-export const generateTestEnvGroups = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const groups = await store.allTestEnvGroups();
-
+export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: TestEnvGroup[]) => {
   for (const group of groups) {
     const src = join("test-env-groups", `${group.id}.json`);
 
@@ -188,7 +194,6 @@ export const generateTree = async (
   tests: AwesomeTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-
   const tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> = labels.length
     ? buildTreeByLabels(visibleTests, labels)
     : buildTreeByTitlePath(visibleTests);
@@ -314,29 +319,28 @@ export const generateVariables = async (writer: AwesomeDataWriter, store: Allure
   }
 };
 
-export const generateStatistic = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
-  const statistic = await store.testsStatistic(filter);
-  const environments = await store.allEnvironments();
+export const generateStatistic = async (
+  writer: AwesomeDataWriter,
+  data: {
+    stats: Statistic;
+    statsByEnv: Map<string, Statistic>;
+    envs: string[];
+  },
+) => {
+  const { stats, statsByEnv, envs } = data;
 
-  await writer.writeWidget("statistic.json", statistic);
+  await writer.writeWidget("statistic.json", stats);
+  await writer.writeWidget("pie_chart.json", getPieChartData(stats));
 
-  for (const env of environments) {
-    const envStatistic = await store.testsStatistic(filterEnv(env, filter));
+  for (const env of envs) {
+    const envStats = statsByEnv.get(env);
 
-    await writer.writeWidget(join(env, "statistic.json"), envStatistic);
-  }
-};
+    if (!envStats) {
+      continue;
+    }
 
-export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureStore, filter?: TestResultFilter) => {
-  const reportStatistic = await store.testsStatistic(filter);
-  const environments = await store.allEnvironments();
-
-  await writer.writeWidget("pie_chart.json", getPieChartData(reportStatistic));
-
-  for (const env of environments) {
-    const envStatistic = await store.testsStatistic(filterEnv(env, filter));
-
-    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartData(envStatistic));
+    await writer.writeWidget(join(env, "statistic.json"), envStats);
+    await writer.writeWidget(join(env, "pie_chart.json"), envStats);
   }
 };
 

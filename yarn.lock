@@ -49,7 +49,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -92,8 +92,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -121,7 +121,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     chokidar: "npm:^4.0.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -154,8 +154,8 @@ __metadata:
     "@types/node": "npm:^20.17.9"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
-    allure-js-commons: "npm:^3.3.0"
-    allure-playwright: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-playwright: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -218,7 +218,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -245,7 +245,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -274,7 +274,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     d3-shape: "npm:^3.2.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -306,7 +306,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     d3-shape: "npm:^3.2.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -334,7 +334,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -363,7 +363,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     d3-shape: "npm:^3.2.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -392,7 +392,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -420,7 +420,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -448,7 +448,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -476,7 +476,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -502,7 +502,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -528,7 +528,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -555,7 +555,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -586,8 +586,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     archiver: "npm:^7.0.1"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -616,7 +616,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.8"
     "@vitest/snapshot": "npm:^2.1.8"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     axios: "npm:^1.8.4"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -646,9 +646,9 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.3.0"
-    allure-playwright: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-playwright: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     axios: "npm:^1.9.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -680,7 +680,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -882,7 +882,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -944,8 +944,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     d3-shape: "npm:^3.2.0"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -1016,8 +1016,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-js-commons: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     ansi-to-html: "npm:^0.7.2"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
@@ -1096,7 +1096,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -8240,20 +8240,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-js-commons@npm:3.3.0, allure-js-commons@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "allure-js-commons@npm:3.3.0"
-  dependencies:
-    md5: "npm:^2.3.0"
-  peerDependencies:
-    allure-playwright: 3.3.0
-  peerDependenciesMeta:
-    allure-playwright:
-      optional: true
-  checksum: 10/f9f66712341e30d9b46706b728937dd25fa46d369dc9bc56d4985c7e5de247b6e83989e6807a83fe46b2dfce76fbb7eff1801f1f2d9f6d861e122bfab77389e7
-  languageName: node
-  linkType: hard
-
 "allure-js-commons@npm:3.3.2":
   version: 3.3.2
   resolution: "allure-js-commons@npm:3.3.2"
@@ -8268,14 +8254,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-playwright@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "allure-playwright@npm:3.3.0"
+"allure-js-commons@npm:3.3.3, allure-js-commons@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "allure-js-commons@npm:3.3.3"
   dependencies:
-    allure-js-commons: "npm:3.3.0"
+    md5: "npm:^2.3.0"
+  peerDependencies:
+    allure-playwright: 3.3.3
+  peerDependenciesMeta:
+    allure-playwright:
+      optional: true
+  checksum: 10/bf75db9234c1b0a19b3a29c7c8939e90c684128017839fb1448bb246efeab3da3f597c45ed36b11f15ef4da4a4b439adac035e437df5e443cddd79f6cf5f0a06
+  languageName: node
+  linkType: hard
+
+"allure-playwright@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "allure-playwright@npm:3.3.3"
+  dependencies:
+    allure-js-commons: "npm:3.3.3"
   peerDependencies:
     "@playwright/test": ">=1.36.0"
-  checksum: 10/0481a9fc51f7cacb6e0deea449f0c541e67cb907c7c97d25e683a7d2658b17486f811e64dd10e26c037b1f4956e770576d34f18a928e0913c01e47e47dad0919
+  checksum: 10/57168a204aa4a81bdd5282e344196395e43f2b32eecc12ec4522f0579fa4ba8dd021ad7a3a2aa0d7e7f69ee02f45a95478c39275dd42de7ba2a98ed983bae85d
   languageName: node
   linkType: hard
 
@@ -8291,15 +8291,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"allure-vitest@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "allure-vitest@npm:3.3.0"
+"allure-vitest@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "allure-vitest@npm:3.3.3"
   dependencies:
-    allure-js-commons: "npm:3.3.0"
+    allure-js-commons: "npm:3.3.3"
   peerDependencies:
     "@vitest/runner": ">=1.3.0"
     vitest: ">=1.3.0"
-  checksum: 10/a98dc38eb2d18a1734643bdbfecb4b6656f62943f0f7975a90d38d9e7df1a6d78eefa76451a25d45862840186efe0134252265bbf906e4f95b2c61f0a8bbcb2b
+  checksum: 10/df1e4506cb9a361f68ab08b25d1c1b8374bb0d21a62e5627913b1da9865b6f06d02584a6b284538190bd9a4d6bec19ac4c447555dda5fc07d3d603b1de816aab
   languageName: node
   linkType: hard
 
@@ -8325,6 +8325,7 @@ __metadata:
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/archiver": "npm:^6.0.3"
     "@types/eslint": "npm:^8.56.11"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20.17.9"
@@ -8333,7 +8334,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
-    allure-vitest: "npm:^3.3.0"
+    allure-vitest: "npm:^3.3.3"
+    archiver: "npm:^7.0.1"
     clipanion: "npm:^4.0.0-rc.4"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -17834,8 +17836,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     allure: "workspace:*"
-    allure-js-commons: "npm:^3.3.0"
-    allure-vitest: "npm:^3.3.0"
+    allure-js-commons: "npm:^3.3.3"
+    allure-vitest: "npm:^3.3.3"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"

@@ -1,5 +1,5 @@
 import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import type { PluginContext } from "@allurereport/plugin-api";
 import {
   ChartDataType,
   ChartMode,
@@ -366,18 +366,16 @@ const generatePieChart = (
 
 export const generateCharts = async (
   options: AwesomeOptions,
-  store: AllureStore,
   context: PluginContext,
+  trs: TestResult[] = [],
+  stats: Statistic,
+  history: HistoryDataPoint[],
 ): Promise<GeneratedChartsData | undefined> => {
   const { charts } = options;
 
   if (!charts) {
     return undefined;
   }
-
-  const historyDataPoints = await store.allHistoryDataPoints();
-  const statistic = await store.testsStatistic();
-  const testResults = await store.allTestResults();
 
   return charts.reduce((acc, chartOptions) => {
     const chartId = randomUUID();
@@ -388,14 +386,14 @@ export const generateCharts = async (
       chart = generateTrendChart(
         chartOptions,
         {
-          historyDataPoints,
-          statistic,
-          testResults,
+          historyDataPoints: history,
+          statistic: stats,
+          testResults: trs,
         },
         context,
       );
     } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, { statistic });
+      chart = generatePieChart(chartOptions, { statistic: stats });
     }
 
     if (chart) {
@@ -428,11 +426,13 @@ export const generateTrendChart = (
 
 export const generateAllCharts = async (
   writer: AwesomeDataWriter,
-  store: AllureStore,
   options: AwesomeOptions,
   context: PluginContext,
+  trs: TestResult[],
+  stats: Statistic,
+  history: HistoryDataPoint[],
 ): Promise<void> => {
-  const charts = await generateCharts(options, store, context);
+  const charts = await generateCharts(options, context, trs, stats, history);
 
   if (charts && Object.keys(charts).length > 0) {
     await writer.writeWidget("charts.json", charts);

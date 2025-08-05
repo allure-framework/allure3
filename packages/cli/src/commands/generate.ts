@@ -1,4 +1,5 @@
 import { AllureReport, readConfig } from "@allurereport/core";
+import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import process from "node:process";
@@ -20,7 +21,10 @@ export class GenerateCommand extends Command {
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.String({
+    required: false,
+    name: "The directory with Allure results. Entire working directory will be scanned for `allure-results` unless this option is provided.",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -39,16 +43,37 @@ export class GenerateCommand extends Command {
   });
 
   async execute() {
-    const config = await readConfig(this.cwd, this.config, {
+    const cwd = this.cwd ?? process.cwd();
+    const targetDir = this?.resultsDir ?? cwd;
+    const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",
     });
+    const resultsDirs = new Set<string>();
+
+    if (!this.resultsDir) {
+      await findMatching(targetDir, resultsDirs, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
+    } else {
+      resultsDirs.add(this.resultsDir);
+    }
+
+    if (resultsDirs.size === 0) {
+      // eslint-disable-next-line no-console
+      console.error("No Allure results directories found");
+      process.exit(0);
+      return;
+    }
 
     try {
       const allureReport = new AllureReport(config);
 
       await allureReport.start();
-      await allureReport.readDirectory(this.resultsDir);
+      await Promise.all(Array.from(resultsDirs).map((resultsDir) => allureReport.readDirectory(resultsDir)));
+
+      for (const resultsDir of resultsDirs) {
+        await allureReport.readDirectory(resultsDir);
+      }
+
       await allureReport.done();
     } catch (error) {
       if (error instanceof KnownError) {

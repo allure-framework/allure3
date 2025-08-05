@@ -30,8 +30,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          history: [],
-          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -77,7 +75,7 @@ test.describe("attachments", () => {
         testResultPage.testResultAttachmentLocator.nth(0).getByTestId("test-result-attachment-missed"),
       ).toBeVisible();
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
   });
 
@@ -87,8 +85,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          history: [],
-          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -141,7 +137,7 @@ test.describe("attachments", () => {
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async () => {
@@ -160,7 +156,7 @@ test.describe("attachments", () => {
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
   });
 
@@ -170,8 +166,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          history: [],
-          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -224,7 +218,7 @@ test.describe("attachments", () => {
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async () => {
@@ -243,7 +237,7 @@ test.describe("attachments", () => {
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
       await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
   });
 
@@ -255,8 +249,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          history: [],
-          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -308,7 +300,7 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async () => {
@@ -326,7 +318,7 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
   });
 
@@ -338,8 +330,6 @@ test.describe("attachments", () => {
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
-          history: [],
-          historyPath: "history.jsonl",
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -391,7 +381,7 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
 
     test("should render attachment in the test result attachments tab and allow to preview it", async () => {
@@ -409,7 +399,7 @@ test.describe("attachments", () => {
 
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
 
-      await testResultPage.screenshot();
+      await testResultPage.attachScreenshot();
     });
   });
 });

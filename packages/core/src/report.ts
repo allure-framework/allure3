@@ -279,7 +279,12 @@ export class AllureReport {
       });
     }
 
-    const outputDirFiles = await readdir(this.#output);
+    let outputDirFiles: string[] = [];
+
+    try {
+      // recursive flag is not applicable, it can provoke the process freeze
+      outputDirFiles = await readdir(this.#output);
+    } catch (ignored) {}
 
     // just do nothing if there is no reports in the output directory
     if (outputDirFiles.length === 0) {
