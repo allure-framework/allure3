@@ -19,4 +19,4 @@ export * from "./login.js";
 export * from "./logout.js";
 export * from "./whoami.js";
 export * from "./projects/index.js";
-export * from "./archive.js";
+export * from "./results/index.js";

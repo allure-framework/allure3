@@ -9,15 +9,16 @@ import { basename, join, resolve } from "node:path";
 import { green, red } from "yoctocolors";
 
 export class ArchiveCommand extends Command {
-  static paths = [["archive"]];
+  static paths = [["results", "archive"]];
 
   static usage = Command.Usage({
     description: "Creates .zip archive with test results",
+    category: "Allure Test Results",
     details: "This command creates .zip archive with all test results which can be collected in the project",
     examples: [
-      ["archive", "Print information about the current user using the default configuration"],
+      ["results archive", "Print information about the current user using the default configuration"],
       [
-        "archive --pattern allure-results --name results.zip",
+        "results archive --pattern allure-results --name results.zip",
         "Recursively search test results inside `allure-results` directories and create `results.zip` archive with the results",
       ],
     ],
