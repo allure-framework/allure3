@@ -1,23 +1,13 @@
-import type { Statistic, TestStatus } from "@allurereport/core-api";
-import { statusesList } from "@allurereport/core-api";
-import { d3Arc, d3Pie, getPercentage } from "../charts.js";
+import type { PieChartData, PieChartOptions, Statistic, PieSlice } from "@allurereport/core-api";
+import { statusesList, getPercentage } from "@allurereport/core-api";
+import { d3Arc, d3Pie } from "../charts.js";
 
-export type TestResultSlice = {
-  status: TestStatus;
-  count: number;
-  d: string;
-};
-
-export type TestResultChartData = {
+export type PieChartValues = {
   percentage: number;
-  slices: TestResultSlice[];
+  slices: PieSlice[];
 };
 
-export const isTestResultSlice = (slice: TestResultSlice | null): slice is TestResultSlice => {
-  return slice !== null;
-};
-
-export const getPieChartData = (stats: Statistic): TestResultChartData => {
+export const getPieChartValues = (stats: Statistic): PieChartValues => {
   const convertedStatuses = statusesList
     .filter((status) => !!stats?.[status])
     .map((status) => ({
@@ -38,7 +28,7 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
         ...arcData.data,
       };
     })
-    .filter(isTestResultSlice);
+    .filter(item => item !== null);
   const percentage = getPercentage(stats.passed ?? 0, stats.total);
 
   return {
@@ -46,3 +36,9 @@ export const getPieChartData = (stats: Statistic): TestResultChartData => {
     percentage,
   };
 };
+
+export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
+  type: chartOptions.type,
+  title: chartOptions?.title,
+  ...getPieChartValues(stats),
+});
