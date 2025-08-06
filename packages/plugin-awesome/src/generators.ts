@@ -3,7 +3,6 @@ import {
   type EnvironmentItem,
   type TreeData,
   compareBy,
-  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -33,6 +32,7 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
+  getPieChartValues,
 } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -462,29 +462,17 @@ export const generateStaticFiles = async (
     sections,
     defaultSection,
   };
+  const html = compile({
+    headTags: headTags.join("\n"),
+    bodyTags: bodyTags.join("\n"),
+    reportFilesScript: createReportDataScript(reportDataFiles),
+    reportOptions: JSON.stringify(reportOptions),
+    analyticsEnable: true,
+    allureVersion,
+    reportUuid,
+    reportName,
+    singleFile: payload.singleFile,
+  });
 
-  try {
-    const html = compile({
-      headTags: headTags.join("\n"),
-      bodyTags: bodyTags.join("\n"),
-      reportFilesScript: createReportDataScript(reportDataFiles),
-      reportOptions: JSON.stringify(reportOptions),
-      analyticsEnable: true,
-      allureVersion,
-      reportUuid,
-      reportName,
-      singleFile: payload.singleFile,
-    });
-
-    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
-  } catch (err) {
-    if (err instanceof RangeError) {
-      // eslint-disable-next-line no-console
-      console.error("The report is too large to be generated in the single file mode!");
-      process.exit(1);
-      return;
-    }
-
-    throw err;
-  }
+  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
 };
