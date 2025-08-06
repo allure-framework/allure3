@@ -8,6 +8,3 @@ export * from "./charts.js";
 export * from "./charts/colors.js";
 export * from "./charts/utils.js";
 export * from "./charts/getPieChart.js";
-export * from "./charts/getPieChartDashboard.js";
-export * from "./charts/getSeverityTrendData.js";
-export * from "./charts/getStatusTrendData.js";
