@@ -1,13 +1,9 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
+import type { Point, TrendChartItem } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-
-interface Point {
-  x: Date | string | number;
-  y: number;
-}
 
 interface Slice {
   min: number;
@@ -29,12 +25,6 @@ interface ChartData {
 
 interface TrendResponse {
   charts: Partial<Record<ChartId, ChartData>>;
-}
-
-interface TrendChartItem {
-  id: string;
-  data: Point[];
-  color: string;
 }
 
 interface TrendChartData {

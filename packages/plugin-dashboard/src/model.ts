@@ -1,8 +1,5 @@
-import type { BaseTrendSliceMetadata, ChartOptions, TestResult, TrendSlice, TrendSliceMetadata } from "@allurereport/core-api";
-
-export interface StatusMetadata extends BaseTrendSliceMetadata {}
-export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
-export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
+import type { TestResult } from "@allurereport/core-api";
+import type { ChartOptions } from "@allurereport/plugin-api";
 
 export type DashboardOptions = {
   reportName?: string;
