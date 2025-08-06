@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType, capitalize } from "@allurereport/core-api";
-import { type UIChartData } from "@allurereport/web-commons";
+import { type UIChartData, capitalize } from "@allurereport/web-commons";
+import { ChartType } from "@allurereport/core-api";
 import {
-  BarChartWidget,
-  ComingSoonChartWidget,
   Grid,
   GridItem,
   Loadable,
@@ -25,6 +23,7 @@ const getChartWidgetByType = (
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
+      const translations = empty("no-results");
 
       return (
         <TrendChartWidget
@@ -34,7 +33,7 @@ const getChartWidgetByType = (
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
-          translations={{ "no-results": empty("no-results") }}
+          translations={{ "no-results": translations }}
         />
       );
     }
@@ -50,28 +49,6 @@ const getChartWidgetByType = (
           </div>
         </Widget>
       );
-    }
-    case ChartType.Bar: {
-      const type = t(`bar.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-
-      return (
-        <BarChartWidget
-          title={title}
-          mode={chartData.mode}
-          data={chartData.data}
-          keys={chartData.keys}
-          indexBy={chartData.indexBy}
-          colors={chartData.colors}
-          groupMode={chartData.groupMode}
-          translations={{ "no-results": empty("no-results") }}
-        />
-      );
-    }
-    default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
     }
   }
 };
