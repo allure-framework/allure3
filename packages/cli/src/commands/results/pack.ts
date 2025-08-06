@@ -1,24 +1,23 @@
 import { findMatching } from "@allurereport/directory-watcher";
-import archiver from "archiver";
+import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
-import { createWriteStream } from "node:fs";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { green, red } from "yoctocolors";
 
-export class ArchiveCommand extends Command {
-  static paths = [["results", "archive"]];
+export class ResultsPackCommand extends Command {
+  static paths = [["results", "pack"]];
 
   static usage = Command.Usage({
     description: "Creates .zip archive with test results",
     category: "Allure Test Results",
     details: "This command creates .zip archive with all test results which can be collected in the project",
     examples: [
-      ["results archive", "Print information about the current user using the default configuration"],
+      ["results pack", "Print information about the current user using the default configuration"],
       [
-        "results archive --pattern allure-results --name results.zip",
+        "results pack --pattern allure-results --name results.zip",
         "Recursively search test results inside `allure-results` directories and create `results.zip` archive with the results",
       ],
     ],
@@ -84,38 +83,32 @@ export class ArchiveCommand extends Command {
     }
 
     const outputPath = join(cwd, archiveName);
-    const output = createWriteStream(outputPath);
-    const archive = archiver("zip", {
-      zlib: { level: 9 },
-    });
-
-    output.on("close", () => {
-      console.log(green(`Archive created successfully: ${outputPath}`));
-      console.log(
-        green(
-          `Total size: ${this.#formatSize(archive.pointer())}. ${resultsFiles.size} results files have been collected`,
-        ),
-      );
-    });
-    archive.on("error", (err) => {
-      console.log(red(`Error creating archive: ${err.message}`));
-
-      throw err;
-    });
-    archive.pipe(output);
+    const zip = new AdmZip();
 
     for (const file of resultsFiles) {
       try {
         const stats = await fs.stat(file);
 
         if (stats.isFile()) {
-          archive.file(file, { name: basename(file) });
+          zip.addLocalFile(file, "", basename(file));
         }
       } catch (error) {
         console.log(red(`Error adding file ${file} to archive: ${(error as Error).message}`));
       }
     }
 
-    await archive.finalize();
+    try {
+      zip.writeZip(outputPath);
+
+      const stats = await fs.stat(outputPath);
+
+      console.log(green(`Archive created successfully: ${outputPath}`));
+      console.log(
+        green(`Total size: ${this.#formatSize(stats.size)}. ${resultsFiles.size} results files have been collected`),
+      );
+    } catch (err) {
+      console.log(red(`Error creating archive: ${(err as Error).message}`));
+      throw err;
+    }
   }
 }

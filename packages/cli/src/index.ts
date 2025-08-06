@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { argv, cwd } from "node:process";
 import {
   Allure2Command,
-  ArchiveCommand,
   AwesomeCommand,
   ClassicCommand,
   CsvCommand,
@@ -20,6 +19,8 @@ import {
   ProjectsDeleteCommand,
   ProjectsListCommand,
   QualityGateCommand,
+  ResultsPackCommand,
+  ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
   TestPlanCommand,
@@ -60,7 +61,8 @@ cli.register(WhoamiCommand);
 cli.register(ProjectsCreateCommand);
 cli.register(ProjectsDeleteCommand);
 cli.register(ProjectsListCommand);
-cli.register(ArchiveCommand);
+cli.register(ResultsPackCommand);
+cli.register(ResultsUnpackCommand);
 cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 

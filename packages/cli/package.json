@@ -48,7 +48,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "archiver": "^7.0.1",
+    "adm-zip": "^0.5.16",
     "clipanion": "^4.0.0-rc.4",
     "lodash.omit": "^4.5.0",
     "prompts": "^2.4.2",
@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
-    "@types/archiver": "^6.0.3",
+    "@types/adm-zip": "^0",
     "@types/eslint": "^8.56.11",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",

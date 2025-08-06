@@ -11390,6 +11390,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/adm-zip", [\
+      ["npm:0.5.7", {\
+        "packageLocation": "./.yarn/cache/@types-adm-zip-npm-0.5.7-b19d96a568-24e9842bd6.zip/node_modules/@types/adm-zip/",\
+        "packageDependencies": [\
+          ["@types/adm-zip", "npm:0.5.7"],\
+          ["@types/node", "npm:20.11.21"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/archiver", [\
       ["npm:6.0.3", {\
         "packageLocation": "./.yarn/cache/@types-archiver-npm-6.0.3-a4b881a8b8-c0ab3ca45b.zip/node_modules/@types/archiver/",\
@@ -13663,6 +13673,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["adm-zip", [\
+      ["npm:0.5.16", {\
+        "packageLocation": "./.yarn/cache/adm-zip-npm-0.5.16-4556fea098-e167d1b9e6.zip/node_modules/adm-zip/",\
+        "packageDependencies": [\
+          ["adm-zip", "npm:0.5.16"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["agent-base", [\
       ["npm:7.1.0", {\
         "packageLocation": "./.yarn/cache/agent-base-npm-7.1.0-4b12ba5111-f7828f9914.zip/node_modules/agent-base/",\
@@ -13803,7 +13822,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/service", "workspace:packages/service"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
-          ["@types/archiver", "npm:6.0.3"],\
+          ["@types/adm-zip", "npm:0.5.7"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/lodash.omit", "npm:4.5.9"],\
           ["@types/node", "npm:20.17.9"],\
@@ -13812,8 +13831,8 @@ const RAW_RUNTIME_STATE =
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
+          ["adm-zip", "npm:0.5.16"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
-          ["archiver", "npm:7.0.1"],\
           ["clipanion", "virtual:5db02ac3e7cbf7d577ab119ff9f0c06bae50c6e25906569e6029080573d8619fe391fe8c0d94989f3e102063d52c8f5aeb1ac413356763c36e5e29ba3900989d#npm:4.0.0-rc.4"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\

@@ -6659,6 +6659,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/adm-zip@npm:^0":
+  version: 0.5.7
+  resolution: "@types/adm-zip@npm:0.5.7"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/24e9842bd6838879c60fe833af267489d8bc6b582d5feac6179543bf7a0b01a749931a9c6f21a20b8454e83925937a63bae0190493fa269d33a35c6daf4df209
+  languageName: node
+  linkType: hard
+
 "@types/archiver@npm:^6.0.3":
   version: 6.0.3
   resolution: "@types/archiver@npm:6.0.3"
@@ -8156,6 +8165,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"adm-zip@npm:^0.5.16":
+  version: 0.5.16
+  resolution: "adm-zip@npm:0.5.16"
+  checksum: 10/e167d1b9e60cde37334efda828fa514680af9facbd4183952f36526390e5c7da9a90ca1e6880dfd3aba7b3517f1506c6178e0dc29cd630b26b98c795f97fc599
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:^7.0.2, agent-base@npm:^7.1.0":
   version: 7.1.0
   resolution: "agent-base@npm:7.1.0"
@@ -8325,7 +8341,7 @@ __metadata:
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
-    "@types/archiver": "npm:^6.0.3"
+    "@types/adm-zip": "npm:^0"
     "@types/eslint": "npm:^8.56.11"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20.17.9"
@@ -8334,8 +8350,8 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
     "@vitest/snapshot": "npm:^2.1.9"
+    adm-zip: "npm:^0.5.16"
     allure-vitest: "npm:^3.3.3"
-    archiver: "npm:^7.0.1"
     clipanion: "npm:^4.0.0-rc.4"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
