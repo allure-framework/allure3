@@ -1,4 +1,5 @@
-import type { PieChartValues, TestStatus } from "@allurereport/core-api";
+import { type TestStatus } from "@allurereport/core-api";
+import type { PieChartValues } from "@allurereport/web-commons";
 import cx from "clsx";
 import { Heading } from "@/components/Typography";
 import styles from "./styles.scss";
