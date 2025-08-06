@@ -1,12 +1,12 @@
-import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
+import { ChartDataType, ChartType, type HistoryDataPoint, type Statistic, type TestResult, type TrendChartData } from "@allurereport/core-api";
+import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData } from "@allurereport/plugin-api";
 import {
-  DEFAULT_CHART_HISTORY_LIMIT,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
+  getPieChartData,
 } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
@@ -14,9 +14,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getSeverityTrendData } from "./charts/severityTrend.js";
-import { getPieChartData } from "./charts/statusPie.js";
-import { getStatusTrendData } from "./charts/statusTrend.js";
+
 import type {
   DashboardOptions,
   DashboardPluginOptions,
@@ -25,10 +23,8 @@ import type {
   PieChartData,
   PieChartOptions,
   TemplateManifest,
-  TrendChartData,
   TrendChartOptions,
 } from "./model.js";
-import { ChartData, ChartType } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
@@ -92,9 +88,9 @@ const generateTrendChart = (
   const { dataType } = newOptions;
   const { statistic, historyDataPoints, testResults } = stores;
 
-  if (dataType === ChartData.Status) {
+  if (dataType === ChartDataType.Status) {
     return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
-  } else if (dataType === ChartData.Severity) {
+  } else if (dataType === ChartDataType.Severity) {
     return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
   }
 };
