@@ -14,4 +14,4 @@ export const severityColors: Record<SeverityLevel, string> = {
   normal: "var(--bg-support-castor)",
   minor: "var(--bg-support-rau)",
   trivial: "var(--bg-support-skat)",
-}; 
+};
