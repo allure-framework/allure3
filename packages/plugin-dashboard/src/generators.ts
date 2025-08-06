@@ -1,12 +1,11 @@
 import { ChartDataType, ChartType, type GeneratedChartData, type GeneratedChartsData, type HistoryDataPoint, type PieChartData, type PieChartOptions, type Statistic, type TestResult, type TrendChartData, type TrendChartOptions } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData } from "@allurereport/plugin-api";
+import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartData,
 } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";

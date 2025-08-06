@@ -1,7 +1,6 @@
-import type { TestStatus, SeverityLevel, ChartId, ChartMode, PieSlice } from "@allurereport/core-api";
+import type { TestStatus, SeverityLevel, ChartId, ChartMode, PieSlice, TrendSlice } from "@allurereport/core-api";
 import { statusesList, severityLevels, ChartType, ChartDataType } from "@allurereport/core-api";
 import { statusColors, severityColors } from "./colors.js";
-import type { StatusTrendSlice, SeverityTrendSlice } from "../charts.js";
 
 export interface Point {
   x: Date | string | number;
@@ -22,7 +21,7 @@ export interface ResponseTrendChartData {
   min: number;
   max: number;
   points: Record<string, Point>;
-  slices: Record<string, StatusTrendSlice | SeverityTrendSlice>;
+  slices: Record<string, TrendSlice>;
   series: Record<string, string[]>;
 }
 
@@ -42,7 +41,7 @@ export interface UITrendChartData {
   min: number;
   max: number;
   items: TrendChartItem[];
-  slices: (StatusTrendSlice | SeverityTrendSlice)[];
+  slices: TrendSlice[];
   title?: string;
 }
 export type UIPieChartData = ResponsePieChartData;

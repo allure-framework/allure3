@@ -1,4 +1,5 @@
-import { type BaseTrendSliceMetadata, ChartMode, type GenericTrendChartData, type SeverityLevel, type TestStatus, type TrendChartOptions, type TrendPoint, type TrendPointId } from "@allurereport/core-api";
+import type { BaseTrendSliceMetadata, GenericTrendChartData, PieChartData, PieChartOptions, SeverityLevel, Statistic, TestStatus, TrendChartOptions, TrendPoint, TrendPointId } from "@allurereport/core-api";
+import { getPieChartValues, ChartMode } from "@allurereport/core-api";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -16,6 +17,8 @@ export type TrendCalculationResult<T extends TrendDataType> = {
   points: Record<TrendPointId, TrendPoint>;
   series: Record<T, TrendPointId[]>;
 };
+
+export type ChartOptions = TrendChartOptions | PieChartOptions;
 
 /**
  * Initializes series record with items as keys and empty arrays.
@@ -221,3 +224,9 @@ export const mergeTrendDataGeneric = <T extends TrendDataType, M extends BaseTre
   };
 
   export const DEFAULT_CHART_HISTORY_LIMIT = 10;
+
+export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
+  type: chartOptions.type,
+  title: chartOptions?.title,
+  ...getPieChartValues(stats),
+});
