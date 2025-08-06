@@ -1,4 +1,4 @@
-import { ChartDataType, ChartType, type HistoryDataPoint, type Statistic, type TestResult, type TrendChartData } from "@allurereport/core-api";
+import { ChartDataType, ChartType, type GeneratedChartData, type GeneratedChartsData, type HistoryDataPoint, type PieChartData, type PieChartOptions, type Statistic, type TestResult, type TrendChartData, type TrendChartOptions } from "@allurereport/core-api";
 import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
@@ -18,12 +18,7 @@ import { basename, join } from "node:path";
 import type {
   DashboardOptions,
   DashboardPluginOptions,
-  GeneratedChartData,
-  GeneratedChartsData,
-  PieChartData,
-  PieChartOptions,
   TemplateManifest,
-  TrendChartOptions,
 } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
