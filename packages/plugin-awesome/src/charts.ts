@@ -5,25 +5,16 @@ import {
   type HistoryDataPoint,
   type Statistic,
   type TestResult,
-  type TrendSliceMetadata,
-  type BaseTrendSliceMetadata,
-  type TrendSlice,
   type PieChartData,
   type GeneratedChartData,
   type GeneratedChartsData,
   type TrendChartOptions,
   type PieChartOptions,
 } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData } from "@allurereport/plugin-api";
-import { getPieChartData } from "@allurereport/web-commons";
+import { type AllureStore, type PluginContext, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
 import type { AwesomeOptions } from "./model.js";
 import type { AwesomeDataWriter } from "./writer.js";
-
-export interface StatusMetadata extends BaseTrendSliceMetadata {}
-
-export type StatusTrendSliceMetadata = TrendSliceMetadata<StatusMetadata>;
-export type StatusTrendSlice = TrendSlice<StatusTrendSliceMetadata>;
 
 const generatePieChart = (
   options: PieChartOptions,
