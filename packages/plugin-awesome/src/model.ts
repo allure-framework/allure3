@@ -1,5 +1,4 @@
-import type { CiDescriptor, EnvironmentsConfig, TestResult } from "@allurereport/core-api";
-import type { ChartOptions } from "./charts.js";
+import type { CiDescriptor, ChartOptions, EnvironmentsConfig, TestResult } from "@allurereport/core-api";
 
 export type AwesomeOptions = {
   reportName?: string;
