@@ -1,10 +1,10 @@
-import { fetchReportJsonData, getPieChartData, createCharts } from "@allurereport/web-commons";
+import { fetchReportJsonData, getPieChartValues, createCharts } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
-import type { ChartsResponse, UIChartsData, TestResultChartData } from "@allurereport/web-commons";
+import type { ChartsResponse, UIChartsData, PieChartValues } from "@allurereport/web-commons";
 import type { Statistic } from "@allurereport/core-api";
 
-export const pieChartStore = signal<StoreSignalState<TestResultChartData>>({
+export const pieChartStore = signal<StoreSignalState<PieChartValues>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -24,7 +24,7 @@ export const fetchPieChartData = async (env: string) => {
     );
 
     pieChartStore.value = {
-      data: getPieChartData(res),
+      data: getPieChartValues(res),
       error: undefined,
       loading: false,
     };
