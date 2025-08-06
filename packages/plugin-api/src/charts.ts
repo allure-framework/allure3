@@ -38,6 +38,8 @@ export type TrendCalculationResult<T extends TrendDataType> = {
   series: Record<T, TrendPointId[]>;
 };
 
+export type ChartOptions = TrendChartOptions | PieChartOptions;
+
 /**
  * Initializes series record with items as keys and empty arrays.
  * @param items - Items for series record.
@@ -242,3 +244,9 @@ export const mergeTrendDataGeneric = <T extends TrendDataType, M extends BaseTre
   };
 
   export const DEFAULT_CHART_HISTORY_LIMIT = 10;
+
+export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
+  type: chartOptions.type,
+  title: chartOptions?.title,
+  ...getPieChartValues(stats),
+});

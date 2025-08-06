@@ -7,4 +7,3 @@ export * from "./sanitize.js";
 export * from "./charts.js";
 export * from "./charts/colors.js";
 export * from "./charts/utils.js";
-export * from "./charts/getPieChart.js";
