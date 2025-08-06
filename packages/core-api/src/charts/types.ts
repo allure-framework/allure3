@@ -34,6 +34,7 @@ export interface TrendPoint {
 }
 
 // Metadata for a trend slice
+// FIXME: Used in web-commons and plugins (check web-commons)
 export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
 
 // Slice of a trend chart
