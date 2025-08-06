@@ -1,31 +1,30 @@
+import { ChartDataType, ChartType, type HistoryDataPoint, type Statistic, type TestResult, type TrendChartData } from "@allurereport/core-api";
+import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData } from "@allurereport/plugin-api";
 import {
-  ChartType,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-} from "@allurereport/core-api";
-import {
-  type AllureChartsStoreData,
-  type AllureStore,
-  type ComingSoonChartOptions,
-  type GeneratedChartData,
-  type GeneratedChartsData,
-  type PluginContext,
-  type ReportFiles,
-  generateBarChart,
-  generateComingSoonChart,
-  generatePieChart,
-  generateTrendChart,
-} from "@allurereport/plugin-api";
+  getPieChartData,
+} from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
+
+import type {
+  DashboardOptions,
+  DashboardPluginOptions,
+  GeneratedChartData,
+  GeneratedChartsData,
+  PieChartData,
+  PieChartOptions,
+  TemplateManifest,
+  TrendChartOptions,
+} from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
@@ -76,6 +75,37 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
+const generateTrendChart = (
+  options: TrendChartOptions,
+  stores: {
+    historyDataPoints: HistoryDataPoint[];
+    statistic: Statistic;
+    testResults: TestResult[];
+  },
+  context: PluginContext,
+): TrendChartData | undefined => {
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const { dataType } = newOptions;
+  const { statistic, historyDataPoints, testResults } = stores;
+
+  if (dataType === ChartDataType.Status) {
+    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
+  } else if (dataType === ChartDataType.Severity) {
+    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
+  }
+};
+
+const generatePieChart = (
+  options: PieChartOptions,
+  stores: {
+    statistic: Statistic;
+  },
+): PieChartData => {
+  const { statistic } = stores;
+
+  return getPieChartData(statistic, options);
+};
+
 export const generateCharts = async (
   options: DashboardPluginOptions,
   store: AllureStore,
@@ -87,39 +117,35 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const storeData: AllureChartsStoreData = await Promise.all([
-    store.allHistoryDataPoints(),
-    store.allTestResults(),
-    store.testsStatistic(),
-  ]).then(([historyDataPoints, testResults, statistic]) => ({
-    historyDataPoints,
-    testResults,
-    statistic,
-  }));
+  const historyDataPoints = await store.allHistoryDataPoints();
+  const statistic = await store.testsStatistic();
+  const testResults = await store.allTestResults();
 
-  const chartsData: GeneratedChartsData = {};
-
-  for (const chartOptions of layout) {
+  return layout.reduce((acc, chartOptions) => {
     const chartId = randomUUID();
 
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(chartOptions, storeData, context);
+      chart = generateTrendChart(
+        chartOptions,
+        {
+          historyDataPoints,
+          statistic,
+          testResults,
+        },
+        context,
+      );
     } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, storeData);
-    } else if (chartOptions.type === ChartType.Bar) {
-      chart = generateBarChart(chartOptions, storeData);
+      chart = generatePieChart(chartOptions, { statistic });
     }
 
     if (chart) {
-      chartsData[chartId] = chart;
-    } else {
-      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
+      acc[chartId] = chart;
     }
-  }
 
-  return chartsData;
+    return acc;
+  }, {} as GeneratedChartsData);
 };
 
 export const generateAllCharts = async (
