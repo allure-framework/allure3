@@ -1,5 +1,25 @@
-import { ChartDataType, ChartType, type HistoryDataPoint, type Statistic, type TestResult } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type TrendChartData, type GeneratedChartData, type GeneratedChartsData, type ReportFiles, type TrendChartOptions, type PieChartOptions, type PieChartData, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
+import {
+  ChartDataType,
+  ChartType,
+  type HistoryDataPoint,
+  type Statistic,
+  type TestResult,
+} from "@allurereport/core-api";
+import {
+  type AllureStore,
+  DEFAULT_CHART_HISTORY_LIMIT,
+  type GeneratedChartData,
+  type GeneratedChartsData,
+  type PieChartData,
+  type PieChartOptions,
+  type PluginContext,
+  type ReportFiles,
+  type TrendChartData,
+  type TrendChartOptions,
+  getPieChartData,
+  getSeverityTrendData,
+  getStatusTrendData,
+} from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
@@ -13,12 +33,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-
-import type {
-  DashboardOptions,
-  DashboardPluginOptions,
-  TemplateManifest,
-} from "./model.js";
+import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
