@@ -58,7 +58,6 @@ export class DashboardCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultDashboardOptions = {
       singleFile: this.singleFile ?? false,
       logo: this.logo,
@@ -77,7 +76,6 @@ export class DashboardCommand extends Command {
         plugin: new DashboardPlugin(defaultDashboardOptions),
       },
     );
-
     const allureReport = new AllureReport(config);
 
     await allureReport.start();

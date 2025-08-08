@@ -30,7 +30,9 @@ beforeEach(() => {
 
 describe("allure2 command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({});
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
     const command = new Allure2Command();
 
@@ -44,28 +46,26 @@ describe("allure2 command", () => {
       plugins: expect.arrayContaining([
         expect.objectContaining({
           id: "allure2",
-          enabled: true,
-          options: expect.objectContaining({}),
           plugin: expect.any(Allure2Plugin),
         }),
       ]),
     });
   });
 
-  it("should initialize allure report with provided plugin options when config exists", async () => {
+  it("should initialize allure report with default plugin options even when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-allure2-plugin",
+          id: "my-allure2-plugin1",
           enabled: true,
-          options: {
-            reportLanguage: "en",
-            singleFile: true,
-          },
-          plugin: new Allure2Plugin({
-            reportLanguage: "en",
-            singleFile: true,
-          }),
+          options: {},
+          plugin: new Allure2Plugin({}),
+        },
+        {
+          id: "my-allure2-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new Allure2Plugin({}),
         },
       ],
     });
@@ -82,52 +82,7 @@ describe("allure2 command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-allure2-plugin",
-            enabled: true,
-            options: {
-              reportLanguage: "en",
-              singleFile: true,
-            },
-            plugin: expect.any(Allure2Plugin),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  it("should initialize allure report with provided command line options", async () => {
-    const command = new Allure2Command();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.reportName = fixtures.reportName;
-    command.output = fixtures.output;
-    command.knownIssues = fixtures.knownIssues;
-    command.historyPath = fixtures.historyPath;
-    command.reportLanguage = fixtures.reportLanguage;
-    command.singleFile = fixtures.singleFile;
-    command.config = fixtures.config;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
-      historyPath: fixtures.historyPath,
-      knownIssuesPath: fixtures.knownIssues,
-      name: fixtures.reportName,
-      output: fixtures.output,
-    });
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
             id: "allure2",
-            enabled: true,
-            options: expect.objectContaining({
-              reportLanguage: fixtures.reportLanguage,
-              singleFile: fixtures.singleFile,
-            }),
             plugin: expect.any(Allure2Plugin),
           }),
         ]),

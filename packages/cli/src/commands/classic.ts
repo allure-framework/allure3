@@ -58,12 +58,10 @@ export class ClassicCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultClassicOptions = {
       singleFile: this.singleFile ?? false,
       reportLanguage: this.reportLanguage,
     } as ClassicPluginOptions;
-
     const config = enforcePlugin(
       await readConfig(cwd, this.config, {
         output: this.output ?? "allure-report",
@@ -78,7 +76,6 @@ export class ClassicCommand extends Command {
         plugin: new ClassicPlugin(defaultClassicOptions),
       },
     );
-
     const allureReport = new AllureReport(config);
 
     await allureReport.start();

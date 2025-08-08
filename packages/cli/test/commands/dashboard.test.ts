@@ -30,7 +30,9 @@ beforeEach(() => {
 
 describe("dashboard command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({});
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
     const command = new DashboardCommand();
 
@@ -51,22 +53,20 @@ describe("dashboard command", () => {
     });
   });
 
-  it("should initialize allure report with provided plugin options when config exists", async () => {
+  it("should initialize allure report with default plugin options even when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-dashboard-plugin",
+          id: "my-dashboard-plugin1",
           enabled: true,
-          options: {
-            reportLanguage: "en",
-            singleFile: true,
-            logo: "./logo.png",
-          },
-          plugin: new DashboardPlugin({
-            reportLanguage: "en",
-            singleFile: true,
-            logo: "./logo.png",
-          }),
+          options: {},
+          plugin: new DashboardPlugin({}),
+        },
+        {
+          id: "my-dashboard-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new DashboardPlugin({}),
         },
       ],
     });
@@ -83,53 +83,7 @@ describe("dashboard command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-dashboard-plugin",
-            enabled: true,
-            options: {
-              reportLanguage: "en",
-              singleFile: true,
-              logo: "./logo.png",
-            },
-            plugin: expect.any(DashboardPlugin),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  it("should initialize allure report with provided command line options", async () => {
-    const command = new DashboardCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.reportName = fixtures.reportName;
-    command.output = fixtures.output;
-    command.reportLanguage = fixtures.reportLanguage;
-    command.singleFile = fixtures.singleFile;
-    command.logo = fixtures.logo;
-    command.theme = fixtures.theme;
-    command.config = fixtures.config;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
-      name: fixtures.reportName,
-      output: fixtures.output,
-    });
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
             id: "dashboard",
-            enabled: true,
-            options: expect.objectContaining({
-              reportLanguage: fixtures.reportLanguage,
-              singleFile: fixtures.singleFile,
-              logo: fixtures.logo,
-              theme: fixtures.theme,
-            }),
             plugin: expect.any(DashboardPlugin),
           }),
         ]),

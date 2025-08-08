@@ -58,12 +58,10 @@ export class Allure2Command extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultAllure2Options = {
       singleFile: this.singleFile ?? false,
       reportLanguage: this.reportLanguage,
     } as Allure2PluginOptions;
-
     const config = enforcePlugin(
       await readConfig(cwd, this.config, {
         output: this.output ?? "allure-report",

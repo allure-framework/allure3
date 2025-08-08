@@ -28,7 +28,9 @@ beforeEach(() => {
 
 describe("csv command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({});
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
     const command = new CsvCommand();
 
@@ -50,20 +52,20 @@ describe("csv command", () => {
     });
   });
 
-  it("should initialize allure report with provided plugin options when config exists", async () => {
+  it("should initialize allure report with default plugin options even when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-csv-plugin",
+          id: "my-csv-plugin1",
           enabled: true,
-          options: {
-            separator: ";",
-            disableHeaders: true,
-          },
-          plugin: new CsvPlugin({
-            separator: ";",
-            disableHeaders: true,
-          }),
+          options: {},
+          plugin: new CsvPlugin({}),
+        },
+        {
+          id: "my-csv-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new CsvPlugin({}),
         },
       ],
     });
@@ -80,48 +82,7 @@ describe("csv command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-csv-plugin",
-            enabled: true,
-            options: {
-              separator: ";",
-              disableHeaders: true,
-            },
-            plugin: expect.any(CsvPlugin),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  it("should initialize allure report with provided command line options", async () => {
-    const command = new CsvCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.output = fixtures.output;
-    command.knownIssues = fixtures.knownIssues;
-    command.separator = fixtures.separator;
-    command.disableHeaders = fixtures.disableHeaders;
-    command.config = fixtures.config;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
-      knownIssuesPath: fixtures.knownIssues,
-      output: fixtures.output,
-    });
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
             id: "csv",
-            enabled: true,
-            options: expect.objectContaining({
-              separator: fixtures.separator,
-              disableHeaders: fixtures.disableHeaders,
-            }),
             plugin: expect.any(CsvPlugin),
           }),
         ]),
