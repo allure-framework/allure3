@@ -1,5 +1,5 @@
-import { ChartDataType, ChartType, type GeneratedChartData, type GeneratedChartsData, type HistoryDataPoint, type PieChartData, type PieChartOptions, type Statistic, type TestResult, type TrendChartData, type TrendChartOptions } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type ReportFiles, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
+import { ChartDataType, ChartType, type HistoryDataPoint, type Statistic, type TestResult } from "@allurereport/core-api";
+import { type AllureStore, type PluginContext, type TrendChartData, type GeneratedChartData, type GeneratedChartsData, type ReportFiles, type TrendChartOptions, type PieChartOptions, type PieChartData, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
