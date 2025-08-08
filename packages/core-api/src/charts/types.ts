@@ -1,26 +1,14 @@
-import type { SeverityLevel, TestStatus } from "../model.js";
+import type { TestStatus } from "../model.js";
 
 // Chart types and enums
 export enum ChartType {
   Trend = "trend",
   Pie = "pie",
-  TreeMap = "treemap",
-  HeatMap = "heatmap",
-  Bar = "bar",
-  Funnel = "funnel",
-  ComingSoon = "coming-soon",
 }
 
 export enum ChartDataType {
   Status = "status",
   Severity = "severity",
-}
-
-// Specifies which Bar chart is being generated
-export enum BarChartType {
-  StatusBySeverity = "statusBySeverity",
-  StatusTrend = "statusTrend",
-  StatusChangeTrend = "statusChangeTrend",
 }
 
 export enum ChartMode {
@@ -40,41 +28,24 @@ export interface BaseTrendSliceMetadata extends BaseMetadata {
 };
 
 // Point on a trend chart
+// FIXME: Used in plugins only
 export interface TrendPoint {
   x: string;
   y: number;
 }
 
 // Metadata for a trend slice
-// FIXME: Used in web-commons and plugins (check web-commons)
 export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
 
 // Slice of a trend chart
 export interface TrendSlice<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
+  // Minimum value on Y-axis of the trend chart slice
   min: number;
+  // Maximum value on Y-axis of the trend chart slice
   max: number;
+  // Metadata about this test execution
   metadata: TrendSliceMetadata<Metadata>;
 }
-
-
-// Generic structure for trend chart data
-export interface GenericTrendChartData<SeriesType extends string, Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  title?: string;
-  points: Record<TrendPointId, TrendPoint>;
-  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
-  series: Record<SeriesType, TrendPointId[]>;
-  min: number;
-  max: number;
-}
-
-// Specific trend chart data types
-export type StatusTrendChartData = GenericTrendChartData<TestStatus>;
-export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
-
-export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
 // Pie chart types
 export interface BasePieSlice {
@@ -86,33 +57,8 @@ export interface PieSlice extends BasePieSlice {
   d: string | null;
 }
 
-export interface PieChartData {
-  type: ChartType.Pie;
-  title?: string;
-  slices: PieSlice[];
+export type PieChartValues = {
   percentage: number;
-}
-
-// Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData;
-export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
-
-// Chart options
-export type TrendChartOptions = {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode?: ChartMode;
-  title?: string;
-  limit?: number;
-  metadata?: Record<string, unknown>;
+  slices: PieSlice[];
 };
 
-export type PieChartOptions = {
-  type: ChartType.Pie;
-  title?: string;
-};
-
-export type ChartOptions = TrendChartOptions | PieChartOptions;
-
-export type NewKey<T extends string> = `new${Capitalize<T>}`;
-export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
