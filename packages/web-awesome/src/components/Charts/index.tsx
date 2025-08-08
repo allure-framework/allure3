@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { type UIChartData, capitalize } from "@allurereport/web-commons";
 import { ChartType } from "@allurereport/core-api";
+import { type UIChartData, capitalize } from "@allurereport/web-commons";
 import {
   Grid,
   GridItem,
