@@ -1,24 +1,12 @@
-import {
-  ChartDataType,
-  ChartType,
-  type HistoryDataPoint,
-  type Statistic,
-  type TestResult,
-} from "@allurereport/core-api";
+import { ChartType } from "@allurereport/core-api";
 import {
   type AllureStore,
-  DEFAULT_CHART_HISTORY_LIMIT,
   type GeneratedChartData,
   type GeneratedChartsData,
-  type PieChartData,
-  type PieChartOptions,
   type PluginContext,
   type ReportFiles,
-  type TrendChartData,
-  type TrendChartOptions,
-  getPieChartData,
-  getSeverityTrendData,
-  getStatusTrendData,
+  generatePieChart,
+  generateTrendChart,
 } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
@@ -82,37 +70,6 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
 
   return JSON.parse(templateManifest);
-};
-
-const generateTrendChart = (
-  options: TrendChartOptions,
-  stores: {
-    historyDataPoints: HistoryDataPoint[];
-    statistic: Statistic;
-    testResults: TestResult[];
-  },
-  context: PluginContext,
-): TrendChartData | undefined => {
-  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
-  const { dataType } = newOptions;
-  const { statistic, historyDataPoints, testResults } = stores;
-
-  if (dataType === ChartDataType.Status) {
-    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
-  } else if (dataType === ChartDataType.Severity) {
-    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
-  }
-};
-
-const generatePieChart = (
-  options: PieChartOptions,
-  stores: {
-    statistic: Statistic;
-  },
-): PieChartData => {
-  const { statistic } = stores;
-
-  return getPieChartData(statistic, options);
 };
 
 export const generateCharts = async (
