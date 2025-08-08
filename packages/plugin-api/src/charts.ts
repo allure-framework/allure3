@@ -1,4 +1,4 @@
-import type { BaseTrendSliceMetadata, GenericTrendChartData, PieChartData, PieChartOptions, SeverityLevel, Statistic, TestStatus, TrendChartOptions, TrendPoint, TrendPointId } from "@allurereport/core-api";
+import type { BaseTrendSliceMetadata, ChartDataType, SeverityLevel, Statistic, TestStatus, TrendPoint, ChartType, TrendSlice, ChartId, PieSlice, TrendPointId, TrendSliceId } from "@allurereport/core-api";
 import { getPieChartValues, ChartMode } from "@allurereport/core-api";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
@@ -18,7 +18,61 @@ export type TrendCalculationResult<T extends TrendDataType> = {
   series: Record<T, TrendPointId[]>;
 };
 
+// Generic structure for trend chart data
+export interface GenericTrendChartData<SeriesType extends string, Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
+  // Type of the chart
+  type: ChartType.Trend;
+  // Data type of the chart
+  dataType: ChartDataType;
+  // Chart mode to know type of values on Y-axis
+  mode: ChartMode;
+  // Title of the chart
+  title?: string;
+  // Points for all series
+  points: Record<TrendPointId, TrendPoint>;
+  // Slices for all series
+  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
+  // Grouping by series, containing array of point IDs for each status
+  series: Record<SeriesType, TrendPointId[]>;
+  // Minimum value on Y-axis of the trend chart
+  min: number;
+  // Maximum value on Y-axis of the trend chart
+  max: number;
+}
+
+// Specific trend chart data types
+export type StatusTrendChartData = GenericTrendChartData<TestStatus>;
+export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
+
+export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
+
+// Union types for generated chart data
+export type GeneratedChartData = TrendChartData | PieChartData;
+export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
+
+// Chart options
+export type TrendChartOptions = {
+  type: ChartType.Trend;
+  dataType: ChartDataType;
+  mode?: ChartMode;
+  title?: string;
+  limit?: number;
+  metadata?: TrendMetadataFnOverrides;
+};
+
+export type PieChartOptions = {
+  type: ChartType.Pie;
+  title?: string;
+};
+
 export type ChartOptions = TrendChartOptions | PieChartOptions;
+
+export interface PieChartData {
+  type: ChartType.Pie;
+  title?: string;
+  slices: PieSlice[];
+  percentage: number;
+}
 
 /**
  * Initializes series record with items as keys and empty arrays.
@@ -111,7 +165,7 @@ export const getTrendDataGeneric = <T extends TrendDataType, M extends BaseTrend
     chartOptions: TrendChartOptions,
   ): GenericTrendChartData<T, M> => {
     const { type, dataType, title, mode = ChartMode.Raw, metadata = {} } = chartOptions;
-    const { executionIdAccessor, executionNameAccessor } = metadata as TrendMetadataFnOverrides;
+    const { executionIdAccessor, executionNameAccessor } = metadata;
     const executionId = executionIdAccessor ? executionIdAccessor(executionOrder) : `execution-${executionOrder}`;
 
     const { points, series } =
