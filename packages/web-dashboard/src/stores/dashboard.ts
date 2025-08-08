@@ -1,9 +1,4 @@
-import {
-  fetchReportJsonData,
-  createCharts,
-  type UIChartsData,
-  type ChartsResponse
-} from "@allurereport/web-commons";
+import { type ChartsResponse, type UIChartsData, createCharts, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 

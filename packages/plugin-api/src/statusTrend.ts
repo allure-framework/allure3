@@ -1,6 +1,14 @@
 import type { HistoryDataPoint, Statistic } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import { getTrendDataGeneric, createEmptySeries, createEmptyStats, normalizeStatistic, mergeTrendDataGeneric, type StatusTrendChartData, type TrendChartOptions } from "./charts.js";
+import {
+  type StatusTrendChartData,
+  type TrendChartOptions,
+  createEmptySeries,
+  createEmptyStats,
+  getTrendDataGeneric,
+  mergeTrendDataGeneric,
+  normalizeStatistic,
+} from "./charts.js";
 
 export const getStatusTrendData = (
   currentStatistic: Statistic,

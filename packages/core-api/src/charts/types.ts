@@ -23,9 +23,9 @@ export type TrendSliceId = string;
 // Base metadata for trend slices
 export type BaseMetadata = Record<string, unknown>;
 export interface BaseTrendSliceMetadata extends BaseMetadata {
-    executionId: string;
-    executionName?: string;
-};
+  executionId: string;
+  executionName?: string;
+}
 
 // Point on a trend chart
 // FIXME: Used in plugins only
@@ -61,4 +61,3 @@ export type PieChartValues = {
   percentage: number;
   slices: PieSlice[];
 };
-
