@@ -1,18 +1,22 @@
 import type {
   BaseTrendSliceMetadata,
-  ChartDataType,
   ChartId,
   ChartType,
+  HistoryDataPoint,
   PieSlice,
   SeverityLevel,
   Statistic,
+  TestResult,
   TestStatus,
   TrendPoint,
   TrendPointId,
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartMode, getPieChartValues } from "@allurereport/core-api";
+import { ChartMode, ChartDataType, getPieChartValues } from "@allurereport/core-api";
+import { getSeverityTrendData } from "./severityTrend.js";
+import { getStatusTrendData } from "./statusTrend.js";
+import type { PluginContext } from "./plugin.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -299,3 +303,34 @@ export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions)
   title: chartOptions?.title,
   ...getPieChartValues(stats),
 });
+
+export const generatePieChart = (
+  options: PieChartOptions,
+  stores: {
+    statistic: Statistic;
+  },
+): PieChartData => {
+  const { statistic } = stores;
+
+  return getPieChartData(statistic, options);
+};
+
+export const generateTrendChart = (
+  options: TrendChartOptions,
+  stores: {
+    historyDataPoints: HistoryDataPoint[];
+    statistic: Statistic;
+    testResults: TestResult[];
+  },
+  context: PluginContext,
+): TrendChartData | undefined => {
+  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
+  const { dataType } = newOptions;
+  const { statistic, historyDataPoints, testResults } = stores;
+
+  if (dataType === ChartDataType.Status) {
+    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
+  } else if (dataType === ChartDataType.Severity) {
+    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
+  }
+};
