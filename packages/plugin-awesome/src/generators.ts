@@ -11,7 +11,6 @@ import {
   incrementStatistic,
   nullsLast,
   ordinal,
-  getPieChartValues,
 } from "@allurereport/core-api";
 import {
   type AllureStore,
