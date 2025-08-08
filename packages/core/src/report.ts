@@ -1,13 +1,6 @@
 import { detect } from "@allurereport/ci";
-import type { AllureHistory, CiDescriptor } from "@allurereport/core-api";
-import type {
-  Plugin,
-  PluginContext,
-  PluginState,
-  PluginSummary,
-  ReportFiles,
-  ResultFile,
-} from "@allurereport/plugin-api";
+import type { AllureHistory, CiDescriptor, TestResult } from "@allurereport/core-api";
+import type { Plugin, PluginContext, PluginState, PluginSummary, ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
@@ -21,13 +14,10 @@ import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
+import { QualityGate } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
-import {
-  type AllureStoreEvents,
-  ExternalEventsDispatcher,
-  InternalEventsDispatcher,
-  RealtimeEventsSubscriber,
-} from "./utils/event.js";
+import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -40,13 +30,14 @@ export class AllureReport {
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
-  readonly #realtimeSubscriber: RealtimeEventsSubscriber;
-  readonly #internalDispatcher: InternalEventsDispatcher;
-  readonly #externalDispatcher: ExternalEventsDispatcher;
+  readonly #realtimeSubscriber: RealtimeSubscriber;
+  readonly #realtimeDispatcher: RealtimeEventsDispatcher;
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
+  readonly #qualityGate: QualityGate | undefined;
+
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -66,6 +57,7 @@ export class AllureReport {
       variables = {},
       environments,
       output,
+      qualityGate,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -77,9 +69,8 @@ export class AllureReport {
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
-    this.#externalDispatcher = new ExternalEventsDispatcher(this.#eventEmitter);
-    this.#internalDispatcher = new InternalEventsDispatcher(this.#eventEmitter);
-    this.#realtimeSubscriber = new RealtimeEventsSubscriber(this.#eventEmitter);
+    this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
+    this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
 
     if (this.#allureServiceClient) {
@@ -88,9 +79,13 @@ export class AllureReport {
       this.#history = new AllureLocalHistory(historyPath);
     }
 
+    if (qualityGate) {
+      this.#qualityGate = new QualityGate(qualityGate);
+    }
+
     this.#store = new DefaultAllureStore({
       realtimeSubscriber: this.#realtimeSubscriber,
-      externalDispatcher: this.#internalDispatcher,
+      realtimeDispatcher: this.#realtimeDispatcher,
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
@@ -101,7 +96,6 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-    // TODO: where should we execute quality gate?
     this.#history = this.#allureServiceClient
       ? new AllureRemoteHistory(this.#allureServiceClient)
       : new AllureLocalHistory(historyPath);
@@ -111,7 +105,10 @@ export class AllureReport {
     return this.#store;
   }
 
-  get realtimeSubscriber(): RealtimeEventsSubscriber {
+  /**
+   * Subscriber that allows to listen to realtime events outside of plugins or the report itself
+   */
+  get realtimeSubscriber(): RealtimeSubscriber {
     return this.#realtimeSubscriber;
   }
 
@@ -168,6 +165,37 @@ export class AllureReport {
     }
   };
 
+  // TODO:
+  validate = async (trs: TestResult[]) => {
+    const knownIssues = await this.#store.allKnownIssues();
+    const validationResult = await this.#qualityGate!.validate({
+      trs: trs.filter(Boolean) as TestResult[],
+      knownIssues,
+    })
+
+    // if (!validationResult.fastFailed) {
+    //   return;
+    // }
+
+    const errors = this.#qualityGate!.createQualityGateTestErrors(validationResult.results)
+    const message = this.#qualityGate!.stringifyValidationResults(validationResult.results)
+
+    // this.#realtimeDispatcher.sendQualityGateResult({
+    //   errors,
+    //   message,
+    // })
+
+    return {
+      errors,
+      message,
+      fastFailed: validationResult.fastFailed,
+    }
+  }
+
+  resetValidation = () => {
+    this.#qualityGate!.resetState()
+  }
+
   start = async (): Promise<void> => {
     await this.#store.readHistory();
 
@@ -180,6 +208,16 @@ export class AllureReport {
     }
 
     this.#stage = "running";
+
+    // if (this.#qualityGate) {
+    //   this.realtimeSubscriber.onTestResults(async (testResults) => {
+    //     const trs = await Promise.all(testResults.map((tr) => this.#store.testResultById(tr)))
+    //
+    //     console.log("qg validate", testResults)
+    //
+    //     await this.validate(trs.filter(Boolean) as TestResult[])
+    //   })
+    // }
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish) {
@@ -382,7 +420,6 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         ci: this.#ci,
-        dispatcher: this.#externalDispatcher,
       };
 
       try {

@@ -1,14 +1,14 @@
 import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 import { describe, expect, it, vi } from "vitest";
-import { AllureStoreEvents, RealtimeEventsSubscriber } from "../../src/utils/event.js";
+import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max);
 
 describe("Events", () => {
   it("should batch test result events", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeEventsSubscriber(emitter);
+    const events = new RealtimeSubscriber(emitter);
 
     const listener = vi.fn();
     events.onTestResults(listener);
@@ -29,7 +29,7 @@ describe("Events", () => {
 
   it("should batch async test result events", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeEventsSubscriber(emitter);
+    const events = new RealtimeSubscriber(emitter);
 
     const listener = vi.fn();
     events.onTestResults(listener);
@@ -55,7 +55,7 @@ describe("Events", () => {
 
   it("should send multiple test result event batches", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeEventsSubscriber(emitter);
+    const events = new RealtimeSubscriber(emitter);
 
     const listener = vi.fn();
     events.onTestResults(listener);
@@ -95,7 +95,7 @@ describe("Events", () => {
 
   it("should send test result events to all subscribers", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeEventsSubscriber(emitter);
+    const events = new RealtimeSubscriber(emitter);
 
     const l1 = vi.fn();
     const l2 = vi.fn();
@@ -126,7 +126,7 @@ describe("Events", () => {
 
   it("should stop all events", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeEventsSubscriber(emitter);
+    const events = new RealtimeSubscriber(emitter);
     const listener = vi.fn();
     events.onTestResults(listener);
     emitter.emit("testResult", "123");

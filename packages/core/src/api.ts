@@ -1,10 +1,5 @@
-import type {
-  DefaultLabelsConfig,
-  EnvironmentsConfig,
-  KnownTestFailure,
-  ReportVariables,
-} from "@allurereport/core-api";
-import type { Plugin, ReportFiles } from "@allurereport/plugin-api";
+import type { DefaultLabelsConfig, EnvironmentsConfig, KnownTestFailure, ReportVariables } from "@allurereport/core-api";
+import type { Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
 export interface PluginInstance {
@@ -41,6 +36,7 @@ export interface FullConfig {
   appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
+  qualityGate?: QualityGateConfig;
   allureService?: {
     url?: string;
     project?: string;

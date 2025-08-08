@@ -1,11 +1,7 @@
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
-import {
-  allureResultsDirectoriesWatcher,
-  delayedFileProcessingWatcher,
-  newFilesInDirectoryWatcher,
-} from "@allurereport/directory-watcher";
+import { allureResultsDirectoriesWatcher, delayedFileProcessingWatcher, newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
 import { PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
@@ -18,6 +14,7 @@ import process from "node:process";
 import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
+import terminate from "terminate/promise"
 
 export type TestProcessDescriptor = {
   process: ReturnType<typeof runProcess>;
@@ -172,6 +169,8 @@ export class RunCommand extends Command {
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
     const silent = this.silent ?? false;
     const config = await readConfig(cwd, this.config, { output: this.output, name: this.reportName });
+    // TODO:
+    const withQualityGate = !!config.qualityGate;
 
     try {
       await rm(config.output, { recursive: true });
@@ -201,21 +200,51 @@ export class RunCommand extends Command {
         ],
       });
 
+      let testProcess: TestProcessDescriptor
+      let code: number | null = null;
+      let qualityGateMessage = "";
+      // TODO: probably, both flags do the same
+      let processFinished = false;
+
+      if (withQualityGate) {
+        allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+          // prevent post-process events from being processed
+          if (processFinished) {
+            return;
+          }
+
+          const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)))
+          const filteredTrs = trs.filter((tr) => tr !== undefined)
+
+          if (!filteredTrs.length) {
+            return
+          }
+
+          const result = await allureReport.validate(filteredTrs)
+
+          // process only fast-failed checks here
+          if (!result.fastFailed) {
+            return
+          }
+
+          qualityGateMessage = result?.message ?? ""
+
+          if (qualityGateMessage) {
+            // @ts-ignore
+            await terminate(testProcess.process!.pid)
+
+            processFinished = true
+          }
+        })
+      }
+
       await allureReport.start();
 
-      let testProcess: TestProcessDescriptor = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
-      let code = await testProcess.processTerminationPromise;
-      let processTerminated = false;
-
-      allureReport.realtimeSubscriber.onTerminationRequest(async (exitCode) => {
-        processTerminated = true;
-        code = exitCode;
-
-        testProcess.process.kill(1);
-      });
+      testProcess = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
+      code = await testProcess.processTerminationPromise;
 
       for (let rerun = 0; rerun < maxRerun; rerun++) {
-        if (processTerminated) {
+        if (processFinished) {
           break;
         }
 
@@ -255,7 +284,25 @@ export class RunCommand extends Command {
         logTests(await allureReport.store.allTestResults());
       }
 
+      processFinished = true;
+
       await allureReport.done();
+
+      if (withQualityGate && !qualityGateMessage) {
+        allureReport.resetValidation();
+
+        const trs = await allureReport.store.allTestResults()
+        const result = await allureReport.validate(trs)
+
+        qualityGateMessage = result?.message ?? ""
+      }
+
+      // use quality gate code when enabled
+      if (withQualityGate) {
+        console.error(qualityGateMessage);
+        process.exit(qualityGateMessage ? 1 : 0);
+        return;
+      }
 
       process.exit(code ?? 0);
     } catch (error) {

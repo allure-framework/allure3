@@ -28,7 +28,6 @@ export interface PluginContext {
   reportName: string;
   reportFiles: ReportFiles;
   ci?: CiDescriptor;
-  dispatcher: PublicEventsDispatcher;
 }
 
 /**
@@ -57,9 +56,7 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
-  onGlobalError(listener: (error: TestError) => Promise<void>): void;
-
-  onTerminationRequest(listener: (code: number, reason?: string) => Promise<void>): void;
+  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>): void;
 
   onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): void;
 
@@ -68,27 +65,14 @@ export interface RealtimeSubscriber {
   onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): void;
 }
 
-/**
- * An abstraction to distribute data from the report
- * **Can be called only inside the report to prevent collisions and report data inconsistency**
- */
-export interface PrivateEventsDispatcher {
+export interface RealtimeEventsDispatcher {
+  sendQualityGateResult(payload: { errors: TestError[]; message: string }): void;
+
   sendTestResult(trId: string): void;
 
   sendTestFixtureResult(tfrId: string): void;
 
   sendAttachmentFile(afId: string): void;
-}
-
-/**
- * The main communication bus for the report plugins
- * Can be called everywhere and distributes data from the report and outer sources
- */
-export interface PublicEventsDispatcher {
-  // TODO: string is not a good type for describing errors
-  sendGlobalError(error: TestError): void;
-
-  sendTerminationRequest(code: number, reason?: string): void;
 }
 
 export interface Plugin {

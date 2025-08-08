@@ -1,5 +1,5 @@
 import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
-import QualityGatePlugin from "@allurereport/plugin-quality-gate";
+// import QualityGatePlugin from "@allurereport/plugin-quality-gate";
 import { Command, Option } from "clipanion";
 import { realpath } from "node:fs/promises";
 import { exit } from "node:process";
@@ -54,49 +54,50 @@ export class QualityGateCommand extends Command {
   });
 
   async execute() {
-    const { maxFailures, minTestsCount, successRate, forceFail, knownIssues } = this;
-    const cwd = await realpath(this.cwd ?? process.cwd());
-    const fullConfig = await readConfig(cwd, this.config, {
-      knownIssuesPath: knownIssues,
-    });
-    const rules: Record<string, any> = {};
-
-    if (maxFailures !== undefined) {
-      rules.maxFailures = maxFailures;
-    }
-
-    if (minTestsCount !== undefined) {
-      rules.minTestsCount = minTestsCount;
-    }
-
-    if (successRate !== undefined) {
-      rules.successRate = successRate;
-    }
-
-    const defaultQualityGateOptions = {
-      rules: [
-        {
-          forceFail,
-          rules,
-        },
-      ],
-    };
-    const config = enforcePlugin(fullConfig, {
-      id: "quality-gate",
-      enabled: true,
-      options: defaultQualityGateOptions,
-      plugin: new QualityGatePlugin(defaultQualityGateOptions),
-    });
-    const allureReport = new AllureReport(config);
-
-    allureReport.realtimeSubscriber.onTerminationRequest((code) => {
-      exit(code);
-    });
-
-    await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir);
-    await allureReport.done();
-
-    exit(0);
+    throw new Error("Not implemented");
+    // const { maxFailures, minTestsCount, successRate, forceFail, knownIssues } = this;
+    // const cwd = await realpath(this.cwd ?? process.cwd());
+    // const fullConfig = await readConfig(cwd, this.config, {
+    //   knownIssuesPath: knownIssues,
+    // });
+    // const rules: Record<string, any> = {};
+    //
+    // if (maxFailures !== undefined) {
+    //   rules.maxFailures = maxFailures;
+    // }
+    //
+    // if (minTestsCount !== undefined) {
+    //   rules.minTestsCount = minTestsCount;
+    // }
+    //
+    // if (successRate !== undefined) {
+    //   rules.successRate = successRate;
+    // }
+    //
+    // const defaultQualityGateOptions = {
+    //   rules: [
+    //     {
+    //       forceFail,
+    //       rules,
+    //     },
+    //   ],
+    // };
+    // const config = enforcePlugin(fullConfig, {
+    //   id: "quality-gate",
+    //   enabled: true,
+    //   options: defaultQualityGateOptions,
+    //   plugin: new QualityGatePlugin(defaultQualityGateOptions),
+    // });
+    // const allureReport = new AllureReport(config);
+    //
+    // allureReport.realtimeSubscriber.onTerminationRequest((code) => {
+    //   exit(code);
+    // });
+    //
+    // await allureReport.start();
+    // await allureReport.readDirectory(this.resultsDir);
+    // await allureReport.done();
+    //
+    // exit(0);
   }
 }

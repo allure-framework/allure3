@@ -1,9 +1,8 @@
 import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
-  PrivateEventsDispatcher,
-  PublicEventsDispatcher,
-  RealtimeSubscriber,
+  RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
+  RealtimeSubscriber as RealtimeSubscriberType,
 } from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
@@ -13,13 +12,11 @@ export enum RealtimeEvents {
   TestResult = "testResult",
   TestFixtureResult = "testFixtureResult",
   AttachmentFile = "attachmentFile",
-  GlobalError = "globalError",
-  TerminationRequest = "terminationRequest",
+  QualityGateResult = "qualityGateResult",
 }
 
 export interface AllureStoreEvents {
-  [RealtimeEvents.GlobalError]: [TestError];
-  [RealtimeEvents.TerminationRequest]: [number, string?];
+  [RealtimeEvents.QualityGateResult]: [{ errors: TestError[]; message: string }];
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
@@ -31,27 +28,15 @@ interface HandlerData {
   ac?: AbortController;
 }
 
-export class ExternalEventsDispatcher implements PublicEventsDispatcher {
+export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
   }
 
-  sendGlobalError(error: TestError) {
-    this.#emitter.emit(RealtimeEvents.GlobalError, error);
-  }
-
-  sendTerminationRequest(code: number, reason?: string) {
-    this.#emitter.emit(RealtimeEvents.TerminationRequest, code, reason);
-  }
-}
-
-export class InternalEventsDispatcher implements PrivateEventsDispatcher {
-  readonly #emitter: EventEmitter<AllureStoreEvents>;
-
-  constructor(emitter: EventEmitter<AllureStoreEvents>) {
-    this.#emitter = emitter;
+  sendQualityGateResult(payload: { errors: TestError[]; message: string }) {
+    this.#emitter.emit(RealtimeEvents.QualityGateResult, payload);
   }
 
   sendTestResult(trId: string) {
@@ -67,7 +52,7 @@ export class InternalEventsDispatcher implements PrivateEventsDispatcher {
   }
 }
 
-export class RealtimeEventsSubscriber implements RealtimeSubscriber {
+export class RealtimeSubscriber implements RealtimeSubscriberType {
   readonly #emitter: EventEmitter<AllureStoreEvents>;
   #handlers: HandlerData[] = [];
 
@@ -75,12 +60,8 @@ export class RealtimeEventsSubscriber implements RealtimeSubscriber {
     this.#emitter = emitter;
   }
 
-  onGlobalError(listener: (error: TestError) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.GlobalError, listener);
-  }
-
-  onTerminationRequest(listener: (code: number, reason?: string) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.TerminationRequest, listener);
+  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.QualityGateResult, listener);
   }
 
   onTestResults = (listener: (trIds: string[]) => Promise<void>, options: BatchOptions = {}): void => {

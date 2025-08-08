@@ -23,7 +23,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
-  type PrivateEventsDispatcher,
+  type RealtimeEventsDispatcher,
   type RealtimeSubscriber,
   type ResultFile,
   type TestResultFilter,
@@ -64,7 +64,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
-  readonly #runtimeDispatcher?: PrivateEventsDispatcher;
+  readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
@@ -83,7 +83,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
-    externalDispatcher?: PrivateEventsDispatcher;
+    realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
     environmentsConfig?: EnvironmentsConfig;
@@ -92,7 +92,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
-      externalDispatcher,
+      realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
       environmentsConfig = {},
@@ -108,7 +108,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
-    this.#runtimeDispatcher = externalDispatcher;
+    this.#realtimeDispatcher = realtimeDispatcher;
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
@@ -122,9 +122,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
 
-    this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
-      this.#globalErrors.push(error);
-    });
+    // TODO: how to set global error?
+    // this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
+    //   this.#globalErrors.push(error);
+    // });
   }
 
   // history state
@@ -247,7 +248,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
     index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
 
-    this.#runtimeDispatcher?.sendTestResult(testResult.id);
+    this.#realtimeDispatcher?.sendTestResult(testResult.id);
   }
 
   async visitTestFixtureResult(result: RawFixtureResult, context: ReaderContext): Promise<void> {
@@ -267,7 +268,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       index(this.indexFixturesByTestResult, trId, testFixtureResult);
     });
     index(this.indexAttachmentByFixture, testFixtureResult.id, ...attachmentLinks);
-    this.#runtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
+    this.#realtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -298,7 +299,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    this.#runtimeDispatcher?.sendAttachmentFile(id);
+    this.#realtimeDispatcher?.sendAttachmentFile(id);
   }
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {

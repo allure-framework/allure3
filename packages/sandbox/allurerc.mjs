@@ -1,7 +1,4 @@
 import { defineConfig } from "allure";
-import { createRequire } from "node:module"
-
-const require = createRequire(import.meta.url);
 
 const chartLayout = [
   {
@@ -48,22 +45,38 @@ export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
   historyPath: "./history.jsonl",
+  qualityGate: {
+    rules: [
+      {
+        maxFailures: 5,
+        fastFail: true,
+      },
+      {
+        id: "foo",
+        minTestsCount: 10,
+      },
+      {
+        id: "bar",
+        successRate: 0.9,
+      }
+    ],
+  },
   plugins: {
-    "allure2": {
+    allure2: {
       options: {
         reportName: "HelloWorld",
         singleFile: false,
         reportLanguage: "en",
       },
     },
-    "classic": {
+    classic: {
       options: {
         reportName: "HelloWorld",
         singleFile: false,
         reportLanguage: "en",
       },
     },
-    "awesome": {
+    awesome: {
       options: {
         reportName: "HelloWorld",
         singleFile: false,
@@ -72,7 +85,7 @@ export default defineConfig({
         charts: chartLayout,
       },
     },
-    "dashboard": {
+    dashboard: {
       options: {
         singleFile: false,
         reportName: "HelloWorld-Dashboard",
@@ -80,33 +93,14 @@ export default defineConfig({
         layout: chartLayout,
       },
     },
-    "csv": {
+    csv: {
       options: {
         fileName: "allure-report.csv",
       },
     },
-    "log": {
+    log: {
       options: {
         groupBy: "none",
-      },
-    },
-    "quality-gate": {
-      import: require.resolve("@allurereport/plugin-quality-gate"),
-      options: {
-        fastFail: true,
-        rules: [
-          {
-            minTestsCount: 10,
-          },
-          {
-            id: "first-gate",
-            maxFailures: 1,
-          },
-          {
-            id: "second-gate",
-            successRate: 0.9,
-          },
-        ],
       },
     },
   },
