@@ -13,10 +13,10 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartMode, ChartDataType, getPieChartValues } from "@allurereport/core-api";
+import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
+import type { PluginContext } from "./plugin.js";
 import { getSeverityTrendData } from "./severityTrend.js";
 import { getStatusTrendData } from "./statusTrend.js";
-import type { PluginContext } from "./plugin.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
