@@ -13,6 +13,7 @@
   "scripts": {
     "build": "yarn workspaces foreach -Avvpt run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
+    "format": "yarn eslint:format && yarn prettier:format",
     "eslint": "yarn workspaces foreach -Avvpt run eslint",
     "eslint:format": "yarn workspaces foreach -Avvpt run eslint:format",
     "lint-staged": "lint-staged",
