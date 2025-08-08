@@ -1,14 +1,22 @@
 /* eslint-disable @stylistic/quotes */
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart, TrendChartWidget, Widget } from "@allurereport/web-components";
+import { ChartType } from "@allurereport/core-api";
+import type { UIChartData } from "@allurereport/web-commons";
+import {
+  Grid,
+  GridItem,
+  Loadable,
+  PageLoader,
+  SuccessRatePieChart,
+  TrendChartWidget,
+  Widget,
+} from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
 import { capitalize } from "@/utils/capitalize";
 import * as styles from "./Overview.module.scss";
-import type { UIChartData } from "@allurereport/web-commons";
-import { ChartType } from "@allurereport/core-api";
 
 const getChartWidgetByType = (
   chartData: UIChartData,

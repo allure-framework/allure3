@@ -5,7 +5,20 @@ import {
   type Statistic,
   type TestResult,
 } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type TrendChartData, type GeneratedChartData, type GeneratedChartsData, type TrendChartOptions, type PieChartOptions, type PieChartData, DEFAULT_CHART_HISTORY_LIMIT, getSeverityTrendData, getStatusTrendData, getPieChartData } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  DEFAULT_CHART_HISTORY_LIMIT,
+  type GeneratedChartData,
+  type GeneratedChartsData,
+  type PieChartData,
+  type PieChartOptions,
+  type PluginContext,
+  type TrendChartData,
+  type TrendChartOptions,
+  getPieChartData,
+  getSeverityTrendData,
+  getStatusTrendData,
+} from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
 import type { AwesomeOptions } from "./model.js";
 import type { AwesomeDataWriter } from "./writer.js";
