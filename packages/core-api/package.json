@@ -25,6 +25,9 @@
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
     "test": "rimraf ./out && vitest run"
   },
+  "dependencies": {
+    "d3-shape": "^3.2.0"
+  },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/d3-shape": "^3.1.6",
@@ -45,8 +48,5 @@
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
     "vitest": "^2.1.9"
-  },
-  "dependencies": {
-    "d3-shape": "^3.2.0"
   }
 }
