@@ -8,7 +8,6 @@ import type {
   PieSlice,
   SeverityLevel,
   Statistic,
-  TestResult,
   TestStatus,
   TrendPoint,
   TrendPointId,
@@ -73,6 +72,8 @@ export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 // Union types for generated chart data
 export type GeneratedChartData = TrendChartData | PieChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
+
+export type TrendStats<T extends TrendDataType> = Record<T, number>;
 
 // Chart options
 export type TrendChartOptions = {
@@ -238,8 +239,8 @@ export const getTrendDataGeneric = <T extends TrendDataType, M extends BaseTrend
  * @param items - Items for stats record.
  * @returns Record with items as keys and 0 values.
  */
-export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): Record<T, number> =>
-  items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as Record<T, number>);
+export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): TrendStats<T> =>
+  items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as TrendStats<T>);
 
 /**
  * Normalizes stats record, ensuring all items are represented.
@@ -248,16 +249,13 @@ export const createEmptyStats = <T extends TrendDataType>(items: readonly T[]): 
  * @returns Complete stats record with all items.
  */
 export const normalizeStatistic = <T extends TrendDataType>(
-  statistic: Partial<Record<T, number>>,
+  statistic: Partial<TrendStats<T>>,
   itemType: readonly T[],
-): Record<T, number> => {
-  return itemType.reduce(
-    (acc, item) => {
-      acc[item] = statistic[item] ?? 0;
-      return acc;
-    },
-    {} as Record<T, number>,
-  );
+): TrendStats<T> => {
+  return itemType.reduce((acc, item) => {
+    acc[item] = statistic[item] ?? 0;
+    return acc;
+  }, {} as TrendStats<T>);
 };
 
 /**
@@ -319,22 +317,100 @@ export const generatePieChart = (
   return getPieChartData(statistic, options);
 };
 
-export const generateTrendChart = (
+export interface TrendDataAccessor<T extends TrendDataType> {
+  // Get current data for the specified type
+  getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
+  // Get data from historical point
+  getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
+  // List of all possible values for the type
+  getAllValues: () => readonly T[];
+}
+
+export const generateTrendChartGeneric = async <T extends TrendDataType>(
   options: TrendChartOptions,
-  stores: {
-    historyDataPoints: HistoryDataPoint[];
-    statistic: Statistic;
-    testResults: TestResult[];
-  },
+  store: AllureStore,
   context: PluginContext,
-): TrendChartData | undefined => {
+  dataAccessor: TrendDataAccessor<T>,
+): Promise<GenericTrendChartData<T> | undefined> => {
+  const { limit } = options;
+  const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
+
+  // Get all required data
+  const [historyDataPoints, currentData] = await Promise.all([
+    store.allHistoryDataPoints(),
+    dataAccessor.getCurrentData(store),
+  ]);
+
+  // Apply limit to history points if specified
+  const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
+
+  // Convert history points to statistics
+  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyDataPoints.length - historyLimit) : 0;
+  const convertedHistoryPoints = limitedHistoryPoints.map((point: HistoryDataPoint, index: number) => {
+    const originalIndex = firstOriginalIndex + index;
+
+    return {
+      name: point.name,
+      originalIndex,
+      statistic: dataAccessor.getHistoricalData(point),
+    };
+  });
+
+  const allValues = dataAccessor.getAllValues();
+
+  // Get current report data
+  const currentTrendData = getTrendDataGeneric(
+    normalizeStatistic(currentData, allValues),
+    context.reportName,
+    historyDataPoints.length + 1, // Always use the full history length for current point order
+    allValues,
+    options,
+  );
+
+  // Process historical data
+  const historicalTrendData = convertedHistoryPoints.reduce(
+    (
+      acc: GenericTrendChartData<T>,
+      historyPoint: { name: string; originalIndex: number; statistic: Record<T, number> },
+    ) => {
+      const trendDataPart = getTrendDataGeneric(
+        normalizeStatistic(historyPoint.statistic, allValues),
+        historyPoint.name,
+        historyPoint.originalIndex + 1,
+        allValues,
+        options,
+      );
+
+      return mergeTrendDataGeneric(acc, trendDataPart, allValues);
+    },
+    {
+      type: options.type,
+      dataType: options.dataType,
+      mode: options.mode,
+      title: options.title,
+      points: {},
+      slices: {},
+      series: createEmptySeries(allValues),
+      min: Infinity,
+      max: -Infinity,
+    } as GenericTrendChartData<T>,
+  );
+
+  // Add current report data as the last item
+  return mergeTrendDataGeneric(historicalTrendData, currentTrendData, allValues);
+};
+
+export const generateTrendChart = async (
+  options: TrendChartOptions,
+  store: AllureStore,
+  context: PluginContext,
+): Promise<TrendChartData | undefined> => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
-  const { statistic, historyDataPoints, testResults } = stores;
 
   if (dataType === ChartDataType.Status) {
-    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
+    return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
-    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
+    return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
   }
 };
