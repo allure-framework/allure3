@@ -83,35 +83,27 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const historyDataPoints = await store.allHistoryDataPoints();
   const statistic = await store.testsStatistic();
-  const testResults = await store.allTestResults();
 
-  return layout.reduce((acc, chartOptions) => {
+  const chartsData: GeneratedChartsData = {};
+
+  for (const chartOptions of layout) {
     const chartId = randomUUID();
 
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(
-        chartOptions,
-        {
-          historyDataPoints,
-          statistic,
-          testResults,
-        },
-        context,
-      );
+      chart = await generateTrendChart(chartOptions, store, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
     }
 
     if (chart) {
-      acc[chartId] = chart;
+      chartsData[chartId] = chart;
     }
+  }
 
-    return acc;
-  }, {} as GeneratedChartsData);
+  return chartsData;
 };
 
 export const generateAllCharts = async (
