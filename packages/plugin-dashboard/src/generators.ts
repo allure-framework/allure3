@@ -5,6 +5,7 @@ import {
   type GeneratedChartsData,
   type PluginContext,
   type ReportFiles,
+  generateBarChart,
   generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
@@ -97,7 +98,9 @@ export const generateCharts = async (
       chart = await generateTrendChart(chartOptions, store, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
-    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
+    } else if (chartOptions.type === ChartType.Bar) {
+      chart = await generateBarChart(chartOptions, store);
+    } else if ([ChartType.HeatMap, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
       chart = generateComingSoonChart(chartOptions);
     }
 
