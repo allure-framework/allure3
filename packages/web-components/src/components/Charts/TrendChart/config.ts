@@ -32,8 +32,7 @@ export const defaultTrendChartLegendConfig: LegendProps = {
 export const defaultTrendChartAxisBottomConfig: AxisProps = {
   tickSize: 5,
   tickPadding: 5,
-  tickRotation: 45,
-  ticksPosition: "before",
+  tickRotation: 0,
 };
 
 export const defaultTrendChartAxisLeftConfig: AxisProps = {
