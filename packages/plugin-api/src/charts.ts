@@ -324,9 +324,7 @@ export const generatePieChart = (
   return getPieChartData(statistic, options);
 };
 
-export const generateComingSoonChart = (
-  options: ComingSoonChartOptions,
-): ComingSoonChartData => {
+export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {
     type: options.type,
     title: options.title,
