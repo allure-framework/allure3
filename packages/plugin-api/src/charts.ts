@@ -14,6 +14,7 @@ import type {
 } from "@allurereport/core-api";
 import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
+import { severityBarDataAccessor } from "./severityBarAccessor.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import type { AllureStore } from "./store.js";
@@ -66,11 +67,24 @@ export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
+// Bar chart data types
+export interface BarChartData {
+  type: ChartType.Bar;
+  dataType: ChartDataType;
+  mode: ChartMode;
+  title?: string;
+  data: Record<string, Record<string, number> | undefined>;
+  keys: readonly string[];
+  indexBy: string;
+}
+
 // Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | ComingSoonChartData;
+export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
+
+export type BarStats<P extends string, T extends string> = Record<P, Record<T, number> | undefined>;
 
 // Chart options
 export type TrendChartOptions = {
@@ -87,12 +101,19 @@ export type PieChartOptions = {
   title?: string;
 };
 
-export type ComingSoonChartOptions = {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
+export type BarChartOptions = {
+  type: ChartType.Bar;
+  dataType: ChartDataType;
+  mode?: ChartMode;
   title?: string;
 };
 
-export type ChartOptions = TrendChartOptions | PieChartOptions | ComingSoonChartOptions;
+export type ComingSoonChartOptions = {
+  type: ChartType.HeatMap | ChartType.Funnel | ChartType.TreeMap;
+  title?: string;
+};
+
+export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions;
 
 export interface PieChartData {
   type: ChartType.Pie;
@@ -331,6 +352,47 @@ export const generateComingSoonChart = (options: ComingSoonChartOptions): Coming
   };
 };
 
+export const generateBarChartGeneric = async <P extends string, T extends string>(
+  options: BarChartOptions,
+  store: AllureStore,
+  dataAccessor: BarDataAccessor<P, T>,
+): Promise<BarChartData | undefined> => {
+  const { type, dataType, title, mode = ChartMode.Raw } = options;
+
+  const currentData = await dataAccessor.getCurrentData(store);
+
+  // Apply mode transformation if needed
+  let processedData = currentData;
+  if (mode === ChartMode.Percent) {
+    processedData = Object.keys(currentData).reduce((acc, key) => {
+      const valuesObject = currentData[key as P] as Record<T, number>;
+      const total = Object.values<number>(valuesObject).reduce((sum, value) => sum + value, 0);
+
+      if (total > 0) {
+        acc[key] = Object.keys(valuesObject).reduce((valuesAcc, subkey) => {
+          valuesAcc[subkey] = valuesObject[subkey as T] / total;
+
+          return valuesAcc;
+        }, {} as Record<string, number>);
+      } else {
+        acc[key] = valuesObject;
+      }
+
+      return acc;
+    }, {} as BarStats<string, string>);
+  }
+
+  return {
+    type,
+    dataType,
+    mode,
+    title,
+    data: processedData,
+    keys: dataAccessor.getAllValues(),
+    indexBy: dataAccessor.getIndexBy(),
+  };
+};
+
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
   getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
@@ -338,6 +400,15 @@ export interface TrendDataAccessor<T extends TrendDataType> {
   getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
   // List of all possible values for the type
   getAllValues: () => readonly T[];
+}
+
+export interface BarDataAccessor<P extends string, T extends string> {
+  // Get current data for the specified type
+  getCurrentData: (store: AllureStore) => Promise<BarStats<P, T>>;
+  // List of all possible values for the type
+  getAllValues: () => readonly P[];
+  // Get indexBy value
+  getIndexBy: () => string;
 }
 
 export const generateTrendChartGeneric = async <T extends TrendDataType>(
@@ -426,5 +497,16 @@ export const generateTrendChart = async (
     return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
     return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
+  }
+};
+
+export const generateBarChart = async (
+  options: BarChartOptions,
+  store: AllureStore,
+): Promise<BarChartData | undefined> => {
+  const { dataType } = options;
+
+  if (dataType === ChartDataType.Severity) {
+    return generateBarChartGeneric(options, store, severityBarDataAccessor);
   }
 };
