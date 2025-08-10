@@ -36,7 +36,7 @@ export const generateCharts = async (
       chart = await generateTrendChart(chartOptions, store, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
-    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel].includes(chartOptions.type)) {
+    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
       chart = generateComingSoonChart(chartOptions);
     }
 

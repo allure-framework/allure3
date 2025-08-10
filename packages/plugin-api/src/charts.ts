@@ -91,7 +91,7 @@ export type PieChartOptions = {
 };
 
 export type ComingSoonChartOptions = {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
   title?: string;
 };
 
@@ -105,7 +105,7 @@ export interface PieChartData {
 }
 
 export interface ComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
   title?: string;
 }
 
