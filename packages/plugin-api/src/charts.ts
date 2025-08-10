@@ -67,7 +67,7 @@ export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
 // Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData;
+export type GeneratedChartData = TrendChartData | PieChartData | ComingSoonChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
@@ -87,13 +87,23 @@ export type PieChartOptions = {
   title?: string;
 };
 
-export type ChartOptions = TrendChartOptions | PieChartOptions;
+export type ComingSoonChartOptions = {
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  title?: string;
+};
+
+export type ChartOptions = TrendChartOptions | PieChartOptions | ComingSoonChartOptions;
 
 export interface PieChartData {
   type: ChartType.Pie;
   title?: string;
   slices: PieSlice[];
   percentage: number;
+}
+
+export interface ComingSoonChartData {
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  title?: string;
 }
 
 /**
@@ -312,6 +322,15 @@ export const generatePieChart = (
   const { statistic } = stores;
 
   return getPieChartData(statistic, options);
+};
+
+export const generateComingSoonChart = (
+  options: ComingSoonChartOptions,
+): ComingSoonChartData => {
+  return {
+    type: options.type,
+    title: options.title,
+  };
 };
 
 export interface TrendDataAccessor<T extends TrendDataType> {
