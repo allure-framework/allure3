@@ -6,6 +6,7 @@ import {
   type PluginContext,
   generatePieChart,
   generateTrendChart,
+  generateComingSoonChart,
 } from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
 import type { AwesomeOptions } from "./model.js";
@@ -35,6 +36,8 @@ export const generateCharts = async (
       chart = await generateTrendChart(chartOptions, store, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
+    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel].includes(chartOptions.type)) {
+      chart = generateComingSoonChart(chartOptions);
     }
 
     if (chart) {

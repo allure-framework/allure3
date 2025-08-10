@@ -10,6 +10,7 @@ import {
   PageLoader,
   SuccessRatePieChart,
   TrendChartWidget,
+  ComingSoonChartWidget,
   Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
@@ -52,6 +53,13 @@ const getChartWidgetByType = (
           </div>
         </Widget>
       );
+    }
+    case ChartType.HeatMap:
+    case ChartType.Bar:
+    case ChartType.Funnel: {
+      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
+
+      return <ComingSoonChartWidget title={title} />;
     }
   }
 };

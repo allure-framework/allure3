@@ -4,6 +4,9 @@ import type { TestStatus } from "../model.js";
 export enum ChartType {
   Trend = "trend",
   Pie = "pie",
+  HeatMap = "heatmap",
+  Bar = "bar",
+  Funnel = "funnel",
 }
 
 export enum ChartDataType {
