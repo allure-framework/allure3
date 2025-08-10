@@ -31,3 +31,4 @@ export * from "./components/Charts/TrendChartWidget";
 export * from "./components/Charts/ComingSoonChartWidget";
 export * from "./components/Charts/SuccessRatePieChart";
 export * from "./components/Charts/TrendChart";
+export * from "./components/Charts/BarChart";
