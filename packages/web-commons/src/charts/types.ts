@@ -49,7 +49,7 @@ export interface ResponsePieChartData {
 }
 
 export interface ResponseComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
   title?: string;
 }
 
