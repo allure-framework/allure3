@@ -4,13 +4,13 @@
 import { ChartType } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
 import {
+  ComingSoonChartWidget,
   Grid,
   GridItem,
   Loadable,
   PageLoader,
   SuccessRatePieChart,
   TrendChartWidget,
-  ComingSoonChartWidget,
   Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";

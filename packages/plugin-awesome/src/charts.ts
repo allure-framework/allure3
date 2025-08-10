@@ -4,9 +4,9 @@ import {
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
-  generateComingSoonChart,
 } from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
 import type { AwesomeOptions } from "./model.js";

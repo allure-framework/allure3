@@ -5,9 +5,9 @@ import {
   type GeneratedChartsData,
   type PluginContext,
   type ReportFiles,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
-  generateComingSoonChart,
 } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
