@@ -6,6 +6,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 const meta: Meta<typeof TrendChart> = {
   title: "Charts/TrendChart",
   component: TrendChart,
+  args: {
+    width: 900,
+    height: 500,
+  }
 };
 
 export default meta;
@@ -37,6 +41,12 @@ type Story = StoryObj<TrendChartProps>;
 export const Default: Story = {
   args: {
     data: mockedData,
+  }
+};
+
+export const Empty: Story = {
+  args: {
+    data: [],
   }
 };
 
