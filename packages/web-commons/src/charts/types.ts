@@ -48,6 +48,11 @@ export interface ResponsePieChartData {
   slices: PieSlice[];
 }
 
+export interface ResponseComingSoonChartData {
+  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel;
+  title?: string;
+}
+
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
   type: ChartType.Trend;
   dataType: ChartDataType;
@@ -59,14 +64,16 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
   title?: string;
 }
 export type UIPieChartData = ResponsePieChartData;
+export type UIComingSoonChartData = ResponseComingSoonChartData;
 
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = ResponseTrendChartData<SeriesType, Metadata> | ResponsePieChartData;
+> = ResponseTrendChartData<SeriesType, Metadata> | ResponsePieChartData | ResponseComingSoonChartData;
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
-  | UIPieChartData;
+  | UIPieChartData
+  | UIComingSoonChartData;
 
 export type ChartsData<
   SeriesType extends string = string,
