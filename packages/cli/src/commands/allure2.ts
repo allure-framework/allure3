@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import Allure2Plugin, { type Allure2PluginOptions } from "@allurereport/plugin-allure2";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -58,26 +58,25 @@ export class Allure2Command extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultAllure2Options = {
       singleFile: this.singleFile ?? false,
       reportLanguage: this.reportLanguage,
     } as Allure2PluginOptions;
+    const config = await readConfig(cwd, this.config, {
+      output: this.output ?? "allure-report",
+      name: this.reportName ?? "Allure Report",
+      knownIssuesPath: this.knownIssues,
+      historyPath: this.historyPath,
+    });
 
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        output: this.output ?? "allure-report",
-        name: this.reportName ?? "Allure Report",
-        knownIssuesPath: this.knownIssues,
-        historyPath: this.historyPath,
-      }),
+    config.plugins = [
       {
         id: "allure2",
         enabled: true,
         options: defaultAllure2Options,
         plugin: new Allure2Plugin(defaultAllure2Options),
       },
-    );
+    ];
 
     const allureReport = new AllureReport(config);
 
