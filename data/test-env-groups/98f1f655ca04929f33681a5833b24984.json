@@ -1,1 +1,1 @@
-{"id":"98f1f655ca04929f33681a5833b24984","fullName":"allure-awesome/test/tree.test.ts:278:3","name":"should not display groups when test results don't have related label","status":"passed","testResultsByEnv":{"default":"b4473f7d0fac2253c7778d112ffaa4c8"}}
+{"id":"98f1f655ca04929f33681a5833b24984","fullName":"allure-awesome/test/tree.test.ts:278:3","name":"should not display groups when test results don't have related label","status":"passed","testResultsByEnv":{"default":"5e0419320464ae97fa0693f894f1b0d0"}}

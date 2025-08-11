@@ -1,1 +1,1 @@
-{"id":"3d6b6563d5912df97621d42a539c84aa","fullName":"test/detectors/github.test.ts#github detected should be false when GITHUB_ACTIONS is not set","name":"should be false when GITHUB_ACTIONS is not set","status":"passed","testResultsByEnv":{"default":"a355118dc8458ed6afbaa6803ea8c778"}}
+{"id":"3d6b6563d5912df97621d42a539c84aa","fullName":"test/detectors/github.test.ts#github detected should be false when GITHUB_ACTIONS is not set","name":"should be false when GITHUB_ACTIONS is not set","status":"passed","testResultsByEnv":{"default":"5d1d86ad024f6391641aec80909625e0"}}

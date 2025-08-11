@@ -1,1 +1,1 @@
-{"id":"bd2b3ebfccf9a041f0244dd2a9e95603","fullName":"test/detectors/amazon.test.ts#amazon getPipelineName should return the correct pipeline name","name":"should return the correct pipeline name","status":"passed","testResultsByEnv":{"default":"2d3b8bd6a4c201187e860cdebdd8c191"}}
+{"id":"bd2b3ebfccf9a041f0244dd2a9e95603","fullName":"test/detectors/amazon.test.ts#amazon getPipelineName should return the correct pipeline name","name":"should return the correct pipeline name","status":"passed","testResultsByEnv":{"default":"c6c84fbb6181cdd2858732d2b89b72b3"}}
