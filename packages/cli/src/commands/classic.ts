@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import ClassicPlugin, { type ClassicPluginOptions } from "@allurereport/plugin-classic";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -62,20 +62,22 @@ export class ClassicCommand extends Command {
       singleFile: this.singleFile ?? false,
       reportLanguage: this.reportLanguage,
     } as ClassicPluginOptions;
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        output: this.output ?? "allure-report",
-        name: this.reportName ?? "Allure Report",
-        knownIssuesPath: this.knownIssues,
-        historyPath: this.historyPath,
-      }),
+    const config = await readConfig(cwd, this.config, {
+      output: this.output ?? "allure-report",
+      name: this.reportName ?? "Allure Report",
+      knownIssuesPath: this.knownIssues,
+      historyPath: this.historyPath,
+    });
+
+    config.plugins = [
       {
         id: "classic",
         enabled: true,
         options: defaultClassicOptions,
         plugin: new ClassicPlugin(defaultClassicOptions),
       },
-    );
+    ];
+
     const allureReport = new AllureReport(config);
 
     await allureReport.start();

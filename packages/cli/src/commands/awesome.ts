@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import { default as AwesomePlugin, type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -77,20 +77,22 @@ export class AwesomeCommand extends Command {
       reportLanguage: this.reportLanguage,
       groupBy: this.groupBy?.split?.(",") ?? ["parentSuite", "suite", "subSuite"],
     } as AwesomePluginOptions;
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        output: this.output ?? "allure-report",
-        name: this.reportName ?? "Allure Report",
-        knownIssuesPath: this.knownIssues,
-        historyPath: this.historyPath,
-      }),
+    const config = await readConfig(cwd, this.config, {
+      output: this.output ?? "allure-report",
+      name: this.reportName ?? "Allure Report",
+      knownIssuesPath: this.knownIssues,
+      historyPath: this.historyPath,
+    });
+
+    config.plugins = [
       {
         id: "awesome",
         enabled: true,
         options: defaultAwesomeOptions,
         plugin: new AwesomePlugin(defaultAwesomeOptions),
       },
-    );
+    ];
+
     const allureReport = new AllureReport(config);
 
     await allureReport.start();

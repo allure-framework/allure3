@@ -46,19 +46,21 @@ export class LogCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultLogOptions = {
       allSteps: this.allSteps ?? false,
       withTrace: this.withTrace ?? false,
       groupBy: this.groupBy ?? "suite",
     } as LogPluginOptions;
+    const config = await readConfig(cwd, this.config);
 
-    const config = enforcePlugin(await readConfig(cwd, this.config), {
-      id: "log",
-      enabled: true,
-      options: defaultLogOptions,
-      plugin: new LogPlugin(defaultLogOptions),
-    });
+    config.plugins = [
+      {
+        id: "log",
+        enabled: true,
+        options: defaultLogOptions,
+        plugin: new LogPlugin(defaultLogOptions),
+      },
+    ];
 
     const allureReport = new AllureReport(config);
 
