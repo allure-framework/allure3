@@ -32,7 +32,6 @@ export interface BaseTrendSliceMetadata extends BaseMetadata {
 }
 
 // Point on a trend chart
-// FIXME: Used in plugins only
 export interface TrendPoint {
   x: string;
   y: number;
@@ -66,4 +65,5 @@ export type PieChartValues = {
   slices: PieSlice[];
 };
 
-export type BarGroup<T extends string = string> = Record<T, number>;
+export type BarGroupValues<T extends string = string> = Record<T, number>;
+export type BarGroup<G extends string, T extends string = string> = { groupId: G } & BarGroupValues<T>;

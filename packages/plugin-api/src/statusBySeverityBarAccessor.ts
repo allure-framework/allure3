@@ -1,10 +1,10 @@
-import type { SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
+import type { BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
 import { severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
 import type { BarDataAccessor, BarStats } from "./charts.js";
 import type { AllureStore } from "./store.js";
 
 const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, TestStatus> => {
-  const result: BarStats<SeverityLevel, TestStatus> = {
+  const resultMap: Record<SeverityLevel, BarGroupValues<TestStatus> | undefined> = {
     blocker: undefined,
     critical: undefined,
     normal: undefined,
@@ -12,9 +12,8 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
     trivial: undefined,
   };
 
-  // Initialize all severity levels with empty status counts
   severityLevels.forEach((severity) => {
-    result[severity] = statusesList.reduce((acc, status) => ({ ...acc, [status]: 0 }), {} as Record<TestStatus, number>);
+    resultMap[severity] = statusesList.reduce((acc, status) => ({ ...acc, [status]: 0 }), {} as BarGroupValues<TestStatus>);
   });
 
   // Process test results
@@ -22,12 +21,16 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
     const severityLabel = test.labels?.find((label: { name: string }) => label.name === severityLabelName);
     const severity = severityLabel?.value?.toLowerCase() as SeverityLevel;
 
-    if (severity && result[severity]) {
-      result[severity][test.status] = (result[severity][test.status] ?? 0) + 1;
+    if (severity && resultMap[severity]) {
+      resultMap[severity][test.status] = (resultMap[severity][test.status] ?? 0) + 1;
     }
   });
 
-  return result;
+  return Object.entries(resultMap).map(([severity, values]) => {
+    if (values) {
+      return { groupId: severity, ...values };
+    }
+  }).filter(Boolean) as BarStats<SeverityLevel, TestStatus>;
 };
 
 export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
@@ -36,6 +39,5 @@ export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, Tes
 
     return processTestResults(testResults);
   },
-  getAllValues: () => severityLevels,
-  getIndexBy: () => "severity",
+  getValuesKeys: () => statusesList,
 };

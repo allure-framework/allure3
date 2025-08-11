@@ -49,7 +49,7 @@ export interface ResponseBarChartData {
   dataType: ChartDataType;
   mode: ChartMode;
   title?: string;
-  data: Record<string, BarGroup | undefined>;
+  data: BarGroup<string, string>[];
   keys: readonly string[];
   indexBy: string;
 }
