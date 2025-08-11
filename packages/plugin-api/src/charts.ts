@@ -2,6 +2,7 @@ import type {
   BaseTrendSliceMetadata,
   ChartId,
   ChartType,
+  BarGroup,
   HistoryDataPoint,
   PieSlice,
   SeverityLevel,
@@ -14,7 +15,7 @@ import type {
 } from "@allurereport/core-api";
 import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
-import { severityBarDataAccessor } from "./severityBarAccessor.js";
+import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import type { AllureStore } from "./store.js";
@@ -73,7 +74,7 @@ export interface BarChartData {
   dataType: ChartDataType;
   mode: ChartMode;
   title?: string;
-  data: Record<string, Record<string, number> | undefined>;
+  data: Record<string, BarGroup | undefined>;
   keys: readonly string[];
   indexBy: string;
 }
@@ -84,7 +85,7 @@ export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
 
-export type BarStats<P extends string, T extends string> = Record<P, Record<T, number> | undefined>;
+export type BarStats<P extends string, T extends string> = Record<P, BarGroup<T> | undefined>;
 
 // Chart options
 export type TrendChartOptions = {
@@ -364,18 +365,18 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   // Apply mode transformation if needed
   let processedData = currentData;
   if (mode === ChartMode.Percent) {
-    processedData = Object.keys(currentData).reduce((acc, key) => {
-      const valuesObject = currentData[key as P] as Record<T, number>;
+    processedData = Object.keys(currentData).reduce((acc, groupKey) => {
+      const valuesObject = currentData[groupKey as P] as BarGroup<T>;
       const total = Object.values<number>(valuesObject).reduce((sum, value) => sum + value, 0);
 
       if (total > 0) {
-        acc[key] = Object.keys(valuesObject).reduce((valuesAcc, subkey) => {
-          valuesAcc[subkey] = valuesObject[subkey as T] / total;
+        acc[groupKey] = Object.keys(valuesObject).reduce((valuesAcc, valueKey) => {
+          valuesAcc[valueKey] = valuesObject[valueKey as T] / total;
 
           return valuesAcc;
         }, {} as Record<string, number>);
       } else {
-        acc[key] = valuesObject;
+        acc[groupKey] = valuesObject;
       }
 
       return acc;
@@ -507,6 +508,6 @@ export const generateBarChart = async (
   const { dataType } = options;
 
   if (dataType === ChartDataType.Severity) {
-    return generateBarChartGeneric(options, store, severityBarDataAccessor);
+    return generateBarChartGeneric(options, store, statusBySeverityBarDataAccessor);
   }
 };
