@@ -1,1 +1,1 @@
-{"id":"256f27a73e9e195e1dee92530bd82953","fullName":"test/allure1.test.ts#allure1 reader steps statuses should parse a canceled step","name":"should parse a canceled step","status":"passed","testResultsByEnv":{"default":"846840ea137b9509cdf097e23593ca9e"}}
+{"id":"256f27a73e9e195e1dee92530bd82953","fullName":"test/allure1.test.ts#allure1 reader steps statuses should parse a canceled step","name":"should parse a canceled step","status":"passed","testResultsByEnv":{"default":"c59af60459e28113d885f7f8a115d0d3"}}

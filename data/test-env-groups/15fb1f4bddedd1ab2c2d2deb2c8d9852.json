@@ -1,1 +1,1 @@
-{"id":"15fb1f4bddedd1ab2c2d2deb2c8d9852","fullName":"test/detectors/github.test.ts#github jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"b27900e44fad193d64604d2809486783"}}
+{"id":"15fb1f4bddedd1ab2c2d2deb2c8d9852","fullName":"test/detectors/github.test.ts#github jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"bfe97e0580c8d8001c8bb68e76f9f9e5"}}
