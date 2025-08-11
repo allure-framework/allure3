@@ -13,7 +13,10 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
   };
 
   severityLevels.forEach((severity) => {
-    resultMap[severity] = statusesList.reduce((acc, status) => ({ ...acc, [status]: 0 }), {} as BarGroupValues<TestStatus>);
+    resultMap[severity] = statusesList.reduce(
+      (acc, status) => ({ ...acc, [status]: 0 }),
+      {} as BarGroupValues<TestStatus>,
+    );
   });
 
   // Process test results
@@ -26,11 +29,13 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
     }
   });
 
-  return Object.entries(resultMap).map(([severity, values]) => {
-    if (values) {
-      return { groupId: severity, ...values };
-    }
-  }).filter(Boolean) as BarStats<SeverityLevel, TestStatus>;
+  return Object.entries(resultMap)
+    .map(([severity, values]) => {
+      if (values) {
+        return { groupId: severity, ...values };
+      }
+    })
+    .filter(Boolean) as BarStats<SeverityLevel, TestStatus>;
 };
 
 export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {

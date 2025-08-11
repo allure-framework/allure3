@@ -1,8 +1,10 @@
 import type {
+  BarGroup,
+  BarGroupMode,
+  BarGroupValues,
   BaseTrendSliceMetadata,
   ChartId,
   ChartType,
-  BarGroup,
   HistoryDataPoint,
   PieSlice,
   SeverityLevel,
@@ -12,13 +14,11 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
-  BarGroupValues,
-  BarGroupMode,
 } from "@allurereport/core-api";
 import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
-import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
+import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import type { AllureStore } from "./store.js";
 
@@ -88,7 +88,7 @@ export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
 
-export type BarStats<G extends string, T extends string> = BarGroup<G,T>[];
+export type BarStats<G extends string, T extends string> = BarGroup<G, T>[];
 
 // Chart options
 export type TrendChartOptions = {
