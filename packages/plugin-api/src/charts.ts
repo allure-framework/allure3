@@ -376,7 +376,7 @@ export const generateBarChartGeneric = async <P extends string, T extends string
           valuesAcc[valueKey] = valuesObject[valueKey as T] / total;
 
           return valuesAcc;
-        }, {} as Record<string, number>);
+        }, {} as BarGroup);
       } else {
         acc[groupKey] = valuesObject;
       }
