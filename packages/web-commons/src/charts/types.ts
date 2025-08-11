@@ -1,4 +1,5 @@
 import type {
+  BarGroup,
   BaseTrendSliceMetadata,
   ChartDataType,
   ChartId,
@@ -36,11 +37,6 @@ export interface ResponseTrendChartData<
   series: Record<SeriesType, TrendPointId[]>;
 }
 
-export type ChartsResponse<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = Record<ChartId, ResponseTrendChartData<SeriesType, Metadata>>;
-
 export interface ResponsePieChartData {
   type: ChartType.Pie;
   title?: string;
@@ -53,17 +49,20 @@ export interface ResponseBarChartData {
   dataType: ChartDataType;
   mode: ChartMode;
   title?: string;
-  data: Record<string, Record<string, number> | undefined>;
+  data: Record<string, BarGroup | undefined>;
   keys: readonly string[];
   indexBy: string;
-  min: number;
-  max: number;
 }
 
 export interface ResponseComingSoonChartData {
   type: ChartType.HeatMap | ChartType.Funnel | ChartType.TreeMap;
   title?: string;
 }
+
+export type ChartsResponse<
+  SeriesType extends string = string,
+  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
+> = Record<ChartId, ResponseTrendChartData<SeriesType, Metadata> | ResponsePieChartData | ResponseBarChartData | ResponseComingSoonChartData>;
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
   type: ChartType.Trend;
@@ -75,8 +74,13 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
   slices: TrendSlice<Metadata>[];
   title?: string;
 }
+
 export type UIPieChartData = ResponsePieChartData;
-export type UIBarChartData = ResponseBarChartData;
+
+export interface UIBarChartData extends ResponseBarChartData {
+  colors: Record<string, string>;
+}
+
 export type UIComingSoonChartData = ResponseComingSoonChartData;
 
 export type ChartData<
