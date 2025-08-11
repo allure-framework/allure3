@@ -9,7 +9,7 @@ export const createReportDataScript = (
     value: string;
   }[] = [],
 ) => {
-  if (reportFiles.length === 0) {
+  if (!reportFiles?.length) {
     return `
       <script async>
         window.allureReportDataReady = true;
