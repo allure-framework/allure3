@@ -1,5 +1,5 @@
 import type { BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
-import { severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
+import { BarGroupMode, severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
 import type { BarDataAccessor, BarStats } from "./charts.js";
 import type { AllureStore } from "./store.js";
 
@@ -40,4 +40,5 @@ export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, Tes
     return processTestResults(testResults);
   },
   getValuesKeys: () => statusesList,
+  getGroupMode: () => BarGroupMode.Grouped,
 };

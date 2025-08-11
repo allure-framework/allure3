@@ -67,3 +67,7 @@ export type PieChartValues = {
 
 export type BarGroupValues<T extends string = string> = Record<T, number>;
 export type BarGroup<G extends string, T extends string = string> = { groupId: G } & BarGroupValues<T>;
+export enum BarGroupMode {
+  Grouped = "grouped",
+  Stacked = "stacked",
+}
