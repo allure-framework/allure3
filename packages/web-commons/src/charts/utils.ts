@@ -102,7 +102,11 @@ export const createaTrendChartData = (
   }
 };
 
-export const createBarChartData = (chartId: string, chartData: ResponseBarChartData, res: ChartsData): UIBarChartData | undefined => {
+export const createBarChartData = (
+  chartId: string,
+  chartData: ResponseBarChartData,
+  res: ChartsData,
+): UIBarChartData | undefined => {
   if (chartData.dataType === ChartDataType.Severity) {
     return createStatusBySeverityBarChartData(chartId, res);
   }
@@ -121,9 +125,7 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if (
-        [ChartType.Pie, ChartType.HeatMap, ChartType.Funnel, ChartType.TreeMap].includes(chart.type)
-      ) {
+      } else if ([ChartType.Pie, ChartType.HeatMap, ChartType.Funnel, ChartType.TreeMap].includes(chart.type)) {
         acc[chartId] = chart;
       }
       return acc;
