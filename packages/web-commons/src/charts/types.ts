@@ -1,5 +1,6 @@
 import type {
   BarGroup,
+  BarGroupMode,
   BaseTrendSliceMetadata,
   ChartDataType,
   ChartId,
@@ -52,6 +53,7 @@ export interface ResponseBarChartData {
   data: BarGroup<string, string>[];
   keys: readonly string[];
   indexBy: string;
+  groupMode: BarGroupMode;
 }
 
 export interface ResponseComingSoonChartData {
