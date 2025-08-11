@@ -65,3 +65,5 @@ export type PieChartValues = {
   percentage: number;
   slices: PieSlice[];
 };
+
+export type BarGroup<T extends string = string> = Record<T, number>;
