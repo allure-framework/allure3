@@ -30,7 +30,7 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
   return result;
 };
 
-export const severityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
+export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
   getCurrentData: async (store: AllureStore): Promise<BarStats<SeverityLevel, TestStatus>> => {
     const testResults = await store.allTestResults();
 
