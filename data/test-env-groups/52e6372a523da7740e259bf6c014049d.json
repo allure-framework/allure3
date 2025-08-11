@@ -1,1 +1,1 @@
-{"id":"52e6372a523da7740e259bf6c014049d","fullName":"test/qualityGate.test.ts#QualityGate returns exit code 1 when at least one rule is failed","name":"returns exit code 1 when at least one rule is failed","status":"passed","testResultsByEnv":{"default":"ba2651176c23ce982802893600935e46"}}
+{"id":"52e6372a523da7740e259bf6c014049d","fullName":"test/qualityGate.test.ts#QualityGate returns exit code 1 when at least one rule is failed","name":"returns exit code 1 when at least one rule is failed","status":"passed","testResultsByEnv":{"default":"c3d38c7c9a41b690272179584bebb746"}}

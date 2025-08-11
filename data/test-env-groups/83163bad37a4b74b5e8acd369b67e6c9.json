@@ -1,1 +1,1 @@
-{"id":"83163bad37a4b74b5e8acd369b67e6c9","fullName":"allure-awesome/test/reportOptions.test.ts:38:5","name":"should contain title from config in the page title","status":"passed","testResultsByEnv":{"default":"07e568fc6e0e882736cc3567cabff373"}}
+{"id":"83163bad37a4b74b5e8acd369b67e6c9","fullName":"allure-awesome/test/reportOptions.test.ts:38:5","name":"should contain title from config in the page title","status":"passed","testResultsByEnv":{"default":"c4110adec37122b453a51c26701e5764"}}

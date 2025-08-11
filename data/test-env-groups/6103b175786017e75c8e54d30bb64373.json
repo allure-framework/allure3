@@ -1,1 +1,1 @@
-{"id":"6103b175786017e75c8e54d30bb64373","fullName":"test/junitxml.test.ts#junit xml reader names should use a placeholder if no name provided","name":"should use a placeholder if no name provided","status":"passed","testResultsByEnv":{"default":"7118e14ad535fb5a298b1c49e23cc533"}}
+{"id":"6103b175786017e75c8e54d30bb64373","fullName":"test/junitxml.test.ts#junit xml reader names should use a placeholder if no name provided","name":"should use a placeholder if no name provided","status":"passed","testResultsByEnv":{"default":"8c836a509a29f188da3943ffd7128d13"}}
