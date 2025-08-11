@@ -1,1 +1,1 @@
-{"id":"b0d194462784e6420a40259642968955","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"2d01c5b714b1dd38befe1e0ce22caa62"}}
+{"id":"b0d194462784e6420a40259642968955","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"default":"76425c09bb1441ccea18623def67e82a"}}

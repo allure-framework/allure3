@@ -1,1 +1,1 @@
-{"id":"de8dff66fceeea31aafee1d70d9aaa4a","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should parse the correct arn values","name":"should parse the correct arn values","status":"passed","testResultsByEnv":{"default":"f1ce72a7630074ce597abbeb950bd5b8"}}
+{"id":"de8dff66fceeea31aafee1d70d9aaa4a","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should parse the correct arn values","name":"should parse the correct arn values","status":"passed","testResultsByEnv":{"default":"0a5a9f93db79f871e80e58468d4ff7f1"}}
