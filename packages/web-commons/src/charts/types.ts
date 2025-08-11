@@ -64,7 +64,13 @@ export interface ResponseComingSoonChartData {
 export type ChartsResponse<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = Record<ChartId, ResponseTrendChartData<SeriesType, Metadata> | ResponsePieChartData | ResponseBarChartData | ResponseComingSoonChartData>;
+> = Record<
+  ChartId,
+  | ResponseTrendChartData<SeriesType, Metadata>
+  | ResponsePieChartData
+  | ResponseBarChartData
+  | ResponseComingSoonChartData
+>;
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
   type: ChartType.Trend;
@@ -88,7 +94,11 @@ export type UIComingSoonChartData = ResponseComingSoonChartData;
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = ResponseTrendChartData<SeriesType, Metadata> | ResponsePieChartData | ResponseBarChartData | ResponseComingSoonChartData;
+> =
+  | ResponseTrendChartData<SeriesType, Metadata>
+  | ResponsePieChartData
+  | ResponseBarChartData
+  | ResponseComingSoonChartData;
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UIPieChartData
