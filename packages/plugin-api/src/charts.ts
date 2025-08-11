@@ -13,6 +13,7 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
+  BarGroupValues,
 } from "@allurereport/core-api";
 import { ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
@@ -76,7 +77,7 @@ export interface BarChartData {
   dataType: ChartDataType;
   mode: ChartMode;
   title?: string;
-  data: Record<string, BarGroup | undefined>;
+  data: BarStats<string, string>;
   keys: readonly string[];
   indexBy: string;
 }
@@ -87,7 +88,7 @@ export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
 
-export type BarStats<P extends string, T extends string> = Record<P, BarGroup<T> | undefined>;
+export type BarStats<G extends string, T extends string> = BarGroup<G,T>[];
 
 // Chart options
 export type TrendChartOptions = {
@@ -367,22 +368,21 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   // Apply mode transformation if needed
   let processedData = currentData;
   if (mode === ChartMode.Percent) {
-    processedData = Object.keys(currentData).reduce((acc, groupKey) => {
-      const valuesObject = currentData[groupKey as P] as BarGroup<T>;
-      const total = Object.values<number>(valuesObject).reduce((sum, value) => sum + value, 0);
+    processedData = currentData.map((group) => {
+      const { groupId, ...values } = group;
 
-      if (total > 0) {
-        acc[groupKey] = Object.keys(valuesObject).reduce((valuesAcc, valueKey) => {
-          valuesAcc[valueKey] = valuesObject[valueKey as T] / total;
+      const total = Object.values<number>(values).reduce((sum, value) => sum + value, 0);
+      const nextValues = Object.keys(values).reduce((acc, valueKey) => {
+        acc[valueKey as T] = (values as BarGroupValues)[valueKey as T] / total;
 
-          return valuesAcc;
-        }, {} as BarGroup);
-      } else {
-        acc[groupKey] = valuesObject;
-      }
+        return acc;
+      }, {} as BarGroupValues<T>);
 
-      return acc;
-    }, {} as BarStats<string, string>);
+      return {
+        groupId,
+        ...nextValues,
+      };
+    });
   }
 
   return {
@@ -391,8 +391,8 @@ export const generateBarChartGeneric = async <P extends string, T extends string
     mode,
     title,
     data: processedData,
-    keys: dataAccessor.getAllValues(),
-    indexBy: dataAccessor.getIndexBy(),
+    keys: dataAccessor.getValuesKeys(),
+    indexBy: "groupId",
   };
 };
 
@@ -405,13 +405,11 @@ export interface TrendDataAccessor<T extends TrendDataType> {
   getAllValues: () => readonly T[];
 }
 
-export interface BarDataAccessor<P extends string, T extends string> {
+export interface BarDataAccessor<G extends string, T extends string> {
   // Get current data for the specified type
-  getCurrentData: (store: AllureStore) => Promise<BarStats<P, T>>;
-  // List of all possible values for the type
-  getAllValues: () => readonly P[];
-  // Get indexBy value
-  getIndexBy: () => string;
+  getCurrentData: (store: AllureStore) => Promise<BarStats<G, T>>;
+  // List of all possible values for the group
+  getValuesKeys: () => readonly T[];
 }
 
 export const generateTrendChartGeneric = async <T extends TrendDataType>(
