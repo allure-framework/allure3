@@ -14,6 +14,7 @@ import type {
   TrendSlice,
   TrendSliceId,
   BarGroupValues,
+  BarGroupMode,
 } from "@allurereport/core-api";
 import { ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
@@ -80,6 +81,7 @@ export interface BarChartData {
   data: BarStats<string, string>;
   keys: readonly string[];
   indexBy: string;
+  groupMode: BarGroupMode;
 }
 
 // Union types for generated chart data
@@ -392,6 +394,7 @@ export const generateBarChartGeneric = async <P extends string, T extends string
     title,
     data: processedData,
     keys: dataAccessor.getValuesKeys(),
+    groupMode: dataAccessor.getGroupMode(),
     indexBy: "groupId",
   };
 };
@@ -410,6 +413,8 @@ export interface BarDataAccessor<G extends string, T extends string> {
   getCurrentData: (store: AllureStore) => Promise<BarStats<G, T>>;
   // List of all possible values for the group
   getValuesKeys: () => readonly T[];
+  // Get group mode
+  getGroupMode: () => BarGroupMode;
 }
 
 export const generateTrendChartGeneric = async <T extends TrendDataType>(
