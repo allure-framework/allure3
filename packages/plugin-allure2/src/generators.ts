@@ -190,6 +190,7 @@ export const generateStaticFiles = async (payload: {
     await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
   } catch (err) {
     if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
       return;
