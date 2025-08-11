@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";

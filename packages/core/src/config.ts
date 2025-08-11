@@ -154,22 +154,6 @@ export const getPluginInstance = (config: FullConfig, predicate: (plugin: Plugin
   return config?.plugins?.find(predicate);
 };
 
-/**
- * Enforces the plugin instance in the config
- * Fully replaces the existing plugin in the config or add it, when it doesn't exist
- * @param config
- * @param pluginInstance
- */
-export const enforcePlugin = (config: FullConfig, pluginInstance: PluginInstance) => {
-  const newConfig = { ...config };
-
-  newConfig.plugins = newConfig.plugins
-    ?.filter((item) => item.plugin.constructor !== pluginInstance.plugin.constructor)
-    .concat(pluginInstance);
-
-  return newConfig;
-};
-
 export const resolvePlugin = async (path: string) => {
   // try to append @allurereport/plugin- scope
   if (!path.startsWith("@allurereport/plugin-")) {

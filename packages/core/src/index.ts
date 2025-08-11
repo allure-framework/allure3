@@ -8,7 +8,7 @@ export * from "./utils/new.js";
 export * from "./utils/flaky.js";
 export * from "./history.js";
 export * from "./known.js";
-export { resolveConfig, readConfig, getPluginInstance, enforcePlugin } from "./config.js";
+export { resolveConfig, readConfig, getPluginInstance } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
 export * from "./qualityGate.js";
