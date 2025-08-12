@@ -365,7 +365,7 @@ const RAW_RUNTIME_STATE =
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["allure-js-commons", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
-          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
+          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
@@ -856,7 +856,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
-          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
+          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.0"],\
           ["axios", "npm:1.9.0"],\
           ["eslint", "npm:8.57.1"],\
@@ -13847,6 +13847,13 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
+      ["npm:3.3.3", {\
+        "packageLocation": "./.yarn/cache/allure-js-commons-npm-3.3.3-df22bdf81c-bf75db9234.zip/node_modules/allure-js-commons/",\
+        "packageDependencies": [\
+          ["allure-js-commons", "npm:3.3.3"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
       ["virtual:0b4e5ef295775b4fd0bcf915b00b878d702f681ae50e8093ff07853047e3e8af80ffb30b974463aa2fb1e186b2795b35ac1ec43f73376629f4663e4548ac6d83#npm:3.3.0", {\
         "packageLocation": "./.yarn/__virtual__/allure-js-commons-virtual-e1537e931b/0/cache/allure-js-commons-npm-3.3.0-4064ea1ece-f9f6671234.zip/node_modules/allure-js-commons/",\
         "packageDependencies": [\
@@ -13875,12 +13882,26 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
+      ["virtual:ccf5686ca9d2613f329d9e0c1f9ff9df1ec3dbe33d55033ecfd7c506af8e455df9f22891fbc130099f5d87f9abbac32132541ad4a20b61ef46b01b708414bb6d#npm:3.3.3", {\
+        "packageLocation": "./.yarn/__virtual__/allure-js-commons-virtual-f01835a144/0/cache/allure-js-commons-npm-3.3.3-df22bdf81c-bf75db9234.zip/node_modules/allure-js-commons/",\
+        "packageDependencies": [\
+          ["allure-js-commons", "virtual:ccf5686ca9d2613f329d9e0c1f9ff9df1ec3dbe33d55033ecfd7c506af8e455df9f22891fbc130099f5d87f9abbac32132541ad4a20b61ef46b01b708414bb6d#npm:3.3.3"],\
+          ["@types/allure-playwright", null],\
+          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
+          ["md5", "npm:2.3.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/allure-playwright",\
+          "allure-playwright"\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0", {\
         "packageLocation": "./.yarn/__virtual__/allure-js-commons-virtual-f55e71836e/0/cache/allure-js-commons-npm-3.3.0-4064ea1ece-f9f6671234.zip/node_modules/allure-js-commons/",\
         "packageDependencies": [\
           ["allure-js-commons", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
           ["@types/allure-playwright", null],\
-          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
+          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["md5", "npm:2.3.0"]\
         ],\
         "packagePeers": [\
@@ -13891,20 +13912,20 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["allure-playwright", [\
-      ["npm:3.3.0", {\
-        "packageLocation": "./.yarn/cache/allure-playwright-npm-3.3.0-78cb1a63e5-0481a9fc51.zip/node_modules/allure-playwright/",\
+      ["npm:3.3.3", {\
+        "packageLocation": "./.yarn/cache/allure-playwright-npm-3.3.3-ad24029567-57168a204a.zip/node_modules/allure-playwright/",\
         "packageDependencies": [\
-          ["allure-playwright", "npm:3.3.0"]\
+          ["allure-playwright", "npm:3.3.3"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0", {\
-        "packageLocation": "./.yarn/__virtual__/allure-playwright-virtual-ff4439c3d9/0/cache/allure-playwright-npm-3.3.0-78cb1a63e5-0481a9fc51.zip/node_modules/allure-playwright/",\
+      ["virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3", {\
+        "packageLocation": "./.yarn/__virtual__/allure-playwright-virtual-ccf5686ca9/0/cache/allure-playwright-npm-3.3.3-ad24029567-57168a204a.zip/node_modules/allure-playwright/",\
         "packageDependencies": [\
-          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"],\
+          ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["@playwright/test", "npm:1.48.2"],\
           ["@types/playwright__test", null],\
-          ["allure-js-commons", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.0"]\
+          ["allure-js-commons", "virtual:ccf5686ca9d2613f329d9e0c1f9ff9df1ec3dbe33d55033ecfd7c506af8e455df9f22891fbc130099f5d87f9abbac32132541ad4a20b61ef46b01b708414bb6d#npm:3.3.3"]\
         ],\
         "packagePeers": [\
           "@playwright/test",\
