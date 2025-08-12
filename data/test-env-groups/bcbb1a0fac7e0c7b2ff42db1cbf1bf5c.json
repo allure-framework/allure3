@@ -1,1 +1,1 @@
-{"id":"bcbb1a0fac7e0c7b2ff42db1cbf1bf5c","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"6459cec1bf637278982d1b93e47d4af2"}}
+{"id":"bcbb1a0fac7e0c7b2ff42db1cbf1bf5c","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"default":"e5c3d8eac1ca3d27482fb8f6cc27d359"}}

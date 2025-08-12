@@ -1,1 +1,1 @@
-{"id":"92b98ecd76cf729e886a14d5f259e07e","fullName":"test/detectors/github.test.ts#github jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"5aaf20ee7dd37479af44250487190ca5"}}
+{"id":"92b98ecd76cf729e886a14d5f259e07e","fullName":"test/detectors/github.test.ts#github jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"4e6fcb0274990c99fddd73a281f0b0ce"}}

@@ -1,1 +1,1 @@
-{"id":"c2be325548bf336c42a8cc24e1ca3e18","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo should render well-known CI icon","name":"should render well-known CI icon","status":"passed","testResultsByEnv":{"default":"edf2b563763bbd8e553b9f563b965229"}}
+{"id":"c2be325548bf336c42a8cc24e1ca3e18","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo should render well-known CI icon","name":"should render well-known CI icon","status":"passed","testResultsByEnv":{"default":"fdfaf8e2f21f2288c2a09c61e7b49ccc"}}
