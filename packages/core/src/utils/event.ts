@@ -62,30 +62,46 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
   onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.QualityGateResult, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.QualityGateResult, listener);
+    }
   }
 
-  onTestResults = (listener: (trIds: string[]) => Promise<void>, options: BatchOptions = {}): void => {
+  onTestResults(listener: (trIds: string[]) => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
     const handler = this.#createBatchHandler(maxTimeout, listener);
 
     this.#emitter.on(RealtimeEvents.TestResult, handler);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.TestResult, handler);
+    }
   };
 
-  onTestFixtureResults = (listener: (tfrIds: string[]) => Promise<void>, options: BatchOptions = {}): void => {
+  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
     const handler = this.#createBatchHandler(maxTimeout, listener);
 
     this.#emitter.on(RealtimeEvents.TestFixtureResult, handler);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
+    }
   };
 
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options: BatchOptions = {}): void {
+  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
     const handler = this.#createBatchHandler(maxTimeout, listener);
 
     this.#emitter.on(RealtimeEvents.AttachmentFile, handler);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
+    }
   }
 
-  onAll(listener: () => Promise<void>, options: BatchOptions = {}): void {
+  onAll(listener: () => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
     const handler = this.#createBatchHandler(maxTimeout, listener);
 

@@ -3,21 +3,22 @@ import type { QualityGateConfig, QualityGateValidationResult } from "@allurerepo
 import { gray, red } from "yoctocolors";
 import { qualityGateDefaultRules } from "./rules.js";
 
-export class QualityGate {
+export class QualityGateState {
   #state: Record<string, any> = {};
 
+  getRuleResult(ruleId: string) {
+    return this.#state[ruleId];
+  }
+
+  setRuleResult(ruleId: string, value: any) {
+    this.#state[ruleId] = value;
+  }
+}
+
+export class QualityGate {
   constructor(
     private readonly config: QualityGateConfig,
   ) {}
-
-  // TODO: maybe we need to initialize multiple quality gates in this case?
-  /**
-   * Clears the quality gate state
-   * Can be useful when it's required to perform validation on a different set of test results after the previous validation
-   */
-  resetState() {
-    this.#state = {};
-  }
 
   /**
    * Converts quality gate results to a terminal-friendly string
@@ -54,10 +55,11 @@ export class QualityGate {
   }
 
   async validate(payload: {
+    state?: QualityGateState;
     trs: TestResult[];
     knownIssues: KnownTestFailure[];
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { trs, knownIssues } = payload;
+    const { trs, knownIssues, state } = payload;
     const { rules, use = [...qualityGateDefaultRules] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
@@ -93,10 +95,10 @@ export class QualityGate {
           expected: value,
           trs,
           knownIssues,
-          state: this.#state[ruleId],
+          state: state?.getRuleResult(ruleId),
         });
 
-        this.#state[ruleId] = result.actual;
+        state?.setRuleResult(ruleId, result.actual);
 
         if (result.success) {
           continue;

@@ -9,6 +9,9 @@ export type QualityGateValidationResult = {
 };
 
 export type QualityGateRules = Record<string, any> & {
+  /**
+   * Ruleset identifier to make it possible to visually divide same rules
+   */
   id?: string;
   fastFail?: boolean;
   filter?: (tr: TestResult) => boolean;

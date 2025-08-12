@@ -1,11 +1,7 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
-import type {
-  QualityGateConfig,
-  QualityGateRule,
-  QualityGateValidationResult,
-} from "@allurereport/plugin-api";
+import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QualityGate } from "../../src/qualityGate/qualityGate.js";
+import { QualityGate, QualityGateState } from "../../src/qualityGate/qualityGate.js";
 
 const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
   ({
@@ -26,6 +22,22 @@ const createValidationResult = (
   actual,
   expected,
   message,
+});
+
+describe("QualityGateState", () => {
+  it("should return undefined for unknown rule id", () => {
+    const state = new QualityGateState();
+
+    expect(state.getRuleResult("non-existent" as string)).toBeUndefined();
+  });
+
+  it("should set and get a value for a rule id", () => {
+    const state = new QualityGateState();
+
+    state.setRuleResult("rule/a", 123);
+
+    expect(state.getRuleResult("rule/a")).toBe(123);
+  });
 });
 
 describe("QualityGate", () => {
@@ -165,7 +177,7 @@ describe("QualityGate", () => {
       expect(fastFailed).toBe(true);
     });
 
-    it("should not call subsequent rulesets when a rule with fastFail: true fails", async () => {
+    it("shouldn't call subsequent rulesets when a rule with fastFail: true fails", async () => {
       const mockRule1: QualityGateRule<number> = {
         rule: "mockRule1",
         message: ({ actual, expected }) => `Mock rule 1 failed with ${actual} vs ${expected}`,
@@ -187,10 +199,7 @@ describe("QualityGate", () => {
       const validateSpy1 = vi.spyOn(mockRule1, "validate");
       const validateSpy2 = vi.spyOn(mockRule2, "validate");
       const config: QualityGateConfig = {
-        rules: [
-          { mockRule1: 3, fastFail: true },
-          { mockRule2: 5 }
-        ],
+        rules: [{ mockRule1: 3, fastFail: true }, { mockRule2: 5 }],
         use: [mockRule1, mockRule2],
       };
       const qualityGate = new QualityGate(config);
@@ -207,7 +216,7 @@ describe("QualityGate", () => {
       expect(validateSpy2).not.toHaveBeenCalled();
     });
 
-    it("should not call subsequent rules in the same ruleset when a rule with fastFail: true fails", async () => {
+    it("shouldn't call subsequent rules in the same ruleset when a rule with fastFail: true fails", async () => {
       const mockRule1: QualityGateRule<number> = {
         rule: "mockRule1",
         message: ({ actual, expected }) => `Mock rule 1 failed with ${actual} vs ${expected}`,
@@ -233,8 +242,8 @@ describe("QualityGate", () => {
           {
             mockRule1: 3,
             mockRule2: 5,
-            fastFail: true
-          }
+            fastFail: true,
+          },
         ],
         use: [mockRule1, mockRule2],
       };
@@ -307,7 +316,7 @@ describe("QualityGate", () => {
       expect(fastFailed).toBe(false);
     });
 
-    it("should maintain state between validations", async () => {
+    it("should re-use external state between validations", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
         message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
@@ -324,12 +333,15 @@ describe("QualityGate", () => {
       const validateSpy = vi.spyOn(mockRule, "validate");
       const qualityGate = new QualityGate(config);
       const testResults: TestResult[] = [createTestResult("1", "passed")];
+      const qgState = new QualityGateState();
 
       await qualityGate.validate({
+        state: qgState,
         trs: testResults,
         knownIssues: [],
       });
       const { fastFailed } = await qualityGate.validate({
+        state: qgState,
         trs: testResults,
         knownIssues: [],
       });
@@ -340,6 +352,39 @@ describe("QualityGate", () => {
         }),
       );
       expect(fastFailed).toBe(false);
+    });
+
+    it("should work without external state and pass undefined state to rules", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRuleNoState",
+        message: () => "ok",
+        validate: async () => ({
+          success: true,
+          actual: 0,
+          expected: 0,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRuleNoState: 0 }],
+        use: [mockRule],
+      };
+      const validateSpy = vi.spyOn(mockRule, "validate");
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [createTestResult("1", "passed")];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(validateSpy).toHaveBeenCalled();
+      expect(validateSpy).toHaveBeenCalledTimes(2);
+      expect(validateSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ state: undefined }));
+      expect(validateSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({ state: undefined }));
     });
 
     it("should throw error for unknown rule", async () => {

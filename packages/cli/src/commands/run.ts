@@ -1,7 +1,18 @@
-import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
+import {
+  AllureReport,
+  QualityGateState,
+  convertQualityGateResultsToTestErrors,
+  isFileNotFoundError,
+  readConfig,
+  stringifyQualityGateResults,
+} from "@allurereport/core";
 import { createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
-import { allureResultsDirectoriesWatcher, delayedFileProcessingWatcher, newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
+import {
+  allureResultsDirectoriesWatcher,
+  delayedFileProcessingWatcher,
+  newFilesInDirectoryWatcher,
+} from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
 import { PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
@@ -11,24 +22,32 @@ import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
+import terminate from "terminate/promise";
 import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
-import terminate from "terminate/promise"
+import { QualityGateValidationResult } from "@allurereport/plugin-api";
+
+export type TestProcessResult = {
+  code: number | null;
+  qualityGateResults: QualityGateValidationResult[];
+};
 
 export type TestProcessDescriptor = {
   process: ReturnType<typeof runProcess>;
-  processTerminationPromise: Promise<number | null>;
+  processTerminationPromise: Promise<TestProcessResult | null>;
 };
 
-const runTests = async (
-  allureReport: AllureReport,
-  cwd: string,
-  command: string,
-  commandArgs: string[],
-  environment: Record<string, string>,
-  silent: boolean,
-): Promise<TestProcessDescriptor> => {
+const runTests = async (params: {
+  allureReport: AllureReport;
+  cwd: string;
+  command: string;
+  commandArgs: string[];
+  environment: Record<string, string>;
+  silent: boolean;
+  withQualityGate: boolean;
+}): Promise<TestProcessDescriptor> => {
+  const { allureReport, cwd, command, commandArgs, silent, environment, withQualityGate } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
   const processWatcher = delayedFileProcessingWatcher(
@@ -83,8 +102,44 @@ const runTests = async (
 
   const beforeProcess = Date.now();
   const testProcess = runProcess(command, commandArgs, cwd, environment, silent);
+  const qualityGateState = new QualityGateState();
+  let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
+  let qualityGateResults: QualityGateValidationResult[] = [];
+
+  if (withQualityGate) {
+    qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+      const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)));
+      const filteredTrs = trs.filter((tr) => tr !== undefined);
+
+      if (!filteredTrs.length) {
+        return;
+      }
+
+      const { results, fastFailed } = await allureReport.validate(filteredTrs, qualityGateState);
+
+      // process only fast-failed checks here
+      if (!fastFailed) {
+        return;
+      }
+
+      qualityGateResults = results;
+      // qualityGateMessage = result?.message ?? "";
+
+      // if (qualityGateMessage) {
+      //   // @ts-ignore
+      //   await terminate(testProcess.process!.pid);
+      //
+      //   processFinished = true;
+      // }
+
+      await terminate(testProcess!.pid);
+    });
+  }
 
   return {
+    // TODO:
+    // qualityGateMessage
+    // ---
     process: testProcess,
     // FIXME: at this moment, this is the cheapest way to have the process to control and keep ability to receive original exit code
     // eslint-disable-next-line no-async-promise-executor
@@ -103,12 +158,18 @@ const runTests = async (
 
       await processWatcher.abort();
 
-      return res(code);
+      qualityGateUnsub?.();
+
+      return res({
+        code,
+        qualityGateResults,
+      });
     }),
   };
 };
 
 export class RunCommand extends Command {
+  //#region
   static paths = [["run"]];
 
   static usage = Command.Usage({
@@ -145,6 +206,7 @@ export class RunCommand extends Command {
   });
 
   commandToRun = Option.Rest();
+  //#endregion
 
   async execute() {
     const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
@@ -200,54 +262,59 @@ export class RunCommand extends Command {
         ],
       });
 
-      let testProcess: TestProcessDescriptor
-      let code: number | null = null;
-      let qualityGateMessage = "";
-      // TODO: probably, both flags do the same
-      let processFinished = false;
+      let testProcess: TestProcessDescriptor;
+      // let code: number | null = null;
+      // let qualityGateMessage = "";
 
-      if (withQualityGate) {
-        allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
-          // prevent post-process events from being processed
-          if (processFinished) {
-            return;
-          }
-
-          const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)))
-          const filteredTrs = trs.filter((tr) => tr !== undefined)
-
-          if (!filteredTrs.length) {
-            return
-          }
-
-          const result = await allureReport.validate(filteredTrs)
-
-          // process only fast-failed checks here
-          if (!result.fastFailed) {
-            return
-          }
-
-          qualityGateMessage = result?.message ?? ""
-
-          if (qualityGateMessage) {
-            // @ts-ignore
-            await terminate(testProcess.process!.pid)
-
-            processFinished = true
-          }
-        })
-      }
+      // if (withQualityGate) {
+      //   qualityGateState = new QualityGateState()
+      //
+      //   allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
+      //     // prevent post-process events from being processed
+      //     if (processFinished) {
+      //       return;
+      //     }
+      //
+      //     const trs = await Promise.all(testResults.map((tr) => allureReport.store.testResultById(tr)))
+      //     const filteredTrs = trs.filter((tr) => tr !== undefined)
+      //
+      //     if (!filteredTrs.length) {
+      //       return
+      //     }
+      //
+      //     const result = await allureReport.validate(filteredTrs, qualityGateState)
+      //
+      //     // process only fast-failed checks here
+      //     if (!result.fastFailed) {
+      //       return
+      //     }
+      //
+      //     qualityGateMessage = result?.message ?? ""
+      //
+      //     if (qualityGateMessage) {
+      //       // @ts-ignore
+      //       await terminate(testProcess.process!.pid)
+      //
+      //       processFinished = true
+      //     }
+      //   })
+      // }
 
       await allureReport.start();
 
-      testProcess = await runTests(allureReport, cwd, command, commandArgs, {}, silent);
-      code = await testProcess.processTerminationPromise;
+      testProcess = await runTests({
+        allureReport,
+        cwd,
+        command,
+        commandArgs,
+        environment: {},
+        silent,
+        withQualityGate,
+      });
+      // TODO
+      let testProcessResult = await testProcess.processTerminationPromise;
 
       for (let rerun = 0; rerun < maxRerun; rerun++) {
-        if (processFinished) {
-          break;
-        }
-
         const failed = await allureReport.store.failedTestResults();
 
         if (failed.length === 0) {
@@ -265,46 +332,54 @@ export class RunCommand extends Command {
 
         await writeFile(testPlanPath, JSON.stringify(testPlan));
 
-        testProcess = await runTests(
+        testProcess = await runTests({
           allureReport,
           cwd,
           command,
           commandArgs,
-          {
+          environment: {
             ALLURE_TESTPLAN_PATH: testPlanPath,
             ALLURE_RERUN: `${rerun}`,
           },
           silent,
-        );
+          withQualityGate,
+        });
 
-        code = await testProcess.processTerminationPromise;
+        testProcessResult = await testProcess.processTerminationPromise;
 
         await rm(tmpDir, { recursive: true });
 
         logTests(await allureReport.store.allTestResults());
       }
 
-      processFinished = true;
-
       await allureReport.done();
 
-      if (withQualityGate && !qualityGateMessage) {
-        allureReport.resetValidation();
-
-        const trs = await allureReport.store.allTestResults()
-        const result = await allureReport.validate(trs)
-
-        qualityGateMessage = result?.message ?? ""
-      }
-
-      // use quality gate code when enabled
-      if (withQualityGate) {
-        console.error(qualityGateMessage);
-        process.exit(qualityGateMessage ? 1 : 0);
+      if (!withQualityGate) {
+        process.exit(testProcessResult?.code ?? 0);
         return;
       }
 
-      process.exit(code ?? 0);
+      // quality gate has been failed
+      if (testProcessResult?.qualityGateResults?.length) {
+        const qualityGateMessage = stringifyQualityGateResults(testProcessResult.qualityGateResults);
+
+        console.error(qualityGateMessage);
+        process.exit(1);
+        return;
+      }
+
+      const trs = await allureReport.store.allTestResults();
+      const { results } = await allureReport.validate(trs);
+
+      if (!results.length) {
+        process.exit(0);
+        return;
+      }
+
+      const qualityGateMessage = stringifyQualityGateResults(results);
+
+      console.error(qualityGateMessage);
+      process.exit(1);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console

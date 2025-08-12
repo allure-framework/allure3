@@ -14,10 +14,9 @@ import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
-import { QualityGate } from "./qualityGate/index.js";
+import { QualityGate, QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -165,35 +164,14 @@ export class AllureReport {
     }
   };
 
-  // TODO:
-  validate = async (trs: TestResult[]) => {
+  validate = async (trs: TestResult[], state?: QualityGateState) => {
     const knownIssues = await this.#store.allKnownIssues();
-    const validationResult = await this.#qualityGate!.validate({
+
+    return await this.#qualityGate!.validate({
       trs: trs.filter(Boolean) as TestResult[],
       knownIssues,
+      state,
     })
-
-    // if (!validationResult.fastFailed) {
-    //   return;
-    // }
-
-    const errors = this.#qualityGate!.createQualityGateTestErrors(validationResult.results)
-    const message = this.#qualityGate!.stringifyValidationResults(validationResult.results)
-
-    // this.#realtimeDispatcher.sendQualityGateResult({
-    //   errors,
-    //   message,
-    // })
-
-    return {
-      errors,
-      message,
-      fastFailed: validationResult.fastFailed,
-    }
-  }
-
-  resetValidation = () => {
-    this.#qualityGate!.resetState()
   }
 
   start = async (): Promise<void> => {
