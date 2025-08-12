@@ -230,7 +230,6 @@ export class RunCommand extends Command {
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
     const silent = this.silent ?? false;
     const config = await readConfig(cwd, this.config, { output: this.output, name: this.reportName });
-    // TODO:
     const withQualityGate = !!config.qualityGate;
 
     try {

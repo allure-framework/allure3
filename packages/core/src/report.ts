@@ -107,6 +107,10 @@ export class AllureReport {
       : new AllureLocalHistory(historyPath);
   }
 
+  get hasQualityGate() {
+    return !!this.#qualityGate;
+  }
+
   get store(): DefaultAllureStore {
     return this.#store;
   }

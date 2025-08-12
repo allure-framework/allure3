@@ -68,7 +68,6 @@ export class GenerateCommand extends Command {
       const allureReport = new AllureReport(config);
 
       await allureReport.start();
-      await Promise.all(Array.from(resultsDirs).map((resultsDir) => allureReport.readDirectory(resultsDir)));
 
       for (const resultsDir of resultsDirs) {
         await allureReport.readDirectory(resultsDir);
