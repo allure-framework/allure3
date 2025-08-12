@@ -56,13 +56,13 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
-  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>): void;
+  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>): () => void;
 
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): void;
+  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): void;
+  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): void;
+  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 }
 
 export interface RealtimeEventsDispatcher {

@@ -1,6 +1,13 @@
 import { detect } from "@allurereport/ci";
 import type { AllureHistory, CiDescriptor, TestResult } from "@allurereport/core-api";
-import type { Plugin, PluginContext, PluginState, PluginSummary, ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type {
+  Plugin,
+  PluginContext,
+  PluginState,
+  PluginSummary,
+  ReportFiles,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
@@ -14,7 +21,7 @@ import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
-import { QualityGate, QualityGateState } from "./qualityGate/index.js";
+import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 
@@ -168,11 +175,11 @@ export class AllureReport {
     const knownIssues = await this.#store.allKnownIssues();
 
     return await this.#qualityGate!.validate({
-      trs: trs.filter(Boolean) as TestResult[],
+      trs: trs.filter(Boolean),
       knownIssues,
       state,
-    })
-  }
+    });
+  };
 
   start = async (): Promise<void> => {
     await this.#store.readHistory();

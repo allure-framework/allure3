@@ -17,4 +17,6 @@ export {
   maxFailuresRule,
   minTestsCountRule,
   successRateRule,
+  convertQualityGateResultsToTestErrors,
+  stringifyQualityGateResults,
 } from "./qualityGate/index.js";

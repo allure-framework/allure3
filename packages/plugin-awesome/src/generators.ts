@@ -1,9 +1,9 @@
 import {
   type AttachmentLink,
   type EnvironmentItem,
-  Statistic,
-  TestEnvGroup,
-  TestResult,
+  type Statistic,
+  type TestEnvGroup,
+  type TestResult,
   type TreeData,
   compareBy,
   incrementStatistic,
@@ -42,7 +42,6 @@ import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import { filterEnv } from "./environments.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
 

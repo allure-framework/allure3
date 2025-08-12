@@ -8,6 +8,10 @@ export default defineConfig({
       {
         minTestsCount: 1000,
       },
+      {
+        maxFailures: 1,
+        fastFail: true
+      }
     ]
   },
 });

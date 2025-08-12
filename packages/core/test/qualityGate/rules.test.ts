@@ -2,23 +2,21 @@ import { type KnownTestFailure, TestResult, TestStatus } from "@allurereport/cor
 import { describe, expect, it } from "vitest";
 import { maxFailuresRule, minTestsCountRule, successRateRule } from "../../src/qualityGate/rules.js";
 
-const createTestResult = (
-  id: string,
-  status: TestStatus,
-) => ({
-  id,
-  name: `Test ${id}`,
-  status,
-  flaky: false,
-  muted: false,
-  known: false,
-  hidden: false,
-  labels: [],
-  parameters: [],
-  links: [],
-  steps: [],
-  sourceMetadata: { readerId: "", metadata: {} }
-} as TestResult);
+const createTestResult = (id: string, status: TestStatus) =>
+  ({
+    id,
+    name: `Test ${id}`,
+    status,
+    flaky: false,
+    muted: false,
+    known: false,
+    hidden: false,
+    labels: [],
+    parameters: [],
+    links: [],
+    steps: [],
+    sourceMetadata: { readerId: "", metadata: {} },
+  }) as TestResult;
 
 describe("maxFailuresRule", () => {
   it("should pass when failures count is less than expected (without state)", async () => {

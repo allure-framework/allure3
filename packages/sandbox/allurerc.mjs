@@ -51,14 +51,6 @@ export default defineConfig({
         maxFailures: 5,
         fastFail: true,
       },
-      {
-        id: "foo",
-        minTestsCount: 10,
-      },
-      {
-        id: "bar",
-        successRate: 0.9,
-      }
     ],
   },
   plugins: {

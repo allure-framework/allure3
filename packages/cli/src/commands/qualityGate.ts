@@ -1,8 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
-// import QualityGatePlugin from "@allurereport/plugin-quality-gate";
 import { Command, Option } from "clipanion";
-import { realpath } from "node:fs/promises";
-import { exit } from "node:process";
 import * as typanion from "typanion";
 
 export class QualityGateCommand extends Command {

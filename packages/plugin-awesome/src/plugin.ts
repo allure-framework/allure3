@@ -1,4 +1,4 @@
-import { type EnvironmentItem, Statistic, getWorstStatus } from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic, getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,

@@ -65,7 +65,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
     return () => {
       this.#emitter.off(RealtimeEvents.QualityGateResult, listener);
-    }
+    };
   }
 
   onTestResults(listener: (trIds: string[]) => Promise<void>, options: BatchOptions = {}) {
@@ -76,8 +76,8 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
     return () => {
       this.#emitter.off(RealtimeEvents.TestResult, handler);
-    }
-  };
+    };
+  }
 
   onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
@@ -87,8 +87,8 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
     return () => {
       this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
-    }
-  };
+    };
+  }
 
   onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options: BatchOptions = {}) {
     const { maxTimeout = 100 } = options;
@@ -98,7 +98,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
     return () => {
       this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
-    }
+    };
   }
 
   onAll(listener: () => Promise<void>, options: BatchOptions = {}) {
@@ -108,9 +108,15 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter.on(RealtimeEvents.TestResult, handler);
     this.#emitter.on(RealtimeEvents.TestFixtureResult, handler);
     this.#emitter.on(RealtimeEvents.AttachmentFile, handler);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.TestResult, handler);
+      this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
+      this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
+    };
   }
 
-  offAll(): void {
+  offAll() {
     this.#emitter.removeAllListeners();
 
     for (const handler of this.#handlers) {

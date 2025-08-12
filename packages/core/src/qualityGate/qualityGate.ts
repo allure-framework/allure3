@@ -3,63 +3,61 @@ import type { QualityGateConfig, QualityGateValidationResult } from "@allurerepo
 import { gray, red } from "yoctocolors";
 import { qualityGateDefaultRules } from "./rules.js";
 
+/**
+ * Converts quality gate results to a terminal-friendly string
+ */
+export const stringifyQualityGateResults = (results: QualityGateValidationResult[]) => {
+  if (results.length === 0) {
+    return "";
+  }
+
+  const lines = [red("Quality Gate failed with following issues:")];
+  const maxMessageLength = Math.max(...results.map((r) => r.message.length));
+
+  lines.push("");
+
+  results.forEach((result) => {
+    lines.push(` ${red("⨯")} ${result.message.padEnd(maxMessageLength, " ")}    ${gray(result.rule)}`);
+  });
+
+  lines.push("");
+  lines.push(red(`${results.length} quality gate rules have been failed.`));
+
+  return lines.join("\n");
+};
+
+/**
+ * Converts quality gate results into test errors which can be send to the report and rendered
+ */
+export const convertQualityGateResultsToTestErrors = (results: QualityGateValidationResult[]): TestError[] => {
+  return results.map((result) => ({
+    message: `Quality Gate (${result.rule}): ${result.message}`,
+    actual: result.actual,
+    expected: result.expected,
+  }));
+};
+
 export class QualityGateState {
   #state: Record<string, any> = {};
 
-  getRuleResult(ruleId: string) {
-    return this.#state[ruleId];
+  setResult(rule: string, value: any) {
+    this.#state[rule] = value;
   }
 
-  setRuleResult(ruleId: string, value: any) {
-    this.#state[ruleId] = value;
+  getResult(rule: string) {
+    return this.#state[rule];
   }
 }
 
 export class QualityGate {
-  constructor(
-    private readonly config: QualityGateConfig,
-  ) {}
-
-  /**
-   * Converts quality gate results to a terminal-friendly string
-   */
-  stringifyValidationResults(results: QualityGateValidationResult[]) {
-    if (results.length === 0) {
-      return "";
-    }
-
-    const lines = [red("Quality Gate failed with following issues:")];
-    const maxMessageLength = Math.max(...results.map((r) => r.message.length));
-
-    lines.push("");
-
-    results.forEach((result) => {
-      lines.push(` ${red("⨯")} ${result.message.padEnd(maxMessageLength, " ")}    ${gray(result.rule)}`);
-    });
-
-    lines.push("");
-    lines.push(red(`${results.length} quality gate rules have been failed.`));
-
-    return lines.join("\n");
-  }
-
-  /**
-   * Converts quality gate results into test errors which can be send to the report and rendered
-   */
-  createQualityGateTestErrors(results: QualityGateValidationResult[]): TestError[] {
-    return results.map((result) => ({
-      message: `Quality Gate (${result.rule}): ${result.message}`,
-      actual: result.actual,
-      expected: result.expected,
-    }));
-  }
+  constructor(private readonly config: QualityGateConfig) {}
 
   async validate(payload: {
     state?: QualityGateState;
     trs: TestResult[];
     knownIssues: KnownTestFailure[];
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
-    const { trs, knownIssues, state } = payload;
+    const { state, trs, knownIssues } = payload;
     const { rules, use = [...qualityGateDefaultRules] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
@@ -68,7 +66,7 @@ export class QualityGate {
       return {
         fastFailed: false,
         results,
-      }
+      };
     }
 
     for (const ruleset of rules) {
@@ -95,10 +93,10 @@ export class QualityGate {
           expected: value,
           trs,
           knownIssues,
-          state: state?.getRuleResult(ruleId),
+          state: state?.getResult?.(ruleId),
         });
 
-        state?.setRuleResult(ruleId, result.actual);
+        state?.setResult(ruleId, result.actual);
 
         if (result.success) {
           continue;
