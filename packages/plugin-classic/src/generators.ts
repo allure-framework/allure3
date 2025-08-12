@@ -5,6 +5,7 @@ import {
   type TreeGroup,
   type TreeLeaf,
   compareBy,
+  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -38,7 +39,6 @@ import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { matchCategories } from "./categories.js";
-import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
@@ -219,7 +219,7 @@ export const generateStatistic = async (writer: ClassicDataWriter, statistic: St
 };
 
 export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
-  const chartData = getChartData(statistic);
+  const chartData = getPieChartValues(statistic);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };

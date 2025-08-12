@@ -3,6 +3,7 @@ import {
   type EnvironmentItem,
   type TreeData,
   compareBy,
+  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -32,7 +33,6 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartData,
 } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -331,12 +331,12 @@ export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureS
   const reportStatistic = await store.testsStatistic(filter);
   const environments = await store.allEnvironments();
 
-  await writer.writeWidget("pie_chart.json", getPieChartData(reportStatistic));
+  await writer.writeWidget("pie_chart.json", getPieChartValues(reportStatistic));
 
   for (const env of environments) {
     const envStatistic = await store.testsStatistic(filterEnv(env, filter));
 
-    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartData(envStatistic));
+    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartValues(envStatistic));
   }
 };
 
