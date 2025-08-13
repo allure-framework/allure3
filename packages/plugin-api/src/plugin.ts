@@ -1,5 +1,5 @@
 import type { CiDescriptor, Statistic, TestError, TestResult, TestStatus } from "@allurereport/core-api";
-import { QualityGateValidationResult } from "./qualityGate.js";
+import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {

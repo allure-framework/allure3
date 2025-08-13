@@ -17,7 +17,6 @@ import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
-import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;

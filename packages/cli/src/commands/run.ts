@@ -129,7 +129,7 @@ const runTests = async (params: {
 
       try {
         // @ts-ignore
-        await terminate(testProcess!.pid);
+        await terminate(testProcess.pid);
       } catch (err) {
         if ((err as Error).message.includes("kill ESRCH")) {
           return;

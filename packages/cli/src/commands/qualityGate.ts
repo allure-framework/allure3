@@ -1,10 +1,9 @@
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { TestResult } from "@allurereport/core-api";
+import type { TestResult } from "@allurereport/core-api";
 import { findMatching } from "@allurereport/directory-watcher";
 import { Command, Option } from "clipanion";
 import { realpath } from "node:fs/promises";
-import { exit } from "node:process";
-import process from "node:process";
+import { exit, cwd as processCwd } from "node:process";
 import * as typanion from "typanion";
 
 export class QualityGateCommand extends Command {
@@ -56,7 +55,7 @@ export class QualityGateCommand extends Command {
   });
 
   async execute() {
-    const cwd = await realpath(this.cwd ?? process.cwd());
+    const cwd = await realpath(this.cwd ?? processCwd());
     const targetDir = this?.resultsDir ?? cwd;
     const { maxFailures, minTestsCount, successRate, fastFail, knownIssues } = this;
     const config = await readConfig(cwd, this.config, {
@@ -111,6 +110,7 @@ export class QualityGateCommand extends Command {
     const allureReport = new AllureReport(config);
 
     if (!allureReport.hasQualityGate) {
+      // eslint-disable-next-line no-console
       console.info("Quality gate is not configured");
       exit(0);
       return;
@@ -126,9 +126,8 @@ export class QualityGateCommand extends Command {
         return;
       }
 
-      const qualityGateMessage = stringifyQualityGateResults(results);
-
-      console.error(qualityGateMessage);
+      // eslint-disable-next-line no-console
+      console.error(stringifyQualityGateResults(results));
 
       exit(1);
     });
@@ -142,16 +141,15 @@ export class QualityGateCommand extends Command {
     await allureReport.done();
 
     const allTrs = await allureReport.store.allTestResults();
-    const { results } = await allureReport.validate(allTrs);
+    const validationResults = await allureReport.validate(allTrs);
 
-    if (results.length === 0) {
+    if (validationResults.results.length === 0) {
       exit(0);
       return;
     }
 
-    const qualityGateMessage = stringifyQualityGateResults(results);
-
-    console.error(qualityGateMessage);
+    // eslint-disable-next-line no-console
+    console.error(stringifyQualityGateResults(validationResults.results));
 
     exit(1);
   }

@@ -1,4 +1,4 @@
-import { ChartType, HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
+import { ChartType, type HistoryDataPoint, type Statistic, type TestResult } from "@allurereport/core-api";
 import {
   type GeneratedChartData,
   type GeneratedChartsData,
