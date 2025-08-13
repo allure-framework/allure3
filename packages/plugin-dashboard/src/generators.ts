@@ -1,7 +1,14 @@
-import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
+import { ChartType } from "@allurereport/core-api";
 import {
-  DEFAULT_CHART_HISTORY_LIMIT,
+  type AllureStore,
+  type GeneratedChartData,
+  type GeneratedChartsData,
+  type PluginContext,
+  type ReportFiles,
+  generatePieChart,
+  generateTrendChart,
+} from "@allurereport/plugin-api";
+import {
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
@@ -14,21 +21,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
-import { getSeverityTrendData } from "./charts/severityTrend.js";
-import { getPieChartData } from "./charts/statusPie.js";
-import { getStatusTrendData } from "./charts/statusTrend.js";
-import type {
-  DashboardOptions,
-  DashboardPluginOptions,
-  GeneratedChartData,
-  GeneratedChartsData,
-  PieChartData,
-  PieChartOptions,
-  TemplateManifest,
-  TrendChartData,
-  TrendChartOptions,
-} from "./model.js";
-import { ChartData, ChartType } from "./model.js";
+import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
@@ -79,37 +72,6 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
-const generateTrendChart = (
-  options: TrendChartOptions,
-  stores: {
-    historyDataPoints: HistoryDataPoint[];
-    statistic: Statistic;
-    testResults: TestResult[];
-  },
-  context: PluginContext,
-): TrendChartData | undefined => {
-  const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
-  const { dataType } = newOptions;
-  const { statistic, historyDataPoints, testResults } = stores;
-
-  if (dataType === ChartData.Status) {
-    return getStatusTrendData(statistic, context.reportName, historyDataPoints, newOptions);
-  } else if (dataType === ChartData.Severity) {
-    return getSeverityTrendData(testResults, context.reportName, historyDataPoints, newOptions);
-  }
-};
-
-const generatePieChart = (
-  options: PieChartOptions,
-  stores: {
-    statistic: Statistic;
-  },
-): PieChartData => {
-  const { statistic } = stores;
-
-  return getPieChartData(statistic, options);
-};
-
 export const generateCharts = async (
   options: DashboardPluginOptions,
   store: AllureStore,
@@ -121,35 +83,28 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const historyDataPoints = await store.allHistoryDataPoints();
+  const trs = await store.allTestResults();
+  const history = await store.allHistoryDataPoints();
   const statistic = await store.testsStatistic();
-  const testResults = await store.allTestResults();
+  const chartsData: GeneratedChartsData = {};
 
-  return layout.reduce((acc, chartOptions) => {
+  for (const chartOptions of layout) {
     const chartId = randomUUID();
 
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(
-        chartOptions,
-        {
-          historyDataPoints,
-          statistic,
-          testResults,
-        },
-        context,
-      );
+      chart = generateTrendChart(chartOptions, trs, statistic, history, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
     }
 
     if (chart) {
-      acc[chartId] = chart;
+      chartsData[chartId] = chart;
     }
+  }
 
-    return acc;
-  }, {} as GeneratedChartsData);
+  return chartsData;
 };
 
 export const generateAllCharts = async (
@@ -235,17 +190,28 @@ export const generateStaticFiles = async (
     allureVersion,
   };
 
-  const html = compile({
-    headTags: headTags.join("\n"),
-    bodyTags: bodyTags.join("\n"),
-    reportFilesScript: createReportDataScript(reportDataFiles),
-    reportOptions: JSON.stringify(reportOptions),
-    analyticsEnable: true,
-    allureVersion,
-    reportUuid,
-    reportName,
-    singleFile: payload.singleFile,
-  });
+  try {
+    const html = compile({
+      headTags: headTags.join("\n"),
+      bodyTags: bodyTags.join("\n"),
+      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportOptions: JSON.stringify(reportOptions),
+      analyticsEnable: true,
+      allureVersion,
+      reportUuid,
+      reportName,
+      singleFile: payload.singleFile,
+    });
 
-  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  } catch (err) {
+    if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
+      console.error("The report is too large to be generated in the single file mode!");
+      process.exit(1);
+      return;
+    }
+
+    throw err;
+  }
 };

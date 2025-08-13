@@ -3,9 +3,8 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { FullConfig, PluginInstance } from "../src/api.js";
+import type { FullConfig } from "../src/api.js";
 import {
-  enforcePlugin,
   findConfig,
   getPluginId,
   getPluginInstance,
@@ -294,43 +293,5 @@ describe("getPluginInstance", () => {
     const pluginInstance = getPluginInstance(config, ({ plugin }) => plugin instanceof PluginFixture);
 
     expect(pluginInstance).toEqual(fixture1);
-  });
-});
-
-describe("enforcePlugin", () => {
-  it("should keep original config if plugin instance is already present", () => {
-    const fixture = {
-      id: "awesome",
-      enabled: true,
-      options: {
-        groupBy: ["test"],
-      },
-      plugin: new PluginFixture(),
-    } as PluginInstance;
-    const config = {
-      plugins: [fixture, fixture],
-    } as unknown as FullConfig;
-    const newConfig = enforcePlugin(config, fixture);
-
-    expect(newConfig).toEqual({
-      plugins: [fixture],
-    });
-  });
-
-  it("should set given plugin instance to the config if it's not present", () => {
-    const fixture = {
-      id: "awesome",
-      enabled: true,
-      options: {
-        groupBy: ["test"],
-      },
-      plugin: new PluginFixture(),
-    } as PluginInstance;
-    const config = {
-      plugins: [],
-    } as unknown as FullConfig;
-    const newConfig = enforcePlugin(config, fixture);
-
-    expect(newConfig.plugins).toContainEqual(fixture);
   });
 });

@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import CsvPlugin, { type CsvPluginOptions } from "@allurereport/plugin-csv";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -50,24 +50,23 @@ export class CsvCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultCsvOptions = {
       separator: this.separator ?? ",",
       disableHeaders: this.disableHeaders ?? false,
     } as CsvPluginOptions;
+    const config = await readConfig(cwd, this.config, {
+      output: this.output ?? "allure.csv",
+      knownIssuesPath: this.knownIssues,
+    });
 
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        output: this.output ?? "allure.csv",
-        knownIssuesPath: this.knownIssues,
-      }),
+    config.plugins = [
       {
         id: "csv",
         enabled: true,
         options: defaultCsvOptions,
         plugin: new CsvPlugin(defaultCsvOptions),
       },
-    );
+    ];
 
     const allureReport = new AllureReport(config);
 

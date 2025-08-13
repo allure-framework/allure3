@@ -144,7 +144,6 @@ export class QualityGateCommand extends Command {
     const allTrs = await allureReport.store.allTestResults();
     const { results } = await allureReport.validate(allTrs);
 
-
     if (results.length === 0) {
       exit(0);
       return;

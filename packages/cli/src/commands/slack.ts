@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin, { type SlackPluginOptions } from "@allurereport/plugin-slack";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -43,18 +43,20 @@ export class SlackCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultSlackOptions = {
       token: this.token,
       channel: this.channel,
     } as SlackPluginOptions;
+    const config = await readConfig(cwd, this.config);
 
-    const config = enforcePlugin(await readConfig(cwd, this.config), {
-      id: "slack",
-      enabled: true,
-      options: defaultSlackOptions,
-      plugin: new SlackPlugin(defaultSlackOptions),
-    });
+    config.plugins = [
+      {
+        id: "slack",
+        enabled: true,
+        options: defaultSlackOptions,
+        plugin: new SlackPlugin(defaultSlackOptions),
+      },
+    ];
 
     const allureReport = new AllureReport(config);
 

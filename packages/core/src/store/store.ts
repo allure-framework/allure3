@@ -1,4 +1,26 @@
-import { type AllureHistory, type AttachmentLink, type AttachmentLinkLinked, type DefaultLabelsConfig, type EnvironmentsConfig, type HistoryDataPoint, type HistoryTestResult, type KnownTestFailure, type RepoData, type ReportVariables, type TestCase, type TestEnvGroup, type TestError, type TestFixtureResult, type TestResult, compareBy, getWorstStatus, matchEnvironment, nullsLast, ordinal, reverse } from "@allurereport/core-api";
+import {
+  type AllureHistory,
+  type AttachmentLink,
+  type AttachmentLinkLinked,
+  type DefaultLabelsConfig,
+  type EnvironmentsConfig,
+  type HistoryDataPoint,
+  type HistoryTestResult,
+  type KnownTestFailure,
+  type RepoData,
+  type ReportVariables,
+  type TestCase,
+  type TestEnvGroup,
+  type TestError,
+  type TestFixtureResult,
+  type TestResult,
+  compareBy,
+  getWorstStatus,
+  matchEnvironment,
+  nullsLast,
+  ordinal,
+  reverse,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type QualityGateValidationResult,
@@ -20,7 +42,6 @@ import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {

@@ -10,7 +10,7 @@ import type {
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
-import type { QualityGateValidationResult } from "./qualityGate.js"
+import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;

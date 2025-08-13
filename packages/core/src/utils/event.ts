@@ -1,9 +1,13 @@
 import type { TestError } from "@allurereport/core-api";
-import type { BatchOptions, QualityGateValidationResult, RealtimeEventsDispatcher as RealtimeEventsDispatcherType, RealtimeSubscriber as RealtimeSubscriberType } from "@allurereport/plugin-api";
+import type {
+  BatchOptions,
+  QualityGateValidationResult,
+  RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
+  RealtimeSubscriber as RealtimeSubscriberType,
+} from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
-
 
 export enum RealtimeEvents {
   TestResult = "testResult",
@@ -68,7 +72,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
     return () => {
       this.#emitter.off(RealtimeEvents.GlobalError, listener);
-    }
+    };
   }
 
   onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
