@@ -126,42 +126,42 @@ test.describe("allure-awesome", () => {
       await expect(testResultPage.titleLocator).toHaveText(testTitleText);
     });
 
-    // test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {
-    //   test.skip(browserName !== "chromium", "Only chromium supports clipboard API");
-    //
-    //   await treePage.clickNthLeaf(0);
-    //   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-    //   await testResultPage.copyFullname();
-    //
-    //   const handle = await page.evaluateHandle(() => globalThis.navigator.clipboard.readText());
-    //   const clipboardContent = await handle.jsonValue();
-    //
-    //   expect(clipboardContent).toEqual("sample.js#0 sample passed test");
-    // });
-    //
-    // test("failed test contains error message and stack", async () => {
-    //   await treePage.leafStatusFailedLocator.click();
-    //   await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
-    //   await expect(testResultPage.errorTraceLocator).not.toBeVisible();
-    //   await testResultPage.errorMessageLocator.click();
-    //   await expect(testResultPage.errorTraceLocator).toHaveText("failed test trace");
-    // });
-    //
-    // test("failed test contains error actual/expected comparison", async () => {
-    //   await treePage.leafStatusFailedLocator.click();
-    //   await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
-    //   await expect(testResultPage.errorTraceLocator).not.toBeVisible();
-    //   await expect(testResultPage.errorDiffButtonLocator).toBeVisible();
-    //   await testResultPage.errorDiffButtonLocator.click();
-    //   await expect(testResultPage.errorDiffLocator).toBeVisible();
-    // });
-    //
-    // test("broken test contains error message and stack", async () => {
-    //   await treePage.leafStatusBrokenLocator.click();
-    //   await expect(testResultPage.errorMessageLocator).toHaveText("An unexpected error");
-    //   await expect(testResultPage.errorTraceLocator).not.toBeVisible();
-    //   await testResultPage.errorMessageLocator.click();
-    //   await expect(testResultPage.errorTraceLocator).toHaveText("broken test trace");
-    // });
+    test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {
+      test.skip(browserName !== "chromium", "Only chromium supports clipboard API");
+
+      await treePage.clickNthLeaf(0);
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+      await testResultPage.copyFullname();
+
+      const handle = await page.evaluateHandle(() => globalThis.navigator.clipboard.readText());
+      const clipboardContent = await handle.jsonValue();
+
+      expect(clipboardContent).toEqual("sample.js#0 sample passed test");
+    });
+
+    test("failed test contains error message and stack", async () => {
+      await treePage.leafStatusFailedLocator.click();
+      await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
+      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
+      await testResultPage.errorMessageLocator.click();
+      await expect(testResultPage.errorTraceLocator).toHaveText("failed test trace");
+    });
+
+    test("failed test contains error actual/expected comparison", async () => {
+      await treePage.leafStatusFailedLocator.click();
+      await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
+      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
+      await expect(testResultPage.errorDiffButtonLocator).toBeVisible();
+      await testResultPage.errorDiffButtonLocator.click();
+      await expect(testResultPage.errorDiffLocator).toBeVisible();
+    });
+
+    test("broken test contains error message and stack", async () => {
+      await treePage.leafStatusBrokenLocator.click();
+      await expect(testResultPage.errorMessageLocator).toHaveText("An unexpected error");
+      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
+      await testResultPage.errorMessageLocator.click();
+      await expect(testResultPage.errorTraceLocator).toHaveText("broken test trace");
+    });
   });
 });
