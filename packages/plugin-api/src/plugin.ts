@@ -1,5 +1,6 @@
 import type { CiDescriptor, Statistic, TestError, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AllureStore } from "./store.js";
+import { QualityGateValidationResult } from "./qualityGate.js";
 
 export interface PluginDescriptor {
   import?: string;
@@ -56,7 +57,9 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
-  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>): () => void;
+  onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
+
+  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
 
   onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 
@@ -66,7 +69,9 @@ export interface RealtimeSubscriber {
 }
 
 export interface RealtimeEventsDispatcher {
-  sendQualityGateResult(payload: { errors: TestError[]; message: string }): void;
+  sendGlobalError(error: TestError): void;
+
+  sendQualityGateResult(payload: QualityGateValidationResult[]): void;
 
   sendTestResult(trId: string): void;
 

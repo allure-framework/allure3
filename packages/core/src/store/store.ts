@@ -1,28 +1,7 @@
-import {
-  type AllureHistory,
-  type AttachmentLink,
-  type AttachmentLinkLinked,
-  type DefaultLabelsConfig,
-  type EnvironmentsConfig,
-  type HistoryDataPoint,
-  type HistoryTestResult,
-  type KnownTestFailure,
-  type RepoData,
-  type ReportVariables,
-  type TestCase,
-  type TestEnvGroup,
-  type TestError,
-  type TestFixtureResult,
-  type TestResult,
-  compareBy,
-  getWorstStatus,
-  matchEnvironment,
-  nullsLast,
-  ordinal,
-  reverse,
-} from "@allurereport/core-api";
+import { type AllureHistory, type AttachmentLink, type AttachmentLinkLinked, type DefaultLabelsConfig, type EnvironmentsConfig, type HistoryDataPoint, type HistoryTestResult, type KnownTestFailure, type RepoData, type ReportVariables, type TestCase, type TestEnvGroup, type TestError, type TestFixtureResult, type TestResult, compareBy, getWorstStatus, matchEnvironment, nullsLast, ordinal, reverse } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
   type RealtimeSubscriber,
   type ResultFile,
@@ -42,12 +21,15 @@ import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
+
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
     if (!indexMap.has(key)) {
       indexMap.set(key, []);
     }
+
     const current = indexMap.get(key)!;
+
     current.push(...items);
   }
 };
@@ -73,8 +55,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
-
-  // TODO:
+  readonly #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   readonly #globalErrors: TestError[] = [];
 
   #historyPoints: HistoryDataPoint[] = [];
@@ -122,10 +103,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
 
-    // TODO: how to set global error?
-    // this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
-    //   this.#globalErrors.push(error);
-    // });
+    this.#realtimeSubscriber?.onQualityGateResult(async (results: QualityGateValidationResult[]) => {
+      results.forEach((result) => {
+        this.#qualityGateResultsByRules[result.rule] = result;
+      });
+    });
+    this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
+      this.#globalErrors.push(error);
+    });
   }
 
   // history state
@@ -173,6 +158,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } catch (err) {
       return undefined;
     }
+  }
+
+  // quality gate data
+
+  async qualityGateResults(): Promise<QualityGateValidationResult[]> {
+    return Object.values(this.#qualityGateResultsByRules);
   }
 
   // global data

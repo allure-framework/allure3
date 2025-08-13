@@ -115,11 +115,12 @@ export class AllureReport {
     return this.#store;
   }
 
-  /**
-   * Subscriber that allows to listen to realtime events outside of plugins or the report itself
-   */
   get realtimeSubscriber(): RealtimeSubscriber {
     return this.#realtimeSubscriber;
+  }
+
+  get realtimeDispatcher(): RealtimeEventsDispatcher {
+    return this.#realtimeDispatcher;
   }
 
   get #publish() {
@@ -178,7 +179,7 @@ export class AllureReport {
   validate = async (trs: TestResult[], state?: QualityGateState) => {
     const knownIssues = await this.#store.allKnownIssues();
 
-    return await this.#qualityGate!.validate({
+    return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       knownIssues,
       state,
@@ -197,16 +198,6 @@ export class AllureReport {
     }
 
     this.#stage = "running";
-
-    // if (this.#qualityGate) {
-    //   this.realtimeSubscriber.onTestResults(async (testResults) => {
-    //     const trs = await Promise.all(testResults.map((tr) => this.#store.testResultById(tr)))
-    //
-    //     console.log("qg validate", testResults)
-    //
-    //     await this.validate(trs.filter(Boolean) as TestResult[])
-    //   })
-    // }
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish) {

@@ -10,6 +10,7 @@ import type {
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
+import type { QualityGateValidationResult } from "./qualityGate.js"
 import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;
@@ -24,6 +25,8 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: () => Promise<TestResult[]>;
+  // quality gate data
+  qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   // global data
   allGlobalErrors: () => Promise<TestError[]>;
   // search api

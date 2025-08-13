@@ -124,6 +124,7 @@ const runTests = async (params: {
         return;
       }
 
+      allureReport.realtimeDispatcher.sendQualityGateResult(results);
       qualityGateResults = results;
 
       try {
@@ -338,6 +339,7 @@ export class RunCommand extends Command {
         return;
       }
 
+      allureReport.realtimeDispatcher.sendQualityGateResult(results);
       qualityGateMessage = stringifyQualityGateResults(results);
 
       console.error(qualityGateMessage);

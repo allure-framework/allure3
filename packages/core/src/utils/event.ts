@@ -1,22 +1,21 @@
 import type { TestError } from "@allurereport/core-api";
-import type {
-  BatchOptions,
-  RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
-  RealtimeSubscriber as RealtimeSubscriberType,
-} from "@allurereport/plugin-api";
+import type { BatchOptions, QualityGateValidationResult, RealtimeEventsDispatcher as RealtimeEventsDispatcherType, RealtimeSubscriber as RealtimeSubscriberType } from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
+
 
 export enum RealtimeEvents {
   TestResult = "testResult",
   TestFixtureResult = "testFixtureResult",
   AttachmentFile = "attachmentFile",
-  QualityGateResult = "qualityGateResult",
+  QualityGateResults = "qualityGateResults",
+  GlobalError = "globalError",
 }
 
 export interface AllureStoreEvents {
-  [RealtimeEvents.QualityGateResult]: [{ errors: TestError[]; message: string }];
+  [RealtimeEvents.GlobalError]: [TestError];
+  [RealtimeEvents.QualityGateResults]: [QualityGateValidationResult[]];
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
@@ -35,8 +34,12 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter = emitter;
   }
 
-  sendQualityGateResult(payload: { errors: TestError[]; message: string }) {
-    this.#emitter.emit(RealtimeEvents.QualityGateResult, payload);
+  sendGlobalError(error: TestError) {
+    this.#emitter.emit(RealtimeEvents.GlobalError, error);
+  }
+
+  sendQualityGateResult(payload: QualityGateValidationResult[]) {
+    this.#emitter.emit(RealtimeEvents.QualityGateResults, payload ?? []);
   }
 
   sendTestResult(trId: string) {
@@ -60,11 +63,19 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter = emitter;
   }
 
-  onQualityGateResult(listener: (payload: { errors: TestError[]; message: string }) => Promise<void>) {
-    this.#emitter.on(RealtimeEvents.QualityGateResult, listener);
+  onGlobalError(listener: (error: TestError) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.GlobalError, listener);
 
     return () => {
-      this.#emitter.off(RealtimeEvents.QualityGateResult, listener);
+      this.#emitter.off(RealtimeEvents.GlobalError, listener);
+    }
+  }
+
+  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.QualityGateResults, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.QualityGateResults, listener);
     };
   }
 
