@@ -23,6 +23,11 @@ export class ResultsPackCommand extends Command {
     ],
   });
 
+  resultsDir = Option.String({
+    required: false,
+    name: "The directory with Allure results. Entire working directory will be scanned for `allure-results` unless this option is provided.",
+  });
+
   pattern = Option.String("--pattern", {
     description: "Test results directory pattern to lookup (default: allure-results)",
   });
@@ -63,7 +68,11 @@ export class ResultsPackCommand extends Command {
     const resultsDirectories = new Set<string>();
     const resultsFiles = new Set<string>();
 
-    await findMatching(cwd, resultsDirectories, (dirent) => dirent.isDirectory() && dirent.name === pattern);
+    if (this.resultsDir) {
+      resultsDirectories.add(this.resultsDir);
+    } else {
+      await findMatching(cwd, resultsDirectories, (dirent) => dirent.isDirectory() && dirent.name === pattern);
+    }
 
     for (const dir of resultsDirectories) {
       const files = await fs.readdir(dir);

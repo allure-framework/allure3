@@ -34,7 +34,9 @@ export class ResultsUnpackCommand extends Command {
     description: "Output directory where the archives should be unarchived to (default: ./allure-results)",
   });
 
-  archives = Option.Rest();
+  archives = Option.Rest({
+    name: "List of test results archives to extract separated by spaces. If no archives are provided, the command will extract allure-results.zip archive",
+  });
 
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
