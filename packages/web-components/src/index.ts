@@ -28,5 +28,6 @@ export * from "./components/Grid";
 export * from "./components/LanguagePicker";
 export * from "./components/ThemeButton";
 export * from "./components/Charts/TrendChartWidget";
+export * from "./components/Charts/ComingSoonChartWidget";
 export * from "./components/Charts/SuccessRatePieChart";
 export * from "./components/Charts/TrendChart";
