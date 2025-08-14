@@ -141,7 +141,7 @@ describe("resolvePlugin", () => {
   it("throws an error when plugin can't be resolved", async () => {
     (importWrapper as unknown as MockInstance).mockRejectedValue(new Error("an error"));
 
-    expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
+    await expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
   });
 });
 

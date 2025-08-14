@@ -11,4 +11,12 @@ export * from "./known.js";
 export { resolveConfig, readConfig, getPluginInstance } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
-export * from "./qualityGate.js";
+export {
+  QualityGateState,
+  qualityGateDefaultRules,
+  maxFailuresRule,
+  minTestsCountRule,
+  successRateRule,
+  convertQualityGateResultsToTestErrors,
+  stringifyQualityGateResults,
+} from "./qualityGate/index.js";

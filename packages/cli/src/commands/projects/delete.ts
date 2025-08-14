@@ -15,8 +15,8 @@ export class ProjectsDeleteCommand extends Command {
     description: "Deletes a project",
     details: "This command deletes a project from the Allure Service.",
     examples: [
-      ["project-delete my-project", "Delete the project named 'my-project' (with confirmation)"],
-      ["project-delete my-project --force", "Delete the project named 'my-project' without confirmation"],
+      ["project delete my-project", "Delete the project named 'my-project' (with confirmation)"],
+      ["project delete my-project --force", "Delete the project named 'my-project' without confirmation"],
     ],
   });
 

@@ -15,8 +15,8 @@ export class ProjectsCreateCommand extends Command {
     description: "Creates a new project",
     details: "This command creates a new project in the Allure Service.",
     examples: [
-      ["project-create my-project", "Create a new project named 'my-project'"],
-      ["project-create", "Create a new project with a name from git repo or prompt for a name"],
+      ["project create my-project", "Create a new project named 'my-project'"],
+      ["project create", "Create a new project with a name from git repo or prompt for a name"],
     ],
   });
 

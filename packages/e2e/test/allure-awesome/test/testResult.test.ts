@@ -15,8 +15,6 @@ test.beforeAll(async () => {
     reportConfig: {
       name: "Sample allure report",
       appendHistory: false,
-      history: undefined,
-      historyPath: undefined,
       knownIssuesPath: undefined,
       plugins: [
         {
@@ -96,6 +94,13 @@ test.afterAll(async () => {
 test.describe("allure-awesome", () => {
   test.describe("test results", () => {
     test("it's possible to navigate between tests results using navigation arrows", async () => {
+      await label("sample", "sample0");
+      await label("sample", "sample1");
+      await label("sample", "sample2");
+      await label("sample", "sample3");
+      await label("sample", "sample4");
+      await label("sample", "sample5");
+
       await treePage.clickRandomLeaf();
 
       const testTitleText = await testResultPage.titleLocator.textContent();

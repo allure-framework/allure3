@@ -11,6 +11,8 @@ export class PageObject {
   }
 
   async attachScreenshot(name: string = "screenshot") {
-    await attachment(name, await this.screenshot(), "image/png");
+    const screenshot = await this.screenshot();
+
+    await attachment(name, screenshot, "image/png");
   }
 }

@@ -37,8 +37,8 @@ export interface Config {
    * Both examples above will do the same thing
    */
   plugins?: Record<string, PluginDescriptor>;
-  qualityGate?: QualityGateConfig;
   appendHistory?: boolean;
+  qualityGate?: QualityGateConfig;
   allureService?: {
     url?: string;
     project?: string;

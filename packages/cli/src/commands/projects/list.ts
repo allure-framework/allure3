@@ -15,7 +15,7 @@ export class ProjectsListCommand extends Command {
     description: "Shows list of all available projects for current user",
     details:
       "This command lists all available projects for the current user and allows selecting one to get configuration information.",
-    examples: [["projects", "List all available projects"]],
+    examples: [["projects list", "List all available projects"]],
   });
 
   config = Option.String("--config,-c", {

@@ -1,58 +1,40 @@
-import type { AllureStore } from "./store.js";
-
-export type QualityGateRules = Record<string, any>;
-
-export type QualityGateRulesBaseMeta<T> = {
-  type: T;
-};
-
-export type QualityGateLabelsRulesMeta = QualityGateRulesBaseMeta<"label"> & {
-  name: string;
-  value: string;
-};
-
-export type QualityGateParametersRulesMeta = QualityGateRulesBaseMeta<"parameter"> & {
-  name: string;
-  value: string;
-};
-
-export type QualityGateLabelsEnforceConfig = {
-  type: "label";
-  name: string;
-  value: string;
-  rules: QualityGateRules;
-};
-
-export type QualityGateParametersEnforceConfig = {
-  type: "parameter";
-  name: string;
-  value: string;
-  rules: QualityGateRules;
-};
-
-export type QualityGateRulesMeta =
-  | Omit<QualityGateLabelsRulesMeta, "rules">
-  | Omit<QualityGateParametersRulesMeta, "rules">;
-
-export type QualityGateEnforceConfig = QualityGateLabelsEnforceConfig | QualityGateParametersEnforceConfig;
+import type { KnownTestFailure, TestResult } from "@allurereport/core-api";
 
 export type QualityGateValidationResult = {
   success: boolean;
+  expected: any;
+  actual: any;
   rule: string;
-  meta?: QualityGateRulesMeta;
-  expected?: number;
-  actual?: number;
-  message?: string;
+  message: string;
 };
 
-export interface QualityGateValidator {
-  validate(store: AllureStore): Promise<QualityGateValidationResult>;
-}
+export type QualityGateRules = Record<string, any> & {
+  /**
+   * Ruleset identifier to make it possible to visually divide same rules
+   */
+  id?: string;
+  fastFail?: boolean;
+  filter?: (tr: TestResult) => boolean;
+};
 
-export type QualityGateValidatorConstructor = new (limit: number, meta?: QualityGateRulesMeta) => QualityGateValidator;
+export type QualityGateRuleResult = {
+  success: boolean;
+  expected: any;
+  actual: any;
+};
+
+export type QualityGateRule<T = any> = {
+  rule: string;
+  message: (payload: { expected: T; actual: T }) => string;
+  validate: (payload: {
+    expected: T;
+    trs: TestResult[];
+    knownIssues: KnownTestFailure[];
+    state?: T;
+  }) => Promise<QualityGateRuleResult>;
+};
 
 export type QualityGateConfig = {
-  rules?: QualityGateRules;
-  enforce?: QualityGateEnforceConfig[];
-  validators?: Record<string, QualityGateValidatorConstructor>;
+  rules?: QualityGateRules[];
+  use?: QualityGateRule[];
 };
