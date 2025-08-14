@@ -70,6 +70,8 @@ export class AllureReport {
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
+    console.log("ci", this.#ci);
+
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
