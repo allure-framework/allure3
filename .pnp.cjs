@@ -295,6 +295,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
+          ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/node", "npm:20.17.9"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
@@ -302,6 +303,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:2.1.9"],\
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.0"],\
+          ["d3-shape", "npm:3.2.0"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
@@ -1156,14 +1158,12 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
-          ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:0b4e5ef295775b4fd0bcf915b00b878d702f681ae50e8093ff07853047e3e8af80ffb30b974463aa2fb1e186b2795b35ac1ec43f73376629f4663e4548ac6d83#npm:3.3.0"],\
           ["allure-vitest", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:3.3.0"],\
-          ["d3-shape", "npm:3.2.0"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
           ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\

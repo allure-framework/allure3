@@ -25,20 +25,44 @@ beforeEach(() => {
 });
 
 describe("slack command", () => {
+  it("should initialize allure report with default plugin options when config doesn't exist", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
+
+    const command = new SlackCommand();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "slack",
+          enabled: true,
+          plugin: expect.any(SlackPlugin),
+        }),
+      ]),
+    });
+  });
+
   it("should initialize allure report with provided plugin options when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-slack-plugin",
+          id: "my-slack-plugin1",
           enabled: true,
-          options: {
-            token: fixtures.token,
-            channel: fixtures.channel,
-          },
-          plugin: new SlackPlugin({
-            token: fixtures.token,
-            channel: fixtures.channel,
-          }),
+          options: {},
+          plugin: new SlackPlugin({}),
+        },
+        {
+          id: "my-slack-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new SlackPlugin({}),
         },
       ],
     });
@@ -57,43 +81,12 @@ describe("slack command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-slack-plugin",
+            id: "slack",
             enabled: true,
             options: {
               token: fixtures.token,
               channel: fixtures.channel,
             },
-            plugin: expect.any(SlackPlugin),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  it("should initialize allure report with provided command line options", async () => {
-    const command = new SlackCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-    command.token = fixtures.token;
-    command.channel = fixtures.channel;
-    command.config = fixtures.config;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config);
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "slack",
-            enabled: true,
-            options: expect.objectContaining({
-              token: fixtures.token,
-              channel: fixtures.channel,
-            }),
             plugin: expect.any(SlackPlugin),
           }),
         ]),

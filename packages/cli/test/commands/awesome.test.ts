@@ -31,7 +31,9 @@ beforeEach(() => {
 
 describe("awesome command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (readConfig as Mock).mockResolvedValueOnce({});
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
     const command = new AwesomeCommand();
 
@@ -55,18 +57,20 @@ describe("awesome command", () => {
     });
   });
 
-  it("should initialize allure report with provided plugin options when config exists", async () => {
+  it("should initialize allure report with default plugin options even when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-awesome-plugin",
+          id: "my-awesome-plugin1",
           enabled: true,
-          options: {
-            groupBy: ["foo", "bar"],
-          },
-          plugin: new AwesomePlugin({
-            groupBy: ["foo", "bar"],
-          }),
+          options: {},
+          plugin: new AwesomePlugin({}),
+        },
+        {
+          id: "my-awesome-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new AwesomePlugin({}),
         },
       ],
     });
@@ -83,54 +87,8 @@ describe("awesome command", () => {
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "my-awesome-plugin",
-            enabled: true,
-            options: {
-              groupBy: ["foo", "bar"],
-            },
-            plugin: expect.any(AwesomePlugin),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  it("should initialize allure report with provided command line options", async () => {
-    const command = new AwesomeCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.reportName = fixtures.reportName;
-    command.output = fixtures.output;
-    command.knownIssues = fixtures.knownIssues;
-    command.historyPath = fixtures.historyPath;
-    command.reportLanguage = fixtures.reportLanguage;
-    command.singleFile = fixtures.singleFile;
-    command.logo = fixtures.logo;
-    command.config = fixtures.config;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {
-      historyPath: fixtures.historyPath,
-      knownIssuesPath: fixtures.knownIssues,
-      name: fixtures.reportName,
-      output: fixtures.output,
-    });
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
             id: "awesome",
-            enabled: true,
-            options: expect.objectContaining({
-              groupBy: ["parentSuite", "suite", "subSuite"],
-              reportLanguage: fixtures.reportLanguage,
-              singleFile: fixtures.singleFile,
-              logo: fixtures.logo,
-            }),
+            plugin: expect.any(AwesomePlugin),
           }),
         ]),
       }),

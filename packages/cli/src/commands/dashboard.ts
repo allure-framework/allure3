@@ -1,4 +1,4 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import DashboardPlugin, { type DashboardPluginOptions } from "@allurereport/plugin-dashboard";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -58,25 +58,25 @@ export class DashboardCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
-
     const defaultDashboardOptions = {
       singleFile: this.singleFile ?? false,
       logo: this.logo,
       theme: this.theme,
       reportLanguage: this.reportLanguage ?? "en",
     } as DashboardPluginOptions;
-    const config = enforcePlugin(
-      await readConfig(cwd, this.config, {
-        output: this.output ?? "allure-report",
-        name: this.reportName ?? "Allure Report",
-      }),
+    const config = await readConfig(cwd, this.config, {
+      output: this.output ?? "allure-report",
+      name: this.reportName ?? "Allure Report",
+    });
+
+    config.plugins = [
       {
         id: "dashboard",
         enabled: true,
         options: defaultDashboardOptions,
         plugin: new DashboardPlugin(defaultDashboardOptions),
       },
-    );
+    ];
 
     const allureReport = new AllureReport(config);
 

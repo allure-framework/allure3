@@ -9,3 +9,4 @@ export * from "./charts/getPieChartDashboard.js";
 export * from "./charts/getSeverityTrendData.js";
 export * from "./charts/getStatusTrendData.js";
 export * from "./sanitize.js";
+export * from "./charts/index.js";

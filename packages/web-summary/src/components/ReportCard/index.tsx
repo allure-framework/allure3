@@ -1,13 +1,6 @@
-import { type Statistic, type TestStatus, formatDuration } from "@allurereport/core-api";
+import { type Statistic, type TestStatus, formatDuration, getPieChartValues } from "@allurereport/core-api";
 import { capitalize } from "@allurereport/web-commons";
-import {
-  Heading,
-  StatusLabel,
-  SuccessRatePieChart,
-  Text,
-  allureIcons,
-  getChartData,
-} from "@allurereport/web-components";
+import { Heading, StatusLabel, SuccessRatePieChart, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import IconLabel from "@/components/IconLabel";
 import type { MetadataProps } from "@/components/MetadataRow/MetadataItem";
@@ -42,7 +35,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
   retryTests,
 }) => {
   const { t } = useI18n("summary");
-  const { percentage, slices } = getChartData(stats);
+  const { percentage, slices } = getPieChartValues(stats);
   const formattedDuration = formatDuration(duration);
   const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "long",
