@@ -40,6 +40,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
         )}
         <div className={styles["test-result-retries-item-wrap"]}>
           <TreeItemIcon status={status} className={styles["test-result-retries-item-status"]} />
+          {convertedStop && <Text className={styles["test-result-retries-item-text"]}>{convertedStop}</Text>}
           <Text data-testid="test-result-retries-item-text" className={styles["test-result-retries-item-text"]}>
             {retryTitle}
           </Text>
