@@ -1,1 +1,1 @@
-{"id":"fd6ffe1a1d229cd38aee3750de15f38e","fullName":"test/utils/time.test.ts#formatDuration should show 0h if exact days","name":"should show 0h if exact days","status":"passed","testResultsByEnv":{"default":"11f5d8635003c4ddd8d90aa5de841441"}}
+{"id":"fd6ffe1a1d229cd38aee3750de15f38e","fullName":"test/utils/time.test.ts#formatDuration should show 0h if exact days","name":"should show 0h if exact days","status":"passed","testResultsByEnv":{"default":"6949641252558ca3133addabbdede711"}}

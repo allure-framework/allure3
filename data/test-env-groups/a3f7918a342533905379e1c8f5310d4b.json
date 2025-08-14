@@ -1,1 +1,1 @@
-{"id":"a3f7918a342533905379e1c8f5310d4b","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"bf00ceaa2c831a3163d05cf321296304"}}
+{"id":"a3f7918a342533905379e1c8f5310d4b","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"afe707b0719b1febd98892bb63260939"}}

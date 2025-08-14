@@ -1,1 +1,1 @@
-{"id":"8f6072a9fd28eb649e36aa780e60cb1f","fullName":"test/allure1.test.ts#allure1 reader failures should ignore an ill-formed failure","name":"should ignore an ill-formed failure","status":"passed","testResultsByEnv":{"default":"96fd77ea8e3add1e9c5a7070891b0388"}}
+{"id":"8f6072a9fd28eb649e36aa780e60cb1f","fullName":"test/allure1.test.ts#allure1 reader failures should ignore an ill-formed failure","name":"should ignore an ill-formed failure","status":"passed","testResultsByEnv":{"default":"59e94010b6b348c338d86f3e23d7efaa"}}

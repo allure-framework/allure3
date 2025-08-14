@@ -1,1 +1,1 @@
-{"id":"63f140b3c4accc3dad8f64ac0c9b5c80","fullName":"test/detectors/amazon.test.ts#amazon jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"default":"62cf9d4e28efaefa3ece63c474e342f2"}}
+{"id":"63f140b3c4accc3dad8f64ac0c9b5c80","fullName":"test/detectors/amazon.test.ts#amazon jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"default":"45d7cebfda3a64bc8148abc82bf7dbd2"}}
