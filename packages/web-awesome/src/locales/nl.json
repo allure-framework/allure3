@@ -116,6 +116,7 @@
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
+    "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om",
     "variables": "Variabelen",
     "openPwTrace": "Playwright Trace openen"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Test slagingspercentage"
     }
-  },
-  "transitions": {
-    "new": "Nieuw",
-    "fixed": "Opgelost",
-    "regressed": "Teruggevallen",
-    "malfunctioned": "Defect"
   },
   "transitions.description": {
     "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",

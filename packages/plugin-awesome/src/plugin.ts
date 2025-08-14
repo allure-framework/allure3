@@ -1,5 +1,11 @@
 import { type EnvironmentItem, getWorstStatus } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
+  convertToSummaryTestResult,
+} from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { generateAllCharts } from "./charts.js";
@@ -115,6 +121,9 @@ export class AwesomePlugin implements Plugin {
     const allTrs = (await store.allTestResults()).filter((tr) =>
       this.options.filter ? this.options.filter(tr) : true,
     );
+    const newTrs = await store.allNewTestResults();
+    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
+    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
     const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
@@ -126,6 +135,9 @@ export class AwesomePlugin implements Plugin {
       duration,
       createdAt,
       plugin: "Awesome",
+      newTests: newTrs.map(convertToSummaryTestResult),
+      flakyTests: flakyTrs.map(convertToSummaryTestResult),
+      retryTests: retryTrs.map(convertToSummaryTestResult),
     };
   }
 }

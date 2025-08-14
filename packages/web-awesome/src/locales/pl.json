@@ -116,6 +116,7 @@
     "showLess": "Pokaż mniej",
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
+    "attempt": "Próba {{attempt}} z {{total}}",
     "at": "w",
     "variables": "Zmienne",
     "openPwTrace": "Otwórz Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Wskaźnik powodzenia testów"
     }
-  },
-  "transitions": {
-    "new": "Nowy",
-    "fixed": "Naprawiony",
-    "regressed": "Zaregresowany",
-    "malfunctioned": "Uszkodzony"
   },
   "transitions.description": {
     "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",

@@ -1,4 +1,5 @@
 import { type Statistic, statusesList } from "@allurereport/core-api";
+import { capitalize } from "@allurereport/web-commons";
 import { computed } from "@preact/signals";
 import type { FunctionalComponent } from "preact";
 import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/MetadataItem";
@@ -6,7 +7,6 @@ import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/ReportMetadata/styles.scss";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
 
 export interface MetadataSummaryProps {
   stats: Statistic;

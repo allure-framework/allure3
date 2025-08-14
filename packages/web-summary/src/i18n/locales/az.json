@@ -6,7 +6,10 @@
     "skipped": "keçildi",
     "unknown": "naməlum",
     "total": "cəmi",
-    "in": "içində"
+    "in": "içində",
+    "new": "yeni testlər",
+    "flaky": "qeyri-sabit testlər",
+    "retry": "təkrar testlər"
   },
   "empty": {
     "no-reports": "Hesabat tapılmadı"

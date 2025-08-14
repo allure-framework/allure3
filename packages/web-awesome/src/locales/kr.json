@@ -116,6 +116,7 @@
     "showLess": "덜 보기",
     "showMore": "더 보기",
     "copy": "복사",
+    "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서",
     "variables": "변수",
     "openPwTrace": "Playwright Trace 열기"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "테스트 성공률"
     }
-  },
-  "transitions": {
-    "new": "새로운",
-    "fixed": "수정됨",
-    "regressed": "퇴행",
-    "malfunctioned": "고장"
   },
   "transitions.description": {
     "new": "이 테스트 결과가 보고서에 처음 나타남",

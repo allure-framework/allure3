@@ -6,7 +6,10 @@
     "skipped": "跳过",
     "unknown": "未知",
     "total": "总计",
-    "in": "在"
+    "in": "在",
+    "new": "新测试",
+    "flaky": "不稳定测试",
+    "retry": "重试测试"
   },
   "empty": {
     "no-reports": "未找到报告"

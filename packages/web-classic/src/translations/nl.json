@@ -95,6 +95,7 @@
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
+    "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om"
   },
   "controls": {

@@ -22,6 +22,7 @@ export interface AllureStore {
   allFixtures: () => Promise<TestFixtureResult[]>;
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
+  allNewTestResults: () => Promise<TestResult[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;

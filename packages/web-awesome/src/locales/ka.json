@@ -116,6 +116,7 @@
     "showLess": "ნაკლების ჩვენება",
     "showMore": "მეტის ჩვენება",
     "copy": "კოპირება",
+    "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "ტესტების წარმატების მაჩვენებელი"
     }
-  },
-  "transitions": {
-    "new": "ახალი",
-    "fixed": "გასწორებული",
-    "regressed": "რეგრესია",
-    "malfunctioned": "დაზიანებული"
   },
   "transitions.description": {
     "new": "ამ ტესტის შედეგის პირველი გამოჩენა ანგარიშში",

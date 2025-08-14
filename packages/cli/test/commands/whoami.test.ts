@@ -1,9 +1,16 @@
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import * as console from "node:console";
+import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { WhoamiCommandAction } from "../../src/commands/whoami.js";
+import { WhoamiCommand } from "../../src/commands/whoami.js";
 import { logError } from "../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../utils.js";
+
+const fixtures = {
+  config: "./custom/allurerc.mjs",
+  cwd: ".",
+};
 
 vi.mock("@allurereport/service", async (importOriginal) => {
   const utils = await import("../utils.js");
@@ -27,54 +34,61 @@ vi.mock("../../src/utils/logs.js", async (importOriginal) => ({
   ...(await importOriginal()),
   logError: vi.fn(),
 }));
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  info: vi.fn(),
+  error: vi.fn(),
+}));
+vi.mock("node:process", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exit: vi.fn(),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("logout command", () => {
+describe("whoami command", () => {
   it("should throw an error if there is not allure service url in the config", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
+    const command = new WhoamiCommand();
 
-    await WhoamiCommandAction();
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    await command.execute();
+
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
+    expect(exit).toHaveBeenCalledWith(1);
     expect(AllureServiceClientMock.prototype.profile).not.toHaveBeenCalled();
   });
 
   it("should print known service-error without logs writing", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error");
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     (readConfig as Mock).mockResolvedValueOnce({
       allureService: {
         url: "https://allure.example.com",
       },
     });
-
     (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(
       new KnownError("Failed to get profile", 401),
     );
 
-    await WhoamiCommandAction();
+    const command = new WhoamiCommand();
 
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to get profile"));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
+
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Failed to get profile"));
+    expect(exit).toHaveBeenCalledWith(1);
     expect(logError).not.toHaveBeenCalled();
   });
 
   it("should print unknown service-error with logs writing", async () => {
-    // @ts-ignore
-    const processExitSpy = vi.spyOn(process, "exit").mockImplementationOnce(() => {});
-
     (readConfig as Mock).mockResolvedValueOnce({
       allureService: {
         url: "https://allure.example.com",
@@ -83,19 +97,29 @@ describe("logout command", () => {
     (logError as Mock).mockResolvedValueOnce("logs.txt");
     (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(new UnknownError("Unexpected error"));
 
-    await WhoamiCommandAction();
+    const command = new WhoamiCommand();
+
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(logError).toHaveBeenCalledTimes(1);
     expect(logError).toHaveBeenCalledWith("Failed to get profile due to unexpected error", expect.any(Error));
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
-  it("should initialize allure service and call logout method", async () => {
+  it("should initialize allure service and call profile method", async () => {
     AllureServiceClientMock.prototype.profile.mockResolvedValueOnce({
       email: "example@allurereport.org",
     });
 
-    await WhoamiCommandAction();
+    const command = new WhoamiCommand();
+
+    command.cwd = fixtures.cwd;
+    command.config = fixtures.config;
+
+    await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClient).toHaveBeenCalledWith({ url: "https://allure.example.com" });

@@ -116,6 +116,7 @@
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
+    "attempt": "Versuch {{attempt}} von {{total}}",
     "at": "bei",
     "variables": "Variablen",
     "openPwTrace": "Playwright Trace öffnen"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Testerfolgsrate"
     }
-  },
-  "transitions": {
-    "new": "Neu",
-    "fixed": "Behoben",
-    "regressed": "Regressiert",
-    "malfunctioned": "Defekt"
   },
   "transitions.description": {
     "new": "Erstes Auftreten dieses Testergebnisses im Bericht",

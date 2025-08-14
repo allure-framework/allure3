@@ -1,70 +1,71 @@
-import { AllureReport, enforcePlugin, readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin, { type SlackPluginOptions } from "@allurereport/plugin-slack";
+import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
 import process from "node:process";
-import { createCommand } from "../utils/commands.js";
 
-type CommandOptions = {
-  cwd?: string;
-  config?: string;
-  token: string;
-  channel: string;
-};
+export class SlackCommand extends Command {
+  static paths = [["slack"]];
 
-export const SlackCommandAction = async (resultsDir: string, options: CommandOptions) => {
-  const cwd = await realpath(options.cwd ?? process.cwd());
-  const before = new Date().getTime();
-  const { config: configPath, token, channel } = options;
-  const defaultSlackOptions = {
-    token,
-    channel,
-  } as SlackPluginOptions;
-  const config = enforcePlugin(await readConfig(cwd, configPath), {
-    id: "slack",
-    enabled: true,
-    options: defaultSlackOptions,
-    plugin: new SlackPlugin(defaultSlackOptions),
+  static usage = Command.Usage({
+    category: "Reports",
+    description: "Posts test results into Slack Channel",
+    details: "This command posts test results from the provided Allure Results directory to a Slack channel.",
+    examples: [
+      [
+        "slack ./allure-results --token xoxb-token --channel C12345",
+        "Post test results from the ./allure-results directory to the specified Slack channel",
+      ],
+    ],
   });
-  const allureReport = new AllureReport(config);
 
-  await allureReport.start();
-  await allureReport.readDirectory(resultsDir);
-  await allureReport.done();
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
-  const after = new Date().getTime();
+  config = Option.String("--config,-c", {
+    description: "The path Allure config file",
+  });
 
-  console.log(`the report successfully generated (${after - before}ms)`);
-};
+  cwd = Option.String("--cwd", {
+    description: "The working directory for the command to run (default: current working directory)",
+  });
 
-export const SlackCommand = createCommand({
-  name: "slack <resultsDir>",
-  description: "Posts test results into Slack Channel",
-  options: [
-    [
-      "--config, -c <file>",
+  token = Option.String("--token,-t", {
+    description: "Slack Bot User OAuth Token",
+    required: true,
+  });
+
+  channel = Option.String("--channel", {
+    description: "Slack channelId",
+    required: true,
+  });
+
+  async execute() {
+    const cwd = await realpath(this.cwd ?? process.cwd());
+    const before = new Date().getTime();
+    const defaultSlackOptions = {
+      token: this.token,
+      channel: this.channel,
+    } as SlackPluginOptions;
+    const config = await readConfig(cwd, this.config);
+
+    config.plugins = [
       {
-        description: "The path Allure config file",
+        id: "slack",
+        enabled: true,
+        options: defaultSlackOptions,
+        plugin: new SlackPlugin(defaultSlackOptions),
       },
-    ],
-    [
-      "--cwd <cwd>",
-      {
-        description: "The working directory for the command to run (Default: current working directory)",
-      },
-    ],
-    [
-      "--token, -t <token>",
-      {
-        description: "Slack Bot User OAuth Token",
-      },
-    ],
-    [
-      "--channel, -c <channel>",
-      {
-        description: "Slack channelId",
-      },
-    ],
-  ],
-  action: SlackCommandAction,
-});
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.readDirectory(this.resultsDir);
+    await allureReport.done();
+
+    const after = new Date().getTime();
+
+    console.log(`the report successfully generated (${after - before}ms)`);
+  }
+}

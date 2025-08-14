@@ -1,69 +1,68 @@
 import { AllureReport, readConfig } from "@allurereport/core";
-import console from "node:console";
-import process from "node:process";
+import { Command, Option } from "clipanion";
+import * as console from "node:console";
+import { exit } from "node:process";
 import { bold, red } from "yoctocolors";
-import { createCommand } from "../utils/commands.js";
 
-type QualityGateCommandOptions = {
-  config?: string;
-  cwd?: string;
-};
+export class QualityGateCommand extends Command {
+  static paths = [["quality-gate"]];
 
-export const QualityGateCommandAction = async (resultsDir: string, options: QualityGateCommandOptions) => {
-  const { cwd, config: configPath } = options;
-  const fullConfig = await readConfig(cwd, configPath);
-  const allureReport = new AllureReport(fullConfig);
+  static usage = Command.Usage({
+    description: "Returns status code 1 if there any test failure above specified success rate",
+    details: "This command validates the test results against quality gates defined in the configuration.",
+    examples: [
+      ["quality-gate ./allure-results", "Validate the test results in the ./allure-results directory"],
+      [
+        "quality-gate ./allure-results --config custom-config.js",
+        "Validate the test results using a custom configuration file",
+      ],
+    ],
+  });
 
-  await allureReport.start();
-  await allureReport.readDirectory(resultsDir);
-  await allureReport.done();
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
-  await allureReport.validate();
+  config = Option.String("--config,-c", {
+    description: "The path Allure config file",
+  });
 
-  if (allureReport.exitCode === 0) {
-    return;
-  }
+  cwd = Option.String("--cwd", {
+    description: "The working directory for the command to run (default: current working directory)",
+  });
 
-  const failedResults = allureReport.validationResults.filter((result) => !result.success);
+  async execute() {
+    const fullConfig = await readConfig(this.cwd, this.config);
+    const allureReport = new AllureReport(fullConfig);
 
-  console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
+    await allureReport.start();
+    await allureReport.readDirectory(this.resultsDir);
+    await allureReport.done();
+    await allureReport.validate();
 
-  for (const result of failedResults) {
-    let scope = "";
-
-    switch (result.meta?.type) {
-      case "label":
-        scope = `(label[${result.meta.name}="${result.meta.value}"])`;
-        break;
-      case "parameter":
-        scope = `(parameter[${result.meta.name}="${result.meta.value}"])`;
-        break;
+    if (allureReport.exitCode === 0) {
+      return;
     }
 
-    console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
+    const failedResults = allureReport.validationResults.filter((result) => !result.success);
+
+    console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
+
+    for (const result of failedResults) {
+      let scope = "";
+
+      switch (result.meta?.type) {
+        case "label":
+          scope = `(label[${result.meta.name}="${result.meta.value}"])`;
+          break;
+        case "parameter":
+          scope = `(parameter[${result.meta.name}="${result.meta.value}"])`;
+          break;
+      }
+
+      console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
+    }
+
+    console.error(red("\nThe process has been exited with code 1"));
+
+    exit(allureReport.exitCode);
   }
-
-  console.error(red("\nThe process has been exited with code 1"));
-
-  process.exit(allureReport.exitCode);
-};
-
-export const QualityGateCommand = createCommand({
-  name: "quality-gate <resultsDir>",
-  description: "Returns status code 1 if there any test failure above specified success rate",
-  options: [
-    [
-      "--config, -c <file>",
-      {
-        description: "The path Allure config file",
-      },
-    ],
-    [
-      "--cwd <cwd>",
-      {
-        description: "The working directory for the command to run (Default: current working directory)",
-      },
-    ],
-  ],
-  action: QualityGateCommandAction,
-});
+}

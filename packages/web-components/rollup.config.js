@@ -47,8 +47,7 @@ export default defineConfig([
       babel({
         babelHelpers: "bundled",
         extensions: [".js", ".jsx", ".ts", ".tsx"],
-        exclude: ["**", "**/*.test.tsx", "**/*.test.ts"],
-        jsx: true,
+        exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
       svg(),
       postcss({

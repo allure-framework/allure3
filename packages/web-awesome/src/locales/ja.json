@@ -116,6 +116,7 @@
     "showLess": "表示を減らす",
     "showMore": "もっと見る",
     "copy": "コピー",
+    "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
     "variables": "変数",
     "openPwTrace": "Playwright Trace を開く"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "テスト成功率"
     }
-  },
-  "transitions": {
-    "new": "新規",
-    "fixed": "修正済み",
-    "regressed": "退行",
-    "malfunctioned": "破損"
   },
   "transitions.description": {
     "new": "このテスト結果がレポートに初めて表示される",

@@ -1,7 +1,8 @@
-import { type Statistic, type TestStatus, formatDuration } from "@allurereport/core-api";
+import { type Statistic, type TestStatus, formatDuration, getPieChartValues } from "@allurereport/core-api";
 import { capitalize } from "@allurereport/web-commons";
-import { Heading, StatusLabel, SuccessRatePieChart, Text, getChartData } from "@allurereport/web-components";
+import { Heading, StatusLabel, SuccessRatePieChart, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
+import IconLabel from "@/components/IconLabel";
 import type { MetadataProps } from "@/components/MetadataRow/MetadataItem";
 import MetadataItem, { MetadataTestType } from "@/components/MetadataRow/MetadataItem";
 import { currentLocaleIso, useI18n } from "@/stores";
@@ -12,6 +13,10 @@ export type ReportCardProps = {
   name: string;
   status: TestStatus;
   stats: Statistic;
+  // TODO: use SummaryTestResult in the package
+  newTests: any[];
+  retryTests: any[];
+  flakyTests: any[];
   duration: number;
   plugin?: string;
   createdAt?: number;
@@ -25,9 +30,12 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
   duration,
   plugin,
   createdAt,
+  newTests,
+  flakyTests,
+  retryTests,
 }) => {
   const { t } = useI18n("summary");
-  const { percentage, slices } = getChartData(stats);
+  const { percentage, slices } = getPieChartValues(stats);
   const formattedDuration = formatDuration(duration);
   const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "long",
@@ -46,7 +54,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
       target={"_blank"}
       rel="noreferrer"
     >
-      <div className={styles["report-card-content"]}>
+      <div>
         {plugin && (
           <Text type={"ui"} tag={"div"} size={"s"} className={styles["report-card-plugin"]}>
             {plugin}
@@ -70,6 +78,17 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
           <Text type={"ui"} size={"s"} bold>
             {formattedDuration}
           </Text>
+        </div>
+        <div className={styles["report-card-metadata-icons"]}>
+          <IconLabel tooltip={capitalize(t("new"))} icon={allureIcons.testNew}>
+            {newTests?.length ?? 0}
+          </IconLabel>
+          <IconLabel tooltip={capitalize(t("flaky"))} icon={allureIcons.lineIconBomb2}>
+            {flakyTests?.length ?? 0}
+          </IconLabel>
+          <IconLabel tooltip={capitalize(t("retry"))} icon={allureIcons.lineGeneralZap}>
+            {retryTests?.length ?? 0}
+          </IconLabel>
         </div>
         <div className={styles["report-card-metadata"]}>
           {[

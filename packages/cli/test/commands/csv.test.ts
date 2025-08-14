@@ -1,10 +1,20 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import CsvPlugin from "@allurereport/plugin-csv";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { CsvCommandAction } from "../../src/commands/csv.js";
+import { CsvCommand } from "../../src/commands/csv.js";
+
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  output: "./custom/output/path.csv",
+  knownIssues: "./custom/known/issues/path",
+  separator: ";",
+  disableHeaders: true,
+  config: "./custom/allurerc.mjs",
+};
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -18,94 +28,61 @@ beforeEach(() => {
 
 describe("csv command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    const resultsDir = "foo/bar/allure-results";
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
-    (readConfig as Mock).mockResolvedValueOnce({});
+    const command = new CsvCommand();
 
-    await CsvCommandAction(resultsDir, {});
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "csv",
-            enabled: true,
-            options: expect.objectContaining({}),
-            plugin: expect.any(CsvPlugin),
-          }),
-        ]),
-      }),
-    );
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "csv",
+          enabled: true,
+          options: expect.objectContaining({}),
+          plugin: expect.any(CsvPlugin),
+        }),
+      ]),
+    });
   });
 
-  it("should initialize allure report with provided plugin options when config exists", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
+  it("should initialize allure report with default plugin options even when config exists", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-csv-plugin",
+          id: "my-csv-plugin1",
           enabled: true,
-          options: {
-            separator: ";",
-            disableHeaders: true,
-          },
-          plugin: new CsvPlugin({
-            separator: ";",
-            disableHeaders: true,
-          }),
+          options: {},
+          plugin: new CsvPlugin({}),
+        },
+        {
+          id: "my-csv-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new CsvPlugin({}),
         },
       ],
     });
 
-    await CsvCommandAction(resultsDir, {});
+    const command = new CsvCommand();
 
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "my-csv-plugin",
-            enabled: true,
-            options: expect.objectContaining({
-              separator: ";",
-              disableHeaders: true,
-            }),
-            plugin: expect.any(CsvPlugin),
-          }),
-        ]),
-      }),
-    );
-  });
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
 
-  it("should initialize allure report with provided command line options", async () => {
-    const fixtures = {
-      separator: ";",
-      disableHeaders: true,
-      resultsDir: "foo/bar/allure-results",
-      config: "./custom/allurerc.mjs",
-    };
+    await command.execute();
 
-    await CsvCommandAction(fixtures.resultsDir, {
-      separator: fixtures.separator,
-      disableHeaders: fixtures.disableHeaders,
-      config: fixtures.config,
-    });
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config, {});
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "csv",
-            enabled: true,
-            options: expect.objectContaining({
-              separator: fixtures.separator,
-              disableHeaders: fixtures.disableHeaders,
-            }),
             plugin: expect.any(CsvPlugin),
           }),
         ]),

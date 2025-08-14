@@ -16,18 +16,31 @@ export type AllureStaticServer = {
   open: (url: string) => Promise<void>;
 };
 
-export const renderDirectory = async (files: string[], dirPath?: boolean) => {
+export const renderDirectory = async (entries: string[], dirPath?: boolean) => {
   const links: string[] = [];
+  const files: string[] = [];
+  const dirs: string[] = [];
 
-  for (const file of files) {
-    const stats = await stat(file);
+  for (const entry of entries) {
+    const stats = await stat(entry);
 
     if (stats.isDirectory()) {
-      links.push(`<a href="./${basename(file)}/">${basename(file)}/</a>`);
+      dirs.push(entry);
     } else {
-      links.push(`<a href="./${basename(file)}">${basename(file)}</a>`);
+      files.push(entry);
     }
   }
+
+  dirs
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((entry) => {
+      links.push(`<a href="./${basename(entry)}/">${basename(entry)}/</a>`);
+    });
+  files
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((entry) => {
+      links.push(`<a href="./${basename(entry)}">${basename(entry)}</a>`);
+    });
 
   return `
     <!DOCTYPE html>
@@ -70,8 +83,8 @@ export const serve = async (options?: {
   servePath?: string;
   open?: boolean;
 }): Promise<AllureStaticServer> => {
-  const { port, live = false, servePath = cwd(), open = false } = options ?? {};
-  const pathToServe = resolve(cwd(), servePath);
+  const { port, live = false, servePath, open = false } = options ?? {};
+  const pathToServe = servePath ? resolve(cwd(), servePath) : cwd();
   const clients = new Set<ServerResponse>();
   const server = createServer(async (req, res) => {
     const hostHeaderIdx = req.rawHeaders.findIndex((header) => header === "Host") + 1;
