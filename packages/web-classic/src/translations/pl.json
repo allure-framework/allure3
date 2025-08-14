@@ -93,6 +93,7 @@
     "showLess": "Pokaż mniej",
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
+    "attempt": "Próba {{attempt}} z {{total}}",
     "at": "w"
   },
   "controls": {

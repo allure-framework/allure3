@@ -116,6 +116,7 @@
     "showLess": "Ցուցադրել պակաս",
     "showMore": "Ցուցադրել ավելին",
     "copy": "Պատճենել",
+    "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "at": "է",
     "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Թեստերի հաջողության գործակից"
     }
-  },
-  "transitions": {
-    "new": "Նոր",
-    "fixed": "Ուղղված",
-    "regressed": "Ռեգրեսիա",
-    "malfunctioned": "Կոտրված"
   },
   "transitions.description": {
     "new": "Այս թեստի արդյունքի առաջին հայտնվելը հաշվետվությունում",

@@ -116,6 +116,7 @@
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
     "copy": "העתק",
+    "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "שיעור הצלחת הבדיקות"
     }
-  },
-  "transitions": {
-    "new": "חדש",
-    "fixed": "מתוקן",
-    "regressed": "נסוג",
-    "malfunctioned": "פגום"
   },
   "transitions.description": {
     "new": "הופעה ראשונה של תוצאת בדיקה זו בדוח",

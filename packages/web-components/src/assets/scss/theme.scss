@@ -3,7 +3,6 @@
   --ad-other-modal-overlay: var(--ad-other-modal-overlay-day);
   --bg-alpha-capella-heavy: var(--bg-alpha-capella-heavy-day);
   --bg-alpha-capella: var(--bg-alpha-capella-day);
-  --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-day);
   --bg-base-modal: var(--bg-base-modal-day);
   --bg-base-neutral: var(--bg-base-neutral-day);
   --bg-base-primary: var(--bg-base-primary-day);
@@ -26,6 +25,7 @@
   --bg-support-castor: var(--bg-support-castor-day);
   --bg-support-rau: var(--bg-support-rau-day);
   --bg-support-skat: var(--bg-support-skat-day);
+  --bg-support-sirius: var(--bg-support-sirius-day);
   --constant-bg-base-modal: var(--constant-bg-base-modal-day);
   --constant-on-border-heavy: var(--constant-on-border-heavy-day);
   --constant-on-icon-primary: var(--constant-on-icon-primary-day);
@@ -48,6 +48,13 @@
   --on-text-hint: var(--on-text-hint-day);
   --on-text-primary: var(--on-text-primary-day);
   --on-text-secondary: var(--on-text-secondary-day);
+  --on-text-universal-primary: var(--on-text-universal-primary-day);
+  --scrollbar-color: var(--gray-300);
+  --bg-alpha-atlas: var(--atlas-day-darken-1-8);
+  --bg-alpha-rau: var(--rau-day-darken-1-8);
+  --bg-alpha-castor: var(--castor-day-darken-1-8);
+  --bg-alpha-skat: var(--skat-day-darken-1-8);
+  --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-day);
 
   color-scheme: light;
 }
@@ -83,6 +90,7 @@
   --bg-support-castor: var(--bg-support-castor-night);
   --bg-support-rau: var(--bg-support-rau-night);
   --bg-support-skat: var(--bg-support-skat-night);
+  --bg-support-sirius: var(--bg-support-sirius-night);
   --constant-bg-base-modal: var(--constant-bg-base-modal-night);
   --constant-bg-base-primary: var(--constant-bg-base-primary-night);
   --constant-on-border-heavy: var(--constant-on-border-heavy-night);
@@ -112,6 +120,12 @@
   --on-text-hint: var(--on-text-hint-night);
   --on-text-primary: var(--on-text-primary-night);
   --on-text-secondary: var(--on-text-secondary-night);
+  --on-text-universal-primary: var(--on-text-universal-primary-night);
 
+  --scrollbar-color: var(--gray-400);
+  --bg-alpha-atlas: var(--atlas-night-darken-5-12);
+  --bg-alpha-rau: var(--rau-night-darken-5-12);
+  --bg-alpha-castor: var(--castor-night-darken-5-20);
+  --bg-alpha-skat: var(--skat-night-darken-5-12);
   color-scheme: dark;
 }

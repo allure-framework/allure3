@@ -116,6 +116,7 @@
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
     "copy": "Kopiera",
+    "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Testframgångsfrekvens"
     }
-  },
-  "transitions": {
-    "new": "Ny",
-    "fixed": "Åtgärdad",
-    "regressed": "Regresserad",
-    "malfunctioned": "Felaktig"
   },
   "transitions.description": {
     "new": "Första förekomsten av detta testresultat i rapporten",

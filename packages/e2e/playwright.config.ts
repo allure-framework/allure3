@@ -33,7 +33,7 @@ export default defineConfig({
     ],
   ],
   use: {
-    trace: "on",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
 });

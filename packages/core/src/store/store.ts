@@ -329,6 +329,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#known;
   }
 
+  async allNewTestResults(): Promise<TestResult[]> {
+    const allTrs = await this.allTestResults();
+    const allHistoryDps = await this.allHistoryDataPoints();
+
+    return allTrs.filter((tr) => {
+      if (!tr.historyId) {
+        return true;
+      }
+
+      return !allHistoryDps.some((dp) => dp.testResults[tr.historyId!]);
+    });
+  }
+
   // search api
 
   async testCaseById(tcId: string): Promise<TestCase | undefined> {

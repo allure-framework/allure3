@@ -1,4 +1,5 @@
 import type {
+  CiDescriptor,
   AttachmentTestStepResult,
   DefaultTreeGroup,
   HistoryTestResult,
@@ -25,6 +26,7 @@ export type AwesomeReportOptions = {
   defaultSection?: string;
   sections?: string[];
   cacheKey: string;
+  ci?: CiDescriptor;
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -82,7 +84,6 @@ export type AwesomeTreeLeaf = Pick<
   "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount"
 > & {
   nodeId: string;
-  transitionText?: string;
   transitionTooltip?: string;
 };
 

@@ -116,6 +116,7 @@
     "showLess": "显示更少",
     "showMore": "显示更多",
     "copy": "复制",
+    "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "测试成功率"
     }
-  },
-  "transitions": {
-    "new": "新的",
-    "fixed": "已修复",
-    "regressed": "已回归",
-    "malfunctioned": "已损坏"
   },
   "transitions.description": {
     "new": "此测试结果在报告中的首次出现",

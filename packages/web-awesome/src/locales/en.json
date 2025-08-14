@@ -116,6 +116,7 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "copy": "Copy",
+    "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at",
     "variables": "Variables",
     "openPwTrace": "Open Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Test Success Rate"
     }
-  },
-  "transitions": {
-    "new": "New",
-    "fixed": "Fixed",
-    "regressed": "Regressed",
-    "malfunctioned": "Malfuctioned"
   },
   "transitions.description": {
     "new": "The first occurrence of this test result in the report",

@@ -3,6 +3,7 @@ import {
   type EnvironmentItem,
   type TreeData,
   compareBy,
+  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -32,7 +33,6 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartData,
 } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -331,12 +331,12 @@ export const generatePieChart = async (writer: AwesomeDataWriter, store: AllureS
   const reportStatistic = await store.testsStatistic(filter);
   const environments = await store.allEnvironments();
 
-  await writer.writeWidget("pie_chart.json", getPieChartData(reportStatistic));
+  await writer.writeWidget("pie_chart.json", getPieChartValues(reportStatistic));
 
   for (const env of environments) {
     const envStatistic = await store.testsStatistic(filterEnv(env, filter));
 
-    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartData(envStatistic));
+    await writer.writeWidget(join(env, "pie_chart.json"), getPieChartValues(envStatistic));
   }
 };
 
@@ -397,6 +397,7 @@ export const generateStaticFiles = async (
     layout = "base",
     charts = [],
     defaultSection = "",
+    ci,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -455,22 +456,35 @@ export const generateStaticFiles = async (
     reportUuid,
     groupBy: groupBy?.length ? groupBy : [],
     cacheKey: now.toString(),
+    ci,
     layout,
     allureVersion,
     sections,
     defaultSection,
   };
-  const html = compile({
-    headTags: headTags.join("\n"),
-    bodyTags: bodyTags.join("\n"),
-    reportFilesScript: createReportDataScript(reportDataFiles),
-    reportOptions: JSON.stringify(reportOptions),
-    analyticsEnable: true,
-    allureVersion,
-    reportUuid,
-    reportName,
-    singleFile: payload.singleFile,
-  });
 
-  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  try {
+    const html = compile({
+      headTags: headTags.join("\n"),
+      bodyTags: bodyTags.join("\n"),
+      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportOptions: JSON.stringify(reportOptions),
+      analyticsEnable: true,
+      allureVersion,
+      reportUuid,
+      reportName,
+      singleFile: payload.singleFile,
+    });
+
+    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  } catch (err) {
+    if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
+      console.error("The report is too large to be generated in the single file mode!");
+      process.exit(1);
+      return;
+    }
+
+    throw err;
+  }
 };

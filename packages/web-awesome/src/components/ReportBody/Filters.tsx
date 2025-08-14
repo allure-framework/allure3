@@ -21,7 +21,7 @@ export const Filters = () => {
 
   const renderFilterItem = (filter: TreeFilters, value: boolean) => {
     return (
-      <TooltipWrapper tooltipText={tooltip(filter)}>
+      <TooltipWrapper data-testid="filter-tooltip" tooltipText={tooltip(filter)}>
         <Menu.Item
           closeMenuOnClick={false}
           ariaLabel={t("enable-filter", { filter: t(filter) })}

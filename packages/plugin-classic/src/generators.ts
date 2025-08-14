@@ -5,6 +5,7 @@ import {
   type TreeGroup,
   type TreeLeaf,
   compareBy,
+  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -38,7 +39,6 @@ import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { matchCategories } from "./categories.js";
-import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
 import type { ClassicDataWriter, ReportFile } from "./writer.js";
@@ -219,7 +219,7 @@ export const generateStatistic = async (writer: ClassicDataWriter, statistic: St
 };
 
 export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
-  const chartData = getChartData(statistic);
+  const chartData = getPieChartValues(statistic);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
@@ -329,19 +329,31 @@ export const generateStaticFiles = async (
     allureVersion,
     cacheKey: now.toString(),
   };
-  const html = compile({
-    headTags: headTags.join("\n"),
-    bodyTags: bodyTags.join("\n"),
-    reportFilesScript: createReportDataScript(reportDataFiles),
-    reportOptions: JSON.stringify(reportOptions),
-    analyticsEnable: true,
-    allureVersion,
-    reportUuid,
-    reportName,
-    singleFile: payload.singleFile,
-  });
 
-  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  try {
+    const html = compile({
+      headTags: headTags.join("\n"),
+      bodyTags: bodyTags.join("\n"),
+      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportOptions: JSON.stringify(reportOptions),
+      analyticsEnable: true,
+      allureVersion,
+      reportUuid,
+      reportName,
+      singleFile: payload.singleFile,
+    });
+
+    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  } catch (err) {
+    if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
+      console.error("The report is too large to be generated in the single file mode!");
+      process.exit(1);
+      return;
+    }
+
+    throw err;
+  }
 };
 
 export const generateTreeByCategories = async (

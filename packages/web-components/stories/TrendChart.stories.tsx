@@ -50,7 +50,7 @@ export const WithLegend: Story = {
 export const WithSlices: Story = {
   args: {
     data: mockedData,
-    kind: TrendChartKind.slicesX,
+    kind: TrendChartKind.SlicesX,
   }
 };
 

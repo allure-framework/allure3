@@ -116,6 +116,7 @@
     "showLess": "Mostrar menos",
     "showMore": "Mostrar más",
     "copy": "Copiar",
+    "attempt": "Intento {{attempt}} de {{total}}",
     "at": "a las",
     "variables": "Variables",
     "openPwTrace": "Abrir Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Tasa de éxito de pruebas"
     }
-  },
-  "transitions": {
-    "new": "Nuevo",
-    "fixed": "Corregido",
-    "regressed": "Regresado",
-    "malfunctioned": "Defectuoso"
   },
   "transitions.description": {
     "new": "Primera aparición de este resultado de prueba en el informe",

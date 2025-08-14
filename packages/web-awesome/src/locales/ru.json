@@ -116,6 +116,7 @@
     "showLess": "Показать меньше",
     "showMore": "Показать больше",
     "copy": "Скопировать",
+    "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace"
@@ -166,12 +167,6 @@
     "pie": {
       "title": "Успешность тестирования"
     }
-  },
-  "transitions": {
-    "new": "Новый",
-    "fixed": "Исправленный",
-    "regressed": "Регрессированный",
-    "malfunctioned": "Сломанный"
   },
   "transitions.description": {
     "new": "Первое появление этого результата теста в отчёте",

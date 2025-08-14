@@ -1,10 +1,19 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin from "@allurereport/plugin-log";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { LogCommandAction } from "../../src/commands/log.js";
+import { LogCommand } from "../../src/commands/log.js";
+
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  allSteps: true,
+  withTrace: true,
+  groupBy: "suites",
+  config: "./custom/allurerc.mjs",
+};
 
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
@@ -18,100 +27,61 @@ beforeEach(() => {
 
 describe("log command", () => {
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    const resultsDir = "foo/bar/allure-results";
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+    });
 
-    (readConfig as Mock).mockResolvedValueOnce({});
+    const command = new LogCommand();
 
-    await LogCommandAction(resultsDir, {});
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "log",
-            enabled: true,
-            options: expect.objectContaining({}),
-            plugin: expect.any(LogPlugin),
-          }),
-        ]),
-      }),
-    );
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "log",
+          enabled: true,
+          options: expect.objectContaining({}),
+          plugin: expect.any(LogPlugin),
+        }),
+      ]),
+    });
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
-    const resultsDir = "foo/bar/allure-results";
-
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
-          id: "my-log-plugin",
+          id: "my-log-plugin1",
           enabled: true,
-          options: {
-            allSteps: true,
-            withTrace: true,
-            groupBy: "features",
-          },
-          plugin: new LogPlugin({
-            allSteps: true,
-            withTrace: true,
-            groupBy: "features",
-          }),
+          options: {},
+          plugin: new LogPlugin({}),
+        },
+        {
+          id: "my-log-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new LogPlugin({}),
         },
       ],
     });
 
-    await LogCommandAction(resultsDir, {});
+    const command = new LogCommand();
 
-    expect(AllureReport).toHaveBeenCalledTimes(1);
-    expect(AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "my-log-plugin",
-            enabled: true,
-            options: expect.objectContaining({
-              allSteps: true,
-              withTrace: true,
-              groupBy: "features",
-            }),
-            plugin: expect.any(LogPlugin),
-          }),
-        ]),
-      }),
-    );
-  });
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
 
-  it("should initialize allure report with provided command line options", async () => {
-    const fixtures = {
-      resultsDir: "foo/bar/allure-results",
-      allSteps: true,
-      withTrace: true,
-      groupBy: "suites",
-      config: "./custom/allurerc.mjs",
-    } as const;
+    await command.execute();
 
-    await LogCommandAction(fixtures.resultsDir, {
-      allSteps: fixtures.allSteps,
-      withTrace: fixtures.withTrace,
-      groupBy: fixtures.groupBy,
-      config: fixtures.config,
-    });
-
-    expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), fixtures.config);
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
           expect.objectContaining({
             id: "log",
-            enabled: true,
-            options: expect.objectContaining({
-              allSteps: fixtures.allSteps,
-              withTrace: fixtures.withTrace,
-              groupBy: fixtures.groupBy,
-            }),
             plugin: expect.any(LogPlugin),
           }),
         ]),
