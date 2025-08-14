@@ -1,1 +1,1 @@
-{"id":"2dfd876ade98351af8391478bb29b78e","fullName":"test/detectors/azure.test.ts#azure getRootURL should return the correct root URL","name":"should return the correct root URL","status":"passed","testResultsByEnv":{"default":"4f5d0a308582d05a37c1ae7d627b523a"}}
+{"id":"2dfd876ade98351af8391478bb29b78e","fullName":"test/detectors/azure.test.ts#azure getRootURL should return the correct root URL","name":"should return the correct root URL","status":"passed","testResultsByEnv":{"default":"cb662239af2799838c9685c32b2f6c6f"}}

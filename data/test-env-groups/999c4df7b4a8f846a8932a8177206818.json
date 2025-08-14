@@ -1,1 +1,1 @@
-{"id":"999c4df7b4a8f846a8932a8177206818","fullName":"allure-awesome/features/attachments.test.ts:384:5","name":"should render attachment in the test result body and allow to preview it","status":"passed","testResultsByEnv":{"default":"8da4757da28fce41b352aaedfa1bfde8"}}
+{"id":"999c4df7b4a8f846a8932a8177206818","fullName":"allure-awesome/features/attachments.test.ts:384:5","name":"should render attachment in the test result body and allow to preview it","status":"passed","testResultsByEnv":{"default":"bb1d2fe92efebdd180a3556e84bb56d6"}}

@@ -1,1 +1,1 @@
-{"id":"80b29df020b386abe5291baceaa56baf","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be false for empty string","name":"should be false for empty string","status":"passed","testResultsByEnv":{"default":"43460f3ef4b89027071e679b795d5da4"}}
+{"id":"80b29df020b386abe5291baceaa56baf","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be false for empty string","name":"should be false for empty string","status":"passed","testResultsByEnv":{"default":"c17d9e8fcef34edc90417fb2c114159f"}}

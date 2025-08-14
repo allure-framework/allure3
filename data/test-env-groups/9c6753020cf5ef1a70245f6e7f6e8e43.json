@@ -1,1 +1,1 @@
-{"id":"9c6753020cf5ef1a70245f6e7f6e8e43","fullName":"test/config.test.ts#getPluginId replaces slashes with dashes","name":"replaces slashes with dashes","status":"passed","testResultsByEnv":{"default":"cafdb5c61251eab94e2c6b6f04370ab7"}}
+{"id":"9c6753020cf5ef1a70245f6e7f6e8e43","fullName":"test/config.test.ts#getPluginId replaces slashes with dashes","name":"replaces slashes with dashes","status":"passed","testResultsByEnv":{"default":"aa478df169c5d3ebb1f3495518b8c913"}}

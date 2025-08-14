@@ -1,1 +1,1 @@
-{"id":"91911c4582115f5ab17b0653538264f8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing directory","name":"should watch not existing directory","status":"passed","testResultsByEnv":{"default":"bd82a9ed341f3a4d4f1facfcf2c241a4"}}
+{"id":"91911c4582115f5ab17b0653538264f8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing directory","name":"should watch not existing directory","status":"passed","testResultsByEnv":{"default":"212058a5b13c8df32ebbc90d9074624d"}}

@@ -1,1 +1,1 @@
-{"id":"42b4e7041d309ed2086a5315dc316fc8","fullName":"test/junitxml.test.ts#junit xml reader should parse test-suites element with invalid type","name":"should parse test-suites element with invalid type","status":"passed","testResultsByEnv":{"default":"6606ebb005c0ead87666baf94f931d10"}}
+{"id":"42b4e7041d309ed2086a5315dc316fc8","fullName":"test/junitxml.test.ts#junit xml reader should parse test-suites element with invalid type","name":"should parse test-suites element with invalid type","status":"passed","testResultsByEnv":{"default":"550cea32bba47dd535fd5512ac931592"}}

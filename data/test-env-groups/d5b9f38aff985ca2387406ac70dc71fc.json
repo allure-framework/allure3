@@ -1,1 +1,1 @@
-{"id":"d5b9f38aff985ca2387406ac70dc71fc","fullName":"test/detectors/amazon.test.ts#amazon jobRunBranch should extract branch name with slashes","name":"should extract branch name with slashes","status":"passed","testResultsByEnv":{"default":"251fdb4f190c45445ce4b2380a7b0fa5"}}
+{"id":"d5b9f38aff985ca2387406ac70dc71fc","fullName":"test/detectors/amazon.test.ts#amazon jobRunBranch should extract branch name with slashes","name":"should extract branch name with slashes","status":"passed","testResultsByEnv":{"default":"a5721f40e74ee9057af134683e2ba362"}}
