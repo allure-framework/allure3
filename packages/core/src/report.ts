@@ -256,7 +256,7 @@ export class AllureReport {
       }
 
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
-      summary.jobHref = this.#ci?.jobUrl;
+      summary.jobHref = this.#ci?.jobRunUrl;
 
       if (context.publish) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
