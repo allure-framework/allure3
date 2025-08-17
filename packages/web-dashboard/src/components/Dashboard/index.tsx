@@ -68,9 +68,7 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.HeatMap:
-    case ChartType.Funnel:
-    case ChartType.TreeMap: {
+    default: {
       const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
 
       return <ComingSoonChartWidget title={title} />;
