@@ -114,7 +114,7 @@ export type BarChartOptions = {
 };
 
 export type ComingSoonChartOptions = {
-  type: ChartType.HeatMap | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 };
 
@@ -128,7 +128,7 @@ export interface PieChartData {
 }
 
 export interface ComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 }
 
@@ -352,7 +352,7 @@ export const generatePieChart = (
 
 export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {
-    type: options.type,
+    type: ChartType.ComingSoon,
     title: options.title,
   };
 };
