@@ -57,7 +57,7 @@ export interface ResponseBarChartData {
 }
 
 export interface ResponseComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 }
 

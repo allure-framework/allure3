@@ -4,7 +4,6 @@ import type {
   BarGroupValues,
   BaseTrendSliceMetadata,
   ChartId,
-  ChartType,
   HistoryDataPoint,
   PieSlice,
   SeverityLevel,
@@ -15,7 +14,7 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
+import { ChartType, ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
@@ -113,7 +112,7 @@ export type BarChartOptions = {
 };
 
 export type ComingSoonChartOptions = {
-  type: ChartType.HeatMap | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 };
 
@@ -127,7 +126,7 @@ export interface PieChartData {
 }
 
 export interface ComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 }
 
@@ -351,7 +350,7 @@ export const generatePieChart = (
 
 export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {
-    type: options.type,
+    type: ChartType.ComingSoon,
     title: options.title,
   };
 };

@@ -1,6 +1,7 @@
 import { ChartType } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ComingSoonChartOptions,
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
@@ -100,12 +101,12 @@ export const generateCharts = async (
       chart = generatePieChart(chartOptions, { statistic });
     } else if (chartOptions.type === ChartType.Bar) {
       chart = await generateBarChart(chartOptions, store);
-    } else if ([ChartType.HeatMap, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
-      chart = generateComingSoonChart(chartOptions);
     }
 
     if (chart) {
       chartsData[chartId] = chart;
+    } else {
+      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
     }
   }
 
