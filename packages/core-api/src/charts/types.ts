@@ -8,6 +8,7 @@ export enum ChartType {
   HeatMap = "heatmap",
   Bar = "bar",
   Funnel = "funnel",
+  ComingSoon = "coming-soon",
 }
 
 export enum ChartDataType {
