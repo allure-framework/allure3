@@ -1,1 +1,1 @@
-{"id":"4b4920c352873568a03cfbe3d930a587","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo shouldn't render icon for unknown CI","name":"shouldn't render icon for unknown CI","status":"passed","testResultsByEnv":{"default":"f831ffddbdf0fd2a364c07ac6794b72b"}}
+{"id":"4b4920c352873568a03cfbe3d930a587","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo shouldn't render icon for unknown CI","name":"shouldn't render icon for unknown CI","status":"passed","testResultsByEnv":{"default":"3e7b8341a3d64762859fc3c2b59518fe"}}

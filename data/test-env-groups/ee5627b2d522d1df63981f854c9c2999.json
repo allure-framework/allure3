@@ -1,1 +1,1 @@
-{"id":"ee5627b2d522d1df63981f854c9c2999","fullName":"allure-awesome/test/tree.test.ts:336:3","name":"should assign default labels when test results don't any matched one label","status":"passed","testResultsByEnv":{"default":"c696ce2cc68b446c3f4dbdab6ac7c5ca"}}
+{"id":"ee5627b2d522d1df63981f854c9c2999","fullName":"allure-awesome/test/tree.test.ts:336:3","name":"should assign default labels when test results don't any matched one label","status":"passed","testResultsByEnv":{"default":"d5758285595e35d72828580ab24aecf0"}}

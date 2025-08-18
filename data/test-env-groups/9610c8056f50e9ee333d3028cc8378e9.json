@@ -1,1 +1,1 @@
-{"id":"9610c8056f50e9ee333d3028cc8378e9","fullName":"test/detectors/amazon.test.ts#amazon jobUID should return build/project for regular build","name":"should return build/project for regular build","status":"passed","testResultsByEnv":{"default":"58c7444ec15062578ea5aa4f30254965"}}
+{"id":"9610c8056f50e9ee333d3028cc8378e9","fullName":"test/detectors/amazon.test.ts#amazon jobUID should return build/project for regular build","name":"should return build/project for regular build","status":"passed","testResultsByEnv":{"default":"1fc61b8042f43300b99149af65669370"}}

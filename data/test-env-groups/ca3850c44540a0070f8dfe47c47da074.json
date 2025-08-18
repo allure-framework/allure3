@@ -1,1 +1,1 @@
-{"id":"ca3850c44540a0070f8dfe47c47da074","fullName":"test/utils/time.test.ts#formatDuration should show 0h with days instead of seconds","name":"should show 0h with days instead of seconds","status":"passed","testResultsByEnv":{"default":"c176d2930e0ebc9417225b02d3c8e4ad"}}
+{"id":"ca3850c44540a0070f8dfe47c47da074","fullName":"test/utils/time.test.ts#formatDuration should show 0h with days instead of seconds","name":"should show 0h with days instead of seconds","status":"passed","testResultsByEnv":{"default":"106c8743fa30385135e4aa45211c454d"}}

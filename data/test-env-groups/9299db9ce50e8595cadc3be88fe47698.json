@@ -1,1 +1,1 @@
-{"id":"9299db9ce50e8595cadc3be88fe47698","fullName":"test/allure1.test.ts#allure1 reader descriptions should treat an unknown type as markdown","name":"should treat an unknown type as markdown","status":"passed","testResultsByEnv":{"default":"e8159316f55442f06d012222f3f06c76"}}
+{"id":"9299db9ce50e8595cadc3be88fe47698","fullName":"test/allure1.test.ts#allure1 reader descriptions should treat an unknown type as markdown","name":"should treat an unknown type as markdown","status":"passed","testResultsByEnv":{"default":"486ec8d990c8640cb9c9f6fa84f74214"}}

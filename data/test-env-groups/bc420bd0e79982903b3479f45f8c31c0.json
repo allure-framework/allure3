@@ -1,1 +1,1 @@
-{"id":"bc420bd0e79982903b3479f45f8c31c0","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"default":"94a509ce4a44844573c29e7df61ab7a8"}}
+{"id":"bc420bd0e79982903b3479f45f8c31c0","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"default":"d81d8717d26313b8f73cbfc9db6c4577"}}
