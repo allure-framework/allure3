@@ -47,13 +47,32 @@ vi.mock("@allurereport/core", async (importOriginal) => {
     AllureReport: AllureReportMock,
   };
 });
+vi.mock("@allurereport/directory-watcher", () => ({
+  findMatching: vi.fn(),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("quality-gate command", () => {
+  it("should exit with code 0 when there are no test results directories found", async () => {
+    (findMatching as Mock).mockImplementation(() => {});
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+
+    const command = new QualityGateCommand();
+
+    command.resultsDir = undefined;
+
+    await command.execute();
+
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
   it("should exit with code 0 when there are no quality gate violations", async () => {
+    (findMatching as Mock).mockImplementation((cwd: string, dirs: Set<string>) => {
+      dirs.add("./allure-results");
+    });
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true as any;
     AllureReportMock.prototype.realtimeSubscriber = {
@@ -77,6 +96,11 @@ describe("quality-gate command", () => {
   });
 
   it("should exit with code 1 on fast-fail during realtime validation", async () => {
+    let onTestResultsCb: (ids: string[]) => void;
+
+    (findMatching as Mock).mockImplementation((cwd: string, dirs: Set<string>) => {
+      dirs.add("./allure-results");
+    });
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true as any;
     AllureReportMock.prototype.realtimeSubscriber = {
@@ -95,7 +119,6 @@ describe("quality-gate command", () => {
     validateMock.mockResolvedValueOnce({ results: [{ success: false }], fastFailed: true });
     validateMock.mockResolvedValueOnce({ results: [{ success: false }] });
 
-    let onTestResultsCb: (ids: string[]) => void;
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
@@ -104,6 +127,7 @@ describe("quality-gate command", () => {
 
     const commandPromise = command.execute();
 
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
 
@@ -115,7 +139,7 @@ describe("quality-gate command", () => {
   });
 
   it("should use recursive discovery when resultsDir is not provided", async () => {
-    (findMatching as unknown as Mock).mockImplementationOnce(async (_targetDir: string, set: Set<string>) => {
+    (findMatching as unknown as Mock).mockImplementationOnce(async (cwd: string, set: Set<string>) => {
       set.add("dir1/allure-results");
       set.add("dir2/allure-results");
     });
@@ -133,7 +157,7 @@ describe("quality-gate command", () => {
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = "" as any;
+    command.resultsDir = undefined;
 
     await command.execute();
 
@@ -159,7 +183,7 @@ describe("quality-gate command", () => {
     expect(errorSpy).toHaveBeenCalledWith("No Allure results directories found");
   });
 
-  it("should exit with code 0 and print a message when quality gate is not configured", async () => {
+  it("should exit with code -1 and print a message when quality gate is not configured", async () => {
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = false as any;
 
@@ -173,6 +197,6 @@ describe("quality-gate command", () => {
     await command.execute();
 
     expect(infoSpy).toHaveBeenCalledWith("Quality gate is not configured");
-    expect(exit).toHaveBeenCalledWith(0);
+    expect(exit).toHaveBeenCalledWith(-1);
   });
 });

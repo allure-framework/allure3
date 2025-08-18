@@ -3,7 +3,9 @@ import type { TestResult } from "@allurereport/core-api";
 import { findMatching } from "@allurereport/directory-watcher";
 import { Command, Option } from "clipanion";
 import { realpath } from "node:fs/promises";
+import { join } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
+import pm from "picomatch";
 import * as typanion from "typanion";
 
 export class QualityGateCommand extends Command {
@@ -21,7 +23,10 @@ export class QualityGateCommand extends Command {
     ],
   });
 
-  resultsDir = Option.String({ required: false, name: "The directory with Allure results" });
+  resultsDir = Option.String({
+    required: false,
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -56,21 +61,29 @@ export class QualityGateCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? processCwd());
-    const targetDir = this?.resultsDir ?? cwd;
+    const resultsDir = this.resultsDir ?? "./**/allure-results";
     const { maxFailures, minTestsCount, successRate, fastFail, knownIssues } = this;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath: knownIssues,
     });
     const rules: Record<string, any> = {};
-    const resultsDirs = new Set<string>();
+    const resultsDirectories = new Set<string>();
+    const matcher = pm(resultsDir, {
+      dot: true,
+      contains: true,
+    });
 
-    if (!this.resultsDir) {
-      await findMatching(targetDir, resultsDirs, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
-    } else {
-      resultsDirs.add(this.resultsDir);
-    }
+    await findMatching(cwd, resultsDirectories, (dirent) => {
+      if (dirent.isFile()) {
+        return false;
+      }
 
-    if (resultsDirs.size === 0) {
+      const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+      return matcher(fullPath);
+    });
+
+    if (resultsDirectories.size === 0) {
       // eslint-disable-next-line no-console
       console.error("No Allure results directories found");
       exit(0);
@@ -93,17 +106,12 @@ export class QualityGateCommand extends Command {
       rules.fastFail = fastFail;
     }
 
-    const qualityGateCliRules = {
-      ...rules,
-    };
-
     config.plugins = [];
 
-    if (config.qualityGate) {
-      config.qualityGate.rules?.push(qualityGateCliRules);
-    } else if (Object.keys(qualityGateCliRules).length > 0) {
+    // prioritize the cli options
+    if (Object.keys(rules).length > 0) {
       config.qualityGate = {
-        rules: [qualityGateCliRules],
+        rules: [rules],
       };
     }
 
@@ -112,7 +120,7 @@ export class QualityGateCommand extends Command {
     if (!allureReport.hasQualityGate) {
       // eslint-disable-next-line no-console
       console.info("Quality gate is not configured");
-      exit(0);
+      exit(-1);
       return;
     }
 
@@ -134,8 +142,8 @@ export class QualityGateCommand extends Command {
 
     await allureReport.start();
 
-    for (const resultsDir of resultsDirs) {
-      await allureReport.readDirectory(resultsDir);
+    for (const dir of resultsDirectories) {
+      await allureReport.readDirectory(dir);
     }
 
     await allureReport.done();

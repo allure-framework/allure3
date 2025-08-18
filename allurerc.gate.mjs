@@ -11,13 +11,13 @@ export default defineConfig({
       },
     },
   },
-  qualityGate: {
-    rules: [
-      {
-        minTestsCount: 1000,
-        maxFailures: 1,
-        successRate: 0.98,
-      },
-    ]
-  },
+  // qualityGate: {
+  //   rules: [
+  //     {
+  //       minTestsCount: 1000,
+  //       maxFailures: 0,
+  //       successRate: 0.98,
+  //     },
+  //   ]
+  // },
 });

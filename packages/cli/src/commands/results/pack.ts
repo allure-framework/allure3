@@ -5,6 +5,7 @@ import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
+import pm from "picomatch";
 import { green, red } from "yoctocolors";
 
 export class ResultsPackCommand extends Command {
@@ -15,21 +16,17 @@ export class ResultsPackCommand extends Command {
     category: "Allure Test Results",
     details: "This command creates .zip archive with all test results which can be collected in the project",
     examples: [
-      ["results pack", "Print information about the current user using the default configuration"],
+      ["results pack", "Creates .zip archive with test results in directories matched to ./**/allure-results pattern"],
       [
-        "results pack --pattern allure-results --name results.zip",
-        "Recursively search test results inside `allure-results` directories and create `results.zip` archive with the results",
+        "results pack ./**/foo/**/my-results --name results.zip",
+        "Creates results.zip archive with test results in directories matched to ./**/foo/**/my-results pattern",
       ],
     ],
   });
 
   resultsDir = Option.String({
     required: false,
-    name: "The directory with Allure results. Entire working directory will be scanned for `allure-results` unless this option is provided.",
-  });
-
-  pattern = Option.String("--pattern", {
-    description: "Test results directory pattern to lookup (default: allure-results)",
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
   });
 
   name = Option.String("--name", {
@@ -63,15 +60,28 @@ export class ResultsPackCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const pattern = this.pattern ?? "allure-results";
+    const resultsDir = this.resultsDir ?? "./**/allure-results";
     const archiveName = this.name ?? "allure-results.zip";
     const resultsDirectories = new Set<string>();
     const resultsFiles = new Set<string>();
+    const matcher = pm(resultsDir, {
+      dot: true,
+      contains: true,
+    });
 
-    if (this.resultsDir) {
-      resultsDirectories.add(this.resultsDir);
-    } else {
-      await findMatching(cwd, resultsDirectories, (dirent) => dirent.isDirectory() && dirent.name === pattern);
+    await findMatching(cwd, resultsDirectories, (dirent) => {
+      if (dirent.isFile()) {
+        return false;
+      }
+
+      const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+      return matcher(fullPath);
+    });
+
+    if (resultsDirectories.size === 0) {
+      console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
+      return;
     }
 
     for (const dir of resultsDirectories) {
@@ -84,11 +94,6 @@ export class ResultsPackCommand extends Command {
       for (const file of files) {
         resultsFiles.add(resolve(dir, file));
       }
-    }
-
-    if (resultsFiles.size === 0) {
-      console.log(red(`No test results found matching pattern: ${pattern}`));
-      return;
     }
 
     const outputPath = join(cwd, archiveName);

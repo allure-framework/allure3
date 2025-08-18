@@ -128,8 +128,12 @@ const runTests = async (params: {
       qualityGateResults = results;
 
       try {
+        const afterProcess = Date.now();
+
         // @ts-ignore
-        await terminate(testProcess.pid);
+        await terminate(testProcess.pid, "SIGTERM");
+
+        console.log(`process terminated with code 1 (${afterProcess - beforeProcess})ms`);
       } catch (err) {
         if ((err as Error).message.includes("kill ESRCH")) {
           return;
@@ -142,7 +146,6 @@ const runTests = async (params: {
 
   return {
     process: testProcess,
-    // FIXME: at this moment, this is the cheapest way to have the process to control and keep ability to receive original exit code
     // eslint-disable-next-line no-async-promise-executor
     processTerminationPromise: new Promise(async (res) => {
       const code = await terminationOf(testProcess);

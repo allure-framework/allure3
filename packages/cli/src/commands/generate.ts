@@ -2,7 +2,9 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
+import { join } from "node:path";
 import process from "node:process";
+import pm from "picomatch";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
 
@@ -23,7 +25,7 @@ export class GenerateCommand extends Command {
 
   resultsDir = Option.String({
     required: false,
-    name: "The directory with Allure results. Entire working directory will be scanned for `allure-results` unless this option is provided.",
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
   });
 
   config = Option.String("--config,-c", {
@@ -44,23 +46,30 @@ export class GenerateCommand extends Command {
 
   async execute() {
     const cwd = this.cwd ?? process.cwd();
+    const resultsDir = this.resultsDir ?? "./**/allure-results";
     const targetDir = this?.resultsDir ?? cwd;
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",
     });
-    const resultsDirs = new Set<string>();
+    const matcher = pm(resultsDir, {
+      dot: true,
+      contains: true,
+    });
+    const resultsDirectories = new Set<string>();
 
-    if (!this.resultsDir) {
-      await findMatching(targetDir, resultsDirs, (dirent) => dirent.isDirectory() && dirent.name === "allure-results");
-    } else {
-      resultsDirs.add(this.resultsDir);
-    }
+    await findMatching(targetDir, resultsDirectories, (dirent) => {
+      if (dirent.isFile()) {
+        return false;
+      }
 
-    if (resultsDirs.size === 0) {
+      const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+      return matcher(fullPath);
+    });
+
+    if (resultsDirectories.size === 0) {
       // eslint-disable-next-line no-console
-      console.error("No Allure results directories found");
-      process.exit(0);
+      console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
       return;
     }
 
@@ -69,8 +78,8 @@ export class GenerateCommand extends Command {
 
       await allureReport.start();
 
-      for (const resultsDir of resultsDirs) {
-        await allureReport.readDirectory(resultsDir);
+      for (const dir of resultsDirectories) {
+        await allureReport.readDirectory(dir);
       }
 
       await allureReport.done();

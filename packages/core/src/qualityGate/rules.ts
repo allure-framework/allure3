@@ -5,7 +5,7 @@ import { bold } from "yoctocolors";
 export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
-    `Maximum number of failed tests ${bold(String(actual))} is more, than expected ${bold(String(expected))}`,
+    `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, knownIssues, expected, state = 0 }) => {
     const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
     const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
@@ -13,7 +13,7 @@ export const maxFailuresRule: QualityGateRule<number> = {
     const actual = failedTrs.length + state;
 
     return {
-      success: actual < expected,
+      success: actual <= expected,
       actual,
       expected,
     };
@@ -23,7 +23,7 @@ export const maxFailuresRule: QualityGateRule<number> = {
 export const minTestsCountRule: QualityGateRule<number> = {
   rule: "minTestsCount",
   message: ({ actual, expected }) =>
-    `Minimum number of tests ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
+    `The total number of tests ${bold(String(actual))} is less than the expected threshold value ${bold(String(expected))}`,
   validate: async ({ trs, expected, state = 0 }) => {
     const actual = trs.length + state;
 
