@@ -1,1 +1,1 @@
-{"id":"93a437ed6b3cd0ed1e4b81fb0eed4f19","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"c27ef1ccb6be7022cc522993dfb2cb47"}}
+{"id":"93a437ed6b3cd0ed1e4b81fb0eed4f19","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"4bbb6ff2767a9112fdd02e2a30c1c1df"}}

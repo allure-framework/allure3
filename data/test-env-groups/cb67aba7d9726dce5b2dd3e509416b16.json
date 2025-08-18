@@ -1,1 +1,1 @@
-{"id":"cb67aba7d9726dce5b2dd3e509416b16","fullName":"test/detectors/azure.test.ts#azure getDefinitionID should return the correct definition ID","name":"should return the correct definition ID","status":"passed","testResultsByEnv":{"default":"695d1d0e9f3eb022654e414f6e98eadc"}}
+{"id":"cb67aba7d9726dce5b2dd3e509416b16","fullName":"test/detectors/azure.test.ts#azure getDefinitionID should return the correct definition ID","name":"should return the correct definition ID","status":"passed","testResultsByEnv":{"default":"9b55bd838cff4649be6f64d10d54eddf"}}

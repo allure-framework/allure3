@@ -1,0 +1,1 @@
+{"id":"1a96c49b6f2fee97980266fe7d4d860a","fullName":"test/xcresult.test.ts#A MAC machine a UI test with messy summary groups should ignore groups not in the test's URI","name":"should ignore groups not in the test's URI","status":"passed","testResultsByEnv":{"default":"d215c44db1db79c6448ac5ebef989dd3"}}

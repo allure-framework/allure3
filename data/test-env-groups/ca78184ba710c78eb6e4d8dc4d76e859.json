@@ -1,1 +1,1 @@
-{"id":"ca78184ba710c78eb6e4d8dc4d76e859","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"default":"94ca7f34ebf99d1a0ff8a3d74e66fd66"}}
+{"id":"ca78184ba710c78eb6e4d8dc4d76e859","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"default":"392449136111baffa7ad4b625cfa6edf"}}

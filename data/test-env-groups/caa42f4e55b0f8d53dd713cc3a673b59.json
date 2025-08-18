@@ -1,1 +1,1 @@
-{"id":"caa42f4e55b0f8d53dd713cc3a673b59","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for undefined","name":"should return empty array for undefined","status":"passed","testResultsByEnv":{"default":"0dafa7624f7b83a7a0e9b899d7435907"}}
+{"id":"caa42f4e55b0f8d53dd713cc3a673b59","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for undefined","name":"should return empty array for undefined","status":"passed","testResultsByEnv":{"default":"dc49fe9467af0ca3f3b84321e2d529ba"}}

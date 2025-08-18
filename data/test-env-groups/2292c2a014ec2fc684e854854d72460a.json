@@ -1,1 +1,1 @@
-{"id":"2292c2a014ec2fc684e854854d72460a","fullName":"test/allure1.test.ts#allure1 reader steps statuses should treat an ill-formed status as unknown","name":"should treat an ill-formed status as unknown","status":"passed","testResultsByEnv":{"default":"92438d6b2a42a56d136aeb29cae1c56a"}}
+{"id":"2292c2a014ec2fc684e854854d72460a","fullName":"test/allure1.test.ts#allure1 reader steps statuses should treat an ill-formed status as unknown","name":"should treat an ill-formed status as unknown","status":"passed","testResultsByEnv":{"default":"b735b3b0bc3258b7d4465de4d4c482de"}}
