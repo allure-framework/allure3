@@ -1,1 +1,1 @@
-{"id":"bde61be432c52d7fb35fc60b3f14b4bb","fullName":"test/detectors/jenkins.test.ts#jenkins jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"07b6299785cb3076c391cad2e81feadd"}}
+{"id":"bde61be432c52d7fb35fc60b3f14b4bb","fullName":"test/detectors/jenkins.test.ts#jenkins jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"default":"bdd26cf1008547dad01359e66b08d1d7"}}
