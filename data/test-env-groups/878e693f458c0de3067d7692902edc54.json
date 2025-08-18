@@ -1,1 +1,1 @@
-{"id":"878e693f458c0de3067d7692902edc54","fullName":"test/report.test.ts#report should not allow to readDirectory() before start()","name":"should not allow to readDirectory() before start()","status":"passed","testResultsByEnv":{"default":"c311fb270e12fa332cf79699a7c58a78"}}
+{"id":"878e693f458c0de3067d7692902edc54","fullName":"test/report.test.ts#report should not allow to readDirectory() before start()","name":"should not allow to readDirectory() before start()","status":"passed","testResultsByEnv":{"default":"9bb078f85cb86a796142003219a0f2c5"}}

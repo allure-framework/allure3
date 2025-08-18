@@ -1,1 +1,1 @@
-{"id":"cffbcaea7e0b06b83d8a3bcd893fb774","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"2a45b01bdec5e461a372cf47d737f494"}}
+{"id":"cffbcaea7e0b06b83d8a3bcd893fb774","fullName":"test/detectors/bitbucket.test.ts#bitbucket jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"default":"28a8d48c816f19821fa138b671c0e35b"}}
