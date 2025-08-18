@@ -50,10 +50,10 @@ export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
   const stepLength = item.steps?.length;
   const attachmentLength = item.steps?.filter((step) => step.type === "attachment")?.length;
 
-  const failedStepsInTree = countErrorStatuses(item);
+  const failedStepsInTree = countErrorStatuses(item) || {};
 
   const FailedSteps = () => (
-    <div>
+    <div className={styles["failed-steps"]}>
       {Object.entries(failedStepsInTree).map(([status, count], index) => (
         <div className={styles["item-status"]} key={index}>
           <SvgIcon
