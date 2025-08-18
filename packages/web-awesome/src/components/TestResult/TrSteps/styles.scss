@@ -253,3 +253,8 @@
     color: var(--bg-support-skat);
   }
 }
+
+.failed-steps {
+  display: flex;
+  gap: 8px;
+}
