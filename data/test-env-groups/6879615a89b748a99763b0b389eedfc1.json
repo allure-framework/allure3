@@ -1,1 +1,1 @@
-{"id":"6879615a89b748a99763b0b389eedfc1","fullName":"test/utils/time.test.ts#formatDuration should return 0s for super low durations","name":"should return 0s for super low durations","status":"passed","testResultsByEnv":{"default":"3f2ad5aeb0ba8073470d6160e475f6e5"}}
+{"id":"6879615a89b748a99763b0b389eedfc1","fullName":"test/utils/time.test.ts#formatDuration should return 0s for super low durations","name":"should return 0s for super low durations","status":"passed","testResultsByEnv":{"default":"658ac4b543ce2e4312c9c3c8bc81869a"}}
