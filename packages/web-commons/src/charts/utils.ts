@@ -87,7 +87,7 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if (chart.type === ChartType.Pie) {
+      } else if ([ChartType.Pie, ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chart.type)) {
         acc[chartId] = chart;
       }
       return acc;
