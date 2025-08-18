@@ -53,7 +53,11 @@ export class AwesomePlugin implements Plugin {
       statsByEnv: envStatistics,
       envs: environments,
     });
-    await generateAllCharts(this.#writer!, this.options, context, allTrs, statistics, allHistoryDataPoints);
+    await generateAllCharts(this.#writer!, this.options, context, {
+      trs: allTrs,
+      statistic: statistics,
+      history: allHistoryDataPoints,
+    });
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;

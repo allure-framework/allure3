@@ -13,9 +13,11 @@ import type { AwesomeDataWriter } from "./writer.js";
 export const generateCharts = async (
   options: AwesomeOptions,
   context: PluginContext,
-  trs: TestResult[] = [],
-  stats: Statistic,
-  history: HistoryDataPoint[],
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
 ): Promise<GeneratedChartsData | undefined> => {
   const { charts } = options;
 
@@ -30,9 +32,9 @@ export const generateCharts = async (
       let chart: GeneratedChartData | undefined;
 
       if (chartOptions.type === ChartType.Trend) {
-        chart = generateTrendChart(chartOptions, trs, stats, history, context);
+        chart = generateTrendChart(chartOptions, stores, context);
       } else if (chartOptions.type === ChartType.Pie) {
-        chart = generatePieChart(chartOptions, { statistic: stats });
+        chart = generatePieChart(chartOptions, stores);
       }
 
       if (chart) {
@@ -49,11 +51,13 @@ export const generateAllCharts = async (
   writer: AwesomeDataWriter,
   options: AwesomeOptions,
   context: PluginContext,
-  trs: TestResult[],
-  stats: Statistic,
-  history: HistoryDataPoint[],
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
 ): Promise<void> => {
-  const charts = await generateCharts(options, context, trs, stats, history);
+  const charts = await generateCharts(options, context, stores);
 
   if (charts && Object.keys(charts).length > 0) {
     await writer.writeWidget("charts.json", charts);

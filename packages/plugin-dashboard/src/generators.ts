@@ -94,7 +94,15 @@ export const generateCharts = async (
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(chartOptions, trs, statistic, history, context);
+      chart = generateTrendChart(
+        chartOptions,
+        {
+          trs,
+          statistic,
+          history,
+        },
+        context,
+      );
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
     }

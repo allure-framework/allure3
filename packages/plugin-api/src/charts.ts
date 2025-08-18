@@ -325,15 +325,18 @@ export interface TrendDataAccessor<T extends TrendDataType> {
 
 export const generateTrendChartGeneric = <T extends TrendDataType>(
   options: TrendChartOptions,
-  trs: TestResult[] = [],
-  stats: Statistic,
-  history: HistoryDataPoint[],
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
   context: PluginContext,
   dataAccessor: TrendDataAccessor<T>,
 ): GenericTrendChartData<T> | undefined => {
+  const { trs = [], statistic, history } = stores;
   const { limit } = options;
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
-  const currentData = dataAccessor.getCurrentData(trs, stats);
+  const currentData = dataAccessor.getCurrentData(trs, statistic);
   // Apply limit to history points if specified
   const limitedHistoryPoints = historyLimit !== undefined ? history.slice(-historyLimit) : history;
   // Convert history points to statistics
@@ -391,17 +394,19 @@ export const generateTrendChartGeneric = <T extends TrendDataType>(
 
 export const generateTrendChart = (
   options: TrendChartOptions,
-  trs: TestResult[] = [],
-  stats: Statistic,
-  history: HistoryDataPoint[],
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
   context: PluginContext,
 ): TrendChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, trs, stats, history, context, statusTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, stores, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, trs, stats, history, context, severityTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, stores, context, severityTrendDataAccessor);
   }
 };
