@@ -5,6 +5,7 @@ import {
   type GeneratedChartsData,
   type PluginContext,
   type ReportFiles,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";
@@ -105,6 +106,8 @@ export const generateCharts = async (
       );
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
+    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
+      chart = generateComingSoonChart(chartOptions);
     }
 
     if (chart) {
