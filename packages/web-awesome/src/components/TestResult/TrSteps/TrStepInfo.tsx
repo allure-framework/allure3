@@ -57,11 +57,11 @@ export const TrStepInfo = (props: { item: DefaultTestStepResult }) => {
       {Object.entries(failedStepsInTree).map(([status, count], index) => (
         <div className={styles["item-status"]} key={index}>
           <SvgIcon
-            size="m"
+            size="s"
             id={icons[status as TestStatus]}
             className={clsx(styles["item-status-icon"], styles[`status-${status}`])}
           />
-          {count && <span>{count}</span>}
+          {count && <Text size={"s"}>{count}</Text>}
         </div>
       ))}
     </div>
