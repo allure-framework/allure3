@@ -1,5 +1,8 @@
 name: Build project
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -51,7 +54,7 @@ jobs:
     - name: Test Project
       run: yarn test
     - name: Pack test results
-      run: yarn allure results pack --output ./allure-results.zip "**/out/allure-results"
+      run: yarn allure results pack --name allure-results-${{ matrix.os }}.zip "**/out/allure-results"
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
@@ -62,6 +65,9 @@ jobs:
     needs: test
     name: Build report
     runs-on: ubuntu-latest
+    env:
+      ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
+      ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
     steps:
       - name: Download allure results from Ubuntu
         uses: actions/download-artifact@v4
