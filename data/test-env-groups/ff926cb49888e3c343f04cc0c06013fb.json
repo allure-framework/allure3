@@ -1,1 +1,1 @@
-{"id":"ff926cb49888e3c343f04cc0c06013fb","fullName":"allure-awesome/test/reportOptions.test.ts:64:7","name":"should render split layout when it's enabled in the plugin options","status":"passed","testResultsByEnv":{"default":"af07a71a9964d54b6a6304914b49ce79"}}
+{"id":"ff926cb49888e3c343f04cc0c06013fb","fullName":"allure-awesome/test/reportOptions.test.ts:64:7","name":"should render split layout when it's enabled in the plugin options","status":"passed","testResultsByEnv":{"default":"f61cc29e5d7210c8ddc3b879b8d170bc"}}

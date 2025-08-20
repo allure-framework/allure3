@@ -1,1 +1,1 @@
-{"id":"da026bd4097293cbfdb3ba087331288f","fullName":"test/detectors/jenkins.test.ts#jenkins detected should be true when JENKINS_URL is set","name":"should be true when JENKINS_URL is set","status":"passed","testResultsByEnv":{"default":"521cc30e548347fcd3458a3598cd2eff"}}
+{"id":"da026bd4097293cbfdb3ba087331288f","fullName":"test/detectors/jenkins.test.ts#jenkins detected should be true when JENKINS_URL is set","name":"should be true when JENKINS_URL is set","status":"passed","testResultsByEnv":{"default":"601038d67e215d173e5dd9e66806c4ce"}}
