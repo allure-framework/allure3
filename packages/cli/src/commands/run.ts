@@ -334,7 +334,7 @@ export class RunCommand extends Command {
         return;
       }
 
-      const trs = await allureReport.store.allTestResults();
+      const trs = await allureReport.store.allTestResults({ includeHidden: false });
       const { results } = await allureReport.validate({
         trs,
         knownIssues,
