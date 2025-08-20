@@ -1,5 +1,6 @@
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { findMatching } from "@allurereport/directory-watcher";
+import * as console from "node:console";
 import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { QualityGateCommand } from "../../src/commands/qualityGate.js";
@@ -27,6 +28,11 @@ const fixtures = {
   ],
 };
 
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  info: vi.fn(),
+  error: vi.fn(),
+}));
 vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
@@ -56,19 +62,6 @@ beforeEach(() => {
 });
 
 describe("quality-gate command", () => {
-  it("should exit with code 0 when there are no test results directories found", async () => {
-    (findMatching as Mock).mockImplementation(() => {});
-    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
-
-    const command = new QualityGateCommand();
-
-    command.resultsDir = undefined;
-
-    await command.execute();
-
-    expect(exit).toHaveBeenCalledWith(0);
-  });
-
   it("should exit with code 0 when there are no quality gate violations", async () => {
     (findMatching as Mock).mockImplementation((cwd: string, dirs: Set<string>) => {
       dirs.add("./allure-results");
@@ -80,6 +73,7 @@ describe("quality-gate command", () => {
     } as any;
     (AllureReportMock.prototype as any).store = {
       allTestResults: vi.fn().mockResolvedValue([]),
+      allKnownIssues: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn(),
     };
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
@@ -111,6 +105,7 @@ describe("quality-gate command", () => {
     (AllureReportMock.prototype as any).store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn().mockResolvedValue({}),
+      allKnownIssues: vi.fn().mockResolvedValue([]),
     };
     (stringifyQualityGateResults as Mock).mockReturnValue("quality gate failed");
 
@@ -127,6 +122,7 @@ describe("quality-gate command", () => {
 
     const commandPromise = command.execute();
 
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -151,6 +147,7 @@ describe("quality-gate command", () => {
     (AllureReportMock.prototype as any).store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn(),
+      allKnownIssues: vi.fn().mockResolvedValue([]),
     };
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
 
@@ -183,11 +180,35 @@ describe("quality-gate command", () => {
     expect(errorSpy).toHaveBeenCalledWith("No Allure results directories found");
   });
 
-  it("should exit with code -1 and print a message when quality gate is not configured", async () => {
+  it("should exit with code -1 when quality gate is not configured", async () => {
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    (AllureReportMock.prototype as any).store = {
+      allKnownIssues: vi.fn().mockResolvedValue([]),
+    };
     AllureReportMock.prototype.hasQualityGate = false as any;
 
-    const infoSpy = vi.spyOn(console, "info");
+    const command = new QualityGateCommand();
+
+    command.cwd = fixtures.cwd;
+    command.resultsDir = fixtures.resultsDir;
+    command.config = fixtures.config;
+    command.maxFailures = undefined;
+    command.minTestsCount = undefined;
+    command.successRate = undefined;
+
+    await command.execute();
+
+    expect(exit).toHaveBeenCalledWith(-1);
+  });
+
+  it("should exit with code 0 when there is no test results found", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [], qualityGate: fixtures.qualityGateConfig });
+    (AllureReportMock.prototype as any).store = {
+      allKnownIssues: vi.fn().mockResolvedValue([]),
+    };
+    (findMatching as Mock).mockImplementation(async () => {});
+    AllureReportMock.prototype.hasQualityGate = true as any;
+
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
@@ -196,7 +217,6 @@ describe("quality-gate command", () => {
 
     await command.execute();
 
-    expect(infoSpy).toHaveBeenCalledWith("Quality gate is not configured");
-    expect(exit).toHaveBeenCalledWith(-1);
+    expect(exit).toHaveBeenCalledWith(0);
   });
 });

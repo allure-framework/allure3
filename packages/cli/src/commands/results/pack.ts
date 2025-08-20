@@ -70,13 +70,13 @@ export class ResultsPackCommand extends Command {
     });
 
     await findMatching(cwd, resultsDirectories, (dirent) => {
-      if (dirent.isFile()) {
-        return false;
+      if (dirent.isDirectory()) {
+        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+        return matcher(fullPath);
       }
 
-      const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
-
-      return matcher(fullPath);
+      return false;
     });
 
     if (resultsDirectories.size === 0) {

@@ -1,5 +1,5 @@
 import { detect } from "@allurereport/ci";
-import type { AllureHistory, CiDescriptor, TestResult } from "@allurereport/core-api";
+import type { AllureHistory, CiDescriptor, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type {
   Plugin,
   PluginContext,
@@ -176,8 +176,8 @@ export class AllureReport {
     }
   };
 
-  validate = async (trs: TestResult[], state?: QualityGateState) => {
-    const knownIssues = await this.#store.allKnownIssues();
+  validate = async (params: { trs: TestResult[]; knownIssues: KnownTestFailure[]; state?: QualityGateState }) => {
+    const { trs, knownIssues, state } = params;
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
