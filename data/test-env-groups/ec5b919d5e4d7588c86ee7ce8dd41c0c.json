@@ -1,1 +1,1 @@
-{"id":"ec5b919d5e4d7588c86ee7ce8dd41c0c","fullName":"test/config.test.ts#getPluginInstance should return plugin instance for the given plugin","name":"should return plugin instance for the given plugin","status":"passed","testResultsByEnv":{"default":"f211797e653aa90fb267ce679db0e6d9"}}
+{"id":"ec5b919d5e4d7588c86ee7ce8dd41c0c","fullName":"test/config.test.ts#getPluginInstance should return plugin instance for the given plugin","name":"should return plugin instance for the given plugin","status":"passed","testResultsByEnv":{"default":"3822b28816e36f7808118f012dadad58"}}

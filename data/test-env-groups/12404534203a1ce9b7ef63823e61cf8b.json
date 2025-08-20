@@ -1,1 +1,1 @@
-{"id":"12404534203a1ce9b7ef63823e61cf8b","fullName":"test/detectors/drone.test.ts#drone jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"adfd2499be66b3886e8060a6278f516e"}}
+{"id":"12404534203a1ce9b7ef63823e61cf8b","fullName":"test/detectors/drone.test.ts#drone jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"default":"8ab218a58d2f0f0b14117082c82a9036"}}

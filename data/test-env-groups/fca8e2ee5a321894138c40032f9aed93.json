@@ -1,1 +1,1 @@
-{"id":"fca8e2ee5a321894138c40032f9aed93","fullName":"test/detect.test.ts#detectContentType should detect sample.tiff as image/tiff","name":"should detect sample.tiff as image/tiff","status":"passed","testResultsByEnv":{"default":"3b207a1dcba0c3e3ec0b54924b6c14b7"}}
+{"id":"fca8e2ee5a321894138c40032f9aed93","fullName":"test/detect.test.ts#detectContentType should detect sample.tiff as image/tiff","name":"should detect sample.tiff as image/tiff","status":"passed","testResultsByEnv":{"default":"eca4f323fec370d0b968413592ef3565"}}
