@@ -1,1 +1,0 @@
-{"id":"7120da62e52e6ee38ecf204cf7ced280","fullName":"test/report.test.ts#report should not call disabled plugins on done()","name":"should not call disabled plugins on done()","status":"passed","testResultsByEnv":{"default":"51227cd444f0965a13f0dfeff84271b5"}}

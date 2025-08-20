@@ -1,1 +1,0 @@
-{"id":"37ddea8d1bc85a91399a59765d61e118","fullName":"test/detectors/azure.test.ts#azure pullRequestUrl should return the correct pull request URL for TfsGit","name":"should return the correct pull request URL for TfsGit","status":"passed","testResultsByEnv":{"default":"3071b00551ee7d1a30d57538af0afa30"}}

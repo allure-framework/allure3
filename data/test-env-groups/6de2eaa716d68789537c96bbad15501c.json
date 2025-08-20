@@ -1,1 +1,0 @@
-{"id":"6de2eaa716d68789537c96bbad15501c","fullName":"test/detectors/gitlab.test.ts#gitlab jobURL should return '/pipelines' when environment variable is not set","name":"should return '/pipelines' when environment variable is not set","status":"passed","testResultsByEnv":{"default":"8f6c2da0bde3ac6702e62fbf2b90ef24"}}

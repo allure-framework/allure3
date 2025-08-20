@@ -1,1 +1,0 @@
-{"id":"373c4a05c56f5c8de6b824b49fca2dd9","fullName":"test/detectors/amazon.test.ts#amazon jobRunURL should return the correct job run URL for pipeline build","name":"should return the correct job run URL for pipeline build","status":"passed","testResultsByEnv":{"default":"46b4a8b19648cc4e47e998fcfc562326"}}

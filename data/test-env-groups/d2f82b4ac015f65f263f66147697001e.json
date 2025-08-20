@@ -1,1 +1,0 @@
-{"id":"d2f82b4ac015f65f263f66147697001e","fullName":"test/commands/projects/list.test.ts#projects list command should throw an error if there is not allure service url in the config","name":"should throw an error if there is not allure service url in the config","status":"passed","testResultsByEnv":{"default":"79a92ce68da571c9ce21a542934a1404"}}

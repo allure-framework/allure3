@@ -1,1 +1,0 @@
-{"id":"d3d4f6164bd70a780fb34440babda8ed","fullName":"test/commands/projects/create.test.ts#projects create command should print known service-error without logs writing","name":"should print known service-error without logs writing","status":"passed","testResultsByEnv":{"default":"724d53d9fce1f7dec1fe38199811dbc1"}}

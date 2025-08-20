@@ -1,1 +1,0 @@
-{"id":"f40c219171398871c3cd906de9f42521","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for invalid ARN format","name":"should return empty array for invalid ARN format","status":"passed","testResultsByEnv":{"default":"50a378c59a7e809173684088bb8397b3"}}

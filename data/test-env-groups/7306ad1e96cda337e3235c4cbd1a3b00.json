@@ -1,1 +1,0 @@
-{"id":"7306ad1e96cda337e3235c4cbd1a3b00","fullName":"test/detectors/amazon.test.ts#amazon jobRunBranch should return empty string when source version is empty","name":"should return empty string when source version is empty","status":"passed","testResultsByEnv":{"default":"f1dbc335ad2f8218f339b2c7c1c3b99c"}}

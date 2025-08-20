@@ -1,1 +1,0 @@
-{"id":"01106396f51bbb1edb18b509c51f0872","fullName":"test/detectors/circle.test.ts#circle getBuildNumber should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"41ab0bf93e37e5a8470a5e2f4cdd2039"}}

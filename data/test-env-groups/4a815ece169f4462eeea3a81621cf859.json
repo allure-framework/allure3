@@ -1,1 +1,0 @@
-{"id":"4a815ece169f4462eeea3a81621cf859","fullName":"test/detectors/azure.test.ts#azure pullRequestUrl should return the correct pull request URL for TfsVersionControl","name":"should return the correct pull request URL for TfsVersionControl","status":"passed","testResultsByEnv":{"default":"7cf5ac525455590b25ee06509b57f756"}}

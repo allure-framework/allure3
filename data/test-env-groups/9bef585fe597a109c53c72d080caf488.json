@@ -1,1 +1,0 @@
-{"id":"9bef585fe597a109c53c72d080caf488","fullName":"test/detectors/amazon.test.ts#amazon jobRunURL should return the correct job run URL for batch build","name":"should return the correct job run URL for batch build","status":"passed","testResultsByEnv":{"default":"6c1a8d3fe64f71d3e4e685dec0bf2889"}}

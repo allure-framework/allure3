@@ -1,1 +1,0 @@
-{"id":"7c3fe6de73a5faba3029e8a5740299de","fullName":"test/detectors/github.test.ts#github jobRunUID should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"f9f258836b315b8c23e62b8482ff659a"}}

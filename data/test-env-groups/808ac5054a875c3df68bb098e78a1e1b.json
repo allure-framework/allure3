@@ -1,1 +1,0 @@
-{"id":"808ac5054a875c3df68bb098e78a1e1b","fullName":"test/commands/log.test.ts#log command should initialize allure report with provided plugin options when config exists","name":"should initialize allure report with provided plugin options when config exists","status":"passed","testResultsByEnv":{"default":"9f02a428118f1daa45186808f50a910c"}}

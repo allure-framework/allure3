@@ -1,1 +1,0 @@
-{"id":"61a843df259a92db6e33a44dcbcf9394","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference names should generate random fullName if scenario name and id are ill-formed","name":"should generate random fullName if scenario name and id are ill-formed","status":"passed","testResultsByEnv":{"default":"a68cb14bc001bc425b5ed3aceeafa26c"}}

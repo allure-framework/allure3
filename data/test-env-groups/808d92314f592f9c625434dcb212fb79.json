@@ -1,1 +1,0 @@
-{"id":"808d92314f592f9c625434dcb212fb79","fullName":"test/commands/classic.test.ts#classic command should initialize allure report with default plugin options even when config exists","name":"should initialize allure report with default plugin options even when config exists","status":"passed","testResultsByEnv":{"default":"268cc9f76ea0a18a1dabb49ff59578d9"}}

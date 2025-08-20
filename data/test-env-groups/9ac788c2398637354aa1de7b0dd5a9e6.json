@@ -1,1 +1,0 @@
-{"id":"9ac788c2398637354aa1de7b0dd5a9e6","fullName":"test/detectors/github.test.ts#github pullRequestUrl should return empty string when ref name doesn't have /merge suffix","name":"should return empty string when ref name doesn't have /merge suffix","status":"passed","testResultsByEnv":{"default":"54fb8ce10fefe4fd9f4577a86b0ee5c2"}}

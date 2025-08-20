@@ -1,1 +1,0 @@
-{"id":"110ab7369c6115725c142256072232eb","fullName":"test/detectors/azure.test.ts#azure detected should be false when SYSTEM_DEFINITIONID is not set","name":"should be false when SYSTEM_DEFINITIONID is not set","status":"passed","testResultsByEnv":{"default":"f086d0e5ed26a8330b3c23c1d0f3070e"}}

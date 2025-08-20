@@ -1,1 +1,0 @@
-{"id":"373035f4355f7a4a979674f1a94dd166","fullName":"test/detectors/gitlab.test.ts#gitlab jobRunBranch should return empty string when environment variable is not set","name":"should return empty string when environment variable is not set","status":"passed","testResultsByEnv":{"default":"af20740ee02df280842c2643ba329fea"}}

@@ -1,1 +1,0 @@
-{"id":"c01f06efcfc1f4406044bc1c59d3c690","fullName":"test/service.test.ts#AllureServiceClient addReportFile should throw an error unless a file or filepath is provided","name":"should throw an error unless a file or filepath is provided","status":"passed","testResultsByEnv":{"default":"f334849673cf053e6388c21225734b33"}}

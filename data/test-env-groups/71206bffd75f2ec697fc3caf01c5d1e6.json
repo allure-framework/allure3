@@ -1,1 +1,0 @@
-{"id":"71206bffd75f2ec697fc3caf01c5d1e6","fullName":"test/detectors/bitbucket.test.ts#bitbucket pullRequestUrl should return empty string when BITBUCKET_PR_ID is not set","name":"should return empty string when BITBUCKET_PR_ID is not set","status":"passed","testResultsByEnv":{"default":"b348f0d0756c7f2107138c039d228ba6"}}

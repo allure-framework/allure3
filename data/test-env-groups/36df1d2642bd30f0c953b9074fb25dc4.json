@@ -1,1 +1,0 @@
-{"id":"36df1d2642bd30f0c953b9074fb25dc4","fullName":"test/commands/logout.test.ts#logout command should throw an error if there is not allure service url in the config","name":"should throw an error if there is not allure service url in the config","status":"passed","testResultsByEnv":{"default":"be79239f3b7ad5b410f6487a0a48943e"}}

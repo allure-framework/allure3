@@ -1,1 +1,0 @@
-{"id":"e78928a7da0719912c108a224029b75c","fullName":"test/commands/csv.test.ts#csv command should initialize allure report with default plugin options even when config exists","name":"should initialize allure report with default plugin options even when config exists","status":"passed","testResultsByEnv":{"default":"be3e01e5f17507e61bf47c9e0110da50"}}

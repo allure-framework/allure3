@@ -1,1 +1,0 @@
-{"id":"00c031991bee242c3937260599a7c044","fullName":"test/detectors/amazon.test.ts#amazon jobRunName should return the correct job run name for pipeline build","name":"should return the correct job run name for pipeline build","status":"passed","testResultsByEnv":{"default":"603ab0e5c70717a0203c64178fa2b1e5"}}
