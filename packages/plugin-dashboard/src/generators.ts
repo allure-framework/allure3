@@ -5,9 +5,9 @@ import {
   type GeneratedChartsData,
   type PluginContext,
   type ReportFiles,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
-  generateComingSoonChart,
 } from "@allurereport/plugin-api";
 import {
   createBaseUrlScript,
@@ -84,8 +84,9 @@ export const generateCharts = async (
     return undefined;
   }
 
+  const trs = await store.allTestResults();
+  const history = await store.allHistoryDataPoints();
   const statistic = await store.testsStatistic();
-
   const chartsData: GeneratedChartsData = {};
 
   for (const chartOptions of layout) {
@@ -94,7 +95,15 @@ export const generateCharts = async (
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = await generateTrendChart(chartOptions, store, context);
+      chart = generateTrendChart(
+        chartOptions,
+        {
+          trs,
+          statistic,
+          history,
+        },
+        context,
+      );
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
     } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {

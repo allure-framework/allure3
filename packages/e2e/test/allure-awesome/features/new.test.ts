@@ -11,18 +11,16 @@ import {
   makeTestResultNames,
 } from "../utils/mocks.js";
 
-let bootstrap: ReportBootstrap;
-let treePage: TreePage;
-
 const reportName = "Sample allure report";
-
 const { name: ordinaryTestName, fullName: ordinaryTestFullname } = makeTestResultNames("ordinary test");
 const testCaseId = makeTestCaseId(ordinaryTestFullname);
-
 const { name: passedTestName, fullName: passedTestFullname } = makeTestResultNames("new passed test");
 const { name: failedTestName, fullName: failedTestFullname } = makeTestResultNames("new failed test");
 
 test.describe("new tests", () => {
+  let bootstrap: ReportBootstrap;
+  let treePage: TreePage;
+
   test.beforeAll(async () => {
     const ordinaryTestResult = makeTestResult({
       name: ordinaryTestName,

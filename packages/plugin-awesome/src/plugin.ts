@@ -1,4 +1,4 @@
-import { type EnvironmentItem, getWorstStatus } from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic, getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -9,13 +9,13 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { generateAllCharts } from "./charts.js";
+import { filterEnv } from "./environments.js";
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateEnvirontmentsList,
   generateHistoryDataPoints,
   generateNav,
-  generatePieChart,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -33,18 +33,34 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [] } = this.options ?? {};
+    const { singleFile, groupBy = [], filter } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
+    const allTrs = await store.allTestResults({ includeHidden: true });
+    const statistics = await store.testsStatistic(filter);
+    const environments = await store.allEnvironments();
+    const envStatistics = new Map<string, Statistic>();
+    const allTestEnvGroups = await store.allTestEnvGroups();
+    const allHistoryDataPoints = await store.allHistoryDataPoints();
 
-    await generateStatistic(this.#writer!, store, this.options.filter);
-    await generatePieChart(this.#writer!, store, this.options.filter);
-    await generateAllCharts(this.#writer!, store, this.options, context);
+    for (const env of environments) {
+      envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
+    }
 
-    const convertedTrs = await generateTestResults(this.#writer!, store, this.options.filter);
+    await generateStatistic(this.#writer!, {
+      stats: statistics,
+      statsByEnv: envStatistics,
+      envs: environments,
+    });
+    await generateAllCharts(this.#writer!, this.options, context, {
+      trs: allTrs,
+      statistic: statistics,
+      history: allHistoryDataPoints,
+    });
+
+    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
-
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
@@ -53,12 +69,10 @@ export class AwesomePlugin implements Plugin {
     await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs);
     await generateNav(this.#writer!, convertedTrs, "nav.json");
-    await generateTestEnvGroups(this.#writer!, store);
+    await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     for (const reportEnvironment of reportEnvironments) {
-      const envTrs = await store.testResultsByEnvironment(reportEnvironment);
-      const envTrsIds = envTrs.map(({ id }) => id);
-      const envConvertedTrs = convertedTrs.filter(({ id }) => envTrsIds.includes(id));
+      const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
       await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs);
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));

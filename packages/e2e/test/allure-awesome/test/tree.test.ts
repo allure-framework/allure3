@@ -24,58 +24,62 @@ test.afterAll(async () => {
 
 test.describe("commons", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        knownIssuesPath: undefined,
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+          },
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+          {
+            name: "2 sample broken test",
+            fullName: "sample.js#2 sample broken test",
+            status: Status.BROKEN,
+            stage: Stage.FINISHED,
+            start: 10000,
+            statusDetails: {
+              message: "An unexpected error",
+              trace: "broken test trace",
+            },
+          },
+          {
+            name: "3 sample skipped test",
+            fullName: "sample.js#3 sample skipped test",
+            start: 15000,
+            status: Status.SKIPPED,
+          },
+          {
+            name: "4 sample unknown test",
+            fullName: "sample.js#4 sample unknown test",
+            status: undefined,
+            start: 20000,
+            stage: Stage.PENDING,
+          },
+        ],
+      },
+      {
         groupBy: ["parentSuite", "suite", "subSuite"],
       },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-        {
-          name: "2 sample broken test",
-          fullName: "sample.js#2 sample broken test",
-          status: Status.BROKEN,
-          stage: Stage.FINISHED,
-          start: 10000,
-          statusDetails: {
-            message: "An unexpected error",
-            trace: "broken test trace",
-          },
-        },
-        {
-          name: "3 sample skipped test",
-          fullName: "sample.js#3 sample skipped test",
-          start: 15000,
-          status: Status.SKIPPED,
-        },
-        {
-          name: "4 sample unknown test",
-          fullName: "sample.js#4 sample unknown test",
-          status: undefined,
-          start: 20000,
-          stage: Stage.PENDING,
-        },
-      ],
-    });
+    );
   });
 
   test("all types of tests are displayed", async () => {
@@ -166,7 +170,6 @@ test.describe("SearchBox component with debounce", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: "",
-          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         history: [],
         testResults: [
@@ -215,7 +218,6 @@ test.describe("suites", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
-          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -276,41 +278,45 @@ test.describe("suites", () => {
   });
 
   test("should not display groups when test results don't have related label", async ({ page }) => {
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        knownIssuesPath: undefined,
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            labels: [
+              {
+                name: "suite",
+                value: "foo",
+              },
+              { name: "subSuite", value: "bar" },
+            ],
+          },
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+        ],
+      },
+      {
         groupBy: ["parentSuite", "suite", "subSuite"],
       },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [
-            {
-              name: "suite",
-              value: "foo",
-            },
-            { name: "subSuite", value: "bar" },
-          ],
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-      ],
-    });
+    );
 
     await page.goto(bootstrap.url);
 
@@ -343,7 +349,6 @@ test.describe("suites", () => {
           defaultLabels: {
             parentSuite: "Assign me please!",
           },
-          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -409,7 +414,6 @@ test.describe("features", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
-          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {
@@ -459,7 +463,6 @@ test.describe("stories", () => {
           name: "Sample allure report",
           appendHistory: false,
           knownIssuesPath: undefined,
-          groupBy: ["parentSuite", "suite", "subSuite"],
         },
         testResults: [
           {

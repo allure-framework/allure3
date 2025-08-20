@@ -72,12 +72,12 @@ export const validateConfig = (config: Config) => {
     "output",
     "historyPath",
     "knownIssuesPath",
-    "qualityGate",
     "plugins",
     "defaultLabels",
     "variables",
     "environments",
     "appendHistory",
+    "qualityGate",
     "allureService",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
