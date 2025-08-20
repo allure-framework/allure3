@@ -63,7 +63,7 @@ export class QualityGateCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? processCwd());
-    const resultsDir = this.resultsDir ?? "./**/allure-results";
+    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath,

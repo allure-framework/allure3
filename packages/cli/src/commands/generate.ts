@@ -46,7 +46,7 @@ export class GenerateCommand extends Command {
 
   async execute() {
     const cwd = this.cwd ?? process.cwd();
-    const resultsDir = this.resultsDir ?? "./**/allure-results";
+    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",

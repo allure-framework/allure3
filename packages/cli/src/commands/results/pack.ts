@@ -60,7 +60,7 @@ export class ResultsPackCommand extends Command {
 
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
-    const resultsDir = this.resultsDir ?? "./**/allure-results";
+    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const archiveName = this.name ?? "allure-results.zip";
     const resultsDirectories = new Set<string>();
     const resultsFiles = new Set<string>();

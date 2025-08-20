@@ -144,9 +144,9 @@ const runTests = async (params: {
   const afterProcess = Date.now();
 
   if (code !== null) {
-    console.log(`process finished with code ${code} (${afterProcess - beforeProcess})ms`);
+    console.log(`process finished with code ${code} (${afterProcess - beforeProcess}ms)`);
   } else {
-    console.log(`process terminated (${afterProcess - beforeProcess})ms`);
+    console.log(`process terminated (${afterProcess - beforeProcess}ms)`);
   }
 
   await allureResultsWatch.abort();
