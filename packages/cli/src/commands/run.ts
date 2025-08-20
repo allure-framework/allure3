@@ -5,7 +5,7 @@ import {
   readConfig,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { KnownTestFailure, createTestPlan } from "@allurereport/core-api";
+import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
