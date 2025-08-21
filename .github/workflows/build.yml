@@ -1,5 +1,8 @@
 name: Build project
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -7,7 +10,22 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Lint Project
+        run: yarn eslint
+
   test:
+    needs: lint
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -35,12 +53,54 @@ jobs:
       run: yarn build
     - name: Test Project
       run: yarn test
-    - name: Lint Project
-      run: yarn eslint
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Pack test results
+      run: yarn allure results pack --name allure-results-${{ matrix.os }}.zip "**/out/allure-results"
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./out/allure-report
-        publish_branch: gh-pages
+        name: allure-results-${{ matrix.os }}
+        path: ./allure-results-${{ matrix.os }}.zip
+
+  report:
+    needs: test
+    name: Build report
+    runs-on: ubuntu-latest
+    env:
+      ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
+      ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Build project
+        run: yarn build
+      - name: Download allure results from Ubuntu
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-ubuntu-latest
+          path: ./
+      - name: Download allure results from macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-macos-latest
+          path: ./
+      - name: Download allure results from Windows
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-windows-latest
+          path: ./
+      - name: Unpack test results
+        run: yarn allure results unpack --output ./allure-results allure-results-macos-latest.zip allure-results-ubuntu-latest.zip allure-results-windows-latest.zip
+      - name: Generate report
+        run: yarn allure generate --config=./allurerc.mjs --output=./allure-report ./allure-results
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          publish_branch: gh-pages
