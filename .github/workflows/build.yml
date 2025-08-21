@@ -59,7 +59,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: allure-results-${{ matrix.os }}
-        path: ./allure-results.zip
+        path: ./allure-results-${{ matrix.os }}.zip
 
   report:
     needs: test

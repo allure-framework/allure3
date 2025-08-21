@@ -24,14 +24,14 @@ const config = {
   },
   variables: {},
   environments: {
-    chromium: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "chromium"),
+    windows: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Windows"),
     },
-    firefox: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "firefox"),
+    macos: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "macOS"),
     },
-    safari: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "env" && value === "webkit"),
+    linux: {
+      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Linux"),
     },
   },
 };

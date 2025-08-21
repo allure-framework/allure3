@@ -128,6 +128,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     appendHistory,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
+    defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
     allureService: config.allureService,
   };

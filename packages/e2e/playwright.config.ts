@@ -1,4 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
+import { platform } from "node:os";
+
+const getOsLabel = () => {
+  switch (platform()) {
+    case "win32":
+      return "Windows";
+    case "darwin":
+      return "macOS";
+    case "linux":
+      return "Linux";
+    default:
+      return platform();
+  }
+};
 
 export default defineConfig({
   testDir: "./test",
@@ -22,7 +36,10 @@ export default defineConfig({
       "allure-playwright",
       {
         resultsDir: "./out/allure-results",
-        globalLabels: [{ name: "module", value: "e2e" }],
+        globalLabels: [
+          { name: "module", value: "e2e" },
+          { name: "os", value: getOsLabel() },
+        ],
         links: {
           issue: {
             urlTemplate: "https://github.com/allure-framework/allure3/issues/%s",
