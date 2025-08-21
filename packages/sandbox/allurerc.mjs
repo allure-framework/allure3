@@ -102,6 +102,14 @@ export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
   historyPath: "./history.jsonl",
+  qualityGate: {
+    rules: [
+      {
+        maxFailures: 5,
+        fastFail: true,
+      },
+    ],
+  },
   plugins: {
     allure2: {
       options: {
@@ -145,8 +153,8 @@ export default defineConfig({
       },
     },
   },
-  allureService: {
-    url: "http://localhost:5173",
-    project: "sandbox",
-  },
+  // allureService: {
+  //   url: "http://localhost:5173",
+  //   project: "sandbox",
+  // },
 });

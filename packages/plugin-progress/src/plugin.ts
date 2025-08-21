@@ -1,4 +1,4 @@
-import type { AllureStore, Plugin, PluginContext, Realtime } from "@allurereport/plugin-api";
+import type { AllureStore, Plugin, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import * as process from "node:process";
 import type { WriteStream } from "node:tty";
 import { green, red, yellow } from "yoctocolors";
@@ -14,7 +14,7 @@ export class ProgressPlugin implements Plugin {
     }
   }
 
-  start = async (context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void> => {
+  start = async (context: PluginContext, store: AllureStore, realtime: RealtimeSubscriber): Promise<void> => {
     realtime.onTestResults(async () => {
       await this.#render(store);
     });

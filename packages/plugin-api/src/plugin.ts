@@ -1,4 +1,5 @@
-import type { CiDescriptor, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+import type { CiDescriptor, Statistic, TestError, TestResult, TestStatus } from "@allurereport/core-api";
+import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -13,7 +14,9 @@ export interface ReportFiles {
 
 export interface PluginState {
   set(key: string, value: any): Promise<void>;
+
   get<T>(key: string): Promise<T>;
+
   unset(key: string): Promise<void>;
 }
 
@@ -53,15 +56,36 @@ export interface BatchOptions {
   maxTimeout?: number;
 }
 
-export interface Realtime {
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): void;
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): void;
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): void;
+export interface RealtimeSubscriber {
+  onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
+
+  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+
+  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+
+  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+
+  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+}
+
+export interface RealtimeEventsDispatcher {
+  sendGlobalError(error: TestError): void;
+
+  sendQualityGateResult(payload: QualityGateValidationResult[]): void;
+
+  sendTestResult(trId: string): void;
+
+  sendTestFixtureResult(tfrId: string): void;
+
+  sendAttachmentFile(afId: string): void;
 }
 
 export interface Plugin {
-  start?(context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void>;
+  start?(context: PluginContext, store: AllureStore, realtime: RealtimeSubscriber): Promise<void>;
+
   update?(context: PluginContext, store: AllureStore): Promise<void>;
+
   done?(context: PluginContext, store: AllureStore): Promise<void>;
+
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary>;
 }

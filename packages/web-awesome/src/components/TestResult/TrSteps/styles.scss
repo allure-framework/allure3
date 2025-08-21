@@ -92,7 +92,7 @@
   align-items: center;
   gap: 4px;
   color: var(--on-icon-secondary);
-  min-width: 52px;
+  min-width: 56px;
   justify-content: flex-end;
 }
 
@@ -252,4 +252,13 @@
   &.status-unknown {
     color: var(--bg-support-skat);
   }
+}
+
+.failed-steps {
+  display: flex;
+  gap: 8px;
+}
+
+:global(.code-toolbar .toolbar) {
+  display: none;
 }

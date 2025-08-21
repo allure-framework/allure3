@@ -6,6 +6,7 @@ import type {
   PieSlice,
   SeverityLevel,
   Statistic,
+  TestResult,
   TestStatus,
   TrendPoint,
   TrendPointId,
@@ -16,7 +17,6 @@ import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
-import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -324,9 +324,7 @@ export const generatePieChart = (
   return getPieChartData(statistic, options);
 };
 
-export const generateComingSoonChart = (
-  options: ComingSoonChartOptions,
-): ComingSoonChartData => {
+export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {
     type: options.type,
     title: options.title,
@@ -335,33 +333,31 @@ export const generateComingSoonChart = (
 
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
-  getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
+  getCurrentData: (trs: TestResult[], stats: Statistic) => TrendStats<T>;
   // Get data from historical point
   getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
   // List of all possible values for the type
   getAllValues: () => readonly T[];
 }
 
-export const generateTrendChartGeneric = async <T extends TrendDataType>(
+export const generateTrendChartGeneric = <T extends TrendDataType>(
   options: TrendChartOptions,
-  store: AllureStore,
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
   context: PluginContext,
   dataAccessor: TrendDataAccessor<T>,
-): Promise<GenericTrendChartData<T> | undefined> => {
+): GenericTrendChartData<T> | undefined => {
+  const { trs = [], statistic, history } = stores;
   const { limit } = options;
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
-
-  // Get all required data
-  const [historyDataPoints, currentData] = await Promise.all([
-    store.allHistoryDataPoints(),
-    dataAccessor.getCurrentData(store),
-  ]);
-
+  const currentData = dataAccessor.getCurrentData(trs, statistic);
   // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
-
+  const limitedHistoryPoints = historyLimit !== undefined ? history.slice(-historyLimit) : history;
   // Convert history points to statistics
-  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyDataPoints.length - historyLimit) : 0;
+  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, history.length - historyLimit) : 0;
   const convertedHistoryPoints = limitedHistoryPoints.map((point: HistoryDataPoint, index: number) => {
     const originalIndex = firstOriginalIndex + index;
 
@@ -371,18 +367,15 @@ export const generateTrendChartGeneric = async <T extends TrendDataType>(
       statistic: dataAccessor.getHistoricalData(point),
     };
   });
-
   const allValues = dataAccessor.getAllValues();
-
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentData, allValues),
     context.reportName,
-    historyDataPoints.length + 1, // Always use the full history length for current point order
+    history.length + 1, // Always use the full history length for current point order
     allValues,
     options,
   );
-
   // Process historical data
   const historicalTrendData = convertedHistoryPoints.reduce(
     (
@@ -416,17 +409,21 @@ export const generateTrendChartGeneric = async <T extends TrendDataType>(
   return mergeTrendDataGeneric(historicalTrendData, currentTrendData, allValues);
 };
 
-export const generateTrendChart = async (
+export const generateTrendChart = (
   options: TrendChartOptions,
-  store: AllureStore,
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
   context: PluginContext,
-): Promise<TrendChartData | undefined> => {
+): TrendChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, stores, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, stores, context, severityTrendDataAccessor);
   }
 };

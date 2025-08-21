@@ -1,12 +1,11 @@
-import { ChartType } from "@allurereport/core-api";
+import { ChartType, type HistoryDataPoint, type Statistic, type TestResult } from "@allurereport/core-api";
 import {
-  type AllureStore,
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
-  generateComingSoonChart,
 } from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
 import type { AwesomeOptions } from "./model.js";
@@ -14,8 +13,12 @@ import type { AwesomeDataWriter } from "./writer.js";
 
 export const generateCharts = async (
   options: AwesomeOptions,
-  store: AllureStore,
   context: PluginContext,
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
 ): Promise<GeneratedChartsData | undefined> => {
   const { charts } = options;
 
@@ -23,38 +26,41 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const statistic = await store.testsStatistic();
+  return charts.reduce(
+    (acc, chartOptions) => {
+      const chartId = randomUUID();
 
-  const chartsData: GeneratedChartsData = {};
+      let chart: GeneratedChartData | undefined;
 
-  for (const chartOptions of charts) {
-    const chartId = randomUUID();
+      if (chartOptions.type === ChartType.Trend) {
+        chart = generateTrendChart(chartOptions, stores, context);
+      } else if (chartOptions.type === ChartType.Pie) {
+        chart = generatePieChart(chartOptions, stores);
+      } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
+        chart = generateComingSoonChart(chartOptions);
+      }
 
-    let chart: GeneratedChartData | undefined;
+      if (chart) {
+        acc[chartId] = chart;
+      }
 
-    if (chartOptions.type === ChartType.Trend) {
-      chart = await generateTrendChart(chartOptions, store, context);
-    } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, { statistic });
-    } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
-      chart = generateComingSoonChart(chartOptions);
-    }
-
-    if (chart) {
-      chartsData[chartId] = chart;
-    }
-  }
-
-  return chartsData;
+      return acc;
+    },
+    {} as Record<string, GeneratedChartData>,
+  );
 };
 
 export const generateAllCharts = async (
   writer: AwesomeDataWriter,
-  store: AllureStore,
   options: AwesomeOptions,
   context: PluginContext,
+  stores: {
+    trs: TestResult[];
+    statistic: Statistic;
+    history: HistoryDataPoint[];
+  },
 ): Promise<void> => {
-  const charts = await generateCharts(options, store, context);
+  const charts = await generateCharts(options, context, stores);
 
   if (charts && Object.keys(charts).length > 0) {
     await writer.writeWidget("charts.json", charts);

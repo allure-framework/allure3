@@ -90,8 +90,6 @@ test.beforeEach(async ({ page, browserName }) => {
     reportConfig: {
       name: "Sample allure report",
       appendHistory: false,
-      history: undefined,
-      historyPath: undefined,
       knownIssuesPath: undefined,
       variables: {
         env_variable: "unknown",

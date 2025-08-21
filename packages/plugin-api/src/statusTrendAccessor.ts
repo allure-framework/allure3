@@ -1,17 +1,15 @@
-import type { HistoryDataPoint, TestStatus } from "@allurereport/core-api";
+import type { HistoryDataPoint, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
 import type { TrendDataAccessor, TrendStats } from "./charts.js";
 import { createEmptyStats } from "./charts.js";
-import type { AllureStore } from "./store.js";
 
 type StatusTrendStats = TrendStats<TestStatus>;
 
 export const statusTrendDataAccessor: TrendDataAccessor<TestStatus> = {
-  getCurrentData: async (store: AllureStore): Promise<StatusTrendStats> => {
-    const statistic = await store.testsStatistic();
+  getCurrentData: (trs: TestResult[], stats: Statistic): StatusTrendStats => {
     return {
       ...createEmptyStats(statusesList),
-      ...statistic,
+      ...stats,
     };
   },
   getHistoricalData: (historyPoint: HistoryDataPoint): StatusTrendStats => {
