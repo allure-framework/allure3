@@ -10,6 +10,7 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
+  BarChartType,
 } from "@allurereport/core-api";
 
 export interface Point {
@@ -47,7 +48,7 @@ export interface ResponsePieChartData {
 
 export interface ResponseBarChartData {
   type: ChartType.Bar;
-  dataType: ChartDataType;
+  dataType: BarChartType;
   mode: ChartMode;
   title?: string;
   data: BarGroup<string, string>[];
