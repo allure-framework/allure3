@@ -37,7 +37,7 @@ const config = {
           },
           {
             type: "bar",
-            dataType: "severity",
+            dataType: "statusBySeverity",
             title: "Test result severities"
           },
           {
@@ -50,7 +50,8 @@ const config = {
             title: "Status dynamics"
           },
           {
-            type: "bar", // OR it might be trend
+            type: "bar",
+            dataType: "statusTrend",
             title: "Status change dynamics"
           },
           {
