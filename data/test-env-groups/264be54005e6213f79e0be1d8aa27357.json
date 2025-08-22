@@ -1,0 +1,1 @@
+{"id":"264be54005e6213f79e0be1d8aa27357","fullName":"test/utils.test.ts#utils hasTestFailedSteps returns false for test without failed steps","name":"returns false for test without failed steps","status":"passed","testResultsByEnv":{"linux":"3c6f0517a0e86c0ef84100b789e07c9e","macos":"6ff809cf10d2247186ba81a171efb6c1","windows":"6aa6a54f154cacd7e40b7582c4b79d94"}}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite>
+    <testcase>
+        <error>foo<message>
+                <foo>bar</foo>
+            </message>
+        </error>
+    </testcase>
+</testsuite>

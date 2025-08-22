@@ -1,0 +1,1 @@
+{"id":"e1d11fa06179e99f8e42f7f0466c89f9","fullName":"test/allure1.test.ts#allure1 reader parameters should ignore an ill-formed name","name":"should ignore an ill-formed name","status":"passed","testResultsByEnv":{"linux":"bb721b10b6f8063ff9f9d20cb17832c1","macos":"8217004ecf6d0cdf9a6ca4baf2071278","windows":"b9068d011cd6035dfa696f56b082632e"}}

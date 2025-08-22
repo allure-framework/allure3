@@ -1,0 +1,1 @@
+{"id":"bf6bbbb5ee7995945b2f1937762693e7","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool should apply stderr encoding","name":"should apply stderr encoding","status":"passed","testResultsByEnv":{"windows":"87ad1e83f5dacaff8040b1447f04a36e","macos":"5dfa4e59bce5fbb29aaef3fe7c2269ca","linux":"42d7a4baf9a0f491bcfc0bdd3e4cd2be"}}

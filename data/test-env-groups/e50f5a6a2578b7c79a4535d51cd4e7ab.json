@@ -1,0 +1,1 @@
+{"id":"e50f5a6a2578b7c79a4535d51cd4e7ab","fullName":"test/detectors/circle.test.ts#circle detected should be false when CIRCLECI is not set","name":"should be false when CIRCLECI is not set","status":"passed","testResultsByEnv":{"linux":"2c5f7344bf51308adf908368d2f31159","windows":"8afa4e9e5ede710742780d1642addfc2","macos":"68c70509af76bbef5256f5c44a133cbc"}}

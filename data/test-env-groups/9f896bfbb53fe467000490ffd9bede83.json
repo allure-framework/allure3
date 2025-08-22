@@ -1,0 +1,1 @@
+{"id":"9f896bfbb53fe467000490ffd9bede83","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool should iterate empty output","name":"should iterate empty output","status":"passed","testResultsByEnv":{"windows":"09c18f8625bd10ff2523f3f983521128","linux":"6087cc8d255f52baf2c92c5d4a4b3e23","macos":"d149561dd6e16fcc3d07968bccce66e1"}}

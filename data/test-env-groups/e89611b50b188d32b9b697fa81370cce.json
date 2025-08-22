@@ -1,0 +1,1 @@
+{"id":"e89611b50b188d32b9b697fa81370cce","fullName":"test/config.test.ts#validateConfig should return a positive result if the config is valid","name":"should return a positive result if the config is valid","status":"passed","testResultsByEnv":{"macos":"9b4cc080652945d3ef4dbaecff53af80","linux":"2f4c8aee105bee57b79f6e2f016b2311","windows":"70925b176846c7ee02b540343b2ab8ef"}}

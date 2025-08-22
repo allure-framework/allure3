@@ -1,0 +1,1 @@
+{"id":"de8dff66fceeea31aafee1d70d9aaa4a","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should parse the correct arn values","name":"should parse the correct arn values","status":"passed","testResultsByEnv":{"windows":"b94b7481f42288f36adc48fa3bbf61b0","macos":"2e22b30a49f85ea0dc38016ad749fec1","linux":"0df20ba3ab3c0130b9c4c87d880cf807"}}

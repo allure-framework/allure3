@@ -1,0 +1,1 @@
+{"name":"Allure 3 Report","stats":{"total":3602,"passed":3575,"retries":114,"unknown":12,"skipped":15},"status":"passed","duration":1198007,"createdAt":1755860986332,"plugin":"Awesome","newTests":[],"flakyTests":[],"retryTests":[],"pullRequestHref":"","jobHref":"https://github.com/allure-framework/allure3/actions/runs/17152992404"}

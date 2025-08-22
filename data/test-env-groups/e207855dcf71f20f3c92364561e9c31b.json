@@ -1,0 +1,1 @@
+{"id":"e207855dcf71f20f3c92364561e9c31b","fullName":"test/utils/time.test.ts#formatDuration should show 0h with days instead of milliseconds","name":"should show 0h with days instead of milliseconds","status":"passed","testResultsByEnv":{"macos":"e7b5e92ec1be15ada87798f42a9aafdd","windows":"b7dc5ed1db4308c38dd493934683f1b7","linux":"b47439a9976ed9a20b6d0d160c55c31a"}}

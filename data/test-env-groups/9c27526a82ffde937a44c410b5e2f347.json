@@ -1,0 +1,1 @@
+{"id":"9c27526a82ffde937a44c410b5e2f347","fullName":"test/allure1.test.ts#allure1 reader timings should ignore ill-formed start and skip duration","name":"should ignore ill-formed start and skip duration","status":"passed","testResultsByEnv":{"windows":"0e792388b67470f1112c90456d047016","linux":"cbe81fb2966e3503481f3ae7e7cb2838","macos":"7a75397d23bc76c272b56b252f57c2c1"}}

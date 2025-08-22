@@ -1,0 +1,25 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;skipped-test",
+        "keyword": "Scenario",
+        "name": "Skipped test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "skip",
+            "result": {
+              "status": "skipped"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

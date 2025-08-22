@@ -1,0 +1,1 @@
+{"id":"0981accf403e3b775f5871ecc1985f2c","fullName":"test/utils.test.ts#utils stringifyTestResultTitle returns title with status, name and duration","name":"returns title with status, name and duration","status":"passed","testResultsByEnv":{"windows":"9ca7bd825e7914564b75fecbca0fc6de","macos":"f02c739a1c1a32615bc114ef75b3a78a","linux":"7a9856a85010b914369f314404bed38e"}}

@@ -1,0 +1,1 @@
+{"id":"de3362c0a8e4f49c1061a7e01dce0939","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing nested directory","name":"should watch not existing nested directory","status":"passed","testResultsByEnv":{"linux":"2c337bf45cda0fc627c04f5b8930d0d4","macos":"877c7b4fee88687b0ef8394ee5e3f791","windows":"ce2c79ce3be1be0788bcd76572508065"}}

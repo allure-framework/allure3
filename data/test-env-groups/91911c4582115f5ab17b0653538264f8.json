@@ -1,0 +1,1 @@
+{"id":"91911c4582115f5ab17b0653538264f8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should watch not existing directory","name":"should watch not existing directory","status":"passed","testResultsByEnv":{"macos":"8e133168b23e5268c1f734d56b4c21c0","windows":"944f45f78fdc0c38cadd23417fe6d5bc","linux":"61d06d7f3b5a2efe2516a7b08ae36247"}}

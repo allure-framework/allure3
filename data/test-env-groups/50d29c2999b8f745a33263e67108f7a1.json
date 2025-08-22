@@ -1,0 +1,1 @@
+{"id":"50d29c2999b8f745a33263e67108f7a1","fullName":"test/cucumberjson.test.ts#cucumberjson reader cucumberjs step arguments docstrings should parse multiple arguments","name":"should parse multiple arguments","status":"passed","testResultsByEnv":{"macos":"353a6024ddd5a8859d1a3969eb264c24","windows":"025b42df462c83a077f865a676f002d0","linux":"c1d82c4265983b37d66ba5a52253f238"}}

@@ -1,0 +1,1 @@
+{"id":"3bac113fbc8cc5be4545294cb230f210","fullName":"test/allure1.test.ts#allure1 reader steps attachments should ignore an ill-formed attachment element","name":"should ignore an ill-formed attachment element","status":"passed","testResultsByEnv":{"macos":"61b0674480a637c9368e6952ad16e1cb","linux":"1a2bb97c8d396eaa536bba5ec01a1b61","windows":"ee3da8cc2557dcb868fc5ce2e5318d88"}}

@@ -1,0 +1,1 @@
+{"id":"e4fded77447f8aa93b150bbb7f14064e","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a canceled test case","name":"should parse a canceled test case","status":"passed","testResultsByEnv":{"windows":"1ea30c73d7a4599da5f7a288afd8c8bd","linux":"2738b9b09e7cf1235f96604048108ec5","macos":"fb807538dce47e8923ab2d2db063564d"}}

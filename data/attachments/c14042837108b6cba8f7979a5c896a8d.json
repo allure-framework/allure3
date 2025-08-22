@@ -1,0 +1,28 @@
+[
+  {
+    "keyword": "Feature",
+    "name": "foo",
+    "tags": [],
+    "location": "features/foo.feature:1",
+    "status": "passed",
+    "elements": [
+      {
+        "type": "scenario",
+        "keyword": "Scenario",
+        "name": "Bar",
+        "tags": [],
+        "location": "features/foo.feature:2",
+        "steps": [
+          {
+            "keyword": "Then",
+            "step_type": "then",
+            "name": "pass",
+            "location": "features/foo.feature:3",
+            "result": { "status": "passed" }
+          }
+        ],
+        "status": "failed"
+      }
+    ]
+  }
+]

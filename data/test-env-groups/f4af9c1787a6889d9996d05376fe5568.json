@@ -1,0 +1,1 @@
+{"id":"f4af9c1787a6889d9996d05376fe5568","fullName":"allure-awesome/test/environments.test.ts:215:3","name":"should render several environments for test result","status":"passed","testResultsByEnv":{"macos":"48568b5894a8be62e4bb0d149d4dd5ce","windows":"e878ee9fb7a0d9626dbdcc85b6b85c8f","linux":"fb673ec1bfe73966664de21db176c29c"}}

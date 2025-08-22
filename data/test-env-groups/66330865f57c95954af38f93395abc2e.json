@@ -1,0 +1,1 @@
+{"id":"66330865f57c95954af38f93395abc2e","fullName":"test/detectors/circle.test.ts#circle jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"macos":"ea86a6128cc3258325c90345ff90122f","windows":"d514b8796b5e095b9a4340440fe35506","linux":"d1ed848faa510f15d5b6f6e6d941906e"}}

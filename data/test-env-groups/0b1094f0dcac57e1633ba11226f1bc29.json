@@ -1,0 +1,1 @@
+{"id":"0b1094f0dcac57e1633ba11226f1bc29","fullName":"test/config.test.ts#resolveConfig should return provided known issues path","name":"should return provided known issues path","status":"passed","testResultsByEnv":{"linux":"3009775afd07b4800d797f6955de4f15","macos":"442ddc49c026e379065510b600f58d8c","windows":"095c98129b80b76597a8adcb5848c153"}}

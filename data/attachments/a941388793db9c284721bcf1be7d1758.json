@@ -1,0 +1,31 @@
+{
+  "name": "Links test",
+  "status": "passed",
+  "links": [
+    {
+      "name": "Default link",
+      "url": "https://example.org/"
+    },
+    {
+      "url": "https://example.org/without-name"
+    },
+    {
+      "type": "issue",
+      "name": "Issue link",
+      "url": "https://example.org/issue"
+    },
+    {
+      "type": "tms",
+      "name": "Tms link",
+      "url": "https://example.org/tms"
+    },
+    {
+      "type": "custom",
+      "name": "Custom link",
+      "url": "https://example.org/custom"
+    },
+    {
+      "name": "https://example.org/name-as-url"
+    }
+  ]
+}

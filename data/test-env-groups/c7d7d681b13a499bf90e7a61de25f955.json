@@ -1,0 +1,1 @@
+{"id":"c7d7d681b13a499bf90e7a61de25f955","fullName":"test/allure1.test.ts#allure1 reader name should use a placeholder if not title or name defined","name":"should use a placeholder if not title or name defined","status":"passed","testResultsByEnv":{"windows":"a38f16bfe28098f8d727b307368b818c","macos":"dd73f574d8e409e63a0e605a7c96c20f","linux":"e4b2651ecb12ed70cc2b8d9828cfcadc"}}

@@ -1,0 +1,1 @@
+{"id":"d781056668b2e645eaa4e6df50066e14","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher doesn't call the callback when unwatched","name":"doesn't call the callback when unwatched","status":"passed","testResultsByEnv":{"linux":"e4b0923e7d31dc39f569b6e7e4de471d","windows":"ad1aa1295988aee4a700598a412d61a7","macos":"da22fa0486968541909486d0ebd7bea1"}}

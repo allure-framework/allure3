@@ -1,0 +1,1 @@
+{"id":"bb557c5769d73cdf4ae7cdf25c7b369d","fullName":"test/store/convert.test.ts#testResultRawToState should calculate historyId based on testId","name":"should calculate historyId based on testId","status":"passed","testResultsByEnv":{"macos":"988b2ef880fd4bc7f01da7940b544634","linux":"c2bcf1a616cba0dc7cabe2ec468f140a","windows":"9d064c1d905fc49306d462d0a2c0d31c"}}

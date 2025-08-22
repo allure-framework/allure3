@@ -1,0 +1,1 @@
+{"id":"45fe98887fd79e9a24a21cdffa556dc0","fullName":"allure-awesome/test/environments.test.ts:167:3","name":"should allow to switch environments using the picker in the header","status":"passed","testResultsByEnv":{"windows":"02eafdf73b30d015359e81d0261b1a44","macos":"095fc6c8f9ec9fedf6e792861c13ead0","linux":"cf777bc5001928b4b543a191e3af7997"}}

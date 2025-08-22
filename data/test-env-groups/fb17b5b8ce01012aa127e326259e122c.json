@@ -1,0 +1,1 @@
+{"id":"fb17b5b8ce01012aa127e326259e122c","fullName":"test/detectors/azure.test.ts#azure getBuildID should return the correct build ID","name":"should return the correct build ID","status":"passed","testResultsByEnv":{"linux":"8711aff9f302f91fc1ff55a272066337","macos":"e9a6555074c037a0b515ba4cd02f18c1","windows":"61b1917ad3b4afaced770411ab7e2f63"}}

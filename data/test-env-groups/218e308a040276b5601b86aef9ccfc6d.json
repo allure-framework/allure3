@@ -1,0 +1,1 @@
+{"id":"218e308a040276b5601b86aef9ccfc6d","fullName":"allure-awesome/features/transitions.test.ts:139:3","name":"should be able to filter regressed tests with using freshely regressed status filter","status":"passed","testResultsByEnv":{"windows":"cf1789921b3d5174c950d992dd12db7f","linux":"1abcd7eb90e5ab706446e56173297440","macos":"3fc7eafc79e490815521ea4ec10ed222"}}

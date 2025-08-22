@@ -1,0 +1,1 @@
+{"id":"781dfe2e3f6d929a170f30ffdc726a79","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should resubmit files after directory recreation","name":"should resubmit files after directory recreation","status":"passed","testResultsByEnv":{"windows":"b4bd128073c55e598bd7245e961a12ac","macos":"5a80a9a0e7f823fdbe2464e2785ef028","linux":"25d4bba7e1e574f9eecc0b6b4ac6399f"}}

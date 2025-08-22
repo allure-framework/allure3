@@ -1,0 +1,1 @@
+{"id":"c2ae6557cb65e03494066c2bb0c671e0","fullName":"test/store/store.test.ts#environments should return all test env groups","name":"should return all test env groups","status":"passed","testResultsByEnv":{"linux":"953c1109e0e4002ee81a611084fb6c4c","windows":"9885bcb570ceebc82e3e4c5364e077ab","macos":"3190c156432568352518065f9c0ecdbb"}}

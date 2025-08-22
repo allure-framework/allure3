@@ -1,0 +1,1 @@
+{"id":"fb1378190b74b47c2236f57ef0802a20","fullName":"test/junitxml.test.ts#junit xml reader statuses skipped should parse an empty element","name":"should parse an empty element","status":"passed","testResultsByEnv":{"macos":"f0628c7a4dbce188924beb19fa2d418a","windows":"a8df27d498c77c466251fb07cca1688e","linux":"e8d5af04620f751845d92d1cf18ac9ed"}}

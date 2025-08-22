@@ -1,0 +1,1 @@
+{"id":"ab15fab75408879932415de6a29d37a2","fullName":"test/commands/open.test.ts#open command should serve report with the default options","name":"should serve report with the default options","status":"passed","testResultsByEnv":{"linux":"fc5111f9c455d6f83ec268c9340c82aa","windows":"576072ae203657eb3f34d4e734b6c85c","macos":"9e960b82b2d0d2ede5705a73fc6853e6"}}

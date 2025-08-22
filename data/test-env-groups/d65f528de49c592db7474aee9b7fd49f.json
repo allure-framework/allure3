@@ -1,0 +1,1 @@
+{"id":"d65f528de49c592db7474aee9b7fd49f","fullName":"test/junitxml.test.ts#junit xml reader labels package should add a package label to all cases","name":"should add a package label to all cases","status":"passed","testResultsByEnv":{"windows":"f7d3963c8fe99f19b80f60582a5d8cbb","linux":"579e801eb093cbe8230d44de835df03a","macos":"5f871038b78d9f38eb4a040c7c7106ff"}}

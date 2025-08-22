@@ -1,0 +1,1 @@
+{"id":"9ce322e45aeee9305415fed11dfa935a","fullName":"test/junitxml.test.ts#junit xml reader should parse sample tests with name and status","name":"should parse sample tests with name and status","status":"passed","testResultsByEnv":{"macos":"b818425d6537c9ed990a4a2ef17f7fcb","windows":"d735e8beb30dfda18a724b1e07c0761f","linux":"63f9fba9db838f382a0576e71256f1ca"}}
