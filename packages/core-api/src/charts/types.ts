@@ -16,6 +16,12 @@ export enum ChartDataType {
   Severity = "severity",
 }
 
+// Specifies which Bar chart is being generated
+export enum BarChartType {
+  StatusBySeverity = "statusBySeverity",
+  StatusTrend = "statusTrend",
+}
+
 export enum ChartMode {
   Raw = "raw",
   Percent = "percent",
