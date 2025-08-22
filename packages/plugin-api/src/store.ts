@@ -28,6 +28,7 @@ export interface AllureStore {
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   // global data
+  globalExitCode: () => Promise<number | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;

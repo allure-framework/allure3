@@ -29,6 +29,8 @@ import { logError } from "../utils/logs.js";
 
 export type TestProcessResult = {
   code: number | null;
+  stdout: string;
+  stderr: string;
   qualityGateResults: QualityGateValidationResult[];
 };
 
@@ -99,10 +101,12 @@ const runTests = async (params: {
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
-  const testProcess = runProcess(command, commandArgs, cwd, environment, silent);
+  const testProcess = runProcess(command, commandArgs, cwd, environment);
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
+  let testProcessStdout = "";
+  let testProcessStderr = "";
 
   if (withQualityGate) {
     qualityGateUnsub = allureReport.realtimeSubscriber.onTestResults(async (testResults) => {
@@ -140,6 +144,29 @@ const runTests = async (params: {
     });
   }
 
+  testProcess.stdout?.on?.("data", (data: Buffer) => {
+    const chunk = data.toString("utf8");
+
+    testProcessStdout += chunk;
+
+    if (silent) {
+      return;
+    }
+
+    console.log(chunk);
+  });
+  testProcess.stderr?.on?.("data", async (data: Buffer) => {
+    const chunk = data.toString("utf8");
+
+    testProcessStderr += chunk;
+
+    if (silent) {
+      return;
+    }
+
+    console.error(chunk);
+  });
+
   const code = await terminationOf(testProcess);
   const afterProcess = Date.now();
 
@@ -163,6 +190,8 @@ const runTests = async (params: {
 
   return {
     code,
+    stdout: testProcessStdout,
+    stderr: testProcessStderr,
     qualityGateResults,
   };
 };
@@ -213,6 +242,7 @@ export class RunCommand extends Command {
     }
 
     const before = new Date().getTime();
+
     process.on("exit", (exitCode) => {
       const after = new Date().getTime();
 
@@ -245,29 +275,31 @@ export class RunCommand extends Command {
       }
     }
 
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: false,
+      plugins: [
+        ...(config.plugins?.length
+          ? config.plugins
+          : [
+              {
+                id: "awesome",
+                enabled: true,
+                options: {},
+                plugin: new Awesome({
+                  reportName: config.name,
+                }),
+              },
+            ]),
+      ],
+    });
+    const knownIssues = await allureReport.store.allKnownIssues();
+
+    await allureReport.start();
+
+    let globalExitCode: number;
+
     try {
-      const allureReport = new AllureReport({
-        ...config,
-        realTime: false,
-        plugins: [
-          ...(config.plugins?.length
-            ? config.plugins
-            : [
-                {
-                  id: "awesome",
-                  enabled: true,
-                  options: {},
-                  plugin: new Awesome({
-                    reportName: config.name,
-                  }),
-                },
-              ]),
-        ],
-      });
-      const knownIssues = await allureReport.store.allKnownIssues();
-
-      await allureReport.start();
-
       let testProcessResult = await runTests({
         allureReport,
         knownIssues,
@@ -316,50 +348,60 @@ export class RunCommand extends Command {
         logTests(await allureReport.store.allTestResults());
       }
 
-      await allureReport.done();
+      // const { code = 0, qualityGateResults = [], stdout, stderr } = testProcessResult ?? {};
+      let qualityGateMessage = "";
+      let qualityGateResults: QualityGateValidationResult[] = testProcessResult?.qualityGateResults ?? [];
 
-      if (!withQualityGate) {
-        exit(testProcessResult?.code ?? -1);
-        return;
+      if (withQualityGate && !qualityGateResults?.length) {
+        const trs = await allureReport.store.allTestResults({ includeHidden: false });
+        const { results } = await allureReport.validate({
+          trs,
+          knownIssues,
+        });
+
+        qualityGateResults = results;
       }
 
-      let qualityGateMessage = "";
-
-      // quality gate has been failed
-      if (testProcessResult?.qualityGateResults?.length) {
-        qualityGateMessage = stringifyQualityGateResults(testProcessResult.qualityGateResults);
+      if (qualityGateResults?.length) {
+        qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
 
         console.error(qualityGateMessage);
-        exit(1);
-        return;
       }
 
-      const trs = await allureReport.store.allTestResults({ includeHidden: false });
-      const { results } = await allureReport.validate({
-        trs,
-        knownIssues,
-      });
-
-      if (!results.length) {
-        exit(0);
-        return;
+      if (withQualityGate) {
+        globalExitCode = qualityGateResults.length > 0 ? 1 : 0;
+      } else {
+        globalExitCode = testProcessResult?.code ?? -1;
       }
 
-      allureReport.realtimeDispatcher.sendQualityGateResult(results);
-      qualityGateMessage = stringifyQualityGateResults(results);
-
-      console.error(qualityGateMessage);
-      exit(1);
+      if (testProcessResult?.stderr) {
+        allureReport.realtimeDispatcher.sendGlobalError({
+          message: "Global error?",
+          trace: testProcessResult.stderr,
+        })
+      }
     } catch (error) {
+      globalExitCode = 1;
+
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
         console.error(red(error.message));
-        exit(1);
-        return;
-      }
 
-      await logError("Failed to run tests using Allure due to unexpected error", error as Error);
-      exit(1);
+        allureReport.realtimeDispatcher.sendGlobalError({
+          message: error.message,
+        });
+      } else {
+        await logError("Failed to run tests using Allure due to unexpected error", error as Error);
+
+        allureReport.realtimeDispatcher.sendGlobalError({
+          message: (error as Error).message,
+          trace: (error as Error).stack,
+        });
+      }
     }
+
+    await allureReport.done();
+
+    exit(globalExitCode);
   }
 }

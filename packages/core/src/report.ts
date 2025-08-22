@@ -16,7 +16,7 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import { lstat, opendir, readdir, realpath, rename, rm } from "node:fs/promises";
+import { lstat, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
@@ -357,6 +357,15 @@ export class AllureReport {
         console.info(`- ${href}`);
       });
     }
+
+    if (!this.#qualityGate) {
+      return;
+    }
+
+    // TODO:
+    const qualityGateResults = await this.#store.qualityGateResults()
+
+    await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {

@@ -6,15 +6,20 @@ export const runProcess = (
   commandArgs: string[],
   cwd: string | undefined,
   environment: Record<string, string>,
-  silent?: boolean,
 ): ChildProcess => {
   return spawn(command, commandArgs, {
     env: {
+      // these variables keep ascii colors in stdout/stderr
+      FORCE_COLOR: "1",
+      CLICOLOR_FORCE: "1",
+      COLOR: "1",
+      COLORTERM: "truecolor",
+      TERM: "xterm-256color",
       ...process.env,
       ...environment,
     },
     cwd,
-    stdio: silent ? "ignore" : "inherit",
+    stdio: "pipe",
     shell: true,
   });
 };

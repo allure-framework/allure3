@@ -1,10 +1,5 @@
 import type { TestError } from "@allurereport/core-api";
-import type {
-  BatchOptions,
-  QualityGateValidationResult,
-  RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
-  RealtimeSubscriber as RealtimeSubscriberType,
-} from "@allurereport/plugin-api";
+import type { BatchOptions, QualityGateValidationResult, RealtimeEventsDispatcher as RealtimeEventsDispatcherType, RealtimeSubscriber as RealtimeSubscriberType } from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
@@ -15,14 +10,16 @@ export enum RealtimeEvents {
   AttachmentFile = "attachmentFile",
   QualityGateResults = "qualityGateResults",
   GlobalError = "globalError",
+  GlobalExitCode = "globalExitCode",
 }
 
 export interface AllureStoreEvents {
-  [RealtimeEvents.GlobalError]: [TestError];
   [RealtimeEvents.QualityGateResults]: [QualityGateValidationResult[]];
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
+  [RealtimeEvents.GlobalExitCode]: [number];
+  [RealtimeEvents.GlobalError]: [TestError];
 }
 
 interface HandlerData {
@@ -36,6 +33,10 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
+  }
+
+  sendGlobalExitCode(code: number) {
+    this.#emitter.emit(RealtimeEvents.GlobalExitCode, code);
   }
 
   sendGlobalError(error: TestError) {
@@ -65,6 +66,14 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
+  }
+
+  onGlobalExitCode(listener: (code: number) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.GlobalExitCode, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.GlobalExitCode, listener);
+    };
   }
 
   onGlobalError(listener: (error: TestError) => Promise<void>) {

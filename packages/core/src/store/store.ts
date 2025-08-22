@@ -76,9 +76,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
-  readonly #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
-  readonly #globalErrors: TestError[] = [];
 
+  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
+  #globalErrors: TestError[] = [];
+  #globalExitCode: number = 0;
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
@@ -128,6 +129,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       results.forEach((result) => {
         this.#qualityGateResultsByRules[result.rule] = result;
       });
+    });
+    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: number) => {
+      this.#globalExitCode = exitCode;
     });
     this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
       this.#globalErrors.push(error);
@@ -188,6 +192,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   // global data
+
+  async globalExitCode(): Promise<number | undefined> {
+    return this.#globalExitCode;
+  }
 
   async allGlobalErrors(): Promise<TestError[]> {
     return this.#globalErrors;

@@ -57,6 +57,8 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
+  onGlobalExitCode(listener: (code: number) => Promise<void>): () => void;
+
   onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
 
   onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
@@ -69,6 +71,8 @@ export interface RealtimeSubscriber {
 }
 
 export interface RealtimeEventsDispatcher {
+  sendGlobalExitCode(code: number): void;
+
   sendGlobalError(error: TestError): void;
 
   sendQualityGateResult(payload: QualityGateValidationResult[]): void;
