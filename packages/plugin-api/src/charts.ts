@@ -290,6 +290,17 @@ export const normalizeStatistic = <T extends string>(
   }, {} as Record<T, number>);
 };
 
+export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], limit: number): HistoryDataPoint[] => {
+  if (limit <= 0 || historyDataPoints.length === 0) {
+    return [];
+  }
+
+  const clampedLimit = Math.max(0, Math.floor(limit));
+  const limitedHistoryPoints = historyDataPoints.slice(0, clampedLimit);
+
+  return limitedHistoryPoints.sort((a, b) => a.timestamp - b.timestamp);
+};
+
 /**
  * Merges two trend data sets into one.
  * @param trendData - Primary trend data.
@@ -361,22 +372,17 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   store: AllureStore,
   dataAccessor: BarDataAccessor<P, T>,
 ): Promise<BarChartData | undefined> => {
-  const { type, dataType, title, limit, mode = ChartMode.Raw } = options;
-
-  // TODO: Add history limitation function and its usage for both trend and bar charts
-  const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
-
-  const historyDataPoints = await store.allHistoryDataPoints();
+  const { type, dataType, title, limit = DEFAULT_CHART_HISTORY_LIMIT, mode = ChartMode.Raw } = options;
 
   // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
+  const historyDataPoints = await store.allHistoryDataPoints();
+  const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1);
 
-  const currentData = await dataAccessor.getItems(store, limitedHistoryPoints);
-
+  const items = await dataAccessor.getItems(store, limitedHistoryPoints);
   // Apply mode transformation if needed
-  let processedData = currentData;
+  let processedData = items;
   if (mode === ChartMode.Percent) {
-    processedData = currentData.map((group) => {
+    processedData = items.map((group) => {
       const { groupId, ...values } = group;
 
       const total = Object.values<number>(values).reduce((sum, value) => sum + value, 0);
