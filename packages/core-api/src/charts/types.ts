@@ -20,7 +20,7 @@ export enum ChartDataType {
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusTrend = "statusTrend",
-  TestStatusesDiffTrend = "testStatusesDiffTrend",
+  StatusChangeTrend = "statusChangeTrend",
 }
 
 export enum ChartMode {
@@ -79,3 +79,6 @@ export enum BarGroupMode {
   Grouped = "grouped",
   Stacked = "stacked",
 }
+
+export type NewKey<T extends string> = `new${Capitalize<T>}`;
+export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;

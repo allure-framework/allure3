@@ -55,7 +55,8 @@ const config = {
             title: "Status change dynamics"
           },
           {
-            type: "bar", // OR it might be trend
+            type: "bar",
+            dataType: "statusChangeTrend",
             title: "Test base growth dynamics"
           },
           {
