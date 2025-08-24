@@ -20,7 +20,7 @@ import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
-import { testStatusesDiffTrendDataAccessor } from "./testStatusesDiffTrendAccessor.js";
+import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
 import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
@@ -366,7 +366,8 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   // Apply limit to history points if specified
   const historyDataPoints = await store.allHistoryDataPoints();
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1);
-  const sortedHistoryPoints = sortHistoryDataPoints(limitedHistoryPoints);
+
+  const sortedHistoryPoints = sortHistoryDataPoints(limitedHistoryPoints, "asc");
 
   const items = await dataAccessor.getItems(store, sortedHistoryPoints);
   // Apply mode transformation if needed
@@ -519,7 +520,7 @@ export const generateBarChart = async (
     return generateBarChartGeneric(newOptions, store, statusBySeverityBarDataAccessor);
   } else if (dataType === BarChartType.StatusTrend) {
     return generateBarChartGeneric(newOptions, store, statusTrendBarAccessor);
-  } else if (dataType === BarChartType.TestStatusesDiffTrend) {
-    return generateBarChartGeneric(newOptions, store, testStatusesDiffTrendDataAccessor);
+  } else if (dataType === BarChartType.StatusChangeTrend) {
+    return generateBarChartGeneric(newOptions, store, statusChangeTrendBarAccessor);
   }
 };
