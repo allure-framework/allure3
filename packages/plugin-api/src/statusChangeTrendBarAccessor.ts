@@ -1,148 +1,168 @@
-import type {
-  BarGroup,
-  HistoryDataPoint,
-  HistoryTestResult,
-  NewKey,
-  RemovedKey,
-  TestResult,
-  TestStatus,
-} from "@allurereport/core-api";
-import { BarGroupMode, capitalize } from "@allurereport/core-api";
-import { type BarDataAccessor, createEmptyStats } from "./charts.js";
+import type { BarGroup, HistoryDataPoint, NewKey, RemovedKey, TestStatus } from "@allurereport/core-api";
+import { BarGroupMode } from "@allurereport/core-api";
+import type { BarDataAccessor } from "./charts.js";
 
 // Types for new statuses trend chart data
-export type StatusChangeTrendKeys = NewKey<TestStatus> | RemovedKey<TestStatus>;
+export type Keys = Extract<TestStatus, "passed" | "failed" | "broken">;
+export type StatusChangeTrendKeys = NewKey<Keys> | RemovedKey<Keys>;
 
-const newGroupKeys = ["newPassed", "newFailed", "newBroken", "newSkipped", "newUnknown"] as const;
-const removedGroupKeys = [
-  "removedPassed",
-  "removedFailed",
-  "removedBroken",
-  "removedSkipped",
-  "removedUnknown",
-] as const;
-const groupKeys = [...newGroupKeys, ...removedGroupKeys] as const;
+export type StatusChangeTrendGroupId = string;
 
+// Helper functions to get diff keys based on status
 const getNewKey = (status: TestStatus): StatusChangeTrendKeys | undefined => {
-  const capitalizedStatus = capitalize(status);
-
-  return capitalizedStatus ? `new${capitalizedStatus}` : undefined;
+  if (status === "passed") {
+    return "newPassed";
+  } else if (status === "failed") {
+    return "newFailed";
+  } else if (status === "broken") {
+    return "newBroken";
+  }
 };
 
 const getRemovedKey = (status: TestStatus): StatusChangeTrendKeys | undefined => {
-  const capitalizedStatus = capitalize(status);
-
-  return capitalizedStatus ? `removed${capitalizedStatus}` : undefined;
-};
-
-const isHistoryIdIn = (trs: (TestResult | HistoryTestResult)[], historyId: string) => {
-  return trs.some((tr) => tr.historyId === historyId);
-};
-
-const getDeletedFrom = (trs: (TestResult | HistoryTestResult)[], hdpTrs: HistoryTestResult[]) => {
-  const stats = createEmptyStats(groupKeys);
-
-  for (const hdpTr of hdpTrs) {
-    if (!isHistoryIdIn(trs, hdpTr.historyId!)) {
-      const key = getRemovedKey(hdpTr.status);
-      if (key) {
-        stats[key]--;
-      }
-    }
+  if (status === "passed") {
+    return "removedPassed";
+  } else if (status === "failed") {
+    return "removedFailed";
+  } else if (status === "broken") {
+    return "removedBroken";
   }
-
-  return stats;
 };
 
-const getNewFrom = (trs: (TestResult | HistoryTestResult)[], hdpTrs: HistoryTestResult[]) => {
-  const stats = createEmptyStats(groupKeys);
+// Helper function to create empty stats
+const createEmptyStats = (): Record<StatusChangeTrendKeys, number> => ({
+  newPassed: 0,
+  removedPassed: 0,
+  newFailed: 0,
+  removedFailed: 0,
+  newBroken: 0,
+  removedBroken: 0,
+});
 
-  for (const tr of trs) {
-    if (!isHistoryIdIn(hdpTrs, tr.historyId!)) {
-      const key = getNewKey(tr.status);
-      if (key) {
-        stats[key]++;
-      }
-    }
-  }
-
-  return stats;
-};
-
-const getPointStats = (
-  currentTrs: (TestResult | HistoryTestResult)[],
-  hdpTrs: HistoryTestResult[],
+// Helper function to compare two sets of test results and calculate differences
+const compareTestResults = (
+  previousTests: Record<string, { status: TestStatus }>,
+  currentTests: Record<string, { status: TestStatus }>
 ): Record<StatusChangeTrendKeys, number> => {
-  const emptyStats = createEmptyStats(groupKeys);
-  const newStats = getNewFrom(currentTrs, hdpTrs);
-  const deletedStats = getDeletedFrom(currentTrs, hdpTrs);
+  const stats = createEmptyStats();
+  const currentIds = new Set(Object.keys(currentTests));
+  const previousIds = new Set(Object.keys(previousTests));
 
-  return Object.keys(emptyStats).reduce(
-    (acc, key) => {
-      const newStat = newStats[key as StatusChangeTrendKeys] ?? 0;
-      const deletedStat = deletedStats[key as StatusChangeTrendKeys] ?? 0;
+  // Find new tests
+  for (const testId of currentIds) {
+    if (!previousIds.has(testId)) {
+      const test = currentTests[testId];
+      if (test?.status) {
+        const key = getNewKey(test.status);
+        if (key) {
+          stats[key]++;
+        }
+      }
+    }
+  }
 
-      acc[key as StatusChangeTrendKeys] = newStat + deletedStat;
+  // Find removed tests
+  for (const testId of previousIds) {
+    if (!currentIds.has(testId)) {
+      const test = previousTests[testId];
+      if (test?.status) {
+        const key = getRemovedKey(test.status);
+        if (key) {
+          stats[key]--;
+        }
+      }
+    }
+  }
 
-      return acc;
-    },
-    {} as Record<StatusChangeTrendKeys, number>,
-  );
+  // Find status changes for existing items in both previous and current points
+  for (const testId of currentIds) {
+    if (previousIds.has(testId)) {
+      const currentTest = currentTests[testId];
+      const previousTest = previousTests[testId];
+
+      if (currentTest?.status && previousTest?.status && currentTest.status !== previousTest.status) {
+        // Somewhere it was removed and added in another status, so you have to handle both cases simultaneously for the same item
+        // Add new status for existing item
+        const newKey = getNewKey(currentTest.status);
+        if (newKey) {
+          stats[newKey]++;
+        }
+
+        // Add removed status for previous item
+        const removedKey = getRemovedKey(previousTest.status);
+        if (removedKey) {
+          stats[removedKey]--;
+        }
+      }
+    }
+  }
+
+  return stats;
 };
 
-const getCurrentStats = (
-  testResults: TestResult[],
-  hdpTrs: HistoryTestResult[],
-): BarGroup<string, StatusChangeTrendKeys> => {
-  return {
-    groupId: "current",
-    ...getPointStats(testResults, hdpTrs),
-  };
-};
+const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] => {
+  if (historyPoints.length === 0) {
+    return [];
+  }
 
-const getHistoricalStats = (hdps: HistoryDataPoint[]): BarGroup<string, StatusChangeTrendKeys>[] => {
-  const trendData: BarGroup<string, StatusChangeTrendKeys>[] = [];
+  const trendData: BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] = [];
 
-  for (let i = 0; i < hdps.length; i++) {
-    const currentHdp = hdps[i];
-    const currentHdpTrs = Object.values(currentHdp.testResults);
-    const previousHdpTrs = i + 1 < hdps.length ? Object.values(hdps[i + 1].testResults) : [];
+  // Process each history point
+  for (let i = 0; i < historyPoints.length; i++) {
+    const previousHistoryPoint = i > 0 ? historyPoints[i - 1] : null;
+    const currentHistoryPoint = historyPoints[i];
+
+    let stats: Record<StatusChangeTrendKeys, number>;
+    if (previousHistoryPoint) {
+      // Compare with previous point
+      stats = compareTestResults(previousHistoryPoint.testResults, currentHistoryPoint.testResults);
+    } else {
+      // First point - all tests are new
+      stats = compareTestResults({}, currentHistoryPoint.testResults);
+    }
 
     trendData.push({
-      groupId: `Point ${hdps.length - i - 1}`,
-      ...getPointStats(currentHdpTrs, previousHdpTrs),
+      groupId: `Point ${i + 1}`,
+      ...stats,
     });
   }
 
   return trendData;
 };
 
-const getTrendData = (
-  currentTrs: TestResult[],
-  hdps: HistoryDataPoint[],
-): BarGroup<string, StatusChangeTrendKeys>[] => {
-  const historicalStats = getHistoricalStats(hdps);
-  const currentStats = getCurrentStats(currentTrs, Object.values(hdps[0].testResults));
+export const statusChangeTrendBarAccessor: BarDataAccessor<StatusChangeTrendGroupId, StatusChangeTrendKeys> = {
+  getItems: async (store, historyPoints) => {
+    const testResults = await store.allTestResults();
+    const trendData = calculateTrendData(historyPoints);
 
-  return [currentStats, ...historicalStats];
-};
+    console.log("historyPoints", historyPoints.map(point => new Date(point.timestamp).toISOString()));
 
-export const statusChangeTrendBarAccessor: BarDataAccessor<string, StatusChangeTrendKeys> = {
-  getItems: ({ testResults }, limitedHdps, isFullHistory) => {
-    let trendData = getTrendData(testResults, limitedHdps);
+    // Add current data point if we have history
+    const lastHistoryPoint = historyPoints.length > 0 ? historyPoints[historyPoints.length - 1] : null;
+    const lastHistoryTestResults = lastHistoryPoint?.testResults ?? {};
 
-    /* This is necessary not to exclude the last point that have been compared with the empty stats if the history is fully provided.
-     *
-     * We have no previous poin in the end of the full history, that's why we have to compare it with the empty stats.
-     * At the opposite, we have to exclude the last point if the history is limited because it should be compared with the real previous point,
-     * but it is already excluded in limited history.
-     */
-    if (!isFullHistory) {
-      trendData = trendData.slice(0, -1);
-    }
+    // Convert current test results to the format expected by compareTestResults
+    const currentTests = testResults.reduce((acc, test) => {
+      acc[test.id] = { status: test.status };
+      return acc;
+    }, {} as Record<string, { status: TestStatus }>);
 
-    return trendData.reverse();
+    const currentStats = compareTestResults(lastHistoryTestResults, currentTests);
+
+    trendData.push({
+      groupId: "current",
+      ...currentStats,
+    });
+
+    return trendData;
   },
-  getGroupKeys: () => groupKeys,
+  getGroupKeys: () => [
+    "newPassed",
+    "removedPassed",
+    "newFailed",
+    "removedFailed",
+    "newBroken",
+    "removedBroken"
+  ] as const,
   getGroupMode: () => BarGroupMode.Stacked,
 };
