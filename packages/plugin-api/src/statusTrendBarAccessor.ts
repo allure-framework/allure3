@@ -15,7 +15,7 @@ const getSignedValuesByStatus = (stats: Omit<Statistic, "total">, groupId: strin
 const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<string, TrendKey>[] => historyPoints.reduce((trendData, point, index) => {
     const stats = Object.values(point.testResults).reduce((acc, test) => {
         if (test.status) {
-            acc[test.status] = (acc[test.status] ?? 0) + getSignedValueByStatus(test.status);
+            acc[test.status] = (acc[test.status] ?? 0) + 1;
         }
 
         return acc;
