@@ -1,6 +1,6 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { ChartDataType, ChartType, severityLevels, statusesList, BarChartType } from "@allurereport/core-api";
-import { severityColors, statusColors } from "./colors.js";
+import { severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsResponse,
@@ -96,6 +96,12 @@ export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsRespo
     () => statusColors,
   );
 
+export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: ChartsResponse): UIBarChartData | undefined =>
+  createBarChartDataGeneric(
+    () => res[chartId] as ResponseBarChartData | undefined,
+    () => statusChangeColors,
+  );
+
 export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
@@ -117,6 +123,8 @@ export const createBarChartData = (
     return createStatusBySeverityBarChartData(chartId, res);
   } else if (chartData.dataType === BarChartType.StatusTrend) {
     return createStatusTrendBarChartData(chartId, res);
+  } else if (chartData.dataType === BarChartType.StatusChangeTrend) {
+    return createStatusChangeTrendBarChartData(chartId, res);
   }
 };
 
