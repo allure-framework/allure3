@@ -76,7 +76,7 @@ const compareTestResults = (
       if (test?.status) {
         const key = getRemovedKey(test.status);
         if (key) {
-          stats[key]++;
+          stats[key]--;
         }
       }
     }
@@ -98,7 +98,7 @@ const compareTestResults = (
         // Removed status
         const removedKey = getRemovedKey(previousTest.status);
         if (removedKey) {
-          stats[removedKey]++;
+          stats[removedKey]--;
         }
       }
     }
@@ -120,21 +120,12 @@ const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<TestSta
     const previousHistoryPoint = i > 0 ? historyPoints[i - 1] : null;
 
     let stats: Record<TestStatusesDiffTrendKeys, number>;
-
     if (previousHistoryPoint) {
       // Compare with previous point
       stats = compareTestResults(previousHistoryPoint.testResults, currentHistoryPoint.testResults);
     } else {
       // First point - all tests are new
-      stats = createEmptyStats();
-      for (const testResult of Object.values(currentHistoryPoint.testResults)) {
-        if (testResult?.status) {
-          const key = getNewKey(testResult.status);
-          if (key) {
-            stats[key]++;
-          }
-        }
-      }
+      stats = compareTestResults({}, currentHistoryPoint.testResults);
     }
 
     trendData.push({
