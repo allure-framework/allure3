@@ -20,6 +20,7 @@ export enum ChartDataType {
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusTrend = "statusTrend",
+  TestStatusesDiffTrend = "testStatusesDiffTrend",
 }
 
 export enum ChartMode {
