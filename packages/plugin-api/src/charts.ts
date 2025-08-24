@@ -14,13 +14,14 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
+import { ChartType, ChartDataType, ChartMode, getPieChartValues, limitHistoryDataPoints, sortHistoryDataPoints, BarChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
+import { testStatusesDiffTrendDataAccessor } from "./testStatusesDiffTrendAccessor.js";
 import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
@@ -290,17 +291,6 @@ export const normalizeStatistic = <T extends string>(
   }, {} as Record<T, number>);
 };
 
-export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], limit: number): HistoryDataPoint[] => {
-  if (limit <= 0 || historyDataPoints.length === 0) {
-    return [];
-  }
-
-  const clampedLimit = Math.max(0, Math.floor(limit));
-  const limitedHistoryPoints = historyDataPoints.slice(0, clampedLimit);
-
-  return limitedHistoryPoints.sort((a, b) => a.timestamp - b.timestamp);
-};
-
 /**
  * Merges two trend data sets into one.
  * @param trendData - Primary trend data.
@@ -377,8 +367,9 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   // Apply limit to history points if specified
   const historyDataPoints = await store.allHistoryDataPoints();
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1);
+  const sortedHistoryPoints = sortHistoryDataPoints(limitedHistoryPoints);
 
-  const items = await dataAccessor.getItems(store, limitedHistoryPoints);
+  const items = await dataAccessor.getItems(store, sortedHistoryPoints);
   // Apply mode transformation if needed
   let processedData = items;
   if (mode === ChartMode.Percent) {
@@ -529,5 +520,7 @@ export const generateBarChart = async (
     return generateBarChartGeneric(newOptions, store, statusBySeverityBarDataAccessor);
   } else if (dataType === BarChartType.StatusTrend) {
     return generateBarChartGeneric(newOptions, store, statusTrendBarAccessor);
+  } else if (dataType === BarChartType.TestStatusesDiffTrend) {
+    return generateBarChartGeneric(newOptions, store, testStatusesDiffTrendDataAccessor);
   }
 };
