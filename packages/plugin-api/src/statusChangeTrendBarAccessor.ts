@@ -1,4 +1,4 @@
-import type { BarGroup, HistoryDataPoint, NewKey, RemovedKey, TestStatus } from "@allurereport/core-api";
+import type { BarGroup, HistoryDataPoint, NewKey, RemovedKey, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode } from "@allurereport/core-api";
 import type { BarDataAccessor } from "./charts.js";
 
@@ -42,7 +42,7 @@ const createEmptyStats = (): Record<StatusChangeTrendKeys, number> => ({
 // Helper function to compare two sets of test results and calculate differences
 const compareTestResults = (
   previousTests: Record<string, { status: TestStatus }>,
-  currentTests: Record<string, { status: TestStatus }>
+  currentTests: Record<string, { status: TestStatus }>,
 ): Record<StatusChangeTrendKeys, number> => {
   const stats = createEmptyStats();
   const currentIds = new Set(Object.keys(currentTests));
@@ -100,30 +100,25 @@ const compareTestResults = (
   return stats;
 };
 
-const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] => {
-  if (historyPoints.length === 0) {
-    return [];
-  }
+const calculateTrendData = (testResults: TestResult[], historyPoints: HistoryDataPoint[]): BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] => {
+  // Convert current test results to the format expected by compareTestResults
+  const currentTestResults = testResults.reduce((acc, test) => {
+    acc[test.id] = { status: test.status };
+    return acc;
+  }, {} as Record<string, { status: TestStatus }>);
 
   const trendData: BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] = [];
 
   // Process each history point
-  for (let i = 0; i < historyPoints.length; i++) {
-    const previousHistoryPoint = i > 0 ? historyPoints[i - 1] : null;
-    const currentHistoryPoint = historyPoints[i];
+  const historyAndCurrentItem = [{ testResults: currentTestResults }, ...historyPoints];
 
-    let stats: Record<StatusChangeTrendKeys, number>;
-    if (previousHistoryPoint) {
-      // Compare with previous point
-      stats = compareTestResults(previousHistoryPoint.testResults, currentHistoryPoint.testResults);
-    } else {
-      // First point - all tests are new
-      stats = compareTestResults({}, currentHistoryPoint.testResults);
-    }
+  for (let i = 0; i < historyAndCurrentItem.length; i++) {
+    const previousHistoryPoint = i + 1 < historyAndCurrentItem.length ? historyAndCurrentItem[i + 1] : { testResults: {} };
+    const currentHistoryPoint = historyAndCurrentItem[i];
 
     trendData.push({
-      groupId: `Point ${i + 1}`,
-      ...stats,
+      groupId: i === 0 ? "current" : `Point ${historyAndCurrentItem.length - i}`,
+      ...compareTestResults(previousHistoryPoint.testResults, currentHistoryPoint.testResults),
     });
   }
 
@@ -133,28 +128,8 @@ const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<StatusC
 export const statusChangeTrendBarAccessor: BarDataAccessor<StatusChangeTrendGroupId, StatusChangeTrendKeys> = {
   getItems: async (store, historyPoints) => {
     const testResults = await store.allTestResults();
-    const trendData = calculateTrendData(historyPoints);
 
-    console.log("historyPoints", historyPoints.map(point => new Date(point.timestamp).toISOString()));
-
-    // Add current data point if we have history
-    const lastHistoryPoint = historyPoints.length > 0 ? historyPoints[historyPoints.length - 1] : null;
-    const lastHistoryTestResults = lastHistoryPoint?.testResults ?? {};
-
-    // Convert current test results to the format expected by compareTestResults
-    const currentTests = testResults.reduce((acc, test) => {
-      acc[test.id] = { status: test.status };
-      return acc;
-    }, {} as Record<string, { status: TestStatus }>);
-
-    const currentStats = compareTestResults(lastHistoryTestResults, currentTests);
-
-    trendData.push({
-      groupId: "current",
-      ...currentStats,
-    });
-
-    return trendData;
+    return calculateTrendData(testResults, historyPoints).reverse();
   },
   getGroupKeys: () => [
     "newPassed",
