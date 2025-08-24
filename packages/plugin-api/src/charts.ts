@@ -14,7 +14,7 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType, ChartDataType, ChartMode, getPieChartValues, limitHistoryDataPoints, sortHistoryDataPoints, BarChartType } from "@allurereport/core-api";
+import { ChartType, ChartDataType, ChartMode, getPieChartValues, limitHistoryDataPoints, BarChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
@@ -368,9 +368,7 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   const historyDataPoints = await store.allHistoryDataPoints();
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1);
 
-  const sortedHistoryPoints = sortHistoryDataPoints(limitedHistoryPoints, "asc");
-
-  const items = await dataAccessor.getItems(store, sortedHistoryPoints);
+  const items = await dataAccessor.getItems(store, limitedHistoryPoints);
   // Apply mode transformation if needed
   let processedData = items;
   if (mode === ChartMode.Percent) {

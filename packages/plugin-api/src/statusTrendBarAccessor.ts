@@ -30,7 +30,10 @@ export const statusTrendBarAccessor: BarDataAccessor<string, TrendKey> = {
   getItems: async (store, historyPoints) => {
     const stats = await store.testsStatistic();
 
-    return calculateTrendData(historyPoints).concat(getSignedValuesByStatus(stats, "current"));
+    return [
+      ...calculateTrendData(historyPoints),
+      getSignedValuesByStatus(stats, "current")
+    ];
   },
   getGroupKeys: () => ["passed", "failed", "broken"],
   getGroupMode: () => BarGroupMode.Stacked,
