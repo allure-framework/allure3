@@ -1,5 +1,11 @@
 import type { TestError } from "@allurereport/core-api";
-import type { BatchOptions, QualityGateValidationResult, RealtimeEventsDispatcher as RealtimeEventsDispatcherType, RealtimeSubscriber as RealtimeSubscriberType } from "@allurereport/plugin-api";
+import type {
+  BatchOptions,
+  QualityGateValidationResult,
+  RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
+  RealtimeSubscriber as RealtimeSubscriberType,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
@@ -9,6 +15,7 @@ export enum RealtimeEvents {
   TestFixtureResult = "testFixtureResult",
   AttachmentFile = "attachmentFile",
   QualityGateResults = "qualityGateResults",
+  GlobalAttachment = "globalAttachment",
   GlobalError = "globalError",
   GlobalExitCode = "globalExitCode",
 }
@@ -18,6 +25,7 @@ export interface AllureStoreEvents {
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
+  [RealtimeEvents.GlobalAttachment]: [ResultFile];
   [RealtimeEvents.GlobalExitCode]: [number];
   [RealtimeEvents.GlobalError]: [TestError];
 }
@@ -33,6 +41,10 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
+  }
+
+  sendGlobalAttachment(attachment: ResultFile) {
+    this.#emitter.emit(RealtimeEvents.GlobalAttachment, attachment);
   }
 
   sendGlobalExitCode(code: number) {
@@ -66,6 +78,14 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
 
   constructor(emitter: EventEmitter<AllureStoreEvents>) {
     this.#emitter = emitter;
+  }
+
+  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.GlobalAttachment, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.GlobalAttachment, listener);
+    };
   }
 
   onGlobalExitCode(listener: (code: number) => Promise<void>) {

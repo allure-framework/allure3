@@ -77,9 +77,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
-  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
+  #globalAttachments: ResultFile[] = [];
   #globalErrors: TestError[] = [];
   #globalExitCode: number = 0;
+  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
@@ -135,6 +136,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
     this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
       this.#globalErrors.push(error);
+    });
+    this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
+      this.#globalAttachments.push(attachment);
     });
   }
 
@@ -199,6 +203,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async allGlobalErrors(): Promise<TestError[]> {
     return this.#globalErrors;
+  }
+
+  async allGlobalAttachments(): Promise<ResultFile[]> {
+    return this.#globalAttachments;
   }
 
   // test methods
@@ -300,9 +308,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#attachmentContents.set(id, resultFile);
 
     const maybeLink = this.#attachments.get(id);
+
     if (maybeLink) {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
+
       link.missed = false;
       link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
       link.contentType = link.contentType ?? resultFile.getContentType();

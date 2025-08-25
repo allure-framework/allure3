@@ -14,7 +14,7 @@ import {
 } from "@allurereport/directory-watcher";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import Awesome from "@allurereport/plugin-awesome";
-import { PathResultFile } from "@allurereport/reader-api";
+import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -348,7 +348,6 @@ export class RunCommand extends Command {
         logTests(await allureReport.store.allTestResults());
       }
 
-      // const { code = 0, qualityGateResults = [], stdout, stderr } = testProcessResult ?? {};
       let qualityGateMessage = "";
       let qualityGateResults: QualityGateValidationResult[] = testProcessResult?.qualityGateResults ?? [];
 
@@ -378,7 +377,13 @@ export class RunCommand extends Command {
         allureReport.realtimeDispatcher.sendGlobalError({
           message: "Global error?",
           trace: testProcessResult.stderr,
-        })
+        });
+      }
+
+      if (testProcessResult?.stdout) {
+        const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout), "utf8");
+
+        allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
       }
     } catch (error) {
       globalExitCode = 1;

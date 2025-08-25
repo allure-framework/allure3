@@ -30,6 +30,7 @@ export interface AllureStore {
   // global data
   globalExitCode: () => Promise<number | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
+  allGlobalAttachments: () => Promise<ResultFile[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;
