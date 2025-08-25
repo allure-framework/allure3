@@ -44,7 +44,7 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
       ...defaultBarChartAxisLeftConfig,
       legend: mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests",
       legendPosition: "middle",
-      legendOffset: -40,
+      legendOffset: -60,
       format: yFormat,
     }),
     [mode, yFormat],

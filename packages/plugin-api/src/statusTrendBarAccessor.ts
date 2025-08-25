@@ -29,9 +29,10 @@ const calculateTrendData = (historyPoints: HistoryDataPoint[]): BarGroup<string,
 export const statusTrendBarAccessor: BarDataAccessor<string, TrendKey> = {
   getItems: async (store, historyPoints) => {
     const stats = await store.testsStatistic();
+    const limitedHistoryPoints = historyPoints.slice(0, -1);
 
     return [
-      ...calculateTrendData(historyPoints),
+      ...calculateTrendData(limitedHistoryPoints),
       getSignedValuesByStatus(stats, "current")
     ];
   },

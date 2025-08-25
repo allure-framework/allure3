@@ -366,7 +366,7 @@ export const generateBarChartGeneric = async <P extends string, T extends string
 
   // Apply limit to history points if specified
   const historyDataPoints = await store.allHistoryDataPoints();
-  const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit - 1);
+  const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit);
 
   const items = await dataAccessor.getItems(store, limitedHistoryPoints);
   // Apply mode transformation if needed
