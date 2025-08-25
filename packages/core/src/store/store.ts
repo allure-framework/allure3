@@ -126,7 +126,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
 
-    this.#realtimeSubscriber?.onQualityGateResult(async (results: QualityGateValidationResult[]) => {
+    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
       results.forEach((result) => {
         this.#qualityGateResultsByRules[result.rule] = result;
       });

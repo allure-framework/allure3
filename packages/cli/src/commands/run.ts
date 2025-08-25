@@ -128,7 +128,7 @@ const runTests = async (params: {
         return;
       }
 
-      allureReport.realtimeDispatcher.sendQualityGateResult(results);
+      allureReport.realtimeDispatcher.sendQualityGateResults(results);
       qualityGateResults = results;
 
       try {
@@ -348,11 +348,11 @@ export class RunCommand extends Command {
         logTests(await allureReport.store.allTestResults());
       }
 
+      const trs = await allureReport.store.allTestResults({ includeHidden: false });
       let qualityGateMessage = "";
       let qualityGateResults: QualityGateValidationResult[] = testProcessResult?.qualityGateResults ?? [];
 
       if (withQualityGate && !qualityGateResults?.length) {
-        const trs = await allureReport.store.allTestResults({ includeHidden: false });
         const { results } = await allureReport.validate({
           trs,
           knownIssues,
@@ -365,6 +365,8 @@ export class RunCommand extends Command {
         qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
 
         console.error(qualityGateMessage);
+
+        allureReport.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
       }
 
       if (withQualityGate) {
@@ -375,7 +377,7 @@ export class RunCommand extends Command {
 
       if (testProcessResult?.stderr) {
         allureReport.realtimeDispatcher.sendGlobalError({
-          message: "Global error?",
+          message: "Test process has failed",
           trace: testProcessResult.stderr,
         });
       }
@@ -404,6 +406,8 @@ export class RunCommand extends Command {
         });
       }
     }
+
+    allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
 
     await allureReport.done();
 

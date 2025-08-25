@@ -64,7 +64,7 @@ export interface RealtimeSubscriber {
 
   onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
 
-  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
 
   onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 
@@ -80,7 +80,7 @@ export interface RealtimeEventsDispatcher {
 
   sendGlobalError(error: TestError): void;
 
-  sendQualityGateResult(payload: QualityGateValidationResult[]): void;
+  sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 
   sendTestResult(trId: string): void;
 

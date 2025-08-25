@@ -55,7 +55,7 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter.emit(RealtimeEvents.GlobalError, error);
   }
 
-  sendQualityGateResult(payload: QualityGateValidationResult[]) {
+  sendQualityGateResults(payload: QualityGateValidationResult[]) {
     this.#emitter.emit(RealtimeEvents.QualityGateResults, payload ?? []);
   }
 
@@ -104,7 +104,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     };
   }
 
-  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.QualityGateResults, listener);
 
     return () => {
