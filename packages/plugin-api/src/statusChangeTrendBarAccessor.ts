@@ -117,7 +117,7 @@ const calculateTrendData = (testResults: TestResult[], historyPoints: HistoryDat
     const currentHistoryPoint = historyAndCurrentItem[i];
 
     trendData.push({
-      groupId: i === 0 ? "current" : `Point ${historyAndCurrentItem.length - i}`,
+      groupId: i === 0 ? "current" : `Point ${historyAndCurrentItem.length - i - 1}`,
       ...compareTestResults(previousHistoryPoint.testResults, currentHistoryPoint.testResults),
     });
   }
@@ -129,7 +129,7 @@ export const statusChangeTrendBarAccessor: BarDataAccessor<StatusChangeTrendGrou
   getItems: async (store, historyPoints) => {
     const testResults = await store.allTestResults();
 
-    return calculateTrendData(testResults, historyPoints).reverse();
+    return calculateTrendData(testResults, historyPoints).slice(0, -1).reverse();
   },
   getGroupKeys: () => [
     "newPassed",
