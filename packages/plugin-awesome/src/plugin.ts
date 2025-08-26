@@ -43,7 +43,6 @@ export class AwesomePlugin implements Plugin {
     const environments = await store.allEnvironments();
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
-    const allHistoryDataPoints = await store.allHistoryDataPoints();
 
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
@@ -60,11 +59,7 @@ export class AwesomePlugin implements Plugin {
       statsByEnv: envStatistics,
       envs: environments,
     });
-    await generateAllCharts(this.#writer!, this.options, context, {
-      trs: allTrs,
-      statistic: statistics,
-      history: allHistoryDataPoints,
-    });
+    await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
