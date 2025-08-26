@@ -123,7 +123,8 @@
     "at": "ב-",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
-    "finishedAt": "הסתיים ב-{{formattedCreatedAt}}, עם קוד {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד {{actual}} (מקורי {{original}})"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

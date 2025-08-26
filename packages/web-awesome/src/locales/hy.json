@@ -123,7 +123,8 @@
     "at": "է",
     "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace",
-    "finishedAt": "Ավարտվել է {{formattedCreatedAt}}-ին, {{exitCode}} կոդով"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, {{original}} կոդով",
+    "finishedAtBoth": "{{formattedCreatedAt}}, {{actual}} կոդով (սկզբնական {{original}})"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",

@@ -60,8 +60,19 @@ export interface PluginSummary {
   createdAt?: number;
 }
 
+export interface ExitCode {
+  /**
+   * Actual exit code the allure command exited with
+   */
+  actual?: number;
+  /**
+   * Original exit code of the process inside the allure command exited with
+   */
+  original: number;
+}
+
 export interface PluginGlobals {
-  exitCode: number;
+  exitCode: ExitCode;
   errors: TestError[];
   attachments: AttachmentLink[];
 }
@@ -73,7 +84,7 @@ export interface BatchOptions {
 export interface RealtimeSubscriber {
   onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>): () => void;
 
-  onGlobalExitCode(listener: (code: number) => Promise<void>): () => void;
+  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
 
   onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
 
@@ -89,7 +100,7 @@ export interface RealtimeSubscriber {
 export interface RealtimeEventsDispatcher {
   sendGlobalAttachment(attachment: ResultFile): void;
 
-  sendGlobalExitCode(code: number): void;
+  sendGlobalExitCode(payload: ExitCode): void;
 
   sendGlobalError(error: TestError): void;
 

@@ -123,7 +123,8 @@
     "at": "에서",
     "variables": "변수",
     "openPwTrace": "Playwright Trace 열기",
-    "finishedAt": "{{formattedCreatedAt}}에 종료, 코드 {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, 코드 {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, 코드 {{actual}} (원본 {{original}})"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

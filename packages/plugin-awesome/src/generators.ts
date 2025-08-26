@@ -14,6 +14,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ExitCode,
   type PluginGlobals,
   type ReportFiles,
   type ResultFile,
@@ -380,13 +381,13 @@ export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store
 export const generateGlobals = async (
   writer: AwesomeDataWriter,
   payload: {
-    globalExitCode?: number;
+    globalExitCode?: ExitCode;
     globalAttachments?: AttachmentLink[];
     globalErrors?: TestError[];
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
   },
 ) => {
-  const { globalExitCode = 0, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const { globalExitCode = { original: 0 }, globalAttachments = [], globalErrors = [], contentFunction } = payload;
   const globals: PluginGlobals = {
     exitCode: globalExitCode,
     errors: globalErrors,

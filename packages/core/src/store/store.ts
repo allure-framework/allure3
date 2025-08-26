@@ -24,6 +24,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ExitCode,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
   type RealtimeSubscriber,
@@ -80,7 +81,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   #globalAttachments: AttachmentLink[] = [];
   #globalErrors: TestError[] = [];
-  #globalExitCode: number = 0;
+  #globalExitCode: ExitCode | undefined;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
@@ -132,7 +133,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         this.#qualityGateResultsByRules[result.rule] = result;
       });
     });
-    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: number) => {
+    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
     });
     this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
@@ -209,7 +210,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   // global data
 
-  async globalExitCode(): Promise<number | undefined> {
+  async globalExitCode(): Promise<ExitCode | undefined> {
     return this.#globalExitCode;
   }
 

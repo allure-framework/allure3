@@ -123,7 +123,8 @@
     "at": "om",
     "variables": "Variabelen",
     "openPwTrace": "Open Playwright Trace",
-    "finishedAt": "Beëindigd op {{formattedCreatedAt}}, met code {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, met code {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, met code {{actual}} (oorspronkelijk {{original}})"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

@@ -123,7 +123,8 @@
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace",
-    "finishedAt": "დასრულდა {{formattedCreatedAt}}-ზე, კოდით {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, კოდით {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, კოდით {{actual}} (თავდაპირველი {{original}})"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",

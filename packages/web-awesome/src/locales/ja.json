@@ -123,7 +123,8 @@
     "at": "時",
     "variables": "変数",
     "openPwTrace": "Playwright Traceを開く",
-    "finishedAt": "{{formattedCreatedAt}}に終了、終了コード{{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",

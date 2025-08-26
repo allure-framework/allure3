@@ -1,6 +1,7 @@
 import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
+  ExitCode,
   QualityGateValidationResult,
   RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
   RealtimeSubscriber as RealtimeSubscriberType,
@@ -26,7 +27,7 @@ export interface AllureStoreEvents {
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
   [RealtimeEvents.GlobalAttachment]: [ResultFile];
-  [RealtimeEvents.GlobalExitCode]: [number];
+  [RealtimeEvents.GlobalExitCode]: [ExitCode];
   [RealtimeEvents.GlobalError]: [TestError];
 }
 
@@ -47,8 +48,8 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter.emit(RealtimeEvents.GlobalAttachment, attachment);
   }
 
-  sendGlobalExitCode(code: number) {
-    this.#emitter.emit(RealtimeEvents.GlobalExitCode, code);
+  sendGlobalExitCode(codes: ExitCode) {
+    this.#emitter.emit(RealtimeEvents.GlobalExitCode, codes);
   }
 
   sendGlobalError(error: TestError) {
@@ -88,7 +89,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     };
   }
 
-  onGlobalExitCode(listener: (code: number) => Promise<void>) {
+  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.GlobalExitCode, listener);
 
     return () => {

@@ -123,7 +123,8 @@
     "at": "em",
     "variables": "Variáveis",
     "openPwTrace": "Abrir Playwright Trace",
-    "finishedAt": "Terminado em {{formattedCreatedAt}}, com código {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, com código {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, com código {{actual}} (original {{original}})"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",

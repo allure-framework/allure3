@@ -12,7 +12,7 @@ import {
   delayedFileProcessingWatcher,
   newFilesInDirectoryWatcher,
 } from "@allurereport/directory-watcher";
-import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import Awesome from "@allurereport/plugin-awesome";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
@@ -297,7 +297,11 @@ export class RunCommand extends Command {
 
     await allureReport.start();
 
-    let globalExitCode: number;
+    const globalExitCode: ExitCode = {
+      original: 0,
+      actual: undefined,
+    };
+    let qualityGateResults: QualityGateValidationResult[];
 
     try {
       let testProcessResult = await runTests({
@@ -349,8 +353,7 @@ export class RunCommand extends Command {
       }
 
       const trs = await allureReport.store.allTestResults({ includeHidden: false });
-      let qualityGateMessage = "";
-      let qualityGateResults: QualityGateValidationResult[] = testProcessResult?.qualityGateResults ?? [];
+      qualityGateResults = testProcessResult?.qualityGateResults ?? [];
 
       if (withQualityGate && !qualityGateResults?.length) {
         const { results } = await allureReport.validate({
@@ -362,17 +365,17 @@ export class RunCommand extends Command {
       }
 
       if (qualityGateResults?.length) {
-        qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
+        const qualityGateMessage = stringifyQualityGateResults(qualityGateResults);
 
         console.error(qualityGateMessage);
 
         allureReport.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
       }
 
+      globalExitCode.original = testProcessResult?.code ?? -1;
+
       if (withQualityGate) {
-        globalExitCode = qualityGateResults.length > 0 ? 1 : 0;
-      } else {
-        globalExitCode = testProcessResult?.code ?? -1;
+        globalExitCode.actual = qualityGateResults.length > 0 ? 1 : 0;
       }
 
       if (testProcessResult?.stderr) {
@@ -390,7 +393,7 @@ export class RunCommand extends Command {
         allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
       }
     } catch (error) {
-      globalExitCode = 1;
+      globalExitCode.actual = 1;
 
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
@@ -413,6 +416,6 @@ export class RunCommand extends Command {
 
     await allureReport.done();
 
-    exit(globalExitCode);
+    exit(globalExitCode.actual ?? globalExitCode.original);
   }
 }

@@ -123,7 +123,8 @@
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
-    "finishedAt": "Завершено {{formattedCreatedAt}}, с кодом {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом {{actual}} (первоначальный {{original}})"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

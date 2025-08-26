@@ -123,7 +123,8 @@
     "at": "tarihinde",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace Aç",
-    "finishedAt": "{{formattedCreatedAt}} tarihinde tamamlandı, kod {{exitCode}}"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, kod {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, kod {{actual}} (orijinal {{original}})"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",
