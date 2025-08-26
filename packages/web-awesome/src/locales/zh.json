@@ -17,7 +17,10 @@
     "new": "新的测试"
   },
   "tabs": {
-    "total": "所有"
+    "total": "所有",
+    "results": "结果",
+    "globalAttachments": "全局附件",
+    "globalErrors": "全局错误"
   },
   "search": {
     "search": "搜索",
@@ -119,7 +122,8 @@
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
     "variables": "变量",
-    "openPwTrace": "打开 Playwright Trace"
+    "openPwTrace": "打开 Playwright Trace",
+    "exitCodeTooltip": "测试进程已退出，退出代码为 {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",

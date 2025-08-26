@@ -17,7 +17,10 @@
     "new": "Nieuwe tests"
   },
   "tabs": {
-    "total": "Alle"
+    "total": "Alle",
+    "results": "Resultaten",
+    "globalAttachments": "Globale Bijlagen",
+    "globalErrors": "Globale Fouten"
   },
   "search": {
     "search": "Zoeken",
@@ -119,7 +122,8 @@
     "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om",
     "variables": "Variabelen",
-    "openPwTrace": "Playwright Trace openen"
+    "openPwTrace": "Open Playwright Trace",
+    "exitCodeTooltip": "Testproces is beëindigd met code {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

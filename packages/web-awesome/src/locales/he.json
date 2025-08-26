@@ -17,7 +17,10 @@
     "new": "בדיקות חדשות"
   },
   "tabs": {
-    "total": "הכל"
+    "total": "הכל",
+    "results": "תוצאות",
+    "globalAttachments": "קבצים מצורפים גלובליים",
+    "globalErrors": "שגיאות גלובליות"
   },
   "search": {
     "search": "חפש",
@@ -119,7 +122,8 @@
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
     "variables": "משתנים",
-    "openPwTrace": "פתח Playwright Trace"
+    "openPwTrace": "פתח Playwright Trace",
+    "exitCodeTooltip": "תהליך הבדיקה הסתיים עם הקוד {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

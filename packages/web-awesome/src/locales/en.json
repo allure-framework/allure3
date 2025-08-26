@@ -17,7 +17,10 @@
     "new": "New tests"
   },
   "tabs": {
-    "total": "All"
+    "total": "All",
+    "results": "Results",
+    "globalAttachments": "Global Attachments",
+    "globalErrors": "Global Errors"
   },
   "search": {
     "search": "Search",
@@ -119,7 +122,8 @@
     "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at",
     "variables": "Variables",
-    "openPwTrace": "Open Playwright Trace"
+    "openPwTrace": "Open Playwright Trace",
+    "exitCodeTooltip": "Test process has been exited with code {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",

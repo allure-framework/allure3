@@ -17,7 +17,10 @@
     "new": "Նոր թեստեր"
   },
   "tabs": {
-    "total": "Բոլոր"
+    "total": "Բոլոր",
+    "results": "Արդյունքներ",
+    "globalAttachments": "Գլոբալ կցորդներ",
+    "globalErrors": "Գլոբալ սխալներ"
   },
   "search": {
     "search": "Որոնում",
@@ -119,7 +122,8 @@
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "at": "է",
     "variables": "Փոփոխականներ",
-    "openPwTrace": "Բացել Playwright Trace"
+    "openPwTrace": "Բացել Playwright Trace",
+    "exitCodeTooltip": "Թեստավորման գործընթացը ավարտվել է {{exitCode}} կոդով"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",

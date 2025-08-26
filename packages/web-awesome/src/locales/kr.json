@@ -17,7 +17,10 @@
     "new": "새로운 테스트들"
   },
   "tabs": {
-    "total": "전체"
+    "total": "전체",
+    "results": "결과",
+    "globalAttachments": "글로벌 첨부파일",
+    "globalErrors": "글로벌 오류"
   },
   "search": {
     "search": "검색",
@@ -119,7 +122,8 @@
     "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서",
     "variables": "변수",
-    "openPwTrace": "Playwright Trace 열기"
+    "openPwTrace": "Playwright Trace 열기",
+    "exitCodeTooltip": "테스트 프로세스가 코드 {{exitCode}}로 종료되었습니다"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

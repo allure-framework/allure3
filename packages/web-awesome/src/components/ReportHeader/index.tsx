@@ -4,12 +4,13 @@ import type { AwesomeReportOptions } from "types";
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
-import { currentLocaleIso } from "@/stores";
+import { currentLocaleIso, useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
 import * as styles from "./styles.scss";
 
 export const ReportHeader = () => {
   const { reportName, createdAt } = getReportOptions<AwesomeReportOptions>() ?? {};
+  const { t } = useI18n("ui");
   const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
     month: "long",
     day: "numeric",
@@ -31,7 +32,7 @@ export const ReportHeader = () => {
                 const status = exitCode === 0 ? "passed" : "failed";
 
                 return (
-                  <TooltipWrapper tooltipText={`Test process has been exited with code ${exitCode}`}>
+                  <TooltipWrapper tooltipText={t("exitCodeTooltip", { exitCode })}>
                     <TrStatus status={status} />
                   </TooltipWrapper>
                 );

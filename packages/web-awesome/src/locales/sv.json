@@ -17,7 +17,10 @@
     "new": "Nya tester"
   },
   "tabs": {
-    "total": "Alla"
+    "total": "Alla",
+    "results": "Resultat",
+    "globalAttachments": "Globala Bilagor",
+    "globalErrors": "Globala Fel"
   },
   "search": {
     "search": "Sök",
@@ -119,7 +122,8 @@
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
     "variables": "Variabler",
-    "openPwTrace": "Öppna Playwright Trace"
+    "openPwTrace": "Öppna Playwright Trace",
+    "exitCodeTooltip": "Testprocessen avslutades med kod {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

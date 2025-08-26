@@ -7,6 +7,7 @@ import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { reportStatsStore } from "@/stores";
+import { useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
 import { isSplitMode } from "@/stores/layout";
 import * as styles from "./styles.scss";
@@ -37,6 +38,8 @@ const MainReportContent = () => {
 };
 
 const MainReport = () => {
+  const { t } = useI18n("tabs");
+
   return (
     <>
       <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
@@ -48,7 +51,7 @@ const MainReport = () => {
                 source={reportStatsStore}
                 renderData={(stats) => (
                   <NavTab id={ReportRootTab.Results}>
-                    Results <Counter count={stats?.total ?? 0} />
+                    {t("results")} <Counter count={stats?.total ?? 0} />
                   </NavTab>
                 )}
               />
@@ -57,10 +60,11 @@ const MainReport = () => {
                 renderData={({ attachments = [], errors = [] }) => (
                   <>
                     <NavTab id={ReportRootTab.GlobalAttachments}>
-                      Global Attachments <Counter count={attachments.length} />
+                      {t("globalAttachments")} <Counter count={attachments.length} />
                     </NavTab>
                     <NavTab id={ReportRootTab.GlobalErrors}>
-                      Global Errors <Counter count={errors.length} />
+                      {t("globalErrors")}{" "}
+                      <Counter status={errors.length > 0 ? "failed" : undefined} count={errors.length} />
                     </NavTab>
                   </>
                 )}

@@ -17,7 +17,10 @@
     "new": "ახალი ტესტები"
   },
   "tabs": {
-    "total": "ყველა"
+    "total": "ყველა",
+    "results": "შედეგები",
+    "globalAttachments": "გლობალური დანართები",
+    "globalErrors": "გლობალური შეცდომები"
   },
   "search": {
     "search": "ძებნა",
@@ -119,7 +122,8 @@
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე",
     "variables": "ცვლადები",
-    "openPwTrace": "გახსენი Playwright Trace"
+    "openPwTrace": "გახსენი Playwright Trace",
+    "exitCodeTooltip": "ტესტის პროცესი დასრულდა კოდით {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",

@@ -17,7 +17,10 @@
     "new": "Testes novos"
   },
   "tabs": {
-    "total": "Tudo"
+    "total": "Tudo",
+    "results": "Resultados",
+    "globalAttachments": "Anexos Globais",
+    "globalErrors": "Erros Globais"
   },
   "search": {
     "search": "Pesquisar",
@@ -119,7 +122,8 @@
     "attempt": "Tentativa {{attempt}} de {{total}}",
     "at": "em",
     "variables": "Variáveis",
-    "openPwTrace": "Abrir Playwright Trace"
+    "openPwTrace": "Abrir Playwright Trace",
+    "exitCodeTooltip": "O processo de teste terminou com o código {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Abrir anexo em nova aba",

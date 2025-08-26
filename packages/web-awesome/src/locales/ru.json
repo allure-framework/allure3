@@ -17,7 +17,10 @@
     "new": "Новые тесты"
   },
   "tabs": {
-    "total": "Все"
+    "total": "Все",
+    "results": "Результаты",
+    "globalAttachments": "Глобальные вложения",
+    "globalErrors": "Глобальные ошибки"
   },
   "search": {
     "search": "Поиск",
@@ -119,7 +122,8 @@
     "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
     "variables": "Переменные",
-    "openPwTrace": "Открыть Playwright Trace"
+    "openPwTrace": "Открыть Playwright Trace",
+    "exitCodeTooltip": "Тестовый процесс завершился с кодом {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",
