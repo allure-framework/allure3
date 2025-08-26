@@ -49,3 +49,9 @@
 .report-header-pie-chart {
   width: 88px;
 }
+
+.report-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0 4px;
+}

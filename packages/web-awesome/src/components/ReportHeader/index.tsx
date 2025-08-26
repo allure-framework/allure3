@@ -1,9 +1,11 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { Heading, Text } from "@allurereport/web-components";
+import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { AwesomeReportOptions } from "types";
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
+import { TrStatus } from "@/components/TestResult/TrStatus";
 import { currentLocaleIso } from "@/stores";
+import { globalsStore } from "@/stores/globals";
 import * as styles from "./styles.scss";
 
 export const ReportHeader = () => {
@@ -22,9 +24,23 @@ export const ReportHeader = () => {
       <div className={styles["report-wrapper"]}>
         <ReportHeaderLogo />
         <div className={styles["report-wrapper-text"]}>
-          <Heading size={"s"} tag={"h2"} className={styles["wrapper-header"]} data-testid="report-title">
-            {reportName}
-          </Heading>
+          <div className={styles["report-header-title"]}>
+            <Loadable
+              source={globalsStore}
+              renderData={({ exitCode }) => {
+                const status = exitCode === 0 ? "passed" : "failed";
+
+                return (
+                  <TooltipWrapper tooltipText={`Test process has been exited with code ${exitCode}`}>
+                    <TrStatus status={status} />
+                  </TooltipWrapper>
+                );
+              }}
+            />
+            <Heading size={"s"} tag={"h2"} className={styles["wrapper-header"]} data-testid="report-title">
+              {reportName}
+            </Heading>
+          </div>
           <Text type="paragraph" size="m" className={styles["report-date"]}>
             {formattedCreatedAt}
           </Text>
