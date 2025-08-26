@@ -123,7 +123,7 @@
     "at": "om",
     "variables": "Variabelen",
     "openPwTrace": "Open Playwright Trace",
-    "exitCodeTooltip": "Testproces is beëindigd met code {{exitCode}}"
+    "finishedAt": "Beëindigd op {{formattedCreatedAt}}, met code {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

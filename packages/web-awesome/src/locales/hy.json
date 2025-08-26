@@ -123,7 +123,7 @@
     "at": "է",
     "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace",
-    "exitCodeTooltip": "Թեստավորման գործընթացը ավարտվել է {{exitCode}} կոդով"
+    "finishedAt": "Ավարտվել է {{formattedCreatedAt}}-ին, {{exitCode}} կոդով"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",

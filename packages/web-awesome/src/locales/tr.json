@@ -123,7 +123,7 @@
     "at": "tarihinde",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace Aç",
-    "exitCodeTooltip": "Test süreci {{exitCode}} koduyla sonlandırıldı"
+    "finishedAt": "{{formattedCreatedAt}} tarihinde tamamlandı, kod {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",

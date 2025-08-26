@@ -123,7 +123,7 @@
     "at": "ב-",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
-    "exitCodeTooltip": "תהליך הבדיקה הסתיים עם הקוד {{exitCode}}"
+    "finishedAt": "הסתיים ב-{{formattedCreatedAt}}, עם קוד {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

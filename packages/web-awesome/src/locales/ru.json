@@ -123,7 +123,7 @@
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
-    "exitCodeTooltip": "Тестовый процесс завершился с кодом {{exitCode}}"
+    "finishedAt": "Завершено {{formattedCreatedAt}}, с кодом {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

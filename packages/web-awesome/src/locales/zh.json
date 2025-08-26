@@ -123,7 +123,7 @@
     "at": "在",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace",
-    "exitCodeTooltip": "测试进程已退出，退出代码为 {{exitCode}}"
+    "finishedAt": "于 {{formattedCreatedAt}} 完成，退出代码 {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",

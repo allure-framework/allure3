@@ -123,7 +123,7 @@
     "at": "vid",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
-    "exitCodeTooltip": "Testprocessen avslutades med kod {{exitCode}}"
+    "finishedAt": "Slutförd {{formattedCreatedAt}}, med kod {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

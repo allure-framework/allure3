@@ -123,7 +123,7 @@
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace",
-    "exitCodeTooltip": "ტესტის პროცესი დასრულდა კოდით {{exitCode}}"
+    "finishedAt": "დასრულდა {{formattedCreatedAt}}-ზე, კოდით {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",

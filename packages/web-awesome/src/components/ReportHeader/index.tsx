@@ -24,28 +24,26 @@ export const ReportHeader = () => {
     <div className={styles["report-header"]}>
       <div className={styles["report-wrapper"]}>
         <ReportHeaderLogo />
-        <div className={styles["report-wrapper-text"]}>
-          <div className={styles["report-header-title"]}>
-            <Loadable
-              source={globalsStore}
-              renderData={({ exitCode }) => {
-                const status = exitCode === 0 ? "passed" : "failed";
+        <Loadable
+          source={globalsStore}
+          renderData={({ exitCode }) => {
+            const status = exitCode === 0 ? "passed" : "failed";
 
-                return (
-                  <TooltipWrapper tooltipText={t("exitCodeTooltip", { exitCode })}>
-                    <TrStatus status={status} />
-                  </TooltipWrapper>
-                );
-              }}
-            />
-            <Heading size={"s"} tag={"h2"} className={styles["wrapper-header"]} data-testid="report-title">
-              {reportName}
-            </Heading>
-          </div>
-          <Text type="paragraph" size="m" className={styles["report-date"]}>
-            {formattedCreatedAt}
-          </Text>
-        </div>
+            return (
+            <div className={styles["report-wrapper-text"]}>
+              <div className={styles["report-header-title"]}>
+                <TrStatus status={status} />
+                <Heading size={"s"} tag={"h2"} className={styles["wrapper-header"]} data-testid="report-title">
+                  {reportName}
+                </Heading>
+              </div>
+              <Text type="paragraph" size="m" className={styles["report-date"]}>
+                {t("finishedAt", { formattedCreatedAt, exitCode })}
+              </Text>
+            </div>
+            );
+          }}
+        />
       </div>
       <ReportHeaderPie />
     </div>

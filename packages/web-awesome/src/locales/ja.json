@@ -123,7 +123,7 @@
     "at": "時",
     "variables": "変数",
     "openPwTrace": "Playwright Traceを開く",
-    "exitCodeTooltip": "テストプロセスはコード{{exitCode}}で終了しました"
+    "finishedAt": "{{formattedCreatedAt}}に終了、終了コード{{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",

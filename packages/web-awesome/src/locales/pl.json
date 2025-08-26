@@ -123,7 +123,7 @@
     "at": "w",
     "variables": "Zmienne",
     "openPwTrace": "Otwórz Playwright Trace",
-    "exitCodeTooltip": "Proces testowy zakończył się kodem {{exitCode}}"
+    "finishedAt": "Zakończono {{formattedCreatedAt}}, z kodem {{exitCode}}"
   },
   "controls": {
     "newTabAttachment": "Otwórz w nowej zakładce",
