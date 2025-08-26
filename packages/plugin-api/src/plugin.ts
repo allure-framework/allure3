@@ -1,4 +1,11 @@
-import type { CiDescriptor, Statistic, TestError, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  Statistic,
+  TestError,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 import type { AllureStore } from "./store.js";
@@ -51,6 +58,12 @@ export interface PluginSummary {
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
   createdAt?: number;
+}
+
+export interface PluginGlobals {
+  exitCode: number;
+  errors: TestError[];
+  attachments: AttachmentLink[];
 }
 
 export interface BatchOptions {

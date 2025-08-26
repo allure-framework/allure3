@@ -1,6 +1,7 @@
 import {
   type AllureHistory,
   type AttachmentLink,
+  type AttachmentLinkFile,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
@@ -77,7 +78,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
-  #globalAttachments: ResultFile[] = [];
+  #globalAttachments: AttachmentLink[] = [];
   #globalErrors: TestError[] = [];
   #globalExitCode: number = 0;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
@@ -138,7 +139,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#globalErrors.push(error);
     });
     this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
-      this.#globalAttachments.push(attachment);
+      const attachmentLink: AttachmentLinkFile = {
+        id: md5(attachment.getOriginalFileName()),
+        missed: false,
+        used: false,
+        ext: attachment.getExtension(),
+        originalFileName: attachment.getOriginalFileName(),
+        contentType: attachment.getContentType(),
+        contentLength: attachment.getContentLength(),
+      };
+
+      this.#attachmentContents.set(attachmentLink.id, attachment);
+      this.#globalAttachments.push(attachmentLink);
     });
   }
 
@@ -205,7 +217,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#globalErrors;
   }
 
-  async allGlobalAttachments(): Promise<ResultFile[]> {
+  async allGlobalAttachments(): Promise<AttachmentLink[]> {
     return this.#globalAttachments;
   }
 

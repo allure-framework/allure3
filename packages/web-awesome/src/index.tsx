@@ -14,6 +14,7 @@ import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } 
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
+import { fetchGlobals } from "@/stores/globals";
 import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
 import { currentSection, getSection } from "@/stores/sections";
@@ -36,7 +37,14 @@ const App = () => {
   const [prefetched, setPrefetched] = useState(false);
   const testResultId = route.value.params?.testResultId ?? null;
   const prefetchData = async () => {
-    const fns = [ensureReportDataReady, fetchReportStats, fetchPieChartData, fetchEnvironments, fetchEnvInfo];
+    const fns = [
+      ensureReportDataReady,
+      fetchReportStats,
+      fetchPieChartData,
+      fetchEnvironments,
+      fetchEnvInfo,
+      fetchGlobals,
+    ];
 
     if (globalThis) {
       fns.unshift(

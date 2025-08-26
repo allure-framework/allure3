@@ -383,7 +383,9 @@ export class RunCommand extends Command {
       }
 
       if (testProcessResult?.stdout) {
-        const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout), "utf8");
+        const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), "stdout.txt");
+
+        stdoutResultFile.contentType = "text/plain";
 
         allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
       }
