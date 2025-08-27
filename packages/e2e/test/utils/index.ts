@@ -96,8 +96,6 @@ export const generateReport = async (payload: GeneratorParams) => {
   await report.start();
 
   if (globals) {
-    console.log("Sending global data", globals);
-
     if (globals.exitCode) {
       report.realtimeDispatcher.sendGlobalExitCode(globals.exitCode);
     }

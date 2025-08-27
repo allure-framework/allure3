@@ -362,7 +362,6 @@ export class AllureReport {
       return;
     }
 
-    // TODO:
     const qualityGateResults = await this.#store.qualityGateResults();
 
     await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));

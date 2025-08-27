@@ -18,7 +18,6 @@ export type BootstrapReportParams = Omit<GeneratorParams, "rootDir" | "reportDir
 };
 
 export const bootstrapReport = async (params: BootstrapReportParams, pluginConfig?: AwesomePluginOptions) => {
-  console.log("111 bootstrapReport", params);
   return baseBootstrapReport({
     ...params,
     reportConfig: {
