@@ -366,8 +366,9 @@ export const generateBarChartGeneric = async <P extends string, T extends string
   // Apply limit to history points if specified
   const historyDataPoints = await store.allHistoryDataPoints();
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit);
+  const isFullHistory = limitedHistoryPoints.length === historyDataPoints.length;
 
-  const items = await dataAccessor.getItems(store, limitedHistoryPoints);
+  const items = await dataAccessor.getItems(store, limitedHistoryPoints, isFullHistory);
   // Apply mode transformation if needed
   let processedData = items;
   if (mode === ChartMode.Percent) {
@@ -411,7 +412,7 @@ export interface TrendDataAccessor<T extends TrendDataType> {
 
 export interface BarDataAccessor<G extends string, T extends string> {
   // Get all needed data for the chart
-  getItems: (store: AllureStore, historyPoints: HistoryDataPoint[]) => Promise<BarGroup<G, T>[]>;
+  getItems: (store: AllureStore, historyPoints: HistoryDataPoint[], isFullHistory: boolean) => Promise<BarGroup<G, T>[]>;
   // List of all possible values for the group
   getGroupKeys: () => readonly T[];
   // Get group mode
