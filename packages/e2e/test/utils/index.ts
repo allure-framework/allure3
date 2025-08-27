@@ -1,6 +1,8 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
-import { type HistoryDataPoint } from "@allurereport/core-api";
+import { type HistoryDataPoint, type TestError } from "@allurereport/core-api";
+import { type ExitCode } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
+import { BufferResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import type { TestResult } from "allure-js-commons";
 import { FileSystemWriter, ReporterRuntime } from "allure-js-commons/sdk/reporter";
@@ -19,6 +21,11 @@ export type GeneratorParams = {
   rawTestResults?: Partial<TestResult>[];
   attachments?: { source: string; content: Buffer }[];
   reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath">;
+  globals?: {
+    exitCode?: ExitCode;
+    errors?: TestError[];
+    attachments?: Record<string, Buffer>;
+  };
 };
 
 export interface ReportBootstrap {
@@ -46,8 +53,8 @@ export const generateReport = async (payload: GeneratorParams) => {
     rawTestResults = [],
     attachments = [],
     history = [],
+    globals,
   } = payload;
-
   const hasHistory = history.length > 0;
   const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
 
@@ -87,6 +94,29 @@ export const generateReport = async (payload: GeneratorParams) => {
   runtime.writeScope(scopeUuid);
 
   await report.start();
+
+  if (globals) {
+    console.log("Sending global data", globals);
+
+    if (globals.exitCode) {
+      report.realtimeDispatcher.sendGlobalExitCode(globals.exitCode);
+    }
+
+    if (globals.errors) {
+      globals.errors.forEach((error) => {
+        report.realtimeDispatcher.sendGlobalError(error);
+      });
+    }
+
+    if (globals.attachments) {
+      Object.entries(globals.attachments).forEach(([fileName, buffer]) => {
+        const resultFile = new BufferResultFile(buffer, fileName);
+
+        report.realtimeDispatcher.sendGlobalAttachment(resultFile);
+      });
+    }
+  }
+
   await report.readDirectory(resultsDir);
   await report.done();
 };
@@ -143,3 +173,9 @@ export class AwesomePluginWithoutSummary extends AwesomePlugin {
     return undefined;
   }
 }
+
+/**
+ * 2. Release
+ * 3. GH Actions permissions
+ * 4. Plan for next two weeks
+ */

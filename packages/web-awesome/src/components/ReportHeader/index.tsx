@@ -38,7 +38,7 @@ export const ReportHeader = () => {
                     {reportName}
                   </Heading>
                 </div>
-                <Text type="paragraph" size="m" className={styles["report-date"]}>
+                <Text type="paragraph" size="m" className={styles["report-date"]} data-testid="report-data">
                   {exitCode.actual !== undefined
                     ? t("finishedAtBoth", { formattedCreatedAt, actual: exitCode.actual, original: exitCode.original })
                     : t("finishedAtOriginal", { formattedCreatedAt, original: exitCode.original })}
