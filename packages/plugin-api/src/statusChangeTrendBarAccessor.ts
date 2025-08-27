@@ -1,12 +1,13 @@
 import type { BarGroup, HistoryDataPoint, NewKey, RemovedKey, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode } from "@allurereport/core-api";
-import type { BarDataAccessor } from "./charts.js";
+import { createEmptyStats, type BarDataAccessor } from "./charts.js";
 
 // Types for new statuses trend chart data
-export type Keys = Extract<TestStatus, "passed" | "failed" | "broken">;
-export type StatusChangeTrendKeys = NewKey<Keys> | RemovedKey<Keys>;
+export type TrendKeys = Extract<TestStatus, "passed" | "failed" | "broken">;
+export type StatusChangeTrendKeys = NewKey<TrendKeys> | RemovedKey<TrendKeys>;
 
-export type StatusChangeTrendGroupId = string;
+const groupKeys = ["newPassed", "removedPassed", "newFailed", "removedFailed", "newBroken", "removedBroken"] as const;
+const emptyStats = createEmptyStats(groupKeys);
 
 // Helper functions to get diff keys based on status
 const getNewKey = (status: TestStatus): StatusChangeTrendKeys | undefined => {
@@ -29,22 +30,13 @@ const getRemovedKey = (status: TestStatus): StatusChangeTrendKeys | undefined =>
   }
 };
 
-// Helper function to create empty stats
-const createEmptyStats = (): Record<StatusChangeTrendKeys, number> => ({
-  newPassed: 0,
-  removedPassed: 0,
-  newFailed: 0,
-  removedFailed: 0,
-  newBroken: 0,
-  removedBroken: 0,
-});
-
 // Helper function to compare two sets of test results and calculate differences
 const compareTestResults = (
   previousTests: Record<string, { status: TestStatus }>,
   currentTests: Record<string, { status: TestStatus }>,
 ): Record<StatusChangeTrendKeys, number> => {
-  const stats = createEmptyStats();
+  const stats = { ...emptyStats };
+
   const currentIds = new Set(Object.keys(currentTests));
   const previousIds = new Set(Object.keys(previousTests));
 
@@ -100,14 +92,14 @@ const compareTestResults = (
   return stats;
 };
 
-const calculateTrendData = (testResults: TestResult[], historyPoints: HistoryDataPoint[]): BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] => {
+const calculateTrendData = (testResults: TestResult[], historyPoints: HistoryDataPoint[]): BarGroup<string, StatusChangeTrendKeys>[] => {
   // Convert current test results to the format expected by compareTestResults
   const currentTestResults = testResults.reduce((acc, test) => {
     acc[test.id] = { status: test.status };
     return acc;
   }, {} as Record<string, { status: TestStatus }>);
 
-  const trendData: BarGroup<StatusChangeTrendGroupId, StatusChangeTrendKeys>[] = [];
+  const trendData: BarGroup<string, StatusChangeTrendKeys>[] = [];
 
   // Process each history point
   const historyAndCurrentItem = [{ testResults: currentTestResults }, ...historyPoints];
@@ -125,19 +117,24 @@ const calculateTrendData = (testResults: TestResult[], historyPoints: HistoryDat
   return trendData;
 };
 
-export const statusChangeTrendBarAccessor: BarDataAccessor<StatusChangeTrendGroupId, StatusChangeTrendKeys> = {
-  getItems: async (store, historyPoints) => {
+export const statusChangeTrendBarAccessor: BarDataAccessor<string, StatusChangeTrendKeys> = {
+  getItems: async (store, historyPoints, isFullHistory) => {
     const testResults = await store.allTestResults();
 
-    return calculateTrendData(testResults, historyPoints).slice(0, -1).reverse();
+    let trendData = calculateTrendData(testResults, historyPoints);
+
+    /* This is necessary not to exclude the last point that have been compared with the empty stats if the history is fully provided.
+    *
+    * We have no previous poin in the end of the full history, that's why we have to compare it with the empty stats.
+    * At the opposite, we have to exclude the last point if the history is limited because it should be compared with the real previous point,
+    * but it is already excluded in limited history.
+    */
+    if (!isFullHistory) {
+      trendData = trendData.slice(0, -1);
+    }
+
+    return trendData.reverse();
   },
-  getGroupKeys: () => [
-    "newPassed",
-    "removedPassed",
-    "newFailed",
-    "removedFailed",
-    "newBroken",
-    "removedBroken"
-  ] as const,
+  getGroupKeys: () => groupKeys,
   getGroupMode: () => BarGroupMode.Stacked,
 };
