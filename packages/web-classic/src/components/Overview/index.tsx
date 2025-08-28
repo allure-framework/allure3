@@ -1,7 +1,7 @@
 /* eslint-disable @stylistic/quotes */
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType } from "@allurereport/core-api";
+import { ChartType, capitalize } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
@@ -17,7 +17,6 @@ import {
 import { useEffect } from "preact/hooks";
 import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
-import { capitalize } from "@/utils/capitalize";
 import * as styles from "./Overview.module.scss";
 
 const getChartWidgetByType = (

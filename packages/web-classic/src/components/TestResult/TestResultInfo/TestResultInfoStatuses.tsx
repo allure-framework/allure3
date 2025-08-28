@@ -1,7 +1,7 @@
 import { SvgIcon, allureIcons } from "@allurereport/web-components";
+import { capitalize } from "@allurereport/core-api";
 import { type FunctionalComponent } from "preact";
 import { useI18n } from "@/stores";
-import { capitalize } from "@/utils/capitalize";
 import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {

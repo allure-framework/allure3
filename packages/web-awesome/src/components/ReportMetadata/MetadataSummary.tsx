@@ -1,5 +1,4 @@
-import { type Statistic, statusesList } from "@allurereport/core-api";
-import { capitalize } from "@allurereport/web-commons";
+import { type Statistic, statusesList, capitalize } from "@allurereport/core-api";
 import { computed } from "@preact/signals";
 import type { FunctionalComponent } from "preact";
 import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/MetadataItem";
