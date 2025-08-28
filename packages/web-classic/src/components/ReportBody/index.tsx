@@ -1,9 +1,7 @@
-import { statusesList } from "@allurereport/core-api";
-import { Loadable } from "@allurereport/web-components";
-import { Counter } from "@allurereport/web-components";
+import { statusesList, capitalize } from "@allurereport/core-api";
+import { Loadable, Counter } from "@allurereport/web-components";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
 import { Tab, Tabs, TabsList } from "../Tabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";

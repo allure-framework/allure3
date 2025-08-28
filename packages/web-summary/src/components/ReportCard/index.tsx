@@ -1,5 +1,4 @@
-import { type Statistic, type TestStatus, formatDuration, getPieChartValues } from "@allurereport/core-api";
-import { capitalize } from "@allurereport/web-commons";
+import { type Statistic, type TestStatus, formatDuration, getPieChartValues, capitalize } from "@allurereport/core-api";
 import { Heading, StatusLabel, SuccessRatePieChart, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import IconLabel from "@/components/IconLabel";

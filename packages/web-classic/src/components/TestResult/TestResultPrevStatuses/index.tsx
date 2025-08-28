@@ -1,9 +1,8 @@
-import { type HistoryTestResult } from "@allurereport/core-api";
+import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
-import { capitalize } from "@/utils/capitalize";
 import { timestampToDate } from "@/utils/time";
 import * as styles from "./styles.scss";
 
