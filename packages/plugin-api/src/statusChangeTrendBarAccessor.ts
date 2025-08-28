@@ -1,33 +1,25 @@
 import type { BarGroup, HistoryDataPoint, NewKey, RemovedKey, TestResult, TestStatus } from "@allurereport/core-api";
-import { BarGroupMode } from "@allurereport/core-api";
+import { BarGroupMode, capitalize } from "@allurereport/core-api";
 import { createEmptyStats, type BarDataAccessor } from "./charts.js";
 
 // Types for new statuses trend chart data
-export type TrendKeys = Extract<TestStatus, "passed" | "failed" | "broken">;
-export type StatusChangeTrendKeys = NewKey<TrendKeys> | RemovedKey<TrendKeys>;
+export type StatusChangeTrendKeys = NewKey<TestStatus> | RemovedKey<TestStatus>;
 
-const groupKeys = ["newPassed", "removedPassed", "newFailed", "removedFailed", "newBroken", "removedBroken"] as const;
-const emptyStats = createEmptyStats(groupKeys);
+const newGroupKeys = ["newPassed", "newFailed", "newBroken", "newSkipped", "newUnknown"] as const;
+const removedGroupKeys = ["removedPassed", "removedFailed", "removedBroken", "removedSkipped", "removedUnknown"] as const;
+const groupKeys = [...newGroupKeys, ...removedGroupKeys] as const;
 
 // Helper functions to get diff keys based on status
 const getNewKey = (status: TestStatus): StatusChangeTrendKeys | undefined => {
-  if (status === "passed") {
-    return "newPassed";
-  } else if (status === "failed") {
-    return "newFailed";
-  } else if (status === "broken") {
-    return "newBroken";
-  }
+  const capitalizedStatus = capitalize(status);
+
+  return capitalizedStatus ? `new${capitalizedStatus}` : undefined;
 };
 
 const getRemovedKey = (status: TestStatus): StatusChangeTrendKeys | undefined => {
-  if (status === "passed") {
-    return "removedPassed";
-  } else if (status === "failed") {
-    return "removedFailed";
-  } else if (status === "broken") {
-    return "removedBroken";
-  }
+  const capitalizedStatus = capitalize(status);
+
+  return capitalizedStatus ? `removed${capitalizedStatus}` : undefined;
 };
 
 // Helper function to compare two sets of test results and calculate differences
@@ -35,7 +27,7 @@ const compareTestResults = (
   previousTests: Record<string, { status: TestStatus }>,
   currentTests: Record<string, { status: TestStatus }>,
 ): Record<StatusChangeTrendKeys, number> => {
-  const stats = { ...emptyStats };
+  const stats = createEmptyStats(groupKeys);
 
   const currentIds = new Set(Object.keys(currentTests));
   const previousIds = new Set(Object.keys(previousTests));
@@ -61,29 +53,6 @@ const compareTestResults = (
         const key = getRemovedKey(test.status);
         if (key) {
           stats[key]--;
-        }
-      }
-    }
-  }
-
-  // Find status changes for existing items in both previous and current points
-  for (const testId of currentIds) {
-    if (previousIds.has(testId)) {
-      const currentTest = currentTests[testId];
-      const previousTest = previousTests[testId];
-
-      if (currentTest?.status && previousTest?.status && currentTest.status !== previousTest.status) {
-        // Somewhere it was removed and added in another status, so you have to handle both cases simultaneously for the same item
-        // Add new status for existing item
-        const newKey = getNewKey(currentTest.status);
-        if (newKey) {
-          stats[newKey]++;
-        }
-
-        // Add removed status for previous item
-        const removedKey = getRemovedKey(previousTest.status);
-        if (removedKey) {
-          stats[removedKey]--;
         }
       }
     }
