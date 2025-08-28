@@ -1,4 +1,4 @@
-import { type Statistic, statusesList } from "@allurereport/core-api";
+import { type Statistic, statusesList, capitalize } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import type { FunctionComponent } from "preact";
@@ -8,7 +8,6 @@ import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/ReportMetadata/styles.scss";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
 
 export const MetadataSummary: FunctionComponent = () => {
   const { t } = useI18n("statuses");
