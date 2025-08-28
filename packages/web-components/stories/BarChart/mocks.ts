@@ -1,9 +1,9 @@
 import type { TestStatus, SeverityLevel } from "@allurereport/core-api";
 
-// Константы для статусов тестов
+// Test status constants
 export const TEST_STATUSES: readonly TestStatus[] = ["failed", "broken", "passed", "skipped", "unknown"] as const;
 
-// Константы для уровней важности (включая "not set")
+// Severity level constants (including "not set")
 export const SEVERITY_LEVELS: readonly (SeverityLevel | "not set")[] = [
   "not set",
   "trivial",
@@ -13,7 +13,7 @@ export const SEVERITY_LEVELS: readonly (SeverityLevel | "not set")[] = [
   "blocker"
 ] as const;
 
-// Константы для mock данных (основаны на картинке)
+// Mock data constants (based on the image)
 export const MOCK_DATA_BY_SEVERITY: Record<SeverityLevel | "not set", Record<TestStatus, number>> = {
   "not set": {
     failed: 2,
@@ -59,7 +59,7 @@ export const MOCK_DATA_BY_SEVERITY: Record<SeverityLevel | "not set", Record<Tes
   },
 };
 
-// Функция для создания данных в формате, подходящем для Nivo Bar Chart
+// Function to create data in format suitable for Nivo Bar Chart
 export const createBarChartData = () => {
   return SEVERITY_LEVELS.map(severity => {
     const dataPoint: Record<string, string | number> = {
