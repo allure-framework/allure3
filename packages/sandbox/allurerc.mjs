@@ -52,6 +52,7 @@ export const dashboardLayout = [
   },
   {
     type: "bar",
+    dataType: "severity",
     title: "Test result severities"
   },
   {
