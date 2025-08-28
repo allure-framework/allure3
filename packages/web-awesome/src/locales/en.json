@@ -17,7 +17,10 @@
     "new": "New tests"
   },
   "tabs": {
-    "total": "All"
+    "total": "All",
+    "results": "Results",
+    "globalAttachments": "Global Attachments",
+    "globalErrors": "Global Errors"
   },
   "search": {
     "search": "Search",
@@ -76,6 +79,7 @@
     "no-message-provided": "No message is provided",
     "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "No history information available",
     "no-retries-results": "No retries information available",
     "no-test-steps-results": "No test steps information available",
@@ -119,7 +123,9 @@
     "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at",
     "variables": "Variables",
-    "openPwTrace": "Open Playwright Trace"
+    "openPwTrace": "Open Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})"
   },
   "controls": {
     "newTabAttachment": "Open attachment in new tab",

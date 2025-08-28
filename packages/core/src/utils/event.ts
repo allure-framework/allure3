@@ -1,9 +1,11 @@
 import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
+  ExitCode,
   QualityGateValidationResult,
   RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
   RealtimeSubscriber as RealtimeSubscriberType,
+  ResultFile,
 } from "@allurereport/plugin-api";
 import console from "node:console";
 import type { EventEmitter } from "node:events";
@@ -14,15 +16,19 @@ export enum RealtimeEvents {
   TestFixtureResult = "testFixtureResult",
   AttachmentFile = "attachmentFile",
   QualityGateResults = "qualityGateResults",
+  GlobalAttachment = "globalAttachment",
   GlobalError = "globalError",
+  GlobalExitCode = "globalExitCode",
 }
 
 export interface AllureStoreEvents {
-  [RealtimeEvents.GlobalError]: [TestError];
   [RealtimeEvents.QualityGateResults]: [QualityGateValidationResult[]];
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
+  [RealtimeEvents.GlobalAttachment]: [ResultFile];
+  [RealtimeEvents.GlobalExitCode]: [ExitCode];
+  [RealtimeEvents.GlobalError]: [TestError];
 }
 
 interface HandlerData {
@@ -38,11 +44,19 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter = emitter;
   }
 
+  sendGlobalAttachment(attachment: ResultFile) {
+    this.#emitter.emit(RealtimeEvents.GlobalAttachment, attachment);
+  }
+
+  sendGlobalExitCode(codes: ExitCode) {
+    this.#emitter.emit(RealtimeEvents.GlobalExitCode, codes);
+  }
+
   sendGlobalError(error: TestError) {
     this.#emitter.emit(RealtimeEvents.GlobalError, error);
   }
 
-  sendQualityGateResult(payload: QualityGateValidationResult[]) {
+  sendQualityGateResults(payload: QualityGateValidationResult[]) {
     this.#emitter.emit(RealtimeEvents.QualityGateResults, payload ?? []);
   }
 
@@ -67,6 +81,22 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter = emitter;
   }
 
+  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.GlobalAttachment, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.GlobalAttachment, listener);
+    };
+  }
+
+  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>) {
+    this.#emitter.on(RealtimeEvents.GlobalExitCode, listener);
+
+    return () => {
+      this.#emitter.off(RealtimeEvents.GlobalExitCode, listener);
+    };
+  }
+
   onGlobalError(listener: (error: TestError) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.GlobalError, listener);
 
@@ -75,7 +105,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     };
   }
 
-  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.QualityGateResults, listener);
 
     return () => {

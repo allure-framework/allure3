@@ -17,7 +17,10 @@
     "new": "新的测试"
   },
   "tabs": {
-    "total": "所有"
+    "total": "所有",
+    "results": "结果",
+    "globalAttachments": "全局附件",
+    "globalErrors": "全局错误"
   },
   "search": {
     "search": "搜索",
@@ -76,6 +79,7 @@
     "no-message-provided": "未提供消息",
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "没有历史信息",
     "no-retries-results": "没有重试信息",
     "no-test-steps-results": "没有可用的测试步骤信息",
@@ -119,7 +123,9 @@
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
     "variables": "变量",
-    "openPwTrace": "打开 Playwright Trace"
+    "openPwTrace": "打开 Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
   },
   "controls": {
     "newTabAttachment": "在新标签页中打开附件",

@@ -52,6 +52,7 @@ export const readResults = async (
 
 export const attachResultFile = async (resultFile: ResultFile) => {
   const content = await resultFile.asBuffer();
+
   if (content) {
     await attachment(resultFile.getOriginalFileName(), content, resultFile.getContentType() ?? "text/plain");
   }

@@ -356,6 +356,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
+          ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@allurereport/static-server", "workspace:packages/static-server"],\
           ["@faker-js/faker", "npm:9.8.0"],\
           ["@playwright/test", "npm:1.48.2"],\
@@ -993,6 +994,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
           ["@babel/core", "npm:7.27.4"],\

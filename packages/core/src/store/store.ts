@@ -1,6 +1,7 @@
 import {
   type AllureHistory,
   type AttachmentLink,
+  type AttachmentLinkFile,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
@@ -23,6 +24,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ExitCode,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
   type RealtimeSubscriber,
@@ -76,9 +78,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
-  readonly #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
-  readonly #globalErrors: TestError[] = [];
 
+  #globalAttachments: AttachmentLink[] = [];
+  #globalErrors: TestError[] = [];
+  #globalExitCode: ExitCode | undefined;
+  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
@@ -124,13 +128,30 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
 
-    this.#realtimeSubscriber?.onQualityGateResult(async (results: QualityGateValidationResult[]) => {
+    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
       results.forEach((result) => {
         this.#qualityGateResultsByRules[result.rule] = result;
       });
     });
+    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
+      this.#globalExitCode = exitCode;
+    });
     this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
       this.#globalErrors.push(error);
+    });
+    this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
+      const attachmentLink: AttachmentLinkFile = {
+        id: md5(attachment.getOriginalFileName()),
+        missed: false,
+        used: false,
+        ext: attachment.getExtension(),
+        originalFileName: attachment.getOriginalFileName(),
+        contentType: attachment.getContentType(),
+        contentLength: attachment.getContentLength(),
+      };
+
+      this.#attachmentContents.set(attachmentLink.id, attachment);
+      this.#globalAttachments.push(attachmentLink);
     });
   }
 
@@ -189,8 +210,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   // global data
 
+  async globalExitCode(): Promise<ExitCode | undefined> {
+    return this.#globalExitCode;
+  }
+
   async allGlobalErrors(): Promise<TestError[]> {
     return this.#globalErrors;
+  }
+
+  async allGlobalAttachments(): Promise<AttachmentLink[]> {
+    return this.#globalAttachments;
   }
 
   // test methods
@@ -292,9 +321,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#attachmentContents.set(id, resultFile);
 
     const maybeLink = this.#attachments.get(id);
+
     if (maybeLink) {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
+
       link.missed = false;
       link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
       link.contentType = link.contentType ?? resultFile.getContentType();
