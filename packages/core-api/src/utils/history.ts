@@ -8,28 +8,28 @@ import type { TestResult } from "../model.js";
  * @returns The history test results array.
  */
 export const htrsByTr = (hdps: HistoryDataPoint[], tr: TestResult | HistoryTestResult): HistoryTestResult[] => {
-  if (!tr?.historyId) {
-    return [];
-  }
-
-  return hdps.reduce((acc, dp) => {
-    const htr = dp.testResults[tr.historyId!];
-
-    if (htr) {
-      if (dp.url) {
-        const url = new URL(dp.url);
-
-        url.hash = tr.id;
-
-        acc.push({
-          ...htr,
-          url: url.toString(),
-        });
-      } else {
-        acc.push(htr);
-      }
+    if (!tr?.historyId) {
+        return [];
     }
 
-    return acc;
-  }, [] as HistoryTestResult[]);
+    return hdps.reduce((acc, dp) => {
+        const htr = dp.testResults[tr.historyId!];
+
+        if (htr) {
+            if (dp.url) {
+                const url = new URL(dp.url);
+
+                url.hash = tr.id;
+
+                acc.push({
+                    ...htr,
+                    url: url.toString(),
+                });
+            } else {
+                acc.push(htr);
+            }
+        }
+
+        return acc;
+    }, [] as HistoryTestResult[]);
 };

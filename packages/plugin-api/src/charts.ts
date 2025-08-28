@@ -14,7 +14,7 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType, ChartDataType, ChartMode, getPieChartValues, limitHistoryDataPoints, BarChartType } from "@allurereport/core-api";
+import { ChartType, ChartDataType, ChartMode, getPieChartValues, BarChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
@@ -130,6 +130,22 @@ export interface ComingSoonChartData {
   type: ChartType.ComingSoon;
   title?: string;
 }
+
+/**
+ * @description Limits the history data points by a certain limit, that is necessary for charts data with a long history.
+ * @param historyDataPoints - The history data points.
+ * @param limit - The limit.
+ * @returns The limited history data points.
+ */
+export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], limit: number): HistoryDataPoint[] => {
+  if (limit <= 0 || historyDataPoints.length === 0) {
+    return [];
+  }
+
+  const clampedLimit = Math.max(0, Math.floor(limit));
+
+  return historyDataPoints.slice(0, clampedLimit);
+};
 
 /**
  * Initializes series record with items as keys and empty arrays.

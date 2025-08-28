@@ -16,6 +16,7 @@ import {
   type TestFixtureResult,
   type TestResult,
   compareBy,
+  htrsByTr,
   getWorstStatus,
   htrsByTr,
   matchEnvironment,
