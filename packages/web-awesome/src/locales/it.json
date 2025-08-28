@@ -79,6 +79,7 @@
     "no-message-provided": "Nessun messaggio fornito",
     "clear-filters": "Cancella filtri",
     "no-attachments-results": "Nessuna informazione sugli allegati disponibile",
+    "no-global-errors-results": "Nessuna informazione sugli errori globali disponibile",
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
     "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",
@@ -123,8 +124,8 @@
     "at": "a",
     "variables": "Variabili",
     "openPwTrace": "Apri Playwright Trace",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, con codice {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, con codice {{actual}} (originale {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})"
   },
   "controls": {
     "newTabAttachment": "Apri in una nuova scheda",

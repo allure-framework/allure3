@@ -79,6 +79,7 @@
     "no-message-provided": "メッセージが提供されていません",
     "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
+    "no-global-errors-results": "グローバルエラー情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
     "no-retries-results": "再試行情報が利用できません",
     "no-test-steps-results": "テスト手順の情報は利用できません",

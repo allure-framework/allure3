@@ -79,6 +79,7 @@
     "no-message-provided": "შეტყობინება არ არის მოწოდებული",
     "clear-filters": "ფილტრების გასუფთავება",
     "no-attachments-results": "დანართების ინფორმაცია არ არის ხელმისაწვდომი",
+    "no-global-errors-results": "გლობალური შეცდომების ინფორმაცია არ არის ხელმისაწვდომი",
     "no-history-results": "ისტორიის ინფორმაცია არ არის ხელმისაწვდომი",
     "no-retries-results": "ხელახალი ცდების ინფორმაცია არ არის ხელმისაწვდომი",
     "no-test-steps-results": "ტესტის ნაბიჯების ინფორმაცია ხელმისაწვდომი არ არის",
@@ -123,8 +124,8 @@
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, კოდით {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, კოდით {{actual}} (თავდაპირველი {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})"
   },
   "controls": {
     "newTabAttachment": "დანართის გახსნა ახალ ჩანართში",

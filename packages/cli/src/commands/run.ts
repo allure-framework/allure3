@@ -41,10 +41,11 @@ const runTests = async (params: {
   command: string;
   commandArgs: string[];
   environment: Record<string, string>;
-  silent: boolean;
   withQualityGate: boolean;
+  silent?: boolean;
+  logs?: "pipe" | "inherit" | "ignore";
 }): Promise<TestProcessResult | null> => {
-  const { allureReport, knownIssues, cwd, command, commandArgs, silent, environment, withQualityGate } = params;
+  const { allureReport, knownIssues, cwd, command, commandArgs, logs, environment, withQualityGate, silent } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
   const processWatcher = delayedFileProcessingWatcher(
@@ -101,7 +102,13 @@ const runTests = async (params: {
   testProcessStarted = true;
 
   const beforeProcess = Date.now();
-  const testProcess = runProcess(command, commandArgs, cwd, environment);
+  const testProcess = runProcess({
+    command,
+    commandArgs,
+    cwd,
+    environment,
+    logs,
+  });
   const qualityGateState = new QualityGateState();
   let qualityGateUnsub: ReturnType<typeof allureReport.realtimeSubscriber.onTestResults> | undefined;
   let qualityGateResults: QualityGateValidationResult[] = [];
@@ -144,28 +151,26 @@ const runTests = async (params: {
     });
   }
 
-  testProcess.stdout?.on?.("data", (data: Buffer) => {
-    const chunk = data.toString("utf8");
+  if (logs === "pipe") {
+    testProcess.stdout?.setEncoding("utf8").on?.("data", (data: string) => {
+      testProcessStdout += data;
 
-    testProcessStdout += chunk;
+      if (silent) {
+        return;
+      }
 
-    if (silent) {
-      return;
-    }
+      process.stdout.write(data);
+    });
+    testProcess.stderr?.setEncoding("utf8").on?.("data", async (data: string) => {
+      testProcessStderr += data;
 
-    console.log(chunk);
-  });
-  testProcess.stderr?.on?.("data", async (data: Buffer) => {
-    const chunk = data.toString("utf8");
+      if (silent) {
+        return;
+      }
 
-    testProcessStderr += chunk;
-
-    if (silent) {
-      return;
-    }
-
-    console.error(chunk);
-  });
+      process.stderr.write(data);
+    });
+  }
 
   const code = await terminationOf(testProcess);
   const afterProcess = Date.now();
@@ -232,7 +237,19 @@ export class RunCommand extends Command {
     description: "Don't pipe the process output logs to console (default: 0)",
   });
 
+  ignoreLogs = Option.Boolean("--ignore-logs", {
+    description: "Prevent logs attaching to the report (default: false)",
+  });
+
   commandToRun = Option.Rest();
+
+  get logs() {
+    if (this.silent) {
+      return this.ignoreLogs ? "ignore" : "pipe";
+    }
+
+    return this.ignoreLogs ? "inherit" : "pipe";
+  }
 
   async execute() {
     const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
@@ -256,7 +273,6 @@ export class RunCommand extends Command {
     console.log(`${command} ${commandArgs.join(" ")}`);
 
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
-    const silent = this.silent ?? false;
     const config = await readConfig(cwd, this.config, { output: this.output, name: this.reportName });
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;
@@ -302,16 +318,18 @@ export class RunCommand extends Command {
       actual: undefined,
     };
     let qualityGateResults: QualityGateValidationResult[];
+    let testProcessResult: TestProcessResult | null = null;
 
     try {
-      let testProcessResult = await runTests({
+      testProcessResult = await runTests({
+        logs: this.logs,
+        silent: this.silent,
         allureReport,
         knownIssues,
         cwd,
         command,
         commandArgs,
         environment: {},
-        silent,
         withQualityGate,
       });
 
@@ -334,6 +352,8 @@ export class RunCommand extends Command {
         await writeFile(testPlanPath, JSON.stringify(testPlan));
 
         testProcessResult = await runTests({
+          silent: this.silent,
+          logs: this.logs,
           allureReport,
           knownIssues,
           cwd,
@@ -343,7 +363,6 @@ export class RunCommand extends Command {
             ALLURE_TESTPLAN_PATH: testPlanPath,
             ALLURE_RERUN: `${rerun}`,
           },
-          silent,
           withQualityGate,
         });
 
@@ -377,21 +396,6 @@ export class RunCommand extends Command {
       if (withQualityGate) {
         globalExitCode.actual = qualityGateResults.length > 0 ? 1 : 0;
       }
-
-      if (testProcessResult?.stderr) {
-        allureReport.realtimeDispatcher.sendGlobalError({
-          message: "Test process has failed",
-          trace: testProcessResult.stderr,
-        });
-      }
-
-      if (testProcessResult?.stdout) {
-        const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), "stdout.txt");
-
-        stdoutResultFile.contentType = "text/plain";
-
-        allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
-      }
     } catch (error) {
       globalExitCode.actual = 1;
 
@@ -408,6 +412,31 @@ export class RunCommand extends Command {
         allureReport.realtimeDispatcher.sendGlobalError({
           message: (error as Error).message,
           trace: (error as Error).stack,
+        });
+      }
+    }
+
+    const processFailed = Math.abs(globalExitCode.actual ?? globalExitCode.original) !== 0;
+
+    if (!this.ignoreLogs && testProcessResult?.stdout) {
+      const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), "stdout.txt");
+
+      stdoutResultFile.contentType = "text/plain";
+
+      allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
+    }
+
+    if (!this.ignoreLogs && testProcessResult?.stderr) {
+      const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), "stderr.txt");
+
+      stderrResultFile.contentType = "text/plain";
+
+      allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile);
+
+      if (processFailed) {
+        allureReport.realtimeDispatcher.sendGlobalError({
+          message: "Test process has failed",
+          trace: testProcessResult.stderr,
         });
       }
     }

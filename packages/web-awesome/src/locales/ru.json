@@ -79,6 +79,7 @@
     "no-message-provided": "Сообщение не предоставлено",
     "clear-filters": "Очистить фильтры",
     "no-attachments-results": "Информация о вложениях отсутствует",
+    "no-global-errors-results": "Информация о глобальных ошибках отсутствует",
     "no-history-results": "Информация об истории отсутствует",
     "no-retries-results": "Информация о перезапусках отсутствует",
     "no-test-steps-results": "Нет информации о шагах тестирования",
@@ -123,8 +124,8 @@
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом {{actual}} (первоначальный {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
   },
   "controls": {
     "newTabAttachment": "Открыть в новой вкладке",

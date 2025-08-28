@@ -79,6 +79,7 @@
     "no-message-provided": "לא סופק הודעה",
     "clear-filters": "נקה מסננים",
     "no-attachments-results": "לא נמצאה מידע על קבצים מצורפים",
+    "no-global-errors-results": "לא נמצא מידע על שגיאות גלובליות",
     "no-history-results": "לא נמצאה מידע על היסטוריה",
     "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים",
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
@@ -123,8 +124,8 @@
     "at": "ב-",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד {{actual}} (מקורי {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})"
   },
   "controls": {
     "newTabAttachment": "פתח קובץ מצורף בלשונית חדשה",

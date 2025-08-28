@@ -79,6 +79,7 @@
     "no-message-provided": "Inget meddelande angavs",
     "clear-filters": "Rensa filter",
     "no-attachments-results": "Ingen bilaga information tillgänglig",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "Ingen historik information tillgänglig",
     "no-retries-results": "Ingen omtagningar information tillgänglig",
     "no-test-steps-results": "Ingen information om teststeg tillgänglig",
@@ -123,8 +124,8 @@
     "at": "vid",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, med kod {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, med kod {{actual}} (ursprunglig {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
   },
   "controls": {
     "newTabAttachment": "Öppna bilaga i ny flik",

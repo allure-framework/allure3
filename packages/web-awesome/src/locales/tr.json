@@ -79,6 +79,7 @@
     "no-message-provided": "Mesaj belirtilmedi",
     "clear-filters": "Filtreleri temizle",
     "no-attachments-results": "Ek bilgisi mevcut değil",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "Geçmiş bilgisi mevcut değil",
     "no-retries-results": "Tekrar deneme bilgisi mevcut değil",
     "no-test-steps-results": "Test adımları hakkında bilgi mevcut değil",
@@ -123,8 +124,8 @@
     "at": "tarihinde",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace Aç",
-    "finishedAtOriginal": "{{formattedCreatedAt}}, kod {{original}}",
-    "finishedAtBoth": "{{formattedCreatedAt}}, kod {{actual}} (orijinal {{original}})"
+    "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"
   },
   "controls": {
     "newTabAttachment": "Eki yeni sekmede aç",
