@@ -44,23 +44,3 @@ export interface AllureHistory {
   readHistory(branch?: string): Promise<HistoryDataPoint[]>;
   appendHistory(history: HistoryDataPoint, branch?: string): Promise<void>;
 }
-
-export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], limit: number): HistoryDataPoint[] => {
-  if (limit <= 0 || historyDataPoints.length === 0) {
-    return [];
-  }
-
-  const clampedLimit = Math.max(0, Math.floor(limit));
-
-  return historyDataPoints.slice(0, clampedLimit);
-};
-
-export const sortHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], order: "asc" | "desc" = "desc"): HistoryDataPoint[] => {
-  return historyDataPoints.sort((a, b) => {
-    if (order === "asc") {
-      return a.timestamp - b.timestamp;
-    }
-
-    return b.timestamp - a.timestamp;
-  });
-};
