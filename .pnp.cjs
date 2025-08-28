@@ -1197,6 +1197,7 @@ const RAW_RUNTIME_STATE =
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.13"],\
           ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/bar", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/line", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
@@ -8429,11 +8430,11 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:81ebbe8658a3da51b5641b54008264212edc3ffe530cd692b656d13d4079f8eb130c9e98f333ec39981f954eea0e62d1a65bb35d43e90409d932820fd58cf75a#npm:0.88.0", {\
-        "packageLocation": "./.yarn/__virtual__/@nivo-annotations-virtual-5f89d429b5/0/cache/@nivo-annotations-npm-0.88.0-1bc06d055b-d84d676747.zip/node_modules/@nivo/annotations/",\
+      ["virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0", {\
+        "packageLocation": "./.yarn/__virtual__/@nivo-annotations-virtual-7bc7e8b045/0/cache/@nivo-annotations-npm-0.88.0-1bc06d055b-d84d676747.zip/node_modules/@nivo/annotations/",\
         "packageDependencies": [\
-          ["@nivo/annotations", "virtual:81ebbe8658a3da51b5641b54008264212edc3ffe530cd692b656d13d4079f8eb130c9e98f333ec39981f954eea0e62d1a65bb35d43e90409d932820fd58cf75a#npm:0.88.0"],\
-          ["@nivo/colors", "virtual:3e5cc1d15d4ed43e317f423b0f13691af0dc249bdbcc4c588bb11832f789ecfd6ea5456542b1e7dedeef404d582bbf772b2004bb9a4a553b79431cac34eeb13b#npm:0.88.0"],\
+          ["@nivo/annotations", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
           ["@types/react", null],\
@@ -8482,6 +8483,44 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@nivo/bar", [\
+      ["npm:0.88.0", {\
+        "packageLocation": "./.yarn/cache/@nivo-bar-npm-0.88.0-afd7db4ded-e1c08ba387.zip/node_modules/@nivo/bar/",\
+        "packageDependencies": [\
+          ["@nivo/bar", "npm:0.88.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0", {\
+        "packageLocation": "./.yarn/__virtual__/@nivo-bar-virtual-c3ee0dd086/0/cache/@nivo-bar-npm-0.88.0-afd7db4ded-e1c08ba387.zip/node_modules/@nivo/bar/",\
+        "packageDependencies": [\
+          ["@nivo/bar", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/annotations", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/scales", "npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
+          ["@types/d3-scale", "npm:4.0.8"],\
+          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/react", null],\
+          ["d3-scale", "npm:4.0.2"],\
+          ["d3-shape", "npm:3.2.0"],\
+          ["lodash", "npm:4.17.21"],\
+          ["react", [\
+            "@preact/compat",\
+            "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"\
+          ]]\
+        ],\
+        "packagePeers": [\
+          "@types/react",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@nivo/colors", [\
       ["npm:0.88.0", {\
         "packageLocation": "./.yarn/cache/@nivo-colors-npm-0.88.0-6879e62e62-fc8cf07afb.zip/node_modules/@nivo/colors/",\
@@ -8490,15 +8529,15 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:3e5cc1d15d4ed43e317f423b0f13691af0dc249bdbcc4c588bb11832f789ecfd6ea5456542b1e7dedeef404d582bbf772b2004bb9a4a553b79431cac34eeb13b#npm:0.88.0", {\
-        "packageLocation": "./.yarn/__virtual__/@nivo-colors-virtual-1bf944e71c/0/cache/@nivo-colors-npm-0.88.0-6879e62e62-fc8cf07afb.zip/node_modules/@nivo/colors/",\
+      ["virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0", {\
+        "packageLocation": "./.yarn/__virtual__/@nivo-colors-virtual-b856886360/0/cache/@nivo-colors-npm-0.88.0-6879e62e62-fc8cf07afb.zip/node_modules/@nivo/colors/",\
         "packageDependencies": [\
-          ["@nivo/colors", "virtual:3e5cc1d15d4ed43e317f423b0f13691af0dc249bdbcc4c588bb11832f789ecfd6ea5456542b1e7dedeef404d582bbf772b2004bb9a4a553b79431cac34eeb13b#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@types/d3-color", "npm:3.1.3"],\
           ["@types/d3-scale", "npm:4.0.8"],\
           ["@types/d3-scale-chromatic", "npm:3.1.0"],\
-          ["@types/prop-types", "npm:15.7.14"],\
+          ["@types/prop-types", "npm:15.7.15"],\
           ["@types/react", null],\
           ["d3-color", "npm:3.1.0"],\
           ["d3-scale", "npm:4.0.2"],\
@@ -8529,7 +8568,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@nivo-core-virtual-15c30793c9/0/cache/@nivo-core-npm-0.88.0-d0bd18f82f-14823e5366.zip/node_modules/@nivo/core/",\
         "packageDependencies": [\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
-          ["@nivo/tooltip", "virtual:15c30793c969c0c75d20d176689ee6de9fdb34994221e8cdc6bf3d782a0b41752edb344211b08c8988a8ffe1971261d40294d0313aead912d8f957ef544c06d1#npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/react", null],\
@@ -8566,7 +8605,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@nivo-legends-virtual-3e5cc1d15d/0/cache/@nivo-legends-npm-0.88.0-f2c525db74-b50f170bf1.zip/node_modules/@nivo/legends/",\
         "packageDependencies": [\
           ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
-          ["@nivo/colors", "virtual:3e5cc1d15d4ed43e317f423b0f13691af0dc249bdbcc4c588bb11832f789ecfd6ea5456542b1e7dedeef404d582bbf772b2004bb9a4a553b79431cac34eeb13b#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@types/d3-scale", "npm:4.0.8"],\
           ["@types/react", null],\
@@ -8595,13 +8634,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/@nivo-line-virtual-81ebbe8658/0/cache/@nivo-line-npm-0.88.0-41821a3407-c34729b96a.zip/node_modules/@nivo/line/",\
         "packageDependencies": [\
           ["@nivo/line", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
-          ["@nivo/annotations", "virtual:81ebbe8658a3da51b5641b54008264212edc3ffe530cd692b656d13d4079f8eb130c9e98f333ec39981f954eea0e62d1a65bb35d43e90409d932820fd58cf75a#npm:0.88.0"],\
+          ["@nivo/annotations", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
-          ["@nivo/colors", "virtual:3e5cc1d15d4ed43e317f423b0f13691af0dc249bdbcc4c588bb11832f789ecfd6ea5456542b1e7dedeef404d582bbf772b2004bb9a4a553b79431cac34eeb13b#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/scales", "npm:0.88.0"],\
-          ["@nivo/tooltip", "virtual:15c30793c969c0c75d20d176689ee6de9fdb34994221e8cdc6bf3d782a0b41752edb344211b08c8988a8ffe1971261d40294d0313aead912d8f957ef544c06d1#npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/voronoi", "virtual:81ebbe8658a3da51b5641b54008264212edc3ffe530cd692b656d13d4079f8eb130c9e98f333ec39981f954eea0e62d1a65bb35d43e90409d932820fd58cf75a#npm:0.88.0"],\
           ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
           ["@types/react", null],\
@@ -8643,10 +8682,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:15c30793c969c0c75d20d176689ee6de9fdb34994221e8cdc6bf3d782a0b41752edb344211b08c8988a8ffe1971261d40294d0313aead912d8f957ef544c06d1#npm:0.88.0", {\
-        "packageLocation": "./.yarn/__virtual__/@nivo-tooltip-virtual-af256c6c6b/0/cache/@nivo-tooltip-npm-0.88.0-f4440e2fca-1e5c6d72ef.zip/node_modules/@nivo/tooltip/",\
+      ["virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0", {\
+        "packageLocation": "./.yarn/__virtual__/@nivo-tooltip-virtual-909ad6ea64/0/cache/@nivo-tooltip-npm-0.88.0-f4440e2fca-1e5c6d72ef.zip/node_modules/@nivo/tooltip/",\
         "packageDependencies": [\
-          ["@nivo/tooltip", "virtual:15c30793c969c0c75d20d176689ee6de9fdb34994221e8cdc6bf3d782a0b41752edb344211b08c8988a8ffe1971261d40294d0313aead912d8f957ef544c06d1#npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
           ["@types/react", null],\
@@ -8675,7 +8714,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@nivo/voronoi", "virtual:81ebbe8658a3da51b5641b54008264212edc3ffe530cd692b656d13d4079f8eb130c9e98f333ec39981f954eea0e62d1a65bb35d43e90409d932820fd58cf75a#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
-          ["@nivo/tooltip", "virtual:15c30793c969c0c75d20d176689ee6de9fdb34994221e8cdc6bf3d782a0b41752edb344211b08c8988a8ffe1971261d40294d0313aead912d8f957ef544c06d1#npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
           ["@types/d3-delaunay", "npm:6.0.4"],\
           ["@types/d3-scale", "npm:4.0.8"],\
           ["@types/react", null],\
@@ -11984,10 +12023,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/prop-types", [\
-      ["npm:15.7.14", {\
-        "packageLocation": "./.yarn/cache/@types-prop-types-npm-15.7.14-4ccaa07795-d0c5407b9c.zip/node_modules/@types/prop-types/",\
+      ["npm:15.7.15", {\
+        "packageLocation": "./.yarn/cache/@types-prop-types-npm-15.7.15-cefe16a1fa-31aa2f59b2.zip/node_modules/@types/prop-types/",\
         "packageDependencies": [\
-          ["@types/prop-types", "npm:15.7.14"]\
+          ["@types/prop-types", "npm:15.7.15"]\
         ],\
         "linkType": "HARD"\
       }]\

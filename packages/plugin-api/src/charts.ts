@@ -1,22 +1,25 @@
 import type {
+  BarGroup,
+  BarGroupMode,
+  BarGroupValues,
   BaseTrendSliceMetadata,
   ChartId,
-  ChartType,
   HistoryDataPoint,
   PieSlice,
   SeverityLevel,
   Statistic,
-  TestResult,
   TestStatus,
   TrendPoint,
   TrendPointId,
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
+import { ChartType, ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
+import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
+import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -66,11 +69,25 @@ export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
+// Bar chart data types
+export interface BarChartData {
+  type: ChartType.Bar;
+  dataType: ChartDataType;
+  mode: ChartMode;
+  title?: string;
+  data: BarStats<string, string>;
+  keys: readonly string[];
+  indexBy: string;
+  groupMode: BarGroupMode;
+}
+
 // Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | ComingSoonChartData;
+export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 export type TrendStats<T extends TrendDataType> = Record<T, number>;
+
+export type BarStats<G extends string, T extends string> = BarGroup<G, T>[];
 
 // Chart options
 export type TrendChartOptions = {
@@ -87,12 +104,19 @@ export type PieChartOptions = {
   title?: string;
 };
 
-export type ComingSoonChartOptions = {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
+export type BarChartOptions = {
+  type: ChartType.Bar;
+  dataType: ChartDataType;
+  mode?: ChartMode;
   title?: string;
 };
 
-export type ChartOptions = TrendChartOptions | PieChartOptions | ComingSoonChartOptions;
+export type ComingSoonChartOptions = {
+  type: ChartType.ComingSoon;
+  title?: string;
+};
+
+export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions;
 
 export interface PieChartData {
   type: ChartType.Pie;
@@ -102,7 +126,7 @@ export interface PieChartData {
 }
 
 export interface ComingSoonChartData {
-  type: ChartType.HeatMap | ChartType.Bar | ChartType.Funnel | ChartType.TreeMap;
+  type: ChartType.ComingSoon;
   title?: string;
 }
 
@@ -326,38 +350,90 @@ export const generatePieChart = (
 
 export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {
-    type: options.type,
+    type: ChartType.ComingSoon,
     title: options.title,
+  };
+};
+
+export const generateBarChartGeneric = async <P extends string, T extends string>(
+  options: BarChartOptions,
+  store: AllureStore,
+  dataAccessor: BarDataAccessor<P, T>,
+): Promise<BarChartData | undefined> => {
+  const { type, dataType, title, mode = ChartMode.Raw } = options;
+
+  const currentData = await dataAccessor.getCurrentData(store);
+
+  // Apply mode transformation if needed
+  let processedData = currentData;
+  if (mode === ChartMode.Percent) {
+    processedData = currentData.map((group) => {
+      const { groupId, ...values } = group;
+
+      const total = Object.values<number>(values).reduce((sum, value) => sum + value, 0);
+      const nextValues = Object.keys(values).reduce((acc, valueKey) => {
+        acc[valueKey as T] = (values as BarGroupValues)[valueKey as T] / total;
+
+        return acc;
+      }, {} as BarGroupValues<T>);
+
+      return {
+        groupId,
+        ...nextValues,
+      };
+    });
+  }
+
+  return {
+    type,
+    dataType,
+    mode,
+    title,
+    data: processedData,
+    keys: dataAccessor.getValuesKeys(),
+    groupMode: dataAccessor.getGroupMode(),
+    indexBy: "groupId",
   };
 };
 
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
-  getCurrentData: (trs: TestResult[], stats: Statistic) => TrendStats<T>;
+  getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
   // Get data from historical point
   getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
   // List of all possible values for the type
   getAllValues: () => readonly T[];
 }
 
-export const generateTrendChartGeneric = <T extends TrendDataType>(
+export interface BarDataAccessor<G extends string, T extends string> {
+  // Get current data for the specified type
+  getCurrentData: (store: AllureStore) => Promise<BarStats<G, T>>;
+  // List of all possible values for the group
+  getValuesKeys: () => readonly T[];
+  // Get group mode
+  getGroupMode: () => BarGroupMode;
+}
+
+export const generateTrendChartGeneric = async <T extends TrendDataType>(
   options: TrendChartOptions,
-  stores: {
-    trs: TestResult[];
-    statistic: Statistic;
-    history: HistoryDataPoint[];
-  },
+  store: AllureStore,
   context: PluginContext,
   dataAccessor: TrendDataAccessor<T>,
-): GenericTrendChartData<T> | undefined => {
-  const { trs = [], statistic, history } = stores;
+): Promise<GenericTrendChartData<T> | undefined> => {
   const { limit } = options;
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
-  const currentData = dataAccessor.getCurrentData(trs, statistic);
+
+  // Get all required data
+  const [historyDataPoints, currentData] = await Promise.all([
+    store.allHistoryDataPoints(),
+    dataAccessor.getCurrentData(store),
+  ]);
+
   // Apply limit to history points if specified
-  const limitedHistoryPoints = historyLimit !== undefined ? history.slice(-historyLimit) : history;
+  const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
+
   // Convert history points to statistics
-  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, history.length - historyLimit) : 0;
+  const firstOriginalIndex = historyLimit !== undefined ? Math.max(0, historyDataPoints.length - historyLimit) : 0;
   const convertedHistoryPoints = limitedHistoryPoints.map((point: HistoryDataPoint, index: number) => {
     const originalIndex = firstOriginalIndex + index;
 
@@ -367,15 +443,18 @@ export const generateTrendChartGeneric = <T extends TrendDataType>(
       statistic: dataAccessor.getHistoricalData(point),
     };
   });
+
   const allValues = dataAccessor.getAllValues();
+
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentData, allValues),
     context.reportName,
-    history.length + 1, // Always use the full history length for current point order
+    historyDataPoints.length + 1, // Always use the full history length for current point order
     allValues,
     options,
   );
+
   // Process historical data
   const historicalTrendData = convertedHistoryPoints.reduce(
     (
@@ -409,21 +488,28 @@ export const generateTrendChartGeneric = <T extends TrendDataType>(
   return mergeTrendDataGeneric(historicalTrendData, currentTrendData, allValues);
 };
 
-export const generateTrendChart = (
+export const generateTrendChart = async (
   options: TrendChartOptions,
-  stores: {
-    trs: TestResult[];
-    statistic: Statistic;
-    history: HistoryDataPoint[];
-  },
+  store: AllureStore,
   context: PluginContext,
-): TrendChartData | undefined => {
+): Promise<TrendChartData | undefined> => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, stores, context, statusTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, stores, context, severityTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
+  }
+};
+
+export const generateBarChart = async (
+  options: BarChartOptions,
+  store: AllureStore,
+): Promise<BarChartData | undefined> => {
+  const { dataType } = options;
+
+  if (dataType === ChartDataType.Severity) {
+    return generateBarChartGeneric(options, store, statusBySeverityBarDataAccessor);
   }
 };

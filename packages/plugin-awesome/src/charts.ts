@@ -1,8 +1,11 @@
-import { ChartType, type HistoryDataPoint, type Statistic, type TestResult } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/core-api";
 import {
+  type AllureStore,
+  type ComingSoonChartOptions,
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
+  generateBarChart,
   generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
@@ -13,12 +16,8 @@ import type { AwesomeDataWriter } from "./writer.js";
 
 export const generateCharts = async (
   options: AwesomeOptions,
+  store: AllureStore,
   context: PluginContext,
-  stores: {
-    trs: TestResult[];
-    statistic: Statistic;
-    history: HistoryDataPoint[];
-  },
 ): Promise<GeneratedChartsData | undefined> => {
   const { charts } = options;
 
@@ -26,41 +25,40 @@ export const generateCharts = async (
     return undefined;
   }
 
-  return charts.reduce(
-    (acc, chartOptions) => {
-      const chartId = randomUUID();
+  const statistic = await store.testsStatistic();
 
-      let chart: GeneratedChartData | undefined;
+  const chartsData: GeneratedChartsData = {};
 
-      if (chartOptions.type === ChartType.Trend) {
-        chart = generateTrendChart(chartOptions, stores, context);
-      } else if (chartOptions.type === ChartType.Pie) {
-        chart = generatePieChart(chartOptions, stores);
-      } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {
-        chart = generateComingSoonChart(chartOptions);
-      }
+  for (const chartOptions of charts) {
+    const chartId = randomUUID();
 
-      if (chart) {
-        acc[chartId] = chart;
-      }
+    let chart: GeneratedChartData | undefined;
 
-      return acc;
-    },
-    {} as Record<string, GeneratedChartData>,
-  );
+    if (chartOptions.type === ChartType.Trend) {
+      chart = await generateTrendChart(chartOptions, store, context);
+    } else if (chartOptions.type === ChartType.Pie) {
+      chart = generatePieChart(chartOptions, { statistic });
+    } else if (chartOptions.type === ChartType.Bar) {
+      chart = await generateBarChart(chartOptions, store);
+    }
+
+    if (chart) {
+      chartsData[chartId] = chart;
+    } else {
+      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
+    }
+  }
+
+  return chartsData;
 };
 
 export const generateAllCharts = async (
   writer: AwesomeDataWriter,
+  store: AllureStore,
   options: AwesomeOptions,
   context: PluginContext,
-  stores: {
-    trs: TestResult[];
-    statistic: Statistic;
-    history: HistoryDataPoint[];
-  },
 ): Promise<void> => {
-  const charts = await generateCharts(options, context, stores);
+  const charts = await generateCharts(options, store, context);
 
   if (charts && Object.keys(charts).length > 0) {
     await writer.writeWidget("charts.json", charts);

@@ -2,8 +2,8 @@ import { ResponsiveLine } from "@nivo/line";
 import type { Point } from "@nivo/line";
 import type { FunctionalComponent } from "preact";
 import { useCallback, useMemo } from "preact/hooks";
+import { EmptyDataStub } from "../EmptyDataStub";
 import { defaultTrendChartAxisBottomConfig, defaultTrendChartConfig } from "./config";
-import styles from "./styles.scss";
 import { nivoTheme } from "./theme";
 import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
@@ -80,17 +80,7 @@ export const TrendChart: FunctionalComponent<TrendChartProps> = ({
   // Check if data is empty
   if (!items || items.length === 0 || items.every((series) => !series.data?.length)) {
     return (
-      <div
-        role="img"
-        aria-label={emptyAriaLabel}
-        className={styles["empty-label"]}
-        style={{
-          width,
-          height,
-        }}
-      >
-        {emptyLabel}
-      </div>
+      <EmptyDataStub label={emptyLabel} width={width as number} height={height as number} ariaLabel={emptyAriaLabel} />
     );
   }
 
