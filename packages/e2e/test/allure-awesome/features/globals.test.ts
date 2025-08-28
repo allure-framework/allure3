@@ -38,7 +38,7 @@ test.describe("globals", () => {
 
       await page.goto(bootstrap.url);
 
-      await expect(page.getByTestId("report-data")).toContainText("with code 1");
+      await expect(page.getByTestId("report-data")).toContainText("with exit code 1");
       await globalsPage.attachScreenshot();
     });
 
@@ -51,7 +51,7 @@ test.describe("globals", () => {
         testResults: [],
         globals: {
           exitCode: {
-            actual: 2,
+            actual: 0,
             original: 1,
           },
         },
@@ -59,7 +59,7 @@ test.describe("globals", () => {
 
       await page.goto(bootstrap.url);
 
-      await expect(page.getByTestId("report-data")).toContainText("with code 2 (original 1)");
+      await expect(page.getByTestId("report-data")).toContainText("with exit code 0 (original 1)");
       await globalsPage.attachScreenshot();
     });
   });
