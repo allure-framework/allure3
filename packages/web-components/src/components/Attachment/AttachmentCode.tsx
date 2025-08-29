@@ -4,6 +4,7 @@ import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import "./code.scss";
+import { sanitize } from "@allurereport/web-commons";
 
 const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
 
@@ -24,6 +25,7 @@ export const AttachmentCode: FunctionalComponent<{
 
   const ext = item?.link?.ext?.replace(".", "") ?? "plaintext";
   const rawText = attachment.text ?? "";
+  const sanitizedText = sanitize(ansiTrace(rawText));
 
   return (
     <>
@@ -32,7 +34,7 @@ export const AttachmentCode: FunctionalComponent<{
           data-testid="code-attachment-content"
           key={item?.link?.id}
           className={`language-${ext} line-numbers`}
-          dangerouslySetInnerHTML={{ __html: ansiTrace(rawText) }}
+          dangerouslySetInnerHTML={{ __html: sanitizedText }}
         />
       ) : (
         <pre
