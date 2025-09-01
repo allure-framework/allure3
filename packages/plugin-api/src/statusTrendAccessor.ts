@@ -6,7 +6,7 @@ import { createEmptyStats } from "./charts.js";
 type StatusTrendStats = TrendStats<TestStatus>;
 
 export const statusTrendDataAccessor: TrendDataAccessor<TestStatus> = {
-  getCurrentData: ({ statistic }) => {
+  getCurrentData: ({statistic}) => {
     return {
       ...createEmptyStats(statusesList),
       ...statistic,
