@@ -38,9 +38,7 @@ const processTestResults = (testResults: TestResult[]): BarGroup<SeverityLevel, 
 };
 
 export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
-  getItems: async (store) => {
-    const testResults = await store.allTestResults();
-
+  getItems: ({testResults}) => {
     return processTestResults(testResults);
   },
   getGroupKeys: () => statusesList,

@@ -8,6 +8,7 @@ import type {
   PieSlice,
   SeverityLevel,
   Statistic,
+  TestResult,
   TestStatus,
   TrendPoint,
   TrendPointId,
@@ -21,7 +22,6 @@ import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.j
 import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
-import type { AllureStore } from "./store.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -129,6 +129,12 @@ export interface PieChartData {
 export interface ComingSoonChartData {
   type: ChartType.ComingSoon;
   title?: string;
+}
+
+export interface AllureChartsStoreData {
+  historyDataPoints: HistoryDataPoint[];
+  testResults: TestResult[];
+  statistic: Statistic;
 }
 
 /**
@@ -372,19 +378,20 @@ export const generateComingSoonChart = (options: ComingSoonChartOptions): Coming
   };
 };
 
-export const generateBarChartGeneric = async <P extends string, T extends string>(
+export const generateBarChartGeneric = <P extends string, T extends string>(
   options: BarChartOptions,
-  store: AllureStore,
+  storeData: AllureChartsStoreData,
   dataAccessor: BarDataAccessor<P, T>,
-): Promise<BarChartData | undefined> => {
+): BarChartData | undefined => {
   const { type, dataType, title, limit = DEFAULT_CHART_HISTORY_LIMIT, mode = ChartMode.Raw } = options;
 
   // Apply limit to history points if specified
-  const historyDataPoints = await store.allHistoryDataPoints();
+  const { historyDataPoints } = storeData;
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit);
   const isFullHistory = limitedHistoryPoints.length === historyDataPoints.length;
 
-  const items = await dataAccessor.getItems(store, limitedHistoryPoints, isFullHistory);
+  const items = dataAccessor.getItems(storeData, limitedHistoryPoints, isFullHistory);
+
   // Apply mode transformation if needed
   let processedData = items;
   if (mode === ChartMode.Percent) {
@@ -419,7 +426,7 @@ export const generateBarChartGeneric = async <P extends string, T extends string
 
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
-  getCurrentData: (store: AllureStore) => Promise<TrendStats<T>>;
+  getCurrentData: (storeData: AllureChartsStoreData) => TrendStats<T>;
   // Get data from historical point
   getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
   // List of all possible values for the type
@@ -428,27 +435,25 @@ export interface TrendDataAccessor<T extends TrendDataType> {
 
 export interface BarDataAccessor<G extends string, T extends string> {
   // Get all needed data for the chart
-  getItems: (store: AllureStore, historyPoints: HistoryDataPoint[], isFullHistory: boolean) => Promise<BarGroup<G, T>[]>;
+  getItems: (storeData: AllureChartsStoreData, limitedHistoryDataPoints: HistoryDataPoint[], isFullHistory: boolean) => BarGroup<G, T>[];
   // List of all possible values for the group
   getGroupKeys: () => readonly T[];
   // Get group mode
   getGroupMode: () => BarGroupMode;
 }
 
-export const generateTrendChartGeneric = async <T extends TrendDataType>(
+export const generateTrendChartGeneric = <T extends TrendDataType>(
   options: TrendChartOptions,
-  store: AllureStore,
+  storeData: AllureChartsStoreData,
   context: PluginContext,
   dataAccessor: TrendDataAccessor<T>,
-): Promise<GenericTrendChartData<T> | undefined> => {
+): GenericTrendChartData<T> | undefined => {
   const { limit } = options;
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
 
   // Get all required data
-  const [historyDataPoints, currentData] = await Promise.all([
-    store.allHistoryDataPoints(),
-    dataAccessor.getCurrentData(store),
-  ]);
+  const { historyDataPoints } = storeData;
+  const currentData = dataAccessor.getCurrentData(storeData);
 
   // Apply limit to history points if specified
   const limitedHistoryPoints = historyLimit !== undefined ? historyDataPoints.slice(-historyLimit) : historyDataPoints;
@@ -509,33 +514,33 @@ export const generateTrendChartGeneric = async <T extends TrendDataType>(
   return mergeTrendDataGeneric(historicalTrendData, currentTrendData, allValues);
 };
 
-export const generateTrendChart = async (
+export const generateTrendChart = (
   options: TrendChartOptions,
-  store: AllureStore,
+  storeData: AllureChartsStoreData,
   context: PluginContext,
-): Promise<TrendChartData | undefined> => {
+): TrendChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, store, context, statusTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, storeData, context, statusTrendDataAccessor);
   } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, store, context, severityTrendDataAccessor);
+    return generateTrendChartGeneric(newOptions, storeData, context, severityTrendDataAccessor);
   }
 };
 
-export const generateBarChart = async (
+export const generateBarChart = (
   options: BarChartOptions,
-  store: AllureStore,
-): Promise<BarChartData | undefined> => {
+  storeData: AllureChartsStoreData,
+): BarChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === BarChartType.StatusBySeverity) {
-    return generateBarChartGeneric(newOptions, store, statusBySeverityBarDataAccessor);
+    return generateBarChartGeneric(newOptions, storeData, statusBySeverityBarDataAccessor);
   } else if (dataType === BarChartType.StatusTrend) {
-    return generateBarChartGeneric(newOptions, store, statusTrendBarAccessor);
+    return generateBarChartGeneric(newOptions, storeData, statusTrendBarAccessor);
   } else if (dataType === BarChartType.StatusChangeTrend) {
-    return generateBarChartGeneric(newOptions, store, statusChangeTrendBarAccessor);
+    return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
   }
 };
