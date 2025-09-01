@@ -1,0 +1,1 @@
+{"id":"3ea0d4460cfb3d78c3f1732cfa01bddd","fullName":"test/unit/static.test.ts#decode path before accessing the file system","name":"decode path before accessing the file system","status":"passed","testResultsByEnv":{"windows":"956ba97d8e6378128ffd7a19811fcea9","linux":"44fdaf294fbff598cb9b17c6c3766b17","macos":"a558f8a1961759da3b09981eaed54d45"}}
