@@ -102,10 +102,8 @@ const getTrendData = (currentTrs: TestResult[], hdps: HistoryDataPoint[]): BarGr
 };
 
 export const statusChangeTrendBarAccessor: BarDataAccessor<string, StatusChangeTrendKeys> = {
-  getItems: async (store, hdps, isFullHistory) => {
-    const testResults = await store.allTestResults();
-
-    let trendData = getTrendData(testResults, hdps);
+  getItems: ({testResults}, limitedHdps, isFullHistory) => {
+    let trendData = getTrendData(testResults, limitedHdps);
 
     /* This is necessary not to exclude the last point that have been compared with the empty stats if the history is fully provided.
     *
