@@ -27,7 +27,6 @@ const getChartWidgetByType = (
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
-      const translations = empty("no-results");
 
       return (
         <TrendChartWidget
@@ -37,7 +36,7 @@ const getChartWidgetByType = (
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
-          translations={{ "no-results": translations }}
+          translations={{ "no-results": empty("no-results") }}
         />
       );
     }
@@ -57,7 +56,6 @@ const getChartWidgetByType = (
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-      const translations = empty("no-results");
 
       return (
         <BarChartWidget
@@ -68,7 +66,7 @@ const getChartWidgetByType = (
           indexBy={chartData.indexBy}
           colors={chartData.colors}
           groupMode={chartData.groupMode}
-          translations={{ "no-results": translations }}
+          translations={{ "no-results": empty("no-results") }}
         />
       );
     }
