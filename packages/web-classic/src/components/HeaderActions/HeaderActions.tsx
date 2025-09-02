@@ -1,4 +1,4 @@
-import { statusesList, capitalize } from "@allurereport/core-api";
+import { capitalize, statusesList } from "@allurereport/core-api";
 import { Counter, Loadable, SearchBox } from "@allurereport/web-components";
 import { SortBy } from "@/components/HeaderActions/SortBy";
 import { Tab } from "@/components/Tabs";

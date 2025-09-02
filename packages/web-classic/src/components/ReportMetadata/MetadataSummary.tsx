@@ -1,4 +1,4 @@
-import { type Statistic, statusesList, capitalize } from "@allurereport/core-api";
+import { type Statistic, capitalize, statusesList } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import type { FunctionComponent } from "preact";

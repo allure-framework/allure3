@@ -1,5 +1,5 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { ChartDataType, ChartType, severityLevels, statusesList, BarChartType } from "@allurereport/core-api";
+import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList } from "@allurereport/core-api";
 import { severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
@@ -96,7 +96,10 @@ export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsRespo
     () => statusColors,
   );
 
-export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: ChartsResponse): UIBarChartData | undefined =>
+export const createStatusChangeTrendBarChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UIBarChartData | undefined =>
   createBarChartDataGeneric(
     () => res[chartId] as ResponseBarChartData | undefined,
     () => statusChangeColors,

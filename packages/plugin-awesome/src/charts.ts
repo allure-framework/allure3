@@ -1,11 +1,11 @@
 import { ChartType } from "@allurereport/core-api";
 import {
+  type AllureChartsStoreData,
   type AllureStore,
   type ComingSoonChartOptions,
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
-  type AllureChartsStoreData,
   generateBarChart,
   generateComingSoonChart,
   generatePieChart,
