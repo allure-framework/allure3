@@ -52,6 +52,7 @@ export const dashboardLayout = [
   },
   {
     type: "bar",
+    dataType: "statusBySeverity",
     title: "Test result severities"
   },
   {
@@ -64,11 +65,13 @@ export const dashboardLayout = [
     title: "Status dynamics"
   },
   {
-    type: "bar", // OR it might be trend
+    type: "bar",
+    dataType: "statusTrend",
     title: "Status change dynamics"
   },
   {
-    type: "bar", // OR it might be trend
+    type: "bar",
+    dataType: "statusChangeTrend",
     title: "Test base growth dynamics"
   },
   {
