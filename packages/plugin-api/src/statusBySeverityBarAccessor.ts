@@ -1,4 +1,4 @@
-import type { BarGroupValues, SeverityLevel, TestResult, TestStatus, BarGroup } from "@allurereport/core-api";
+import type { BarGroup, BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode, severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
 import type { BarDataAccessor } from "./charts.js";
 
@@ -28,17 +28,20 @@ const processTestResults = (testResults: TestResult[]): BarGroup<SeverityLevel, 
     }
   });
 
-  return Object.entries(resultMap).reduce((acc, [severity, values]) => {
-    if (values) {
-      acc.push({ groupId: severity as SeverityLevel, ...values });
-    }
+  return Object.entries(resultMap).reduce(
+    (acc, [severity, values]) => {
+      if (values) {
+        acc.push({ groupId: severity as SeverityLevel, ...values });
+      }
 
-    return acc;
-  }, [] as BarGroup<SeverityLevel, TestStatus>[]);
+      return acc;
+    },
+    [] as BarGroup<SeverityLevel, TestStatus>[],
+  );
 };
 
 export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
-  getItems: ({testResults}) => {
+  getItems: ({ testResults }) => {
     return processTestResults(testResults);
   },
   getGroupKeys: () => statusesList,

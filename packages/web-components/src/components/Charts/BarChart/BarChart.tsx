@@ -7,21 +7,21 @@ import { nivoTheme } from "./theme.js";
 import type { BarChartProps } from "./types.js";
 
 export const BarChart: FunctionalComponent<BarChartProps<BarDatum>> = ({
-	width = "100%",
-	height = 400,
-	rootAriaLabel,
-	emptyLabel = "No data available",
-	emptyAriaLabel = "No data available",
-	data,
-	...restProps
+  width = "100%",
+  height = 400,
+  rootAriaLabel,
+  emptyLabel = "No data available",
+  emptyAriaLabel = "No data available",
+  data,
+  ...restProps
 }) => {
-	if (!data || data.length === 0) {
-		return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyAriaLabel} />;
-	}
+  if (!data || data.length === 0) {
+    return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyAriaLabel} />;
+  }
 
-	return (
-		<div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }}>
-			<ResponsiveBar data={data} {...defaultBarChartConfig} {...restProps} theme={nivoTheme} />
-		</div>
-	);
+  return (
+    <div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }}>
+      <ResponsiveBar data={data} {...defaultBarChartConfig} {...restProps} theme={nivoTheme} />
+    </div>
+  );
 };

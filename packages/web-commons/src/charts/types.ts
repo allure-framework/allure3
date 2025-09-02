@@ -1,4 +1,5 @@
 import type {
+  BarChartType,
   BarGroup,
   BarGroupMode,
   BaseTrendSliceMetadata,
@@ -10,7 +11,6 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
-  BarChartType,
 } from "@allurereport/core-api";
 
 export interface Point {

@@ -19,7 +19,7 @@ const processTestResults = (testResults: (TestResult | HistoryTestResult)[]): Se
 };
 
 export const severityTrendDataAccessor: TrendDataAccessor<SeverityLevel> = {
-  getCurrentData: ({testResults}) => {
+  getCurrentData: ({ testResults }) => {
     return processTestResults(testResults);
   },
   getHistoricalData: (historyPoint) => {

@@ -1,4 +1,4 @@
-import type { HistoryDataPoint, TestStatus, BarGroup, TestResult, HistoryTestResult } from "@allurereport/core-api";
+import type { BarGroup, HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode, htrsByTr } from "@allurereport/core-api";
 import { type BarDataAccessor, createEmptyStats } from "./charts.js";
 
@@ -9,7 +9,7 @@ const groupKeys = ["passed", "failed", "broken"] as const;
 
 const isGroupKey = (key: string): key is TrendKey => groupKeys.includes(key as TrendKey);
 
-const getSignedValueByStatus = (status: TestStatus): number => status === "passed" ? 1 : -1;
+const getSignedValueByStatus = (status: TestStatus): number => (status === "passed" ? 1 : -1);
 
 const hasSignificantStatus = (htr: HistoryTestResult): boolean => isGroupKey(htr.status);
 
@@ -20,7 +20,12 @@ const getLastSignificantStatus = (history: HistoryTestResult[] = []): TestStatus
 };
 
 const isDifferentStatuses = (currentStatus: TestStatus, lastSignificantStatus?: TestStatus): boolean => {
-  return !!lastSignificantStatus && isGroupKey(currentStatus) && isGroupKey(lastSignificantStatus) && currentStatus !== lastSignificantStatus;
+  return (
+    !!lastSignificantStatus &&
+    isGroupKey(currentStatus) &&
+    isGroupKey(lastSignificantStatus) &&
+    currentStatus !== lastSignificantStatus
+  );
 };
 
 const getPointStats = (currentTrs: (TestResult | HistoryTestResult)[], hdps: HistoryDataPoint[]): TrendStats => {
@@ -72,15 +77,15 @@ const getTrendData = (currentTrs: TestResult[], hdps: HistoryDataPoint[]): BarGr
 };
 
 export const statusTrendBarAccessor: BarDataAccessor<string, TrendKey> = {
-  getItems: ({testResults}, limitedHdps, isFullHistory) => {
+  getItems: ({ testResults }, limitedHdps, isFullHistory) => {
     let trendData = getTrendData(testResults, limitedHdps);
 
     /* This is necessary not to exclude the last point that have been compared with the empty stats if the history is fully provided.
-    *
-    * We have no previous poin in the end of the full history, that's why we have to compare it with the empty stats.
-    * At the opposite, we have to exclude the last point if the history is limited because it should be compared with the real previous point,
-    * but it is already excluded in limited history.
-    */
+     *
+     * We have no previous poin in the end of the full history, that's why we have to compare it with the empty stats.
+     * At the opposite, we have to exclude the last point if the history is limited because it should be compared with the real previous point,
+     * but it is already excluded in limited history.
+     */
     if (!isFullHistory) {
       trendData = trendData.slice(0, -1);
     }
@@ -90,5 +95,3 @@ export const statusTrendBarAccessor: BarDataAccessor<string, TrendKey> = {
   getGroupKeys: () => groupKeys,
   getGroupMode: () => BarGroupMode.Stacked,
 };
-
-
