@@ -15,13 +15,13 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType, ChartDataType, ChartMode, getPieChartValues, BarChartType } from "@allurereport/core-api";
+import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
-import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
-import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
+import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
+import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -306,10 +306,13 @@ export const normalizeStatistic = <T extends string>(
   statistic: Partial<Record<T, number>>,
   itemType: readonly T[],
 ): Record<T, number> => {
-  return itemType.reduce((acc, item) => {
-    acc[item] = statistic[item] ?? 0;
-    return acc;
-  }, {} as Record<T, number>);
+  return itemType.reduce(
+    (acc, item) => {
+      acc[item] = statistic[item] ?? 0;
+      return acc;
+    },
+    {} as Record<T, number>,
+  );
 };
 
 /**
@@ -435,7 +438,11 @@ export interface TrendDataAccessor<T extends TrendDataType> {
 
 export interface BarDataAccessor<G extends string, T extends string> {
   // Get all needed data for the chart
-  getItems: (storeData: AllureChartsStoreData, limitedHistoryDataPoints: HistoryDataPoint[], isFullHistory: boolean) => BarGroup<G, T>[];
+  getItems: (
+    storeData: AllureChartsStoreData,
+    limitedHistoryDataPoints: HistoryDataPoint[],
+    isFullHistory: boolean,
+  ) => BarGroup<G, T>[];
   // List of all possible values for the group
   getGroupKeys: () => readonly T[];
   // Get group mode
