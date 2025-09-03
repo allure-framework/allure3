@@ -66,10 +66,13 @@ module.exports = {
     "@typescript-eslint/consistent-type-assertions": "error",
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/consistent-type-exports": "error",
-    "@typescript-eslint/consistent-type-imports": ["error", {
-      fixStyle: 'separate-type-imports',
-      prefer: 'type-imports',
-    }],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        fixStyle: "separate-type-imports",
+        prefer: "type-imports",
+      },
+    ],
     "@typescript-eslint/dot-notation": "error",
     "@typescript-eslint/explicit-member-accessibility": [
       "off",
