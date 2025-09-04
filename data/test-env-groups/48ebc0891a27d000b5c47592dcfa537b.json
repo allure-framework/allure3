@@ -1,1 +1,1 @@
-{"id":"48ebc0891a27d000b5c47592dcfa537b","fullName":"test/xcresult.test.ts#A MAC machine labels a test nested within two suites should have a suite","name":"should have a suite","status":"passed","testResultsByEnv":{"macos":"45ed1955204b67c7f40ab7ca53029f18"}}
+{"id":"48ebc0891a27d000b5c47592dcfa537b","fullName":"test/xcresult.test.ts#A MAC machine labels a test nested within two suites should have a suite","name":"should have a suite","status":"passed","testResultsByEnv":{"macos":"721da334479297e23650954f2d762660"}}

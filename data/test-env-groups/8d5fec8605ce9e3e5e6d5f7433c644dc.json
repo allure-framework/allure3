@@ -1,1 +1,1 @@
-{"id":"8d5fec8605ce9e3e5e6d5f7433c644dc","fullName":"test/dummy.test.ts#dummy works","name":"works","status":"passed","testResultsByEnv":{"linux":"a8c0081f56ca9bf5974b15d43c4955ec","macos":"0b1b223243fe869a798e6908d1618fe7","windows":"2bd3456a2628257d2ac85717bdb03bae"}}
+{"id":"8d5fec8605ce9e3e5e6d5f7433c644dc","fullName":"test/dummy.test.ts#dummy works","name":"works","status":"passed","testResultsByEnv":{"linux":"9e26e1472e1d713c170f3736776022eb","windows":"80e7657e9f080c87965d7d5442095d4d","macos":"855ec48571f6338a77faf8c68b8ba15a"}}
