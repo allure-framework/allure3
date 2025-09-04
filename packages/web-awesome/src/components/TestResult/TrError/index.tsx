@@ -20,7 +20,7 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>
       <Code size={"s"} type={"ui"}>
         {/* eslint-disable-next-line react/no-danger */}
-        <pre dangerouslySetInnerHTML={{ __html: sanitizedTrace }}>{sanitizedTrace}</pre>
+        <pre dangerouslySetInnerHTML={{ __html: sanitizedTrace }}/>
       </Code>
     </div>
   );
