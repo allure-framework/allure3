@@ -14,6 +14,7 @@ import {
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateEnvirontmentsList,
+  generateGlobals,
   generateHistoryDataPoints,
   generateNav,
   generateStaticFiles,
@@ -42,7 +43,12 @@ export class AwesomePlugin implements Plugin {
     const environments = await store.allEnvironments();
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
-    const allHistoryDataPoints = await store.allHistoryDataPoints();
+
+    const globalAttachments = await store.allGlobalAttachments();
+    const globalExitCode = await store.globalExitCode();
+    const globalErrors = await store.allGlobalErrors();
+    // TODO:
+    // const qualityGateResults = await store.qualityGateResults();
 
     for (const env of environments) {
       envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
@@ -53,11 +59,7 @@ export class AwesomePlugin implements Plugin {
       statsByEnv: envStatistics,
       envs: environments,
     });
-    await generateAllCharts(this.#writer!, this.options, context, {
-      trs: allTrs,
-      statistic: statistics,
-      history: allHistoryDataPoints,
-    });
+    await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
@@ -91,6 +93,12 @@ export class AwesomePlugin implements Plugin {
 
     const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
 
+    await generateGlobals(this.#writer!, {
+      globalAttachments,
+      globalErrors,
+      globalExitCode,
+      contentFunction: (id) => store.attachmentContentById(id),
+    });
     await generateStaticFiles({
       ...this.options,
       id: context.id,

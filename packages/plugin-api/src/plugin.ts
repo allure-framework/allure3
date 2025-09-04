@@ -1,5 +1,13 @@
-import type { CiDescriptor, Statistic, TestError, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  Statistic,
+  TestError,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "./qualityGate.js";
+import type { ResultFile } from "./resultFile.js";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -52,14 +60,35 @@ export interface PluginSummary {
   createdAt?: number;
 }
 
+export interface ExitCode {
+  /**
+   * Actual exit code the allure command exited with
+   */
+  actual?: number;
+  /**
+   * Original exit code of the process inside the allure command exited with
+   */
+  original: number;
+}
+
+export interface PluginGlobals {
+  exitCode: ExitCode;
+  errors: TestError[];
+  attachments: AttachmentLink[];
+}
+
 export interface BatchOptions {
   maxTimeout?: number;
 }
 
 export interface RealtimeSubscriber {
+  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>): () => void;
+
+  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
+
   onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
 
-  onQualityGateResult(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
 
   onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
 
@@ -69,9 +98,13 @@ export interface RealtimeSubscriber {
 }
 
 export interface RealtimeEventsDispatcher {
+  sendGlobalAttachment(attachment: ResultFile): void;
+
+  sendGlobalExitCode(payload: ExitCode): void;
+
   sendGlobalError(error: TestError): void;
 
-  sendQualityGateResult(payload: QualityGateValidationResult[]): void;
+  sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 
   sendTestResult(trId: string): void;
 

@@ -2,6 +2,7 @@
 import { ChartType } from "@allurereport/core-api";
 import { type UIChartData, capitalize } from "@allurereport/web-commons";
 import {
+  BarChartWidget,
   ComingSoonChartWidget,
   Grid,
   GridItem,
@@ -50,10 +51,24 @@ const getChartWidgetByType = (
         </Widget>
       );
     }
-    case ChartType.HeatMap:
-    case ChartType.Bar:
-    case ChartType.Funnel:
-    case ChartType.TreeMap: {
+    case ChartType.Bar: {
+      const type = t(`bar.type.${chartData.dataType}`);
+      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
+
+      return (
+        <BarChartWidget
+          title={title}
+          mode={chartData.mode}
+          data={chartData.data}
+          keys={chartData.keys}
+          indexBy={chartData.indexBy}
+          colors={chartData.colors}
+          groupMode={chartData.groupMode}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    default: {
       const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
 
       return <ComingSoonChartWidget title={title} />;

@@ -24,6 +24,8 @@ necessary (the path to Xcode's Developer directory might be different on your ma
 The original error that led to this message is shown below.
 `;
 
+const MDLS_CONTENT_TYPE_PATTERN = /\s*"(?<uti>[^"]+)"/;
+
 const bundleInfoFilePaths = new Set([
   "Info.plist",
   "Contents/Info.plist",
@@ -46,18 +48,25 @@ export const isXcResultBundle = async (directory: string) => {
 };
 
 /**
- * Returns `true` if and only if the path points to an item that has the specified uniform type identifier in its
- * content type tree.
- * Requires Mac OS with Spotlight.
+ * Checks if an item has a specific uniform type identifier (UTI) in its content type tree.
+ * It uses `mdls` under the hood, which requires Spotlight.
+ *
+ * If Spotlight is enabled and the path is properly indexed, the result of the check is reliable. Otherwise,
+ * the function returns `undefined`, which means a heuristic check should be performed instead.
  */
 export const checkUniformTypeIdentifier = async (itemPath: string, uti: string) => {
   const mdlsArgs = ["-raw", "-attr", "kMDItemContentTypeTree", itemPath];
-  const stringToSearch = `"${uti}"`;
+  let contentTypeTreeAvailable = false;
 
   try {
-    for await (const line of invokeStdoutCliTool("mdls", mdlsArgs)) {
-      if (line.indexOf(stringToSearch) !== -1) {
-        return true;
+    for await (const line of invokeStdoutCliTool("mdls", mdlsArgs, { encoding: "utf-8" })) {
+      const match = MDLS_CONTENT_TYPE_PATTERN.exec(line);
+      if (match) {
+        contentTypeTreeAvailable = true;
+        const [, matchedUti] = match;
+        if (matchedUti === uti) {
+          return true;
+        }
       }
     }
   } catch {
@@ -67,7 +76,9 @@ export const checkUniformTypeIdentifier = async (itemPath: string, uti: string) 
     return undefined;
   }
 
-  return false;
+  // Not a single match means the content type tree can't be accessed. That may happen on Mac OS machines if
+  // the path is not indexed by Spotlight, or the indexing is disabled. We resort to heuristics in such a case.
+  return contentTypeTreeAvailable ? false : undefined;
 };
 
 export const isMostProbablyXcResultBundle = async (directory: string) =>

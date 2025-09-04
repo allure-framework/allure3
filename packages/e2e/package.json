@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
@@ -16,6 +16,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-awesome": "workspace:*",
+    "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@faker-js/faker": "^9.8.0",
     "@playwright/test": "^1.48.2",

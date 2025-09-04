@@ -6,6 +6,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 const meta: Meta<typeof TrendChart> = {
   title: "Charts/TrendChart",
   component: TrendChart,
+  args: {
+    width: 900,
+    height: 500,
+  }
 };
 
 export default meta;
@@ -32,11 +36,31 @@ const mockDefaultData = (count: number): Serie[] => [
 
 const mockedData = mockDefaultData(10);
 
+const leftAxisConfig = {
+  ...defaultTrendChartAxisLeftConfig,
+  legend: "Tests executed",
+  legendOffset: -40,
+  legendPosition: "middle",
+}
+
+const bottomAxisConfig = {
+  ...defaultTrendChartAxisBottomConfig,
+  legend: "Day",
+  legendOffset: 36,
+  legendPosition: "middle",
+};
+
 type Story = StoryObj<TrendChartProps>;
 
 export const Default: Story = {
   args: {
     data: mockedData,
+  }
+};
+
+export const Empty: Story = {
+  args: {
+    data: [],
   }
 };
 
@@ -57,18 +81,8 @@ export const WithSlices: Story = {
 export const WithAxisLegends: Story = {
   args: {
     data: mockedData,
-    axisBottom: {
-      ...defaultTrendChartAxisBottomConfig,
-      legendOffset: 36,
-      legendPosition: "middle",
-      legend: "Day",
-    },
-    axisLeft: {
-      ...defaultTrendChartAxisLeftConfig,
-      legend: "Tests executed",
-      legendOffset: -40,
-      legendPosition: "middle",
-    }
+    axisBottom: bottomAxisConfig,
+    axisLeft: leftAxisConfig
   }
 };
 
@@ -76,11 +90,18 @@ export const WithLogarithmicScale: Story = {
   args: {
     data: mockedData,
     axisLeft: {
-      ...defaultTrendChartAxisLeftConfig,
-      legend: "Tests executed (symlog scale)",
-      legendOffset: -40,
-      legendPosition: "middle",
+      ...leftAxisConfig,
+      legend: "Number of Tests (symlog scale)",
     },
     yScale: makeSymlogScaleBySeries(mockedData, { constant: 48 }),
+  }
+};
+
+export const Full: Story = {
+  args: {
+    data: mockedData,
+    axisBottom: bottomAxisConfig,
+    axisLeft: leftAxisConfig,
+    legends: [defaultTrendChartLegendConfig],
   }
 };

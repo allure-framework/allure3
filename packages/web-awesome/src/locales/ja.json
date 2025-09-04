@@ -17,7 +17,10 @@
     "new": "新しいテスト"
   },
   "tabs": {
-    "total": "すべて"
+    "total": "すべて",
+    "results": "結果",
+    "globalAttachments": "グローバル添付ファイル",
+    "globalErrors": "グローバルエラー"
   },
   "search": {
     "search": "検索",
@@ -76,6 +79,7 @@
     "no-message-provided": "メッセージが提供されていません",
     "clear-filters": "フィルターをクリア",
     "no-attachments-results": "添付ファイル情報が利用できません",
+    "no-global-errors-results": "グローバルエラー情報が利用できません",
     "no-history-results": "履歴情報が利用できません",
     "no-retries-results": "再試行情報が利用できません",
     "no-test-steps-results": "テスト手順の情報は利用できません",
@@ -119,7 +123,9 @@
     "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "at": "時",
     "variables": "変数",
-    "openPwTrace": "Playwright Trace を開く"
+    "openPwTrace": "Playwright Traceを開く",
+    "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
   },
   "controls": {
     "newTabAttachment": "新しいタブで開く",

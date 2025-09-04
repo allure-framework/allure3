@@ -108,7 +108,7 @@ export const serve = async (options?: {
       return;
     }
 
-    let fsPath = join(pathToServe, pathname.replace(/\?.*$/, ""));
+    let fsPath = join(pathToServe, decodeURI(pathname));
     let stats: Stats;
 
     try {

@@ -3,6 +3,7 @@ import {
   type EnvironmentItem,
   type Statistic,
   type TestEnvGroup,
+  type TestError,
   type TestResult,
   type TreeData,
   compareBy,
@@ -13,6 +14,8 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ExitCode,
+  type PluginGlobals,
   type ReportFiles,
   type ResultFile,
   type TestResultFilter,
@@ -373,6 +376,38 @@ export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store
     await writer.writeData(src, historyPoint);
   }
   return result;
+};
+
+export const generateGlobals = async (
+  writer: AwesomeDataWriter,
+  payload: {
+    globalExitCode?: ExitCode;
+    globalAttachments?: AttachmentLink[];
+    globalErrors?: TestError[];
+    contentFunction: (id: string) => Promise<ResultFile | undefined>;
+  },
+) => {
+  const { globalExitCode = { original: 0 }, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const globals: PluginGlobals = {
+    exitCode: globalExitCode,
+    errors: globalErrors,
+    attachments: [],
+  };
+
+  for (const attachment of globalAttachments) {
+    const src = `${attachment.id}${attachment.ext}`;
+    const content = await contentFunction(attachment.id);
+
+    if (!content) {
+      continue;
+    }
+
+    await writer.writeAttachment(src, content);
+
+    globals.attachments.push(attachment);
+  }
+
+  await writer.writeWidget("globals.json", globals);
 };
 
 export const generateStaticFiles = async (

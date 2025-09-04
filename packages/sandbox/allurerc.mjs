@@ -48,7 +48,7 @@ export const dashboardLayout = [
   },
   {
     type: "pie",
-    title: "Test result current status"
+    title: "Current status"
   },
   {
     type: "bar",

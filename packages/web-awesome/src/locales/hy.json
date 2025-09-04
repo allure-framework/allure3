@@ -17,7 +17,10 @@
     "new": "Նոր թեստեր"
   },
   "tabs": {
-    "total": "Բոլոր"
+    "total": "Բոլոր",
+    "results": "Արդյունքներ",
+    "globalAttachments": "Գլոբալ կցորդներ",
+    "globalErrors": "Գլոբալ սխալներ"
   },
   "search": {
     "search": "Որոնում",
@@ -76,6 +79,7 @@
     "no-message-provided": "Հաղորդագրություն չի տրամադրվել",
     "clear-filters": "Մաքրել ֆիլտրները",
     "no-attachments-results": "Կցորդների մասին տեղեկություններ չկան",
+    "no-global-errors-results": "Գլոբալ սխալների մասին տեղեկություններ չկան",
     "no-history-results": "Պատմության մասին տեղեկություններ չկան",
     "no-retries-results": "Կրկնությունների մասին տեղեկություններ չկան",
     "no-test-steps-results": "Թեստի քայլերի մասին տեղեկատվությունը հասանելի չէ։",
@@ -119,7 +123,9 @@
     "attempt": "Փորձ {{attempt}}-ից {{total}}-ը",
     "at": "է",
     "variables": "Փոփոխականներ",
-    "openPwTrace": "Բացել Playwright Trace"
+    "openPwTrace": "Բացել Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})"
   },
   "controls": {
     "newTabAttachment": "Բացել նոր ներդիրում",

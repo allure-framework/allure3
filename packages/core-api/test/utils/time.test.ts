@@ -22,12 +22,11 @@ describe("formatDuration", () => {
     const duration = randomInt(999);
     const formatted = formatDuration(duration / 2000);
 
-    console.log(formatted);
     expect(formatted).toEqual("0s");
   });
 
   it("should format ms only if less then a second", () => {
-    const duration = randomInt(999);
+    const duration = randomInt(999, 1);
     const formatted = formatDuration(duration);
 
     expect(formatted).toEqual(`${duration}ms`);

@@ -8,6 +8,7 @@ export enum ChartType {
   HeatMap = "heatmap",
   Bar = "bar",
   Funnel = "funnel",
+  ComingSoon = "coming-soon",
 }
 
 export enum ChartDataType {
@@ -32,7 +33,6 @@ export interface BaseTrendSliceMetadata extends BaseMetadata {
 }
 
 // Point on a trend chart
-// FIXME: Used in plugins only
 export interface TrendPoint {
   x: string;
   y: number;
@@ -65,3 +65,10 @@ export type PieChartValues = {
   percentage: number;
   slices: PieSlice[];
 };
+
+export type BarGroupValues<T extends string = string> = Record<T, number>;
+export type BarGroup<G extends string, T extends string = string> = { groupId: G } & BarGroupValues<T>;
+export enum BarGroupMode {
+  Grouped = "grouped",
+  Stacked = "stacked",
+}

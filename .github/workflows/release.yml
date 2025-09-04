@@ -8,9 +8,14 @@ on:
         description: "The release version in <MAJOR>.<MINOR>.<PATCH> format"
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   triage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: "Check release version"
         run: |

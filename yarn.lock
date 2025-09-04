@@ -147,6 +147,7 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
+    "@allurereport/reader-api": "workspace:*"
     "@allurereport/static-server": "workspace:*"
     "@faker-js/faker": "npm:^9.8.0"
     "@playwright/test": "npm:^1.48.2"
@@ -751,6 +752,7 @@ __metadata:
   resolution: "@allurereport/web-awesome@workspace:packages/web-awesome"
   dependencies:
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -953,6 +955,7 @@ __metadata:
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.13"
     "@nivo/axes": "npm:^0.88.0"
+    "@nivo/bar": "npm:^0.88.0"
     "@nivo/core": "npm:^0.88.0"
     "@nivo/legends": "npm:^0.88.0"
     "@nivo/line": "npm:^0.88.0"
@@ -4928,6 +4931,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nivo/bar@npm:^0.88.0":
+  version: 0.88.0
+  resolution: "@nivo/bar@npm:0.88.0"
+  dependencies:
+    "@nivo/annotations": "npm:0.88.0"
+    "@nivo/axes": "npm:0.88.0"
+    "@nivo/colors": "npm:0.88.0"
+    "@nivo/core": "npm:0.88.0"
+    "@nivo/legends": "npm:0.88.0"
+    "@nivo/scales": "npm:0.88.0"
+    "@nivo/tooltip": "npm:0.88.0"
+    "@react-spring/web": "npm:9.4.5 || ^9.7.2"
+    "@types/d3-scale": "npm:^4.0.8"
+    "@types/d3-shape": "npm:^3.1.6"
+    d3-scale: "npm:^4.0.2"
+    d3-shape: "npm:^3.2.0"
+    lodash: "npm:^4.17.21"
+  peerDependencies:
+    react: ">= 16.14.0 < 19.0.0"
+  checksum: 10/e1c08ba3879738514eac5142f88a71609f5f7c2ecd120ca6fca436982fd50169bf2376fd69fe03bc3d630be6c58bf5709b12b8e7e25dd1f8915806886649b66f
+  languageName: node
+  linkType: hard
+
 "@nivo/colors@npm:0.88.0":
   version: 0.88.0
   resolution: "@nivo/colors@npm:0.88.0"
@@ -7208,9 +7234,9 @@ __metadata:
   linkType: hard
 
 "@types/prop-types@npm:^15.7.2":
-  version: 15.7.14
-  resolution: "@types/prop-types@npm:15.7.14"
-  checksum: 10/d0c5407b9ccc3dd5fae0ccf9b1007e7622ba5e6f1c18399b4f24dff33619d469da4b9fa918a374f19dc0d9fe6a013362aab0b844b606cfc10676efba3f5f736d
+  version: 15.7.15
+  resolution: "@types/prop-types@npm:15.7.15"
+  checksum: 10/31aa2f59b28f24da6fb4f1d70807dae2aedfce090ec63eaf9ea01727a9533ef6eaf017de5bff99fbccad7d1c9e644f52c6c2ba30869465dd22b1a7221c29f356
   languageName: node
   linkType: hard
 
