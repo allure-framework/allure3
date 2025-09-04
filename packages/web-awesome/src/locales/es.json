@@ -17,7 +17,10 @@
     "new": "Pruebas nuevas"
   },
   "tabs": {
-    "total": "Todo"
+    "total": "Todo",
+    "results": "Resultados",
+    "globalAttachments": "Adjuntos Globales",
+    "globalErrors": "Errores Globales"
   },
   "search": {
     "search": "Buscar",
@@ -76,6 +79,7 @@
     "no-message-provided": "No se proporcionó mensaje",
     "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
+    "no-global-errors-results": "No hay información de errores globales disponible",
     "no-history-results": "No hay información de historial disponible",
     "no-retries-results": "No hay información de reintentos disponible",
     "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",
@@ -119,7 +123,9 @@
     "attempt": "Intento {{attempt}} de {{total}}",
     "at": "a las",
     "variables": "Variables",
-    "openPwTrace": "Abrir Playwright Trace"
+    "openPwTrace": "Abrir Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, con código de salida {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})"
   },
   "controls": {
     "newTabAttachment": "Abrir adjunto en nueva pestaña",

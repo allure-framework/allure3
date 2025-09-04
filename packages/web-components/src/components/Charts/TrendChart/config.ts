@@ -16,7 +16,7 @@ export const defaultTrendChartLegendConfig: LegendProps = {
   itemHeight: 20,
   itemOpacity: 0.75,
   symbolSize: 12,
-  symbolShape: "circle",
+  symbolShape: "square",
   symbolBorderColor: "rgba(0, 0, 0, .5)",
   effects: [
     {
@@ -42,7 +42,7 @@ export const defaultTrendChartAxisLeftConfig: AxisProps = {
   tickRotation: 0,
 };
 
-export const defaultTrendChartMarginConfig: Margin = { top: 50, right: 100, bottom: 50, left: 60 };
+export const defaultTrendChartMarginConfig: Margin = { top: 60, right: 110, bottom: 60, left: 80 };
 
 export const defaultTrendChartXScaleConfig: ScaleSpec = { type: "point" };
 

@@ -1,10 +1,13 @@
 import { ChartType } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type ComingSoonChartOptions,
   type GeneratedChartData,
   type GeneratedChartsData,
   type PluginContext,
   type ReportFiles,
+  generateBarChart,
+  generateComingSoonChart,
   generatePieChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";
@@ -96,10 +99,14 @@ export const generateCharts = async (
       chart = await generateTrendChart(chartOptions, store, context);
     } else if (chartOptions.type === ChartType.Pie) {
       chart = generatePieChart(chartOptions, { statistic });
+    } else if (chartOptions.type === ChartType.Bar) {
+      chart = await generateBarChart(chartOptions, store);
     }
 
     if (chart) {
       chartsData[chartId] = chart;
+    } else {
+      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
     }
   }
 

@@ -46,6 +46,7 @@ build
 **/.nyc_output
 **/package.tgz
 **/wallaby.js
+allure-results.zip
 
 # Cursor IDE ignore
 .cursor/

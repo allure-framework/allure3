@@ -7,5 +7,6 @@ export * from "./utils/misc.js";
 export * from "./utils/tree.js";
 export * from "./utils/summary.js";
 export * from "./charts.js";
+export * from "./statusBySeverityBarAccessor.js";
 export * from "./severityTrendAccessor.js";
 export * from "./statusTrendAccessor.js";

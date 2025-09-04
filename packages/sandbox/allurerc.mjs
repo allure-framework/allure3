@@ -41,10 +41,75 @@ const chartLayout = [
   },
 ];
 
+export const dashboardLayout = [
+  {
+    type: "funnel",
+    title: "Testing pyramid"
+  },
+  {
+    type: "pie",
+    title: "Current status"
+  },
+  {
+    type: "bar",
+    dataType: "severity",
+    title: "Test result severities"
+  },
+  {
+    type: "bar",
+    title: "FBSU age pyramid"
+  },
+  {
+    type: "trend",
+    dataType: "status",
+    title: "Status dynamics"
+  },
+  {
+    type: "bar", // OR it might be trend
+    title: "Status change dynamics"
+  },
+  {
+    type: "bar", // OR it might be trend
+    title: "Test base growth dynamics"
+  },
+  {
+    type: "heatmap",
+    title: "Problems distribution by environment"
+  },
+  {
+    type: "treemap",
+    title: "Coverage diff map"
+  },
+  {
+    type: "treemap",
+    title: "Success rate disctribution"
+  },
+  {
+    type: "treemap",
+    title: "Stability rate disctribution"
+  },
+  {
+    type: "bar",
+    title: "Duration by layer histogram"
+  },
+  {
+    type: "bar", // OR it might be trend
+    title: "Performance dynamics"
+  },
+];
+
 export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
   historyPath: "./history.jsonl",
+  qualityGate: {
+    rules: [
+      {
+        maxFailures: 5,
+        fastFail: true,
+      },
+    ],
+  },
   plugins: {
     allure2: {
       options: {
@@ -74,7 +139,7 @@ export default defineConfig({
         singleFile: false,
         reportName: "HelloWorld-Dashboard",
         reportLanguage: "en",
-        layout: chartLayout,
+        layout: dashboardLayout,
       },
     },
     csv: {
@@ -88,8 +153,8 @@ export default defineConfig({
       },
     },
   },
-  allureService: {
-    url: "http://localhost:5173",
-    project: "sandbox",
-  },
+  // allureService: {
+  //   url: "http://localhost:5173",
+  //   project: "sandbox",
+  // },
 });

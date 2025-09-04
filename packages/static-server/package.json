@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/static-server",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
@@ -45,9 +45,9 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-js-commons": "^3.3.0",
-    "allure-playwright": "^3.3.0",
-    "allure-vitest": "^3.3.0",
+    "allure-js-commons": "^3.3.3",
+    "allure-playwright": "^3.3.3",
+    "allure-vitest": "^3.3.3",
     "axios": "^1.9.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

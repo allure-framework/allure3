@@ -22,6 +22,7 @@ test.describe("retries", () => {
   test.describe("tree", () => {
     let bootstrap: ReportBootstrap;
     let treePage: TreePage;
+
     test.beforeAll(async () => {
       const testResults = makeTestResults(6, (index) => {
         if ([0, 1, 2].includes(index)) {
@@ -116,6 +117,7 @@ test.describe("retries", () => {
     let bootstrap: ReportBootstrap;
     let treePage: TreePage;
     let testResultPage: TestResultPage;
+
     test.beforeAll(async () => {
       const now = Date.now();
 

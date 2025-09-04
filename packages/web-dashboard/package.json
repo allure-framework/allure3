@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-dashboard",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",
@@ -58,7 +58,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-vitest": "^3.3.0",
+    "allure-vitest": "^3.3.3",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
