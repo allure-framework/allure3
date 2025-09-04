@@ -69,7 +69,6 @@
     "@vitest/runner": "^3.2.4",
     "@vitest/snapshot": "^3.2.4",
     "allure-vitest": "^3.3.2",
-    "ansi-to-html": "^0.7.2",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",

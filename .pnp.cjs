@@ -1022,7 +1022,6 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:3.2.4"],\
           ["@vitest/snapshot", "npm:3.2.4"],\
           ["allure-vitest", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:3.3.2"],\
-          ["ansi-to-html", "npm:0.7.2"],\
           ["autoprefixer", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:10.4.20"],\
           ["babel-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:9.2.1"],\
           ["babel-plugin-prismjs", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.1.0"],\
@@ -1162,11 +1161,13 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
+          ["@types/trusted-types", "npm:2.0.7"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:3.3.0"],\
           ["allure-vitest", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:3.3.0"],\
+          ["ansi-to-html", "npm:0.7.2"],\
           ["dompurify", "npm:3.2.6"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
@@ -1242,7 +1243,6 @@ const RAW_RUNTIME_STATE =
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:3a0053d30ea23e2bc05be9bf4b5d77dfc3e77528707765ce5095eda8f30c0d1e3c53e60056d14a6e7d073538fee14669af72a6f71251afeeca5e301c569a31e8#npm:3.3.3"],\
           ["allure-vitest", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.3.3"],\
-          ["ansi-to-html", "npm:0.7.2"],\
           ["autoprefixer", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:10.4.20"],\
           ["babel-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:9.2.1"],\
           ["babel-plugin-prismjs", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.1.0"],\

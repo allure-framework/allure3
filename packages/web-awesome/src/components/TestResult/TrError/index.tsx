@@ -1,7 +1,6 @@
 import type { TestError, TestStatus } from "@allurereport/core-api";
 import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
-import AnsiToHtml from "ansi-to-html";
-import { sanitize } from "@allurereport/web-commons";
+import { ansiToHTML } from "@allurereport/web-commons";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -12,11 +11,10 @@ import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
 const TrErrorTrace = ({ trace }: { trace: string }) => {
-  const ansiTrace = new AnsiToHtml({
+  const sanitizedTrace = ansiToHTML(trace, {
     fg: "var(--on-text-primary)",
     colors: {},
-  }).toHtml(trace);
-  const sanitizedTrace = sanitize(ansiTrace);
+  });
 
   return (
     <div data-testid="test-result-error-trace" className={styles["test-result-error-trace"]}>

@@ -8,7 +8,8 @@ export type HtmlAttachmentPreviewProps = {
 };
 
 export const HtmlAttachmentPreview: FunctionalComponent<HtmlAttachmentPreviewProps> = ({ attachment }) => {
-  const sanitizedText = typeof attachment?.text === "string" && attachment.text.length > 0 ? sanitize(attachment.text) : "";
+  const rawText = attachment.text ?? "";
+  const sanitizedText = rawText.length > 0 ? sanitize(rawText) : "";
 
   // eslint-disable-next-line react/no-danger
   return <div className={styles["html-attachment-preview"]} dangerouslySetInnerHTML={{ __html: sanitizedText }} />;
