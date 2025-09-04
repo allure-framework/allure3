@@ -16,10 +16,10 @@ export const AttachmentCode: FunctionalComponent<{
   const ext = item?.link?.ext?.replace(".", "") ?? "plaintext";
   const rawText = attachment.text ?? "";
 
-  if (isAnsi(rawText)) {
-    const sanitizedText = rawText.length > 0 ? ansiToHTML(rawText, {
+  if (isAnsi(rawText) && rawText.length > 0) {
+    const sanitizedText = ansiToHTML(rawText, {
       fg: "var(--on-text-primary)",
-    }) : "";
+    });
 
     return (
       <pre
