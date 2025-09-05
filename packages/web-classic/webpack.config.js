@@ -85,6 +85,11 @@ export default (env, argv) => {
       alias: {
         "@": join(baseDir, "src"),
       },
+      fallback: {
+        path: false,
+        fs: false,
+        url: false,
+      },
     },
   };
 
