@@ -105,7 +105,6 @@
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.3.3",
     "allure-vitest": "^3.3.3",
-    "ansi-to-html": "^0.7.2",
     "autoprefixer": "^10.4.20",
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",

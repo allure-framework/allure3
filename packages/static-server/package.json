@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@allurereport/directory-watcher": "workspace:*",
-    "@allurereport/web-commons": "workspace:*",
     "open": "^10.1.0"
   },
   "devDependencies": {

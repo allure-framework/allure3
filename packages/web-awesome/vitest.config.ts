@@ -15,7 +15,7 @@ const getOsLabel = () => {
   }
 };
 import { resolve } from "path";
-import { preact } from "@preact/preset-vite"
+import { preact } from "@preact/preset-vite";
 
 const require = createRequire(import.meta.url);
 

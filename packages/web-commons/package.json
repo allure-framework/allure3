@@ -23,7 +23,9 @@
     "clean": "rimraf ./dist"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*"
+    "@allurereport/core-api": "workspace:*",
+    "ansi-to-html": "^0.7.2",
+    "dompurify": "^3.2.6"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",

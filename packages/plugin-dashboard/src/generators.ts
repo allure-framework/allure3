@@ -1,4 +1,11 @@
-import { ChartType } from "@allurereport/core-api";
+import {
+  ChartType,
+  createBaseUrlScript,
+  createFontLinkTag,
+  createReportDataScript,
+  createScriptTag,
+  createStylesLinkTag,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type ComingSoonChartOptions,
@@ -11,13 +18,6 @@ import {
   generatePieChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";
-import {
-  createBaseUrlScript,
-  createFontLinkTag,
-  createReportDataScript,
-  createScriptTag,
-  createStylesLinkTag,
-} from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
 import Handlebars from "handlebars";

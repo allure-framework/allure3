@@ -3,44 +3,6 @@
  */
 export const ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY = "__allure_report_live_reload_hash__";
 
-export const createReportDataScript = (
-  reportFiles: {
-    name: string;
-    value: string;
-  }[] = [],
-) => {
-  if (!reportFiles?.length) {
-    return `
-      <script async>
-        window.allureReportDataReady = true;
-      </script>
-    `;
-  }
-
-  const reportFilesDeclaration = reportFiles.map(({ name, value }) => `d('${name}','${value}')`).join(",");
-
-  return `
-    <script async>
-      window.allureReportDataReady = false;
-      window.allureReportData = window.allureReportData || {};
-
-      function d(name, value){
-        return new Promise(function (resolve) {
-          window.allureReportData[name] = value;
-
-          return resolve(true);
-        });
-      }
-    </script>
-    <script defer>
-      Promise.allSettled([${reportFilesDeclaration}])
-        .then(function(){
-          window.allureReportDataReady = true;
-        })
-    </script>
-  `;
-};
-
 export const ensureReportDataReady = () =>
   new Promise((resolve) => {
     const waitForReady = () => {
