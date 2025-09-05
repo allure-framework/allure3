@@ -1,29 +1,26 @@
-export const createScriptTag = (src: string, options?: { async?: false; defer?: false }) => {
-  return `<script ${options?.async ? "async" : ""} ${options?.defer ? "defer" : ""} src="${src}"></script>`;
-};
-
-export const createStylesLinkTag = (src: string) => {
-  return `<link rel="stylesheet" type="text/css" href="${src}">`;
-};
-
-export const createFontLinkTag = (src: string) => {
-  return `<link rel="preload" href="${src}" as="font" type="font/woff" crossorigin /> `;
-};
-
-export const createFaviconLinkTag = (src: string) => {
-  return `<link rel="icon" href="${src}">`;
-};
+/**
+ * Static utilities for generating HTML tags and scripts
+ * These utilities are safe to use in both Node.js and browser environments
+ */
 
 export const createBaseUrlScript = () => {
-  return `
-    <script>
-      const { origin, pathname } = window.location; 
-      const url = new URL(pathname, origin);
-      const baseEl = document.createElement("base");
-      
-      baseEl.href = url.toString();
-      
-      window.document.head.appendChild(baseEl);
-    </script>
-  `;
+  return `<script>
+    (function() {
+      const base = document.createElement('base');
+      base.href = document.querySelector('base')?.href || window.location.href;
+      document.head.appendChild(base);
+    })();
+  </script>`;
+};
+
+export const createFaviconLinkTag = (href: string) => {
+  return `<link rel="icon" type="image/x-icon" href="${href}">`;
+};
+
+export const createScriptTag = (src: string) => {
+  return `<script src="${src}"></script>`;
+};
+
+export const createStylesLinkTag = (href: string) => {
+  return `<link rel="stylesheet" href="${href}">`;
 };

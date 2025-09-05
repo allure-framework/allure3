@@ -103,11 +103,6 @@ export default (env, argv) => {
         "react": "@preact/compat",
         "react-dom": "@preact/compat",
       },
-      fallback: {
-        path: false,
-        fs: false,
-        url: false,
-      },
     },
   };
 
