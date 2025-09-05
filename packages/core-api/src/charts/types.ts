@@ -16,6 +16,13 @@ export enum ChartDataType {
   Severity = "severity",
 }
 
+// Specifies which Bar chart is being generated
+export enum BarChartType {
+  StatusBySeverity = "statusBySeverity",
+  StatusTrend = "statusTrend",
+  StatusChangeTrend = "statusChangeTrend",
+}
+
 export enum ChartMode {
   Raw = "raw",
   Percent = "percent",
@@ -72,3 +79,6 @@ export enum BarGroupMode {
   Grouped = "grouped",
   Stacked = "stacked",
 }
+
+export type NewKey<T extends string> = `new${Capitalize<T>}`;
+export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;

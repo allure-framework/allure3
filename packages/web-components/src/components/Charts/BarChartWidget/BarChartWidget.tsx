@@ -32,11 +32,11 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
   const bottomAxisConfig = useMemo<AxisProps<BarDatum>>(
     () => ({
       ...defaultBarChartAxisBottomConfig,
-      legend: "Test Severity",
+      legend: groupMode === "stacked" ? "Data Points" : "Test Severity",
       legendPosition: "middle",
       legendOffset: 32,
     }),
-    [],
+    [groupMode],
   );
 
   const leftAxisConfig = useMemo<AxisProps<BarDatum>>(
@@ -44,7 +44,7 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
       ...defaultBarChartAxisLeftConfig,
       legend: mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests",
       legendPosition: "middle",
-      legendOffset: -40,
+      legendOffset: -60,
       format: yFormat,
     }),
     [mode, yFormat],

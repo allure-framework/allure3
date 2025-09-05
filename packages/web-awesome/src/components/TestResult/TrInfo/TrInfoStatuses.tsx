@@ -1,4 +1,4 @@
-import { capitalize } from "@allurereport/web-commons";
+import { capitalize } from "@allurereport/core-api";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useI18n } from "@/stores";

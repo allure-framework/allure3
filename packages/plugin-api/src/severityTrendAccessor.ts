@@ -1,8 +1,7 @@
-import type { HistoryDataPoint, HistoryTestResult, SeverityLevel, TestResult } from "@allurereport/core-api";
+import type { HistoryTestResult, SeverityLevel, TestResult } from "@allurereport/core-api";
 import { severityLabelName, severityLevels } from "@allurereport/core-api";
 import type { TrendDataAccessor, TrendStats } from "./charts.js";
 import { createEmptyStats } from "./charts.js";
-import type { AllureStore } from "./store.js";
 
 type SeverityTrendStats = TrendStats<SeverityLevel>;
 
@@ -20,12 +19,10 @@ const processTestResults = (testResults: (TestResult | HistoryTestResult)[]): Se
 };
 
 export const severityTrendDataAccessor: TrendDataAccessor<SeverityLevel> = {
-  getCurrentData: async (store: AllureStore): Promise<SeverityTrendStats> => {
-    const testResults = await store.allTestResults();
-
+  getCurrentData: ({ testResults }) => {
     return processTestResults(testResults);
   },
-  getHistoricalData: (historyPoint: HistoryDataPoint): SeverityTrendStats => {
+  getHistoricalData: (historyPoint) => {
     return processTestResults(Object.values(historyPoint.testResults));
   },
   getAllValues: () => severityLevels,

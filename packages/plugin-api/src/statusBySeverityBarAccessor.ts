@@ -1,9 +1,8 @@
-import type { BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
+import type { BarGroup, BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode, severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
-import type { BarDataAccessor, BarStats } from "./charts.js";
-import type { AllureStore } from "./store.js";
+import type { BarDataAccessor } from "./charts.js";
 
-const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, TestStatus> => {
+const processTestResults = (testResults: TestResult[]): BarGroup<SeverityLevel, TestStatus>[] => {
   const resultMap: Record<SeverityLevel, BarGroupValues<TestStatus> | undefined> = {
     blocker: undefined,
     critical: undefined,
@@ -29,21 +28,22 @@ const processTestResults = (testResults: TestResult[]): BarStats<SeverityLevel, 
     }
   });
 
-  return Object.entries(resultMap)
-    .map(([severity, values]) => {
+  return Object.entries(resultMap).reduce(
+    (acc, [severity, values]) => {
       if (values) {
-        return { groupId: severity, ...values };
+        acc.push({ groupId: severity as SeverityLevel, ...values });
       }
-    })
-    .filter(Boolean) as BarStats<SeverityLevel, TestStatus>;
+
+      return acc;
+    },
+    [] as BarGroup<SeverityLevel, TestStatus>[],
+  );
 };
 
 export const statusBySeverityBarDataAccessor: BarDataAccessor<SeverityLevel, TestStatus> = {
-  getCurrentData: async (store: AllureStore): Promise<BarStats<SeverityLevel, TestStatus>> => {
-    const testResults = await store.allTestResults();
-
+  getItems: ({ testResults }) => {
     return processTestResults(testResults);
   },
-  getValuesKeys: () => statusesList,
+  getGroupKeys: () => statusesList,
   getGroupMode: () => BarGroupMode.Grouped,
 };

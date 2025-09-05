@@ -1,4 +1,5 @@
 import type {
+  BarChartType,
   BarGroup,
   BarGroupMode,
   BaseTrendSliceMetadata,
@@ -47,7 +48,7 @@ export interface ResponsePieChartData {
 
 export interface ResponseBarChartData {
   type: ChartType.Bar;
-  dataType: ChartDataType;
+  dataType: BarChartType;
   mode: ChartMode;
   title?: string;
   data: BarGroup<string, string>[];
