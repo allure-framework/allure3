@@ -14,7 +14,7 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType, ChartDataType, ChartMode, getPieChartValues } from "@allurereport/core-api";
+import { ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";

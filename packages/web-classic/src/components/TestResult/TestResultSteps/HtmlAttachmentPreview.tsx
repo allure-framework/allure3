@@ -1,7 +1,7 @@
+import { sanitize } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import * as styles from "./styles.scss";
-import { sanitize } from "@allurereport/web-commons";
 
 // TODO: use proper type here
 export type HtmlAttachmentPreviewProps = {
@@ -32,13 +32,7 @@ export const HtmlAttachmentPreview: FunctionalComponent<HtmlAttachmentPreviewPro
 
   return (
     <div className={styles["html-attachment-preview"]}>
-      <iframe
-        src={blobUrl}
-        width="100%"
-        height="100%"
-        frameBorder="0"
-        sandbox="allow-same-origin"
-      />
+      <iframe src={blobUrl} width="100%" height="100%" frameBorder="0" sandbox="allow-same-origin" />
     </div>
   );
 };

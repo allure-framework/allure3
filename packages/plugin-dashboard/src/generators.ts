@@ -1,4 +1,11 @@
-import { ChartType, createBaseUrlScript, createFontLinkTag, createReportDataScript, createScriptTag, createStylesLinkTag } from "@allurereport/core-api";
+import {
+  ChartType,
+  createBaseUrlScript,
+  createFontLinkTag,
+  createReportDataScript,
+  createScriptTag,
+  createStylesLinkTag,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type ComingSoonChartOptions,

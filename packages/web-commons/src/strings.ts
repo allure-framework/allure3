@@ -15,7 +15,7 @@ export interface AnsiToHtmlConfig {
   /** Save style state across invocations of `toHtml()`. */
   stream?: boolean;
   /** Can override specific colors or the entire ANSI palette. */
-  colors?: string[] | {[code: number]: string};
+  colors?: string[] | { [code: number]: string };
 }
 
 // eslint-disable-next-line no-control-regex
@@ -39,5 +39,5 @@ export const isAnsi = (text?: string): boolean => typeof text === "string" && ne
 export const ansiToHTML = (text: string, config?: AnsiToHtmlConfig) =>
   new AnsiToHtml({
     escapeXML: true,
-    ...config
+    ...config,
   }).toHtml(text);

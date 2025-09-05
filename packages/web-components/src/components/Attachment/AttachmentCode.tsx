@@ -1,9 +1,9 @@
 import { type AttachmentTestStepResult } from "@allurereport/core-api";
+import { ansiToHTML, isAnsi } from "@allurereport/web-commons";
 import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import "./code.scss";
-import { isAnsi, ansiToHTML } from "@allurereport/web-commons";
 
 export const AttachmentCode: FunctionalComponent<{
   item: AttachmentTestStepResult;
