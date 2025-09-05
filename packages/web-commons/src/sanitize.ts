@@ -1,4 +1,4 @@
-import sanitizeHtml from "sanitize-html";
+import DOMPurify from "dompurify";
 
 /**
  * Sanitize HTML string.
@@ -6,4 +6,4 @@ import sanitizeHtml from "sanitize-html";
  * @param config Config for the dompurify package.
  * @returns Sanitized HTML string.
  */
-export const sanitize = sanitizeHtml;
+export const sanitize = DOMPurify.sanitize.bind(DOMPurify);

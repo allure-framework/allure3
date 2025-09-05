@@ -1,5 +1,5 @@
 import type { PluginSummary } from "@allurereport/plugin-api";
-import { createBaseUrlScript, createScriptTag } from "@allurereport/web-commons";
+import { createBaseUrlScript, createScriptTag } from "@allurereport/core-api";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";

@@ -7,7 +7,7 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-} from "@allurereport/web-commons";
+} from "@allurereport/core-api";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";

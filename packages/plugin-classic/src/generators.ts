@@ -4,6 +4,11 @@ import {
   type Statistic,
   type TreeGroup,
   type TreeLeaf,
+  createBaseUrlScript,
+  createFontLinkTag,
+  createReportDataScript,
+  createScriptTag,
+  createStylesLinkTag,
   compareBy,
   getPieChartValues,
   incrementStatistic,
@@ -27,13 +32,6 @@ import type {
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
-import {
-  createBaseUrlScript,
-  createFontLinkTag,
-  createReportDataScript,
-  createScriptTag,
-  createStylesLinkTag,
-} from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";

@@ -11,6 +11,11 @@ import {
   incrementStatistic,
   nullsLast,
   ordinal,
+  createBaseUrlScript,
+  createFontLinkTag,
+  createReportDataScript,
+  createScriptTag,
+  createStylesLinkTag,
 } from "@allurereport/core-api";
 import {
   type AllureStore,
@@ -33,13 +38,6 @@ import type {
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
-import {
-  createBaseUrlScript,
-  createFontLinkTag,
-  createReportDataScript,
-  createScriptTag,
-  createStylesLinkTag,
-} from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
