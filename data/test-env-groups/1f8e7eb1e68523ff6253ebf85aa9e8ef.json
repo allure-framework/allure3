@@ -1,1 +1,1 @@
-{"id":"1f8e7eb1e68523ff6253ebf85aa9e8ef","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse a test attachment with a known UTI","name":"should parse a test attachment with a known UTI","status":"passed","testResultsByEnv":{"macos":"6a62cdf6fb207f77e4cfcadf6a192746"}}
+{"id":"1f8e7eb1e68523ff6253ebf85aa9e8ef","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse a test attachment with a known UTI","name":"should parse a test attachment with a known UTI","status":"passed","testResultsByEnv":{"macos":"c3e9fd15da244f5ab2cd11e1261d57cc"}}
