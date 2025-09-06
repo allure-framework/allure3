@@ -19,9 +19,6 @@ import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues } 
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
-import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
-import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
-import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";

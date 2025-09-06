@@ -3,6 +3,6 @@ export * from "./attachments.js";
 export * from "./i18n.js";
 export * from "./charts/index.js";
 export * from "./sanitize.js";
-export * from "./charts.js";
+export * from "./strings.js";
 export * from "./charts/colors.js";
 export * from "./charts/utils.js";
