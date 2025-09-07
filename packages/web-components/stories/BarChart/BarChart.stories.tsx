@@ -3,7 +3,7 @@ import type { BarChartProps } from "@allurereport/web-components";
 import type { TestStatus } from "@allurereport/core-api";
 import { statusColors } from "@allurereport/web-commons";
 import type { Meta, StoryObj } from "@storybook/react";
-import { TEST_STATUSES, createBarChartData } from "./mocks";
+import { TEST_STATUSES, createBarChartData, TREND_CATEGORIES, createTrendBarChartData, trendColors } from "./mocks";
 import type { ResponsiveBarSvgProps } from "@nivo/bar";
 
 const meta: Meta<typeof BarChart> = {
@@ -97,4 +97,39 @@ export const Full: Story = {
     legends: [defaultBarChartLegendsConfig],
     ...CHART_CONFIG,
   }
+};
+
+const trendData = createTrendBarChartData();
+
+const TREND_CHART_CONFIG: Partial<ResponsiveBarSvgProps<Record<string, number>>> = {
+  keys: TREND_CATEGORIES,
+  indexBy: "point",
+  groupMode: "stacked",
+  colors: ({ id }) => trendColors[id as keyof typeof trendColors],
+};
+
+const trendBottomAxisConfig = {
+  ...defaultBarChartAxisBottomConfig,
+  legend: "Data Points",
+  legendPosition: "middle",
+  legendOffset: 32,
+};
+
+const trendLeftAxisConfig = {
+  ...defaultBarChartAxisLeftConfig,
+  legend: "Values",
+  legendPosition: "middle",
+  legendOffset: -40,
+};
+
+type TrendStory = StoryObj<BarChartProps<typeof trendData[0]>>;
+
+export const TrendData: TrendStory = {
+  args: {
+    data: trendData,
+    axisBottom: trendBottomAxisConfig,
+    axisLeft: trendLeftAxisConfig,
+    legends: [defaultBarChartLegendsConfig],
+    ...TREND_CHART_CONFIG,
+  },
 };

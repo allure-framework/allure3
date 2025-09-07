@@ -18,16 +18,14 @@ const createHistoryItems = (testResults: TestResult[]) => {
         stop,
         duration,
         labels,
+        url: "",
         historyId: historyId!,
         reportLinks: [],
-      };
+      } as HistoryTestResult;
     })
     .reduce(
       (acc, item) => {
-        acc[item.historyId] = {
-          ...item,
-          url: "",
-        };
+        acc[item.historyId!] = item;
 
         return acc;
       },

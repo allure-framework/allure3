@@ -7,6 +7,7 @@ import {
   createStylesLinkTag,
 } from "@allurereport/core-api";
 import {
+  type AllureChartsStoreData,
   type AllureStore,
   type ComingSoonChartOptions,
   type GeneratedChartData,
@@ -86,7 +87,15 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const statistic = await store.testsStatistic();
+  const storeData: AllureChartsStoreData = await Promise.all([
+    store.allHistoryDataPoints(),
+    store.allTestResults(),
+    store.testsStatistic(),
+  ]).then(([historyDataPoints, testResults, statistic]) => ({
+    historyDataPoints,
+    testResults,
+    statistic,
+  }));
 
   const chartsData: GeneratedChartsData = {};
 
@@ -96,11 +105,11 @@ export const generateCharts = async (
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = await generateTrendChart(chartOptions, store, context);
+      chart = generateTrendChart(chartOptions, storeData, context);
     } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, { statistic });
+      chart = generatePieChart(chartOptions, storeData);
     } else if (chartOptions.type === ChartType.Bar) {
-      chart = await generateBarChart(chartOptions, store);
+      chart = generateBarChart(chartOptions, storeData);
     }
 
     if (chart) {

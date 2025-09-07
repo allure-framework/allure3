@@ -17,6 +17,7 @@ import {
   type TestResult,
   compareBy,
   getWorstStatus,
+  htrsByTr,
   matchEnvironment,
   nullsLast,
   ordinal,
@@ -457,26 +458,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
-    if (!tr?.historyId) {
-      return [];
-    }
-
-    return [...this.#historyPoints]
-      .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => {
-        if (!dp.url) {
-          return dp.testResults[tr.historyId!];
-        }
-
-        const url = new URL(dp.url);
-
-        url.hash = tr.id;
-
-        return {
-          ...dp.testResults[tr.historyId!],
-          url: url.toString(),
-        };
-      });
+    return htrsByTr(this.#historyPoints, tr);
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
