@@ -21,13 +21,6 @@ export interface AnsiToHtmlConfig {
 // eslint-disable-next-line no-control-regex
 const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
 
-export const capitalize = (str: string) => {
-  if (!str) {
-    return;
-  }
-  return str.charAt(0).toLocaleUpperCase() + str.slice(1);
-};
-
 export const isAnsi = (text?: string): boolean => typeof text === "string" && new RegExp(ansiRegex).test(text);
 
 /**
