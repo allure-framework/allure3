@@ -214,7 +214,6 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-allure2": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
     "@types/node": "npm:^20.17.9"
@@ -269,7 +268,6 @@ __metadata:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
@@ -301,7 +299,6 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
@@ -357,7 +354,6 @@ __metadata:
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
@@ -612,7 +608,6 @@ __metadata:
   resolution: "@allurereport/static-server@workspace:packages/static-server"
   dependencies:
     "@allurereport/directory-watcher": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@playwright/test": "npm:^1.48.2"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
@@ -645,8 +640,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/summary@workspace:packages/summary"
   dependencies:
+    "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-summary": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
@@ -780,7 +775,6 @@ __metadata:
     "@vitest/runner": "npm:^3.2.4"
     "@vitest/snapshot": "npm:^3.2.4"
     allure-vitest: "npm:^3.3.2"
-    ansi-to-html: "npm:^0.7.2"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -921,6 +915,8 @@ __metadata:
     "@vitest/runner": "npm:^2.1.9"
     allure-js-commons: "npm:^3.3.0"
     allure-vitest: "npm:^3.3.0"
+    ansi-to-html: "npm:^0.7.2"
+    dompurify: "npm:^3.2.6"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
@@ -994,7 +990,6 @@ __metadata:
     "@vitest/snapshot": "npm:^2.1.9"
     allure-js-commons: "npm:^3.3.3"
     allure-vitest: "npm:^3.3.3"
-    ansi-to-html: "npm:^0.7.2"
     autoprefixer: "npm:^10.4.20"
     babel-loader: "npm:^9.2.1"
     babel-plugin-prismjs: "npm:^2.1.0"
@@ -7327,6 +7322,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/trusted-types@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 10/8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
+  languageName: node
+  linkType: hard
+
 "@types/underscore@npm:^1":
   version: 1.13.0
   resolution: "@types/underscore@npm:1.13.0"
@@ -11012,6 +11014,18 @@ __metadata:
   dependencies:
     domelementtype: "npm:^2.3.0"
   checksum: 10/809b805a50a9c6884a29f38aec0a4e1b4537f40e1c861950ed47d10b049febe6b79ab72adaeeebb3cc8fc1cd33f34e97048a72a9265103426d93efafa78d3e96
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.2.6":
+  version: 3.2.6
+  resolution: "dompurify@npm:3.2.6"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/b91631ed0e4d17fae950ef53613cc009ed7e73adc43ac94a41dd52f35483f7538d13caebdafa7626e0da145fc8184e7ac7935f14f25b7e841b32fda777e40447
   languageName: node
   linkType: hard
 

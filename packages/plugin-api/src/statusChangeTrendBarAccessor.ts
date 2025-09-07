@@ -133,7 +133,7 @@ export const statusChangeTrendBarAccessor: BarDataAccessor<string, StatusChangeT
 
     /* This is necessary not to exclude the last point that have been compared with the empty stats if the history is fully provided.
      *
-     * We have no previous poin in the end of the full history, that's why we have to compare it with the empty stats.
+     * We have no previous point at the end of the full history, that's why we have to compare it with the empty stats.
      * At the opposite, we have to exclude the last point if the history is limited because it should be compared with the real previous point,
      * but it is already excluded in limited history.
      */
