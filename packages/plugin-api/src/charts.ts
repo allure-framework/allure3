@@ -5,6 +5,7 @@ import type {
   BaseTrendSliceMetadata,
   ChartId,
   HistoryDataPoint,
+  TreeMapNode,
   PieSlice,
   SeverityLevel,
   Statistic,
@@ -15,13 +16,14 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues } from "@allurereport/core-api";
+import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues, TreeMapChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
 import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
 import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
 import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
 import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
 import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
+import { successRateDistributionTreeMapAccessor } from "./successRateDistributionTreeMapAccessor.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -33,6 +35,8 @@ export type TrendMetadataFnOverrides = {
 
 // Common type for trend data operations
 export type TrendDataType = TestStatus | SeverityLevel;
+
+export type TrendStats<T extends TrendDataType> = Record<T, number>;
 
 // Type for calculation result
 export type TrendCalculationResult<T extends TrendDataType> = {
@@ -69,6 +73,7 @@ export interface GenericTrendChartData<
 export type StatusTrendChartData = GenericTrendChartData<TestStatus>;
 export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 
+// Trend chart data types
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
 // Bar chart data types
@@ -83,11 +88,31 @@ export interface BarChartData {
   groupMode: BarGroupMode;
 }
 
-// Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData;
-export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
+// Tree map chart data types
+export interface TreeMapChartData {
+  type: ChartType.TreeMap;
+  dataType: TreeMapChartType;
+  title?: string;
+  treeMap: TreeMapNode;
+}
 
-export type TrendStats<T extends TrendDataType> = Record<T, number>;
+// Pie chart data types
+export interface PieChartData {
+  type: ChartType.Pie;
+  title?: string;
+  slices: PieSlice[];
+  percentage: number;
+}
+
+// Coming soon chart data types
+export interface ComingSoonChartData {
+  type: ChartType.ComingSoon;
+  title?: string;
+}
+
+// Union types for generated chart data
+export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData | TreeMapChartData;
+export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 // Chart options
 export type TrendChartOptions = {
@@ -112,24 +137,18 @@ export type BarChartOptions = {
   limit?: number;
 };
 
+export type TreeMapChartOptions = {
+  type: ChartType.TreeMap;
+  dataType: TreeMapChartType;
+  title?: string;
+};
+
 export type ComingSoonChartOptions = {
   type: ChartType.ComingSoon;
   title?: string;
 };
 
-export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions;
-
-export interface PieChartData {
-  type: ChartType.Pie;
-  title?: string;
-  slices: PieSlice[];
-  percentage: number;
-}
-
-export interface ComingSoonChartData {
-  type: ChartType.ComingSoon;
-  title?: string;
-}
+export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions | TreeMapChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -427,6 +446,17 @@ export const generateBarChartGeneric = <P extends string, T extends string>(
   };
 };
 
+export const generateTreeMapChartGeneric = <T extends TreeMapNode>(
+  options: TreeMapChartOptions,
+  storeData: AllureChartsStoreData,
+  dataAccessor: TreeMapDataAccessor<T>,
+): TreeMapChartData | undefined => ({
+  type: options.type,
+  dataType: options.dataType,
+  title: options.title,
+  treeMap: dataAccessor.getTreeMap(storeData),
+});
+
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
   getCurrentData: (storeData: AllureChartsStoreData) => TrendStats<T>;
@@ -447,6 +477,10 @@ export interface BarDataAccessor<G extends string, T extends string> {
   getGroupKeys: () => readonly T[];
   // Get group mode
   getGroupMode: () => BarGroupMode;
+}
+
+export interface TreeMapDataAccessor<T extends TreeMapNode> {
+  getTreeMap: (storeData: AllureChartsStoreData) => T;
 }
 
 export const generateTrendChartGeneric = <T extends TrendDataType>(
@@ -549,5 +583,16 @@ export const generateBarChart = (
     return generateBarChartGeneric(newOptions, storeData, statusTrendBarAccessor);
   } else if (dataType === BarChartType.StatusChangeTrend) {
     return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
+  }
+};
+
+export const generateTreeMapChart = (
+  options: TreeMapChartOptions,
+  storeData: AllureChartsStoreData,
+): TreeMapChartData | undefined => {
+  const { dataType } = options;
+
+  if (dataType === TreeMapChartType.SuccessRateDistribution) {
+    return generateTreeMapChartGeneric(options, storeData, successRateDistributionTreeMapAccessor);
   }
 };
