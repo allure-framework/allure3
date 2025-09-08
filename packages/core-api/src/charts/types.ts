@@ -23,6 +23,10 @@ export enum BarChartType {
   StatusChangeTrend = "statusChangeTrend",
 }
 
+export enum TreeMapChartType {
+  SuccessRateDistribution = "successRateDistribution",
+}
+
 export enum ChartMode {
   Raw = "raw",
   Percent = "percent",
@@ -82,3 +86,9 @@ export enum BarGroupMode {
 
 export type NewKey<T extends string> = `new${Capitalize<T>}`;
 export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
+
+export interface TreeMapNode {
+  id: string;
+  value?: number;
+  children?: TreeMapNode[];
+}
