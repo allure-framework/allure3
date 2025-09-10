@@ -15,6 +15,9 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
+  TreeData,
+  TreeLeaf,
+  TreeGroup,
 } from "@allurereport/core-api";
 import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues, TreeMapChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
@@ -179,6 +182,97 @@ export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], li
  */
 export const createEmptySeries = <T extends TrendDataType>(items: readonly T[]): Record<T, string[]> =>
   items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
+
+/**
+ * Check if test has any of the specified labels
+ * Generic function that works with any label hierarchy
+ */
+export const hasLabels = <T extends string>(
+  test: TestResult,
+  labelHierarchy: T[],
+): boolean => test.labels.some(label => {
+  const { name } = label;
+  return name && labelHierarchy.includes(name as T);
+});
+
+/**
+ * Convert TreeData structure to TreeMapNode structure
+ * Generic function that works with any TreeData<L, G> and converts it to TreeMapNode
+ */
+export const convertTreeDataToTreeMapNode = <L, G>(
+  treeData: TreeData<L, G>,
+  transform: (treeDataNodenode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean) => TreeMapNode,
+): TreeMapNode => {
+  const { root, leavesById, groupsById } = treeData;
+
+  const convertNode = (nodeId: string, isGroup: boolean): TreeMapNode | null => {
+      const node = isGroup ? groupsById[nodeId] : leavesById[nodeId];
+      if (!node) {
+          return null;
+      }
+
+      const treeMapNode: TreeMapNode = transform(node, isGroup);
+
+      // Add children if it's a group
+      if (isGroup && "groups" in node) {
+          const group = node;
+          const children: TreeMapNode[] = [];
+
+          // Add child groups
+          if (group.groups) {
+              group.groups.forEach(groupId => {
+                  const childNode = convertNode(groupId, true);
+                  if (childNode) {
+                      children.push(childNode);
+                  }
+              });
+          }
+
+          // Add child leaves
+          if (group.leaves) {
+              group.leaves.forEach(leafId => {
+                  const childNode = convertNode(leafId, false);
+                  if (childNode) {
+                      children.push(childNode);
+                  }
+              });
+          }
+
+          if (children.length > 0) {
+              treeMapNode.children = children;
+          }
+      }
+
+      return treeMapNode;
+  };
+
+  // Start from root and convert all groups
+  const rootChildren: TreeMapNode[] = [];
+
+  if (root.groups) {
+      root.groups.forEach(groupId => {
+          const childNode = convertNode(groupId, true);
+          if (childNode) {
+              rootChildren.push(childNode);
+          }
+      });
+  }
+
+  if (root.leaves) {
+      root.leaves.forEach(leafId => {
+          const childNode = convertNode(leafId, false);
+          if (childNode) {
+              rootChildren.push(childNode);
+          }
+      });
+  }
+
+  return {
+      id: "root",
+      value: undefined,
+      children: rootChildren.length > 0 ? rootChildren : undefined,
+  };
+};
 
 /**
  * Calculates percentage trend data points and series.

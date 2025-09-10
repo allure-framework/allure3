@@ -84,6 +84,7 @@ export const dashboardLayout = [
   },
   {
     type: "treemap",
+    dataType: "successRateDistribution",
     title: "Success rate disctribution"
   },
   {
