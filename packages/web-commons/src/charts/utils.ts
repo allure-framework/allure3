@@ -1,14 +1,16 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList } from "@allurereport/core-api";
+import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList, TreeMapChartType } from "@allurereport/core-api";
 import { severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsResponse,
   ResponseBarChartData,
+  ResponseTreeMapChartData,
   ResponseTrendChartData,
   TrendChartItem,
   UIBarChartData,
   UIChartData,
+  UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
 
@@ -70,6 +72,21 @@ export const createBarChartDataGeneric = <T extends string>(
   };
 };
 
+export const createTreeMapChartDataGeneric = (
+  getChart: () => ResponseTreeMapChartData | undefined,
+  getColors: () => Record<string, string>,
+): UITreeMapChartData | undefined => {
+  const chart = getChart();
+  if (!chart) {
+    return undefined;
+  }
+
+  return {
+    ...chart,
+    colors: getColors(),
+  };
+};
+
 export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
   createTrendChartDataGeneric(
     () => res[chartId] as ResponseTrendChartData | undefined,
@@ -105,6 +122,12 @@ export const createStatusChangeTrendBarChartData = (
     () => statusChangeColors,
   );
 
+export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
+  createTreeMapChartDataGeneric(
+    () => res[chartId] as ResponseTreeMapChartData | undefined,
+    () => statusColors,
+  );
+
 export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
@@ -131,6 +154,12 @@ export const createBarChartData = (
   }
 };
 
+export const createTreeMapChartData = (chartId: ChartId, chartData: ResponseTreeMapChartData, res: ChartsResponse): UITreeMapChartData | undefined => {
+  if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
+    return createSuccessRateDistributionTreeMapChartData(chartId, res);
+  }
+};
+
 export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce(
     (acc, [chartId, chart]) => {
@@ -141,6 +170,11 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         }
       } else if (chart.type === ChartType.Bar) {
         const chartData = createBarChartData(chartId, chart, res);
+        if (chartData) {
+          acc[chartId] = chartData;
+        }
+      } else if (chart.type === ChartType.TreeMap) {
+        const chartData = createTreeMapChartData(chartId, chart, res);
         if (chartData) {
           acc[chartId] = chartData;
         }

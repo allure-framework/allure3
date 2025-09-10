@@ -11,6 +11,8 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
+  TreeMapChartType,
+  TreeMapNode,
 } from "@allurereport/core-api";
 
 export interface Point {
@@ -62,6 +64,13 @@ export interface ResponseComingSoonChartData {
   title?: string;
 }
 
+export interface ResponseTreeMapChartData {
+  type: ChartType.TreeMap;
+  dataType: TreeMapChartType;
+  title?: string;
+  treeMap: TreeMapNode;
+}
+
 export type ChartsResponse<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -71,6 +80,7 @@ export type ChartsResponse<
   | ResponsePieChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
+  | ResponseTreeMapChartData
 >;
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
@@ -92,6 +102,10 @@ export interface UIBarChartData extends ResponseBarChartData {
 
 export type UIComingSoonChartData = ResponseComingSoonChartData;
 
+export interface UITreeMapChartData extends ResponseTreeMapChartData {
+  colors: Record<string, string>;
+};
+
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -99,12 +113,14 @@ export type ChartData<
   | ResponseTrendChartData<SeriesType, Metadata>
   | ResponsePieChartData
   | ResponseBarChartData
-  | ResponseComingSoonChartData;
+  | ResponseComingSoonChartData
+  | ResponseTreeMapChartData;
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UIPieChartData
   | UIBarChartData
-  | UIComingSoonChartData;
+  | UIComingSoonChartData
+  | UITreeMapChartData;
 
 export type ChartsData<
   SeriesType extends string = string,
