@@ -69,6 +69,7 @@ const config = {
           },
           {
             type: "treemap",
+            dataType: "successRateDistribution",
             title: "Success rate disctribution"
           },
           {
