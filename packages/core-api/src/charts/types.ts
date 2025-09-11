@@ -90,6 +90,6 @@ export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
 export interface TreeMapNode {
   id: string;
   value?: number;
-  colorValue?: number;
+  colorValue?: number; // The normalized color value between 0 and 1 for the node
   children?: TreeMapNode[];
 }

@@ -42,7 +42,7 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
 
     const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => ({
         id: node.name,
-        value: isGroup ? undefined : node.value, // Only leaves have value
+        value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
     }));
 
     // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations

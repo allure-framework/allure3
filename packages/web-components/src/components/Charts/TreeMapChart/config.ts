@@ -10,5 +10,4 @@ export const defaultTreeChartConfig: Partial<ResponsiveTreeChartProps<DefaultTre
   parentLabelPadding: 6,
   enableParentLabel: true,
   animate: true,
-  outerPadding: 4,
 };

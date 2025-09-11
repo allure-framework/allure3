@@ -24,7 +24,7 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
-        colors={(n) => colors(n.value)}
+        colors={(n) => colors(n.data.colorValue ?? 0)}
         {...restProps}
       />
     </Widget>
