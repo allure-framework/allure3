@@ -9,6 +9,7 @@ import {
   Loadable,
   PageLoader,
   SuccessRatePieChart,
+  TreeMapChartWidget,
   TrendChartWidget,
   Widget,
 } from "@allurereport/web-components";
@@ -67,6 +68,9 @@ const getChartWidgetByType = (
           translations={{ "no-results": empty("no-results") }}
         />
       );
+    }
+    case ChartType.TreeMap: {
+      return <TreeMapChartWidget data={chartData.treeMap} title={chartData.title} colors={chartData.colors} translations={{ "no-results": empty("no-results") }} />;
     }
     default: {
       const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
