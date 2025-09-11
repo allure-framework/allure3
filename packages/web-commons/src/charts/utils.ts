@@ -13,6 +13,8 @@ import type {
   UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
+import { interpolateRgb } from "d3-interpolate";
+import { scaleLinear } from "d3-scale";
 
 export const createTrendChartDataGeneric = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,
@@ -74,7 +76,7 @@ export const createBarChartDataGeneric = <T extends string>(
 
 export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
-  getColors: () => Record<string, string>,
+  colors: (value: number) => string,
 ): UITreeMapChartData | undefined => {
   const chart = getChart();
   if (!chart) {
@@ -83,7 +85,7 @@ export const createTreeMapChartDataGeneric = (
 
   return {
     ...chart,
-    colors: getColors(),
+    colors,
   };
 };
 
@@ -125,7 +127,15 @@ export const createStatusChangeTrendBarChartData = (
 export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
   createTreeMapChartDataGeneric(
     () => res[chartId] as ResponseTreeMapChartData | undefined,
-    () => statusColors,
+    (value: number) => {
+      const scaledRgb = scaleLinear<string>()
+      .domain([0, 1])
+      .range([statusColors.failed, statusColors.passed])
+      .interpolate(interpolateRgb)
+      .clamp(true);
+
+      return scaledRgb(value);
+    },
   );
 
 export const createaTrendChartData = (
