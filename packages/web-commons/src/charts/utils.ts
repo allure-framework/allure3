@@ -1,6 +1,6 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList, TreeMapChartType } from "@allurereport/core-api";
-import { severityColors, statusChangeColors, statusColors } from "./colors.js";
+import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsResponse,
@@ -129,10 +129,10 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
     () => res[chartId] as ResponseTreeMapChartData | undefined,
     (value: number) => {
       const scaledRgb = scaleLinear<string>()
-      .domain([0, 1])
-      .range([statusColors.failed, statusColors.passed])
-      .interpolate(interpolateRgb)
-      .clamp(true);
+        .domain([0, 1])
+        .range([resolveCSSVarColor(statusColors.failed), resolveCSSVarColor(statusColors.passed)])
+        .interpolate(interpolateRgb)
+        .clamp(true);
 
       return scaledRgb(value);
     },
