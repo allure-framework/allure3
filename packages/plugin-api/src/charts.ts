@@ -201,7 +201,7 @@ export const hasLabels = <T extends string>(
  */
 export const convertTreeDataToTreeMapNode = <L, G>(
   treeData: TreeData<L, G>,
-  transform: (treeDataNodenode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean) => TreeMapNode,
+  transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean) => TreeMapNode,
 ): TreeMapNode => {
   const { root, leavesById, groupsById } = treeData;
 
@@ -214,13 +214,13 @@ export const convertTreeDataToTreeMapNode = <L, G>(
       const treeMapNode: TreeMapNode = transform(node, isGroup);
 
       // Add children if it's a group
-      if (isGroup && "groups" in node) {
-          const group = node;
+      if (isGroup) {
+          const group = node as TreeGroup<G>;
           const children: TreeMapNode[] = [];
 
           // Add child groups
           if (group.groups) {
-              group.groups.forEach(groupId => {
+              group.groups.forEach((groupId) => {
                   const childNode = convertNode(groupId, true);
                   if (childNode) {
                       children.push(childNode);
@@ -230,7 +230,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
 
           // Add child leaves
           if (group.leaves) {
-              group.leaves.forEach(leafId => {
+              group.leaves.forEach((leafId) => {
                   const childNode = convertNode(leafId, false);
                   if (childNode) {
                       children.push(childNode);
@@ -238,9 +238,11 @@ export const convertTreeDataToTreeMapNode = <L, G>(
               });
           }
 
-          if (children.length > 0) {
-              treeMapNode.children = children;
+          if (children.length === 0) {
+              return null;
           }
+
+          treeMapNode.children = children;
       }
 
       return treeMapNode;
