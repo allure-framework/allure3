@@ -40,19 +40,38 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
         addLeafToGroupFn
     );
 
-    const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => {
-        // console.log("%c##### convertTreeDataToTreeMapNode: node #####", "color: salmon", {node, isGroup});
+    const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => ({
+        id: node.name,
+        value: isGroup ? undefined : node.value, // Only leaves have value
+    }));
 
-        return ({
-            id: node.name,
-            value: node.value,
-        });
+    // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
+    const calculateSubtreeMetrics = (node: TreeMapNode): { totalTests: number; passedTests: number } => {
+        if (!node.children || node.children.length === 0) {
+            // Leaf node - value represents passed tests (1 for passed, 0 for failed)
+            return { totalTests: 1, passedTests: node.value ?? 0 };
+        }
+
+        // Group node - aggregate metrics from children
+        let totalTests = 0;
+        let passedTests = 0;
+
+        for (const child of node.children) {
+            const childMetrics = calculateSubtreeMetrics(child);
+            totalTests += childMetrics.totalTests;
+            passedTests += childMetrics.passedTests;
+        }
+
+        return { totalTests, passedTests };
+    };
+
+    transformTreeMapNode<TreeMapNode & { colorValue?: number }>(convertedTree, (node) => {
+        const { totalTests, passedTests } = calculateSubtreeMetrics(node);
+        const colorValue = totalTests > 0 ? passedTests / totalTests : 0;
+
+        // Add colorValue to the node
+        node.colorValue = colorValue;
     });
-
-    // console.log("\n\n#############");
-    /* transformTreeMapNode<TreeMapNode>(convertedTree, (node) => {
-        console.log("%c##### transformTreeMapNode: node #####", "color: orangered", node);
-    });*/
 
     return convertedTree;
 };
