@@ -1,13 +1,14 @@
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import { createTreeByLabels } from "./utils/tree.js";
-import { convertTreeDataToTreeMapNode, hasLabels } from "./charts.js";
+import { convertTreeDataToTreeMapNode, hasLabels, transformTreeMapNode } from "./charts.js";
 import { md5 } from "./utils/misc.js";
 
 // Behavior label types
 export type BehaviorLabel = "epic" | "feature" | "story";
 
-export type BehaviorTreeLeaf = TreeLeaf<TreeMapNode> & Pick<TestResult, "name">;
-export type BehaviorTreeGroup = TreeGroup<TreeMapNode> & Pick<TestResult, "name">;
+type BehaviorTreeNodeData = Pick<TestResult, "name"> & { value?: number };
+export type BehaviorTreeLeaf = TreeLeaf<BehaviorTreeNodeData>;
+export type BehaviorTreeGroup = TreeGroup<BehaviorTreeNodeData>;
 
 // Behavior labels array for easy checking
 export const behaviorLabels: BehaviorLabel[] = ["epic", "feature", "story"];
@@ -18,21 +19,15 @@ export const behaviorLabels: BehaviorLabel[] = ["epic", "feature", "story"];
  */
 export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
     const leafFactoryFn = ({ id, name, status }: TestResult): BehaviorTreeLeaf => ({
-        id,
-        name,
         nodeId: id,
+        name,
         value: status === "passed" ? 1 : 0,
     });
-    const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): BehaviorTreeGroup => {
-        const id = md5((parentId ? `${parentId}.` : "") + groupClassifier);
-
-        return {
-            id,
-            name: groupClassifier,
-            nodeId: id,
-            value: 0,
-        };
-    };
+    const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): BehaviorTreeGroup => ({
+        nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        value: 0,
+    });
     const addLeafToGroupFn = (group: BehaviorTreeGroup, leaf: BehaviorTreeLeaf) => {
         group.value = (group?.value ?? 0) + (leaf.value ?? 0);
     };
@@ -45,10 +40,21 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
         addLeafToGroupFn
     );
 
-    return convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => ({
-        id: node.name,
-        value: !isGroup ? node.value : undefined,
-    }));
+    const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => {
+        // console.log("%c##### convertTreeDataToTreeMapNode: node #####", "color: salmon", {node, isGroup});
+
+        return ({
+            id: node.name,
+            value: node.value,
+        });
+    });
+
+    // console.log("\n\n#############");
+    /* transformTreeMapNode<TreeMapNode>(convertedTree, (node) => {
+        console.log("%c##### transformTreeMapNode: node #####", "color: orangered", node);
+    });*/
+
+    return convertedTree;
 };
 
 /**

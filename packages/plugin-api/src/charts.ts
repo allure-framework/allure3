@@ -276,12 +276,12 @@ export const convertTreeDataToTreeMapNode = <L, G>(
   };
 };
 
-export const transformTreeMapNode = (tree: TreeMapNode, transform: (node: TreeMapNode) => void) => {
+export const transformTreeMapNode = <T extends TreeMapNode>(tree: T, transform: (node: T) => void) => {
   transform(tree);
 
   if (tree.children) {
       tree.children.forEach(child => {
-          transformTreeMapNode(child, transform);
+          transformTreeMapNode(child as T, transform);
       });
   }
 };
