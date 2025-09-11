@@ -45,9 +45,9 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
         addLeafToGroupFn
     );
 
-    return convertTreeDataToTreeMapNode(treeByLabels, (node) => ({
+    return convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => ({
         id: node.name,
-        value: node.value,
+        value: !isGroup ? node.value : undefined,
     }));
 };
 

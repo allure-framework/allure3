@@ -276,6 +276,16 @@ export const convertTreeDataToTreeMapNode = <L, G>(
   };
 };
 
+export const transformTreeMapNode = (tree: TreeMapNode, transform: (node: TreeMapNode) => void) => {
+  transform(tree);
+
+  if (tree.children) {
+      tree.children.forEach(child => {
+          transformTreeMapNode(child, transform);
+      });
+  }
+};
+
 /**
  * Calculates percentage trend data points and series.
  * @param stats - Statistical values for items.
