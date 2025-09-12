@@ -76,7 +76,7 @@ export const createBarChartDataGeneric = <T extends string>(
 
 export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
-  colors: (value: number, min?: number, max?: number) => string,
+  colors: (value: number, domain?: number[]) => string,
   formatLegend?: (value: number) => string,
 ): UITreeMapChartData | undefined => {
   const chart = getChart();
@@ -129,13 +129,14 @@ export const createStatusChangeTrendBarChartData = (
 export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
   createTreeMapChartDataGeneric(
     () => res[chartId] as ResponseTreeMapChartData | undefined,
-    (value: number, min = 0, max = 1) => {
+    (value: number, domain = [0, 1]) => {
       const scaledRgb = scaleLinear<string>()
-        .domain([min, max])
+        .domain(domain)
         .range([resolveCSSVarColor(statusColors.failed), resolveCSSVarColor(statusColors.passed)])
         .interpolate(interpolateRgb)
         .clamp(true);
 
+        // TODO: change color passed to white
       return scaledRgb(value);
     },
     (value) => {

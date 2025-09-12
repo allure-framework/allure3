@@ -2,10 +2,9 @@ import type { TreeMapChartProps } from "../TreeMapChart/types.js";
 
 export interface TreeMapChartWidgetProps extends Omit<TreeMapChartProps, "colors"> {
   title: string;
-  colors: (value: number, min?: number, max?: number) => string;
+  colors: (value: number, domain?: number[]) => string;
   formatLegend?: (value: number) => string;
   translations: Record<string, string>;
   showLegend?: boolean;
-  minValue?: number;
-  maxValue?: number;
+  domain?: number[];
 }
