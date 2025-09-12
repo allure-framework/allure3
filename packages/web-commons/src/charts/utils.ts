@@ -139,6 +139,7 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
       return scaledRgb(value);
     },
     (value) => {
+      // TODO: Change this to i18n t-function usage
       if (value === 1) {
         return "passed";
       }

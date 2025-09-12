@@ -6,6 +6,6 @@ export interface TreeMapChartWidgetProps extends Omit<TreeMapChartProps, "colors
   formatLegend?: (value: number) => string;
   translations: Record<string, string>;
   showLegend?: boolean;
-  legendMinValue?: number;
-  legendMaxValue?: number;
+  minValue?: number;
+  maxValue?: number;
 }

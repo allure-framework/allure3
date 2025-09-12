@@ -13,8 +13,8 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
   formatLegend,
   translations,
   showLegend = true,
-  legendMinValue = 0,
-  legendMaxValue = 1,
+  minValue = 0,
+  maxValue = 1,
   ...restProps
 }) => {
   const emptyLabel = translations["no-results"];
@@ -28,10 +28,10 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
-        colors={(n) => colors(n.data.colorValue ?? 0)}
+        colors={(n) => colors(n.data.colorValue ?? 0, minValue, maxValue)}
         showLegend={showLegend}
-        legendMinValue={legendMinValue}
-        legendMaxValue={legendMaxValue}
+        legendMinValue={minValue}
+        legendMaxValue={maxValue}
         formatLegend={formatLegend}
         {...restProps}
       />
