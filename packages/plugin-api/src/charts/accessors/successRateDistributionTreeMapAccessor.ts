@@ -1,6 +1,6 @@
-import type { TreeMapDataAccessor } from "../charts.js";
+import type { TreeMapDataAccessor } from "../../charts.js";
 import type { TreeMapNode } from "@allurereport/core-api";
-import { createBehaviorTreeMap, filterTestsWithBehaviorLabels } from "./behaviorTreeMap.js";
+import { createBehaviorTreeMap, filterTestsWithBehaviorLabels } from "./utils/behaviorTreeMap.js";
 
 export const successRateDistributionTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
   getTreeMap: ({ testResults }) => {

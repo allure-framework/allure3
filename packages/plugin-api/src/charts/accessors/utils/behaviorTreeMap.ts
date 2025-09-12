@@ -1,7 +1,8 @@
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
-import { createTreeByLabels } from "../utils/tree.js";
-import { convertTreeDataToTreeMapNode, hasLabels, transformTreeMapNode } from "../charts.js";
-import { md5 } from "../utils/misc.js";
+import { createTreeByLabels } from "../../../utils/tree.js";
+import { hasLabels } from "../../../charts.js";
+import { md5 } from "../../../utils/misc.js";
+import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../../treeMap.js";
 
 // Behavior label types
 export type BehaviorLabel = "epic" | "feature" | "story";
