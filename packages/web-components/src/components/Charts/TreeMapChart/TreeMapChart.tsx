@@ -33,7 +33,8 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
       {showLegend && <TreeMapLegend
         minValue={legendMinValue}
         maxValue={legendMaxValue}
-        colorFunction={(value: number) => {
+        colorFn={(value) => {
+          // TODO: Change color function not to rely on particular color
           if (typeof colors === "function") {
             return colors({ data: { colorValue: value } } as any);
           }

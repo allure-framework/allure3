@@ -1,6 +1,6 @@
 export interface TreeMapLegendProps {
   minValue: number;
   maxValue: number;
-  colorFunction: (value: number) => string;
+  colorFn: (value: number) => string;
   formatValue?: (value: number) => string;
 }

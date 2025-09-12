@@ -7,18 +7,18 @@ import { Text } from "@/components/Typography";
 export const TreeMapLegend: FunctionalComponent<TreeMapLegendProps> = ({
   minValue,
   maxValue,
-  colorFunction,
+  colorFn,
   formatValue = (value: number) => value.toFixed(2),
 }) => {
   const gradientColors = useMemo(() => {
-    const startColor = colorFunction(minValue);
-    const endColor = colorFunction(maxValue);
+    const startColor = colorFn(minValue);
+    const endColor = colorFn(maxValue);
 
     return {
       start: startColor,
       end: endColor,
     };
-  }, [minValue, maxValue, colorFunction]);
+  }, [minValue, maxValue, colorFn]);
 
   const formattedMinValue = useMemo(() => formatValue(minValue), [minValue, formatValue]);
   const formattedMaxValue = useMemo(() => formatValue(maxValue), [maxValue, formatValue]);
