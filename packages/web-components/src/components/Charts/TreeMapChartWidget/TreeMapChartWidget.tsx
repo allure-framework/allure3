@@ -11,6 +11,9 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
   rootAriaLabel,
   colors,
   translations,
+  showLegend = true,
+  legendMinValue = 0,
+  legendMaxValue = 1,
   ...restProps
 }) => {
   const emptyLabel = translations["no-results"];
@@ -25,6 +28,9 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
         colors={(n) => colors(n.data.colorValue ?? 0)}
+        showLegend={showLegend}
+        legendMinValue={legendMinValue}
+        legendMaxValue={legendMaxValue}
         {...restProps}
       />
     </Widget>
