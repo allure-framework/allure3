@@ -70,7 +70,15 @@ const getChartWidgetByType = (
       );
     }
     case ChartType.TreeMap: {
-      return <TreeMapChartWidget data={chartData.treeMap} title={chartData.title} colors={chartData.colors} translations={{ "no-results": empty("no-results") }} />;
+      return (
+        <TreeMapChartWidget
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
     }
     default: {
       const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
