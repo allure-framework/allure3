@@ -10,6 +10,7 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
   width = "100%",
   rootAriaLabel,
   colors,
+  formatLegend,
   translations,
   showLegend = true,
   legendMinValue = 0,
@@ -31,6 +32,7 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
         showLegend={showLegend}
         legendMinValue={legendMinValue}
         legendMaxValue={legendMaxValue}
+        formatLegend={formatLegend}
         {...restProps}
       />
     </Widget>

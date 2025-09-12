@@ -104,6 +104,7 @@ export type UIComingSoonChartData = ResponseComingSoonChartData;
 
 export interface UITreeMapChartData extends ResponseTreeMapChartData {
   colors: (value: number, min?: number, max?: number) => string;
+  formatLegend?: (value: number) => string;
 };
 
 export type ChartData<

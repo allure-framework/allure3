@@ -18,6 +18,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   showLegend = true,
   legendMinValue = 0,
   legendMaxValue = 1,
+  formatLegend,
   colors,
   ...restProps
 }) => {
@@ -40,6 +41,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
           }
           return "#000000";
         }}
+        formatValue={formatLegend}
       />}
     </div>
   );

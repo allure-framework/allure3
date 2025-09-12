@@ -77,6 +77,7 @@ export const createBarChartDataGeneric = <T extends string>(
 export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
   colors: (value: number, min?: number, max?: number) => string,
+  formatLegend?: (value: number) => string,
 ): UITreeMapChartData | undefined => {
   const chart = getChart();
   if (!chart) {
@@ -86,6 +87,7 @@ export const createTreeMapChartDataGeneric = (
   return {
     ...chart,
     colors,
+    formatLegend,
   };
 };
 
@@ -135,6 +137,12 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
         .clamp(true);
 
       return scaledRgb(value);
+    },
+    (value) => {
+      if (value === 1) {
+        return "passed";
+      }
+      return "failed";
     },
   );
 
