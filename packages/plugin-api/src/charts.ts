@@ -152,6 +152,34 @@ export interface AllureChartsStoreData {
   statistic: Statistic;
 }
 
+export interface TrendDataAccessor<T extends TrendDataType> {
+  // Get current data for the specified type
+  getCurrentData: (storeData: AllureChartsStoreData) => TrendStats<T>;
+  // Get data from historical point
+  getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
+  // List of all possible values for the type
+  getAllValues: () => readonly T[];
+}
+
+export interface BarDataAccessor<G extends string, T extends string> {
+  // Get all needed data for the chart
+  getItems: (
+    storeData: AllureChartsStoreData,
+    limitedHistoryDataPoints: HistoryDataPoint[],
+    isFullHistory: boolean,
+  ) => BarGroup<G, T>[];
+  // List of all possible values for the group
+  getGroupKeys: () => readonly T[];
+  // Get group mode
+  getGroupMode: () => BarGroupMode;
+}
+
+export interface TreeMapDataAccessor<T extends TreeMapNode> {
+  getTreeMap: (storeData: AllureChartsStoreData) => T;
+}
+
+export const DEFAULT_CHART_HISTORY_LIMIT = 10;
+
 /**
  * @description Limits the history data points by a certain limit, that is necessary for charts data with a long history.
  * @param historyDataPoints - The history data points.
@@ -175,18 +203,6 @@ export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], li
  */
 export const createEmptySeries = <T extends string>(items: readonly T[]): Record<T, string[]> =>
   items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
-
-/**
- * Check if test has any of the specified labels
- * Generic function that works with any label hierarchy
- */
-export const hasLabels = <T extends string>(
-  test: TestResult,
-  labelHierarchy: T[],
-): boolean => test.labels.some(label => {
-  const { name } = label;
-  return name && labelHierarchy.includes(name as T);
-});
 
 /**
  * Initializes stats record with items as keys and 0 as values.
@@ -215,30 +231,14 @@ export const normalizeStatistic = <T extends string>(
   );
 };
 
-export const DEFAULT_CHART_HISTORY_LIMIT = 10;
-
-export interface TrendDataAccessor<T extends TrendDataType> {
-  // Get current data for the specified type
-  getCurrentData: (storeData: AllureChartsStoreData) => TrendStats<T>;
-  // Get data from historical point
-  getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
-  // List of all possible values for the type
-  getAllValues: () => readonly T[];
-}
-
-export interface BarDataAccessor<G extends string, T extends string> {
-  // Get all needed data for the chart
-  getItems: (
-    storeData: AllureChartsStoreData,
-    limitedHistoryDataPoints: HistoryDataPoint[],
-    isFullHistory: boolean,
-  ) => BarGroup<G, T>[];
-  // List of all possible values for the group
-  getGroupKeys: () => readonly T[];
-  // Get group mode
-  getGroupMode: () => BarGroupMode;
-}
-
-export interface TreeMapDataAccessor<T extends TreeMapNode> {
-  getTreeMap: (storeData: AllureChartsStoreData) => T;
-}
+/**
+ * Check if test has any of the specified labels
+ * Generic function that works with any label hierarchy
+ */
+export const hasLabels = <T extends string>(
+  test: TestResult,
+  labelHierarchy: T[],
+): boolean => test.labels.some(label => {
+  const { name } = label;
+  return name && labelHierarchy.includes(name as T);
+});
