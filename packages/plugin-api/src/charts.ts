@@ -21,12 +21,12 @@ import type {
 } from "@allurereport/core-api";
 import { BarChartType, ChartDataType, ChartMode, ChartType, getPieChartValues, TreeMapChartType } from "@allurereport/core-api";
 import type { PluginContext } from "./plugin.js";
-import { severityTrendDataAccessor } from "./severityTrendAccessor.js";
-import { statusBySeverityBarDataAccessor } from "./statusBySeverityBarAccessor.js";
-import { statusChangeTrendBarAccessor } from "./statusChangeTrendBarAccessor.js";
-import { statusTrendDataAccessor } from "./statusTrendAccessor.js";
-import { statusTrendBarAccessor } from "./statusTrendBarAccessor.js";
-import { successRateDistributionTreeMapAccessor } from "./successRateDistributionTreeMapAccessor.js";
+import { severityTrendDataAccessor } from "./accessors/severityTrendAccessor.js";
+import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBarAccessor.js";
+import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAccessor.js";
+import { statusTrendDataAccessor } from "./accessors/statusTrendAccessor.js";
+import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
+import { successRateDistributionTreeMapAccessor } from "./accessors/successRateDistributionTreeMapAccessor.js";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;

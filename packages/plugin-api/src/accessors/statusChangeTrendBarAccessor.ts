@@ -8,7 +8,7 @@ import type {
   TestStatus,
 } from "@allurereport/core-api";
 import { BarGroupMode, capitalize } from "@allurereport/core-api";
-import { type BarDataAccessor, createEmptyStats } from "./charts.js";
+import { type BarDataAccessor, createEmptyStats } from "../charts.js";
 
 // Types for new statuses trend chart data
 export type StatusChangeTrendKeys = NewKey<TestStatus> | RemovedKey<TestStatus>;
