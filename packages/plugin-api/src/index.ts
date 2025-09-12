@@ -9,3 +9,4 @@ export * from "./utils/summary.js";
 export * from "./charts.js";
 export * from "./charts/treeMap.js";
 export * from "./charts/bar.js";
+export * from "./charts/line.js";
