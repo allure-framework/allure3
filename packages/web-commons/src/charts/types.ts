@@ -103,7 +103,7 @@ export interface UIBarChartData extends ResponseBarChartData {
 export type UIComingSoonChartData = ResponseComingSoonChartData;
 
 export interface UITreeMapChartData extends ResponseTreeMapChartData {
-  colors: (value: number) => string;
+  colors: (value: number, min?: number, max?: number) => string;
 };
 
 export type ChartData<
