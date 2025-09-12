@@ -19,7 +19,7 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType, getPieChartValues } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/core-api";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -216,23 +216,6 @@ export const normalizeStatistic = <T extends string>(
 };
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
-
-export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
-  type: chartOptions.type,
-  title: chartOptions?.title,
-  ...getPieChartValues(stats),
-});
-
-export const generatePieChart = (
-  options: PieChartOptions,
-  stores: {
-    statistic: Statistic;
-  },
-): PieChartData => {
-  const { statistic } = stores;
-
-  return getPieChartData(statistic, options);
-};
 
 export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {

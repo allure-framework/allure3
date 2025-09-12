@@ -10,3 +10,4 @@ export * from "./charts.js";
 export * from "./charts/treeMap.js";
 export * from "./charts/bar.js";
 export * from "./charts/line.js";
+export * from "./charts/pie.js";
