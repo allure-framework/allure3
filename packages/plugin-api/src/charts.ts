@@ -4,6 +4,7 @@ import type {
   BarChartType,
   BaseTrendSliceMetadata,
   ChartDataType,
+  ChartType,
   ChartId,
   ChartMode,
   HistoryDataPoint,
@@ -19,7 +20,6 @@ import type {
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/core-api";
-import { ChartType } from "@allurereport/core-api";
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -216,13 +216,6 @@ export const normalizeStatistic = <T extends string>(
 };
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
-
-export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
-  return {
-    type: ChartType.ComingSoon,
-    title: options.title,
-  };
-};
 
 export interface TrendDataAccessor<T extends TrendDataType> {
   // Get current data for the specified type
