@@ -9,17 +9,17 @@ import { successRateDistributionTreeMapAccessor } from "./accessors/successRateD
  */
 export const convertTreeDataToTreeMapNode = <L, G>(
     treeData: TreeData<L, G>,
-    transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean) => TreeMapNode,
+    transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, parentNode: TreeGroup<G>, isGroup: boolean) => TreeMapNode,
 ): TreeMapNode => {
     const { root, leavesById, groupsById } = treeData;
 
-    const convertNode = (nodeId: string, isGroup: boolean): TreeMapNode | null => {
+    const convertNode = (nodeId: string, parentGroup: TreeGroup<G>, isGroup: boolean): TreeMapNode | null => {
         const node = isGroup ? groupsById[nodeId] : leavesById[nodeId];
         if (!node) {
             return null;
         }
 
-        const treeMapNode: TreeMapNode = transform(node, isGroup);
+        const treeMapNode: TreeMapNode = transform(node, parentGroup, isGroup);
 
         // Add children if it's a group
         if (isGroup) {
@@ -29,7 +29,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
             // Add child groups
             if (group.groups) {
                 group.groups.forEach((groupId) => {
-                    const childNode = convertNode(groupId, true);
+                    const childNode = convertNode(groupId, group, true);
                     if (childNode) {
                         children.push(childNode);
                     }
@@ -39,7 +39,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
             // Add child leaves
             if (group.leaves) {
                 group.leaves.forEach((leafId) => {
-                    const childNode = convertNode(leafId, false);
+                    const childNode = convertNode(leafId, group, false);
                     if (childNode) {
                         children.push(childNode);
                     }
@@ -61,7 +61,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
 
     if (root.groups) {
         root.groups.forEach(groupId => {
-            const childNode = convertNode(groupId, true);
+            const childNode = convertNode(groupId, root as TreeGroup<G>, true);
             if (childNode) {
                 rootChildren.push(childNode);
             }
@@ -70,7 +70,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
 
     if (root.leaves) {
         root.leaves.forEach(leafId => {
-            const childNode = convertNode(leafId, false);
+            const childNode = convertNode(leafId, root as TreeGroup<G>, false);
             if (childNode) {
                 rootChildren.push(childNode);
             }

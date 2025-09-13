@@ -1,5 +1,5 @@
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
-import { createTreeByLabels, transformTree } from "../../../utils/tree.js";
+import { createTreeByLabels } from "../../../utils/tree.js";
 import { hasLabels } from "../../../charts.js";
 import { md5 } from "../../../utils/misc.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../../treeMap.js";
@@ -45,7 +45,7 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
         addLeafToGroupFn
     );
 
-    const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, isGroup) => ({
+    const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, _, isGroup) => ({
         id: node.name,
         value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
     }));
