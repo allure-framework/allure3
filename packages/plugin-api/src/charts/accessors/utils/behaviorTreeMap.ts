@@ -70,24 +70,29 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
         return { totalTests, passedTests };
     };
 
-    transformTreeMapNode<TreeMapNode & { colorValue?: number }>(convertedTree, (node) => {
+    return transformTreeMapNode(convertedTree, (node) => {
         const { totalTests, passedTests } = calculateSubtreeMetrics(node);
         const colorValue = totalTests > 0 ? passedTests / totalTests : 0;
 
-        // Add colorValue to the node
-        node.colorValue = colorValue;
-
-        // Drop leafs and make their group as leaf
+        // Add colorValue and remove leafs in favour of their parent group nodes
         if (node.children && node.children.every((child) => child.value !== undefined)) {
-            node.value = node.children.reduce((acc, child) => {
+            const value = node.children.reduce((acc, child) => {
                 return acc + (child.value ?? 0);
             }, 0);
 
-            node.children = undefined;
+            return {
+                ...node,
+                value,
+                colorValue,
+                children: undefined
+            };
         }
-    });
 
-    return convertedTree;
+        return {
+            ...node,
+            colorValue,
+        };
+    });
 };
 
 /**

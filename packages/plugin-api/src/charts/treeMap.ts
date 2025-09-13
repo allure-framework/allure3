@@ -84,14 +84,19 @@ export const convertTreeDataToTreeMapNode = <L, G>(
     };
 };
 
-export const transformTreeMapNode = <T extends TreeMapNode>(tree: T, transform: (node: T) => void) => {
-    transform(tree);
+export const transformTreeMapNode = <T extends TreeMapNode>(tree: T, transform: (node: T) => T): T => {
+    const transformedNode = transform(tree);
 
-    if (tree.children) {
-        tree.children.forEach(child => {
-            transformTreeMapNode(child as T, transform);
-        });
+    if (transformedNode.children) {
+        const transformedChildren = transformedNode.children.map(child => transformTreeMapNode(child as T, transform));
+
+        return {
+            ...transformedNode,
+            children: transformedChildren,
+        } as T;
     }
+
+    return transformedNode;
 };
 
 export const generateTreeMapChartGeneric = <T extends TreeMapNode>(
