@@ -76,9 +76,8 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
 
         // Add colorValue to the node
         node.colorValue = colorValue;
-    });
 
-    transformTreeMapNode(convertedTree, (node) => {
+        // Drop leafs and make their group as leaf
         if (node.children && node.children.every((child) => child.value !== undefined)) {
             node.value = node.children.reduce((acc, child) => {
                 return acc + (child.value ?? 0);
