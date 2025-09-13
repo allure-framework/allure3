@@ -25,6 +25,7 @@ export enum BarChartType {
 
 export enum TreeMapChartType {
   SuccessRateDistribution = "successRateDistribution",
+  CoverageDiff = "coverageDiff",
 }
 
 export enum ChartMode {
