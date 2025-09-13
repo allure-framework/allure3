@@ -1,5 +1,5 @@
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
-import { createTreeByLabels } from "../../../utils/tree.js";
+import { createTreeByLabels, transformTree } from "../../../utils/tree.js";
 import { hasLabels } from "../../../charts.js";
 import { md5 } from "../../../utils/misc.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../../treeMap.js";
@@ -14,25 +14,29 @@ export type BehaviorTreeGroup = TreeGroup<BehaviorTreeNodeData>;
 // Behavior labels array for easy checking
 export const behaviorLabels: BehaviorLabel[] = ["epic", "feature", "story"];
 
+const leafFactoryFn = ({ id, name, status }: TestResult): BehaviorTreeLeaf => ({
+    nodeId: id,
+    name,
+    value: status === "passed" ? 1 : 0,
+});
+const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): BehaviorTreeGroup => ({
+    nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
+    name: groupClassifier,
+    value: 0,
+});
+const addLeafToGroupFn = (group: BehaviorTreeGroup, leaf: BehaviorTreeLeaf) => {
+    group.value = (group?.value ?? 0) + (leaf.value ?? 0);
+
+    // Remove each processed leaf node from group
+    group.leaves = group.leaves?.filter((leafId) => leafId !== leaf.nodeId);
+    group.groups = group.groups?.filter((groupId) => groupId !== leaf.nodeId);
+};
+
 /**
  * Create TreeMap for behavior labels with success rate metric
  * Convenient function that uses the behavior configuration
  */
 export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
-    const leafFactoryFn = ({ id, name, status }: TestResult): BehaviorTreeLeaf => ({
-        nodeId: id,
-        name,
-        value: status === "passed" ? 1 : 0,
-    });
-    const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): BehaviorTreeGroup => ({
-        nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
-        name: groupClassifier,
-        value: 0,
-    });
-    const addLeafToGroupFn = (group: BehaviorTreeGroup, leaf: BehaviorTreeLeaf) => {
-        group.value = (group?.value ?? 0) + (leaf.value ?? 0);
-    };
-
     const treeByLabels = createTreeByLabels<TestResult, BehaviorTreeLeaf, BehaviorTreeGroup>(
         tests,
         behaviorLabels,
@@ -72,6 +76,16 @@ export const createBehaviorTreeMap = (tests: TestResult[]): TreeMapNode => {
 
         // Add colorValue to the node
         node.colorValue = colorValue;
+    });
+
+    transformTreeMapNode(convertedTree, (node) => {
+        if (node.children && node.children.every((child) => child.value !== undefined)) {
+            node.value = node.children.reduce((acc, child) => {
+                return acc + (child.value ?? 0);
+            }, 0);
+
+            node.children = undefined;
+        }
     });
 
     return convertedTree;
