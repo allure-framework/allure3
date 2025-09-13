@@ -26,10 +26,6 @@ const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): 
 });
 const addLeafToGroupFn = (group: BehaviorTreeGroup, leaf: BehaviorTreeLeaf) => {
     group.value = (group?.value ?? 0) + (leaf.value ?? 0);
-
-    // Remove each processed leaf node from group
-    group.leaves = group.leaves?.filter((leafId) => leafId !== leaf.nodeId);
-    group.groups = group.groups?.filter((groupId) => groupId !== leaf.nodeId);
 };
 
 /**
