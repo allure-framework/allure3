@@ -6,6 +6,11 @@ import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
 
+type SubtreeMetrics = {
+  totalTests: number;
+  passedTests: number;
+};
+
 const leafFactoryFn = ({ id, name, status }: TestResult): BehaviorTreeLeaf => ({
   nodeId: id,
   name,
@@ -40,6 +45,26 @@ const elevateLeafsData = (node: TreeMapNode): TreeMapNode => {
   };
 };
 
+// To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
+const calculateSubtreeMetrics = (node: TreeMapNode): SubtreeMetrics => {
+  if (!node.children || node.children.length === 0) {
+      // Leaf node - value represents passed tests (1 for passed, 0 for failed)
+      return { totalTests: 1, passedTests: node.value ?? 0 };
+  }
+
+  // Group node - aggregate metrics from children
+  let totalTests = 0;
+    let passedTests = 0;
+
+    for (const child of node.children) {
+        const childMetrics = calculateSubtreeMetrics(child);
+        totalTests += childMetrics.totalTests;
+        passedTests += childMetrics.passedTests;
+    }
+
+    return { totalTests, passedTests };
+};
+
 /**
 * Create TreeMap for behavior labels with success rate metric
 * Convenient function that uses the behavior configuration
@@ -57,26 +82,6 @@ export const createBehaviorTreeMap = (testResults: TestResult[]): TreeMapNode =>
       id: node.name,
       value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
   }));
-
-  // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
-  const calculateSubtreeMetrics = (node: TreeMapNode): { totalTests: number; passedTests: number } => {
-      if (!node.children || node.children.length === 0) {
-          // Leaf node - value represents passed tests (1 for passed, 0 for failed)
-          return { totalTests: 1, passedTests: node.value ?? 0 };
-      }
-
-      // Group node - aggregate metrics from children
-      let totalTests = 0;
-      let passedTests = 0;
-
-      for (const child of node.children) {
-          const childMetrics = calculateSubtreeMetrics(child);
-          totalTests += childMetrics.totalTests;
-          passedTests += childMetrics.passedTests;
-      }
-
-      return { totalTests, passedTests };
-  };
 
   return transformTreeMapNode(convertedTree, (node) => {
       const subtreeMetrics = calculateSubtreeMetrics(node);
