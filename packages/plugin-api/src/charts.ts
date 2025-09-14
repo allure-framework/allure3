@@ -243,11 +243,11 @@ export const hasLabels = <T extends string>(
   return name && labelHierarchy.includes(name as T);
 });
 
-export const isLeafsPredecessor = (node: TreeMapNode): boolean => {
+export const isLeafsPredecessor = <T extends TreeMapNode>(node: T): boolean => {
   return node.children ? node.children.every((child) => child.value !== undefined) : false;
 };
 
-export const elevateLeafsData = (node: TreeMapNode): TreeMapNode => {
+export const elevateLeafsData = <T extends TreeMapNode>(node: T): T => {
   const value = node.children?.reduce((acc, child) => {
     return acc + (child.value ?? 0);
   }, 0);
