@@ -80,6 +80,7 @@ export const dashboardLayout = [
   },
   {
     type: "treemap",
+    dataType: "coverageDiff",
     title: "Coverage diff map"
   },
   {

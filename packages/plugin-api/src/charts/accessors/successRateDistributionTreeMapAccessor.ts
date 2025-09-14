@@ -66,10 +66,17 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
       addLeafToGroupFn
   );
 
-  const convertedTree = convertTreeDataToTreeMapNode(treeByLabels, (node, _, isGroup) => ({
-      id: node.name,
-      value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
-  }));
+  const convertedTree = convertTreeDataToTreeMapNode(
+    treeByLabels,
+    (node, isGroup) => ({
+        id: node.name,
+        value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
+    }),
+    () => ({
+        id: "root",
+        value: undefined,
+    })
+  );
 
   return transformTreeMapNode(convertedTree, (node) => {
       const subtreeMetrics = calculateSubtreeMetrics(node);

@@ -8,24 +8,25 @@ import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAcce
  * Convert TreeData structure to TreeMapNode structure
  * Generic function that works with any TreeData<L, G> and converts it to TreeMapNode
  */
-export const convertTreeDataToTreeMapNode = <L, G>(
+export const convertTreeDataToTreeMapNode = <T extends TreeMapNode, L, G>(
     treeData: TreeData<L, G>,
-    transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, parentNode: TreeGroup<G>, isGroup: boolean) => TreeMapNode,
-): TreeMapNode => {
+    transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean, parentNode?: TreeGroup<G>) => T,
+    rootTransform: (rootNode: TreeGroup<G>) => T,
+): T => {
     const { root, leavesById, groupsById } = treeData;
 
-    const convertNode = (nodeId: string, parentGroup: TreeGroup<G>, isGroup: boolean): TreeMapNode | null => {
+    const convertNode = (nodeId: string, parentGroup: TreeGroup<G>, isGroup: boolean): T | null => {
         const node = isGroup ? groupsById[nodeId] : leavesById[nodeId];
         if (!node) {
             return null;
         }
 
-        const treeMapNode: TreeMapNode = transform(node, parentGroup, isGroup);
+        const treeMapNode: T = transform(node, isGroup, parentGroup);
 
         // Add children if it's a group
         if (isGroup) {
             const group = node as TreeGroup<G>;
-            const children: TreeMapNode[] = [];
+            const children: T[] = [];
 
             // Add child groups
             if (group.groups) {
@@ -58,7 +59,7 @@ export const convertTreeDataToTreeMapNode = <L, G>(
     };
 
     // Start from root and convert all groups
-    const rootChildren: TreeMapNode[] = [];
+    const rootChildren: T[] = [];
 
     if (root.groups) {
         root.groups.forEach(groupId => {
@@ -78,10 +79,13 @@ export const convertTreeDataToTreeMapNode = <L, G>(
         });
     }
 
+    // Create root node using rootTransform if provided, otherwise use default
+    const rootNode = rootTransform(root as TreeGroup<G>);
+
     return {
-        id: "root",
         value: undefined,
         children: rootChildren.length > 0 ? rootChildren : undefined,
+        ...rootNode,
     };
 };
 
