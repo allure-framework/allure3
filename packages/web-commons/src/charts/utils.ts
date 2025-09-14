@@ -172,9 +172,9 @@ export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: Charts
     (value) => {
       // TODO: Change this to i18n t-function usage
       if (value === 1) {
-        return "passed";
+        return "new";
       }
-      return "failed";
+      return "removed";
     },
     chartColorDomain,
   );
