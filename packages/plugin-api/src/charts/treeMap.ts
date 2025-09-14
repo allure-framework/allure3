@@ -2,6 +2,7 @@ import type { TreeMapNode, TreeData, TreeLeaf, TreeGroup } from "@allurereport/c
 import { TreeMapChartType } from "@allurereport/core-api";
 import type { AllureChartsStoreData, TreeMapChartOptions, TreeMapDataAccessor, TreeMapChartData } from "../charts.js";
 import { successRateDistributionTreeMapAccessor } from "./accessors/successRateDistributionTreeMapAccessor.js";
+import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAccessor.js";
 
 /**
  * Convert TreeData structure to TreeMapNode structure
@@ -118,5 +119,7 @@ export const generateTreeMapChart = (
 
     if (dataType === TreeMapChartType.SuccessRateDistribution) {
       return generateTreeMapChartGeneric(options, storeData, successRateDistributionTreeMapAccessor);
+    } else if (dataType === TreeMapChartType.CoverageDiff) {
+      return generateTreeMapChartGeneric(options, storeData, coverageDiffTreeMapAccessor);
     }
 };
