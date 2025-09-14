@@ -7,6 +7,7 @@ import type { TreeMapChartProps } from "./types.js";
 import { TreeMapLegend } from "./TreeMapLegend/index.js";
 import { useMemo } from "preact/hooks";
 import styles from "./styles.scss";
+import type { TreeMapNode } from "@allurereport/core-api";
 
 export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   width = "100%",
@@ -30,17 +31,11 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
 
   return (
     <div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }} className={styles.treeMapChart}>
-      <ResponsiveTreeMapChart data={data} {...defaultTreeChartConfig} {...restProps} theme={nivoTheme} colors={colors} />
+      <ResponsiveTreeMapChart<TreeMapNode> data={data} {...defaultTreeChartConfig} {...restProps} theme={nivoTheme} colors={n => colors(n.data.colorValue ?? 0)} />
       {showLegend && <TreeMapLegend
         minValue={legendMinValue}
         maxValue={legendMaxValue}
-        colorFn={(value) => {
-          // TODO: Change color function not to rely on particular color
-          if (typeof colors === "function") {
-            return colors({ data: { colorValue: value } } as any);
-          }
-          return "#000000";
-        }}
+        colorFn={colors}
         formatValue={formatLegend}
       />}
     </div>

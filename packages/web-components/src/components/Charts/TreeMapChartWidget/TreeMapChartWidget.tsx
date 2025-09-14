@@ -6,19 +6,17 @@ import type { TreeMapChartWidgetProps } from "./types.js";
 export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = ({
   title,
   data,
-  height = 400,
-  width = "100%",
+  height,
+  width,
   rootAriaLabel,
-  colors,
   formatLegend,
   translations,
-  showLegend = true,
-  domain = [0, 1],
+  showLegend,
+  legendMinValue,
+  legendMaxValue,
   ...restProps
 }) => {
   const emptyLabel = translations["no-results"];
-  const legendMinValue = domain[0];
-  const legendMaxValue = domain[domain.length - 1];
 
   return (
     <Widget title={title}>
@@ -29,7 +27,6 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
-        colors={(n) => colors(n.data.colorValue ?? 0, domain)}
         showLegend={showLegend}
         legendMinValue={legendMinValue}
         legendMaxValue={legendMaxValue}
