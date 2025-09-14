@@ -16,6 +16,7 @@ export interface TreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNo
   legendMaxValue?: number;
   colors: (value: number, domain?: number[]) => string;
   formatLegend?: (value: number) => string;
+  legendDomain?: number[];
 }
 
 export type TreeMapChartNode = DefaultTreeMapDatum;

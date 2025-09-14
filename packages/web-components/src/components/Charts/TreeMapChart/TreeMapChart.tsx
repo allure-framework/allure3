@@ -21,6 +21,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   legendMaxValue = 1,
   formatLegend,
   colors,
+  legendDomain,
   ...restProps
 }) => {
   const isEmpty = useMemo(() => (data.children ?? []).length === 0, [data]);
@@ -37,6 +38,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
         maxValue={legendMaxValue}
         colorFn={colors}
         formatValue={formatLegend}
+        domain={legendDomain}
       />}
     </div>
   );

@@ -7,4 +7,5 @@ export interface TreeMapChartWidgetProps extends Omit<TreeMapChartProps, "colors
   translations: Record<string, string>;
   showLegend?: boolean;
   domain?: number[];
+  legendDomain?: number[];
 }
