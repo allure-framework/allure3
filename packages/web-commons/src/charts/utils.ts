@@ -148,6 +148,28 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
     },
   );
 
+  export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
+    createTreeMapChartDataGeneric(
+      () => res[chartId] as ResponseTreeMapChartData | undefined,
+      (value: number, domain = [0, 0.5, 1]) => {
+        const scaledRgb = scaleLinear<string>()
+          .domain(domain)
+          .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+          .interpolate(interpolateRgb)
+          .clamp(true);
+
+          // TODO: change color passed to white
+        return scaledRgb(value);
+      },
+      (value) => {
+        // TODO: Change this to i18n t-function usage
+        if (value === 1) {
+          return "passed";
+        }
+        return "failed";
+      },
+    );
+
 export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
@@ -177,6 +199,8 @@ export const createBarChartData = (
 export const createTreeMapChartData = (chartId: ChartId, chartData: ResponseTreeMapChartData, res: ChartsResponse): UITreeMapChartData | undefined => {
   if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
     return createSuccessRateDistributionTreeMapChartData(chartId, res);
+  } else if (chartData.dataType === TreeMapChartType.CoverageDiff) {
+    return createCoverageDiffTreeMapChartData(chartId, res);
   }
 };
 
