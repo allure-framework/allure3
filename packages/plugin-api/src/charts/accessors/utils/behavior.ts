@@ -1,12 +1,8 @@
-import type { TestResult, TreeGroup, TreeLeaf } from "@allurereport/core-api";
+import type { TestResult } from "@allurereport/core-api";
 import { hasLabels } from "../../../charts.js";
 
 // Behavior label types
 export type BehaviorLabel = "epic" | "feature" | "story";
-
-type BehaviorTreeNodeData = Pick<TestResult, "name"> & { value?: number };
-export type BehaviorTreeLeaf = TreeLeaf<BehaviorTreeNodeData>;
-export type BehaviorTreeGroup = TreeGroup<BehaviorTreeNodeData>;
 
 // Behavior labels array for easy checking
 export const behaviorLabels: BehaviorLabel[] = ["epic", "feature", "story"];

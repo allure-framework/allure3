@@ -1,6 +1,6 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import type { TestResult, TreeMapNode } from "@allurereport/core-api";
-import type { BehaviorTreeGroup, BehaviorTreeLeaf } from "./utils/behavior.js";
+import { isLeafsPredecessor, elevateLeafsData } from "../../charts.js";
+import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
@@ -11,38 +11,26 @@ type SubtreeMetrics = {
   passedTests: number;
 };
 
-const leafFactoryFn = ({ id, name, status }: TestResult): BehaviorTreeLeaf => ({
+type TreeNodeData = Pick<TestResult, "name"> & { value?: number };
+export type Leaf = TreeLeaf<TreeNodeData>;
+export type Group = TreeGroup<TreeNodeData>;
+
+const leafFactoryFn = ({ id, name, status }: TestResult): Leaf => ({
   nodeId: id,
   name,
   value: status === "passed" ? 1 : 0,
 });
-const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): BehaviorTreeGroup => ({
+const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): Group => ({
   nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
   name: groupClassifier,
   value: 0,
 });
-const addLeafToGroupFn = (group: BehaviorTreeGroup, leaf: BehaviorTreeLeaf) => {
+const addLeafToGroupFn = (group: Group, leaf: Leaf) => {
   group.value = (group?.value ?? 0) + (leaf.value ?? 0);
 };
 
 const calculateColorValue = ({ totalTests, passedTests }: { totalTests: number; passedTests: number }): number => {
   return totalTests > 0 ? passedTests / totalTests : 0;
-};
-
-const isLeafsPredecessor = (node: TreeMapNode): boolean => {
-  return node.children ? node.children.every((child) => child.value !== undefined) : false;
-};
-
-const elevateLeafsData = (node: TreeMapNode): TreeMapNode => {
-  const value = node.children?.reduce((acc, child) => {
-    return acc + (child.value ?? 0);
-  }, 0);
-
-  return {
-      ...node,
-      value,
-      children: undefined
-  };
 };
 
 // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
@@ -66,11 +54,11 @@ const calculateSubtreeMetrics = (node: TreeMapNode): SubtreeMetrics => {
 };
 
 /**
-* Create TreeMap for behavior labels with success rate metric
-* Convenient function that uses the behavior configuration
-*/
-export const createBehaviorTreeMap = (testResults: TestResult[]): TreeMapNode => {
-  const treeByLabels = createTreeByLabels<TestResult, BehaviorTreeLeaf, BehaviorTreeGroup>(
+ * Create TreeMap for behavior labels with success rate metric
+ * Convenient function that uses the behavior configuration
+ */
+export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]): TreeMapNode => {
+  const treeByLabels = createTreeByLabels<TestResult, Leaf, Group>(
       testResults,
       behaviorLabels,
       leafFactoryFn,
@@ -106,6 +94,6 @@ export const successRateDistributionTreeMapAccessor: TreeMapDataAccessor<TreeMap
   getTreeMap: ({ testResults }) => {
     const testsWithBehaviorLabels = filterTestsWithBehaviorLabels(testResults);
 
-    return createBehaviorTreeMap(testsWithBehaviorLabels);
+    return createSuccessRateDistributionTreeMap(testsWithBehaviorLabels);
   },
 };
