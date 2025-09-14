@@ -1,20 +1,24 @@
-import { ChartType } from "@allurereport/core-api";
 import {
-  type AllureStore,
-  type GeneratedChartData,
-  type GeneratedChartsData,
-  type PluginContext,
-  type ReportFiles,
-  generatePieChart,
-  generateTrendChart,
-} from "@allurereport/plugin-api";
-import {
+  ChartType,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-} from "@allurereport/web-commons";
+} from "@allurereport/core-api";
+import {
+  type AllureChartsStoreData,
+  type AllureStore,
+  type ComingSoonChartOptions,
+  type GeneratedChartData,
+  type GeneratedChartsData,
+  type PluginContext,
+  type ReportFiles,
+  generateBarChart,
+  generateComingSoonChart,
+  generatePieChart,
+  generateTrendChart,
+} from "@allurereport/plugin-api";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import { randomUUID } from "crypto";
 import Handlebars from "handlebars";
@@ -83,7 +87,15 @@ export const generateCharts = async (
     return undefined;
   }
 
-  const statistic = await store.testsStatistic();
+  const storeData: AllureChartsStoreData = await Promise.all([
+    store.allHistoryDataPoints(),
+    store.allTestResults(),
+    store.testsStatistic(),
+  ]).then(([historyDataPoints, testResults, statistic]) => ({
+    historyDataPoints,
+    testResults,
+    statistic,
+  }));
 
   const chartsData: GeneratedChartsData = {};
 
@@ -93,13 +105,17 @@ export const generateCharts = async (
     let chart: GeneratedChartData | undefined;
 
     if (chartOptions.type === ChartType.Trend) {
-      chart = await generateTrendChart(chartOptions, store, context);
+      chart = generateTrendChart(chartOptions, storeData, context);
     } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, { statistic });
+      chart = generatePieChart(chartOptions, storeData);
+    } else if (chartOptions.type === ChartType.Bar) {
+      chart = generateBarChart(chartOptions, storeData);
     }
 
     if (chart) {
       chartsData[chartId] = chart;
+    } else {
+      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
     }
   }
 

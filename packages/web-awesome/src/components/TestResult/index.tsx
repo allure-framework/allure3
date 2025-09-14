@@ -5,7 +5,6 @@ import type { AwesomeTestResult } from "types";
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import TrEmpty from "@/components/TestResult/TrEmpty";
 import { TrEnvironmentsView } from "@/components/TestResult/TrEnvironmentsView";
-import { TrHeader } from "@/components/TestResult/TrHeader";
 import TrHistoryView from "@/components/TestResult/TrHistory";
 import { TrInfo } from "@/components/TestResult/TrInfo";
 import { TrOverview } from "@/components/TestResult/TrOverview";

@@ -1,6 +1,6 @@
 {
   "name": "allure",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
@@ -12,7 +12,8 @@
   "author": "Qameta Software",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./qualityGate": "./dist/qualityGate.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -46,22 +47,28 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/static-server": "workspace:*",
+    "adm-zip": "^0.5.16",
     "clipanion": "^4.0.0-rc.4",
     "lodash.omit": "^4.5.0",
+    "picomatch": "^4.0.3",
     "prompts": "^2.4.2",
+    "terminate": "^2.8.0",
+    "typanion": "^3.14.0",
     "yoctocolors": "^2.1.1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
+    "@types/adm-zip": "^0",
     "@types/eslint": "^8.56.11",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
+    "@types/picomatch": "^4",
     "@types/prompts": "^2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
-    "allure-vitest": "^3.3.0",
+    "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",

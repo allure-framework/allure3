@@ -17,7 +17,10 @@
     "new": "새로운 테스트들"
   },
   "tabs": {
-    "total": "전체"
+    "total": "전체",
+    "results": "결과",
+    "globalAttachments": "글로벌 첨부파일",
+    "globalErrors": "글로벌 오류"
   },
   "search": {
     "search": "검색",
@@ -76,6 +79,7 @@
     "no-message-provided": "메시지가 제공되지 않음",
     "clear-filters": "필터 지우기",
     "no-attachments-results": "첨부파일 정보를 사용할 수 없습니다",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "기록 정보를 사용할 수 없습니다",
     "no-retries-results": "재시도 정보를 사용할 수 없습니다",
     "no-test-steps-results": "테스트 단계 정보가 없습니다",
@@ -119,7 +123,9 @@
     "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서",
     "variables": "변수",
-    "openPwTrace": "Playwright Trace 열기"
+    "openPwTrace": "Playwright Trace 열기",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})"
   },
   "controls": {
     "newTabAttachment": "첨부파일을 새 탭에서 열기",

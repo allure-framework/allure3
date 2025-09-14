@@ -1,5 +1,5 @@
 import { detect } from "@allurereport/ci";
-import type { AllureHistory, CiDescriptor } from "@allurereport/core-api";
+import type { AllureHistory, CiDescriptor, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type {
   Plugin,
   PluginContext,
@@ -16,15 +16,14 @@ import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import { lstat, opendir, readdir, realpath, rename, rm } from "node:fs/promises";
+import { lstat, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
-import { QualityGate } from "./qualityGate.js";
+import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
-import type { AllureStoreEvents } from "./utils/event.js";
-import { Events } from "./utils/event.js";
+import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -37,12 +36,14 @@ export class AllureReport {
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
-  readonly #events: Events;
-  readonly #qualityGate: QualityGate;
+  readonly #realtimeSubscriber: RealtimeSubscriber;
+  readonly #realtimeDispatcher: RealtimeEventsDispatcher;
   readonly #realTime: any;
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
+  readonly #qualityGate: QualityGate | undefined;
+
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -56,13 +57,13 @@ export class AllureReport {
       plugins = [],
       known,
       reportFiles,
-      qualityGate,
       realTime,
       historyPath,
       defaultLabels = {},
       variables = {},
       environments,
       output,
+      qualityGate,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -74,7 +75,8 @@ export class AllureReport {
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
-    this.#events = new Events(this.#eventEmitter);
+    this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
+    this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
 
     if (this.#allureServiceClient) {
@@ -83,8 +85,13 @@ export class AllureReport {
       this.#history = new AllureLocalHistory(historyPath);
     }
 
+    if (qualityGate) {
+      this.#qualityGate = new QualityGate(qualityGate);
+    }
+
     this.#store = new DefaultAllureStore({
-      eventEmitter: this.#eventEmitter,
+      realtimeSubscriber: this.#realtimeSubscriber,
+      realtimeDispatcher: this.#realtimeDispatcher,
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
@@ -95,24 +102,25 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-    // TODO: where should we execute quality gate?
-    this.#qualityGate = new QualityGate(qualityGate);
     this.#history = this.#allureServiceClient
       ? new AllureRemoteHistory(this.#allureServiceClient)
       : new AllureLocalHistory(historyPath);
   }
 
-  // TODO: keep it until we understand how to handle shared test results
+  get hasQualityGate() {
+    return !!this.#qualityGate;
+  }
+
   get store(): DefaultAllureStore {
     return this.#store;
   }
 
-  get exitCode() {
-    return this.#qualityGate.exitCode;
+  get realtimeSubscriber(): RealtimeSubscriber {
+    return this.#realtimeSubscriber;
   }
 
-  get validationResults() {
-    return this.#qualityGate.result;
+  get realtimeDispatcher(): RealtimeEventsDispatcher {
+    return this.#realtimeDispatcher;
   }
 
   get #publish() {
@@ -168,6 +176,16 @@ export class AllureReport {
     }
   };
 
+  validate = async (params: { trs: TestResult[]; knownIssues: KnownTestFailure[]; state?: QualityGateState }) => {
+    const { trs, knownIssues, state } = params;
+
+    return this.#qualityGate!.validate({
+      trs: trs.filter(Boolean),
+      knownIssues,
+      state,
+    });
+  };
+
   start = async (): Promise<void> => {
     await this.#store.readHistory();
 
@@ -192,13 +210,13 @@ export class AllureReport {
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
-      await plugin.start?.(context, this.#store, this.#events);
+      await plugin.start?.(context, this.#store, this.#realtimeSubscriber);
     });
 
     if (this.#realTime) {
       await this.#update();
 
-      this.#events.onAll(async () => {
+      this.#realtimeSubscriber.onAll(async () => {
         await this.#update();
       });
     }
@@ -221,7 +239,7 @@ export class AllureReport {
       throw new Error(initRequired);
     }
 
-    this.#events.offAll();
+    this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
     this.#stage = "done";
 
@@ -256,7 +274,7 @@ export class AllureReport {
       }
 
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
-      summary.jobHref = this.#ci?.jobUrl;
+      summary.jobHref = this.#ci?.jobRunUrl;
 
       if (context.publish) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
@@ -279,7 +297,12 @@ export class AllureReport {
       });
     }
 
-    const outputDirFiles = await readdir(this.#output);
+    let outputDirFiles: string[] = [];
+
+    try {
+      // recursive flag is not applicable, it can provoke the process freeze
+      outputDirFiles = await readdir(this.#output);
+    } catch (ignored) {}
 
     // just do nothing if there is no reports in the output directory
     if (outputDirFiles.length === 0) {
@@ -334,6 +357,14 @@ export class AllureReport {
         console.info(`- ${href}`);
       });
     }
+
+    if (!this.#qualityGate) {
+      return;
+    }
+
+    const qualityGateResults = await this.#store.qualityGateResults();
+
+    await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
   };
 
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
@@ -394,11 +425,4 @@ export class AllureReport {
   #getPluginState(init: boolean, id: string) {
     return init ? new DefaultPluginState({}) : this.#state?.[id];
   }
-
-  /**
-   * Executes quality gate validation to make possible to receive exit code for the entire process
-   */
-  validate = async () => {
-    await this.#qualityGate.validate(this.#store);
-  };
 }

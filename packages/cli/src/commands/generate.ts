@@ -1,7 +1,10 @@
 import { AllureReport, readConfig } from "@allurereport/core";
+import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
+import { join } from "node:path";
 import process from "node:process";
+import pm from "picomatch";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
 
@@ -20,7 +23,10 @@ export class GenerateCommand extends Command {
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.String({
+    required: false,
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -39,16 +45,43 @@ export class GenerateCommand extends Command {
   });
 
   async execute() {
-    const config = await readConfig(this.cwd, this.config, {
+    const cwd = this.cwd ?? process.cwd();
+    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
+    const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",
     });
+    const matcher = pm(resultsDir, {
+      dot: true,
+      contains: true,
+    });
+    const resultsDirectories = new Set<string>();
+
+    await findMatching(cwd, resultsDirectories, (dirent) => {
+      if (dirent.isDirectory()) {
+        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+        return matcher(fullPath);
+      }
+
+      return false;
+    });
+
+    if (resultsDirectories.size === 0) {
+      // eslint-disable-next-line no-console
+      console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
+      return;
+    }
 
     try {
       const allureReport = new AllureReport(config);
 
       await allureReport.start();
-      await allureReport.readDirectory(this.resultsDir);
+
+      for (const dir of resultsDirectories) {
+        await allureReport.readDirectory(dir);
+      }
+
       await allureReport.done();
     } catch (error) {
       if (error instanceof KnownError) {

@@ -1,6 +1,7 @@
 import {
   type AllureHistory,
   type AttachmentLink,
+  type AttachmentLinkFile,
   type AttachmentLinkLinked,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
@@ -11,16 +12,27 @@ import {
   type ReportVariables,
   type TestCase,
   type TestEnvGroup,
+  type TestError,
   type TestFixtureResult,
   type TestResult,
   compareBy,
   getWorstStatus,
+  htrsByTr,
   matchEnvironment,
   nullsLast,
   ordinal,
   reverse,
 } from "@allurereport/core-api";
-import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type ExitCode,
+  type QualityGateValidationResult,
+  type RealtimeEventsDispatcher,
+  type RealtimeSubscriber,
+  type ResultFile,
+  type TestResultFilter,
+  md5,
+} from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
   RawMetadata,
@@ -28,8 +40,6 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import type { EventEmitter } from "node:events";
-import type { AllureStoreEvents } from "../utils/event.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
@@ -41,7 +51,9 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
     if (!indexMap.has(key)) {
       indexMap.set(key, []);
     }
+
     const current = indexMap.get(key)!;
+
     current.push(...items);
   }
 };
@@ -58,7 +70,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
-  readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
+  readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
+  readonly #realtimeSubscriber?: RealtimeSubscriber;
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
@@ -67,13 +80,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
+  #globalAttachments: AttachmentLink[] = [];
+  #globalErrors: TestError[] = [];
+  #globalExitCode: ExitCode | undefined;
+  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
 
   constructor(params?: {
     history?: AllureHistory;
     known?: KnownTestFailure[];
-    eventEmitter?: EventEmitter<AllureStoreEvents>;
+    realtimeDispatcher?: RealtimeEventsDispatcher;
+    realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
@@ -81,7 +99,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const {
       history,
       known = [],
-      eventEmitter,
+      realtimeDispatcher,
+      realtimeSubscriber,
       defaultLabels = {},
       environmentsConfig = {},
       reportVariables = {},
@@ -96,7 +115,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
-    this.#eventEmitter = eventEmitter;
+    this.#realtimeDispatcher = realtimeDispatcher;
+    this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
     this.#reportVariables = reportVariables;
@@ -108,6 +128,32 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       .forEach((key) => {
         this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
       });
+
+    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
+      results.forEach((result) => {
+        this.#qualityGateResultsByRules[result.rule] = result;
+      });
+    });
+    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
+      this.#globalExitCode = exitCode;
+    });
+    this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
+      this.#globalErrors.push(error);
+    });
+    this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
+      const attachmentLink: AttachmentLinkFile = {
+        id: md5(attachment.getOriginalFileName()),
+        missed: false,
+        used: false,
+        ext: attachment.getExtension(),
+        originalFileName: attachment.getOriginalFileName(),
+        contentType: attachment.getContentType(),
+        contentLength: attachment.getContentLength(),
+      };
+
+      this.#attachmentContents.set(attachmentLink.id, attachment);
+      this.#globalAttachments.push(attachmentLink);
+    });
   }
 
   // history state
@@ -155,6 +201,26 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } catch (err) {
       return undefined;
     }
+  }
+
+  // quality gate data
+
+  async qualityGateResults(): Promise<QualityGateValidationResult[]> {
+    return Object.values(this.#qualityGateResultsByRules);
+  }
+
+  // global data
+
+  async globalExitCode(): Promise<ExitCode | undefined> {
+    return this.#globalExitCode;
+  }
+
+  async allGlobalErrors(): Promise<TestError[]> {
+    return this.#globalErrors;
+  }
+
+  async allGlobalAttachments(): Promise<AttachmentLink[]> {
+    return this.#globalAttachments;
   }
 
   // test methods
@@ -223,7 +289,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
     index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testResult", testResult.id);
+
+    this.#realtimeDispatcher?.sendTestResult(testResult.id);
   }
 
   async visitTestFixtureResult(result: RawFixtureResult, context: ReaderContext): Promise<void> {
@@ -243,7 +310,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       index(this.indexFixturesByTestResult, trId, testFixtureResult);
     });
     index(this.indexAttachmentByFixture, testFixtureResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testFixtureResult", testFixtureResult.id);
+    this.#realtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -255,9 +322,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#attachmentContents.set(id, resultFile);
 
     const maybeLink = this.#attachments.get(id);
+
     if (maybeLink) {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
+
       link.missed = false;
       link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
       link.contentType = link.contentType ?? resultFile.getContentType();
@@ -274,7 +343,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    this.#eventEmitter?.emit("attachmentFile", id);
+    this.#realtimeDispatcher?.sendAttachmentFile(id);
   }
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {
@@ -389,26 +458,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
-    if (!tr?.historyId) {
-      return [];
-    }
-
-    return [...this.#historyPoints]
-      .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => {
-        if (!dp.url) {
-          return dp.testResults[tr.historyId!];
-        }
-
-        const url = new URL(dp.url);
-
-        url.hash = tr.id;
-
-        return {
-          ...dp.testResults[tr.historyId!],
-          url: url.toString(),
-        };
-      });
+    return htrsByTr(this.#historyPoints, tr);
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[]> {

@@ -1,4 +1,13 @@
-import type { CiDescriptor, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  Statistic,
+  TestError,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
+import type { QualityGateValidationResult } from "./qualityGate.js";
+import type { ResultFile } from "./resultFile.js";
 import type { AllureStore } from "./store.js";
 
 export interface PluginDescriptor {
@@ -13,7 +22,9 @@ export interface ReportFiles {
 
 export interface PluginState {
   set(key: string, value: any): Promise<void>;
+
   get<T>(key: string): Promise<T>;
+
   unset(key: string): Promise<void>;
 }
 
@@ -49,19 +60,65 @@ export interface PluginSummary {
   createdAt?: number;
 }
 
+export interface ExitCode {
+  /**
+   * Actual exit code the allure command exited with
+   */
+  actual?: number;
+  /**
+   * Original exit code of the process inside the allure command exited with
+   */
+  original: number;
+}
+
+export interface PluginGlobals {
+  exitCode: ExitCode;
+  errors: TestError[];
+  attachments: AttachmentLink[];
+}
+
 export interface BatchOptions {
   maxTimeout?: number;
 }
 
-export interface Realtime {
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): void;
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): void;
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): void;
+export interface RealtimeSubscriber {
+  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>): () => void;
+
+  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
+
+  onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
+
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+
+  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+
+  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+
+  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+}
+
+export interface RealtimeEventsDispatcher {
+  sendGlobalAttachment(attachment: ResultFile): void;
+
+  sendGlobalExitCode(payload: ExitCode): void;
+
+  sendGlobalError(error: TestError): void;
+
+  sendQualityGateResults(payload: QualityGateValidationResult[]): void;
+
+  sendTestResult(trId: string): void;
+
+  sendTestFixtureResult(tfrId: string): void;
+
+  sendAttachmentFile(afId: string): void;
 }
 
 export interface Plugin {
-  start?(context: PluginContext, store: AllureStore, realtime: Realtime): Promise<void>;
+  start?(context: PluginContext, store: AllureStore, realtime: RealtimeSubscriber): Promise<void>;
+
   update?(context: PluginContext, store: AllureStore): Promise<void>;
+
   done?(context: PluginContext, store: AllureStore): Promise<void>;
+
   info?(context: PluginContext, store: AllureStore): Promise<PluginSummary>;
 }

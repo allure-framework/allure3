@@ -1,13 +1,13 @@
 import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import {
   createBaseUrlScript,
   createFaviconLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-} from "@allurereport/web-commons";
+} from "@allurereport/core-api";
+import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";

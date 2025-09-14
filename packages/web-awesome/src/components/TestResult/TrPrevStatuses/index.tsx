@@ -1,5 +1,5 @@
-import { type HistoryTestResult } from "@allurereport/core-api";
-import { capitalize, getReportOptions } from "@allurereport/web-commons";
+import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
+import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeReportOptions, AwesomeTestResult } from "types";

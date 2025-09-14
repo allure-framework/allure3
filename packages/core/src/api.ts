@@ -19,7 +19,6 @@ export interface FullConfig {
   output: string;
   historyPath: string;
   knownIssuesPath: string;
-  qualityGate?: QualityGateConfig;
   /**
    * You can specify default labels for tests which don't have them at all
    * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
@@ -42,6 +41,7 @@ export interface FullConfig {
   appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
+  qualityGate?: QualityGateConfig;
   allureService?: {
     url?: string;
     project?: string;

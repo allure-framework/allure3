@@ -1,18 +1,9 @@
 import { type AttachmentTestStepResult } from "@allurereport/core-api";
-import AnsiToHtml from "ansi-to-html";
+import { ansiToHTML, isAnsi } from "@allurereport/web-commons";
 import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import "./code.scss";
-
-const ansiRegex = /\x1B\[[0-9;?]*[ -/]*[@-~]/g;
-
-const ansiTrace = (text: string) =>
-  new AnsiToHtml({
-    fg: "var(--on-text-primary)",
-  }).toHtml(text);
-
-const isAnsi = (text?: string): boolean => typeof text === "string" && new RegExp(ansiRegex).test(text);
 
 export const AttachmentCode: FunctionalComponent<{
   item: AttachmentTestStepResult;
@@ -25,24 +16,28 @@ export const AttachmentCode: FunctionalComponent<{
   const ext = item?.link?.ext?.replace(".", "") ?? "plaintext";
   const rawText = attachment.text ?? "";
 
+  if (isAnsi(rawText) && rawText.length > 0) {
+    const sanitizedText = ansiToHTML(rawText, {
+      fg: "var(--on-text-primary)",
+    });
+
+    return (
+      <pre
+        data-testid="code-attachment-content"
+        key={item?.link?.id}
+        className={`language-${ext} line-numbers`}
+        dangerouslySetInnerHTML={{ __html: sanitizedText }}
+      />
+    );
+  }
+
   return (
-    <>
-      {isAnsi(rawText) ? (
-        <pre
-          data-testid="code-attachment-content"
-          key={item?.link?.id}
-          className={`language-${ext} line-numbers`}
-          dangerouslySetInnerHTML={{ __html: ansiTrace(rawText) }}
-        />
-      ) : (
-        <pre
-          data-testid={"code-attachment-content"}
-          key={item?.link?.id}
-          className={`language-${item?.link?.ext?.replace(".", "")} line-numbers`}
-        >
-          <code className={`language-${ext}`}>{rawText}</code>
-        </pre>
-      )}
-    </>
+    <pre
+      data-testid={"code-attachment-content"}
+      key={item?.link?.id}
+      className={`language-${item?.link?.ext?.replace(".", "")} line-numbers`}
+    >
+      <code className={`language-${ext}`}>{rawText}</code>
+    </pre>
   );
 };

@@ -1,5 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
-import { capitalize } from "@allurereport/web-commons";
+import { capitalize } from "@allurereport/core-api";
 import { Text, TreeItemIcon } from "@allurereport/web-components";
 import clsx from "clsx";
 import { useI18n } from "@/stores";

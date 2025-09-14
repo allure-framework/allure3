@@ -27,3 +27,41 @@ export const createBaseUrlScript = () => {
     </script>
   `;
 };
+
+export const createReportDataScript = (
+  reportFiles: {
+    name: string;
+    value: string;
+  }[] = [],
+) => {
+  if (!reportFiles?.length) {
+    return `
+      <script async>
+        window.allureReportDataReady = true;
+      </script>
+    `;
+  }
+
+  const reportFilesDeclaration = reportFiles.map(({ name, value }) => `d('${name}','${value}')`).join(",");
+
+  return `
+    <script async>
+      window.allureReportDataReady = false;
+      window.allureReportData = window.allureReportData || {};
+
+      function d(name, value){
+        return new Promise(function (resolve) {
+          window.allureReportData[name] = value;
+
+          return resolve(true);
+        });
+      }
+    </script>
+    <script defer>
+      Promise.allSettled([${reportFilesDeclaration}])
+        .then(function(){
+          window.allureReportDataReady = true;
+        })
+    </script>
+  `;
+};

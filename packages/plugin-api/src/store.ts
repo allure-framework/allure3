@@ -6,9 +6,12 @@ import type {
   Statistic,
   TestCase,
   TestEnvGroup,
+  TestError,
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
+import type { ExitCode } from "./plugin.js";
+import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
 export type TestResultFilter = (testResult: TestResult) => boolean;
@@ -23,6 +26,12 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: () => Promise<TestResult[]>;
+  // quality gate data
+  qualityGateResults: () => Promise<QualityGateValidationResult[]>;
+  // global data
+  globalExitCode: () => Promise<ExitCode | undefined>;
+  allGlobalErrors: () => Promise<TestError[]>;
+  allGlobalAttachments: () => Promise<AttachmentLink[]>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;

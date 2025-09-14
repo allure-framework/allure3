@@ -1,8 +1,14 @@
-import { AllureReport, readConfig } from "@allurereport/core";
+import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import type { TestResult } from "@allurereport/core-api";
+import { findMatching } from "@allurereport/directory-watcher";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
-import { exit } from "node:process";
-import { bold, red } from "yoctocolors";
+import { realpath } from "node:fs/promises";
+import { join } from "node:path";
+import { exit, cwd as processCwd } from "node:process";
+import pm from "picomatch";
+import * as typanion from "typanion";
+import { red } from "yoctocolors";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -19,10 +25,36 @@ export class QualityGateCommand extends Command {
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.String({
+    required: false,
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
+  });
+
+  fastFail = Option.Boolean("--fast-fail", {
+    description: "Force the command to fail if there are any rule failures",
+  });
+
+  maxFailures = Option.String("--max-failures", {
+    description: "The maximum number of rule failures to allow before failing the command",
+    validator: typanion.isNumber(),
+  });
+
+  minTestsCount = Option.String("--min-tests-count", {
+    description: "The minimum number of tests to run before validating the quality gate",
+    validator: typanion.isNumber(),
+  });
+
+  successRate = Option.String("--success-rate", {
+    description: "The minimum success rate to allow before failing the command",
+    validator: typanion.isNumber(),
+  });
+
+  knownIssues = Option.String("--known-issues", {
+    description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
   });
 
   cwd = Option.String("--cwd", {
@@ -30,39 +62,119 @@ export class QualityGateCommand extends Command {
   });
 
   async execute() {
-    const fullConfig = await readConfig(this.cwd, this.config);
-    const allureReport = new AllureReport(fullConfig);
+    const cwd = await realpath(this.cwd ?? processCwd());
+    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
+    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
+    const config = await readConfig(cwd, this.config, {
+      knownIssuesPath,
+    });
+    const rules: Record<string, any> = {};
+    const resultsDirectories = new Set<string>();
+    const matcher = pm(resultsDir, {
+      dot: true,
+      contains: true,
+    });
 
-    await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir);
-    await allureReport.done();
-    await allureReport.validate();
+    if (maxFailures !== undefined) {
+      rules.maxFailures = maxFailures;
+    }
 
-    if (allureReport.exitCode === 0) {
+    if (minTestsCount !== undefined) {
+      rules.minTestsCount = minTestsCount;
+    }
+
+    if (successRate !== undefined) {
+      rules.successRate = successRate;
+    }
+
+    if (fastFail) {
+      rules.fastFail = fastFail;
+    }
+
+    config.plugins = [];
+
+    // prioritize the cli options
+    if (Object.keys(rules).length > 0) {
+      config.qualityGate = {
+        rules: [rules],
+      };
+    }
+
+    const allureReport = new AllureReport(config);
+
+    if (!allureReport.hasQualityGate) {
+      // eslint-disable-next-line no-console
+      console.error(red("Quality gate is not configured!"));
+      console.error(
+        red(
+          "Add qualityGate to the config or consult help to know, how to use the command with command-line arguments",
+        ),
+      );
+      exit(-1);
       return;
     }
 
-    const failedResults = allureReport.validationResults.filter((result) => !result.success);
+    await findMatching(cwd, resultsDirectories, (dirent) => {
+      if (dirent.isDirectory()) {
+        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
 
-    console.error(red(`Quality gate has failed with ${bold(failedResults.length.toString())} errors:\n`));
-
-    for (const result of failedResults) {
-      let scope = "";
-
-      switch (result.meta?.type) {
-        case "label":
-          scope = `(label[${result.meta.name}="${result.meta.value}"])`;
-          break;
-        case "parameter":
-          scope = `(parameter[${result.meta.name}="${result.meta.value}"])`;
-          break;
+        return matcher(fullPath);
       }
 
-      console.error(red(`⨯ ${bold(`${result.rule}${scope}`)}: expected ${result.expected}, actual ${result.actual}`));
+      return false;
+    });
+
+    if (resultsDirectories.size === 0) {
+      // eslint-disable-next-line no-console
+      console.error("No Allure results directories found");
+      exit(0);
+      return;
     }
 
-    console.error(red("\nThe process has been exited with code 1"));
+    const knownIssues = await allureReport.store.allKnownIssues();
+    const state = new QualityGateState();
 
-    exit(allureReport.exitCode);
+    allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
+      const trs = await Promise.all(trsIds.map((id) => allureReport.store.testResultById(id)));
+      const notHiddenTrs = (trs as TestResult[]).filter((tr) => !tr.hidden);
+      const { results, fastFailed } = await allureReport.validate({
+        trs: notHiddenTrs,
+        knownIssues,
+        state,
+      });
+
+      if (!fastFailed) {
+        return;
+      }
+
+      // eslint-disable-next-line no-console
+      console.error(stringifyQualityGateResults(results));
+
+      exit(1);
+    });
+
+    await allureReport.start();
+
+    for (const dir of resultsDirectories) {
+      await allureReport.readDirectory(dir);
+    }
+
+    await allureReport.done();
+
+    const allTrs = await allureReport.store.allTestResults({ includeHidden: false });
+    const validationResults = await allureReport.validate({
+      trs: allTrs,
+      knownIssues,
+    });
+
+    if (validationResults.results.length === 0) {
+      exit(0);
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.error(stringifyQualityGateResults(validationResults.results));
+
+    exit(1);
   }
 }

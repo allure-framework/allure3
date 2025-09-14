@@ -17,7 +17,10 @@
     "new": "Nieuwe tests"
   },
   "tabs": {
-    "total": "Alle"
+    "total": "Alle",
+    "results": "Resultaten",
+    "globalAttachments": "Globale Bijlagen",
+    "globalErrors": "Globale Fouten"
   },
   "search": {
     "search": "Zoeken",
@@ -76,6 +79,7 @@
     "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
+    "no-global-errors-results": "No global errors information available",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
@@ -119,7 +123,9 @@
     "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om",
     "variables": "Variabelen",
-    "openPwTrace": "Playwright Trace openen"
+    "openPwTrace": "Open Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",

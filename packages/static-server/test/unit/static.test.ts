@@ -29,6 +29,16 @@ it("serves files without extension as binary ones", async () => {
   expect(res.data).not.toBeUndefined();
 });
 
+it("decode path before accessing the file system", async () => {
+  server = await serve({ port, servePath });
+  const res = await axios.get(`http://localhost:${port}/with%20space`, {
+    timeout: 500,
+  });
+
+  expect(res.headers["content-type"]).toBe("application/octet-stream");
+  expect(res.status).toBe(200);
+});
+
 it("serves .bin files", async () => {
   server = await serve({ port, servePath });
   const res = await axios.get(`http://localhost:${port}/sample.bin`, {

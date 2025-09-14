@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-awesome",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "description": "Allure Awesome Plugin – brand new HTML report with modern design and new features",
   "keywords": [
     "allure",
@@ -33,7 +33,6 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
-    "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "^4.7.8"
   },
@@ -45,7 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
-    "allure-vitest": "^3.3.0",
+    "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",

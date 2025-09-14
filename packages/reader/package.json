@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader",
-  "version": "3.0.0-beta.17",
+  "version": "3.0.0-beta.18",
   "description": "Collection of utilities which helps to process different kind of test results as Allure Results",
   "keywords": [
     "allure",
@@ -39,8 +39,8 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
-    "allure-js-commons": "^3.3.0",
-    "allure-vitest": "^3.3.0",
+    "allure-js-commons": "^3.3.3",
+    "allure-vitest": "^3.3.3",
     "archiver": "^7.0.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

@@ -17,7 +17,10 @@
     "new": "Yeni testlər"
   },
   "tabs": {
-    "total": "Bütün"
+    "total": "Bütün",
+    "results": "Nəticələr",
+    "globalAttachments": "Qlobal Əlavələr",
+    "globalErrors": "Qlobal Səhvlər"
   },
   "search": {
     "search": "Axtarış",
@@ -76,6 +79,7 @@
     "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Əlavə məlumatı mövcud deyil",
+    "no-global-errors-results": "Qlobal səhvlər haqqında məlumat mövcud deyil",
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
     "no-retries-results": "Təkrar məlumatı mövcud deyil",
     "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",
@@ -119,7 +123,9 @@
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "at": "üçün",
     "variables": "Dəyişənlər",
-    "openPwTrace": "Playwright Trace aç"
+    "openPwTrace": "Playwright Trace aç",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (əsas {{original}})"
   },
   "controls": {
     "newTabAttachment": "Yeni sekmede aç",
