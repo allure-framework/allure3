@@ -88,9 +88,9 @@ export enum BarGroupMode {
 export type NewKey<T extends string> = `new${Capitalize<T>}`;
 export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
 
-export interface TreeMapNode {
+export type TreeMapNode<T extends Record<string, any> = Record<string, any>> = T & {
   id: string;
   value?: number;
   colorValue?: number; // The normalized color value between 0 and 1 for the node
   children?: TreeMapNode[];
-}
+};
