@@ -78,6 +78,7 @@ export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
   colors: (value: number, domain?: number[]) => string,
   formatLegend?: (value: number) => string,
+  legendDomain?: number[],
 ): UITreeMapChartData | undefined => {
   const chart = getChart();
   if (!chart) {
@@ -88,6 +89,7 @@ export const createTreeMapChartDataGeneric = (
     ...chart,
     colors,
     formatLegend,
+    legendDomain,
   };
 };
 
@@ -126,10 +128,12 @@ export const createStatusChangeTrendBarChartData = (
     () => statusChangeColors,
   );
 
-export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
-  createTreeMapChartDataGeneric(
+export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined => {
+  const chartColorDomain = [0, 1];
+
+  return createTreeMapChartDataGeneric(
     () => res[chartId] as ResponseTreeMapChartData | undefined,
-    (value: number, domain = [0, 1]) => {
+    (value: number, domain = chartColorDomain) => {
       const scaledRgb = scaleLinear<string>()
         .domain(domain)
         .range([resolveCSSVarColor(statusColors.failed), resolveCSSVarColor(statusColors.passed)])
@@ -146,29 +150,35 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
       }
       return "failed";
     },
+    chartColorDomain,
   );
+};
 
-  export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined =>
-    createTreeMapChartDataGeneric(
-      () => res[chartId] as ResponseTreeMapChartData | undefined,
-      (value: number, domain = [0, 0.5, 1]) => {
-        const scaledRgb = scaleLinear<string>()
-          .domain(domain)
-          .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
-          .interpolate(interpolateRgb)
-          .clamp(true);
+export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined => {
+  const chartColorDomain = [0, 0.5, 1];
 
-          // TODO: change color passed to white
-        return scaledRgb(value);
-      },
-      (value) => {
-        // TODO: Change this to i18n t-function usage
-        if (value === 1) {
-          return "passed";
-        }
-        return "failed";
-      },
-    );
+  return createTreeMapChartDataGeneric(
+    () => res[chartId] as ResponseTreeMapChartData | undefined,
+    (value: number, domain = chartColorDomain) => {
+      const scaledRgb = scaleLinear<string>()
+        .domain(domain)
+        .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+        .interpolate(interpolateRgb)
+        .clamp(true);
+
+        // TODO: change color passed to white
+      return scaledRgb(value);
+    },
+    (value) => {
+      // TODO: Change this to i18n t-function usage
+      if (value === 1) {
+        return "passed";
+      }
+      return "failed";
+    },
+    chartColorDomain,
+  );
+};
 
 export const createaTrendChartData = (
   chartId: string,
