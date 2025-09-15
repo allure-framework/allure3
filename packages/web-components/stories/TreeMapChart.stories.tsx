@@ -1,7 +1,7 @@
 import { TreeMapChart } from "@allurereport/web-components";
 import type { TreeMapChartProps } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
-import { createTreeMapData, getColor } from "./TreeMapChart/mocks";
+import { createTreeMapData, getColor, getColorWithDomain } from "./TreeMapChart/mocks";
 
 const meta: Meta<typeof TreeMapChart> = {
   title: "Charts/TreeMapChart",
@@ -34,5 +34,15 @@ export const EmptyData: Story = {
     title: "Empty Feature Set",
     data: [],
     colors: getColor,
+  },
+};
+
+export const CustomGradient: Story = {
+  args: {
+    data: rootData,
+    rootAriaLabel: "Feature Success Rate Tree with Custom Gradient",
+    colors: getColorWithDomain,
+    formatLegend: (value: number) => `${(value * 100).toFixed(0)}%`,
+    legendDomain: [0, 0.5, 1], // Three points: 0%, 50%, 100% - minValue/maxValue auto-calculated
   },
 };

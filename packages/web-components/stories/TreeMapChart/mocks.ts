@@ -143,3 +143,14 @@ export const getColor = (node: TreeMapChartNode) => {
 
   return treeMapColors.error;
 };
+
+// Color function that works with domain for gradient
+export const getColorWithDomain = (value: number, domain = [0, 0.5, 1]) => {
+  if (value <= domain[0]) {
+    return treeMapColors.error;
+  } else if (value <= domain[1]) {
+    return treeMapColors.warning;
+  } else {
+    return treeMapColors.success;
+  }
+};
