@@ -8,6 +8,7 @@ import type {
   ChartId,
   ChartMode,
   HistoryDataPoint,
+  HistoryTestResult,
   PieSlice,
   SeverityLevel,
   Statistic,
@@ -235,13 +236,13 @@ export const normalizeStatistic = <T extends string>(
  * Check if test has any of the specified labels
  * Generic function that works with any label hierarchy
  */
-export const hasLabels = <T extends string>(
-  test: TestResult,
+export const hasLabels = <T extends string, TR extends TestResult | HistoryTestResult>(
+  test: TR,
   labelHierarchy: T[],
-): boolean => test.labels.some(label => {
+): boolean => test.labels?.some(label => {
   const { name } = label;
   return name && labelHierarchy.includes(name as T);
-});
+}) ?? false;
 
 export const isLeafsPredecessor = <T extends TreeMapNode>(node: T): boolean => {
   return node.children ? node.children.every((child) => child.value !== undefined) : false;
