@@ -69,20 +69,6 @@ const addLeafToGroupFn = (group: Group, leaf: Leaf) => {
 };
 
 const calculateColorValue = (metrics: SubtreeMetrics): number => {
-  // Специальные случаи для новых и удаленных фич
-  if (metrics.newCount > 0 && metrics.deletedCount === 0 && metrics.enabledCount === 0 && metrics.disabledCount === 0) {
-    return 1.0; // Зеленый - только новые тесты
-  }
-
-  if (metrics.deletedCount > 0 && metrics.newCount === 0 && metrics.enabledCount === 0 && metrics.disabledCount === 0) {
-    return 0.0; // Красный - только удаленные тесты
-  }
-
-  // Обычный случай: градиент от красного к зеленому
-  if (metrics.totalTests === 0) {
-    return 0.5; // Нейтральный цвет если нет предыдущих тестов
-  }
-
   const netChange = (metrics.newCount + metrics.enabledCount) - (metrics.deletedCount + metrics.disabledCount);
   const normalizedChange = netChange / metrics.totalTests;
 
@@ -156,19 +142,19 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
 
 const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TreeMapNode => {
   const newTrs = getNewTestResults(trs, closestHtrs);
-  const removedTrs = getRemovedTestResults(trs, closestHtrs);
+  const removedHtrs = getRemovedTestResults(trs, closestHtrs);
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
   const disabledTrs = getDisabledTestResults(trs, closestHtrs);
 
   const newTestsById = new Map(newTrs.map(tr => [tr.historyId, tr]));
-  const deletedTestsById = new Map(removedTrs.map(tr => [tr.historyId, tr]));
+  const deletedTestsById = new Map(removedHtrs.map(htr => [htr.historyId, htr]));
   const enabledTestsById = new Map(enabledTrs.map(tr => [tr.historyId, tr]));
   const disabledTestsById = new Map(disabledTrs.map(tr => [tr.historyId, tr]));
 
   // Including into future tree current tests + removed historical tests to be able to reflect removed historical tests
   const allTests: (TestResult | HistoryTestResult)[] = [
     ...trs,
-    ...removedTrs
+    ...removedHtrs
   ];
 
   const leafFactoryFnWithMaps = (test: TestResult | HistoryTestResult): Leaf => {
@@ -178,6 +164,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
       name: test.name,
     };
 
+    // Leaf can be only one of the following: new, deleted, enabled, disabled, unchanged
     if (newTestsById.has(historyId)) {
       return {
         ...baseNodeData,
@@ -262,8 +249,10 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
 
     if (isLeafsPredecessor(node)) {
       return {
-        ...elevateLeafsData(node),
+        ...node,
+        value: subtreeMetrics.totalTests,
         colorValue,
+        children: undefined,
       };
     }
 
@@ -279,7 +268,14 @@ export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
     const trs = filterTestsWithBehaviorLabels(testResults);
     const closestHdp = historyDataPoints[0];
     const closestHtrs = closestHdp.testResults;
+    const filteredHtrs = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
+    const filteredHtrsById = filteredHtrs.reduce((acc, htr) => {
+      if (htr.historyId) {
+        acc[htr.historyId] = htr;
+      }
+      return acc;
+    }, {} as Record<string, HistoryTestResult>) ?? {};
 
-    return createCoverageDiffTreeMap(trs, closestHtrs);
+    return createCoverageDiffTreeMap(trs, filteredHtrsById);
   },
 };
