@@ -1,5 +1,5 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import { isLeafsPredecessor, elevateLeafsData } from "../../charts.js";
+import { isLeafsPredecessor } from "../../charts.js";
 import type { TreeMapNode, TestResult, HistoryTestResult, TreeLeaf, TreeGroup } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
