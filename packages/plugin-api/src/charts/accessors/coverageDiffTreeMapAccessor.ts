@@ -1,7 +1,7 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
 import { isLeafsPredecessor } from "../../charts.js";
 import type { TreeMapNode, TestResult, HistoryTestResult, TreeLeaf, TreeGroup } from "@allurereport/core-api";
-import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
+import { behaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
@@ -215,6 +215,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
   const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
     treeByLabels,
     (node, isGroup) => {
+      console.log("\n#### node ####", {isGroup, node});
       const baseNode = {
         id: node.name,
         value: isGroup ? undefined : node.value,
@@ -251,8 +252,8 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
       return {
         ...node,
         value: subtreeMetrics.totalTests,
-        colorValue,
         children: undefined,
+        colorValue,
       };
     }
 
@@ -265,17 +266,9 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
 
 export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
   getTreeMap: ({ testResults, historyDataPoints }) => {
-    const trs = filterTestsWithBehaviorLabels(testResults);
     const closestHdp = historyDataPoints[0];
     const closestHtrs = closestHdp.testResults;
-    const filteredHtrs = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
-    const filteredHtrsById = filteredHtrs.reduce((acc, htr) => {
-      if (htr.historyId) {
-        acc[htr.historyId] = htr;
-      }
-      return acc;
-    }, {} as Record<string, HistoryTestResult>) ?? {};
 
-    return createCoverageDiffTreeMap(trs, filteredHtrsById);
+    return createCoverageDiffTreeMap(testResults, closestHtrs);
   },
 };
