@@ -1,5 +1,5 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import { isOnlyLeavesChildren } from "../../charts.js";
+import { isChildrenLeavesOnly } from "../../charts.js";
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
@@ -83,7 +83,7 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
       const colorValue = calculateColorValue(subtreeMetrics);
 
       // Add colorValue and remove leafs in favour of their parent group nodes
-      if (isOnlyLeavesChildren(node)) {
+      if (isChildrenLeavesOnly(node)) {
         const value = node.children?.reduce((acc, child) => {
           return acc + (child.value ?? 0);
         }, 0);

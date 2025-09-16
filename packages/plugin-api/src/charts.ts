@@ -244,6 +244,6 @@ export const hasLabels = <T extends string, TR extends TestResult | HistoryTestR
   return name && labelHierarchy.includes(name as T);
 }) ?? false;
 
-export const isOnlyLeavesChildren = <T extends TreeMapNode>(node: T): boolean => {
+export const isChildrenLeavesOnly = <T extends TreeMapNode>(node: T): boolean => {
   return node.children ? node.children.every((child) => child.children === undefined) : false;
 };

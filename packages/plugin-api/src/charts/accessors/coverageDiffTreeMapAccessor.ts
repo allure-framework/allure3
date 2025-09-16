@@ -1,5 +1,5 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import { isOnlyLeavesChildren } from "../../charts.js";
+import { isChildrenLeavesOnly } from "../../charts.js";
 import type { TreeMapNode, TestResult, HistoryTestResult, TreeLeaf, TreeGroup } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
@@ -214,7 +214,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
 
   const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
     treeByLabels,
-    (node, isGroup, parentNode) => {
+    (node, isGroup) => {
       const baseNode = {
         id: node.name,
         value: isGroup ? undefined : node.value,
@@ -247,7 +247,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
     const subtreeMetrics = calculateSubtreeMetrics(node);
     const colorValue = calculateColorValue(subtreeMetrics);
 
-    if (isOnlyLeavesChildren(node)) {
+    if (isChildrenLeavesOnly(node)) {
       return {
         ...node,
         value: subtreeMetrics.totalTests,
