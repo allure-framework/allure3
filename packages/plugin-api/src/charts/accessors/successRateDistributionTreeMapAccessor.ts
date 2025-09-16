@@ -1,6 +1,6 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
 import { isChildrenLeavesOnly } from "../../charts.js";
-import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
+import type { TestResult, TestStatus, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
@@ -11,22 +11,29 @@ type SubtreeMetrics = {
   passedTests: number;
 };
 
-type TreeNodeData = Pick<TestResult, "name"> & { value?: number };
-export type Leaf = TreeLeaf<TreeNodeData>;
-export type Group = TreeGroup<TreeNodeData>;
+type LeafData = Pick<TestResult, "name" | "status"> & { value: number };
+type GroupData = Pick<TestResult, "name"> & { value: number };
+
+type Leaf = TreeLeaf<LeafData>;
+type Group = TreeGroup<GroupData>;
+
+type ExtendedTreeMapNode = TreeMapNode<{
+  status?: TestStatus;
+}>;
 
 const leafFactoryFn = ({ id, name, status }: TestResult): Leaf => ({
   nodeId: id,
   name,
-  value: status === "passed" ? 1 : 0,
+  status,
+  value: 1, // default number of tests in the leaf
 });
 const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): Group => ({
   nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
   name: groupClassifier,
-  value: 0,
+  value: 0, // default number of tests in the group
 });
 const addLeafToGroupFn = (group: Group, leaf: Leaf) => {
-  group.value = (group?.value ?? 0) + (leaf.value ?? 0);
+  group.value += leaf.value;
 };
 
 const calculateColorValue = ({ totalTests, passedTests }: { totalTests: number; passedTests: number }): number => {
@@ -34,23 +41,23 @@ const calculateColorValue = ({ totalTests, passedTests }: { totalTests: number; 
 };
 
 // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
-const calculateSubtreeMetrics = (node: TreeMapNode): SubtreeMetrics => {
+const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   if (!node.children || node.children.length === 0) {
       // Leaf node - value represents passed tests (1 for passed, 0 for failed)
-      return { totalTests: 1, passedTests: node.value ?? 0 };
+      return { totalTests: 1, passedTests: node?.status === "passed" ? 1 : 0 };
   }
 
   // Group node - aggregate metrics from children
   let totalTests = 0;
-    let passedTests = 0;
+  let passedTests = 0;
 
-    for (const child of node.children) {
-        const childMetrics = calculateSubtreeMetrics(child);
-        totalTests += childMetrics.totalTests;
-        passedTests += childMetrics.passedTests;
-    }
+  for (const child of node.children) {
+      const childMetrics = calculateSubtreeMetrics(child);
+      totalTests += childMetrics.totalTests;
+      passedTests += childMetrics.passedTests;
+  }
 
-    return { totalTests, passedTests };
+  return { totalTests, passedTests };
 };
 
 /**
@@ -66,9 +73,10 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
       addLeafToGroupFn
   );
 
-  const convertedTree = convertTreeDataToTreeMapNode(
+  const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
     treeByLabels,
     (node, isGroup) => ({
+      ...node,
       id: node.name,
       value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
     }),

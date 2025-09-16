@@ -15,19 +15,19 @@ type SubtreeMetrics = {
 };
 
 type LeafData = Pick<TestResult, "name"> & {
-  value: number; // net change: (new + enabled) - (deleted + disabled)
+  value: number; // number of tests in the leaf
   changeType: "new" | "deleted" | "enabled" | "disabled" | "unchanged";
 };
-type Leaf = TreeLeaf<LeafData>;
-
 type GroupData = Pick<TestResult, "name"> & {
-  value: number; // net change for the group
+  value: number; // net change in number of tests for the group (diff between new + enabled and deleted + disabled tests)
   newCount: number;
   deletedCount: number;
   disabledCount: number;
   enabledCount: number;
   colorValue?: number;
 };
+
+type Leaf = TreeLeaf<LeafData>;
 type Group = TreeGroup<GroupData>;
 
 // Represents both Group and Leaf conversion to TreeMapNode-compatible structure
@@ -72,10 +72,7 @@ const calculateColorValue = (metrics: SubtreeMetrics): number => {
   const netChange = (metrics.newCount + metrics.enabledCount) - (metrics.deletedCount + metrics.disabledCount);
   const normalizedChange = netChange / metrics.totalTests;
 
-  // Преобразуем в диапазон 0-1, где:
-  // -1 (только удаления) = 0.0 (красный)
-  // 0 (без изменений) = 0.5 (белый)
-  // +1 (только добавления) = 1.0 (зеленый)
+  // Normalize to 0-1 range from -1 to 1
   return Math.max(0, Math.min(1, (normalizedChange + 1) / 2));
 };
 
@@ -111,7 +108,8 @@ const getDisabledTestResults = (trs: TestResult[], closestHtrs: Record<string, H
 const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   if (!node.children || node.children.length === 0) {
     // Leaf node
-    const changeType = node.changeType;
+    const changeType = node?.changeType;
+
     return {
       totalTests: 1,
       newCount: changeType === "new" ? 1 : 0,
@@ -123,10 +121,10 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
 
   // Group node
   let totalTests = 0;
-  let newCount = node.newCount ?? 0;
-  let deletedCount = node.deletedCount ?? 0;
-  let disabledCount = node.disabledCount ?? 0;
-  let enabledCount = node.enabledCount ?? 0;
+  let newCount = 0;
+  let deletedCount = 0;
+  let disabledCount = 0;
+  let enabledCount = 0;
 
   for (const child of node.children) {
     const childMetrics = calculateSubtreeMetrics(child);
@@ -157,50 +155,31 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
     ...removedHtrs
   ];
 
-  const leafFactoryFnWithMaps = (test: TestResult | HistoryTestResult): Leaf => {
-    const historyId = test.historyId!;
-    const baseNodeData = {
-      nodeId: test.id,
-      name: test.name,
-    };
-
-    // Leaf can be only one of the following: new, deleted, enabled, disabled, unchanged
+  const getChangeType = (historyId?: string): "new" | "deleted" | "enabled" | "disabled" | "unchanged" => {
     if (newTestsById.has(historyId)) {
-      return {
-        ...baseNodeData,
-        value: 1,
-        changeType: "new",
-      };
+      return "new";
     }
-
     if (deletedTestsById.has(historyId)) {
-      return {
-        ...baseNodeData,
-        value: -1,
-        changeType: "deleted",
-      };
+      return "deleted";
     }
-
     if (enabledTestsById.has(historyId)) {
-      return {
-        ...baseNodeData,
-        value: 1,
-        changeType: "enabled",
-      };
+      return "enabled";
+    }
+    if (disabledTestsById.has(historyId)) {
+      return "disabled";
     }
 
-    if (disabledTestsById.has(historyId)) {
-      return {
-        ...baseNodeData,
-        value: -1,
-        changeType: "disabled",
-      };
-    }
+    return "unchanged";
+  };
+
+  const leafFactoryFnWithMaps = (test: TestResult | HistoryTestResult): Leaf => {
+    const changeType = getChangeType(test.historyId);
 
     return {
-      ...baseNodeData,
-      value: 0,
-      changeType: "unchanged",
+      nodeId: test.id,
+      name: test.name,
+      value: 1, // Default number of tests in the leaf
+      changeType,
     };
   };
 
@@ -217,6 +196,10 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
     (node, isGroup) => {
       const baseNode = {
         id: node.name,
+        /**
+         * Make sure in node.value will be 1 no matter what.
+         * This is responsible for the test visibility in mixed groups and it will affect parent value calculation in the tree map chart (nivo only)
+         */
         value: isGroup ? undefined : node.value,
       };
 
