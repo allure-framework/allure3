@@ -1,5 +1,5 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import { isLeafsPredecessor, elevateLeafsData } from "../../charts.js";
+import { isOnlyLeavesChildren } from "../../charts.js";
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
@@ -69,8 +69,8 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
   const convertedTree = convertTreeDataToTreeMapNode(
     treeByLabels,
     (node, isGroup) => ({
-        id: node.name,
-        value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
+      id: node.name,
+      value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
     }),
     () => ({
         id: "root",
@@ -78,16 +78,22 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
     })
   );
 
-  return transformTreeMapNode(convertedTree, (node) => {
+  return transformTreeMapNode<TreeMapNode>(convertedTree, (node) => {
       const subtreeMetrics = calculateSubtreeMetrics(node);
       const colorValue = calculateColorValue(subtreeMetrics);
 
       // Add colorValue and remove leafs in favour of their parent group nodes
-      if (isLeafsPredecessor(node)) {
-          return {
-            ...elevateLeafsData(node),
-            colorValue,
-          };
+      if (isOnlyLeavesChildren(node)) {
+        const value = node.children?.reduce((acc, child) => {
+          return acc + (child.value ?? 0);
+        }, 0);
+
+        return {
+          ...node,
+          value,
+          children: undefined,
+          colorValue,
+        };
       }
 
       return {

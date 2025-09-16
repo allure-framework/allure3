@@ -1,7 +1,7 @@
 import type { TreeMapDataAccessor } from "../../charts.js";
-import { isLeafsPredecessor } from "../../charts.js";
+import { isOnlyLeavesChildren } from "../../charts.js";
 import type { TreeMapNode, TestResult, HistoryTestResult, TreeLeaf, TreeGroup } from "@allurereport/core-api";
-import { behaviorLabels } from "./utils/behavior.js";
+import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
@@ -214,8 +214,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
 
   const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
     treeByLabels,
-    (node, isGroup) => {
-      console.log("\n#### node ####", {isGroup, node});
+    (node, isGroup, parentNode) => {
       const baseNode = {
         id: node.name,
         value: isGroup ? undefined : node.value,
@@ -248,7 +247,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
     const subtreeMetrics = calculateSubtreeMetrics(node);
     const colorValue = calculateColorValue(subtreeMetrics);
 
-    if (isLeafsPredecessor(node)) {
+    if (isOnlyLeavesChildren(node)) {
       return {
         ...node,
         value: subtreeMetrics.totalTests,
@@ -266,9 +265,12 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
 
 export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
   getTreeMap: ({ testResults, historyDataPoints }) => {
+    const testsWithBehaviorLabels = filterTestsWithBehaviorLabels(testResults);
     const closestHdp = historyDataPoints[0];
     const closestHtrs = closestHdp.testResults;
+    const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
+    const closestHtrsWithBehaviorLabelsById = Object.fromEntries(closestHtrsWithBehaviorLabels.map(htr => [htr.historyId, htr]));
 
-    return createCoverageDiffTreeMap(testResults, closestHtrs);
+    return createCoverageDiffTreeMap(testsWithBehaviorLabels, closestHtrsWithBehaviorLabelsById);
   },
 };
