@@ -80,10 +80,6 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
       id: node.name,
       value: isGroup ? undefined : node.value, // Only leaves have value (nivo tree map for some reason requires value for group to be omited for correct visualization)
     }),
-    () => ({
-        id: "root",
-        value: undefined,
-    })
   );
 
   return transformTreeMapNode<TreeMapNode>(convertedTree, (node) => {

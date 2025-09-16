@@ -11,7 +11,6 @@ import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAcce
 export const convertTreeDataToTreeMapNode = <T extends TreeMapNode, L, G>(
     treeData: TreeData<L, G>,
     transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean, parentNode?: TreeGroup<G>) => T,
-    rootTransform: (rootNode: TreeGroup<G>) => T,
 ): T => {
     const { root, leavesById, groupsById } = treeData;
 
@@ -79,14 +78,12 @@ export const convertTreeDataToTreeMapNode = <T extends TreeMapNode, L, G>(
         });
     }
 
-    // Create root node using rootTransform if provided, otherwise use default
-    const rootNode = rootTransform(root as TreeGroup<G>);
-
     return {
+        id: "root",
         value: undefined,
         children: rootChildren.length > 0 ? rootChildren : undefined,
-        ...rootNode,
-    };
+        ...root,
+    } as T;
 };
 
 export const transformTreeMapNode = <T extends TreeMapNode>(tree: T, transform: (node: T) => T): T => {

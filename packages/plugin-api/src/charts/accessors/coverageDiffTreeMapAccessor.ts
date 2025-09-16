@@ -220,10 +220,6 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
         };
       }
     },
-    () => ({
-      id: "root",
-      value: undefined,
-    })
   );
 
   return transformTreeMapNode<ExtendedTreeMapNode>(convertedTree, (node) => {
