@@ -558,18 +558,14 @@ export const defaultChartsConfig = [
     title: "Current status"
   },
   {
-    type: "bar",
-    dataType: "statusBySeverity",
-    title: "Test result severities"
-  },
-  {
-    type: "bar",
-    title: "FBSU age pyramid"
-  },
-  {
     type: "trend",
     dataType: "status",
     title: "Status dynamics"
+  },
+  {
+    type: "bar",
+    dataType: "statusBySeverity",
+    title: "Test result severities"
   },
   {
     type: "bar",
@@ -582,19 +578,21 @@ export const defaultChartsConfig = [
     title: "Test base growth dynamics"
   },
   {
-    type: "heatmap",
-    title: "Problems distribution by environment"
-  },
-  {
     type: "treemap",
+    dataType: "coverageDiff",
     title: "Coverage diff map"
   },
   {
     type: "treemap",
+    dataType: "successRateDistribution",
     title: "Success rate disctribution"
   },
   {
-    type: "treemap",
+    type: "heatmap",
+    title: "Problems distribution by environment"
+  },
+  {
+    type: "bar",
     title: "Stability rate disctribution"
   },
   {
@@ -602,8 +600,12 @@ export const defaultChartsConfig = [
     title: "Duration by layer histogram"
   },
   {
-    type: "bar", // OR it might be trend
+    type: "bar",
     title: "Performance dynamics"
+  },
+  {
+    type: "bar",
+    title: "FBSU age pyramid"
   },
   {
     type: "funnel",
