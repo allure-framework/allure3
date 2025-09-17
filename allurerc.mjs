@@ -1,4 +1,4 @@
-import { defineConfig } from "allure";
+import { defineConfig, defaultChartsConfig } from "allure";
 import { env } from "node:process";
 
 const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN } = env;
@@ -13,6 +13,7 @@ const config = {
         reportLanguage: "en",
         reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
+        charts: defaultChartsConfig,
       },
     },
     log: {

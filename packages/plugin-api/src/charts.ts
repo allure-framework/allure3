@@ -551,3 +551,62 @@ export const generateBarChart = (
     return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
   }
 };
+
+export const defaultChartsConfig = [
+  {
+    type: "pie",
+    title: "Current status"
+  },
+  {
+    type: "bar",
+    dataType: "statusBySeverity",
+    title: "Test result severities"
+  },
+  {
+    type: "bar",
+    title: "FBSU age pyramid"
+  },
+  {
+    type: "trend",
+    dataType: "status",
+    title: "Status dynamics"
+  },
+  {
+    type: "bar",
+    dataType: "statusTrend",
+    title: "Status change dynamics"
+  },
+  {
+    type: "bar",
+    dataType: "statusChangeTrend",
+    title: "Test base growth dynamics"
+  },
+  {
+    type: "heatmap",
+    title: "Problems distribution by environment"
+  },
+  {
+    type: "treemap",
+    title: "Coverage diff map"
+  },
+  {
+    type: "treemap",
+    title: "Success rate disctribution"
+  },
+  {
+    type: "treemap",
+    title: "Stability rate disctribution"
+  },
+  {
+    type: "bar",
+    title: "Duration by layer histogram"
+  },
+  {
+    type: "bar", // OR it might be trend
+    title: "Performance dynamics"
+  },
+  {
+    type: "funnel",
+    title: "Testing pyramid"
+  },
+];
