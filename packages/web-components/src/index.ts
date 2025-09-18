@@ -33,3 +33,5 @@ export * from "./components/Charts/SuccessRatePieChart";
 export * from "./components/Charts/TrendChart";
 export * from "./components/Charts/BarChart";
 export * from "./components/Charts/BarChartWidget";
+export * from "./components/Charts/TreeMapChart";
+export * from "./components/Charts/TreeMapChartWidget";

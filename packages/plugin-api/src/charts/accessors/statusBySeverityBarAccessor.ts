@@ -1,6 +1,6 @@
 import type { BarGroup, BarGroupValues, SeverityLevel, TestResult, TestStatus } from "@allurereport/core-api";
 import { BarGroupMode, severityLabelName, severityLevels, statusesList } from "@allurereport/core-api";
-import type { BarDataAccessor } from "./charts.js";
+import type { BarDataAccessor } from "../../charts.js";
 
 const processTestResults = (testResults: TestResult[]): BarGroup<SeverityLevel, TestStatus>[] => {
   const resultMap: Record<SeverityLevel, BarGroupValues<TestStatus> | undefined> = {

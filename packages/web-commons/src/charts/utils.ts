@@ -1,14 +1,25 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList } from "@allurereport/core-api";
-import { severityColors, statusChangeColors, statusColors } from "./colors.js";
+import {
+  BarChartType,
+  ChartDataType,
+  ChartType,
+  TreeMapChartType,
+  severityLevels,
+  statusesList,
+} from "@allurereport/core-api";
+import { interpolateRgb } from "d3-interpolate";
+import { scaleLinear } from "d3-scale";
+import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsResponse,
   ResponseBarChartData,
+  ResponseTreeMapChartData,
   ResponseTrendChartData,
   TrendChartItem,
   UIBarChartData,
   UIChartData,
+  UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
 
@@ -70,6 +81,25 @@ export const createBarChartDataGeneric = <T extends string>(
   };
 };
 
+export const createTreeMapChartDataGeneric = (
+  getChart: () => ResponseTreeMapChartData | undefined,
+  colors: (value: number, domain?: number[]) => string,
+  formatLegend?: (value: number) => string,
+  legendDomain?: number[],
+): UITreeMapChartData | undefined => {
+  const chart = getChart();
+  if (!chart) {
+    return undefined;
+  }
+
+  return {
+    ...chart,
+    colors,
+    formatLegend,
+    legendDomain,
+  };
+};
+
 export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
   createTrendChartDataGeneric(
     () => res[chartId] as ResponseTrendChartData | undefined,
@@ -105,6 +135,64 @@ export const createStatusChangeTrendBarChartData = (
     () => statusChangeColors,
   );
 
+export const createSuccessRateDistributionTreeMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
+  const chartColorDomain = [0, 1];
+
+  return createTreeMapChartDataGeneric(
+    () => res[chartId] as ResponseTreeMapChartData | undefined,
+    (value: number, domain = chartColorDomain) => {
+      const scaledRgb = scaleLinear<string>()
+        .domain(domain)
+        .range([resolveCSSVarColor(statusColors.failed), resolveCSSVarColor(statusColors.passed)])
+        .interpolate(interpolateRgb)
+        .clamp(true);
+
+      // TODO: change color passed to white
+      return scaledRgb(value);
+    },
+    (value) => {
+      // TODO: Change this to i18n t-function usage
+      if (value === 1) {
+        return "passed";
+      }
+      return "failed";
+    },
+    chartColorDomain,
+  );
+};
+
+export const createCoverageDiffTreeMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
+  const chartColorDomain = [0, 0.5, 1];
+
+  return createTreeMapChartDataGeneric(
+    () => res[chartId] as ResponseTreeMapChartData | undefined,
+    (value: number, domain = chartColorDomain) => {
+      const scaledRgb = scaleLinear<string>()
+        .domain(domain)
+        .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+        .interpolate(interpolateRgb)
+        .clamp(true);
+
+      // TODO: change color passed to white
+      return scaledRgb(value);
+    },
+    (value) => {
+      // TODO: Change this to i18n t-function usage
+      if (value === 1) {
+        return "new";
+      }
+      return "removed";
+    },
+    chartColorDomain,
+  );
+};
+
 export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
@@ -131,6 +219,18 @@ export const createBarChartData = (
   }
 };
 
+export const createTreeMapChartData = (
+  chartId: ChartId,
+  chartData: ResponseTreeMapChartData,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
+  if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
+    return createSuccessRateDistributionTreeMapChartData(chartId, res);
+  } else if (chartData.dataType === TreeMapChartType.CoverageDiff) {
+    return createCoverageDiffTreeMapChartData(chartId, res);
+  }
+};
+
 export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce(
     (acc, [chartId, chart]) => {
@@ -141,6 +241,11 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         }
       } else if (chart.type === ChartType.Bar) {
         const chartData = createBarChartData(chartId, chart, res);
+        if (chartData) {
+          acc[chartId] = chartData;
+        }
+      } else if (chart.type === ChartType.TreeMap) {
+        const chartData = createTreeMapChartData(chartId, chart, res);
         if (chartData) {
           acc[chartId] = chartData;
         }

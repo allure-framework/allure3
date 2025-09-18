@@ -23,6 +23,11 @@ export enum BarChartType {
   StatusChangeTrend = "statusChangeTrend",
 }
 
+export enum TreeMapChartType {
+  SuccessRateDistribution = "successRateDistribution",
+  CoverageDiff = "coverageDiff",
+}
+
 export enum ChartMode {
   Raw = "raw",
   Percent = "percent",
@@ -82,3 +87,10 @@ export enum BarGroupMode {
 
 export type NewKey<T extends string> = `new${Capitalize<T>}`;
 export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
+
+export type TreeMapNode<T extends Record<string, any> = {}> = T & {
+  id: string;
+  value?: number;
+  colorValue?: number; // The normalized color value between 0 and 1 for the node
+  children?: TreeMapNode<T>[];
+};

@@ -9,6 +9,7 @@ import {
   generateBarChart,
   generateComingSoonChart,
   generatePieChart,
+  generateTreeMapChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";
 import { randomUUID } from "crypto";
@@ -49,6 +50,8 @@ export const generateCharts = async (
       chart = generatePieChart(chartOptions, storeData);
     } else if (chartOptions.type === ChartType.Bar) {
       chart = generateBarChart(chartOptions, storeData);
+    } else if (chartOptions.type === ChartType.TreeMap) {
+      chart = generateTreeMapChart(chartOptions, storeData);
     }
 
     if (chart) {

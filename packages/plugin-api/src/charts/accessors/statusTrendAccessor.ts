@@ -1,7 +1,7 @@
 import type { TestStatus } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
-import type { TrendDataAccessor, TrendStats } from "./charts.js";
-import { createEmptyStats } from "./charts.js";
+import type { TrendDataAccessor, TrendStats } from "../../charts.js";
+import { createEmptyStats } from "../../charts.js";
 
 type StatusTrendStats = TrendStats<TestStatus>;
 

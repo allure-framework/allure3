@@ -29,3 +29,22 @@ export const statusChangeColors: Record<NewKey<TestStatus> | RemovedKey<TestStat
   removedSkipped: "color-mix(in srgb, var(--bg-support-rau) 80%, black)",
   removedUnknown: "color-mix(in srgb, var(--bg-support-skat) 80%, black)",
 };
+
+/**
+ * Convert CSS var(--something) to color
+ * @param value
+ * @param el - optional element to resolve the color from
+ * @returns
+ */
+export const resolveCSSVarColor = (value: string, el: Element = document.documentElement): string => {
+  if (value.startsWith("var(")) {
+    const match = value.match(/var\((--[^),\s]+)/);
+    if (match) {
+      const cssVarName = match[1];
+      const resolved = getComputedStyle(el).getPropertyValue(cssVarName).trim();
+      return resolved || value;
+    }
+  }
+
+  return value;
+};

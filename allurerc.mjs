@@ -22,6 +22,73 @@ const config = {
         filter: ({ status }) => status === "failed" || status === "broken",
       },
     },
+    dashboard: {
+      options: {
+        singleFile: false,
+        reportName: "My Dashboard",
+        reportLanguage: "en",
+        layout: [
+          {
+            type: "pie",
+            title: "Current status"
+          },
+          {
+            type: "trend",
+            dataType: "status",
+            title: "Status dynamics"
+          },
+          {
+            type: "bar",
+            dataType: "statusBySeverity",
+            title: "Test result severities"
+          },
+          {
+            type: "bar",
+            dataType: "statusTrend",
+            title: "Status change dynamics"
+          },
+          {
+            type: "bar",
+            dataType: "statusChangeTrend",
+            title: "Test base growth dynamics"
+          },
+          {
+            type: "treemap",
+            dataType: "coverageDiff",
+            title: "Coverage diff map"
+          },
+          {
+            type: "treemap",
+            dataType: "successRateDistribution",
+            title: "Success rate disctribution"
+          },
+          {
+            type: "heatmap",
+            title: "Problems distribution by environment"
+          },
+          {
+            type: "bar",
+            title: "Stability rate disctribution"
+          },
+          {
+            type: "bar",
+            title: "Duration by layer histogram"
+          },
+          {
+            type: "bar", // OR it might be trend
+            title: "Performance dynamics"
+          },
+          {
+            type: "bar",
+            title: "FBSU age pyramid"
+          },
+          {
+            type: "funnel",
+            title: "Testing pyramid"
+          },
+        ]
+      },
+    },
   },
   variables: {},
   environments: {
