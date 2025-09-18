@@ -1,1 +1,0 @@
-{"id":"6c31c3141e1cd259b1e2fe351f85bade","fullName":"test/qualityGate/qualityGate.test.ts#stringifyQualityGateResults should format single validation result","name":"should format single validation result","status":"passed","testResultsByEnv":{"macos":"6cc252e93f493299506f20e1366ce1b9","windows":"b3167c4034cf206fc0340a99c7cec192","linux":"7824dc4e54f97c93157d5f640676bbb5"}}

@@ -1,0 +1,1 @@
+{"id":"1d5dbecc754e82263089bb8d18d88cd2","fullName":"test/allure1.test.ts#allure1 reader labels special labels should convert testId labels to links","name":"should convert testId labels to links","status":"passed","testResultsByEnv":{"linux":"3ba30dafdc6cc5d0f08904b397dae033","macos":"4c116764bca3aca81370e7e6ca7e9ea5","windows":"8796bd095199faeba819ca6c599e85d0"}}

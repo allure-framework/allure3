@@ -1,0 +1,1 @@
+{"id":"4614e8b0a044d55d57fb976e9b443a6b","fullName":"test/allure1.test.ts#allure1 reader timings should skip duration if start is missing","name":"should skip duration if start is missing","status":"passed","testResultsByEnv":{"windows":"d644541025372589409f1ff27ccbc462","macos":"c13c098be59953be147f4bbecc8b6bae","linux":"bdcdcafac942a7892aa87ca62b018fa1"}}

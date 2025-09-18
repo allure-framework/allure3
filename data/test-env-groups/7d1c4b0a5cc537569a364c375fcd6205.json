@@ -1,1 +1,0 @@
-{"id":"7d1c4b0a5cc537569a364c375fcd6205","fullName":"test/store/store.test.ts#attachments should return unused attachments if specified","name":"should return unused attachments if specified","status":"passed","testResultsByEnv":{"linux":"a37f8856c55f7cefd2ecf4de5d9ffbe0","macos":"a966533ca16f121e103b6a358e605ebd","windows":"2d819124c392929842c6641f64eba62f"}}

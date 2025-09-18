@@ -1,0 +1,1 @@
+{"id":"b6d8c21f0fea4d2adbe9c88a4f6bac92","fullName":"src/components/Button/Button.test.tsx#IconButton renders as an anchor when href is provided","name":"renders as an anchor when href is provided","status":"passed","testResultsByEnv":{"linux":"fd614e5edc24d36089a24cd365251e18","windows":"de480333ea7c241716b035e20a66a473","macos":"04684e56f6c9b9ef167bcaf9cb604d4c"}}

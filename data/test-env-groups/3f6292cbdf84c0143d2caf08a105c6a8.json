@@ -1,1 +1,0 @@
-{"id":"3f6292cbdf84c0143d2caf08a105c6a8","fullName":"test/plugin.test.ts#plugin info should return info for filtered test results in the store","name":"should return info for filtered test results in the store","status":"passed","testResultsByEnv":{"windows":"0b384432619bf806911af9fdb7640ee0","macos":"270a066c1a6ddcd721a72fbbd8e37e11","linux":"2212e103700069bb39fca7118f9ec7bc"}}

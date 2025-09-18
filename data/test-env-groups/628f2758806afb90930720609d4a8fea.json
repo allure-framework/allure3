@@ -1,1 +1,0 @@
-{"id":"628f2758806afb90930720609d4a8fea","fullName":"test/detectors/jenkins.test.ts#jenkins pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"macos":"37bbef7a465ab9853052c2bc2c3f94ac","windows":"92125a445a0fb4958a0280fa23d5b91d","linux":"608e0225cf1b13cf4fe84f7a73ac5852"}}

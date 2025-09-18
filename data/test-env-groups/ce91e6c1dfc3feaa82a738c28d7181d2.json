@@ -1,1 +1,0 @@
-{"id":"ce91e6c1dfc3feaa82a738c28d7181d2","fullName":"test/junitxml.test.ts#junit xml reader attachments stdout should ignore a missing system-out","name":"should ignore a missing system-out","status":"passed","testResultsByEnv":{"windows":"fa4c9ee90e58a33062a5c274b6752e38","macos":"04d8a023d8cc2770469310ad04ecd085","linux":"ffe2e45fe7e117628476d51a7b4c45ce"}}

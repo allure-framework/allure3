@@ -1,1 +1,0 @@
-{"id":"3e0d4cfe78d619568909b7e27525fda9","fullName":"test/allure1.test.ts#allure1 reader failures should handle a missing trace","name":"should handle a missing trace","status":"passed","testResultsByEnv":{"macos":"d6055d86cdfa5dd217e35f4e497b3105","linux":"05b44bdde1c1ce2fc6275060f562a24a","windows":"0f0f3f48d889493a619d5265d7bcf67e"}}

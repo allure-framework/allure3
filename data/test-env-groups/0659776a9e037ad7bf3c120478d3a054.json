@@ -1,1 +1,0 @@
-{"id":"0659776a9e037ad7bf3c120478d3a054","fullName":"commons/output.test.ts:18:3","name":"should generate single report in the report output directory without sub-directories","status":"passed","testResultsByEnv":{"linux":"ad0052c687d6857877aa356262e92659","windows":"dfdac128b92e6ac015f5b5cc30b22dba","macos":"0316402c2b7dec872ea331ed83365ca5"}}

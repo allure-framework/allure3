@@ -1,0 +1,1 @@
+{"id":"36a4ece318f36018903ff5ff865b8b72","fullName":"test/allure1.test.ts#allure1 reader steps attachments should ignore a missing type","name":"should ignore a missing type","status":"passed","testResultsByEnv":{"windows":"fc7f4f67426c4a0df717c133439a3c09","linux":"98c6956b4b2e06fd656f5e38d83b0b33","macos":"744ce65180236ae9cbec6a3da9d304b0"}}

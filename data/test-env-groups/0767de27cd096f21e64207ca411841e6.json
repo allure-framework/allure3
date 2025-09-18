@@ -1,1 +1,0 @@
-{"id":"0767de27cd096f21e64207ca411841e6","fullName":"src/components/Link/Link.test.tsx#Link component renders as a <a> tag when href is provided","name":"renders as a <a> tag when href is provided","status":"passed","testResultsByEnv":{"windows":"ee18596ccab006b9deff6f8fad65e0e1","linux":"776f1d39d04ba716c787041591fc6add","macos":"34c7e39c528fdfcb6ed19f64a9e98031"}}

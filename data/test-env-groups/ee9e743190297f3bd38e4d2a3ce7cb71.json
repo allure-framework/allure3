@@ -1,1 +1,0 @@
-{"id":"ee9e743190297f3bd38e4d2a3ce7cb71","fullName":"test/detectors/jenkins.test.ts#jenkins pullRequestName should return the correct pull request name","name":"should return the correct pull request name","status":"passed","testResultsByEnv":{"windows":"30764c62f6285dbd286eaa7fdcedd26a","macos":"64a95bd64e4e22f528967f64ff5b7bb6","linux":"7c9fbfcc41a5ffb7c9f64e881a004a1a"}}

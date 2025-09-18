@@ -1,0 +1,1 @@
+{"id":"6fc8459db5b9183981cd5eab16f99531","fullName":"test/store/store.test.ts#test results should return all test results except hidden","name":"should return all test results except hidden","status":"passed","testResultsByEnv":{"linux":"086978c4378712da7c12cb117b95fafa","macos":"36b95368db6a2b0f4036460efa5853bc","windows":"de3c31e2c46ae75ab824b988d08dd13f"}}

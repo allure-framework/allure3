@@ -1,1 +1,0 @@
-{"id":"9eb438c7d18c368fe81bb8afe0163f1c","fullName":"test/report.test.ts#report should not allow to readFile() before start()","name":"should not allow to readFile() before start()","status":"passed","testResultsByEnv":{"windows":"fb59244a248164ec8026af0b3e1aa347","linux":"b6e37672afead2ecb7c31b86f8f6727f","macos":"0f1616dfab2e45aa9a8d4cb93848e459"}}

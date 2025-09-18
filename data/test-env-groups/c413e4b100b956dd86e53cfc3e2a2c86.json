@@ -1,1 +1,0 @@
-{"id":"c413e4b100b956dd86e53cfc3e2a2c86","fullName":"test/utils/time.test.ts#formatDuration should return 0s for negative numbers","name":"should return 0s for negative numbers","status":"passed","testResultsByEnv":{"linux":"e954f7af85b43f71b80f2b863578cdb8","windows":"ec4120d24cbb23b602adb2235427b0a6","macos":"999946464b5dbac33d1dcee9b699838b"}}

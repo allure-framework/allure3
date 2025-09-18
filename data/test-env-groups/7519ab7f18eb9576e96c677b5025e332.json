@@ -1,1 +1,0 @@
-{"id":"7519ab7f18eb9576e96c677b5025e332","fullName":"test/detectors/github.test.ts#github jobRunBranch should return the correct job run branch","name":"should return the correct job run branch","status":"passed","testResultsByEnv":{"macos":"98326b6ad1c54a5de6d6fadffe1b126a","linux":"6042eee50ab9d523ec12f62c1b72506e","windows":"d3bc046c5377eae69bb1334e215ddd99"}}

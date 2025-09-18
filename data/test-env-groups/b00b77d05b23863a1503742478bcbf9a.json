@@ -1,1 +1,0 @@
-{"id":"b00b77d05b23863a1503742478bcbf9a","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool shows stderr if failed","name":"shows stderr if failed","status":"passed","testResultsByEnv":{"linux":"c82dfe8b88565de48623f47945536068","macos":"7312cf1f01dd8b8481acce0974a8f054","windows":"ec90eb6b203e61451e056ef40a916ea4"}}

@@ -1,0 +1,1 @@
+{"id":"caa42f4e55b0f8d53dd713cc3a673b59","fullName":"test/detectors/amazon.test.ts#amazon parseArnValues should return empty array for undefined","name":"should return empty array for undefined","status":"passed","testResultsByEnv":{"windows":"4ee1b46512d67ec46cd85c13eda75cd9","linux":"b9b84ae1a3ec2348cc454bf38a3c23c4","macos":"4a9f093e32b5d5c261d9d6615138eb08"}}

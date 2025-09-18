@@ -1,0 +1,1 @@
+{"id":"15fb1f4bddedd1ab2c2d2deb2c8d9852","fullName":"test/detectors/github.test.ts#github jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"macos":"5264d2db2141c2dc8334c87cf2ed2d08","linux":"38719f200768434b0eeaf98185bac1ae","windows":"51cc8d038ea26600f34bc123c9f3e778"}}

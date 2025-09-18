@@ -1,0 +1,1 @@
+{"id":"757ae65844ec27d26af4c00514d41cde","fullName":"test/utils/environment.test.ts#matchEnvironment should return matched environment","name":"should return matched environment","status":"passed","testResultsByEnv":{"linux":"b51a0acab0a0e3405b30d158f2bac116","macos":"c2f080ca572b54d0196e73b59c6e0be3","windows":"d515109d64760c2d3c368b33079108ef"}}

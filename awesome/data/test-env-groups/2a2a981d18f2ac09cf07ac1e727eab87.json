@@ -1,0 +1,1 @@
+{"id":"2a2a981d18f2ac09cf07ac1e727eab87","fullName":"test/detectors/amazon.test.ts#amazon detected should be true for amazon build","name":"should be true for amazon build","status":"passed","testResultsByEnv":{"macos":"4e8a55f596814056401a1d3748156bd5","linux":"0efd654de243ce0ed965b1d35d94930e","windows":"d91cdf362d8e01256c9779f55d324609"}}

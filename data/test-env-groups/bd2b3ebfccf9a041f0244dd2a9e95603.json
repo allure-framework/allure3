@@ -1,1 +1,0 @@
-{"id":"bd2b3ebfccf9a041f0244dd2a9e95603","fullName":"test/detectors/amazon.test.ts#amazon getPipelineName should return the correct pipeline name","name":"should return the correct pipeline name","status":"passed","testResultsByEnv":{"macos":"6955e71de916b45a27d0975b4816ac2a","windows":"c87df9bdf6b8baf42d62a3c547527d92","linux":"878c71073641ca4875eedc82c23355c3"}}

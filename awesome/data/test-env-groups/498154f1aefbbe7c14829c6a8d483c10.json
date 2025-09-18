@@ -1,0 +1,1 @@
+{"id":"498154f1aefbbe7c14829c6a8d483c10","fullName":"test/cucumberjson.test.ts#cucumberjson reader cucumberjs step arguments docstrings should parse a step's doc string","name":"should parse a step's doc string","status":"passed","testResultsByEnv":{"linux":"53452808bcd64878ce985c62c7fa0eee","macos":"93696dea7a44175eea4ef2644e65cd08","windows":"bbb42e1dd3abc179630cf185b3215963"}}

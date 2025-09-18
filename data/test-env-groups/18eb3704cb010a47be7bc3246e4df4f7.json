@@ -1,1 +1,0 @@
-{"id":"18eb3704cb010a47be7bc3246e4df4f7","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be true for batch build","name":"should be true for batch build","status":"passed","testResultsByEnv":{"macos":"cff130cd75dec75aece8ad0653944111","windows":"852b503161adeec76980b1e7b803d220","linux":"04b1e0b3e9b15c606206715b4cca7345"}}

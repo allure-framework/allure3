@@ -1,0 +1,1 @@
+{"id":"c2be325548bf336c42a8cc24e1ca3e18","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo should render well-known CI icon","name":"should render well-known CI icon","status":"passed","testResultsByEnv":{"linux":"52003b5cd8d9f6b46527547599e2ce80","windows":"b5a89b3b93b29a4f25cb8dd10503ea56","macos":"cbada956a78220ad67e0f54dad4ae2ef"}}

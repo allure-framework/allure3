@@ -1,0 +1,1 @@
+{"id":"253b6ee0908a4ec49dab5d4c5809e522","fullName":"test/service.test.ts#AllureServiceClient addReportAsset should upload a file from a filepath","name":"should upload a file from a filepath","status":"passed","testResultsByEnv":{"macos":"2c8db390c0200aa23d85bb7722570887","linux":"200d1fd7dfb798ae740ec0f9c732fe13","windows":"457eae6ff38c60cc769ea759ec91aebc"}}

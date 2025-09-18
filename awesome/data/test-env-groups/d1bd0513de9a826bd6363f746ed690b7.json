@@ -1,0 +1,1 @@
+{"id":"d1bd0513de9a826bd6363f746ed690b7","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool binary mode should iterate over multiple chunks output","name":"should iterate over multiple chunks output","status":"passed","testResultsByEnv":{"linux":"dbf87547aaf9531b6a93dbefceef393b","windows":"ceb311cfc0ae9ee553ebe6567ad594b0","macos":"5331af67448b25d705184671ab9e7990"}}

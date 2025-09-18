@@ -1,0 +1,1 @@
+{"id":"cecd1116b263bde7be0a088b0cb448e7","fullName":"test/allure1.test.ts#allure1 reader failures should handle a missing message","name":"should handle a missing message","status":"passed","testResultsByEnv":{"linux":"d359c4c202a07d271bb009f2436bd93f","macos":"2c774aa62570a6359683b2042a59a5ba","windows":"fb1bc95f0c2e0b82fa129dc2acfdbde2"}}

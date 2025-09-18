@@ -1,1 +1,0 @@
-{"id":"791ee043621a4ee2e9a7cfc444f4a566","fullName":"test/detectors/gitlab.test.ts#gitlab jobURL should return the correct job URL","name":"should return the correct job URL","status":"passed","testResultsByEnv":{"macos":"9ae43d84c3b998bfb449377220cfe0f5","linux":"3c03f82cf41dfd04f97344805558527e","windows":"8f038de3c25aaa2135551356050bb009"}}

@@ -1,0 +1,1 @@
+{"id":"662cb2bd0ae4059462168b589d990d41","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should perform graceful shutdown","name":"should perform graceful shutdown","status":"passed","testResultsByEnv":{"linux":"0e8d261df55af36f9132acdb1f0e9d39","windows":"927ebf0967364cf856525a9522682b48","macos":"d8046a6c9aa5ff5354fe2323bb45f6b3"}}

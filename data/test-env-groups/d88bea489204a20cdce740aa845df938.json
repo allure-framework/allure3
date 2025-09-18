@@ -1,1 +1,0 @@
-{"id":"d88bea489204a20cdce740aa845df938","fullName":"test/detectors/amazon.test.ts#amazon detected should be false for when there is no arn values","name":"should be false for when there is no arn values","status":"passed","testResultsByEnv":{"macos":"4114459fd8e902419ab558cb19778b52","windows":"6bd2e3ae399ea74945e8a22b1e2606ca","linux":"a8dd12ec40ba57f28d4e964289fb47f0"}}

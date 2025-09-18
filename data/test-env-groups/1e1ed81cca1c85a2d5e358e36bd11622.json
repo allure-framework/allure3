@@ -1,1 +1,0 @@
-{"id":"1e1ed81cca1c85a2d5e358e36bd11622","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should await initial scan","name":"should await initial scan","status":"passed","testResultsByEnv":{"windows":"31f0c31754519dd3941e802a92d31e14","macos":"1a0747df9efb385e84e9f0d8e0943a5d","linux":"06ee324926d7bc6e715e0eed5cd31e6a"}}

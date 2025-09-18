@@ -1,0 +1,1 @@
+{"id":"dbd616eea4c8653ac478bb08339b8e13","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher calls the callback when file is created","name":"calls the callback when file is created","status":"passed","testResultsByEnv":{"windows":"211e24a86c002ef94f1c2a74e8719e5f","linux":"5e9a6c9674b08dacf7034d64175190c4","macos":"55c8334eeb13e0ef20f1226f35912c98"}}

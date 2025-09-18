@@ -1,1 +1,0 @@
-{"id":"f726ec2afa2db849929d9f7e7a6735b5","fullName":"test/junitxml.test.ts#junit xml reader durations should ignore an ill-formed time attribute","name":"should ignore an ill-formed time attribute","status":"passed","testResultsByEnv":{"macos":"5f13136ef1ed66149fb50688cdccfbc1","windows":"8ca93b5bc782bc72f442ae0ee8c6f6a2","linux":"835ee7343354f61ed0f39b8407a91d9a"}}

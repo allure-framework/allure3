@@ -1,1 +1,0 @@
-{"id":"70989dd44c11fc4c74ceada5904fb8af","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should handle custom GitLab instance hosts","name":"should handle custom GitLab instance hosts","status":"passed","testResultsByEnv":{"macos":"5f86491a5c7baedf9291b4239764c94a","windows":"afeb424e97ef16fc8d6cf44cef2410ec","linux":"a94ebdb4161355d522b8c18aa559dba5"}}

@@ -1,0 +1,1 @@
+{"id":"fddfa4a4db578b16f0378c9e27e818c2","fullName":"allure-awesome/features/transitions.test.ts:183:3","name":"should show only one Tooltip and change its content on hover different transitions","status":"passed","testResultsByEnv":{"linux":"2bed108b80ac5fec36f6fed735ac3506","windows":"fcdb458f91f00b75af05689aa2d0412f","macos":"1574b022d672f3f3bbf58933b28a4cd1"}}

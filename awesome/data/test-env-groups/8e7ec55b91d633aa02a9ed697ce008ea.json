@@ -1,0 +1,1 @@
+{"id":"8e7ec55b91d633aa02a9ed697ce008ea","fullName":"test/detectors/github.test.ts#github jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"macos":"9153c7c233ecf199ef6cd5db01d3e732","windows":"83d2594c3b49366e0687420037203079","linux":"e7bbb3bd19da95a87886146db0514502"}}

@@ -1,0 +1,1 @@
+{"id":"711a8a6177fda0513e9793f361cd5884","fullName":"allure-awesome/features/attachments.test.ts:69:5","name":"should render \"missed\" label for attachments which don't exist","status":"passed","testResultsByEnv":{"linux":"7851cf9105743767d24d36f00bd7303f","windows":"d36aedadf00dc7e38f68ef4dae37926f","macos":"9a3a5cc17183072226f9b4f07a1a0031"}}

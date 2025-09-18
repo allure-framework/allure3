@@ -1,0 +1,1 @@
+{"id":"bc420bd0e79982903b3479f45f8c31c0","fullName":"test/detectors/gitlab.test.ts#gitlab pullRequestUrl should return the correct pull request URL","name":"should return the correct pull request URL","status":"passed","testResultsByEnv":{"linux":"3e0a25b21af9360d1e4606e28374c9dd","macos":"a28cb09458e2654071332cadbdd4becc","windows":"917cfa2cc535b2b4a9573326924c7ec1"}}

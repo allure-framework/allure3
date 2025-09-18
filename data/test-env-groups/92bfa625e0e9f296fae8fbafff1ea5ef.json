@@ -1,1 +1,0 @@
-{"id":"92bfa625e0e9f296fae8fbafff1ea5ef","fullName":"test/allure1.test.ts#allure1 reader fullName should use the test case's title if no name defined","name":"should use the test case's title if no name defined","status":"passed","testResultsByEnv":{"macos":"2c07ec3a62c307ede8b80dcb751a1c72","windows":"2934e7171281bfca1eb9131390d77110","linux":"5b0463a03dc8f39c40d3f3616e2cae15"}}

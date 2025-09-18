@@ -1,1 +1,0 @@
-{"id":"1bcbbad83002c085bbac20a712e9022a","fullName":"test/detectors/gitlab.test.ts#gitlab detected should be true when GITLAB_CI is set","name":"should be true when GITLAB_CI is set","status":"passed","testResultsByEnv":{"macos":"b6bd275a8e0c9a0f05c6075f5427e8c7","windows":"c8a3baeafe30a3491e8a9a61941746c2","linux":"7a0c8e5a163f01175f38de198be3f1b0"}}

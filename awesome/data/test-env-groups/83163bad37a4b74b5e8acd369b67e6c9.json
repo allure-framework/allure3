@@ -1,0 +1,1 @@
+{"id":"83163bad37a4b74b5e8acd369b67e6c9","fullName":"allure-awesome/test/reportOptions.test.ts:38:5","name":"should contain title from config in the page title","status":"passed","testResultsByEnv":{"macos":"0d9f40fa6a71f0855ee4e9aa31ad23c3","linux":"f64a7a3ff0f5a8211efdbccaf20a44bb","windows":"1890ed9b64f927b800463f23384373c6"}}

@@ -1,0 +1,1 @@
+{"id":"bb60ba64bd8136576cb34a9e0370dab1","fullName":"test/detectors/circle.test.ts#circle getJobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"windows":"11504be9ebaa9355f05801fa091f9804","macos":"985d05e85115c89f98a11a138ce3d173","linux":"3d3d4c5f955054502f7ab6f67de81026"}}

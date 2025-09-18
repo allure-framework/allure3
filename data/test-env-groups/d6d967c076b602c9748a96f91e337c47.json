@@ -1,1 +1,0 @@
-{"id":"d6d967c076b602c9748a96f91e337c47","fullName":"test/allure1.test.ts#allure1 reader fullName should not set fullName if no suite part exists","name":"should not set fullName if no suite part exists","status":"passed","testResultsByEnv":{"windows":"41baaeef84e66c34dd0fb84b35cce2c3","linux":"203e3cb4f83bb616f4e98475d266dd48","macos":"43f1f7e54645c4f60cc90aeae172df09"}}

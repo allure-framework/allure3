@@ -1,1 +1,0 @@
-{"id":"030751d4d5aff1d22c995d3878da44da","fullName":"test/detectors/jenkins.test.ts#jenkins detected should be false when JENKINS_URL is not set","name":"should be false when JENKINS_URL is not set","status":"passed","testResultsByEnv":{"linux":"94050a0b4e07e3188cc5823438610f6e","macos":"9e0aaceba16a63311071b5f64a31acaf","windows":"99300f3589ae3ebea412ea63c591320f"}}

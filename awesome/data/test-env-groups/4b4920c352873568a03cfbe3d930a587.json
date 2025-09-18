@@ -1,0 +1,1 @@
+{"id":"4b4920c352873568a03cfbe3d930a587","fullName":"test/components/Header/CiInfo.test.tsx#components > Header > CiInfo shouldn't render icon for unknown CI","name":"shouldn't render icon for unknown CI","status":"passed","testResultsByEnv":{"macos":"fe85f53dbead5a6db6597fabf94aae2c","linux":"69f05aec2850b9b892cafb2f77eab09b","windows":"d9660b6876b1c0ea29d70d2e86840be0"}}

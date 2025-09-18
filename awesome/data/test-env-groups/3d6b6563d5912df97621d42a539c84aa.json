@@ -1,0 +1,1 @@
+{"id":"3d6b6563d5912df97621d42a539c84aa","fullName":"test/detectors/github.test.ts#github detected should be false when GITHUB_ACTIONS is not set","name":"should be false when GITHUB_ACTIONS is not set","status":"passed","testResultsByEnv":{"macos":"3bad9998e1c15762a3ba86d1a6587423","linux":"48874d72191272551bb2db9456960838","windows":"526273f32469f5ee69b153aa66daedf0"}}

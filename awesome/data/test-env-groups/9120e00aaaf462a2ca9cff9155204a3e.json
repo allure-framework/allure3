@@ -1,0 +1,1 @@
+{"id":"9120e00aaaf462a2ca9cff9155204a3e","fullName":"test/junitxml.test.ts#junit xml reader statuses skipped should parse a skipped element","name":"should parse a skipped element","status":"passed","testResultsByEnv":{"linux":"67400d83cd1ca2e9ba1faf9c37957a93","windows":"9eca68c663baae6d3abe27b3d7e8fdee","macos":"61d294e2899efcc070097a2dd205fa74"}}

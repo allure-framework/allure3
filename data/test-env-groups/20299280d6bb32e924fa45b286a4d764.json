@@ -1,1 +1,0 @@
-{"id":"20299280d6bb32e924fa45b286a4d764","fullName":"test/detectors/gitlab.test.ts#gitlab jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"linux":"ae382d8b82e33152113262ef06f7c0a7","windows":"c8b58d3ec8e3d0365cee9fcc89165884","macos":"857d649042608ebed474e9fad44cbd63"}}

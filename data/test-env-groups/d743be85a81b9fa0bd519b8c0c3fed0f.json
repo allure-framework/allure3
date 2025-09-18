@@ -1,1 +1,0 @@
-{"id":"d743be85a81b9fa0bd519b8c0c3fed0f","fullName":"test/util/event.test.ts#Events should send test result events to all subscribers","name":"should send test result events to all subscribers","status":"passed","testResultsByEnv":{"macos":"720807334da94c316db4b06795f4c21f","linux":"a3e99a74f766281bae63ca38bd49deb2","windows":"57ea08ed92b9914e34041378fa7ab8f4"}}

@@ -1,0 +1,1 @@
+{"id":"14182324a2d8d7ea6722a2edd47fa07f","fullName":"test/detect.test.ts#detectContentType should detect sample.gif as image/gif","name":"should detect sample.gif as image/gif","status":"passed","testResultsByEnv":{"linux":"de171f474e202ad3ce38cee2e9814346","macos":"ac886b3c7bf9c54c278d6e779a26542e","windows":"71b5c41035853a40ce1da386ed0ad26b"}}

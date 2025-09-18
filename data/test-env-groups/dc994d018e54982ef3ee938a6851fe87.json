@@ -1,1 +1,0 @@
-{"id":"dc994d018e54982ef3ee938a6851fe87","fullName":"test/junitxml.test.ts#junit xml reader names should use a placeholder if the name is ill-formed","name":"should use a placeholder if the name is ill-formed","status":"passed","testResultsByEnv":{"linux":"2a5b15947790fbc7c94e11a14aff52c8","windows":"bbbced95c297ff9b5691eadf7a15afba","macos":"b075e57c718aa3be8db2c5068bb21a53"}}

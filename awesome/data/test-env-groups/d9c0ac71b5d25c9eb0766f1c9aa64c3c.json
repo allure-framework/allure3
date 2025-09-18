@@ -1,0 +1,1 @@
+{"id":"d9c0ac71b5d25c9eb0766f1c9aa64c3c","fullName":"test/allure1.test.ts#allure1 reader timings should parse start and stop and calculate duration","name":"should parse start and stop and calculate duration","status":"passed","testResultsByEnv":{"linux":"cb012077d26d26dff077c21525c36427","macos":"5e73d81a5202805fa4be9e3bebae2f77","windows":"e314d2aed033d13ef65336a09484275a"}}
