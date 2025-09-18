@@ -1,10 +1,10 @@
+import type { HistoryTestResult, TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import type { TreeMapDataAccessor } from "../../charts.js";
 import { isChildrenLeavesOnly } from "../../charts.js";
-import type { TreeMapNode, TestResult, HistoryTestResult, TreeLeaf, TreeGroup } from "@allurereport/core-api";
-import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
+import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
 type SubtreeMetrics = {
   totalTests: number;
@@ -69,7 +69,7 @@ const addLeafToGroupFn = (group: Group, leaf: Leaf) => {
 };
 
 const calculateColorValue = (metrics: SubtreeMetrics): number => {
-  const netChange = (metrics.newCount + metrics.enabledCount) - (metrics.deletedCount + metrics.disabledCount);
+  const netChange = metrics.newCount + metrics.enabledCount - (metrics.deletedCount + metrics.disabledCount);
   const normalizedChange = netChange / metrics.totalTests;
 
   // Normalize to 0-1 range from -1 to 1
@@ -82,7 +82,10 @@ const getNewTestResults = (trs: TestResult[], closestHtrs: Record<string, Histor
   return trs.filter((tr) => !closestHtrs[tr.historyId!]);
 };
 
-const getRemovedTestResults = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): HistoryTestResult[] => {
+const getRemovedTestResults = (
+  trs: TestResult[],
+  closestHtrs: Record<string, HistoryTestResult>,
+): HistoryTestResult[] => {
   const historyPointTestResultsAsArray = Object.values(closestHtrs);
   const testResultsAsDictionary: Record<string, TestResult> = Object.fromEntries(trs.map((tr) => [tr.historyId, tr]));
 
@@ -144,16 +147,13 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
   const disabledTrs = getDisabledTestResults(trs, closestHtrs);
 
-  const newTestsById = new Map(newTrs.map(tr => [tr.historyId, tr]));
-  const deletedTestsById = new Map(removedHtrs.map(htr => [htr.historyId, htr]));
-  const enabledTestsById = new Map(enabledTrs.map(tr => [tr.historyId, tr]));
-  const disabledTestsById = new Map(disabledTrs.map(tr => [tr.historyId, tr]));
+  const newTestsById = new Map(newTrs.map((tr) => [tr.historyId, tr]));
+  const deletedTestsById = new Map(removedHtrs.map((htr) => [htr.historyId, htr]));
+  const enabledTestsById = new Map(enabledTrs.map((tr) => [tr.historyId, tr]));
+  const disabledTestsById = new Map(disabledTrs.map((tr) => [tr.historyId, tr]));
 
   // Including into future tree current tests + removed historical tests to be able to reflect removed historical tests
-  const allTests: (TestResult | HistoryTestResult)[] = [
-    ...trs,
-    ...removedHtrs
-  ];
+  const allTests: (TestResult | HistoryTestResult)[] = [...trs, ...removedHtrs];
 
   const getChangeType = (historyId?: string): "new" | "deleted" | "enabled" | "disabled" | "unchanged" => {
     if (newTestsById.has(historyId)) {
@@ -188,7 +188,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
     behaviorLabels,
     leafFactoryFnWithMaps,
     groupFactoryFn,
-    addLeafToGroupFn
+    addLeafToGroupFn,
   );
 
   const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
@@ -248,7 +248,9 @@ export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
     const closestHdp = historyDataPoints[0];
     const closestHtrs = closestHdp.testResults;
     const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHtrs));
-    const closestHtrsWithBehaviorLabelsById = Object.fromEntries(closestHtrsWithBehaviorLabels.map(htr => [htr.historyId, htr]));
+    const closestHtrsWithBehaviorLabelsById = Object.fromEntries(
+      closestHtrsWithBehaviorLabels.map((htr) => [htr.historyId, htr]),
+    );
 
     return createCoverageDiffTreeMap(testsWithBehaviorLabels, closestHtrsWithBehaviorLabelsById);
   },

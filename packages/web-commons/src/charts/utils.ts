@@ -1,5 +1,14 @@
 import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { BarChartType, ChartDataType, ChartType, severityLevels, statusesList, TreeMapChartType } from "@allurereport/core-api";
+import {
+  BarChartType,
+  ChartDataType,
+  ChartType,
+  TreeMapChartType,
+  severityLevels,
+  statusesList,
+} from "@allurereport/core-api";
+import { interpolateRgb } from "d3-interpolate";
+import { scaleLinear } from "d3-scale";
 import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
@@ -13,8 +22,6 @@ import type {
   UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
-import { interpolateRgb } from "d3-interpolate";
-import { scaleLinear } from "d3-scale";
 
 export const createTrendChartDataGeneric = <T extends TestStatus | SeverityLevel>(
   getChart: () => ResponseTrendChartData | undefined,
@@ -128,7 +135,10 @@ export const createStatusChangeTrendBarChartData = (
     () => statusChangeColors,
   );
 
-export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined => {
+export const createSuccessRateDistributionTreeMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
   const chartColorDomain = [0, 1];
 
   return createTreeMapChartDataGeneric(
@@ -140,7 +150,7 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
         .interpolate(interpolateRgb)
         .clamp(true);
 
-        // TODO: change color passed to white
+      // TODO: change color passed to white
       return scaledRgb(value);
     },
     (value) => {
@@ -154,7 +164,10 @@ export const createSuccessRateDistributionTreeMapChartData = (chartId: ChartId, 
   );
 };
 
-export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: ChartsResponse): UITreeMapChartData | undefined => {
+export const createCoverageDiffTreeMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
   const chartColorDomain = [0, 0.5, 1];
 
   return createTreeMapChartDataGeneric(
@@ -166,7 +179,7 @@ export const createCoverageDiffTreeMapChartData = (chartId: ChartId, res: Charts
         .interpolate(interpolateRgb)
         .clamp(true);
 
-        // TODO: change color passed to white
+      // TODO: change color passed to white
       return scaledRgb(value);
     },
     (value) => {
@@ -206,7 +219,11 @@ export const createBarChartData = (
   }
 };
 
-export const createTreeMapChartData = (chartId: ChartId, chartData: ResponseTreeMapChartData, res: ChartsResponse): UITreeMapChartData | undefined => {
+export const createTreeMapChartData = (
+  chartId: ChartId,
+  chartData: ResponseTreeMapChartData,
+  res: ChartsResponse,
+): UITreeMapChartData | undefined => {
   if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
     return createSuccessRateDistributionTreeMapChartData(chartId, res);
   } else if (chartData.dataType === TreeMapChartType.CoverageDiff) {

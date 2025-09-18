@@ -1,8 +1,8 @@
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
+import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
 import type { TreeMapLegendProps } from "./types.js";
-import { Text } from "@/components/Typography";
 
 export const TreeMapLegend: FunctionalComponent<TreeMapLegendProps> = ({
   minValue,
@@ -34,7 +34,7 @@ export const TreeMapLegend: FunctionalComponent<TreeMapLegendProps> = ({
 
       // Calculate percentage positions for each domain point
       const valueRange = effectiveMaxValue - effectiveMinValue;
-      const stops = sortedDomain.map(domainValue => {
+      const stops = sortedDomain.map((domainValue) => {
         const percentage = ((domainValue - effectiveMinValue) / valueRange) * 100;
         const color = colorFn(domainValue, domain);
         return `${color} ${percentage.toFixed(1)}%`;
@@ -55,14 +55,18 @@ export const TreeMapLegend: FunctionalComponent<TreeMapLegendProps> = ({
 
   return (
     <div className={styles.treeMapLegend}>
-      <Text size="s" type="ui" className={styles.treeMapLegend__label}>{formattedMaxValue}</Text>
-        <div
-          className={styles.treeMapLegend__gradient}
-          style={{
-            "--gradient-stops": gradientStops,
-          }}
-        />
-      <Text size="s" type="ui" className={styles.treeMapLegend__label}>{formattedMinValue}</Text>
+      <Text size="s" type="ui" className={styles.treeMapLegend__label}>
+        {formattedMaxValue}
+      </Text>
+      <div
+        className={styles.treeMapLegend__gradient}
+        style={{
+          "--gradient-stops": gradientStops,
+        }}
+      />
+      <Text size="s" type="ui" className={styles.treeMapLegend__label}>
+        {formattedMinValue}
+      </Text>
     </div>
   );
 };

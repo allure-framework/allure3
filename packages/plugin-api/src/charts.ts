@@ -1,12 +1,12 @@
 import type {
+  BarChartType,
   BarGroup,
   BarGroupMode,
-  BarChartType,
   BaseTrendSliceMetadata,
   ChartDataType,
-  ChartType,
   ChartId,
   ChartMode,
+  ChartType,
   HistoryDataPoint,
   HistoryTestResult,
   PieSlice,
@@ -145,7 +145,12 @@ export type ComingSoonChartOptions = {
   title?: string;
 };
 
-export type ChartOptions = TrendChartOptions | PieChartOptions | BarChartOptions | ComingSoonChartOptions | TreeMapChartOptions;
+export type ChartOptions =
+  | TrendChartOptions
+  | PieChartOptions
+  | BarChartOptions
+  | ComingSoonChartOptions
+  | TreeMapChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -239,10 +244,11 @@ export const normalizeStatistic = <T extends string>(
 export const hasLabels = <T extends string, TR extends TestResult | HistoryTestResult>(
   test: TR,
   labelHierarchy: T[],
-): boolean => test.labels?.some(label => {
-  const { name } = label;
-  return name && labelHierarchy.includes(name as T);
-}) ?? false;
+): boolean =>
+  test.labels?.some((label) => {
+    const { name } = label;
+    return name && labelHierarchy.includes(name as T);
+  }) ?? false;
 
 export const isChildrenLeavesOnly = <T extends TreeMapNode>(node: T): boolean => {
   return node.children ? node.children.every((child) => child.children === undefined) : false;

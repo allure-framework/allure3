@@ -1,10 +1,10 @@
+import type { TestResult, TestStatus, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import type { TreeMapDataAccessor } from "../../charts.js";
 import { isChildrenLeavesOnly } from "../../charts.js";
-import type { TestResult, TestStatus, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
-import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
+import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
 type SubtreeMetrics = {
   totalTests: number;
@@ -28,7 +28,7 @@ const leafFactoryFn = ({ id, name, status }: TestResult): Leaf => ({
   value: 1, // default number of tests in the leaf
 });
 const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): Group => ({
-  nodeId:  md5((parentId ? `${parentId}.` : "") + groupClassifier),
+  nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
   name: groupClassifier,
   value: 0, // default number of tests in the group
 });
@@ -43,8 +43,8 @@ const calculateColorValue = ({ totalTests, passedTests }: { totalTests: number; 
 // To calculate colorValue for node we need to rely on its recursive subtree metrics calculations
 const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   if (!node.children || node.children.length === 0) {
-      // Leaf node - value represents passed tests (1 for passed, 0 for failed)
-      return { totalTests: 1, passedTests: node?.status === "passed" ? 1 : 0 };
+    // Leaf node - value represents passed tests (1 for passed, 0 for failed)
+    return { totalTests: 1, passedTests: node?.status === "passed" ? 1 : 0 };
   }
 
   // Group node - aggregate metrics from children
@@ -52,9 +52,9 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   let passedTests = 0;
 
   for (const child of node.children) {
-      const childMetrics = calculateSubtreeMetrics(child);
-      totalTests += childMetrics.totalTests;
-      passedTests += childMetrics.passedTests;
+    const childMetrics = calculateSubtreeMetrics(child);
+    totalTests += childMetrics.totalTests;
+    passedTests += childMetrics.passedTests;
   }
 
   return { totalTests, passedTests };
@@ -66,11 +66,11 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
  */
 export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]): TreeMapNode => {
   const treeByLabels = createTreeByLabels<TestResult, Leaf, Group>(
-      testResults,
-      behaviorLabels,
-      leafFactoryFn,
-      groupFactoryFn,
-      addLeafToGroupFn
+    testResults,
+    behaviorLabels,
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroupFn,
   );
 
   const convertedTree = convertTreeDataToTreeMapNode<ExtendedTreeMapNode, LeafData, GroupData>(
@@ -83,27 +83,27 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
   );
 
   return transformTreeMapNode<TreeMapNode>(convertedTree, (node) => {
-      const subtreeMetrics = calculateSubtreeMetrics(node);
-      const colorValue = calculateColorValue(subtreeMetrics);
+    const subtreeMetrics = calculateSubtreeMetrics(node);
+    const colorValue = calculateColorValue(subtreeMetrics);
 
-      // Add colorValue and remove leafs in favour of their parent group nodes
-      if (isChildrenLeavesOnly(node)) {
-        const value = node.children?.reduce((acc, child) => {
-          return acc + (child.value ?? 0);
-        }, 0);
-
-        return {
-          ...node,
-          value,
-          children: undefined,
-          colorValue,
-        };
-      }
+    // Add colorValue and remove leafs in favour of their parent group nodes
+    if (isChildrenLeavesOnly(node)) {
+      const value = node.children?.reduce((acc, child) => {
+        return acc + (child.value ?? 0);
+      }, 0);
 
       return {
-          ...node,
-          colorValue,
+        ...node,
+        value,
+        children: undefined,
+        colorValue,
       };
+    }
+
+    return {
+      ...node,
+      colorValue,
+    };
   });
 };
 
