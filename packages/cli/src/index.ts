@@ -68,4 +68,4 @@ cli.runExit(args);
 
 console.log(cwd());
 
-export { defineConfig } from "@allurereport/plugin-api";
+export { defineConfig, defaultChartsConfig } from "@allurereport/plugin-api";

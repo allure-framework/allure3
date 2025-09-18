@@ -247,3 +247,64 @@ export const hasLabels = <T extends string, TR extends TestResult | HistoryTestR
 export const isChildrenLeavesOnly = <T extends TreeMapNode>(node: T): boolean => {
   return node.children ? node.children.every((child) => child.children === undefined) : false;
 };
+
+export const defaultChartsConfig = [
+  {
+    type: "pie",
+    title: "Current status"
+  },
+  {
+    type: "trend",
+    dataType: "status",
+    title: "Status dynamics"
+  },
+  {
+    type: "bar",
+    dataType: "statusBySeverity",
+    title: "Test result severities"
+  },
+  {
+    type: "bar",
+    dataType: "statusTrend",
+    title: "Status change dynamics"
+  },
+  {
+    type: "bar",
+    dataType: "statusChangeTrend",
+    title: "Test base growth dynamics"
+  },
+  {
+    type: "treemap",
+    dataType: "coverageDiff",
+    title: "Coverage diff map"
+  },
+  {
+    type: "treemap",
+    dataType: "successRateDistribution",
+    title: "Success rate disctribution"
+  },
+  {
+    type: "heatmap",
+    title: "Problems distribution by environment"
+  },
+  {
+    type: "bar",
+    title: "Stability rate disctribution"
+  },
+  {
+    type: "bar",
+    title: "Duration by layer histogram"
+  },
+  {
+    type: "bar",
+    title: "Performance dynamics"
+  },
+  {
+    type: "bar",
+    title: "FBSU age pyramid"
+  },
+  {
+    type: "funnel",
+    title: "Testing pyramid"
+  },
+];
