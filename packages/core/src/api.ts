@@ -33,6 +33,13 @@ export interface FullConfig {
    * ```
    */
   defaultLabels?: DefaultLabelsConfig;
+  // TODO:
+  transitionalStage?: string;
+  /**
+   * Environment which will be assigned to all tests
+   * Has higher priority than matched environment from the environments config field
+   */
+  environment?: string;
   environments?: EnvironmentsConfig;
   variables?: ReportVariables;
   reportFiles: ReportFiles;

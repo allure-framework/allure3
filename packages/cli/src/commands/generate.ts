@@ -44,9 +44,17 @@ export class GenerateCommand extends Command {
     description: "The report name",
   });
 
+  // TODO:
+  stage = Option.Array("--stage", {
+    description: "Stages to load bla-bla-bla (default: empty string)",
+  });
+
   async execute() {
     const cwd = this.cwd ?? process.cwd();
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
+    const stageDumpFiles = (this.stage ?? [])
+      .map((stage) => join(cwd, stage))
+      .map((stage) => (stage.endsWith(".zip") ? stage : `${stage}.zip`));
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",
@@ -75,6 +83,9 @@ export class GenerateCommand extends Command {
 
     try {
       const allureReport = new AllureReport(config);
+
+      // TODO:
+      await allureReport.restoreState(stageDumpFiles);
 
       await allureReport.start();
 

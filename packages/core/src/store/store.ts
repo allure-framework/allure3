@@ -1,3 +1,4 @@
+//#region imports
 import {
   type AllureHistory,
   type AttachmentLink,
@@ -46,6 +47,8 @@ import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
+//#endregion
+
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
     if (!indexMap.has(key)) {
@@ -58,7 +61,45 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
   }
 };
 
+// TODO:
+export interface StoreStateDump {
+  testResults: Record<string, TestResult>;
+  attachments: Record<string, AttachmentLink>;
+  // attachmentContents: Record<string, string>;
+  testCases: Record<string, TestCase>;
+  // metadata: Record<string, any>;
+  fixtures: Record<string, TestFixtureResult>;
+  // history: AllureHistory | undefined;
+  // known: KnownTestFailure[];
+  // TODO: what do we need to do with it?
+  // defaultLabels: DefaultLabelsConfig;
+  // reportVariables: ReportVariables = {};
+}
+
+// TODO: temp
+export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
+  const result: Record<string | number | symbol, T> = {};
+
+  map.forEach((value, key) => {
+    result[key] = value;
+  });
+
+  return result;
+};
+
+export const mergeMapWithRecord = <K extends string | number | symbol, T = any>(
+  map: Map<K, T>,
+  record: Record<K, T>,
+): Map<K, T> => {
+  Object.entries(record).forEach(([key, value]) => {
+    map.set(key as K, value as T);
+  });
+
+  return map;
+};
+
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
+  // TODO:
   readonly #testResults: Map<string, TestResult>;
   readonly #attachments: Map<string, AttachmentLink>;
   readonly #attachmentContents: Map<string, ResultFile>;
@@ -67,7 +108,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
+
+  //#region
   readonly #defaultLabels: DefaultLabelsConfig = {};
+  readonly #environment: string | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
@@ -93,6 +137,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
+    environment?: string;
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
   }) {
@@ -102,6 +147,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
+      environment,
       environmentsConfig = {},
       reportVariables = {},
     } = params ?? {};
@@ -119,6 +165,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
+    this.#environment = environment;
     this.#reportVariables = reportVariables;
     this.indexLatestEnvTestResultByHistoryId = new Map();
 
@@ -587,7 +634,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       trs.forEach((tr) => {
-        const env = matchEnvironment(this.#environmentsConfig, tr);
+        const env = this.#environment || matchEnvironment(this.#environmentsConfig, tr);
 
         envGroup.testResultsByEnv[env] = tr.id;
       });
@@ -609,5 +656,31 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       ...this.#reportVariables,
       ...(this.#environmentsConfig?.[env]?.variables ?? {}),
     };
+  }
+  //#endregion
+
+  // TODO:
+  dumpState(): StoreStateDump {
+    return {
+      testResults: mapToObject(this.#testResults),
+      attachments: mapToObject(this.#attachments),
+      // attachmentContents: mapToObject(this.#attachmentContents),
+      testCases: mapToObject(this.#testCases),
+      // metadata: mapToObject(this.#metadata),
+      fixtures: mapToObject(this.#fixtures),
+    };
+  }
+
+  async loadState(stateDump: StoreStateDump, attachmentsContents: Record<string, ResultFile> = {}) {
+    const { testResults, attachments, testCases, fixtures } = stateDump;
+
+    console.log(testResults, attachmentsContents);
+
+    mergeMapWithRecord(this.#testResults, testResults);
+    mergeMapWithRecord(this.#attachments, attachments);
+    mergeMapWithRecord(this.#testCases, testCases);
+    mergeMapWithRecord(this.#fixtures, fixtures);
+
+    Object.assign(this.#attachmentContents, attachmentsContents);
   }
 }
