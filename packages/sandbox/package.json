@@ -9,7 +9,8 @@
   "type": "module",
   "scripts": {
     "pret": "rimraf ./allure-results",
-    "t": "yarn allure run -- vitest run"
+    "t": "yarn allure run --stage=foo -- vitest run",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@allurereport/plugin-awesome": "workspace:*",

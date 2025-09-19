@@ -241,6 +241,16 @@ export class RunCommand extends Command {
     description: "Prevent logs attaching to the report (default: false)",
   });
 
+  stage = Option.String("--stage", {
+    description:
+      "Runs tests in stage mode to and collect results to a snapshot file with the provided name (default: empty string)",
+  });
+
+  environment = Option.String("--environment", {
+    description:
+      "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -293,6 +303,9 @@ export class RunCommand extends Command {
 
     const allureReport = new AllureReport({
       ...config,
+      // TODO:
+      environment: this.environment,
+      transitionalStage: this.stage,
       realTime: false,
       plugins: [
         ...(config.plugins?.length
