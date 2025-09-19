@@ -1,4 +1,3 @@
-//#region imports
 import { detect } from "@allurereport/ci";
 import type { AllureHistory, CiDescriptor, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type {
@@ -29,18 +28,15 @@ import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore, StoreStateDump } from "./store/store.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 
-// TODO:
 enum DumpFiles {
   TestResults = "test-results.json",
   TestCases = "test-cases.json",
   Fixtures = "fixtures.json",
   Attachments = "attachments.json",
-  AttachmentsContent = "attachments",
 }
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
-//#endregion
 
 export class AllureReport {
   readonly #reportName: string;
@@ -348,7 +344,7 @@ export class AllureReport {
       const attachments: Record<string, ResultFile> = {};
 
       try {
-        for (const [attachmentId, attachmentEntry] of Object.entries(attachmentsEntries)) {
+        for (const [attachmentId] of Object.entries(attachmentsEntries)) {
           const f = await dump.entryData(attachmentId);
           const fp = join(stageTempDir, attachmentId);
 
@@ -356,8 +352,9 @@ export class AllureReport {
 
           attachments[attachmentId] = new PathResultFile(fp);
         }
-      } catch (e) {
-        console.error("can't restore state", e);
+      } catch (err) {
+        console.error(`Can't restore state from "${stage}", continuing without it`);
+        console.error(err);
       } finally {
         await rm(stageTempDir, { recursive: true });
       }
@@ -378,10 +375,8 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#stage = "done";
 
-    // TODO:
     await this.dumpState();
 
-    //#region
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
 
@@ -504,10 +499,8 @@ export class AllureReport {
     const qualityGateResults = await this.#store.qualityGateResults();
 
     await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
-    //#endregion
   };
 
-  //#region each plug
   #eachPlugin = async (initState: boolean, consumer: (plugin: Plugin, context: PluginContext) => Promise<void>) => {
     if (initState) {
       // reset state on start;
@@ -566,5 +559,4 @@ export class AllureReport {
   #getPluginState(init: boolean, id: string) {
     return init ? new DefaultPluginState({}) : this.#state?.[id];
   }
-  //#endregion
 }

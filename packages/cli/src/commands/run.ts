@@ -210,6 +210,10 @@ export class RunCommand extends Command {
     examples: [
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
+      [
+        "run --stage=my-stage -- npm run test",
+        "Run npm run test and pack inner report state into my-stage.zip archive to restore the state in the next run",
+      ],
     ],
   });
 
@@ -243,7 +247,7 @@ export class RunCommand extends Command {
 
   stage = Option.String("--stage", {
     description:
-      "Runs tests in stage mode to and collect results to a snapshot file with the provided name (default: empty string)",
+      "Runs tests in stage mode to collect results to a stage archive with the provided name (default: empty string)",
   });
 
   environment = Option.String("--environment", {
@@ -303,7 +307,6 @@ export class RunCommand extends Command {
 
     const allureReport = new AllureReport({
       ...config,
-      // TODO:
       environment: this.environment,
       transitionalStage: this.stage,
       realTime: false,
