@@ -20,6 +20,10 @@ export class GenerateCommand extends Command {
         "generate ./allure-results --output custom-report",
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
+      [
+        "generate --stage=stage-windows.zip --stage=stage-macos.zip ./allure-results",
+        "Generate a report using data from the stage archives and using results from the ./allure-results directory",
+      ],
     ],
   });
 
@@ -44,9 +48,8 @@ export class GenerateCommand extends Command {
     description: "The report name",
   });
 
-  // TODO:
   stage = Option.Array("--stage", {
-    description: "Stages to load bla-bla-bla (default: empty string)",
+    description: "Stages archives to restore state from (default: empty string)",
   });
 
   async execute() {
@@ -84,9 +87,7 @@ export class GenerateCommand extends Command {
     try {
       const allureReport = new AllureReport(config);
 
-      // TODO:
       await allureReport.restoreState(stageDumpFiles);
-
       await allureReport.start();
 
       for (const dir of resultsDirectories) {
