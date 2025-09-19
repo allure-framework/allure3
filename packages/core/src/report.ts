@@ -12,18 +12,28 @@ import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBund
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
+import ZipReadStream from "node-stream-zip";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { readFileSync } from "node:fs";
-import { lstat, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { createWriteStream, existsSync, readFileSync } from "node:fs";
+import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { promisify } from "node:util";
+import ZipWriteStream from "zip-stream";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
-import { DefaultAllureStore } from "./store/store.js";
+import { DefaultAllureStore, StoreStateDump } from "./store/store.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+
+enum DumpFiles {
+  TestResults = "test-results.json",
+  TestCases = "test-cases.json",
+  Fixtures = "fixtures.json",
+  Attachments = "attachments.json",
+}
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -43,6 +53,7 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
+  readonly #transitionalStage: string | undefined;
 
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
@@ -61,9 +72,11 @@ export class AllureReport {
       historyPath,
       defaultLabels = {},
       variables = {},
+      environment,
       environments,
       output,
       qualityGate,
+      transitionalStage,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -78,6 +91,7 @@ export class AllureReport {
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
+    this.#transitionalStage = transitionalStage;
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory(this.#allureServiceClient);
@@ -97,6 +111,7 @@ export class AllureReport {
       history: this.#history,
       known,
       defaultLabels,
+      environment,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
@@ -231,6 +246,118 @@ export class AllureReport {
     });
   };
 
+  dumpState = async (): Promise<void> => {
+    if (!this.#transitionalStage) {
+      return;
+    }
+
+    const { testResults, testCases, fixtures, attachments: attachmentsLinks } = this.#store.dumpState();
+    const attachments = await this.#store.allAttachments();
+    const dumpArchive = new ZipWriteStream({
+      zlib: { level: 5 },
+    });
+    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
+    const dumpArchiveWriteStream = createWriteStream(`${this.#transitionalStage}.zip`);
+    const promise = new Promise((res, rej) => {
+      dumpArchive.on("error", (err) => rej(err));
+      dumpArchiveWriteStream.on("finish", () => res(void 0));
+      dumpArchiveWriteStream.on("error", (err) => rej(err));
+    });
+
+    dumpArchive.pipe(dumpArchiveWriteStream);
+
+    await addEntry(Buffer.from(JSON.stringify(testResults)), {
+      name: DumpFiles.TestResults,
+    });
+    await addEntry(Buffer.from(JSON.stringify(testCases)), {
+      name: DumpFiles.TestCases,
+    });
+    await addEntry(Buffer.from(JSON.stringify(fixtures)), {
+      name: DumpFiles.Fixtures,
+    });
+    await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
+      name: DumpFiles.Attachments,
+    });
+
+    for (const attachment of attachments) {
+      const content = await this.#store.attachmentContentById(attachment.id);
+
+      if (!content) {
+        continue;
+      }
+
+      if (content instanceof PathResultFile) {
+        await addEntry(content.path, {
+          name: attachment.id,
+        });
+      } else {
+        await addEntry(await content.asBuffer(), {
+          name: attachment.id,
+        });
+      }
+    }
+
+    dumpArchive.finalize();
+
+    return promise as Promise<void>;
+  };
+
+  restoreState = async (stages: string[]): Promise<void> => {
+    for (const stage of stages) {
+      if (!existsSync(stage)) {
+        continue;
+      }
+
+      const dump = new ZipReadStream.async({
+        file: stage,
+      });
+
+      const testResultsEntry = await dump.entryData(DumpFiles.TestResults);
+      const testCasesEntry = await dump.entryData(DumpFiles.TestCases);
+      const fixturesEntry = await dump.entryData(DumpFiles.Fixtures);
+      const attachmentsEntry = await dump.entryData(DumpFiles.Attachments);
+      const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
+        switch (entryName) {
+          case DumpFiles.Attachments:
+          case DumpFiles.TestResults:
+          case DumpFiles.TestCases:
+          case DumpFiles.Fixtures:
+            return acc;
+          default:
+            return Object.assign(acc, {
+              [entryName]: entry,
+            });
+        }
+      }, {});
+      const dumpState: StoreStateDump = {
+        testResults: JSON.parse(testResultsEntry.toString("utf8")),
+        testCases: JSON.parse(testCasesEntry.toString("utf8")),
+        fixtures: JSON.parse(fixturesEntry.toString("utf8")),
+        attachments: JSON.parse(attachmentsEntry.toString("utf8")),
+      };
+      const stageTempDir = await mkdtemp(stage);
+      const attachments: Record<string, ResultFile> = {};
+
+      try {
+        for (const [attachmentId] of Object.entries(attachmentsEntries)) {
+          const f = await dump.entryData(attachmentId);
+          const fp = join(stageTempDir, attachmentId);
+
+          await writeFile(fp, f);
+
+          attachments[attachmentId] = new PathResultFile(fp);
+        }
+      } catch (err) {
+        console.error(`Can't restore state from "${stage}", continuing without it`);
+        console.error(err);
+      } finally {
+        await rm(stageTempDir, { recursive: true });
+      }
+
+      await this.#store.loadState(dumpState, attachments);
+    }
+  };
+
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
     const remoteHrefs: string[] = [];
@@ -242,6 +369,8 @@ export class AllureReport {
     this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
     this.#stage = "done";
+
+    await this.dumpState();
 
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);

@@ -257,60 +257,60 @@ export const isChildrenLeavesOnly = <T extends TreeMapNode>(node: T): boolean =>
 export const defaultChartsConfig = [
   {
     type: "pie",
-    title: "Current status"
+    title: "Current status",
   },
   {
     type: "trend",
     dataType: "status",
-    title: "Status dynamics"
+    title: "Status dynamics",
   },
   {
     type: "bar",
     dataType: "statusBySeverity",
-    title: "Test result severities"
+    title: "Test result severities",
   },
   {
     type: "bar",
     dataType: "statusTrend",
-    title: "Status change dynamics"
+    title: "Status change dynamics",
   },
   {
     type: "bar",
     dataType: "statusChangeTrend",
-    title: "Test base growth dynamics"
+    title: "Test base growth dynamics",
   },
   {
     type: "treemap",
     dataType: "coverageDiff",
-    title: "Coverage diff map"
+    title: "Coverage diff map",
   },
   {
     type: "treemap",
     dataType: "successRateDistribution",
-    title: "Success rate disctribution"
+    title: "Success rate disctribution",
   },
   {
     type: "heatmap",
-    title: "Problems distribution by environment"
+    title: "Problems distribution by environment",
   },
   {
     type: "bar",
-    title: "Stability rate disctribution"
+    title: "Stability rate disctribution",
   },
   {
     type: "bar",
-    title: "Duration by layer histogram"
+    title: "Duration by layer histogram",
   },
   {
     type: "bar",
-    title: "Performance dynamics"
+    title: "Performance dynamics",
   },
   {
     type: "bar",
-    title: "FBSU age pyramid"
+    title: "FBSU age pyramid",
   },
   {
     type: "funnel",
-    title: "Testing pyramid"
+    title: "Testing pyramid",
   },
 ];
