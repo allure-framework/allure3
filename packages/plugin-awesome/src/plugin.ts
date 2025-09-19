@@ -43,7 +43,6 @@ export class AwesomePlugin implements Plugin {
     const environments = await store.allEnvironments();
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
-
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();

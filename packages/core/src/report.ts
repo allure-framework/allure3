@@ -53,8 +53,6 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
-
-  // TODO:
   readonly #transitionalStage: string | undefined;
 
   #state?: Record<string, PluginState>;
@@ -93,8 +91,6 @@ export class AllureReport {
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
-
-    // TODO:
     this.#transitionalStage = transitionalStage;
 
     if (this.#allureServiceClient) {
@@ -250,7 +246,6 @@ export class AllureReport {
     });
   };
 
-  // TODO:
   dumpState = async (): Promise<void> => {
     if (!this.#transitionalStage) {
       return;

@@ -1,4 +1,3 @@
-//#region imports
 import {
   type AllureHistory,
   type AttachmentLink,
@@ -46,8 +45,6 @@ import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
 import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
-
-//#endregion
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
   if (key) {
@@ -108,8 +105,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
-
-  //#region
   readonly #defaultLabels: DefaultLabelsConfig = {};
   readonly #environment: string | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
@@ -304,7 +299,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
+    testResult.environment = this.#environment || matchEnvironment(this.#environmentsConfig, testResult);
 
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
@@ -584,7 +579,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // environments
 
   async allEnvironments() {
-    return Array.from(new Set(["default", ...Object.keys(this.#environmentsConfig)]));
+    return Array.from(
+      new Set(["default", ...Object.keys(this.#environmentsConfig).concat(this.#environment ?? "").filter(Boolean)]),
+    );
   }
 
   async testResultsByEnvironment(
@@ -657,24 +654,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       ...(this.#environmentsConfig?.[env]?.variables ?? {}),
     };
   }
-  //#endregion
 
-  // TODO:
   dumpState(): StoreStateDump {
     return {
       testResults: mapToObject(this.#testResults),
       attachments: mapToObject(this.#attachments),
-      // attachmentContents: mapToObject(this.#attachmentContents),
       testCases: mapToObject(this.#testCases),
-      // metadata: mapToObject(this.#metadata),
       fixtures: mapToObject(this.#fixtures),
     };
   }
 
   async loadState(stateDump: StoreStateDump, attachmentsContents: Record<string, ResultFile> = {}) {
     const { testResults, attachments, testCases, fixtures } = stateDump;
-
-    console.log(testResults, attachmentsContents);
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
