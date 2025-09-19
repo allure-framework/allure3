@@ -580,7 +580,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async allEnvironments() {
     return Array.from(
-      new Set(["default", ...Object.keys(this.#environmentsConfig).concat(this.#environment ?? "").filter(Boolean)]),
+      new Set([
+        "default",
+        ...Object.keys(this.#environmentsConfig)
+          .concat(this.#environment ?? "")
+          .filter(Boolean),
+      ]),
     );
   }
 
