@@ -78,7 +78,7 @@ export class GenerateCommand extends Command {
       return false;
     });
 
-    if (resultsDirectories.size === 0) {
+    if (resultsDirectories.size === 0 && stageDumpFiles.length === 0) {
       // eslint-disable-next-line no-console
       console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
       return;
