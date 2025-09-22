@@ -33,6 +33,7 @@ enum DumpFiles {
   TestCases = "test-cases.json",
   Fixtures = "fixtures.json",
   Attachments = "attachments.json",
+  Environments = "environments.json",
 }
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -247,11 +248,7 @@ export class AllureReport {
   };
 
   dumpState = async (): Promise<void> => {
-    if (!this.#transitionalStage) {
-      return;
-    }
-
-    const { testResults, testCases, fixtures, attachments: attachmentsLinks } = this.#store.dumpState();
+    const { testResults, testCases, fixtures, attachments: attachmentsLinks, environments } = this.#store.dumpState();
     const attachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
       zlib: { level: 5 },
@@ -277,6 +274,9 @@ export class AllureReport {
     });
     await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
       name: DumpFiles.Attachments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(environments)), {
+      name: DumpFiles.Environments,
     });
 
     for (const attachment of attachments) {
@@ -316,12 +316,14 @@ export class AllureReport {
       const testCasesEntry = await dump.entryData(DumpFiles.TestCases);
       const fixturesEntry = await dump.entryData(DumpFiles.Fixtures);
       const attachmentsEntry = await dump.entryData(DumpFiles.Attachments);
+      const environmentsEntry = await dump.entryData(DumpFiles.Environments);
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case DumpFiles.Attachments:
           case DumpFiles.TestResults:
           case DumpFiles.TestCases:
           case DumpFiles.Fixtures:
+          case DumpFiles.Environments:
             return acc;
           default:
             return Object.assign(acc, {
@@ -334,18 +336,19 @@ export class AllureReport {
         testCases: JSON.parse(testCasesEntry.toString("utf8")),
         fixtures: JSON.parse(fixturesEntry.toString("utf8")),
         attachments: JSON.parse(attachmentsEntry.toString("utf8")),
+        environments: JSON.parse(environmentsEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(stage);
       const attachments: Record<string, ResultFile> = {};
 
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
-          const f = await dump.entryData(attachmentId);
-          const fp = join(stageTempDir, attachmentId);
+          const attachmentContentEntry = await dump.entryData(attachmentId);
+          const attachmentFilePath = join(stageTempDir, attachmentId);
 
-          await writeFile(fp, f);
+          await writeFile(attachmentFilePath, attachmentContentEntry);
 
-          attachments[attachmentId] = new PathResultFile(fp);
+          attachments[attachmentId] = new PathResultFile(attachmentFilePath);
         }
       } catch (err) {
         console.error(`Can't restore state from "${stage}", continuing without it`);
@@ -370,7 +373,9 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#stage = "done";
 
-    await this.dumpState();
+    if (this.#transitionalStage) {
+      await this.dumpState();
+    }
 
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);

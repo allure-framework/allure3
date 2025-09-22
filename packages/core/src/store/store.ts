@@ -66,6 +66,7 @@ export interface StoreStateDump {
   testCases: Record<string, TestCase>;
   // metadata: Record<string, any>;
   fixtures: Record<string, TestFixtureResult>;
+  environments: string[];
   // history: AllureHistory | undefined;
   // known: KnownTestFailure[];
   // TODO: what do we need to do with it?
@@ -125,6 +126,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
+  #environments: string[] = [];
 
   constructor(params?: {
     history?: AllureHistory;
@@ -163,6 +165,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environment = environment;
     this.#reportVariables = reportVariables;
     this.indexLatestEnvTestResultByHistoryId = new Map();
+    this.#environments = Object.keys(environmentsConfig)
+      .concat(this.#environment ?? "")
+      .filter(Boolean);
 
     // initialize test result maps for every environment
     Object.keys(this.#environmentsConfig)
@@ -579,14 +584,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // environments
 
   async allEnvironments() {
-    return Array.from(
-      new Set([
-        "default",
-        ...Object.keys(this.#environmentsConfig)
-          .concat(this.#environment ?? "")
-          .filter(Boolean),
-      ]),
-    );
+    return this.#environments;
   }
 
   async testResultsByEnvironment(
@@ -666,16 +664,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       attachments: mapToObject(this.#attachments),
       testCases: mapToObject(this.#testCases),
       fixtures: mapToObject(this.#fixtures),
+      environments: this.#environments,
     };
   }
 
   async loadState(stateDump: StoreStateDump, attachmentsContents: Record<string, ResultFile> = {}) {
-    const { testResults, attachments, testCases, fixtures } = stateDump;
+    const { testResults, attachments, testCases, fixtures, environments } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
     mergeMapWithRecord(this.#testCases, testCases);
     mergeMapWithRecord(this.#fixtures, fixtures);
+
+    this.#environments = Array.from(new Set([...this.#environments, ...environments]));
 
     Object.assign(this.#attachmentContents, attachmentsContents);
   }
