@@ -1871,14 +1871,7 @@ describe("dump state", () => {
       includeMissed: false,
       includeUnused: true,
     });
-    const dump = {
-      testResults: {} as Record<string, any>,
-      attachments: {} as Record<string, any>,
-      testCases: {} as Record<string, any>,
-      fixtures: {} as Record<string, any>,
-      environments: ["default"],
-      reportVariables: {},
-    };
+    const dump = store.dumpState()
 
     testResults.forEach((tr) => {
       dump.testResults[tr.id] = tr;
