@@ -1930,7 +1930,7 @@ describe("dump state", () => {
       id: testResultId,
       name: "test result",
       fullName: "test result",
-      status: "passed"
+      status: "passed",
     };
     const fileName = "test-attachment.txt";
     const attachmentId = md5(fileName);
@@ -1941,26 +1941,23 @@ describe("dump state", () => {
       contentType: "text/plain",
       ext: "txt",
       used: true,
-      missed: true
+      missed: true,
     };
     const dump = {
       testResults: {
-        [testResultId]: testResult
+        [testResultId]: testResult,
       },
       attachments: {
-        [attachmentId]: attachmentLink
+        [attachmentId]: attachmentLink,
       },
       testCases: {},
       fixtures: {},
       environments: ["default"],
-      reportVariables: {}
+      reportVariables: {},
     };
-    const attachmentFile = new BufferResultFile(
-      attachmentContent,
-      fileName,
-    );
+    const attachmentFile = new BufferResultFile(attachmentContent, fileName);
     const attachmentsToRestore = {
-      [attachmentId]: attachmentFile
+      [attachmentId]: attachmentFile,
     };
     const store = new DefaultAllureStore();
 
@@ -1973,7 +1970,7 @@ describe("dump state", () => {
 
     const attachments = await store.allAttachments({
       includeMissed: true,
-      includeUnused: true
+      includeUnused: true,
     });
 
     expect(attachments.length).toBe(1);

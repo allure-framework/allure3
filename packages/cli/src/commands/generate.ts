@@ -2,8 +2,9 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
+import * as console from "node:console";
 import { join } from "node:path";
-import process from "node:process";
+import { exit, cwd as processCwd } from "node:process";
 import pm from "picomatch";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
@@ -53,7 +54,7 @@ export class GenerateCommand extends Command {
   });
 
   async execute() {
-    const cwd = this.cwd ?? process.cwd();
+    const cwd = this.cwd ?? processCwd();
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const stageDumpFiles = (this.stage ?? [])
       .map((stage) => join(cwd, stage))
@@ -99,12 +100,12 @@ export class GenerateCommand extends Command {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
         console.error(red(error.message));
-        process.exit(1);
+        exit(1);
         return;
       }
 
       await logError("Failed to generate report due to unexpected error", error as Error);
-      process.exit(1);
+      exit(1);
     }
   }
 }
