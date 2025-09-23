@@ -144,10 +144,7 @@ describe("generate command", () => {
     await command.execute();
 
     expect(AllureReportMock).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([
-      "stage1.zip",
-      "stage2.zip",
-    ]);
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).not.toHaveBeenCalled();
@@ -168,10 +165,7 @@ describe("generate command", () => {
     await command.execute();
 
     expect(AllureReportMock).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([
-      "stage1.zip",
-      "stage2.zip",
-    ]);
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results");
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
