@@ -1,12 +1,20 @@
 import { detect } from "@allurereport/ci";
-import type { AllureHistory, CiDescriptor, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type {
-  Plugin,
-  PluginContext,
-  PluginState,
-  PluginSummary,
-  ReportFiles,
-  ResultFile,
+  AllureHistory,
+  CiDescriptor,
+  KnownTestFailure,
+  ReportVariables,
+  TestResult,
+} from "@allurereport/core-api";
+import {
+  type AllureStoreDump,
+  AllureStoreDumpFiles,
+  type Plugin,
+  type PluginContext,
+  type PluginState,
+  type PluginSummary,
+  type ReportFiles,
+  type ResultFile,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
@@ -25,22 +33,15 @@ import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
-import { DefaultAllureStore, StoreStateDump } from "./store/store.js";
+import { DefaultAllureStore } from "./store/store.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
-
-enum DumpFiles {
-  TestResults = "test-results.json",
-  TestCases = "test-cases.json",
-  Fixtures = "fixtures.json",
-  Attachments = "attachments.json",
-  Environments = "environments.json",
-}
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
 
 export class AllureReport {
   readonly #reportName: string;
+  readonly #reportVariables: ReportVariables;
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
@@ -88,6 +89,7 @@ export class AllureReport {
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
+    this.#reportVariables = variables;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
@@ -264,19 +266,22 @@ export class AllureReport {
     dumpArchive.pipe(dumpArchiveWriteStream);
 
     await addEntry(Buffer.from(JSON.stringify(testResults)), {
-      name: DumpFiles.TestResults,
+      name: AllureStoreDumpFiles.TestResults,
     });
     await addEntry(Buffer.from(JSON.stringify(testCases)), {
-      name: DumpFiles.TestCases,
+      name: AllureStoreDumpFiles.TestCases,
     });
     await addEntry(Buffer.from(JSON.stringify(fixtures)), {
-      name: DumpFiles.Fixtures,
+      name: AllureStoreDumpFiles.Fixtures,
     });
     await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
-      name: DumpFiles.Attachments,
+      name: AllureStoreDumpFiles.Attachments,
     });
     await addEntry(Buffer.from(JSON.stringify(environments)), {
-      name: DumpFiles.Environments,
+      name: AllureStoreDumpFiles.Environments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
+      name: AllureStoreDumpFiles.ReportVariables,
     });
 
     for (const attachment of attachments) {
@@ -312,18 +317,20 @@ export class AllureReport {
         file: stage,
       });
 
-      const testResultsEntry = await dump.entryData(DumpFiles.TestResults);
-      const testCasesEntry = await dump.entryData(DumpFiles.TestCases);
-      const fixturesEntry = await dump.entryData(DumpFiles.Fixtures);
-      const attachmentsEntry = await dump.entryData(DumpFiles.Attachments);
-      const environmentsEntry = await dump.entryData(DumpFiles.Environments);
+      const testResultsEntry = await dump.entryData(AllureStoreDumpFiles.TestResults);
+      const testCasesEntry = await dump.entryData(AllureStoreDumpFiles.TestCases);
+      const fixturesEntry = await dump.entryData(AllureStoreDumpFiles.Fixtures);
+      const attachmentsEntry = await dump.entryData(AllureStoreDumpFiles.Attachments);
+      const environmentsEntry = await dump.entryData(AllureStoreDumpFiles.Environments);
+      const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
-          case DumpFiles.Attachments:
-          case DumpFiles.TestResults:
-          case DumpFiles.TestCases:
-          case DumpFiles.Fixtures:
-          case DumpFiles.Environments:
+          case AllureStoreDumpFiles.Attachments:
+          case AllureStoreDumpFiles.TestResults:
+          case AllureStoreDumpFiles.TestCases:
+          case AllureStoreDumpFiles.Fixtures:
+          case AllureStoreDumpFiles.Environments:
+          case AllureStoreDumpFiles.ReportVariables:
             return acc;
           default:
             return Object.assign(acc, {
@@ -331,12 +338,13 @@ export class AllureReport {
             });
         }
       }, {});
-      const dumpState: StoreStateDump = {
+      const dumpState: AllureStoreDump = {
         testResults: JSON.parse(testResultsEntry.toString("utf8")),
         testCases: JSON.parse(testCasesEntry.toString("utf8")),
         fixtures: JSON.parse(fixturesEntry.toString("utf8")),
         attachments: JSON.parse(attachmentsEntry.toString("utf8")),
         environments: JSON.parse(environmentsEntry.toString("utf8")),
+        reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(stage);
       const attachments: Record<string, ResultFile> = {};

@@ -3,6 +3,7 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  ReportVariables,
   Statistic,
   TestCase,
   TestEnvGroup,
@@ -58,4 +59,22 @@ export interface AllureStore {
   // variables
   allVariables: () => Promise<Record<string, any>>;
   envVariables: (env: string) => Promise<Record<string, any>>;
+}
+
+export interface AllureStoreDump {
+  testResults: Record<string, TestResult>;
+  attachments: Record<string, AttachmentLink>;
+  testCases: Record<string, TestCase>;
+  fixtures: Record<string, TestFixtureResult>;
+  environments: string[];
+  reportVariables: ReportVariables;
+}
+
+export enum AllureStoreDumpFiles {
+  TestResults = "test-results.json",
+  TestCases = "test-cases.json",
+  Fixtures = "fixtures.json",
+  Attachments = "attachments.json",
+  Environments = "environments.json",
+  ReportVariables = "report-variables.json",
 }
