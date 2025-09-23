@@ -33,7 +33,10 @@ export interface FullConfig {
    * ```
    */
   defaultLabels?: DefaultLabelsConfig;
-  // TODO:
+  /**
+   * Signals that the report's plugins shouldn't be executed, but test results should be archived
+   * Archived test results can be restored later
+   */
   transitionalStage?: string;
   /**
    * Environment which will be assigned to all tests
