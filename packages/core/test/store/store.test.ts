@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
+import { AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it } from "vitest";
@@ -1839,5 +1839,144 @@ describe("variables", () => {
     const result = await store.envVariables("default");
 
     expect(result).toEqual(fixture);
+  });
+});
+
+describe("dump state", () => {
+  it("should allow to dump store state", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "full test result 1",
+      status: "passed",
+      testId: "test-id-1",
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      fullName: "full test result 2",
+      status: "failed",
+      testId: "test-id-2",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const attachmentFile = new BufferResultFile(Buffer.from("test content"), "attachment.txt");
+    const attachmentId = md5(attachmentFile.getOriginalFileName());
+
+    await store.visitAttachmentFile(attachmentFile, { readerId });
+
+    const testResults = await store.allTestResults();
+    const attachments = await store.allAttachments({
+      includeMissed: false,
+      includeUnused: true,
+    });
+    const dump = {
+      testResults: {} as Record<string, any>,
+      attachments: {} as Record<string, any>,
+      testCases: {} as Record<string, any>,
+      fixtures: {} as Record<string, any>,
+      environments: ["default"],
+      reportVariables: {},
+    };
+
+    testResults.forEach((tr) => {
+      dump.testResults[tr.id] = tr;
+    });
+    attachments.forEach((attachment) => {
+      dump.attachments[attachment.id] = attachment;
+    });
+
+    expect(dump).toBeDefined();
+    expect(Object.keys(dump.testResults).length).toBe(2);
+    expect(Object.keys(dump.attachments).length).toBe(1);
+    expect(dump.attachments[attachmentId]).toBeDefined();
+    expect(dump.environments).toContain("default");
+    expect(dump.reportVariables).toEqual({});
+  });
+
+  it("should restore store state from the provided dump", async () => {
+    const testResult = {
+      id: "test-result-id",
+      name: "test result",
+      fullName: "test result",
+      status: "passed",
+    };
+    const dump = {
+      testResults: {
+        "test-result-id": testResult,
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const loadedResults = await store.allTestResults();
+
+    expect(loadedResults.length).toBe(1);
+    expect(loadedResults[0].name).toBe("test result");
+    expect(loadedResults[0].id).toBe("test-result-id");
+  });
+
+  it("should restore store state with attachments", async () => {
+    const testResultId = "test-result-id";
+    const testResult = {
+      id: testResultId,
+      name: "test result",
+      fullName: "test result",
+      status: "passed"
+    };
+    const fileName = "test-attachment.txt";
+    const attachmentId = md5(fileName);
+    const attachmentContent = Buffer.from("Test attachment content");
+    const attachmentLink = {
+      id: attachmentId,
+      originalFileName: fileName,
+      contentType: "text/plain",
+      ext: "txt",
+      used: true,
+      missed: true
+    };
+    const dump = {
+      testResults: {
+        [testResultId]: testResult
+      },
+      attachments: {
+        [attachmentId]: attachmentLink
+      },
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {}
+    };
+    const attachmentFile = new BufferResultFile(
+      attachmentContent,
+      fileName,
+    );
+    const attachmentsToRestore = {
+      [attachmentId]: attachmentFile
+    };
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, attachmentsToRestore);
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults.length).toBe(1);
+    expect(testResults[0].id).toBe(testResultId);
+
+    const attachments = await store.allAttachments({
+      includeMissed: true,
+      includeUnused: true
+    });
+
+    expect(attachments.length).toBe(1);
+    expect(attachments[0].id).toBe(attachmentId);
   });
 });

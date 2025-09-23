@@ -365,7 +365,7 @@ export class AllureReport {
         await rm(stageTempDir, { recursive: true });
       }
 
-      await this.#store.loadState(dumpState, attachments);
+      await this.#store.restoreState(dumpState, attachments);
     }
   };
 

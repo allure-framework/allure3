@@ -301,28 +301,33 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
+
     testResult.transition = getStatusTransition(testResult, trHistory);
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
 
+    if (testResult.environment && !this.indexLatestEnvTestResultByHistoryId.has(testResult.environment)) {
+      this.indexLatestEnvTestResultByHistoryId.set(testResult.environment, new Map());
+    }
+
     // retries
     if (testResult.historyId) {
       const maybeOther = this.indexLatestEnvTestResultByHistoryId
-        ?.get(testResult.environment)
-        ?.get(testResult.historyId);
+        .get(testResult.environment)!
+        .get(testResult.historyId);
 
       if (maybeOther) {
         // if no start, means only duration is provided from result. In that case always use the latest (current).
         // Otherwise, compare by start timestamp, the latest wins.
         if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestEnvTestResultByHistoryId?.get(testResult.environment)?.set(testResult.historyId, testResult);
+          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
           maybeOther.hidden = true;
         } else {
           testResult.hidden = true;
         }
       } else {
-        this.indexLatestEnvTestResultByHistoryId?.get(testResult.environment)?.set(testResult.historyId, testResult);
+        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
       }
     }
 
@@ -662,7 +667,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     };
   }
 
-  async loadState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
+  async restoreState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
     const { testResults, attachments, testCases, fixtures, reportVariables, environments } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
