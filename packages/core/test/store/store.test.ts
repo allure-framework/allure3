@@ -4,7 +4,7 @@ import { AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it } from "vitest";
-import { DefaultAllureStore, mergeMapWithRecord, mapToObject } from "../../src/store/store.js";
+import { DefaultAllureStore, mapToObject, mergeMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
@@ -1871,7 +1871,7 @@ describe("dump state", () => {
       includeMissed: false,
       includeUnused: true,
     });
-    const dump = store.dumpState()
+    const dump = store.dumpState();
 
     testResults.forEach((tr) => {
       dump.testResults[tr.id] = tr;
@@ -1986,7 +1986,10 @@ describe("mergeMapWithRecord", () => {
   });
 
   it("should overwrite existing keys in the map", () => {
-    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const map = new Map<string, number>([
+      ["a", 1],
+      ["b", 2],
+    ]);
     const record = { b: 42, c: 3 };
 
     mergeMapWithRecord(map, record);
@@ -2006,14 +2009,20 @@ describe("mergeMapWithRecord", () => {
 
 describe("mapToObject", () => {
   it("should convert a map with string keys to an object", () => {
-    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const map = new Map<string, number>([
+      ["a", 1],
+      ["b", 2],
+    ]);
     const obj = mapToObject(map);
 
     expect(obj).toEqual({ a: 1, b: 2 });
   });
 
   it("should convert a map with number keys to an object", () => {
-    const map = new Map<number, string>([[1, "one"], [2, "two"]]);
+    const map = new Map<number, string>([
+      [1, "one"],
+      [2, "two"],
+    ]);
     const obj = mapToObject(map);
 
     expect(obj).toEqual({ 1: "one", 2: "two" });
@@ -2022,7 +2031,10 @@ describe("mapToObject", () => {
   it("should convert a map with symbol keys to an object", () => {
     const symA = Symbol("a");
     const symB = Symbol("b");
-    const map = new Map<symbol, string>([[symA, "A"], [symB, "B"]]);
+    const map = new Map<symbol, string>([
+      [symA, "A"],
+      [symB, "B"],
+    ]);
     const obj = mapToObject(map);
 
     expect(obj[symA]).toBe("A");

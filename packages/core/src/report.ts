@@ -251,7 +251,7 @@ export class AllureReport {
 
   dumpState = async (): Promise<void> => {
     const { testResults, testCases, fixtures, attachments: attachmentsLinks, environments } = this.#store.dumpState();
-    const attachments = await this.#store.allAttachments();
+    const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
       zlib: { level: 5 },
     });
@@ -284,7 +284,7 @@ export class AllureReport {
       name: AllureStoreDumpFiles.ReportVariables,
     });
 
-    for (const attachment of attachments) {
+    for (const attachment of allAttachments) {
       const content = await this.#store.attachmentContentById(attachment.id);
 
       if (!content) {
@@ -347,7 +347,7 @@ export class AllureReport {
         reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(stage);
-      const attachments: Record<string, ResultFile> = {};
+      const resultsAttachments: Record<string, ResultFile> = {};
 
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
@@ -356,7 +356,7 @@ export class AllureReport {
 
           await writeFile(attachmentFilePath, attachmentContentEntry);
 
-          attachments[attachmentId] = new PathResultFile(attachmentFilePath);
+          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath);
         }
       } catch (err) {
         console.error(`Can't restore state from "${stage}", continuing without it`);
@@ -365,7 +365,7 @@ export class AllureReport {
         await rm(stageTempDir, { recursive: true });
       }
 
-      await this.#store.restoreState(dumpState, attachments);
+      await this.#store.restoreState(dumpState, resultsAttachments);
     }
   };
 
