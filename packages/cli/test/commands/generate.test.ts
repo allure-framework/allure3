@@ -160,7 +160,7 @@ describe("generate command", () => {
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
-    
+
     command.cwd = ".";
     command.resultsDir = "./allure-results";
     command.stage = ["stage1.zip", "stage2.zip"];

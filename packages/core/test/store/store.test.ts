@@ -4,7 +4,7 @@ import { AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it } from "vitest";
-import { DefaultAllureStore } from "../../src/store/store.js";
+import { DefaultAllureStore, mergeMapWithRecord, mapToObject } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
@@ -1274,7 +1274,7 @@ describe("attachments", () => {
 
 describe("history", () => {
   it("should return history data points sorted by timestamp", async () => {
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1299,7 +1299,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1337,7 +1337,7 @@ describe("history", () => {
   });
 
   it("should return empty history for test result if no history data is found", async () => {
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1352,7 +1352,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1376,7 +1376,7 @@ describe("history", () => {
   it("should return history for test result", async () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1391,7 +1391,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1422,7 +1422,7 @@ describe("history", () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
     const now = Date.now();
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1465,7 +1465,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1506,7 +1506,7 @@ describe("history", () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
     const now = Date.now();
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1549,7 +1549,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1975,5 +1975,71 @@ describe("dump state", () => {
 
     expect(attachments.length).toBe(1);
     expect(attachments[0].id).toBe(attachmentId);
+  });
+});
+
+describe("mergeMapWithRecord", () => {
+  it("should merge a record into a map with string keys", () => {
+    const map = new Map<string, number>([["a", 1]]);
+    const record = { b: 2, c: 3 };
+    const result = mergeMapWithRecord(map, record);
+
+    expect(result).toBe(map);
+    expect(Array.from(result.entries())).toEqual([
+      ["a", 1],
+      ["b", 2],
+      ["c", 3],
+    ]);
+  });
+
+  it("should overwrite existing keys in the map", () => {
+    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const record = { b: 42, c: 3 };
+
+    mergeMapWithRecord(map, record);
+
+    expect(map.get("b")).toBe(42);
+    expect(map.get("c")).toBe(3);
+  });
+
+  it("should handle empty record and map", () => {
+    const map = new Map();
+    const record = {};
+    const result = mergeMapWithRecord(map, record);
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe("mapToObject", () => {
+  it("should convert a map with string keys to an object", () => {
+    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({ a: 1, b: 2 });
+  });
+
+  it("should convert a map with number keys to an object", () => {
+    const map = new Map<number, string>([[1, "one"], [2, "two"]]);
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({ 1: "one", 2: "two" });
+  });
+
+  it("should convert a map with symbol keys to an object", () => {
+    const symA = Symbol("a");
+    const symB = Symbol("b");
+    const map = new Map<symbol, string>([[symA, "A"], [symB, "B"]]);
+    const obj = mapToObject(map);
+
+    expect(obj[symA]).toBe("A");
+    expect(obj[symB]).toBe("B");
+  });
+
+  it("should return an empty object for an empty map", () => {
+    const map = new Map();
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({});
   });
 });
