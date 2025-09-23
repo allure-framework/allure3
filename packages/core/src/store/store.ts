@@ -26,6 +26,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type AllureStoreDump,
   type ExitCode,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
@@ -59,23 +60,6 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
   }
 };
 
-// TODO:
-export interface StoreStateDump {
-  testResults: Record<string, TestResult>;
-  attachments: Record<string, AttachmentLink>;
-  // attachmentContents: Record<string, string>;
-  testCases: Record<string, TestCase>;
-  // metadata: Record<string, any>;
-  fixtures: Record<string, TestFixtureResult>;
-  environments: string[];
-  // history: AllureHistory | undefined;
-  // known: KnownTestFailure[];
-  // TODO: what do we need to do with it?
-  // defaultLabels: DefaultLabelsConfig;
-  // reportVariables: ReportVariables = {};
-}
-
-// TODO: temp
 export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
   const result: Record<string | number | symbol, T> = {};
 
@@ -667,18 +651,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     };
   }
 
-  dumpState(): StoreStateDump {
+  dumpState(): AllureStoreDump {
     return {
       testResults: mapToObject(this.#testResults),
       attachments: mapToObject(this.#attachments),
       testCases: mapToObject(this.#testCases),
       fixtures: mapToObject(this.#fixtures),
       environments: this.#environments,
+      reportVariables: this.#reportVariables,
     };
   }
 
-  async loadState(stateDump: StoreStateDump, attachmentsContents: Record<string, ResultFile> = {}) {
-    const { testResults, attachments, testCases, fixtures, environments } = stateDump;
+  async loadState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
+    const { testResults, attachments, testCases, fixtures, reportVariables, environments } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
@@ -687,6 +672,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#addEnvironments(environments);
 
+    Object.assign(this.#reportVariables, reportVariables);
     Object.assign(this.#attachmentContents, attachmentsContents);
   }
 }
