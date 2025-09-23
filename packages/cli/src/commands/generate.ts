@@ -21,8 +21,8 @@ export class GenerateCommand extends Command {
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
       [
-        "generate --stage=stage-windows.zip --stage=stage-macos.zip ./allure-results",
-        "Generate a report using data from the stage archives and using results from the ./allure-results directory",
+        "generate --stage=windows --stage=macos.zip ./allure-results",
+        "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
       ],
     ],
   });
@@ -45,7 +45,7 @@ export class GenerateCommand extends Command {
   });
 
   reportName = Option.String("--report-name,--name", {
-    description: "The report name",
+    description: "The report name (default: Allure Report)",
   });
 
   stage = Option.Array("--stage", {

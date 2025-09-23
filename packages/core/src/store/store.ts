@@ -3,6 +3,7 @@ import {
   type AttachmentLink,
   type AttachmentLinkFile,
   type AttachmentLinkLinked,
+  DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
   type HistoryDataPoint,
@@ -97,7 +98,6 @@ export const mergeMapWithRecord = <K extends string | number | symbol, T = any>(
 };
 
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
-  // TODO:
   readonly #testResults: Map<string, TestResult>;
   readonly #attachments: Map<string, AttachmentLink>;
   readonly #attachmentContents: Map<string, ResultFile>;
@@ -148,6 +148,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environmentsConfig = {},
       reportVariables = {},
     } = params ?? {};
+    const environments = Object.keys(environmentsConfig)
+      .concat(this.#environment ?? "")
+      .filter(Boolean);
 
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
@@ -165,16 +168,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environment = environment;
     this.#reportVariables = reportVariables;
     this.indexLatestEnvTestResultByHistoryId = new Map();
-    this.#environments = Object.keys(environmentsConfig)
-      .concat(this.#environment ?? "")
-      .filter(Boolean);
 
-    // initialize test result maps for every environment
-    Object.keys(this.#environmentsConfig)
-      .concat("default")
-      .forEach((key) => {
-        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
-      });
+    this.#addEnvironments(environments);
 
     this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
       results.forEach((result) => {
@@ -200,6 +195,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#attachmentContents.set(attachmentLink.id, attachment);
       this.#globalAttachments.push(attachmentLink);
+    });
+  }
+
+  #addEnvironments(envs: string[]) {
+    if (this.#environments.length === 0) {
+      this.#environments.push(DEFAULT_ENVIRONMENT);
+    }
+
+    this.#environments = Array.from(new Set([...this.#environments, ...envs]));
+
+    envs.forEach((key) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(key)) {
+        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      }
     });
   }
 
@@ -316,20 +325,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // retries
     if (testResult.historyId) {
       const maybeOther = this.indexLatestEnvTestResultByHistoryId
-        .get(testResult.environment)!
-        .get(testResult.historyId);
+        ?.get(testResult.environment)
+        ?.get(testResult.historyId);
 
       if (maybeOther) {
         // if no start, means only duration is provided from result. In that case always use the latest (current).
         // Otherwise, compare by start timestamp, the latest wins.
         if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
+          this.indexLatestEnvTestResultByHistoryId?.get(testResult.environment)?.set(testResult.historyId, testResult);
           maybeOther.hidden = true;
         } else {
           testResult.hidden = true;
         }
       } else {
-        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
+        this.indexLatestEnvTestResultByHistoryId?.get(testResult.environment)?.set(testResult.historyId, testResult);
       }
     }
 
@@ -676,7 +685,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     mergeMapWithRecord(this.#testCases, testCases);
     mergeMapWithRecord(this.#fixtures, fixtures);
 
-    this.#environments = Array.from(new Set([...this.#environments, ...environments]));
+    this.#addEnvironments(environments);
 
     Object.assign(this.#attachmentContents, attachmentsContents);
   }
