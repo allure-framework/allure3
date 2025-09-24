@@ -179,7 +179,6 @@ export const createCoverageDiffTreeMapChartData = (
         .interpolate(interpolateRgb)
         .clamp(true);
 
-      // TODO: change color passed to white
       return scaledRgb(value);
     },
     (value) => {
