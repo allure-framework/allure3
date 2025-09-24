@@ -133,7 +133,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables = {},
     } = params ?? {};
     const environments = Object.keys(environmentsConfig)
-      .concat(this.#environment ?? "")
+      .concat(environment ?? "")
       .filter(Boolean);
 
     this.#testResults = new Map<string, TestResult>();
