@@ -1,4 +1,4 @@
-import type { TreeData, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
+import type { TreeMapNode, TreeData, TreeLeaf, TreeGroup, WithChildren } from "@allurereport/core-api";
 import { TreeMapChartType } from "@allurereport/core-api";
 import type { AllureChartsStoreData, TreeMapChartData, TreeMapChartOptions, TreeMapDataAccessor } from "../charts.js";
 import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAccessor.js";
@@ -9,8 +9,12 @@ import { successRateDistributionTreeMapAccessor } from "./accessors/successRateD
  * Generic function that works with any TreeData<L, G> and converts it to TreeMapNode
  */
 export const convertTreeDataToTreeMapNode = <T extends TreeMapNode, L, G>(
-  treeData: TreeData<L, G>,
-  transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean, parentNode?: TreeGroup<G>) => T,
+    treeData: TreeData<L, G>,
+    transform: (treeDataNode: TreeLeaf<L> | TreeGroup<G>, isGroup: boolean, parentNode?: TreeGroup<G>) => T,
+    transformRoot: (root: WithChildren) => T = () => ({
+        id: "root",
+        value: undefined,
+    }) as T,
 ): T => {
   const { root, leavesById, groupsById } = treeData;
 
@@ -78,12 +82,10 @@ export const convertTreeDataToTreeMapNode = <T extends TreeMapNode, L, G>(
     });
   }
 
-  return {
-    id: "root",
-    value: undefined,
-    children: rootChildren.length > 0 ? rootChildren : undefined,
-    ...root,
-  } as T;
+    return {
+        children: rootChildren.length > 0 ? rootChildren : undefined,
+        ...transformRoot(root),
+    };
 };
 
 export const transformTreeMapNode = <T extends TreeMapNode>(tree: T, transform: (node: T) => T): T => {

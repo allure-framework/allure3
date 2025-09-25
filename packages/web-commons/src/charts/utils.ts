@@ -16,6 +16,7 @@ import type {
   ResponseBarChartData,
   ResponseTreeMapChartData,
   ResponseTrendChartData,
+  TreeMapTooltipAccessor,
   TrendChartItem,
   UIBarChartData,
   UIChartData,
@@ -86,6 +87,7 @@ export const createTreeMapChartDataGeneric = (
   colors: (value: number, domain?: number[]) => string,
   formatLegend?: (value: number) => string,
   legendDomain?: number[],
+  tooltipRows?: TreeMapTooltipAccessor,
 ): UITreeMapChartData | undefined => {
   const chart = getChart();
   if (!chart) {
@@ -97,6 +99,7 @@ export const createTreeMapChartDataGeneric = (
     colors,
     formatLegend,
     legendDomain,
+    tooltipRows,
   };
 };
 
@@ -150,7 +153,6 @@ export const createSuccessRateDistributionTreeMapChartData = (
         .interpolate(interpolateRgb)
         .clamp(true);
 
-      // TODO: change color passed to white
       return scaledRgb(value);
     },
     (value) => {
@@ -161,6 +163,13 @@ export const createSuccessRateDistributionTreeMapChartData = (
       return "failed";
     },
     chartColorDomain,
+    (node: any) => {
+      return [
+        `passed: ${node.data.passedTests}`,
+        `failed: ${node.data.failedTests}`,
+        `other: ${node.data.otherTests}`,
+      ];
+    },
   );
 };
 
@@ -189,6 +198,17 @@ export const createCoverageDiffTreeMapChartData = (
       return "removed";
     },
     chartColorDomain,
+    (node: any) => {
+      const newTotal = node.data.newCount + node.data.enabledCount;
+      const deletedTotal = node.data.deletedCount + node.data.disabledCount;
+      const unchangedTotal = node.value - newTotal - deletedTotal;
+
+      return [
+        `new: ${newTotal}`,
+        `deleted: ${deletedTotal}`,
+        `unchanged: ${unchangedTotal}`,
+      ];
+    },
   );
 };
 

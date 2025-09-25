@@ -1,0 +1,28 @@
+.tree-map-tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 8px;
+    background-color: var(--bg-base-modal);
+    box-shadow: 0 1px 2px rgba(130, 119, 119, 0.1);
+    border-radius: 2px;
+}
+
+.tree-map-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tree-map-tooltip-title-color {
+    width: 12px;
+    height: 12px;
+}
+
+.tree-map-tooltip-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--on-border-muted);
+}

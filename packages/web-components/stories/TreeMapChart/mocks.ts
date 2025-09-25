@@ -150,7 +150,7 @@ export const getColorWithDomain = (value: number, domain = [0, 0.5, 1]) => {
     return treeMapColors.error;
   } else if (value <= domain[1]) {
     return treeMapColors.warning;
-  } else {
-    return treeMapColors.success;
   }
+
+  return treeMapColors.success;
 };

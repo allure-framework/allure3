@@ -15,6 +15,8 @@ import type {
   TrendSliceId,
 } from "@allurereport/core-api";
 
+export type TreeMapTooltipAccessor = <T>(node: T) => string[];
+
 export interface Point {
   x: Date | string | number;
   y: number;
@@ -106,7 +108,8 @@ export interface UITreeMapChartData extends ResponseTreeMapChartData {
   colors: (value: number, domain?: number[]) => string;
   formatLegend?: (value: number) => string;
   legendDomain?: number[];
-}
+  tooltipRows?: TreeMapTooltipAccessor;
+};
 
 export type ChartData<
   SeriesType extends string = string,

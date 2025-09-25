@@ -1,6 +1,7 @@
 import type { TreeMapNode } from "@allurereport/core-api";
 import type { DefaultTreeMapDatum, TreeMapSvgProps } from "@nivo/treemap";
 import type { CSSProperties } from "preact/compat";
+import type { TreeMapTooltipAccessor } from "@allurereport/web-commons";
 
 // Original missing type from nivo
 export type ResponsiveTreeChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode> = Omit<
@@ -12,11 +13,7 @@ export interface ParentLabelControlOptions {
   parentSkipSize?: number;
 }
 
-type BaseTreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode> = Omit<
-  ResponsiveTreeChartProps<Datum>,
-  "colors"
-> &
-  ParentLabelControlOptions;
+type BaseTreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode> = Omit<ResponsiveTreeChartProps<Datum>, "colors" | "tooltip"> & ParentLabelControlOptions;
 
 export interface TreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode>
   extends BaseTreeMapChartProps<Datum> {
@@ -31,6 +28,7 @@ export interface TreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNo
   colors: (value: number, domain?: number[]) => string;
   formatLegend?: (value: number) => string;
   legendDomain?: number[];
+  tooltipRows?: TreeMapTooltipAccessor;
 }
 
 export type TreeMapChartNode = DefaultTreeMapDatum;
