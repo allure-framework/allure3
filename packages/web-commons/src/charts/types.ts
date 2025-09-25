@@ -109,7 +109,7 @@ export interface UITreeMapChartData extends ResponseTreeMapChartData {
   formatLegend?: (value: number) => string;
   legendDomain?: number[];
   tooltipRows?: TreeMapTooltipAccessor;
-};
+}
 
 export type ChartData<
   SeriesType extends string = string,

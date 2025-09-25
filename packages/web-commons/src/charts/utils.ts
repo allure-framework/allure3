@@ -164,11 +164,7 @@ export const createSuccessRateDistributionTreeMapChartData = (
     },
     chartColorDomain,
     (node: any) => {
-      return [
-        `passed: ${node.data.passedTests}`,
-        `failed: ${node.data.failedTests}`,
-        `other: ${node.data.otherTests}`,
-      ];
+      return [`passed: ${node.data.passedTests}`, `failed: ${node.data.failedTests}`, `other: ${node.data.otherTests}`];
     },
   );
 };
@@ -203,11 +199,7 @@ export const createCoverageDiffTreeMapChartData = (
       const deletedTotal = node.data.deletedCount + node.data.disabledCount;
       const unchangedTotal = node.value - newTotal - deletedTotal;
 
-      return [
-        `new: ${newTotal}`,
-        `deleted: ${deletedTotal}`,
-        `unchanged: ${unchangedTotal}`,
-      ];
+      return [`new: ${newTotal}`, `deleted: ${deletedTotal}`, `unchanged: ${unchangedTotal}`];
     },
   );
 };

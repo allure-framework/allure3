@@ -1,17 +1,17 @@
-import {ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
+import type { TreeMapNode } from "@allurereport/core-api";
+import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
 import type { ComputedNode } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
+import type { ReactNode } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import { TreeMapLegend } from "./TreeMapLegend/index.js";
+import { TreeMapTooltip } from "./TreeMapTooltip/TreeMapTooltip.js";
 import { defaultTreeChartConfig } from "./config.js";
-import { createCustomParentLabelControl } from "./utils.js";
 import styles from "./styles.scss";
 import { nivoTheme } from "./theme.js";
 import type { TreeMapChartProps } from "./types.js";
-import type { TreeMapNode } from "@allurereport/core-api";
-import { TreeMapTooltip } from "./TreeMapTooltip/TreeMapTooltip.js";
-import type { ReactNode } from "preact/compat";
+import { createCustomParentLabelControl } from "./utils.js";
 
 export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   width = "100%",
@@ -32,11 +32,17 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
 }) => {
   const isEmpty = useMemo(() => (data.children ?? []).length === 0, [data]);
 
-  const parentLabel = useCallback((node: any) => {
-    return createCustomParentLabelControl({ parentSkipSize })(node);
-  }, [parentSkipSize]);
+  const parentLabel = useCallback(
+    (node: any) => {
+      return createCustomParentLabelControl({ parentSkipSize })(node);
+    },
+    [parentSkipSize],
+  );
 
-  const tooltipControl = useCallback<(props: {node: ComputedNode<TreeMapNode>}) => ReactNode>(({node}) => <TreeMapTooltip node={node} rows={tooltipRows && tooltipRows(node)} />, [tooltipRows]);
+  const tooltipControl = useCallback<(props: { node: ComputedNode<TreeMapNode> }) => ReactNode>(
+    ({ node }) => <TreeMapTooltip node={node} rows={tooltipRows && tooltipRows(node)} />,
+    [tooltipRows],
+  );
 
   if (isEmpty) {
     return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyAriaLabel} />;

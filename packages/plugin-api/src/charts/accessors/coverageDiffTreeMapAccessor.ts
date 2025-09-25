@@ -134,7 +134,10 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   return { totalTests, newCount, deletedCount, disabledCount, enabledCount };
 };
 
-const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): ExtendedTreeMapNode => {
+const createCoverageDiffTreeMap = (
+  trs: TestResult[],
+  closestHtrs: Record<string, HistoryTestResult>,
+): ExtendedTreeMapNode => {
   const newTrs = getNewTestResults(trs, closestHtrs);
   const removedHtrs = getRemovedTestResults(trs, closestHtrs);
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);

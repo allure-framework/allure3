@@ -1,10 +1,10 @@
 import type { TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
 import type { TreeMapDataAccessor } from "../../charts.js";
 import { isChildrenLeavesOnly } from "../../charts.js";
-import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 import { md5 } from "../../utils/misc.js";
 import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
+import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
 type SubtreeMetrics = {
   totalTests: number;
@@ -131,9 +131,9 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
   );
 
   return transformTreeMapNode<ExtendedTreeMapNode>(convertedTree, (node) => {
-      const subtreeMetrics = calculateSubtreeMetrics(node);
-      const colorValue = calculateColorValue(subtreeMetrics);
-      const { totalTests, ...restSubtreeMetrics } = subtreeMetrics;
+    const subtreeMetrics = calculateSubtreeMetrics(node);
+    const colorValue = calculateColorValue(subtreeMetrics);
+    const { totalTests, ...restSubtreeMetrics } = subtreeMetrics;
 
     // Add colorValue and remove leafs in favour of their parent group nodes
     if (isChildrenLeavesOnly(node)) {
@@ -141,20 +141,20 @@ export const createSuccessRateDistributionTreeMap = (testResults: TestResult[]):
         return acc + (child.value ?? 0);
       }, 0);
 
-        return {
-          ...node,
-          value,
-          children: undefined,
-          colorValue,
-          ...restSubtreeMetrics,
-        };
-      }
-
       return {
-          ...node,
-          colorValue,
-          ...restSubtreeMetrics,
+        ...node,
+        value,
+        children: undefined,
+        colorValue,
+        ...restSubtreeMetrics,
       };
+    }
+
+    return {
+      ...node,
+      colorValue,
+      ...restSubtreeMetrics,
+    };
   });
 };
 

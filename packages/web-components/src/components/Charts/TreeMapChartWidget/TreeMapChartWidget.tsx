@@ -12,11 +12,7 @@ export const TreeMapChartWidget: FunctionalComponent<TreeMapChartWidgetProps> = 
 
   return (
     <Widget title={title}>
-      <TreeMapChart
-        emptyLabel={emptyLabel}
-        emptyAriaLabel={emptyLabel}
-        {...restProps}
-      />
+      <TreeMapChart emptyLabel={emptyLabel} emptyAriaLabel={emptyLabel} {...restProps} />
     </Widget>
   );
 };
