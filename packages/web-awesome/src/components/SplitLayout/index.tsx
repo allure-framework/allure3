@@ -33,9 +33,7 @@ const Loader = () => {
 export const SplitLayout = () => {
   const testResultId = route.value.params?.testResultId ?? null;
   const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
-
   const { t } = useI18n("controls");
-
   const leftSide = (
     <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
   );
