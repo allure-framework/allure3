@@ -77,6 +77,7 @@ const getChartWidgetByType = (
           formatLegend={chartData.formatLegend}
           colors={chartData.colors}
           legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
           translations={{ "no-results": empty("no-results") }}
         />
       );

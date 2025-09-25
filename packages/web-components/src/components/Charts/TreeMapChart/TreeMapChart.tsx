@@ -1,9 +1,12 @@
 import type { TreeMapNode } from "@allurereport/core-api";
 import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
+import type { ComputedNode } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
+import type { ReactNode } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import { TreeMapLegend } from "./TreeMapLegend/index.js";
+import { TreeMapTooltip } from "./TreeMapTooltip/TreeMapTooltip.js";
 import { defaultTreeChartConfig } from "./config.js";
 import styles from "./styles.scss";
 import { nivoTheme } from "./theme.js";
@@ -24,6 +27,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   colors,
   legendDomain,
   parentSkipSize,
+  tooltipRows,
   ...restProps
 }) => {
   const isEmpty = useMemo(() => (data.children ?? []).length === 0, [data]);
@@ -35,6 +39,11 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
     [parentSkipSize],
   );
 
+  const tooltipControl = useCallback<(props: { node: ComputedNode<TreeMapNode> }) => ReactNode>(
+    ({ node }) => <TreeMapTooltip node={node} rows={tooltipRows && tooltipRows(node)} />,
+    [tooltipRows],
+  );
+
   if (isEmpty) {
     return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyAriaLabel} />;
   }
@@ -44,6 +53,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
       <ResponsiveTreeMapChart<TreeMapNode>
         data={data}
         parentLabel={parentLabel}
+        tooltip={tooltipControl}
         {...defaultTreeChartConfig}
         {...restProps}
         theme={nivoTheme}

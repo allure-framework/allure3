@@ -6,6 +6,8 @@ import { createTreeByLabels } from "../../utils/tree.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 
+type ChangeType = "new" | "deleted" | "enabled" | "disabled" | "unchanged";
+
 type SubtreeMetrics = {
   totalTests: number;
   newCount: number;
@@ -13,31 +15,22 @@ type SubtreeMetrics = {
   disabledCount: number;
   enabledCount: number;
 };
+type LeafMetrics = {
+  changeType: ChangeType;
+};
+type GroupMetrics = Omit<SubtreeMetrics, "totalTests">;
 
-type LeafData = Pick<TestResult, "name"> & {
-  value: number; // number of tests in the leaf
-  changeType: "new" | "deleted" | "enabled" | "disabled" | "unchanged";
+type BaseData = Pick<TestResult, "name"> & {
+  value: number;
 };
-type GroupData = Pick<TestResult, "name"> & {
-  value: number; // net change in number of tests for the group (diff between new + enabled and deleted + disabled tests)
-  newCount: number;
-  deletedCount: number;
-  disabledCount: number;
-  enabledCount: number;
-  colorValue?: number;
-};
+type LeafData = BaseData & LeafMetrics;
+type GroupData = BaseData & GroupMetrics;
 
 type Leaf = TreeLeaf<LeafData>;
 type Group = TreeGroup<GroupData>;
 
 // Represents both Group and Leaf conversion to TreeMapNode-compatible structure
-type ExtendedTreeMapNode = TreeMapNode<{
-  changeType?: "new" | "deleted" | "enabled" | "disabled" | "unchanged";
-  newCount?: number;
-  deletedCount?: number;
-  disabledCount?: number;
-  enabledCount?: number;
-}>;
+type ExtendedTreeMapNode = TreeMapNode<GroupMetrics & Partial<LeafMetrics>>;
 
 const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): Group => ({
   nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
@@ -49,7 +42,7 @@ const groupFactoryFn = (parentId: string | undefined, groupClassifier: string): 
   enabledCount: 0,
 });
 
-const addLeafToGroupFn = (group: Group, leaf: Leaf) => {
+const addLeafToGroupFn = (group: Group, leaf: Leaf): void => {
   group.value += leaf.value;
 
   switch (leaf.changeType) {
@@ -141,7 +134,10 @@ const calculateSubtreeMetrics = (node: ExtendedTreeMapNode): SubtreeMetrics => {
   return { totalTests, newCount, deletedCount, disabledCount, enabledCount };
 };
 
-const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string, HistoryTestResult>): TreeMapNode => {
+const createCoverageDiffTreeMap = (
+  trs: TestResult[],
+  closestHtrs: Record<string, HistoryTestResult>,
+): ExtendedTreeMapNode => {
   const newTrs = getNewTestResults(trs, closestHtrs);
   const removedHtrs = getRemovedTestResults(trs, closestHtrs);
   const enabledTrs = getEnabledTestResults(trs, closestHtrs);
@@ -155,7 +151,7 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
   // Including into future tree current tests + removed historical tests to be able to reflect removed historical tests
   const allTests: (TestResult | HistoryTestResult)[] = [...trs, ...removedHtrs];
 
-  const getChangeType = (historyId?: string): "new" | "deleted" | "enabled" | "disabled" | "unchanged" => {
+  const getChangeType = (historyId?: string): ChangeType => {
     if (newTestsById.has(historyId)) {
       return "new";
     }
@@ -217,32 +213,46 @@ const createCoverageDiffTreeMap = (trs: TestResult[], closestHtrs: Record<string
         return {
           ...baseNode,
           changeType: leaf.changeType,
+          newCount: leaf.changeType === "new" ? 1 : 0,
+          deletedCount: leaf.changeType === "deleted" ? 1 : 0,
+          disabledCount: leaf.changeType === "disabled" ? 1 : 0,
+          enabledCount: leaf.changeType === "enabled" ? 1 : 0,
         };
       }
     },
+    () => ({
+      id: "root",
+      newCount: 0,
+      deletedCount: 0,
+      disabledCount: 0,
+      enabledCount: 0,
+    }),
   );
 
   return transformTreeMapNode<ExtendedTreeMapNode>(convertedTree, (node) => {
     const subtreeMetrics = calculateSubtreeMetrics(node);
     const colorValue = calculateColorValue(subtreeMetrics);
+    const { totalTests, ...restSubtreeMetrics } = subtreeMetrics;
 
     if (isChildrenLeavesOnly(node)) {
       return {
         ...node,
-        value: subtreeMetrics.totalTests,
+        value: totalTests,
         children: undefined,
         colorValue,
+        ...restSubtreeMetrics,
       };
     }
 
     return {
       ...node,
       colorValue,
+      ...restSubtreeMetrics,
     };
   });
 };
 
-export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<TreeMapNode> = {
+export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<ExtendedTreeMapNode> = {
   getTreeMap: ({ testResults, historyDataPoints }) => {
     const testsWithBehaviorLabels = filterTestsWithBehaviorLabels(testResults);
     const closestHdp = historyDataPoints[0];
