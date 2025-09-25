@@ -79,6 +79,7 @@ export const validateConfig = (config: Config) => {
     "appendHistory",
     "qualityGate",
     "allureService",
+    "allureTestOps",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
 

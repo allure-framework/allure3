@@ -26,6 +26,7 @@ import {
   TestPlanCommand,
   WatchCommand,
   WhoamiCommand,
+  TestOpsUploadCommand,
 } from "./commands/index.js";
 
 const [node, app, ...args] = argv;
@@ -63,6 +64,7 @@ cli.register(ProjectsDeleteCommand);
 cli.register(ProjectsListCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+cli.register(TestOpsUploadCommand);
 cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 
