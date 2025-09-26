@@ -23,6 +23,7 @@ import {
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsUploadCommand,
   TestPlanCommand,
   WatchCommand,
   WhoamiCommand,
@@ -63,6 +64,7 @@ cli.register(ProjectsDeleteCommand);
 cli.register(ProjectsListCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+cli.register(TestOpsUploadCommand);
 cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 
