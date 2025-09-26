@@ -13,6 +13,10 @@ AllureReportMock.prototype.done = vi.fn();
 
 AllureReportMock.prototype.validate = vi.fn();
 
+AllureReportMock.prototype.dumpState = vi.fn();
+
+AllureReportMock.prototype.restoreState = vi.fn();
+
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const AllureServiceClientMock = vi.fn(function () {});
 

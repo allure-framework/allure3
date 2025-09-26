@@ -3,6 +3,7 @@ import {
   type AttachmentLink,
   type AttachmentLinkFile,
   type AttachmentLinkLinked,
+  DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
   type HistoryDataPoint,
@@ -25,6 +26,7 @@ import {
 } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type AllureStoreDump,
   type ExitCode,
   type QualityGateValidationResult,
   type RealtimeEventsDispatcher,
@@ -58,6 +60,27 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
   }
 };
 
+export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
+  const result: Record<string | number | symbol, T> = {};
+
+  map.forEach((value, key) => {
+    result[key] = value;
+  });
+
+  return result;
+};
+
+export const mergeMapWithRecord = <K extends string | number | symbol, T = any>(
+  map: Map<K, T>,
+  record: Record<K, T>,
+): Map<K, T> => {
+  Object.entries(record).forEach(([key, value]) => {
+    map.set(key as K, value as T);
+  });
+
+  return map;
+};
+
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testResults: Map<string, TestResult>;
   readonly #attachments: Map<string, AttachmentLink>;
@@ -68,6 +91,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
+  readonly #environment: string | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
@@ -86,6 +110,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
   #repoData?: RepoData;
+  #environments: string[] = [];
 
   constructor(params?: {
     history?: AllureHistory;
@@ -93,6 +118,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     realtimeDispatcher?: RealtimeEventsDispatcher;
     realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
+    environment?: string;
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
   }) {
@@ -102,9 +128,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       realtimeDispatcher,
       realtimeSubscriber,
       defaultLabels = {},
+      environment,
       environmentsConfig = {},
       reportVariables = {},
     } = params ?? {};
+    const environments = Object.keys(environmentsConfig)
+      .concat(environment ?? "")
+      .filter(Boolean);
 
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
@@ -119,15 +149,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
+    this.#environment = environment;
     this.#reportVariables = reportVariables;
     this.indexLatestEnvTestResultByHistoryId = new Map();
 
-    // initialize test result maps for every environment
-    Object.keys(this.#environmentsConfig)
-      .concat("default")
-      .forEach((key) => {
-        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
-      });
+    this.#addEnvironments(environments);
 
     this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
       results.forEach((result) => {
@@ -153,6 +179,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       this.#attachmentContents.set(attachmentLink.id, attachment);
       this.#globalAttachments.push(attachmentLink);
+    });
+  }
+
+  #addEnvironments(envs: string[]) {
+    if (this.#environments.length === 0) {
+      this.#environments.push(DEFAULT_ENVIRONMENT);
+    }
+
+    this.#environments = Array.from(new Set([...this.#environments, ...envs]));
+
+    envs.forEach((key) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(key)) {
+        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      }
     });
   }
 
@@ -257,14 +297,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
+    testResult.environment = this.#environment || matchEnvironment(this.#environmentsConfig, testResult);
 
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
+
     testResult.transition = getStatusTransition(testResult, trHistory);
     testResult.flaky = isFlaky(testResult, trHistory);
 
     this.#testResults.set(testResult.id, testResult);
+
+    if (testResult.environment && !this.indexLatestEnvTestResultByHistoryId.has(testResult.environment)) {
+      this.indexLatestEnvTestResultByHistoryId.set(testResult.environment, new Map());
+    }
 
     // retries
     if (testResult.historyId) {
@@ -537,7 +582,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // environments
 
   async allEnvironments() {
-    return Array.from(new Set(["default", ...Object.keys(this.#environmentsConfig)]));
+    return this.#environments;
   }
 
   async testResultsByEnvironment(
@@ -587,7 +632,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       trs.forEach((tr) => {
-        const env = matchEnvironment(this.#environmentsConfig, tr);
+        const env = this.#environment || matchEnvironment(this.#environmentsConfig, tr);
 
         envGroup.testResultsByEnv[env] = tr.id;
       });
@@ -609,5 +654,30 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       ...this.#reportVariables,
       ...(this.#environmentsConfig?.[env]?.variables ?? {}),
     };
+  }
+
+  dumpState(): AllureStoreDump {
+    return {
+      testResults: mapToObject(this.#testResults),
+      attachments: mapToObject(this.#attachments),
+      testCases: mapToObject(this.#testCases),
+      fixtures: mapToObject(this.#fixtures),
+      environments: this.#environments,
+      reportVariables: this.#reportVariables,
+    };
+  }
+
+  async restoreState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
+    const { testResults, attachments, testCases, fixtures, reportVariables, environments } = stateDump;
+
+    mergeMapWithRecord(this.#testResults, testResults);
+    mergeMapWithRecord(this.#attachments, attachments);
+    mergeMapWithRecord(this.#testCases, testCases);
+    mergeMapWithRecord(this.#fixtures, fixtures);
+
+    this.#addEnvironments(environments);
+
+    Object.assign(this.#reportVariables, reportVariables);
+    Object.assign(this.#attachmentContents, attachmentsContents);
   }
 }
