@@ -1,7 +1,8 @@
-import { CiDescriptor, CiType } from "@allurereport/core-api";
+import { CiType } from "@allurereport/core-api";
+import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { h } from "preact";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { CiInfo } from "@/components/Header/CiInfo";
 
 const fixtures = {
@@ -31,8 +32,15 @@ vi.mock("@allurereport/web-components", async () => {
     },
   };
 });
+vi.mock("@allurereport/web-commons", async (importOriginal) => {
+  return {
+    ...(await importOriginal()),
+    getReportOptions: vi.fn(),
+  };
+});
 
 beforeEach(() => {
+  vi.clearAllMocks();
   cleanup();
 });
 
@@ -50,101 +58,119 @@ describe("components > Header > CiInfo", () => {
     ];
 
     for (const type of ciTypes) {
-      const ci = {
-        pullRequestUrl: fixtures.pullRequestUrl,
-        type,
-      } as CiDescriptor;
+      (getReportOptions as Mock).mockReturnValueOnce({
+        ci: {
+          pullRequestUrl: fixtures.pullRequestUrl,
+          type,
+        },
+      });
 
       cleanup();
-      render(<CiInfo ci={ci} />);
+      render(<CiInfo />);
 
       expect(screen.getByTestId("icon")).toHaveTextContent(type);
     }
   });
 
   it("shouldn't render icon for unknown CI", () => {
-    const ci = {
-      type: undefined,
-    } as CiDescriptor;
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        type: undefined,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.queryByTestId("icon")).not.toBeInTheDocument();
   });
 
   it("should render there is no link to use", () => {
-    const ci = {} as CiDescriptor;
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {},
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("should presence pull request url as href when provided", () => {
-    const ci = {
-      pullRequestUrl: fixtures.pullRequestUrl,
-      jobUrl: fixtures.jobUrl,
-      jobRunUrl: fixtures.jobRunUrl,
-    } as CiDescriptor;
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        pullRequestUrl: fixtures.pullRequestUrl,
+        jobUrl: fixtures.jobUrl,
+        jobRunUrl: fixtures.jobRunUrl,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.pullRequestUrl);
   });
 
-  it("should presence use job url as href when provided", () => {
-    const ci = {
-      jobUrl: fixtures.jobUrl,
-      jobRunUrl: fixtures.jobRunUrl,
-    } as CiDescriptor;
+  it("should presence use job run url as href when provided", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobUrl: fixtures.jobUrl,
+        jobRunUrl: fixtures.jobRunUrl,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
-    expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.jobUrl);
+    expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.jobRunUrl);
   });
 
-  it("should use job run url as href when provided", () => {
-    const ci = {
-      jobRunUrl: fixtures.jobRunUrl,
-    } as CiDescriptor;
+  it("should use job url as href when provided", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobRunUrl: fixtures.jobRunUrl,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.jobRunUrl);
   });
 
   it("should presence pull request name as text when provided", () => {
-    const ci = {
-      pullRequestUrl: fixtures.pullRequestUrl,
-      pullRequestName: fixtures.pullRequestName,
-      jobName: fixtures.jobName,
-      jobRunName: fixtures.jobRunName,
-    } as CiDescriptor;
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        pullRequestUrl: fixtures.pullRequestUrl,
+        pullRequestName: fixtures.pullRequestName,
+        jobName: fixtures.jobName,
+        jobRunName: fixtures.jobRunName,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveTextContent(fixtures.pullRequestName);
   });
 
-  it("should presence job name as text when provided", () => {
-    const ci = {
-      jobUrl: fixtures.jobUrl,
-      jobName: fixtures.jobName,
-      jobRunName: fixtures.jobRunName,
-    } as CiDescriptor;
+  it("should presence job run name as text when provided", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobUrl: fixtures.jobUrl,
+        jobName: fixtures.jobName,
+        jobRunName: fixtures.jobRunName,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
-    expect(screen.getByRole("link")).toHaveTextContent(fixtures.jobName);
+    expect(screen.getByRole("link")).toHaveTextContent(fixtures.jobRunName);
   });
 
-  it("should presence job run name as text when provided", () => {
-    const ci = {
-      jobRunUrl: fixtures.jobRunUrl,
-      jobRunName: fixtures.jobRunName,
-    } as CiDescriptor;
+  it("should presence job name as text when provided", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        jobRunUrl: fixtures.jobRunUrl,
+        jobRunName: fixtures.jobRunName,
+      },
+    });
 
-    render(<CiInfo ci={ci} />);
+    render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveTextContent(fixtures.jobRunName);
   });

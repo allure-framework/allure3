@@ -75,12 +75,7 @@ describe("components > Header", () => {
 
     render(<Header />);
 
-    expect(CiInfo).toHaveBeenCalledWith(
-      {
-        ci: fixtures.ci,
-      },
-      expect.anything(),
-    );
+    expect(CiInfo).toHaveBeenCalled();
     expect(screen.getByTestId("ci-info")).toBeInTheDocument();
   });
 
