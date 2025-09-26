@@ -23,10 +23,10 @@ import {
   ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
+  TestOpsUploadCommand,
   TestPlanCommand,
   WatchCommand,
   WhoamiCommand,
-  TestOpsUploadCommand,
 } from "./commands/index.js";
 
 const [node, app, ...args] = argv;

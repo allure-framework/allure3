@@ -4,10 +4,10 @@ import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { join } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
 import pm from "picomatch";
-import { green, red } from "yoctocolors";
+import { red } from "yoctocolors";
 import { logError } from "../../utils/index.js";
 
 export class TestOpsUploadCommand extends Command {

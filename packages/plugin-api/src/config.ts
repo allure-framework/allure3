@@ -48,7 +48,7 @@ export interface Config {
     url?: string;
     project: string;
     token: string;
-  }
+  };
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

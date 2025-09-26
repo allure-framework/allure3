@@ -51,5 +51,5 @@ export interface FullConfig {
     url?: string;
     project: string;
     token: string;
-  }
+  };
 }
