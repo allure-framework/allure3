@@ -44,8 +44,8 @@ export const CiIcon = ({ type }: CiIconProps) => {
 
 export const CiInfo = ({ className }: CiInfoProps) => {
   const { ci } = getReportOptions<AwesomeReportOptions>();
-  const link = ci.pullRequestUrl ?? ci.jobRunUrl ?? ci.jobUrl;
-  const label = ci.pullRequestName ?? ci.jobRunName ?? ci.jobName ?? link;
+  const link = ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl;
+  const label = ci.pullRequestName || ci.jobRunName || ci.jobName || link;
 
   if (!link) {
     return null;
