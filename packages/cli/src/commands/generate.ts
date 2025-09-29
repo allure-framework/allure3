@@ -25,6 +25,10 @@ export class GenerateCommand extends Command {
         "generate --stage=windows --stage=macos.zip ./allure-results",
         "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
       ],
+      [
+        "generate --stage=allure-*.zip",
+        "Generate a report using data from any stage archive that matches the given pattern only (ignoring results directories)",
+      ],
     ],
   });
 
@@ -56,30 +60,52 @@ export class GenerateCommand extends Command {
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
-    const stageDumpFiles = (this.stage ?? [])
-      .map((stage) => join(cwd, stage))
-      .map((stage) => (stage.endsWith(".zip") ? stage : `${stage}.zip`));
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output ?? "allure-report",
     });
-    const matcher = pm(resultsDir, {
-      dot: true,
-      contains: true,
-    });
+    const stageDumpFiles: Set<string> = new Set();
     const resultsDirectories = new Set<string>();
 
-    await findMatching(cwd, resultsDirectories, (dirent) => {
-      if (dirent.isDirectory()) {
-        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+    if (this.stage?.length) {
+      for (const stage of this.stage) {
+        const matcher = pm(stage, {
+          dot: true,
+          contains: true,
+        });
 
-        return matcher(fullPath);
+        await findMatching(cwd, stageDumpFiles, (dirent) => {
+          if (dirent.isFile()) {
+            const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+            return matcher(fullPath);
+          }
+
+          return false;
+        });
       }
+    }
 
-      return false;
-    });
+    // don't read allure results directories without the parameter when stage file has been found
+    // or read allure results directory when it is explicitly provided
+    if (!!this.resultsDir || stageDumpFiles.size === 0) {
+      const matcher = pm(resultsDir, {
+        dot: true,
+        contains: true,
+      });
 
-    if (resultsDirectories.size === 0 && stageDumpFiles.length === 0) {
+      await findMatching(cwd, resultsDirectories, (dirent) => {
+        if (dirent.isDirectory()) {
+          const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+
+          return matcher(fullPath);
+        }
+
+        return false;
+      });
+    }
+
+    if (resultsDirectories.size === 0 && stageDumpFiles.size === 0) {
       // eslint-disable-next-line no-console
       console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
       return;
@@ -88,7 +114,7 @@ export class GenerateCommand extends Command {
     try {
       const allureReport = new AllureReport(config);
 
-      await allureReport.restoreState(stageDumpFiles);
+      await allureReport.restoreState(Array.from(stageDumpFiles));
       await allureReport.start();
 
       for (const dir of resultsDirectories) {

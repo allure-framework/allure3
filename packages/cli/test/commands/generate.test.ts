@@ -132,7 +132,12 @@ describe("generate command", () => {
   });
 
   it("should restore state from stage dump files when provided via cli arguments", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {});
+    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
+      set.add("stage1.zip");
+    });
+    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
+      set.add("stage2.zip");
+    });
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
@@ -151,7 +156,15 @@ describe("generate command", () => {
   });
 
   it("should restore state from both stage dump files and results directories", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {
+    let callCount = 0;
+
+    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
+      set.add("stage1.zip");
+    });
+    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
+      set.add("stage2.zip");
+    });
+    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
       set.add("./allure-results");
     });
     (readConfig as Mock).mockResolvedValue({});
@@ -167,7 +180,7 @@ describe("generate command", () => {
     expect(AllureReportMock).toHaveBeenCalled();
     expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results");
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results");
   });
 });
