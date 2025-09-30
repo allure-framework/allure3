@@ -64,6 +64,8 @@ export interface AllureStore {
 export interface AllureStoreDump {
   testResults: Record<string, TestResult>;
   attachments: Record<string, AttachmentLink>;
+  globalAttachments: AttachmentLink[];
+  globalErrors: TestError[];
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: string[];
@@ -74,6 +76,8 @@ export enum AllureStoreDumpFiles {
   TestResults = "test-results.json",
   TestCases = "test-cases.json",
   Fixtures = "fixtures.json",
+  GlobalErrors = "global-errors.json",
+  GlobalAttachments = "global-attachments.json",
   Attachments = "attachments.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",

@@ -24,7 +24,7 @@ import ZipReadStream from "node-stream-zip";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { createWriteStream, existsSync, readFileSync } from "node:fs";
+import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -57,6 +57,7 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #transitionalStage: string | undefined;
 
+  #stageTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
   #stage: "init" | "running" | "done" = "init";
 
@@ -250,7 +251,15 @@ export class AllureReport {
   };
 
   dumpState = async (): Promise<void> => {
-    const { testResults, testCases, fixtures, attachments: attachmentsLinks, environments } = this.#store.dumpState();
+    const {
+      testResults,
+      testCases,
+      fixtures,
+      attachments: attachmentsLinks,
+      environments,
+      globalAttachments = [],
+      globalErrors = [],
+    } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
       zlib: { level: 5 },
@@ -283,6 +292,12 @@ export class AllureReport {
     await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
       name: AllureStoreDumpFiles.ReportVariables,
     });
+    await addEntry(Buffer.from(JSON.stringify(globalAttachments)), {
+      name: AllureStoreDumpFiles.GlobalAttachments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
+      name: AllureStoreDumpFiles.GlobalErrors,
+    });
 
     for (const attachment of allAttachments) {
       const content = await this.#store.attachmentContentById(attachment.id);
@@ -292,7 +307,7 @@ export class AllureReport {
       }
 
       if (content instanceof PathResultFile) {
-        await addEntry(content.path, {
+        await addEntry(createReadStream(content.path), {
           name: attachment.id,
         });
       } else {
@@ -323,6 +338,8 @@ export class AllureReport {
       const attachmentsEntry = await dump.entryData(AllureStoreDumpFiles.Attachments);
       const environmentsEntry = await dump.entryData(AllureStoreDumpFiles.Environments);
       const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
+      const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
+      const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -331,6 +348,8 @@ export class AllureReport {
           case AllureStoreDumpFiles.Fixtures:
           case AllureStoreDumpFiles.Environments:
           case AllureStoreDumpFiles.ReportVariables:
+          case AllureStoreDumpFiles.GlobalAttachments:
+          case AllureStoreDumpFiles.GlobalErrors:
             return acc;
           default:
             return Object.assign(acc, {
@@ -345,9 +364,13 @@ export class AllureReport {
         attachments: JSON.parse(attachmentsEntry.toString("utf8")),
         environments: JSON.parse(environmentsEntry.toString("utf8")),
         reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
+        globalAttachments: JSON.parse(globalAttachmentsEntry.toString("utf8")),
+        globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(stage);
       const resultsAttachments: Record<string, ResultFile> = {};
+
+      this.#stageTempDirs.push(stageTempDir);
 
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
@@ -361,8 +384,6 @@ export class AllureReport {
       } catch (err) {
         console.error(`Can't restore state from "${stage}", continuing without it`);
         console.error(err);
-      } finally {
-        await rm(stageTempDir, { recursive: true });
       }
 
       await this.#store.restoreState(dumpState, resultsAttachments);
@@ -381,8 +402,10 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#stage = "done";
 
+    // just dump state when transitional stage is set and generate nothing
     if (this.#transitionalStage) {
       await this.dumpState();
+      return;
     }
 
     await this.#eachPlugin(false, async (plugin, context) => {
@@ -467,6 +490,13 @@ export class AllureReport {
       }
 
       await rm(reportPath, { recursive: true });
+    }
+
+    // remove all stage dump temp dirs
+    for (const dir of this.#stageTempDirs) {
+      try {
+        await rm(dir, { recursive: true });
+      } catch (ignored) {}
     }
 
     if (this.#history) {

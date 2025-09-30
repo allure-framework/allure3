@@ -2,11 +2,11 @@ import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults
 import type { TestResult } from "@allurereport/core-api";
 import { findMatching } from "@allurereport/directory-watcher";
 import { Command, Option } from "clipanion";
+import { isMatch } from "matcher";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
 import { join } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
-import pm from "picomatch";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
 
@@ -70,10 +70,6 @@ export class QualityGateCommand extends Command {
     });
     const rules: Record<string, any> = {};
     const resultsDirectories = new Set<string>();
-    const matcher = pm(resultsDir, {
-      dot: true,
-      contains: true,
-    });
 
     if (maxFailures !== undefined) {
       rules.maxFailures = maxFailures;
@@ -118,7 +114,7 @@ export class QualityGateCommand extends Command {
       if (dirent.isDirectory()) {
         const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
 
-        return matcher(fullPath);
+        return isMatch(fullPath, join(cwd, resultsDir));
       }
 
       return false;

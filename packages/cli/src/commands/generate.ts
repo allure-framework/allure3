@@ -2,10 +2,10 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
+import { isMatch } from "matcher";
 import * as console from "node:console";
 import { join } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
-import pm from "picomatch";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
 
@@ -69,16 +69,11 @@ export class GenerateCommand extends Command {
 
     if (this.stage?.length) {
       for (const stage of this.stage) {
-        const matcher = pm(stage, {
-          dot: true,
-          contains: true,
-        });
-
         await findMatching(cwd, stageDumpFiles, (dirent) => {
           if (dirent.isFile()) {
             const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
 
-            return matcher(fullPath);
+            return isMatch(fullPath, join(cwd, stage));
           }
 
           return false;
@@ -89,16 +84,11 @@ export class GenerateCommand extends Command {
     // don't read allure results directories without the parameter when stage file has been found
     // or read allure results directory when it is explicitly provided
     if (!!this.resultsDir || stageDumpFiles.size === 0) {
-      const matcher = pm(resultsDir, {
-        dot: true,
-        contains: true,
-      });
-
       await findMatching(cwd, resultsDirectories, (dirent) => {
         if (dirent.isDirectory()) {
           const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
 
-          return matcher(fullPath);
+          return isMatch(fullPath, join(cwd, resultsDir));
         }
 
         return false;

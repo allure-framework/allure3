@@ -7246,13 +7246,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/picomatch@npm:^4":
-  version: 4.0.2
-  resolution: "@types/picomatch@npm:4.0.2"
-  checksum: 10/7b74f860c4c2bf30f7952254717df2dd78441b0add79858dffe7f6a30c9dd6da6c3d7769d2a9f0c499bc5ffe820c629bffc7c5128948febfc2b935800169b1c3
-  languageName: node
-  linkType: hard
-
 "@types/prismjs@npm:^1.26.5":
   version: 1.26.5
   resolution: "@types/prismjs@npm:1.26.5"
@@ -8467,7 +8460,6 @@ __metadata:
     "@types/eslint": "npm:^8.56.11"
     "@types/lodash.omit": "npm:^4.5.9"
     "@types/node": "npm:^20.17.9"
-    "@types/picomatch": "npm:^4"
     "@types/prompts": "npm:^2"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
@@ -8484,7 +8476,7 @@ __metadata:
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
     lodash.omit: "npm:^4.5.0"
-    picomatch: "npm:^4.0.3"
+    matcher: "npm:^6.0.0"
     prompts: "npm:^2.4.2"
     rimraf: "npm:^6.0.1"
     terminate: "npm:^2.8.0"
@@ -11682,6 +11674,13 @@ __metadata:
   version: 4.0.0
   resolution: "escape-string-regexp@npm:4.0.0"
   checksum: 10/98b48897d93060f2322108bf29db0feba7dd774be96cd069458d1453347b25ce8682ecc39859d4bca2203cc0ab19c237bcc71755eff49a0f8d90beadeeba5cc5
+  languageName: node
+  linkType: hard
+
+"escape-string-regexp@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "escape-string-regexp@npm:5.0.0"
+  checksum: 10/20daabe197f3cb198ec28546deebcf24b3dbb1a5a269184381b3116d12f0532e06007f4bc8da25669d6a7f8efb68db0758df4cd981f57bc5b57f521a3e12c59e
   languageName: node
   linkType: hard
 
@@ -15027,6 +15026,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"matcher@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "matcher@npm:6.0.0"
+  dependencies:
+    escape-string-regexp: "npm:^5.0.0"
+  checksum: 10/fd1081626f912c3539a36cf7539bbef8dac1c87cad85d8bcac4aeed9ab7e9c2c5a92b28f40659f7180f6e7307e7a107224f1c113e29cad6881f22493f2f1f5d8
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.0.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -16168,13 +16176,6 @@ __metadata:
   version: 4.0.2
   resolution: "picomatch@npm:4.0.2"
   checksum: 10/ce617b8da36797d09c0baacb96ca8a44460452c89362d7cb8f70ca46b4158ba8bc3606912de7c818eb4a939f7f9015cef3c766ec8a0c6bfc725fdc078e39c717
-  languageName: node
-  linkType: hard
-
-"picomatch@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "picomatch@npm:4.0.3"
-  checksum: 10/57b99055f40b16798f2802916d9c17e9744e620a0db136554af01d19598b96e45e2f00014c91d1b8b13874b80caa8c295b3d589a3f72373ec4aaf54baa5962d5
   languageName: node
   linkType: hard
 

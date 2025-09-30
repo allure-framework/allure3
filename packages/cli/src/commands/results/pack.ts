@@ -1,11 +1,11 @@
 import { findMatching } from "@allurereport/directory-watcher";
 import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
+import { isMatch } from "matcher";
 import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
-import pm from "picomatch";
 import { green, red } from "yoctocolors";
 
 export class ResultsPackCommand extends Command {
@@ -64,16 +64,12 @@ export class ResultsPackCommand extends Command {
     const archiveName = this.name ?? "allure-results.zip";
     const resultsDirectories = new Set<string>();
     const resultsFiles = new Set<string>();
-    const matcher = pm(resultsDir, {
-      dot: true,
-      contains: true,
-    });
 
     await findMatching(cwd, resultsDirectories, (dirent) => {
       if (dirent.isDirectory()) {
         const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
 
-        return matcher(fullPath);
+        return isMatch(fullPath, join(cwd, resultsDir));
       }
 
       return false;

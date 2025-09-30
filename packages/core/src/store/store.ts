@@ -664,11 +664,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures: mapToObject(this.#fixtures),
       environments: this.#environments,
       reportVariables: this.#reportVariables,
+      globalAttachments: this.#globalAttachments,
+      globalErrors: this.#globalErrors,
     };
   }
 
   async restoreState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
-    const { testResults, attachments, testCases, fixtures, reportVariables, environments } = stateDump;
+    const {
+      testResults,
+      attachments,
+      testCases,
+      fixtures,
+      reportVariables,
+      environments,
+      globalAttachments = [],
+      globalErrors = [],
+    } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
@@ -676,6 +687,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     mergeMapWithRecord(this.#fixtures, fixtures);
 
     this.#addEnvironments(environments);
+
+    this.#globalAttachments.push(...globalAttachments);
+    this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);
     Object.assign(this.#attachmentContents, attachmentsContents);

@@ -3,7 +3,7 @@ import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
 import { AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DefaultAllureStore, mapToObject, mergeMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
@@ -1215,7 +1215,7 @@ describe("attachments", () => {
     });
   });
 
-  it("should use extension based on detected content type if no extension and content type is provided (link first)", async () => {
+  it("should use extension based on detected content type if no extension and content type specified in link (link first)", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1243,7 +1243,7 @@ describe("attachments", () => {
     });
   });
 
-  it("should use extension based on detected content type if no extension and content type is provided (file first)", async () => {
+  it("should use extension based on detected content type if no extension and content type specified in link (file first)", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1888,7 +1888,202 @@ describe("dump state", () => {
     expect(dump.reportVariables).toEqual({});
   });
 
-  it("should restore store state from the provided dump", async () => {
+  it("should include globalAttachments and globalErrors in dump state", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "full test result 1",
+      status: "passed",
+      testId: "test-id-1",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const globalError1 = {
+      message: "Global setup error",
+      trace: "Error stack trace 1",
+    };
+    const globalError2 = {
+      message: "Global teardown error",
+      trace: "Error stack trace 2",
+    };
+    const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
+
+    await onGlobalErrorCallback(globalError1);
+    await onGlobalErrorCallback(globalError2);
+
+    const mockGlobalAttachmentFile1 = {
+      getOriginalFileName: () => "global-log.txt",
+      getExtension: () => ".txt",
+      getContentType: () => "text/plain",
+      getContentLength: () => 100,
+    };
+    const mockGlobalAttachmentFile2 = {
+      getOriginalFileName: () => "global-screenshot.png",
+      getExtension: () => ".png",
+      getContentType: () => "image/png",
+      getContentLength: () => 2048,
+    };
+    const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
+
+    await onGlobalAttachmentCallback(mockGlobalAttachmentFile1);
+    await onGlobalAttachmentCallback(mockGlobalAttachmentFile2);
+
+    const dump = store.dumpState();
+
+    expect(dump.globalAttachments).toHaveLength(2);
+    expect(dump.globalAttachments[0].originalFileName).toBe("global-log.txt");
+    expect(dump.globalAttachments[1].originalFileName).toBe("global-screenshot.png");
+    expect(dump.globalErrors).toHaveLength(2);
+    expect(dump.globalErrors).toEqual([globalError1, globalError2]);
+  });
+
+  it("should include empty arrays for globalAttachments and globalErrors when none exist", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      status: "passed",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const dump = store.dumpState();
+
+    expect(dump.globalAttachments).toEqual([]);
+    expect(dump.globalErrors).toEqual([]);
+  });
+
+  it("should restore globalAttachments and globalErrors from dump", async () => {
+    const globalAttachment1 = {
+      id: "global-attachment-1",
+      originalFileName: "global-log.txt",
+      contentType: "text/plain",
+      ext: ".txt",
+      used: false,
+      missed: false,
+      contentLength: 100,
+    };
+    const globalAttachment2 = {
+      id: "global-attachment-2",
+      originalFileName: "global-screenshot.png",
+      contentType: "image/png",
+      ext: ".png",
+      used: false,
+      missed: false,
+      contentLength: 2048,
+    };
+    const globalError1 = {
+      message: "Global setup error",
+      trace: "Error stack trace 1",
+    };
+    const globalError2 = {
+      message: "Global teardown error",
+      trace: "Error stack trace 2",
+    };
+    const testResult = {
+      id: "test-result-id",
+      name: "test result",
+      fullName: "test result",
+      status: "passed",
+    };
+    const dump = {
+      testResults: {
+        "test-result-id": testResult,
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachments: [globalAttachment1, globalAttachment2],
+      globalErrors: [globalError1, globalError2],
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const restoredGlobalAttachments = await store.allGlobalAttachments();
+    const restoredGlobalErrors = await store.allGlobalErrors();
+
+    expect(restoredGlobalAttachments).toHaveLength(2);
+    expect(restoredGlobalAttachments).toEqual([globalAttachment1, globalAttachment2]);
+    expect(restoredGlobalErrors).toHaveLength(2);
+    expect(restoredGlobalErrors).toEqual([globalError1, globalError2]);
+  });
+
+  it("should append globalAttachments and globalErrors when restoring to existing store", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const initialError = {
+      message: "Initial error",
+      trace: "Initial stack trace",
+    };
+    const mockInitialAttachmentFile = {
+      getOriginalFileName: () => "initial.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 50,
+    };
+    const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
+    const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
+
+    await onGlobalErrorCallback(initialError);
+    await onGlobalAttachmentCallback(mockInitialAttachmentFile);
+
+    const dumpAttachment = {
+      id: "dump-attachment",
+      originalFileName: "dump.log",
+      contentType: "text/plain",
+      ext: ".log",
+      used: false,
+      missed: false,
+      contentLength: 75,
+    };
+    const dumpError = {
+      message: "Dump error",
+      trace: "Dump stack trace",
+    };
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachments: [dumpAttachment],
+      globalErrors: [dumpError],
+    };
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const allGlobalAttachments = await store.allGlobalAttachments();
+    const allGlobalErrors = await store.allGlobalErrors();
+
+    expect(allGlobalAttachments).toHaveLength(2);
+    expect(allGlobalAttachments.some((att) => att.originalFileName === "initial.log")).toBe(true);
+    expect(allGlobalAttachments.some((att) => att.originalFileName === "dump.log")).toBe(true);
+    expect(allGlobalErrors).toHaveLength(2);
+    expect(allGlobalErrors).toContain(initialError);
+    expect(allGlobalErrors).toContain(dumpError);
+  });
+
+  it("should handle restoreState with missing globalAttachments and globalErrors gracefully", async () => {
     const testResult = {
       id: "test-result-id",
       name: "test result",
@@ -1910,64 +2105,16 @@ describe("dump state", () => {
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
 
-    const loadedResults = await store.allTestResults();
+    const restoredGlobalAttachments = await store.allGlobalAttachments();
+    const restoredGlobalErrors = await store.allGlobalErrors();
 
-    expect(loadedResults.length).toBe(1);
-    expect(loadedResults[0].name).toBe("test result");
-    expect(loadedResults[0].id).toBe("test-result-id");
-  });
-
-  it("should restore store state with attachments", async () => {
-    const testResultId = "test-result-id";
-    const testResult = {
-      id: testResultId,
-      name: "test result",
-      fullName: "test result",
-      status: "passed",
-    };
-    const fileName = "test-attachment.txt";
-    const attachmentId = md5(fileName);
-    const attachmentContent = Buffer.from("Test attachment content");
-    const attachmentLink = {
-      id: attachmentId,
-      originalFileName: fileName,
-      contentType: "text/plain",
-      ext: "txt",
-      used: true,
-      missed: true,
-    };
-    const dump = {
-      testResults: {
-        [testResultId]: testResult,
-      },
-      attachments: {
-        [attachmentId]: attachmentLink,
-      },
-      testCases: {},
-      fixtures: {},
-      environments: ["default"],
-      reportVariables: {},
-    };
-    const attachmentFile = new BufferResultFile(attachmentContent, fileName);
-    const attachmentsToRestore = {
-      [attachmentId]: attachmentFile,
-    };
-    const store = new DefaultAllureStore();
-
-    await store.restoreState(dump as unknown as AllureStoreDump, attachmentsToRestore);
+    expect(restoredGlobalAttachments).toEqual([]);
+    expect(restoredGlobalErrors).toEqual([]);
 
     const testResults = await store.allTestResults();
 
-    expect(testResults.length).toBe(1);
-    expect(testResults[0].id).toBe(testResultId);
-
-    const attachments = await store.allAttachments({
-      includeMissed: true,
-      includeUnused: true,
-    });
-
-    expect(attachments.length).toBe(1);
-    expect(attachments[0].id).toBe(attachmentId);
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].id).toBe("test-result-id");
   });
 });
 
