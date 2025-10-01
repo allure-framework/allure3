@@ -304,7 +304,6 @@ export class RunCommand extends Command {
         console.error("could not clean output directory", e);
       }
     }
-
     const allureReport = new AllureReport({
       ...config,
       environment: this.environment,

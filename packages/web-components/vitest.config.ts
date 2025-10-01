@@ -1,19 +1,5 @@
 import * as path from "node:path";
 import { defineConfig } from "vitest/config";
-import { platform } from "node:os";
-
-const getOsLabel = () => {
-  switch (platform()) {
-    case "win32":
-      return "Windows";
-    case "darwin":
-      return "macOS";
-    case "linux":
-      return "Linux";
-    default:
-      return platform();
-  }
-};
 
 export default defineConfig({
   test: {
@@ -25,7 +11,7 @@ export default defineConfig({
         "allure-vitest/reporter",
         {
           resultsDir: "./out/allure-results",
-          globalLabels: [{ name: "module", value: "web-components" }, { name: "os", value: getOsLabel() }],
+          globalLabels: [{ name: "module", value: "web-components" }],
         },
       ],
     ],

@@ -1,19 +1,5 @@
 import { createRequire } from "node:module";
-import { platform } from "node:os";
 import { defineConfig } from "vitest/config";
-
-const getOsLabel = () => {
-  switch (platform()) {
-    case "win32":
-      return "Windows";
-    case "darwin":
-      return "macOS";
-    case "linux":
-      return "Linux";
-    default:
-      return platform();
-  }
-};
 
 const require = createRequire(import.meta.url);
 

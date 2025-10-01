@@ -91,17 +91,6 @@ const config = {
     },
   },
   variables: {},
-  environments: {
-    windows: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Windows"),
-    },
-    macos: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "macOS"),
-    },
-    linux: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Linux"),
-    },
-  },
 };
 
 if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN) {
