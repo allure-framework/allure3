@@ -70,6 +70,7 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: string[];
   reportVariables: ReportVariables;
+  indexAttachmentByTestResult: Record<string, AttachmentLink[]>;
 }
 
 export enum AllureStoreDumpFiles {
@@ -81,4 +82,5 @@ export enum AllureStoreDumpFiles {
   Attachments = "attachments.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
+  IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
 }

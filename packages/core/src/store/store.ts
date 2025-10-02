@@ -75,7 +75,29 @@ export const mergeMapWithRecord = <K extends string | number | symbol, T = any>(
   record: Record<K, T>,
 ): Map<K, T> => {
   Object.entries(record).forEach(([key, value]) => {
-    map.set(key as K, value as T);
+    const existingValue = map.get(key as K);
+
+    if (existingValue !== undefined) {
+      if (Array.isArray(existingValue) && Array.isArray(value)) {
+        // Merge arrays
+        map.set(key as K, [...existingValue, ...value] as unknown as T);
+      } else if (
+        typeof existingValue === "object" &&
+        existingValue !== null &&
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(existingValue) &&
+        !Array.isArray(value)
+      ) {
+        // Merge objects
+        map.set(key as K, { ...existingValue, ...value } as unknown as T);
+      } else {
+        // For primitives or incompatible types, just overwrite
+        map.set(key as K, value as T);
+      }
+    } else {
+      map.set(key as K, value as T);
+    }
   });
 
   return map;
@@ -666,6 +688,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables: this.#reportVariables,
       globalAttachments: this.#globalAttachments,
       globalErrors: this.#globalErrors,
+      indexAttachmentByTestResult: mapToObject(this.indexAttachmentByTestResult),
     };
   }
 
@@ -679,12 +702,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environments,
       globalAttachments = [],
       globalErrors = [],
+      indexAttachmentByTestResult = {},
     } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
     mergeMapWithRecord(this.#testCases, testCases);
     mergeMapWithRecord(this.#fixtures, fixtures);
+    mergeMapWithRecord(this.indexAttachmentByTestResult, indexAttachmentByTestResult);
+    mergeMapWithRecord(this.#attachmentContents, attachmentsContents);
 
     this.#addEnvironments(environments);
 
@@ -692,6 +718,5 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);
-    Object.assign(this.#attachmentContents, attachmentsContents);
   }
 }

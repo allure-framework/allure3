@@ -1,6 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
-import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
+import { glob } from "glob";
 import * as console from "node:console";
 import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +8,9 @@ import { GenerateCommand } from "../../src/commands/generate.js";
 import { logError } from "../../src/utils/logs.js";
 import { AllureReportMock } from "../utils.js";
 
+vi.mock("glob", () => ({
+  glob: vi.fn(),
+}));
 vi.mock("@allurereport/core", async (importOriginal) => {
   const utils = await import("../utils.js");
 
@@ -17,9 +20,6 @@ vi.mock("@allurereport/core", async (importOriginal) => {
     readConfig: vi.fn(),
   };
 });
-vi.mock("@allurereport/directory-watcher", () => ({
-  findMatching: vi.fn(),
-}));
 vi.mock("../../src/utils/logs.js", () => ({
   logError: vi.fn(),
 }));
@@ -39,7 +39,7 @@ beforeEach(() => {
 
 describe("generate command", () => {
   it("should do nothing when there are no results directory and stage files", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {});
+    (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
@@ -57,9 +57,7 @@ describe("generate command", () => {
   });
 
   it("should initialize and run allure report when the results directory is provided", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {
-      set.add("./allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
@@ -74,14 +72,12 @@ describe("generate command", () => {
 
     expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
   });
 
   it("should handle known errors and exit with code 1 without errors logging", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {
-      set.add("./allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
     AllureReportMock.prototype.start.mockRejectedValueOnce(new KnownError("known error"));
 
@@ -105,9 +101,7 @@ describe("generate command", () => {
   });
 
   it("should handle unknown errors and exit with code 1 with errors logging", async () => {
-    (findMatching as Mock).mockImplementation(async (_cwd, set, _cb) => {
-      set.add("./allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
     AllureReportMock.prototype.start.mockRejectedValueOnce(new Error("unknown error"));
 
@@ -132,12 +126,12 @@ describe("generate command", () => {
   });
 
   it("should restore state from stage dump files when provided via cli arguments", async () => {
-    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
-      set.add("stage1.zip");
-    });
-    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
-      set.add("stage2.zip");
-    });
+    vi.mocked(glob).mockReset();
+
+    vi.mocked(glob).mockResolvedValueOnce(["stage1.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["stage2.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce([]);
+
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
@@ -156,17 +150,12 @@ describe("generate command", () => {
   });
 
   it("should restore state from both stage dump files and results directories", async () => {
-    let callCount = 0;
+    vi.mocked(glob).mockReset();
 
-    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
-      set.add("stage1.zip");
-    });
-    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
-      set.add("stage2.zip");
-    });
-    (findMatching as Mock).mockImplementationOnce(async (_cwd, set, _cb) => {
-      set.add("./allure-results");
-    });
+    vi.mocked(glob).mockResolvedValueOnce(["stage1.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["stage2.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["./allure-results/"]);
+
     (readConfig as Mock).mockResolvedValue({});
 
     const command = new GenerateCommand();
@@ -181,6 +170,6 @@ describe("generate command", () => {
     expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
   });
 });

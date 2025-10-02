@@ -1,8 +1,7 @@
 import { AllureReport, readConfig } from "@allurereport/core";
-import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
-import { isMatch } from "matcher";
+import { glob } from "glob";
 import * as console from "node:console";
 import { join } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
@@ -64,38 +63,36 @@ export class GenerateCommand extends Command {
       name: this.reportName,
       output: this.output ?? "allure-report",
     });
-    const stageDumpFiles: Set<string> = new Set();
-    const resultsDirectories = new Set<string>();
+    const stageDumpFiles: string[] = [];
+    const resultsDirectories: string[] = [];
 
     if (this.stage?.length) {
       for (const stage of this.stage) {
-        await findMatching(cwd, stageDumpFiles, (dirent) => {
-          if (dirent.isFile()) {
-            const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
-
-            return isMatch(fullPath, join(cwd, stage));
-          }
-
-          return false;
+        const globPattern = join(cwd, stage);
+        const matchedFiles = await glob(globPattern, {
+          nodir: true,
+          dot: true,
         });
+
+        stageDumpFiles.push(...matchedFiles);
       }
     }
 
     // don't read allure results directories without the parameter when stage file has been found
     // or read allure results directory when it is explicitly provided
-    if (!!this.resultsDir || stageDumpFiles.size === 0) {
-      await findMatching(cwd, resultsDirectories, (dirent) => {
-        if (dirent.isDirectory()) {
-          const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+    if (!!this.resultsDir || stageDumpFiles.length === 0) {
+      const globPattern = join(cwd, resultsDir ?? "./**/allure-results");
+      const matchedDirs = (
+        await glob(globPattern, {
+          mark: true,
+          nodir: false,
+        })
+      ).filter((p) => p.endsWith("/"));
 
-          return isMatch(fullPath, join(cwd, resultsDir));
-        }
-
-        return false;
-      });
+      resultsDirectories.push(...matchedDirs);
     }
 
-    if (resultsDirectories.size === 0 && stageDumpFiles.size === 0) {
+    if (resultsDirectories.length === 0 && stageDumpFiles.length === 0) {
       // eslint-disable-next-line no-console
       console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
       return;

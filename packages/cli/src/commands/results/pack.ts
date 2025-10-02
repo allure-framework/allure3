@@ -1,7 +1,6 @@
-import { findMatching } from "@allurereport/directory-watcher";
 import AdmZip from "adm-zip";
 import { Command, Option } from "clipanion";
-import { isMatch } from "matcher";
+import { glob } from "glob";
 import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
@@ -62,20 +61,16 @@ export class ResultsPackCommand extends Command {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const archiveName = this.name ?? "allure-results.zip";
-    const resultsDirectories = new Set<string>();
+    const globPattern = join(cwd, resultsDir);
+    const resultsDirectories = (
+      await glob(globPattern, {
+        mark: true,
+        nodir: false,
+      })
+    ).filter((p) => p.endsWith("/"));
     const resultsFiles = new Set<string>();
 
-    await findMatching(cwd, resultsDirectories, (dirent) => {
-      if (dirent.isDirectory()) {
-        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
-
-        return isMatch(fullPath, join(cwd, resultsDir));
-      }
-
-      return false;
-    });
-
-    if (resultsDirectories.size === 0) {
+    if (resultsDirectories.length === 0) {
       console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
       return;
     }

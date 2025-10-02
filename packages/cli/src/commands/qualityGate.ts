@@ -1,8 +1,7 @@
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import type { TestResult } from "@allurereport/core-api";
-import { findMatching } from "@allurereport/directory-watcher";
 import { Command, Option } from "clipanion";
-import { isMatch } from "matcher";
+import { glob } from "glob";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
 import { join } from "node:path";
@@ -69,7 +68,6 @@ export class QualityGateCommand extends Command {
       knownIssuesPath,
     });
     const rules: Record<string, any> = {};
-    const resultsDirectories = new Set<string>();
 
     if (maxFailures !== undefined) {
       rules.maxFailures = maxFailures;
@@ -110,17 +108,15 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    await findMatching(cwd, resultsDirectories, (dirent) => {
-      if (dirent.isDirectory()) {
-        const fullPath = join(dirent?.parentPath ?? dirent?.path, dirent.name);
+    const globPattern = join(cwd, resultsDir);
+    const resultsDirectories = (
+      await glob(globPattern, {
+        mark: true,
+        nodir: false,
+      })
+    ).filter((p) => p.endsWith("/"));
 
-        return isMatch(fullPath, join(cwd, resultsDir));
-      }
-
-      return false;
-    });
-
-    if (resultsDirectories.size === 0) {
+    if (resultsDirectories.length === 0) {
       // eslint-disable-next-line no-console
       console.error("No Allure results directories found");
       exit(0);

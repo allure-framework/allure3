@@ -2132,7 +2132,7 @@ describe("mergeMapWithRecord", () => {
     ]);
   });
 
-  it("should overwrite existing keys in the map", () => {
+  it("should overwrite existing keys with primitive values", () => {
     const map = new Map<string, number>([
       ["a", 1],
       ["b", 2],
@@ -2143,6 +2143,60 @@ describe("mergeMapWithRecord", () => {
 
     expect(map.get("b")).toBe(42);
     expect(map.get("c")).toBe(3);
+  });
+
+  it("should merge arrays when both existing and new values are arrays", () => {
+    const map = new Map<string, any>([
+      ["a", [1, 2]],
+      ["b", "string"],
+      ["c", [5, 6]],
+    ]);
+    const record = { a: [3, 4], b: [7, 8], d: [9, 10] };
+
+    mergeMapWithRecord(map, record);
+
+    expect(Array.from(map.entries())).toEqual([
+      ["a", [1, 2, 3, 4]],
+      ["b", [7, 8]],
+      ["c", [5, 6]],
+      ["d", [9, 10]],
+    ]);
+  });
+
+  it("should merge objects when both existing and new values are objects", () => {
+    const map = new Map<string, any>([
+      ["a", { x: 1, y: 2 }],
+      ["b", "string"],
+      ["c", { z: 3 }],
+    ]);
+    const record = {
+      a: { y: 3, z: 4 },
+      b: { new: "object" },
+      d: { foo: "bar" },
+    };
+
+    mergeMapWithRecord(map, record);
+
+    expect(map.get("a")).toEqual({ x: 1, y: 3, z: 4 });
+    expect(map.get("b")).toEqual({ new: "object" });
+    expect(map.get("c")).toEqual({ z: 3 });
+    expect(map.get("d")).toEqual({ foo: "bar" });
+  });
+
+  it("should not merge when types are incompatible", () => {
+    const map = new Map<string, any>([
+      ["a", { x: 1 }],
+      ["b", [1, 2]],
+    ]);
+    const record = {
+      a: [3, 4], // object vs array
+      b: { y: 3 }, // array vs object
+    };
+
+    mergeMapWithRecord(map, record);
+
+    expect(map.get("a")).toEqual([3, 4]);
+    expect(map.get("b")).toEqual({ y: 3 });
   });
 
   it("should handle empty record and map", () => {

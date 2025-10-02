@@ -259,6 +259,7 @@ export class AllureReport {
       environments,
       globalAttachments = [],
       globalErrors = [],
+      indexAttachmentByTestResult = {},
     } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
@@ -297,6 +298,9 @@ export class AllureReport {
     });
     await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
       name: AllureStoreDumpFiles.GlobalErrors,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
+      name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
     });
 
     for (const attachment of allAttachments) {
@@ -340,6 +344,7 @@ export class AllureReport {
       const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
       const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
       const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
+      const indexAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -350,6 +355,7 @@ export class AllureReport {
           case AllureStoreDumpFiles.ReportVariables:
           case AllureStoreDumpFiles.GlobalAttachments:
           case AllureStoreDumpFiles.GlobalErrors:
+          case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
             return acc;
           default:
             return Object.assign(acc, {
@@ -366,6 +372,7 @@ export class AllureReport {
         reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
         globalAttachments: JSON.parse(globalAttachmentsEntry.toString("utf8")),
         globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
+        indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(stage);
       const resultsAttachments: Record<string, ResultFile> = {};
@@ -379,7 +386,7 @@ export class AllureReport {
 
           await writeFile(attachmentFilePath, attachmentContentEntry);
 
-          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath);
+          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
         }
       } catch (err) {
         console.error(`Can't restore state from "${stage}", continuing without it`);
