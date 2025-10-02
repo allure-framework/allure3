@@ -1202,6 +1202,7 @@ const RAW_RUNTIME_STATE =
           ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/bar", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/heatmap", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/line", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
           ["@nivo/scales", "npm:0.88.0"],\
@@ -8603,6 +8604,41 @@ const RAW_RUNTIME_STATE =
           ["d3-time-format", "npm:3.0.0"],\
           ["lodash", "npm:4.17.21"],\
           ["prop-types", "npm:15.8.1"],\
+          ["react", [\
+            "@preact/compat",\
+            "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"\
+          ]]\
+        ],\
+        "packagePeers": [\
+          "@types/react",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@nivo/heatmap", [\
+      ["npm:0.88.0", {\
+        "packageLocation": "./.yarn/cache/@nivo-heatmap-npm-0.88.0-8a994d2b47-62dc1bd3b4.zip/node_modules/@nivo/heatmap/",\
+        "packageDependencies": [\
+          ["@nivo/heatmap", "npm:0.88.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0", {\
+        "packageLocation": "./.yarn/__virtual__/@nivo-heatmap-virtual-8307a93106/0/cache/@nivo-heatmap-npm-0.88.0-8a994d2b47-62dc1bd3b4.zip/node_modules/@nivo/heatmap/",\
+        "packageDependencies": [\
+          ["@nivo/heatmap", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/annotations", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@nivo/axes", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/colors", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@nivo/core", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/legends", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.88.0"],\
+          ["@nivo/scales", "npm:0.88.0"],\
+          ["@nivo/tooltip", "virtual:c3ee0dd08628ccb87d17094d0dcce80b1e909114db170aa4abe388638979dae5ab8b9a8c51bbc2d5fea195b6db13d8597a365262c3033a278263dcc5a08f94b1#npm:0.88.0"],\
+          ["@react-spring/web", "virtual:aac8a984f465362be06f31c9c343dbb9634156d7e166ddb7b5d436c73d2f1c4c6dd117cde59cb725a68ef051b98b61932fb4e67d748052749a1e7a8383c9ccc3#npm:9.7.5"],\
+          ["@types/d3-scale", "npm:4.0.8"],\
+          ["@types/react", null],\
+          ["d3-scale", "npm:4.0.2"],\
           ["react", [\
             "@preact/compat",\
             "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"\
