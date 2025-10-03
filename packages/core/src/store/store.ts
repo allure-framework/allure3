@@ -1,3 +1,4 @@
+/* eslint max-lines: off */
 import {
   type AllureHistory,
   type AttachmentLink,
