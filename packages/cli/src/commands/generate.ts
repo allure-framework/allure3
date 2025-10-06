@@ -3,7 +3,7 @@ import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
-import { join } from "node:path";
+import { sep } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
@@ -21,7 +21,7 @@ export class GenerateCommand extends Command {
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
       [
-        "generate --stage=windows --stage=macos.zip ./allure-results",
+        "generate --stage=windows.zip --stage=macos.zip ./allure-results",
         "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
       ],
       [
@@ -68,10 +68,12 @@ export class GenerateCommand extends Command {
 
     if (this.stage?.length) {
       for (const stage of this.stage) {
-        const globPattern = join(cwd, stage);
-        const matchedFiles = await glob(globPattern, {
+        const matchedFiles = await glob(stage, {
           nodir: true,
           dot: true,
+          absolute: true,
+          windowsPathsNoEscape: true,
+          cwd,
         });
 
         stageDumpFiles.push(...matchedFiles);
@@ -81,13 +83,16 @@ export class GenerateCommand extends Command {
     // don't read allure results directories without the parameter when stage file has been found
     // or read allure results directory when it is explicitly provided
     if (!!this.resultsDir || stageDumpFiles.length === 0) {
-      const globPattern = join(cwd, resultsDir ?? "./**/allure-results");
       const matchedDirs = (
-        await glob(globPattern, {
+        await glob(resultsDir, {
           mark: true,
           nodir: false,
+          absolute: true,
+          dot: true,
+          windowsPathsNoEscape: true,
+          cwd,
         })
-      ).filter((p) => p.endsWith("/"));
+      ).filter((p) => p.endsWith(sep));
 
       resultsDirectories.push(...matchedDirs);
     }

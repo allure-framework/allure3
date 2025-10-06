@@ -26,7 +26,8 @@ import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import ZipWriteStream from "zip-stream";
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -55,11 +56,11 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
-  readonly #transitionalStage: string | undefined;
+  readonly #stage: string | undefined;
 
   #stageTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
-  #stage: "init" | "running" | "done" = "init";
+  #executionStage: "init" | "running" | "done" = "init";
 
   readonly reportUuid: string;
   reportUrl?: string;
@@ -79,7 +80,7 @@ export class AllureReport {
       environments,
       output,
       qualityGate,
-      transitionalStage,
+      stage,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -95,7 +96,7 @@ export class AllureReport {
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
-    this.#transitionalStage = transitionalStage;
+    this.#stage = stage;
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory(this.#allureServiceClient);
@@ -147,7 +148,7 @@ export class AllureReport {
   }
 
   readDirectory = async (resultsDir: string) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
@@ -173,14 +174,14 @@ export class AllureReport {
   };
 
   readFile = async (resultsFile: string) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
     await this.readResult(new PathResultFile(resultsFile));
   };
 
   readResult = async (data: ResultFile) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
@@ -208,15 +209,15 @@ export class AllureReport {
   start = async (): Promise<void> => {
     await this.#store.readHistory();
 
-    if (this.#stage === "running") {
+    if (this.#executionStage === "running") {
       throw new Error("the report is already started");
     }
 
-    if (this.#stage === "done") {
+    if (this.#executionStage === "done") {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
 
-    this.#stage = "running";
+    this.#executionStage = "running";
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish) {
@@ -242,7 +243,7 @@ export class AllureReport {
   };
 
   #update = async (): Promise<void> => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       return;
     }
     await this.#eachPlugin(false, async (plugin, context) => {
@@ -266,7 +267,7 @@ export class AllureReport {
       zlib: { level: 5 },
     });
     const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
-    const dumpArchiveWriteStream = createWriteStream(`${this.#transitionalStage}.zip`);
+    const dumpArchiveWriteStream = createWriteStream(`${this.#stage}.zip`);
     const promise = new Promise((res, rej) => {
       dumpArchive.on("error", (err) => rej(err));
       dumpArchiveWriteStream.on("finish", () => res(void 0));
@@ -374,7 +375,7 @@ export class AllureReport {
         globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
         indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
       };
-      const stageTempDir = await mkdtemp(stage);
+      const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};
 
       this.#stageTempDirs.push(stageTempDir);
@@ -401,16 +402,16 @@ export class AllureReport {
     const summaries: PluginSummary[] = [];
     const remoteHrefs: string[] = [];
 
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
     this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
-    this.#stage = "done";
+    this.#executionStage = "done";
 
-    // just dump state when transitional stage is set and generate nothing
-    if (this.#transitionalStage) {
+    // just dump state when stage is set and generate nothing
+    if (this.#stage) {
       await this.dumpState();
       return;
     }

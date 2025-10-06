@@ -4,7 +4,7 @@ import { glob } from "glob";
 import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename, join, resolve, sep } from "node:path";
 import { green, red } from "yoctocolors";
 
 export class ResultsPackCommand extends Command {
@@ -61,13 +61,16 @@ export class ResultsPackCommand extends Command {
     const cwd = await realpath(this.cwd ?? process.cwd());
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const archiveName = this.name ?? "allure-results.zip";
-    const globPattern = join(cwd, resultsDir);
     const resultsDirectories = (
-      await glob(globPattern, {
+      await glob(resultsDir, {
         mark: true,
         nodir: false,
+        dot: true,
+        absolute: true,
+        windowsPathsNoEscape: true,
+        cwd,
       })
-    ).filter((p) => p.endsWith("/"));
+    ).filter((p) => p.endsWith(sep));
     const resultsFiles = new Set<string>();
 
     if (resultsDirectories.length === 0) {

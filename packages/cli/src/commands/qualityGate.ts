@@ -4,7 +4,7 @@ import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
-import { join } from "node:path";
+import { sep } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
@@ -108,13 +108,16 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    const globPattern = join(cwd, resultsDir);
     const resultsDirectories = (
-      await glob(globPattern, {
+      await glob(resultsDir, {
         mark: true,
         nodir: false,
+        absolute: true,
+        dot: true,
+        windowsPathsNoEscape: true,
+        cwd,
       })
-    ).filter((p) => p.endsWith("/"));
+    ).filter((p) => p.endsWith(sep));
 
     if (resultsDirectories.length === 0) {
       // eslint-disable-next-line no-console

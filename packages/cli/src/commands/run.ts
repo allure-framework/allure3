@@ -307,7 +307,7 @@ export class RunCommand extends Command {
     const allureReport = new AllureReport({
       ...config,
       environment: this.environment,
-      transitionalStage: this.stage,
+      stage: this.stage,
       realTime: false,
       plugins: [
         ...(config.plugins?.length
