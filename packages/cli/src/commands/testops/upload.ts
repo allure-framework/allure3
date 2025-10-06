@@ -1,6 +1,8 @@
 import { AllureReport, readConfig } from "@allurereport/core";
+import { TestResult } from "@allurereport/core-api";
 import { findMatching } from "@allurereport/directory-watcher";
 import { KnownError } from "@allurereport/service";
+import { AllureTestOps } from "@allurereport/testops";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
@@ -50,6 +52,8 @@ export class TestOpsUploadCommand extends Command {
       return;
     }
 
+    const allureTestOps = new AllureTestOps(config.allureTestOps);
+
     // TODO: do we need to execute plugins in the command?
     config.plugins = [];
 
@@ -69,6 +73,8 @@ export class TestOpsUploadCommand extends Command {
       return false;
     });
 
+    console.log({ resultsDirectories })
+
     if (resultsDirectories.size === 0) {
       // eslint-disable-next-line no-console
       console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
@@ -77,16 +83,47 @@ export class TestOpsUploadCommand extends Command {
 
     try {
       const allureReport = new AllureReport(config);
+      const launch = await allureTestOps.startLaunch();
+
+      console.log(launch);
 
       await allureReport.start();
+
+      // const launchId = await allureTestOpsClient.createLaunch();
+      // const sessionId = await allureTestOpsClient.createSession(launchId);
+      //
+      // allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
+      //   console.log({ trsIds });
+      //
+      //   const trs = await Promise.all(trsIds.map((id) => allureReport.store.testResultById(id)));
+      //   const atrs = await launch.addTestResults(trs as TestResult[]);
+      //
+      //   // const atrs = await Promise.all(trs.filter(Boolean).map((tr) => launch.addTestResult(tr!)))
+      //
+      //   console.log(atrs);
+      //
+      //   // const atr = await launch.addTestResult(tr)
+      //
+      //   // await allureTestOps.uploadTestResults(sessionId, trs as TestResult[]);
+      // });
 
       for (const dir of resultsDirectories) {
         await allureReport.readDirectory(dir);
       }
 
-      const trs = await allureReport.store.allTestResults();
+      const allTrs = await allureReport.store.allTestResults({ includeHidden: true })
 
-      console.log("testops upload command: ", trs.length);
+      console.log({ allTrs })
+
+      // await new Promise((res) => {
+      //   setTimeout(res, 10000)
+      // })
+
+      // const tcs = await allureReport.store.allTestCases();
+
+      // await allureTestOpsClient.uploadTestCases(tcs);
+      // await allureTestOpsClient.closeLaunch(launchId);
+      // await launch.close();
 
       await allureReport.done();
     } catch (error) {

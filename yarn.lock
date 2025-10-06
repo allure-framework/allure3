@@ -665,6 +665,35 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allurereport/testops@workspace:*, @allurereport/testops@workspace:packages/testops":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/testops@workspace:packages/testops"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.8"
+    "@vitest/snapshot": "npm:^2.1.8"
+    allure-vitest: "npm:^3.3.3"
+    axios: "npm:^1.8.4"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    open: "npm:^10.1.0"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.8"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/web-allure2@workspace:*, @allurereport/web-allure2@workspace:packages/web-allure2":
   version: 0.0.0-use.local
   resolution: "@allurereport/web-allure2@workspace:packages/web-allure2"
@@ -8419,6 +8448,7 @@ __metadata:
     "@allurereport/reader-api": "workspace:*"
     "@allurereport/service": "workspace:*"
     "@allurereport/static-server": "workspace:*"
+    "@allurereport/testops": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/adm-zip": "npm:^0"
     "@types/eslint": "npm:^8.56.11"

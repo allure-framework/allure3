@@ -47,6 +47,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/service": "workspace:*",
     "@allurereport/static-server": "workspace:*",
+    "@allurereport/testops": "workspace:*",
     "adm-zip": "^0.5.16",
     "clipanion": "^4.0.0-rc.4",
     "lodash.omit": "^4.5.0",

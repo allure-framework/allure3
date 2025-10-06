@@ -132,6 +132,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
     allureService: config.allureService,
+    allureTestOps: config.allureTestOps,
   };
 };
 

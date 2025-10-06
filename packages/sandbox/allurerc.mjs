@@ -100,4 +100,10 @@ export default defineConfig({
   //   url: "http://localhost:5173",
   //   project: "sandbox",
   // },
+  // TODO: remove after tests
+  allureTestOps: {
+    url: "https://testing.testops.cloud",
+    token: "fcd03182-96f5-4693-862e-552460ea2427",
+    project: "13075",
+  }
 });
