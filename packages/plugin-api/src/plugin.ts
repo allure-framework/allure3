@@ -36,6 +36,7 @@ export interface PluginContext {
   reportUuid: string;
   reportName: string;
   reportFiles: ReportFiles;
+  reportUrl?: string;
   ci?: CiDescriptor;
 }
 
