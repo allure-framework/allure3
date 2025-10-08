@@ -1,8 +1,15 @@
-import { type Statistic } from "@allurereport/core-api";
-import { type AllureStore, type Plugin, type PluginContext } from "@allurereport/plugin-api";
+import type { Statistic, TestResult } from "@allurereport/core-api";
+import { getWorstStatus, statusesList } from "@allurereport/core-api";
+import type { AllureStore, Plugin, PluginContext, TestResultFilter } from "@allurereport/plugin-api";
 import axios, { isAxiosError } from "axios";
-import { prepareTestResults } from "./helpers.js";
-import type { ForgeAppOperations, ForgeAppVersions, UploadReportPayload } from "./types.js";
+import { isJiraIssueKey, prepareTestResults } from "./helpers.js";
+import type {
+  ClearPayload,
+  ForgeAppOperations,
+  ForgeAppRequest,
+  ForgeAppVersions,
+  UploadReportPayload,
+} from "./types.js";
 
 const TRUE_VALUES = ["true", "1"];
 
@@ -13,7 +20,7 @@ export interface JiraPluginOptions {
    */
   webhook?: string;
   /**
-   * Generated API token
+   * Generated Atlassian API token
    * @example "dmR2dWto..."
    */
   token?: string;
@@ -49,13 +56,72 @@ export class JiraPlugin implements Plugin {
     };
   }
 
+  #reportTestResults: TestResult[] = [];
+
+  async #getReportTestResults(store: AllureStore) {
+    // Use cached results if they are available
+    if (this.#reportTestResults.length > 0) {
+      return this.#reportTestResults;
+    }
+
+    this.#reportTestResults = await store.allTestResults();
+
+    return this.#reportTestResults;
+  }
+
+  #globalReportStatistic: Partial<Statistic> = {};
+
+  async reportTestsStatistic(store: AllureStore, filter?: TestResultFilter): Promise<Statistic> {
+    // Use cached unfiltered statistic if it is available
+    if (!filter && this.#globalReportStatistic.total !== undefined) {
+      return this.#globalReportStatistic as Statistic;
+    }
+
+    const trs = await this.#getReportTestResults(store);
+    const statistic: Statistic = { total: 0 };
+
+    for (const tr of trs) {
+      // This is okay because retriesByTr has no async operations
+      const retries = await store.retriesByTr(tr);
+
+      if (filter && !filter(tr)) {
+        continue;
+      }
+
+      statistic.total++;
+
+      if (retries.length > 0) {
+        statistic.retries = (statistic.retries ?? 0) + 1;
+      }
+
+      if (tr.flaky) {
+        statistic.flaky = (statistic.flaky ?? 0) + 1;
+      }
+
+      if (tr.transition === "new") {
+        statistic.new = (statistic.new ?? 0) + 1;
+      }
+
+      if (!statistic[tr.status]) {
+        statistic[tr.status] = 0;
+      }
+
+      statistic[tr.status]!++;
+    }
+
+    if (!filter) {
+      this.#globalReportStatistic = statistic;
+    }
+
+    return statistic;
+  }
+
   #verifyOptions() {
     const { token, webhook } = this.#pluginOptions;
 
     if (!token) {
       throw new Error(`[${this.#pluginName}] token is not set`);
     }
-
     if (!webhook) {
       throw new Error(`[${this.#pluginName}] webhook is not set`);
     }
@@ -66,56 +132,74 @@ export class JiraPlugin implements Plugin {
     payload: Record<string, unknown>;
     version?: ForgeAppVersions;
   }) {
-    this.#verifyOptions();
     const { operation, payload, version = "v1" } = props;
-
     const { token, webhook } = this.#pluginOptions;
 
+    const requestData: ForgeAppRequest = {
+      operation,
+      version,
+      payload,
+      token: token!,
+    };
+
     try {
-      await axios.post(webhook!, {
-        operation,
-        version,
-        payload,
-        token,
-      });
+      await axios.post(webhook!, requestData);
     } catch (error) {
       if (isAxiosError(error)) {
-        throw new Error(`[${this.#pluginName}] Allure Jira Integration app error: ${error.message}`);
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(`[${this.#pluginName}] Allure Jira Integration app error: ${errorMessage}`);
       }
       throw error;
     }
   }
 
-  async #uploadResults(context: PluginContext, store: AllureStore, returnData = false) {
-    this.#verifyOptions();
+  async #uploadResults(context: PluginContext, store: AllureStore) {
+    const allTestResults = await this.#getReportTestResults(store);
 
-    const statistic = await store.testsStatistic();
-
-    if (statistic.total === 0) {
+    if (allTestResults.length === 0) {
       throw new Error(`[${this.#pluginName}] no test results found`);
     }
 
-    const testResults = prepareTestResults(await store.allTestResults());
+    const testResults = prepareTestResults(allTestResults);
 
     const payload = {
       results: testResults,
       reportUrl: context.reportUrl,
     };
 
-    if (returnData) {
-      return payload;
-    }
-
     await this.#requestForgeApp({ operation: "upload-results", payload });
   }
 
   async #getReportStatus(store: AllureStore) {
+    const reportStatistic = await this.reportTestsStatistic(store);
     const globalErrors = await store.allGlobalErrors();
     const globalExitCode = await store.globalExitCode();
     const code = globalExitCode?.actual ?? globalExitCode?.original;
     const hasGlobalErrors = globalErrors.length > 0;
 
-    return hasGlobalErrors ? "failed" : code === 0 ? "passed" : "failed";
+    if (hasGlobalErrors) {
+      return "failed";
+    }
+
+    if (code === 0) {
+      return "passed";
+    }
+
+    const worstStatus =
+      getWorstStatus(
+        statusesList
+          .map((status) => {
+            const value = reportStatistic[status] ?? 0;
+            return value > 0 ? status : undefined;
+          })
+          .filter((status) => status !== undefined),
+      ) ?? "passed";
+
+    if (worstStatus === "passed") {
+      return "passed";
+    }
+
+    return "failed";
   }
 
   async #getStatisticByEnv(store: AllureStore) {
@@ -123,7 +207,7 @@ export class JiraPlugin implements Plugin {
     const envs = await store.allEnvironments();
 
     for (const env of envs) {
-      statisticByEnv[env] = await store.testsStatistic((tr) => tr.environment === env);
+      statisticByEnv[env] = await this.reportTestsStatistic(store, (tr) => tr.environment === env);
     }
 
     return statisticByEnv;
@@ -137,33 +221,31 @@ export class JiraPlugin implements Plugin {
   }
 
   async #getReportDate(store: AllureStore) {
-    const testResults = await store.allTestResults();
-    return testResults.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
+    const trs = await this.#getReportTestResults(store);
+    return trs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
   }
 
-  async #uploadReport(context: PluginContext, store: AllureStore, returnData = false) {
+  async #uploadReport(context: PluginContext, store: AllureStore) {
     const { reportIssue } = this.#pluginOptions;
 
-    this.#verifyOptions();
-
     if (!reportIssue) {
-      throw new Error(`[${this.#pluginName}] issue is not set`);
+      throw new Error(`[${this.#pluginName}] reportIssue is not set`);
     }
 
-    const statistic = await store.testsStatistic();
+    if (!isJiraIssueKey(reportIssue)) {
+      throw new Error(`[${this.#pluginName}] reportIssue is not a valid Jira issue key`);
+    }
+
+    const statistic = await this.reportTestsStatistic(store);
 
     if (statistic.total === 0) {
       throw new Error(`[${this.#pluginName}] no test results found`);
     }
 
     const history = await store.allHistoryDataPoints();
-
     const reportStatus = await this.#getReportStatus(store);
-
     const statisticByEnv = await this.#getStatisticByEnv(store);
-
     const date = await this.#getReportDate(store);
-
     const ciInfo = await this.#getCiInfo(context);
 
     const payload: UploadReportPayload = {
@@ -181,25 +263,13 @@ export class JiraPlugin implements Plugin {
       },
     };
 
-    if (returnData) {
-      return payload;
-    }
-
     await this.#requestForgeApp({ operation: "upload-report", payload });
   }
 
   async #uploadAll(context: PluginContext, store: AllureStore) {
-    this.#verifyOptions();
-    const reportPayload = await this.#uploadReport(context, store, true);
-    const resultsPayload = await this.#uploadResults(context, store, true);
+    await this.#uploadReport(context, store);
 
-    await this.#requestForgeApp({
-      operation: "upload-all",
-      payload: {
-        ...reportPayload,
-        results: resultsPayload?.results,
-      },
-    });
+    await this.#uploadResults(context, store);
   }
 
   /**
@@ -208,7 +278,8 @@ export class JiraPlugin implements Plugin {
    * @example clearReports(["JIRA-123", "JIRA-456"])
    */
   async clearReports(issues: string[]) {
-    return await this.#requestForgeApp({ operation: "clear", payload: { issues, reports: true } });
+    const payload: ClearPayload = { issues, reports: true };
+    return await this.#requestForgeApp({ operation: "clear", payload });
   }
 
   /**
@@ -226,10 +297,12 @@ export class JiraPlugin implements Plugin {
    * @example clearAll(["JIRA-123", "JIRA-456"])
    */
   async clearAll(issues: string[]) {
-    return await this.#requestForgeApp({ operation: "clear", payload: { issues, reports: true, results: true } });
+    const payload: ClearPayload = { issues, reports: true, results: true };
+    return await this.#requestForgeApp({ operation: "clear", payload });
   }
 
   async done(context: PluginContext, store: AllureStore) {
+    this.#verifyOptions();
     const { uploadReport, uploadResults } = this.#pluginOptions;
 
     if (!uploadReport && !uploadResults) {
@@ -240,6 +313,7 @@ export class JiraPlugin implements Plugin {
       await this.#uploadAll(context, store);
       return;
     }
+
     if (uploadReport) {
       await this.#uploadReport(context, store);
       return;

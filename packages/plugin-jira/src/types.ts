@@ -19,14 +19,27 @@ export type ForgePluginReport = {
     label?: string;
   };
   statistic: Statistic;
-  statisticByEnv?: Record<string, Statistic>;
+  statisticByEnv: Record<string, Statistic>;
   name: string;
   url?: string;
   date: number;
 };
 
-export type ForgeAppOperations = "upload-report" | "upload-results" | "upload-all" | "clear";
+export type ForgeAppOperations = "upload-report" | "upload-results" | "clear";
 export type ForgeAppVersions = "v1";
+
+export type ClearPayload = {
+  issues: string[];
+  reports?: boolean;
+  results?: boolean;
+};
+
+export type ForgeAppRequest = {
+  operation: ForgeAppOperations;
+  version: ForgeAppVersions;
+  payload: Record<string, unknown>;
+  token: string;
+};
 
 export type UploadReportPayload = {
   issue: JiraIssue;

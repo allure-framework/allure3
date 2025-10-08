@@ -10,6 +10,7 @@ import {
   DashboardCommand,
   GenerateCommand,
   HistoryCommand,
+  JiraClearCommand,
   KnownIssueCommand,
   LogCommand,
   LoginCommand,
@@ -47,6 +48,7 @@ cli.register(CsvCommand);
 cli.register(DashboardCommand);
 cli.register(GenerateCommand);
 cli.register(HistoryCommand);
+cli.register(JiraClearCommand);
 cli.register(KnownIssueCommand);
 cli.register(LogCommand);
 cli.register(LoginCommand);

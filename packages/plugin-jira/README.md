@@ -52,7 +52,7 @@ The plugin accepts the following options:
 | Option    | Description                         | Type     |
 | --------- | ----------------------------------- | -------- |
 | `webhook` | Allure Jira Integration Webhook URL | `string` |
-| `token`   | Generated API token                 | `string` |
+| `token`   | Generated Atlassian API token       | `string` |
 | `issue`   | Jira issue to link report to        | `string` |
 
 ### Webhook URL
@@ -88,5 +88,5 @@ _Access token is required to verify your permissions and to ensure you have acce
 
 ### Webhook
 
-1. Navigate to Get Started page of Allure Report App in you instance
+1. Navigate to Get Started page of Allure Report App in your instance
 2. Find a webhook url and copy it

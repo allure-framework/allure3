@@ -41,6 +41,7 @@ export interface AllureStore {
   metadataByKey: <T>(key: string) => Promise<T | undefined>;
   testResultsByTcId: (tcId: string) => Promise<TestResult[]>;
   attachmentsByTrId: (trId: string) => Promise<AttachmentLink[]>;
+  retriesByTr: (tr: TestResult) => Promise<TestResult[]>;
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
   historyByTrId: (trId: string) => Promise<HistoryTestResult[]>;
   fixturesByTrId: (trId: string) => Promise<TestFixtureResult[]>;

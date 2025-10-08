@@ -1,30 +1,23 @@
 import { type TestResult } from "@allurereport/core-api";
 import { type ForgePluginTestResult } from "./types.js";
 
+/**
+ * Check if URL matches Jira pattern:
+ * https://<instance-name>.atlassian.net/browse/<project-key>-<number>
+ */
+const isJiraUrl = (url: string): boolean => {
+  const jiraPattern = /^https:\/\/[a-zA-Z0-9-]+\.atlassian\.net\/browse\/[A-Z]+-\d+$/;
+
+  return jiraPattern.test(url);
+};
+
+export const isJiraIssueKey = (issue: string): boolean => {
+  const jiraPattern = /^[A-Z]+-\d+$/;
+  return jiraPattern.test(issue);
+};
+
 export const findJiraLink = (tr: TestResult) => {
-  return tr.links.find((link) => {
-    if (link.type !== "issue") {
-      return false;
-    }
-
-    if (!link.name) {
-      return false;
-    }
-
-    const linknamesplit = link.name.split("-");
-
-    if (linknamesplit.length !== 2) {
-      return false;
-    }
-
-    const [, issue] = linknamesplit;
-
-    if (isNaN(parseInt(issue, 10))) {
-      return false;
-    }
-
-    return true;
-  });
+  return tr.links.find((link) => isJiraUrl(link.url));
 };
 
 export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] => {
@@ -39,10 +32,10 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
 
     const historyId = tr.historyId!;
 
-    const trFromMap = trMap[historyId];
+    let trFromMap = trMap[historyId];
 
     if (!trFromMap) {
-      trMap[historyId] = {
+      trFromMap = trMap[historyId] = {
         id: historyId,
         runs: [],
         issue: jiraLink,
