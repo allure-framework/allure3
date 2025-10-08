@@ -1886,6 +1886,13 @@ describe("dump state", () => {
     expect(dump.attachments[attachmentId]).toBeDefined();
     expect(dump.environments).toContain("default");
     expect(dump.reportVariables).toEqual({});
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
   });
 
   it("should include globalAttachments and globalErrors in dump state", async () => {
@@ -1959,6 +1966,13 @@ describe("dump state", () => {
 
     expect(dump.globalAttachments).toEqual([]);
     expect(dump.globalErrors).toEqual([]);
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
   });
 
   it("should restore globalAttachments and globalErrors from dump", async () => {
@@ -2005,6 +2019,13 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachments: [globalAttachment1, globalAttachment2],
       globalErrors: [globalError1, globalError2],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
     };
 
     const store = new DefaultAllureStore();
@@ -2013,11 +2034,13 @@ describe("dump state", () => {
 
     const restoredGlobalAttachments = await store.allGlobalAttachments();
     const restoredGlobalErrors = await store.allGlobalErrors();
+    const testResults = await store.allTestResults();
 
     expect(restoredGlobalAttachments).toHaveLength(2);
     expect(restoredGlobalAttachments).toEqual([globalAttachment1, globalAttachment2]);
     expect(restoredGlobalErrors).toHaveLength(2);
     expect(restoredGlobalErrors).toEqual([globalError1, globalError2]);
+    expect(testResults).toHaveLength(1);
   });
 
   it("should append globalAttachments and globalErrors when restoring to existing store", async () => {
@@ -2068,6 +2091,13 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachments: [dumpAttachment],
       globalErrors: [dumpError],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
     };
 
     await store.restoreState(dump as unknown as AllureStoreDump, {});
@@ -2084,19 +2114,19 @@ describe("dump state", () => {
   });
 
   it("should handle restoreState with missing globalAttachments and globalErrors gracefully", async () => {
-    const testResult = {
-      id: "test-result-id",
-      name: "test result",
-      fullName: "test result",
-      status: "passed",
-    };
     const dump = {
       testResults: {
-        "test-result-id": testResult,
+        "test-result-id": {
+          id: "test-result-id",
+          name: "test result 1",
+          status: "passed",
+        },
       },
       attachments: {},
       testCases: {},
       fixtures: {},
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
       environments: ["default"],
       reportVariables: {},
     };
@@ -2115,6 +2145,74 @@ describe("dump state", () => {
 
     expect(testResults).toHaveLength(1);
     expect(testResults[0].id).toBe("test-result-id");
+  });
+
+  it("should handle restoreState with missing index properties gracefully", async () => {
+    const dump = {
+      testResults: {
+        "test-result-id": {
+          id: "test-result-id",
+          name: "test result 1",
+          status: "passed",
+          historyId: "history-1",
+          testCase: { id: "test-case-1", name: "Test Case 1" },
+          environment: "default",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      globalAttachments: [],
+      globalErrors: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      // Missing new index properties to test graceful handling
+      environments: ["default"],
+      reportVariables: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].id).toBe("test-result-id");
+
+    const testResultsByTestCase = await store.testResultsByTcId("test-case-1");
+
+    expect(testResultsByTestCase).toBeDefined();
+  });
+
+  it("should dump and restore index properties with actual data", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      status: "passed",
+      testId: "test-id-1",
+      historyId: "history-1",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const dump = store.dumpState();
+
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
+
+    const newStore = new DefaultAllureStore();
+
+    await newStore.restoreState(dump, {});
+
+    const allTestResults = await newStore.allTestResults();
+
+    expect(allTestResults).toHaveLength(1);
   });
 });
 

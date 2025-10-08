@@ -261,6 +261,12 @@ export class AllureReport {
       globalAttachments = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
+      indexTestResultByHistoryId = {},
+      indexTestResultByTestCase = {},
+      indexLatestEnvTestResultByHistoryId = {},
+      indexAttachmentByFixture = {},
+      indexFixturesByTestResult = {},
+      indexKnownByHistoryId = {},
     } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
@@ -302,6 +308,24 @@ export class AllureReport {
     });
     await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
       name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexTestResultByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexTestResultsByHistoryId,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexTestResultByTestCase)), {
+      name: AllureStoreDumpFiles.IndexTestResultsByTestCase,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexLatestEnvTestResultByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByFixture)), {
+      name: AllureStoreDumpFiles.IndexAttachmentsByFixture,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexFixturesByTestResult)), {
+      name: AllureStoreDumpFiles.IndexFixturesByTestResult,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexKnownByHistoryId,
     });
 
     for (const attachment of allAttachments) {
@@ -346,6 +370,14 @@ export class AllureReport {
       const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
       const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
       const indexAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
+      const indexTestResultsByHistoryId = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
+      const indexTestResultsByTestCaseEntry = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByTestCase);
+      const indexLatestEnvTestResultsByHistoryIdEntry = await dump.entryData(
+        AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
+      );
+      const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
+      const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
+      const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -357,6 +389,12 @@ export class AllureReport {
           case AllureStoreDumpFiles.GlobalAttachments:
           case AllureStoreDumpFiles.GlobalErrors:
           case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
+          case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
+          case AllureStoreDumpFiles.IndexTestResultsByTestCase:
+          case AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId:
+          case AllureStoreDumpFiles.IndexAttachmentsByFixture:
+          case AllureStoreDumpFiles.IndexFixturesByTestResult:
+          case AllureStoreDumpFiles.IndexKnownByHistoryId:
             return acc;
           default:
             return Object.assign(acc, {
@@ -374,6 +412,12 @@ export class AllureReport {
         globalAttachments: JSON.parse(globalAttachmentsEntry.toString("utf8")),
         globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
         indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
+        indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
+        indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
+        indexLatestEnvTestResultByHistoryId: JSON.parse(indexLatestEnvTestResultsByHistoryIdEntry.toString("utf8")),
+        indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
+        indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
+        indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};

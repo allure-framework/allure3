@@ -71,6 +71,12 @@ export interface AllureStoreDump {
   environments: string[];
   reportVariables: ReportVariables;
   indexAttachmentByTestResult: Record<string, AttachmentLink[]>;
+  indexTestResultByHistoryId: Record<string, TestResult[]>;
+  indexTestResultByTestCase: Record<string, TestResult[]>;
+  indexLatestEnvTestResultByHistoryId: Record<string, Record<string, TestResult>>;
+  indexAttachmentByFixture: Record<string, AttachmentLink[]>;
+  indexFixturesByTestResult: Record<string, TestFixtureResult[]>;
+  indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
 }
 
 export enum AllureStoreDumpFiles {
@@ -83,4 +89,10 @@ export enum AllureStoreDumpFiles {
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
+  IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
+  IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
+  IndexLatestEnvTestResultsByHistoryId = "index-latest-env-test-results-by-history-id.json",
+  IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
+  IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
+  IndexKnownByHistoryId = "index-known-by-history-id.json",
 }

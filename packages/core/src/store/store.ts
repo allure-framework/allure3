@@ -119,8 +119,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
+
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
+  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>> = new Map();
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -174,7 +175,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environmentsConfig = environmentsConfig;
     this.#environment = environment;
     this.#reportVariables = reportVariables;
-    this.indexLatestEnvTestResultByHistoryId = new Map();
 
     this.#addEnvironments(environments);
 
@@ -655,7 +655,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       trs.forEach((tr) => {
-        const env = this.#environment || matchEnvironment(this.#environmentsConfig, tr);
+        const env = tr.environment || this.#environment || matchEnvironment(this.#environmentsConfig, tr);
 
         envGroup.testResultsByEnv[env] = tr.id;
       });
@@ -680,6 +680,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   dumpState(): AllureStoreDump {
+    const indexLatestEnvTestResultByHistoryId: Record<string, Record<string, TestResult>> = {};
+
+    this.indexLatestEnvTestResultByHistoryId.forEach((envMap, env) => {
+      indexLatestEnvTestResultByHistoryId[env] = mapToObject(envMap);
+    });
+
     return {
       testResults: mapToObject(this.#testResults),
       attachments: mapToObject(this.#attachments),
@@ -690,6 +696,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       globalAttachments: this.#globalAttachments,
       globalErrors: this.#globalErrors,
       indexAttachmentByTestResult: mapToObject(this.indexAttachmentByTestResult),
+      indexTestResultByHistoryId: mapToObject(this.indexTestResultByHistoryId),
+      indexTestResultByTestCase: mapToObject(this.indexTestResultByTestCase),
+      indexLatestEnvTestResultByHistoryId,
+      indexAttachmentByFixture: mapToObject(this.indexAttachmentByFixture),
+      indexFixturesByTestResult: mapToObject(this.indexFixturesByTestResult),
+      indexKnownByHistoryId: mapToObject(this.indexKnownByHistoryId),
     };
   }
 
@@ -704,14 +716,33 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       globalAttachments = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
+      indexTestResultByHistoryId = {},
+      indexTestResultByTestCase = {},
+      indexLatestEnvTestResultByHistoryId = {},
+      indexAttachmentByFixture = {},
+      indexFixturesByTestResult = {},
+      indexKnownByHistoryId = {},
     } = stateDump;
 
     mergeMapWithRecord(this.#testResults, testResults);
     mergeMapWithRecord(this.#attachments, attachments);
     mergeMapWithRecord(this.#testCases, testCases);
     mergeMapWithRecord(this.#fixtures, fixtures);
-    mergeMapWithRecord(this.indexAttachmentByTestResult, indexAttachmentByTestResult);
     mergeMapWithRecord(this.#attachmentContents, attachmentsContents);
+    mergeMapWithRecord(this.indexAttachmentByTestResult, indexAttachmentByTestResult);
+    mergeMapWithRecord(this.indexTestResultByHistoryId, indexTestResultByHistoryId);
+    mergeMapWithRecord(this.indexTestResultByTestCase, indexTestResultByTestCase);
+    mergeMapWithRecord(this.indexAttachmentByFixture, indexAttachmentByFixture);
+    mergeMapWithRecord(this.indexFixturesByTestResult, indexFixturesByTestResult);
+    mergeMapWithRecord(this.indexKnownByHistoryId, indexKnownByHistoryId);
+
+    Object.entries(indexLatestEnvTestResultByHistoryId).forEach(([env, historyMap]) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(env)) {
+        this.indexLatestEnvTestResultByHistoryId.set(env, new Map());
+      }
+
+      mergeMapWithRecord(this.indexLatestEnvTestResultByHistoryId.get(env)!, historyMap);
+    });
 
     this.#addEnvironments(environments);
 
