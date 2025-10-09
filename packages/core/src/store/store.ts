@@ -680,13 +680,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   dumpState(): AllureStoreDump {
-    const indexLatestEnvTestResultByHistoryId: Record<string, Record<string, TestResult>> = {};
-
-    this.indexLatestEnvTestResultByHistoryId.forEach((envMap, env) => {
-      indexLatestEnvTestResultByHistoryId[env] = mapToObject(envMap);
-    });
-
-    return {
+    const storeDump: AllureStoreDump = {
       testResults: mapToObject(this.#testResults),
       attachments: mapToObject(this.#attachments),
       testCases: mapToObject(this.#testCases),
@@ -695,14 +689,40 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables: this.#reportVariables,
       globalAttachments: this.#globalAttachments,
       globalErrors: this.#globalErrors,
-      indexAttachmentByTestResult: mapToObject(this.indexAttachmentByTestResult),
-      indexTestResultByHistoryId: mapToObject(this.indexTestResultByHistoryId),
-      indexTestResultByTestCase: mapToObject(this.indexTestResultByTestCase),
-      indexLatestEnvTestResultByHistoryId,
-      indexAttachmentByFixture: mapToObject(this.indexAttachmentByFixture),
-      indexFixturesByTestResult: mapToObject(this.indexFixturesByTestResult),
-      indexKnownByHistoryId: mapToObject(this.indexKnownByHistoryId),
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
     };
+
+    this.indexLatestEnvTestResultByHistoryId.forEach((envMap) => {
+      envMap.forEach((tr, historyId) => {
+        storeDump.indexLatestEnvTestResultByHistoryId[historyId] = tr.id;
+      });
+    });
+    this.indexAttachmentByFixture.forEach((link, fxId) => {
+      storeDump.indexAttachmentByFixture[fxId] = link.map((l) => l.id);
+    });
+    this.indexAttachmentByTestResult.forEach((links, trId) => {
+      storeDump.indexAttachmentByTestResult[trId] = links.map((l) => l.id);
+    });
+    this.indexTestResultByHistoryId.forEach((trs, historyId) => {
+      storeDump.indexTestResultByHistoryId[historyId] = trs.map((tr) => tr.id);
+    });
+    this.indexTestResultByTestCase.forEach((trs, tcId) => {
+      storeDump.indexTestResultByTestCase[tcId] = trs.map((tr) => tr.id);
+    });
+    this.indexFixturesByTestResult.forEach((fixtures, trId) => {
+      storeDump.indexFixturesByTestResult[trId] = fixtures.map((f) => f.id);
+    });
+    this.indexKnownByHistoryId.forEach((known, historyId) => {
+      storeDump.indexKnownByHistoryId[historyId] = known;
+    });
+
+    return storeDump;
   }
 
   async restoreState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
@@ -729,26 +749,117 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     mergeMapWithRecord(this.#testCases, testCases);
     mergeMapWithRecord(this.#fixtures, fixtures);
     mergeMapWithRecord(this.#attachmentContents, attachmentsContents);
-    mergeMapWithRecord(this.indexAttachmentByTestResult, indexAttachmentByTestResult);
-    mergeMapWithRecord(this.indexTestResultByHistoryId, indexTestResultByHistoryId);
-    mergeMapWithRecord(this.indexTestResultByTestCase, indexTestResultByTestCase);
-    mergeMapWithRecord(this.indexAttachmentByFixture, indexAttachmentByFixture);
-    mergeMapWithRecord(this.indexFixturesByTestResult, indexFixturesByTestResult);
-    mergeMapWithRecord(this.indexKnownByHistoryId, indexKnownByHistoryId);
-
-    Object.entries(indexLatestEnvTestResultByHistoryId).forEach(([env, historyMap]) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(env)) {
-        this.indexLatestEnvTestResultByHistoryId.set(env, new Map());
-      }
-
-      mergeMapWithRecord(this.indexLatestEnvTestResultByHistoryId.get(env)!, historyMap);
-    });
 
     this.#addEnvironments(environments);
-
     this.#globalAttachments.push(...globalAttachments);
     this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);
+
+    Object.entries(indexAttachmentByTestResult).forEach(([trId, links]) => {
+      const attachmentsLinks = links.map((id) => this.#attachments.get(id)).filter(Boolean);
+
+      if (attachmentsLinks.length === 0) {
+        return;
+      }
+
+      const existingLinks = this.indexAttachmentByTestResult.get(trId)!;
+
+      if (!existingLinks) {
+        this.indexAttachmentByTestResult.set(trId, attachmentsLinks as AttachmentLink[]);
+        return;
+      }
+
+      existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
+    });
+    Object.entries(indexTestResultByHistoryId).forEach(([historyId, trIds]) => {
+      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
+
+      if (trs.length === 0) {
+        return;
+      }
+
+      const existingTrs = this.indexTestResultByHistoryId.get(historyId);
+
+      if (!existingTrs) {
+        this.indexTestResultByHistoryId.set(historyId, trs as TestResult[]);
+        return;
+      }
+
+      existingTrs.push(...(trs as TestResult[]));
+    });
+    Object.entries(indexTestResultByTestCase).forEach(([tcId, trIds]) => {
+      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
+
+      if (trs.length === 0) {
+        return;
+      }
+
+      const existingTrs = this.indexTestResultByTestCase.get(tcId);
+
+      if (!existingTrs) {
+        this.indexTestResultByTestCase.set(tcId, trs as TestResult[]);
+        return;
+      }
+
+      existingTrs.push(...(trs as TestResult[]));
+    });
+    Object.entries(indexAttachmentByFixture).forEach(([fxId, attachmentIds]) => {
+      const attachmentsLinks = attachmentIds.map((id) => this.#attachments.get(id)).filter(Boolean);
+
+      if (attachmentsLinks.length === 0) {
+        return;
+      }
+
+      const existingLinks = this.indexAttachmentByFixture.get(fxId);
+
+      if (!existingLinks) {
+        this.indexAttachmentByFixture.set(fxId, attachmentsLinks as AttachmentLink[]);
+        return;
+      }
+
+      existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
+    });
+    Object.entries(indexFixturesByTestResult).forEach(([trId, fixtureIds]) => {
+      const fxs = fixtureIds.map((id) => this.#fixtures.get(id)).filter(Boolean);
+
+      if (fxs.length === 0) {
+        return;
+      }
+
+      const existingFixtures = this.indexFixturesByTestResult.get(trId);
+
+      if (!existingFixtures) {
+        this.indexFixturesByTestResult.set(trId, fxs as TestFixtureResult[]);
+        return;
+      }
+
+      existingFixtures.push(...(fxs as TestFixtureResult[]));
+    });
+    Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
+      const existingKnown = this.indexKnownByHistoryId.get(historyId);
+
+      if (!existingKnown) {
+        this.indexKnownByHistoryId.set(historyId, knownFailures);
+        return;
+      }
+
+      existingKnown.push(...knownFailures);
+    });
+    Object.entries(indexLatestEnvTestResultByHistoryId).forEach(([historyId, trId]) => {
+      const tr = this.#testResults.get(trId);
+
+      if (!tr) {
+        return;
+      }
+
+      const env = tr.environment || this.#environment || "default";
+
+      if (!this.indexLatestEnvTestResultByHistoryId.has(env)) {
+        this.indexLatestEnvTestResultByHistoryId.set(env, new Map());
+      }
+
+      this.indexLatestEnvTestResultByHistoryId.get(env)!.set(historyId, tr);
+    });
   }
 }

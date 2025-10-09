@@ -360,7 +360,6 @@ export class AllureReport {
       const dump = new ZipReadStream.async({
         file: stage,
       });
-
       const testResultsEntry = await dump.entryData(AllureStoreDumpFiles.TestResults);
       const testCasesEntry = await dump.entryData(AllureStoreDumpFiles.TestCases);
       const fixturesEntry = await dump.entryData(AllureStoreDumpFiles.Fixtures);

@@ -70,12 +70,12 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: string[];
   reportVariables: ReportVariables;
-  indexAttachmentByTestResult: Record<string, AttachmentLink[]>;
-  indexTestResultByHistoryId: Record<string, TestResult[]>;
-  indexTestResultByTestCase: Record<string, TestResult[]>;
-  indexLatestEnvTestResultByHistoryId: Record<string, Record<string, TestResult>>;
-  indexAttachmentByFixture: Record<string, AttachmentLink[]>;
-  indexFixturesByTestResult: Record<string, TestFixtureResult[]>;
+  indexAttachmentByTestResult: Record<string, string[]>;
+  indexTestResultByHistoryId: Record<string, string[]>;
+  indexTestResultByTestCase: Record<string, string[]>;
+  indexLatestEnvTestResultByHistoryId: Record<string, string>;
+  indexAttachmentByFixture: Record<string, string[]>;
+  indexFixturesByTestResult: Record<string, string[]>;
   indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
 }
 
