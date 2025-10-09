@@ -17,6 +17,7 @@ import {
   generateBarChart,
   generateComingSoonChart,
   generatePieChart,
+  generateHeatMapChart,
   generateTreeMapChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";
@@ -113,6 +114,8 @@ export const generateCharts = async (
       chart = generateBarChart(chartOptions, storeData);
     } else if (chartOptions.type === ChartType.TreeMap) {
       chart = generateTreeMapChart(chartOptions, storeData);
+    } else if (chartOptions.type === ChartType.HeatMap) {
+      chart = generateHeatMapChart(chartOptions, storeData);
     }
 
     if (chart) {
