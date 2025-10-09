@@ -30,13 +30,13 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
       continue;
     }
 
-    const historyId = tr.historyId!;
+    const trId = tr.historyId ?? tr.id;
 
-    let trFromMap = trMap[historyId];
+    let trFromMap = trMap[trId];
 
     if (!trFromMap) {
-      trFromMap = trMap[historyId] = {
-        id: historyId,
+      trFromMap = trMap[trId] = {
+        id: trId,
         runs: [],
         issue: jiraLink,
         name: tr.name,
