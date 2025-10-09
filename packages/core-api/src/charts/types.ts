@@ -95,12 +95,12 @@ export type TreeMapNode<T extends Record<string, any> = {}> = T & {
   children?: TreeMapNode<T>[];
 };
 
-export type HeatMapPoint<T extends Record<string, any> = {}> = {
+export type HeatMapPoint = {
   x: string;
   y?: number;
-} & T;
+};
 
-export interface HeatMapSerie<T extends Record<string, any> = {}> {
+export type HeatMapSerie<T extends Record<string, any> = Record<string, any>> = {
   id: string;
-  data: HeatMapPoint<T>[];
-}
+  data: HeatMapPoint[];
+} & T;
