@@ -1,12 +1,13 @@
 import { filterIncludedInSuccessRate, type TestResult, type HeatMapPoint } from "@allurereport/core-api";
 import type { HeatMapDataAccessor } from "../../charts.js";
 
-const getTestsByEnvironment = (testResults: TestResult[]): Record<string, TestResult[]> => {
+const groupTestsByEnvironment = (testResults: TestResult[]): Record<string, TestResult[]> => {
   return testResults.reduce((acc, testResult) => {
     const key = testResult.environment;
 
     if (key) {
-      acc[key] = [...(acc[key] || []), testResult];
+      const bucket = acc[key] || (acc[key] = []);
+      bucket.push(testResult);
     }
 
     return acc;
@@ -15,15 +16,20 @@ const getTestsByEnvironment = (testResults: TestResult[]): Record<string, TestRe
 
 const groupByExactLabel = (testResults: TestResult[], labelNames: string[]): Record<string, TestResult[]> => {
   return testResults.reduce((acc, testResult) => {
-    const keys = testResult.labels?.filter(l => labelNames.includes(l.name));
+    const labels = testResult.labels;
 
-    keys.forEach(l => {
-      const key = l.value;
+    if (!labels) {
+      return acc;
+    }
 
-      if (key) {
-        acc[key] = [...(acc[key] || []), testResult];
+    for (const label of labels) {
+      const key = label.value;
+
+      if (labelNames.includes(label.name) && key) {
+        const bucket = acc[key] || (acc[key] = []);
+        bucket.push(testResult);
       }
-    });
+    }
 
     return acc;
   }, {} as Record<string, TestResult[]>);
@@ -31,24 +37,22 @@ const groupByExactLabel = (testResults: TestResult[], labelNames: string[]): Rec
 
 const makeHeatMapSerie = (env: string, testResults: TestResult[]) => {
   const testResultsByExactLabel = groupByExactLabel(testResults, ["feature"]);
-  const data = Object.entries(testResultsByExactLabel).reduce((acc, [labelValue, testsByLabelValue]) => {
-    const testsTotal = testsByLabelValue.length;
-    const totalNegative = testsByLabelValue.reduce((accCount, test) => accCount + (test.status !== "passed" ? 1 : 0), 0);
+  const data: HeatMapPoint[] = [];
 
-    acc.push({
+  for (const [labelValue, testsByLabelValue] of Object.entries(testResultsByExactLabel)) {
+    const testsTotal = testsByLabelValue.length;
+    const totalNegative = testsByLabelValue.reduce((acc, test) => acc + (test.status !== "passed" ? 1 : 0), 0);
+
+    data.push({
       x: labelValue,
       y: totalNegative / testsTotal,
     });
-
-    return acc;
-  }, [] as HeatMapPoint[]);
-
-  // Sorting features by total failed tests in serie, descending
-  const sortedData = data.sort((a, b) => (a.y || 0) - (b.y || 0));
+  }
 
   return {
     id: env,
-    data: sortedData
+    // Sorting features by total failed tests in series, ascending
+    data: data.sort((a, b) => (a.y || 0) - (b.y || 0))
   };
 };
 
@@ -68,13 +72,18 @@ export const problemsDistributionHeatMapAccessor: HeatMapDataAccessor = {
   getHeatMap: ({ testResults }) => {
     const filteredTestResults = filterTestResultsBySignificantStatus(filterTestResultsByLabelNames(testResults, ["feature"]));
 
-    const testsResultsByEnvironment = getTestsByEnvironment(filteredTestResults);
+    const testsResultsByEnvironment = groupTestsByEnvironment(filteredTestResults);
     const data = makeHeatMapData(testsResultsByEnvironment);
 
-    // Sorting environments by total failed tests in series, descending
-    const dataWithTotalFailed = data.map((d) => ({...d, totalFailed: d.data.reduce((acc, sd) => acc + (sd.y || 0), 0)}));
-    const sortedData = dataWithTotalFailed.sort((a, b) => a.totalFailed - b.totalFailed);
+    // Prepare totals for sorting references
+    const totals = new Map<string, number>();
 
-    return sortedData.map(({totalFailed, ...d}) => d);
+    for (const serie of data) {
+      const total = serie.data.reduce((acc, sd) => acc + (sd.y || 0), 0);
+      totals.set(serie.id, total);
+    }
+
+    // Sorting environments by total failed tests in series, ascending
+    return data.sort((a, b) => (totals.get(a.id)! - totals.get(b.id)!));
   },
 };
