@@ -11,6 +11,7 @@ import {
   SuccessRatePieChart,
   TreeMapChartWidget,
   TrendChartWidget,
+  HeatMapWidget,
   Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
@@ -78,6 +79,16 @@ const getChartWidgetByType = (
           colors={chartData.colors}
           legendDomain={chartData.legendDomain}
           tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.HeatMap: {
+      return (
+        <HeatMapWidget
+          title={chartData.title}
+          data={chartData.data}
+          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
