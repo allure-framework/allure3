@@ -225,14 +225,14 @@ export const createProblemsDistributionHeatMapChartData = (
   chartId: ChartId,
   res: ChartsResponse,
 ): UIHeatMapChartData | undefined => {
-  const chartColorDomain = [0, 0.5, 1];
+  const chartColorDomain = [0, 100];
 
   return createHeatMapChartDataGeneric(
     () => res[chartId] as ResponseHeatMapChartData | undefined,
     (value: number, domain = chartColorDomain) => {
       const scaledRgb = scaleLinear<string>()
         .domain(domain)
-        .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+        .range([resolveCSSVarColor(statusColors.passed), resolveCSSVarColor(statusColors.failed)])
         .interpolate(interpolateRgb)
         .clamp(true);
 
