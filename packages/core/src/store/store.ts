@@ -61,6 +61,35 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
   }
 };
 
+const wasStartedEarlier = (first: TestResult, second: TestResult) =>
+  first.start === undefined || second.start === undefined || first.start < second.start;
+
+const hidePreviousAttempt = (state: Map<string, Map<string, TestResult>>, testResult: TestResult) => {
+  const { environment, historyId } = testResult;
+
+  if (environment) {
+    if (!state.has(environment)) {
+      state.set(environment, new Map());
+    }
+
+    if (historyId) {
+      const historyIdToLastAttemptResult = state.get(environment)!;
+      const currentLastAttemptResult = historyIdToLastAttemptResult.get(historyId);
+
+      if (currentLastAttemptResult) {
+        if (wasStartedEarlier(currentLastAttemptResult, testResult)) {
+          historyIdToLastAttemptResult.set(historyId, testResult);
+          currentLastAttemptResult.hidden = true;
+        } else {
+          testResult.hidden = true;
+        }
+      } else {
+        historyIdToLastAttemptResult.set(historyId, testResult);
+      }
+    }
+  }
+};
+
 export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
   const result: Record<string | number | symbol, T> = {};
 
@@ -330,29 +359,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#testResults.set(testResult.id, testResult);
 
-    if (testResult.environment && !this.indexLatestEnvTestResultByHistoryId.has(testResult.environment)) {
-      this.indexLatestEnvTestResultByHistoryId.set(testResult.environment, new Map());
-    }
-
-    // retries
-    if (testResult.historyId) {
-      const maybeOther = this.indexLatestEnvTestResultByHistoryId
-        .get(testResult.environment)!
-        .get(testResult.historyId);
-
-      if (maybeOther) {
-        // if no start, means only duration is provided from result. In that case always use the latest (current).
-        // Otherwise, compare by start timestamp, the latest wins.
-        if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
-          maybeOther.hidden = true;
-        } else {
-          testResult.hidden = true;
-        }
-      } else {
-        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
-      }
-    }
+    hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, testResult);
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
@@ -772,8 +779,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
     });
+
     Object.entries(indexTestResultByHistoryId).forEach(([historyId, trIds]) => {
-      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
+      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean) as TestResult[];
 
       if (trs.length === 0) {
         return;
@@ -782,12 +790,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       const existingTrs = this.indexTestResultByHistoryId.get(historyId);
 
       if (!existingTrs) {
-        this.indexTestResultByHistoryId.set(historyId, trs as TestResult[]);
+        this.indexTestResultByHistoryId.set(historyId, trs);
         return;
       }
 
-      existingTrs.push(...(trs as TestResult[]));
+      existingTrs.push(...trs);
     });
+
     Object.entries(indexTestResultByTestCase).forEach(([tcId, trIds]) => {
       const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
 
@@ -804,6 +813,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingTrs.push(...(trs as TestResult[]));
     });
+
     Object.entries(indexAttachmentByFixture).forEach(([fxId, attachmentIds]) => {
       const attachmentsLinks = attachmentIds.map((id) => this.#attachments.get(id)).filter(Boolean);
 
@@ -820,6 +830,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
     });
+
     Object.entries(indexFixturesByTestResult).forEach(([trId, fixtureIds]) => {
       const fxs = fixtureIds.map((id) => this.#fixtures.get(id)).filter(Boolean);
 
@@ -836,6 +847,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingFixtures.push(...(fxs as TestFixtureResult[]));
     });
+
     Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
       const existingKnown = this.indexKnownByHistoryId.get(historyId);
 
@@ -846,20 +858,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-    Object.entries(indexLatestEnvTestResultByHistoryId).forEach(([historyId, trId]) => {
+
+    Object.values(indexLatestEnvTestResultByHistoryId).forEach((trId) => {
       const tr = this.#testResults.get(trId);
 
       if (!tr) {
         return;
       }
 
-      const env = tr.environment || this.#environment || "default";
-
-      if (!this.indexLatestEnvTestResultByHistoryId.has(env)) {
-        this.indexLatestEnvTestResultByHistoryId.set(env, new Map());
-      }
-
-      this.indexLatestEnvTestResultByHistoryId.get(env)!.set(historyId, tr);
+      hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, tr);
     });
   }
 }

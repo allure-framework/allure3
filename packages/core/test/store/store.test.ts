@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
-import { AllureStoreDump, md5 } from "@allurereport/plugin-api";
+import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it, vi } from "vitest";
@@ -2213,6 +2213,115 @@ describe("dump state", () => {
     const allTestResults = await newStore.allTestResults();
 
     expect(allTestResults).toHaveLength(1);
+  });
+
+  it("should merge two dumps with different envs", async () => {
+    let ndumps = 1;
+
+    const generateDump = async (env: string) => {
+      const store = new DefaultAllureStore({ environment: env });
+      const trs = [1, 2].flatMap((t) =>
+        [1, 2].map(
+          (a) =>
+            ({
+              name: `Env ${env}, test ${t}, attempt ${a}`,
+              status: "passed",
+              testId: `test-${t}`,
+              historyId: `test-${t}`,
+              start: ndumps * 1000 + t * 100 + a * 10,
+            }) as RawTestResult,
+        ),
+      );
+      for (const tr of trs) {
+        await store.visitTestResult(tr, { readerId });
+      }
+      ndumps++;
+      return store.dumpState();
+    };
+
+    const targetStore = new DefaultAllureStore();
+    const dump1 = await generateDump("1");
+    const dump2 = await generateDump("2");
+
+    await targetStore.restoreState(dump1);
+    await targetStore.restoreState(dump2);
+
+    const allTrs = await targetStore.allTestResults();
+    const env1Test1Id = allTrs.find(({ name }) => name === "Env 1, test 1, attempt 2")?.id;
+    const env1Test2Id = allTrs.find(({ name }) => name === "Env 1, test 2, attempt 2")?.id;
+    const env2Test1Id = allTrs.find(({ name }) => name === "Env 2, test 1, attempt 2")?.id;
+    const env2Test2Id = allTrs.find(({ name }) => name === "Env 2, test 2, attempt 2")?.id;
+    const env1Test1Retries = env1Test1Id ? await targetStore.retriesByTrId(env1Test1Id) : [];
+    const env1Test2Retries = env1Test2Id ? await targetStore.retriesByTrId(env1Test2Id) : [];
+    const env2Test1Retries = env2Test1Id ? await targetStore.retriesByTrId(env2Test1Id) : [];
+    const env2Test2Retries = env2Test2Id ? await targetStore.retriesByTrId(env2Test2Id) : [];
+
+    expect(allTrs.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        "Env 1, test 1, attempt 2",
+        "Env 1, test 2, attempt 2",
+        "Env 2, test 1, attempt 2",
+        "Env 2, test 2, attempt 2",
+      ]),
+    );
+    expect(env1Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
+    expect(env1Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
+    expect(env2Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
+    expect(env2Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
+  });
+
+  it("should merge two dumps with no envs", async () => {
+    let ndumps = 1;
+
+    const generateDump = async () => {
+      const store = new DefaultAllureStore();
+      const trs = [1, 2].flatMap((t) =>
+        [1, 2].map(
+          (a) =>
+            ({
+              name: `Dump ${ndumps}, test ${t}, attempt ${a}`,
+              status: "passed",
+              testId: `test-${t}`,
+              historyId: `test-${t}`,
+              start: ndumps * 1000 + t * 100 + a * 10,
+            }) as RawTestResult,
+        ),
+      );
+      for (const tr of trs) {
+        await store.visitTestResult(tr, { readerId });
+      }
+      ndumps++;
+      return store.dumpState();
+    };
+
+    const targetStore = new DefaultAllureStore();
+
+    // dump 2 contains retries for the same set of tests
+    const dump1 = await generateDump();
+    const dump2 = await generateDump();
+
+    await targetStore.restoreState(dump1);
+    await targetStore.restoreState(dump2);
+
+    const allTrs = await targetStore.allTestResults();
+    const test1Id = allTrs.find(({ name }) => name === "Dump 2, test 1, attempt 2")?.id;
+    const test2Id = allTrs.find(({ name }) => name === "Dump 2, test 2, attempt 2")?.id;
+    const test1Retries = test1Id ? await targetStore.retriesByTrId(test1Id) : [];
+    const test2Retries = test2Id ? await targetStore.retriesByTrId(test2Id) : [];
+
+    expect(allTrs.map(({ name }) => name)).toEqual(
+      expect.arrayContaining(["Dump 2, test 1, attempt 2", "Dump 2, test 2, attempt 2"]),
+    );
+    expect(test1Retries.map(({ name }) => name)).toEqual([
+      "Dump 2, test 1, attempt 1",
+      "Dump 1, test 1, attempt 2",
+      "Dump 1, test 1, attempt 1",
+    ]);
+    expect(test2Retries.map(({ name }) => name)).toEqual([
+      "Dump 2, test 2, attempt 1",
+      "Dump 1, test 2, attempt 2",
+      "Dump 1, test 2, attempt 1",
+    ]);
   });
 });
 
