@@ -18,6 +18,7 @@ import {
 } from "./config.js";
 import styles from "./styles.scss";
 import type { HeatMapProps } from "./types.js";
+import { nivoTheme } from "./theme.js";
 
 export const HeatMap: FunctionalComponent<HeatMapProps> = ({
   width = DEFAULT_HEAT_MAP_WIDTH,
@@ -34,6 +35,7 @@ export const HeatMap: FunctionalComponent<HeatMapProps> = ({
   yInnerPadding = DEFAULT_HEAT_MAP_Y_INNER_PADDING,
   legends = [defaultHeatMapLegendConfig],
   forceSquare = DEFAULT_HEAT_MAP_FORCE_SQUARE,
+  colors,
   ...restProps
 }) => {
   const isEmpty = useMemo(() => data.length === 0, [data]);
@@ -56,6 +58,8 @@ export const HeatMap: FunctionalComponent<HeatMapProps> = ({
         yInnerPadding={yInnerPadding}
         legends={legends}
         forceSquare={forceSquare}
+        theme={nivoTheme}
+        colors={(n) => colors(n.data.y ?? 0)}
         {...restProps}
       />
     </div>

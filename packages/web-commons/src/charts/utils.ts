@@ -14,12 +14,14 @@ import type {
   ChartsData,
   ChartsResponse,
   ResponseBarChartData,
+  ResponseHeatMapChartData,
   ResponseTreeMapChartData,
   ResponseTrendChartData,
   TreeMapTooltipAccessor,
   TrendChartItem,
   UIBarChartData,
   UIChartData,
+  UIHeatMapChartData,
   UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
@@ -100,6 +102,21 @@ export const createTreeMapChartDataGeneric = (
     formatLegend,
     legendDomain,
     tooltipRows,
+  };
+};
+
+export const createHeatMapChartDataGeneric = (
+  getChart: () => ResponseHeatMapChartData | undefined,
+  colors: (value: number, domain?: number[]) => string,
+): UIHeatMapChartData | undefined => {
+  const chart = getChart();
+  if (!chart) {
+    return undefined;
+  }
+
+  return {
+    ...chart,
+    colors,
   };
 };
 
@@ -204,6 +221,27 @@ export const createCoverageDiffTreeMapChartData = (
   );
 };
 
+export const createProblemsDistributionHeatMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UIHeatMapChartData | undefined => {
+  const chartColorDomain = [0, 0.5, 1];
+
+  return createHeatMapChartDataGeneric(
+    () => res[chartId] as ResponseHeatMapChartData | undefined,
+    (value: number, domain = chartColorDomain) => {
+      const scaledRgb = scaleLinear<string>()
+        .domain(domain)
+        .range([resolveCSSVarColor(statusColors.failed), "#fff", resolveCSSVarColor(statusColors.passed)])
+        .interpolate(interpolateRgb)
+        .clamp(true);
+
+      // TODO: change color passed to white
+      return scaledRgb(value);
+    },
+  );
+};
+
 export const createaTrendChartData = (
   chartId: string,
   chartData: ResponseTrendChartData,
@@ -242,6 +280,13 @@ export const createTreeMapChartData = (
   }
 };
 
+export const createHeatMapChartData = (
+  chartId: ChartId,
+  res: ChartsResponse,
+): UIHeatMapChartData | undefined => {
+  return createProblemsDistributionHeatMapChartData(chartId, res);
+};
+
 export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce(
     (acc, [chartId, chart]) => {
@@ -257,6 +302,11 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         }
       } else if (chart.type === ChartType.TreeMap) {
         const chartData = createTreeMapChartData(chartId, chart, res);
+        if (chartData) {
+          acc[chartId] = chartData;
+        }
+      } else if (chart.type === ChartType.HeatMap) {
+        const chartData = createHeatMapChartData(chartId, res);
         if (chartData) {
           acc[chartId] = chartData;
         }

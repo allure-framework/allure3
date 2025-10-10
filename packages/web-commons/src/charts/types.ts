@@ -7,6 +7,7 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  HeatMapSerie,
   PieSlice,
   TreeMapChartType,
   TreeMapNode,
@@ -73,6 +74,12 @@ export interface ResponseTreeMapChartData {
   treeMap: TreeMapNode;
 }
 
+export interface ResponseHeatMapChartData {
+  type: ChartType.HeatMap;
+  title?: string;
+  data: HeatMapSerie[];
+}
+
 export type ChartsResponse<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -83,6 +90,7 @@ export type ChartsResponse<
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
+  | ResponseHeatMapChartData
 >;
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
@@ -111,6 +119,10 @@ export interface UITreeMapChartData extends ResponseTreeMapChartData {
   tooltipRows?: TreeMapTooltipAccessor;
 }
 
+export interface UIHeatMapChartData extends ResponseHeatMapChartData {
+  colors: (value: number, domain?: number[]) => string;
+}
+
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -119,13 +131,15 @@ export type ChartData<
   | ResponsePieChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
-  | ResponseTreeMapChartData;
+  | ResponseTreeMapChartData
+  | ResponseHeatMapChartData;
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UIPieChartData
   | UIBarChartData
   | UIComingSoonChartData
-  | UITreeMapChartData;
+  | UITreeMapChartData
+  | UIHeatMapChartData;
 
 export type ChartsData<
   SeriesType extends string = string,
