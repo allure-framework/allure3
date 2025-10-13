@@ -7,9 +7,9 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  HeatMapSerie,
   HistoryDataPoint,
   HistoryTestResult,
-  HeatMapSerie,
   PieSlice,
   SeverityLevel,
   Statistic,
@@ -115,7 +115,13 @@ export interface ComingSoonChartData {
 }
 
 // Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData | TreeMapChartData | HeatMapChartData;
+export type GeneratedChartData =
+  | TrendChartData
+  | PieChartData
+  | BarChartData
+  | ComingSoonChartData
+  | TreeMapChartData
+  | HeatMapChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 // Chart options

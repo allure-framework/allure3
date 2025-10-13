@@ -28,5 +28,3 @@ export const HeatMapWidget: FunctionalComponent<HeatMapWidgetProps> = ({
     </Widget>
   );
 };
-
-

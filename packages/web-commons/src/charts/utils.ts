@@ -279,10 +279,7 @@ export const createTreeMapChartData = (
   }
 };
 
-export const createHeatMapChartData = (
-  chartId: ChartId,
-  res: ChartsResponse,
-): UIHeatMapChartData | undefined => {
+export const createHeatMapChartData = (chartId: ChartId, res: ChartsResponse): UIHeatMapChartData | undefined => {
   return createProblemsDistributionHeatMapChartData(chartId, res);
 };
 

@@ -40,5 +40,5 @@ export const defaultHeatMapLegendConfig: HeatMapLegendConfig = {
   tickFormat: ">-.2%",
   title: "Value",
   titleAlign: "middle",
-  titleOffset: 4
+  titleOffset: 4,
 };

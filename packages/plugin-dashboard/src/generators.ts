@@ -16,8 +16,8 @@ import {
   type ReportFiles,
   generateBarChart,
   generateComingSoonChart,
-  generatePieChart,
   generateHeatMapChart,
+  generatePieChart,
   generateTreeMapChart,
   generateTrendChart,
 } from "@allurereport/plugin-api";

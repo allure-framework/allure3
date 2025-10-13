@@ -3,23 +3,23 @@ import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import {
-  defaultHeatMapMarginConfig,
-  DEFAULT_HEAT_MAP_EMPTY_COLOR,
-  DEFAULT_HEAT_MAP_HEIGHT,
-  DEFAULT_HEAT_MAP_WIDTH,
-  DEFAULT_HEAT_MAP_EMPTY_LABEL,
   DEFAULT_HEAT_MAP_EMPTY_ARIA_LABEL,
-  defaultHeatMapAxisLeftConfig,
-  defaultHeatMapAxisTopConfig,
+  DEFAULT_HEAT_MAP_EMPTY_COLOR,
+  DEFAULT_HEAT_MAP_EMPTY_LABEL,
+  DEFAULT_HEAT_MAP_FORCE_SQUARE,
+  DEFAULT_HEAT_MAP_HEIGHT,
+  DEFAULT_HEAT_MAP_VALUE_FORMAT,
+  DEFAULT_HEAT_MAP_WIDTH,
   DEFAULT_HEAT_MAP_X_INNER_PADDING,
   DEFAULT_HEAT_MAP_Y_INNER_PADDING,
+  defaultHeatMapAxisLeftConfig,
+  defaultHeatMapAxisTopConfig,
   defaultHeatMapLegendConfig,
-  DEFAULT_HEAT_MAP_FORCE_SQUARE,
-  DEFAULT_HEAT_MAP_VALUE_FORMAT,
+  defaultHeatMapMarginConfig,
 } from "./config.js";
 import styles from "./styles.scss";
-import type { HeatMapProps } from "./types.js";
 import { nivoTheme } from "./theme.js";
+import type { HeatMapProps } from "./types.js";
 
 export const HeatMap: FunctionalComponent<HeatMapProps> = ({
   width = DEFAULT_HEAT_MAP_WIDTH,

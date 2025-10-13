@@ -4,5 +4,3 @@ export interface HeatMapWidgetProps extends HeatMapProps {
   title: string;
   translations: Record<string, string>;
 }
-
-

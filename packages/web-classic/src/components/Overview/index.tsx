@@ -8,12 +8,12 @@ import {
   ComingSoonChartWidget,
   Grid,
   GridItem,
+  HeatMapWidget,
   Loadable,
   PageLoader,
   SuccessRatePieChart,
   TreeMapChartWidget,
   TrendChartWidget,
-  HeatMapWidget,
   Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";

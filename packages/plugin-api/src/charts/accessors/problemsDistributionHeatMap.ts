@@ -1,38 +1,44 @@
-import { filterIncludedInSuccessRate, type TestResult, type HeatMapPoint } from "@allurereport/core-api";
+import { type HeatMapPoint, type TestResult, filterIncludedInSuccessRate } from "@allurereport/core-api";
 import type { HeatMapDataAccessor } from "../../charts.js";
 
 const groupTestsByEnvironment = (testResults: TestResult[]): Record<string, TestResult[]> => {
-  return testResults.reduce((acc, testResult) => {
-    const key = testResult.environment;
+  return testResults.reduce(
+    (acc, testResult) => {
+      const key = testResult.environment;
 
-    if (key) {
-      const bucket = acc[key] || (acc[key] = []);
-      bucket.push(testResult);
-    }
-
-    return acc;
-  }, {} as Record<string, TestResult[]>);
-};
-
-const groupByExactLabel = (testResults: TestResult[], labelNames: string[]): Record<string, TestResult[]> => {
-  return testResults.reduce((acc, testResult) => {
-    const labels = testResult.labels;
-
-    if (!labels) {
-      return acc;
-    }
-
-    for (const label of labels) {
-      const key = label.value;
-
-      if (labelNames.includes(label.name) && key) {
+      if (key) {
         const bucket = acc[key] || (acc[key] = []);
         bucket.push(testResult);
       }
-    }
 
-    return acc;
-  }, {} as Record<string, TestResult[]>);
+      return acc;
+    },
+    {} as Record<string, TestResult[]>,
+  );
+};
+
+const groupByExactLabel = (testResults: TestResult[], labelNames: string[]): Record<string, TestResult[]> => {
+  return testResults.reduce(
+    (acc, testResult) => {
+      const labels = testResult.labels;
+
+      if (!labels) {
+        return acc;
+      }
+
+      for (const label of labels) {
+        const key = label.value;
+
+        if (labelNames.includes(label.name) && key) {
+          const bucket = acc[key] || (acc[key] = []);
+          bucket.push(testResult);
+        }
+      }
+
+      return acc;
+    },
+    {} as Record<string, TestResult[]>,
+  );
 };
 
 const makeHeatMapSerie = (env: string, testResults: TestResult[]) => {
@@ -52,7 +58,7 @@ const makeHeatMapSerie = (env: string, testResults: TestResult[]) => {
   return {
     id: env,
     // Sorting features by total failed tests in series, ascending
-    data: data.sort((a, b) => (a.y || 0) - (b.y || 0))
+    data: data.sort((a, b) => (a.y || 0) - (b.y || 0)),
   };
 };
 
@@ -70,7 +76,9 @@ const filterTestResultsByLabelNames = (testResults: TestResult[], labelNames: st
 
 export const problemsDistributionHeatMapAccessor: HeatMapDataAccessor = {
   getHeatMap: ({ testResults }) => {
-    const filteredTestResults = filterTestResultsBySignificantStatus(filterTestResultsByLabelNames(testResults, ["feature"]));
+    const filteredTestResults = filterTestResultsBySignificantStatus(
+      filterTestResultsByLabelNames(testResults, ["feature"]),
+    );
 
     const testsResultsByEnvironment = groupTestsByEnvironment(filteredTestResults);
     const data = makeHeatMapData(testsResultsByEnvironment);
@@ -84,6 +92,6 @@ export const problemsDistributionHeatMapAccessor: HeatMapDataAccessor = {
     }
 
     // Sorting environments by total failed tests in series, ascending
-    return data.sort((a, b) => (totals.get(a.id)! - totals.get(b.id)!));
+    return data.sort((a, b) => totals.get(a.id)! - totals.get(b.id)!);
   },
 };
