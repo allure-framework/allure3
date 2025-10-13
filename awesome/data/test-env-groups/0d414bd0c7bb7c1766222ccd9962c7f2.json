@@ -1,1 +1,0 @@
-{"id":"0d414bd0c7bb7c1766222ccd9962c7f2","fullName":"test/utils/time.test.ts#formatDuration should return unknown for undefined","name":"should return unknown for undefined","status":"passed","testResultsByEnv":{"linux":"fab2be092c873855b18c9d98393fe571","macos":"b93760b2515ce926929ba749b1ee4a22","windows":"7acf56d872ce5fc6cb10cffb3c1713d4"}}

@@ -1,1 +1,0 @@
-{"id":"69aece7847fa919794a9b138d5eb8504","fullName":"test/allure1.test.ts#allure1 reader steps timings should skip duration if stop is missing","name":"should skip duration if stop is missing","status":"passed","testResultsByEnv":{"windows":"3e1d27fe20d4d8326c1eea4febe5eb8e","linux":"1bf3241cb434eb8ab34a262e928551fd","macos":"cc133e98203a8b49e70bf276270c0822"}}

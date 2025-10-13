@@ -1,1 +1,0 @@
-{"id":"1549331d359a742b1945c441f48c1cd6","fullName":"test/xcresult.test.ts#A MAC machine bug links should set the link's URL to ID if URL is missing","name":"should set the link's URL to ID if URL is missing","status":"passed","testResultsByEnv":{"macos":"82254e9a30c9b3a39387df3193143f88"}}

@@ -1,1 +1,0 @@
-{"id":"6dc57912bc0d00da3dab632060b5e523","fullName":"test/watcher.test.ts#delayedFileProcessingWatcher should wait for processing delay on abort","name":"should wait for processing delay on abort","status":"passed","testResultsByEnv":{"macos":"f529092c502d55b1b460117f2e413834","linux":"3422d2bf49d2579385e19198c9a89b1d","windows":"409d1ed6b67e6bf3c79e450933e12c0b"}}

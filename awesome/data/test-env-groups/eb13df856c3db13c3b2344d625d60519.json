@@ -1,1 +1,0 @@
-{"id":"eb13df856c3db13c3b2344d625d60519","fullName":"test/detectors/drone.test.ts#drone getJobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"windows":"bf041dc3670f074c023239a965004146","linux":"46490d8f1c6924efcf1053c18bb88068","macos":"6cfaefd4c2860642973d6183156fb981"}}

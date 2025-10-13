@@ -1,1 +1,0 @@
-{"id":"98f1f655ca04929f33681a5833b24984","fullName":"allure-awesome/test/tree.test.ts:280:3","name":"should not display groups when test results don't have related label","status":"passed","testResultsByEnv":{"windows":"6c28f8d06ec065e4df1f0bda4d179f51","linux":"af1f780a9ffb3ab69580ca5dc5a31cd7","macos":"80251e84f5ac626250a691abd564ea75"}}

@@ -1,1 +1,0 @@
-{"id":"81d9fd9414e9523a4882a56d4a61e8a9","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns yellow badge for skipped status","name":"returns yellow badge for skipped status","status":"passed","testResultsByEnv":{"macos":"7a1cf61723efd34c5fe8dcd20b977fcc","linux":"ed02bf83924ec52f85c7eea744e2d7d3","windows":"d833494b2bc6b06d46290bc28c959e49"}}

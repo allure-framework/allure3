@@ -1,1 +1,0 @@
-{"id":"3e37db466f0e122109ce5dfba6540959","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference test statuses should parse a scenario with no steps","name":"should parse a scenario with no steps","status":"passed","testResultsByEnv":{"macos":"37359eff3ca265677b752e0a6bb1c398","windows":"ed356b132344782bf1498f2cec5aff13","linux":"a0d7c1c28b2a69db4b1088be07bbd9c9"}}

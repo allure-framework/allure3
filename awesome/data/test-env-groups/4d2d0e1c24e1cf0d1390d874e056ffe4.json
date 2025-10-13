@@ -1,1 +1,0 @@
-{"id":"4d2d0e1c24e1cf0d1390d874e056ffe4","fullName":"test/detectors/amazon.test.ts#amazon jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"macos":"5aae59b6efc16960e32b2ecbd1173ce6","windows":"212b3da56ae58589988ca9f9dfcedfc6","linux":"842da12ca662447513db1fcc23d4e3c4"}}

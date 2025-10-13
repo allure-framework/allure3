@@ -1,1 +1,0 @@
-{"id":"91168ef2fbf4d30eff8cf5bdbae24433","fullName":"test/plugin.test.ts#plugin info should returns info for all test results in the store","name":"should returns info for all test results in the store","status":"passed","testResultsByEnv":{"linux":"d22d30cf3a8190bbba42b1cdd60ee8be","macos":"2a35a3ee275d99b4580d1224ccfa9199","windows":"87461893e52b501ed26c5d12bb1c091d"}}

@@ -1,1 +1,0 @@
-{"id":"bf6c310918b5a872dec043a0c392e714","fullName":"test/xcresult.test.ts#A MAC machine labels a test with no suites should set package to project and bundle","name":"should set package to project and bundle","status":"passed","testResultsByEnv":{"macos":"ff1c4c9736a61769cb89535cc0fdf40b"}}

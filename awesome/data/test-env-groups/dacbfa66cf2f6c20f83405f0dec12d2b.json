@@ -1,1 +1,0 @@
-{"id":"dacbfa66cf2f6c20f83405f0dec12d2b","fullName":"test/junitxml.test.ts#junit xml reader fullNames should combine classname and name into a fullName","name":"should combine classname and name into a fullName","status":"passed","testResultsByEnv":{"linux":"5e83016f8938be0bc1ae299086ae21b2","macos":"aba3b922c35962d301270922a1aeb312","windows":"f2ab9c88281d24866bec82329a7d346e"}}

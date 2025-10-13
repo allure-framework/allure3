@@ -1,1 +1,0 @@
-{"id":"9b457af1f4f9fc0bf5fcd2ed37b904e0","fullName":"test/utils.test.ts#utils printTest prints the test with all steps if allSteps is true","name":"prints the test with all steps if allSteps is true","status":"passed","testResultsByEnv":{"windows":"25ac3e40f0907ee8ecd0a67a851b2f67","linux":"a2de1fac55c40d7d5c0ad9dbbafb1688","macos":"a9c2d664a7d02861ffccdcf5eae7cfd7"}}

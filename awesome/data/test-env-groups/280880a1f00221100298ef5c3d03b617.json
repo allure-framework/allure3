@@ -1,1 +1,0 @@
-{"id":"280880a1f00221100298ef5c3d03b617","fullName":"test/detectors/amazon.test.ts#amazon jobUID should return buildbatch/project for batch build","name":"should return buildbatch/project for batch build","status":"passed","testResultsByEnv":{"windows":"642fc4abfaaa341e5b15ac769b509a37","linux":"6522a639f80f5fd85aaf7104f9965bfd","macos":"281fdf8d65858d5b3aade3f21809019a"}}

@@ -1,1 +1,0 @@
-{"id":"fbdf3f353298c85c5afa554ab2a63713","fullName":"test/junitxml.test.ts#junit xml reader attachments stderr should ignore an ill-formed system-err","name":"should ignore an ill-formed system-err","status":"passed","testResultsByEnv":{"linux":"45961ee6c97a95bf412f1134ad6f9091","windows":"bc1fffaec561c0cb41ec97b9d5da8a4d","macos":"2ef7e8b1874b3378f713ed1656663d64"}}

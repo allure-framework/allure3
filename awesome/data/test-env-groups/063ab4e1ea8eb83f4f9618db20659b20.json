@@ -1,1 +1,0 @@
-{"id":"063ab4e1ea8eb83f4f9618db20659b20","fullName":"test/allure1.test.ts#allure1 reader labels should ignore an ill-formed test case label element","name":"should ignore an ill-formed test case label element","status":"passed","testResultsByEnv":{"windows":"ae40e9ab9b14f904aa0c1b51aa74da5a","macos":"01aeb7b06c6449d0499ebe7f119b0d9c","linux":"2bb17a85f9f092f51735e33147bca6d3"}}

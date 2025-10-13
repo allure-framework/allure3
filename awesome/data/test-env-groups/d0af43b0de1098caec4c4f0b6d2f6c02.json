@@ -1,1 +1,0 @@
-{"id":"d0af43b0de1098caec4c4f0b6d2f6c02","fullName":"test/detectors/drone.test.ts#drone detected should be true when DRONE_SYSTEM_HOST is set","name":"should be true when DRONE_SYSTEM_HOST is set","status":"passed","testResultsByEnv":{"macos":"2cf422c74a10c5e4cca0c134c5876b16","windows":"00720cced94e8982501c7962c233be58","linux":"8dcdffd238c5ea3083c13de60348b1d7"}}

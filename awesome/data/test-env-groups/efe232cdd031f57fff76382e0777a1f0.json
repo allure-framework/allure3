@@ -1,1 +1,0 @@
-{"id":"efe232cdd031f57fff76382e0777a1f0","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference traces should set trace from error_message","name":"should set trace from error_message","status":"passed","testResultsByEnv":{"windows":"605f20f83379f985ebb49ce29651d05e","linux":"e2b5d54e51f9c1cd469bb86c703f1109","macos":"206267bf301dfeca294eb5a0fc174b08"}}

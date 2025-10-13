@@ -1,1 +1,0 @@
-{"id":"15e6343c93dd3c807fe010143223e24a","fullName":"test/utils/token.test.ts#decryptExchangeToken should throw an error if the token is expired","name":"should throw an error if the token is expired","status":"passed","testResultsByEnv":{"windows":"464e961319cf93128ccfab0d271c9002","macos":"538d7f5005b68c7a609f066cea967765","linux":"b721756334190ef0944ba54fa81a6bff"}}

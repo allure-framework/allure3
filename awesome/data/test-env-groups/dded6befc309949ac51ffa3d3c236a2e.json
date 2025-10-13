@@ -1,1 +1,0 @@
-{"id":"dded6befc309949ac51ffa3d3c236a2e","fullName":"test/detectors/github.test.ts#github jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"macos":"4e364eade0e750136d542d4f5b96e4ca","windows":"80c77843116719edd5f21240cceccd92","linux":"d67f37efe443d85aa25fc1fa025b4693"}}

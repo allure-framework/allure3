@@ -1,1 +1,0 @@
-{"id":"1be1e8bee1260cf261323544cb7bb1d8","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should keep watching deleted directory","name":"should keep watching deleted directory","status":"passed","testResultsByEnv":{"linux":"184e19046cd3a9437f4fc6e212bd9f9c","windows":"6039b9d1aec605e3995188bd087ca3c5","macos":"d4904b8f875596ee515e5951e2d2b33b"}}

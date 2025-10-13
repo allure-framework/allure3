@@ -1,1 +1,0 @@
-{"id":"6312f28804aa3362d340380bf51c49ac","fullName":"test/utils/token.test.ts#decryptExchangeToken should return the token if it is valid","name":"should return the token if it is valid","status":"passed","testResultsByEnv":{"linux":"3c908f377aaa484981dd7eb777e7579e","macos":"debf586ab63c428f8580a1a283ee1c4c","windows":"2ccf0a9c0ba505f64e4767188f50bd8b"}}

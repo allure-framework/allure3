@@ -1,1 +1,0 @@
-{"id":"4d63b4c85d4815b45b4102ca890a5045","fullName":"test/utils/time.test.ts#formatDuration should format seconds and milliseconds","name":"should format seconds and milliseconds","status":"passed","testResultsByEnv":{"windows":"6453678b3228b7df3bade8ad92467f7d","linux":"52e7223f948a83bc5a8e19288ca7e2e8","macos":"b5e860e062c7cb3822796690a0583e94"}}

@@ -1,1 +1,0 @@
-{"id":"0ffe6b0e7a138de280ee0164a67c8d34","fullName":"test/watcher.test.ts#newFilesInDirectoryWatcher should keep processing in case of callback error","name":"should keep processing in case of callback error","status":"passed","testResultsByEnv":{"linux":"71f978f7a9741bfa1f8001a2ce14d8b4","windows":"72f3c56fdc331cdde9ad7351b458457f","macos":"6f5376fd171598979f0476e14339e464"}}

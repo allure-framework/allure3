@@ -1,1 +1,0 @@
-{"id":"2556fa3f45c3dd6052b5d8b085798988","fullName":"test/qualityGate/qualityGate.test.ts#QualityGateState should store and retrieve values by rule key","name":"should store and retrieve values by rule key","status":"passed","testResultsByEnv":{"windows":"53e832b8b33f4c6161c1cbe4faaf4cce","macos":"ad5aec8d4d9fdd7e4d27c438dcc2fd85","linux":"808948e8c974d1316c145743846311c2"}}

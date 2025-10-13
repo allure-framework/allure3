@@ -1,1 +1,0 @@
-{"id":"ed2718effe3420fc583fe1df361f1ad9","fullName":"test/detectors/circle.test.ts#circle jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"windows":"f329c02ade39d5953d2acd51d06a7e6f","linux":"8dc0073c438c0e56441e1d56d2e8fc15","macos":"6ddb68b7dd0673d012e07fd548448e56"}}

@@ -1,1 +1,0 @@
-{"id":"f34b4c51e1855c35fe1efdcb23da8503","fullName":"test/junitxml.test.ts#junit xml reader statuses error should ignore a missing message","name":"should ignore a missing message","status":"passed","testResultsByEnv":{"windows":"1d3762cafd960b05baec0e58ba35a2f4","macos":"3f126151ad5bcedf7fa43ca288f97b13","linux":"6df01d5c7020776bb7b5c7e92010b1fd"}}

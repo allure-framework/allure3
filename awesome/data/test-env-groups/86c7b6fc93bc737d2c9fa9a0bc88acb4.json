@@ -1,1 +1,0 @@
-{"id":"86c7b6fc93bc737d2c9fa9a0bc88acb4","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference names should handle an ill-formed scenario name","name":"should handle an ill-formed scenario name","status":"passed","testResultsByEnv":{"windows":"01bb658c501914b5878b242eeccb8019","macos":"c2b8d14c7c00e79e99a5235ef4987a4e","linux":"eef8ac165849ec6681272a7f4d49208e"}}

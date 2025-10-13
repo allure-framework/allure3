@@ -1,1 +1,0 @@
-{"id":"cb67aba7d9726dce5b2dd3e509416b16","fullName":"test/detectors/azure.test.ts#azure getDefinitionID should return the correct definition ID","name":"should return the correct definition ID","status":"passed","testResultsByEnv":{"macos":"1920b12a4a072ed40723895bfaa68fd8","linux":"a21ee2c9a7359f2bfddbbf8d7e80ed77","windows":"386546e16ee4648957d53ebb631bad51"}}

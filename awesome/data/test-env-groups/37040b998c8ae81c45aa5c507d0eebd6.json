@@ -1,1 +1,0 @@
-{"id":"37040b998c8ae81c45aa5c507d0eebd6","fullName":"test/junitxml.test.ts#junit xml reader labels package should not add a label if no package defined","name":"should not add a label if no package defined","status":"passed","testResultsByEnv":{"macos":"a74fbeb589fda3e999b2af6e75ae90af","windows":"a990072efe2f44a179875e28c3f9782c","linux":"8e6bc19601ded5016fc1f0c6296b1298"}}

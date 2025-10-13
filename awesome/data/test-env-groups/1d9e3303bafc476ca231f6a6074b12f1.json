@@ -1,1 +1,0 @@
-{"id":"1d9e3303bafc476ca231f6a6074b12f1","fullName":"test/report.test.ts#report should not call disabled plugins on start()","name":"should not call disabled plugins on start()","status":"passed","testResultsByEnv":{"macos":"d49525fa1afe4f56c5c5ee2eb4048022","linux":"e5ed20a8833dceb3a80d30c2dc1adfb8","windows":"3db2d927227048419ecd4760663ececd"}}

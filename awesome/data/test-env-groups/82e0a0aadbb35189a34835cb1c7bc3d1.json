@@ -1,1 +1,0 @@
-{"id":"82e0a0aadbb35189a34835cb1c7bc3d1","fullName":"test/toolRunner.test.ts#invokeTextStdoutCliTool should stop with a specific timeout signal","name":"should stop with a specific timeout signal","status":"passed","testResultsByEnv":{"linux":"84f0cc0531d2874d7ca32204207d39cf","windows":"4eb4f6026ac82edb91758bdbca1fbae6","macos":"01b6fe7f410b5fd3c30b5c2dfd56a313"}}

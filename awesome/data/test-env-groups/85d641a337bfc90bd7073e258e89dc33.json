@@ -1,1 +1,0 @@
-{"id":"85d641a337bfc90bd7073e258e89dc33","fullName":"test/detectors/jenkins.test.ts#jenkins jobName should return the correct job name","name":"should return the correct job name","status":"passed","testResultsByEnv":{"windows":"6dbb6b034200d9e804f9e540deb02964","macos":"203b668bf742ed49ef67571e7a11b959","linux":"b940c39eb79428bdc14dd4dcf2fb7348"}}

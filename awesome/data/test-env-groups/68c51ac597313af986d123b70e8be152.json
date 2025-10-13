@@ -1,1 +1,0 @@
-{"id":"68c51ac597313af986d123b70e8be152","fullName":"test/service.test.ts#AllureServiceClient login should write and return the retrieved access token","name":"should write and return the retrieved access token","status":"passed","testResultsByEnv":{"macos":"cdf82a91b3f12b1c390dfb606105e1ff","windows":"2d5680d81327b69ca50a414511aeabc6","linux":"db5108daa5b14d2fc58f9b24675d6128"}}
