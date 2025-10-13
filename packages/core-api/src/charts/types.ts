@@ -94,3 +94,13 @@ export type TreeMapNode<T extends Record<string, any> = {}> = T & {
   colorValue?: number; // The normalized color value between 0 and 1 for the node
   children?: TreeMapNode<T>[];
 };
+
+export type HeatMapPoint = {
+  x: string;
+  y?: number;
+};
+
+export type HeatMapSerie<T extends Record<string, any> = Record<string, any>> = {
+  id: string;
+  data: HeatMapPoint[];
+} & T;

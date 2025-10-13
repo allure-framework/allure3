@@ -954,6 +954,7 @@ __metadata:
     "@nivo/axes": "npm:^0.88.0"
     "@nivo/bar": "npm:^0.88.0"
     "@nivo/core": "npm:^0.88.0"
+    "@nivo/heatmap": "npm:^0.88.0"
     "@nivo/legends": "npm:^0.88.0"
     "@nivo/line": "npm:^0.88.0"
     "@nivo/scales": "npm:^0.88.0"
@@ -5004,6 +5005,26 @@ __metadata:
   peerDependencies:
     react: ">= 16.14.0 < 19.0.0"
   checksum: 10/14823e5366dec93827e833d789c001124424c7b43a533a7002ac39d4de4edd55a0d7a3e07eca18df30304515b2fe4ba214d243a8abdc793e434f31cbafd85950
+  languageName: node
+  linkType: hard
+
+"@nivo/heatmap@npm:^0.88.0":
+  version: 0.88.0
+  resolution: "@nivo/heatmap@npm:0.88.0"
+  dependencies:
+    "@nivo/annotations": "npm:0.88.0"
+    "@nivo/axes": "npm:0.88.0"
+    "@nivo/colors": "npm:0.88.0"
+    "@nivo/core": "npm:0.88.0"
+    "@nivo/legends": "npm:0.88.0"
+    "@nivo/scales": "npm:0.88.0"
+    "@nivo/tooltip": "npm:0.88.0"
+    "@react-spring/web": "npm:9.4.5 || ^9.7.2"
+    "@types/d3-scale": "npm:^4.0.8"
+    d3-scale: "npm:^4.0.2"
+  peerDependencies:
+    react: ">= 16.14.0 < 19.0.0"
+  checksum: 10/62dc1bd3b4a4dedc082ab300f45e3a34dde30b91c4582072abbef7ececbf6eb131d40add6bef1e6a4f932b97b1c48f0935576aab8ece23d810931efb5bb6af6d
   languageName: node
   linkType: hard
 

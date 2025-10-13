@@ -7,6 +7,7 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  HeatMapSerie,
   HistoryDataPoint,
   HistoryTestResult,
   PieSlice,
@@ -93,6 +94,12 @@ export interface TreeMapChartData {
   treeMap: TreeMapNode;
 }
 
+export interface HeatMapChartData<T extends Record<string, any> = {}> {
+  type: ChartType.HeatMap;
+  title?: string;
+  data: HeatMapSerie<T>[];
+}
+
 // Pie chart data types
 export interface PieChartData {
   type: ChartType.Pie;
@@ -108,7 +115,13 @@ export interface ComingSoonChartData {
 }
 
 // Union types for generated chart data
-export type GeneratedChartData = TrendChartData | PieChartData | BarChartData | ComingSoonChartData | TreeMapChartData;
+export type GeneratedChartData =
+  | TrendChartData
+  | PieChartData
+  | BarChartData
+  | ComingSoonChartData
+  | TreeMapChartData
+  | HeatMapChartData;
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 // Chart options
@@ -140,6 +153,11 @@ export type TreeMapChartOptions = {
   title?: string;
 };
 
+export type HeatMapChartOptions = {
+  type: ChartType.HeatMap;
+  title?: string;
+};
+
 export type ComingSoonChartOptions = {
   type: ChartType.ComingSoon;
   title?: string;
@@ -150,7 +168,8 @@ export type ChartOptions =
   | PieChartOptions
   | BarChartOptions
   | ComingSoonChartOptions
-  | TreeMapChartOptions;
+  | TreeMapChartOptions
+  | HeatMapChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -182,6 +201,10 @@ export interface BarDataAccessor<G extends string, T extends string> {
 
 export interface TreeMapDataAccessor<T extends TreeMapNode> {
   getTreeMap: (storeData: AllureChartsStoreData) => T;
+}
+
+export interface HeatMapDataAccessor<T extends Record<string, unknown> = {}> {
+  getHeatMap: (storeData: AllureChartsStoreData) => HeatMapSerie<T>[];
 }
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
