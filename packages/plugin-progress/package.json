@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-progress",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.19",
   "description": "Allure Plugin to show generation progress in console",
   "keywords": [
     "allure",
