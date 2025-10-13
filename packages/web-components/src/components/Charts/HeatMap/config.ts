@@ -11,6 +11,7 @@ export const DEFAULT_HEAT_MAP_EMPTY_ARIA_LABEL = "No data available";
 export const DEFAULT_HEAT_MAP_X_INNER_PADDING = 0.05;
 export const DEFAULT_HEAT_MAP_Y_INNER_PADDING = 0.05;
 export const DEFAULT_HEAT_MAP_FORCE_SQUARE = true;
+export const DEFAULT_HEAT_MAP_VALUE_FORMAT = ">-.2%";
 
 // Default axis configurations
 export const defaultHeatMapAxisLeftConfig: AxisProps = {
@@ -36,7 +37,7 @@ export const defaultHeatMapLegendConfig: HeatMapLegendConfig = {
   tickSize: 3,
   tickSpacing: 4,
   tickOverlap: false,
-  tickFormat: ">-.2s",
+  tickFormat: ">-.2%",
   title: "Value",
   titleAlign: "middle",
   titleOffset: 4

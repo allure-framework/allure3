@@ -225,7 +225,7 @@ export const createProblemsDistributionHeatMapChartData = (
   chartId: ChartId,
   res: ChartsResponse,
 ): UIHeatMapChartData | undefined => {
-  const chartColorDomain = [0, 100];
+  const chartColorDomain = [0, 1];
 
   return createHeatMapChartDataGeneric(
     () => res[chartId] as ResponseHeatMapChartData | undefined,
@@ -236,7 +236,6 @@ export const createProblemsDistributionHeatMapChartData = (
         .interpolate(interpolateRgb)
         .clamp(true);
 
-      // TODO: change color passed to white
       return scaledRgb(value);
     },
   );

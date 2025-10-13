@@ -45,7 +45,7 @@ const makeHeatMapSerie = (env: string, testResults: TestResult[]) => {
 
     data.push({
       x: labelValue,
-      y: totalNegative / testsTotal * 100,
+      y: totalNegative / testsTotal,
     });
   }
 

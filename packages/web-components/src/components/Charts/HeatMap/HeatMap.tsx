@@ -15,6 +15,7 @@ import {
   DEFAULT_HEAT_MAP_Y_INNER_PADDING,
   defaultHeatMapLegendConfig,
   DEFAULT_HEAT_MAP_FORCE_SQUARE,
+  DEFAULT_HEAT_MAP_VALUE_FORMAT,
 } from "./config.js";
 import styles from "./styles.scss";
 import type { HeatMapProps } from "./types.js";
@@ -35,6 +36,7 @@ export const HeatMap: FunctionalComponent<HeatMapProps> = ({
   yInnerPadding = DEFAULT_HEAT_MAP_Y_INNER_PADDING,
   legends = [defaultHeatMapLegendConfig],
   forceSquare = DEFAULT_HEAT_MAP_FORCE_SQUARE,
+  valueFormat = DEFAULT_HEAT_MAP_VALUE_FORMAT,
   colors,
   ...restProps
 }) => {
@@ -59,6 +61,7 @@ export const HeatMap: FunctionalComponent<HeatMapProps> = ({
         legends={legends}
         forceSquare={forceSquare}
         theme={nivoTheme}
+        valueFormat={valueFormat}
         colors={(n) => colors(n.data.y ?? 0)}
         {...restProps}
       />
