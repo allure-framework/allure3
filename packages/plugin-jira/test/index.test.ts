@@ -118,9 +118,233 @@ describe("JiraPlugin", () => {
                 issue: expect.objectContaining({
                   url: "https://company.atlassian.net/browse/PROJ-123",
                 }),
+                keyParams: [{ name: "param1", value: "value1" }],
               }),
             ],
             reportUrl: "http://example.com/report",
+          }),
+        }),
+      );
+    });
+
+    it("should include parameters that have same values across different environments", async () => {
+      const testResult1 = createJiraTestResult("Test with same params");
+      testResult1.id = "test-1";
+      testResult1.historyId = "hist-same";
+      testResult1.environment = "dev";
+      testResult1.parameters = [
+        { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
+        { name: "version", value: "1.0", excluded: false, hidden: false, masked: false },
+      ];
+
+      const testResult2 = createJiraTestResult("Test with same params");
+      testResult2.id = "test-2";
+      testResult2.historyId = "hist-same";
+      testResult2.environment = "prod";
+      testResult2.parameters = [
+        { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
+        { name: "version", value: "1.0", excluded: false, hidden: false, masked: false },
+      ];
+
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+      });
+
+      const axiosPostSpy = setupAxiosSpy();
+      const plugin = new JiraPlugin({ ...defaultOptions, uploadResults: true });
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            results: [
+              expect.objectContaining({
+                id: "hist-same",
+                keyParams: [
+                  { name: "browser", value: "chrome" },
+                  { name: "version", value: "1.0" },
+                ],
+                runs: expect.arrayContaining([
+                  expect.objectContaining({ env: "dev" }),
+                  expect.objectContaining({ env: "prod" }),
+                ]),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it("should exclude parameters that have different values across environments", async () => {
+      const testResult1 = createJiraTestResult("Test with different params");
+      testResult1.id = "test-1";
+      testResult1.historyId = "hist-diff";
+      testResult1.environment = "dev";
+      testResult1.parameters = [
+        { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
+        { name: "timeout", value: "30s", excluded: false, hidden: false, masked: false },
+      ];
+
+      const testResult2 = createJiraTestResult("Test with different params");
+      testResult2.id = "test-2";
+      testResult2.historyId = "hist-diff";
+      testResult2.environment = "prod";
+      testResult2.parameters = [
+        { name: "browser", value: "chrome", excluded: false, hidden: false, masked: false },
+        { name: "timeout", value: "60s", excluded: false, hidden: false, masked: false },
+      ];
+
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+      });
+
+      const axiosPostSpy = setupAxiosSpy();
+      const plugin = new JiraPlugin({ ...defaultOptions, uploadResults: true });
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            results: [
+              expect.objectContaining({
+                id: "hist-diff",
+                keyParams: [{ name: "browser", value: "chrome" }],
+                runs: expect.arrayContaining([
+                  expect.objectContaining({ env: "dev" }),
+                  expect.objectContaining({ env: "prod" }),
+                ]),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it("should exclude hidden and excluded parameters from keyParams", async () => {
+      const testResult = createJiraTestResult("Test with hidden/excluded params");
+      testResult.parameters = [
+        { name: "visible", value: "value1", excluded: false, hidden: false, masked: false },
+        { name: "hidden", value: "value2", excluded: false, hidden: true, masked: false },
+        { name: "excluded", value: "value3", excluded: true, hidden: false, masked: false },
+        { name: "both", value: "value4", excluded: true, hidden: true, masked: false },
+      ];
+
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([testResult]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+      });
+
+      const axiosPostSpy = setupAxiosSpy();
+      const plugin = new JiraPlugin({ ...defaultOptions, uploadResults: true });
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            results: [
+              expect.objectContaining({
+                keyParams: [{ name: "visible", value: "value1" }],
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it("should handle multiple test runs with mixed parameter scenarios", async () => {
+      const testResult1 = createJiraTestResult("Complex test");
+      testResult1.id = "test-1";
+      testResult1.historyId = "hist-complex";
+      testResult1.environment = "env1";
+      testResult1.parameters = [
+        { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
+        { name: "different", value: "val1", excluded: false, hidden: false, masked: false },
+        { name: "hidden", value: "secret", excluded: false, hidden: true, masked: false },
+      ];
+
+      const testResult2 = createJiraTestResult("Complex test");
+      testResult2.id = "test-2";
+      testResult2.historyId = "hist-complex";
+      testResult2.environment = "env2";
+      testResult2.parameters = [
+        { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
+        { name: "different", value: "val2", excluded: false, hidden: false, masked: false },
+        { name: "excluded", value: "ignored", excluded: true, hidden: false, masked: false },
+      ];
+
+      const testResult3 = createJiraTestResult("Complex test");
+      testResult3.id = "test-3";
+      testResult3.historyId = "hist-complex";
+      testResult3.environment = "env3";
+      testResult3.parameters = [
+        { name: "common", value: "shared", excluded: false, hidden: false, masked: false },
+        { name: "different", value: "val3", excluded: false, hidden: false, masked: false },
+      ];
+
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2, testResult3]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+      });
+
+      const axiosPostSpy = setupAxiosSpy();
+      const plugin = new JiraPlugin({ ...defaultOptions, uploadResults: true });
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            results: [
+              expect.objectContaining({
+                id: "hist-complex",
+                keyParams: expect.arrayContaining([
+                  { name: "common", value: "shared" },
+                ]),
+                runs: [
+                  expect.objectContaining({ env: "env1" }),
+                  expect.objectContaining({ env: "env2" }),
+                  expect.objectContaining({ env: "env3" }),
+                ],
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it("should handle tests without parameters", async () => {
+      const testResult = createJiraTestResult("Test without params");
+      testResult.parameters = [];
+
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([testResult]),
+        retriesByTr: vi.fn().mockResolvedValue([]),
+      });
+
+      const axiosPostSpy = setupAxiosSpy();
+      const plugin = new JiraPlugin({ ...defaultOptions, uploadResults: true });
+
+      await plugin.done(defaultPluginContext, mockStore);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        defaultOptions.webhook,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            results: [
+              expect.objectContaining({
+                id: "hist-1",
+                keyParams: [],
+              }),
+            ],
           }),
         }),
       );

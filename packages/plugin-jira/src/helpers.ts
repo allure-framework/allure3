@@ -1,4 +1,4 @@
-import { type TestResult } from "@allurereport/core-api";
+import type { TestParameter, TestResult } from "@allurereport/core-api";
 import { type ForgePluginTestResult } from "./types.js";
 
 /**
@@ -20,8 +20,45 @@ export const findJiraLink = (tr: TestResult) => {
   return tr.links.find((link) => isJiraUrl(link.url));
 };
 
+/**
+ * Filter key parameters to keep only the ones that are shared between all
+ * environment-specific runs of the same test
+ */
+const filterKeyParams = (params: TestParameter[], runsCount: number) => {
+  const result: Pick<TestParameter, "name" | "value">[] = [];
+
+  const intermediate = new Map<TestParameter["name"], { value: TestParameter["value"]; count: number }>();
+
+  for (const p of params) {
+    if (p.excluded || p.hidden) {
+      continue;
+    }
+
+    if (!intermediate.has(p.name)) {
+      intermediate.set(p.name, { value: p.value, count: 1 });
+      continue;
+    }
+
+    if (intermediate.get(p.name)!.value !== p.value) {
+      intermediate.delete(p.name);
+      continue;
+    }
+
+    intermediate.get(p.name)!.count++;
+  }
+
+  for (const [name, value] of intermediate) {
+    if (value.count === runsCount) {
+      result.push({ name, value: value.value });
+      continue;
+    }
+  }
+
+  return result;
+};
+
 export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] => {
-  const trMap: Record<string, ForgePluginTestResult> = {};
+  const trMap = new Map<string, ForgePluginTestResult>();
 
   for (const tr of trs) {
     const jiraLink = findJiraLink(tr);
@@ -32,28 +69,29 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
 
     const trId = tr.historyId ?? tr.id;
 
-    let trFromMap = trMap[trId];
-
-    if (!trFromMap) {
-      trFromMap = trMap[trId] = {
+    if (!trMap.has(trId)) {
+      trMap.set(trId, {
         id: trId,
         runs: [],
         issue: jiraLink,
         name: trimName(tr.name),
-        keyParams: tr.parameters
-          .filter((p) => !p.excluded && !p.hidden)
-          .map((p) => ({
-            ...p,
-            name: trimParameters(p.name),
-            value: trimParameters(p.value),
-          })),
-      };
+        keyParams: [],
+      });
     }
 
-    trFromMap.runs.push({ status: tr.status, env: tr.environment, date: tr.stop! });
+    const storedTr = trMap.get(trId)!;
+
+    // aggregate evironment-specific runs of same test
+    storedTr.runs.push({ status: tr.status, env: tr.environment, date: tr.stop! });
+    storedTr.keyParams.push(...tr.parameters);
   }
 
-  return Object.values(trMap);
+  return Array.from(trMap.values()).map((tr) => {
+    return {
+      ...tr,
+      keyParams: filterKeyParams(tr.keyParams as TestParameter[], tr.runs.length),
+    };
+  });
 };
 
 const trimStrMax = (str: string, maxLength: number = 255): string => {
