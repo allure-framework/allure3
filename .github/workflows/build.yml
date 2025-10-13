@@ -54,9 +54,7 @@ jobs:
     - name: Build project
       run: yarn build
     - name: Test Project
-      run: yarn test
-    - name: Pack test results
-      run: yarn allure results pack --name allure-results-${{ matrix.os }}.zip "**/out/allure-results"
+      run: yarn allure run --config=./allurerc.gate.mjs --environment={{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
@@ -97,10 +95,8 @@ jobs:
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Build project
         run: yarn build
-      - name: Unpack test results
-        run: yarn allure results unpack --output ./allure-results allure-results-macos-latest.zip allure-results-ubuntu-latest.zip allure-results-windows-latest.zip
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --output=./allure-report ./allure-results
+        run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3

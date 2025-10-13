@@ -3,6 +3,7 @@ import type {
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
+  ReportVariables,
   Statistic,
   TestCase,
   TestEnvGroup,
@@ -58,4 +59,40 @@ export interface AllureStore {
   // variables
   allVariables: () => Promise<Record<string, any>>;
   envVariables: (env: string) => Promise<Record<string, any>>;
+}
+
+export interface AllureStoreDump {
+  testResults: Record<string, TestResult>;
+  attachments: Record<string, AttachmentLink>;
+  globalAttachments: AttachmentLink[];
+  globalErrors: TestError[];
+  testCases: Record<string, TestCase>;
+  fixtures: Record<string, TestFixtureResult>;
+  environments: string[];
+  reportVariables: ReportVariables;
+  indexAttachmentByTestResult: Record<string, string[]>;
+  indexTestResultByHistoryId: Record<string, string[]>;
+  indexTestResultByTestCase: Record<string, string[]>;
+  indexLatestEnvTestResultByHistoryId: Record<string, string>;
+  indexAttachmentByFixture: Record<string, string[]>;
+  indexFixturesByTestResult: Record<string, string[]>;
+  indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
+}
+
+export enum AllureStoreDumpFiles {
+  TestResults = "test-results.json",
+  TestCases = "test-cases.json",
+  Fixtures = "fixtures.json",
+  GlobalErrors = "global-errors.json",
+  GlobalAttachments = "global-attachments.json",
+  Attachments = "attachments.json",
+  Environments = "environments.json",
+  ReportVariables = "report-variables.json",
+  IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
+  IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
+  IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
+  IndexLatestEnvTestResultsByHistoryId = "index-latest-env-test-results-by-history-id.json",
+  IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
+  IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
+  IndexKnownByHistoryId = "index-known-by-history-id.json",
 }

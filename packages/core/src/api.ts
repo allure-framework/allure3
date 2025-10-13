@@ -33,6 +33,16 @@ export interface FullConfig {
    * ```
    */
   defaultLabels?: DefaultLabelsConfig;
+  /**
+   * Signals that the report's plugins shouldn't be executed, but test results should be archived
+   * Archived test results can be restored later
+   */
+  stage?: string;
+  /**
+   * Environment which will be assigned to all tests
+   * Has higher priority than matched environment from the environments config field
+   */
+  environment?: string;
   environments?: EnvironmentsConfig;
   variables?: ReportVariables;
   reportFiles: ReportFiles;

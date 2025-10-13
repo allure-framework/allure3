@@ -355,6 +355,7 @@ export const generateAttachmentsFiles = async (
       return;
     }
     const content = await contentFunction(id);
+
     if (!content) {
       continue;
     }
