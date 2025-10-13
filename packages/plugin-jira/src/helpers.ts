@@ -39,8 +39,14 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
         id: trId,
         runs: [],
         issue: jiraLink,
-        name: tr.name,
-        keyParams: tr.parameters.filter((p) => !p.excluded && !p.hidden),
+        name: trimName(tr.name),
+        keyParams: tr.parameters
+          .filter((p) => !p.excluded && !p.hidden)
+          .map((p) => ({
+            ...p,
+            name: trimParameters(p.name),
+            value: trimParameters(p.value),
+          })),
       };
     }
 
@@ -49,3 +55,18 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
 
   return Object.values(trMap);
 };
+
+const trimStrMax = (str: string, maxLength: number = 255): string => {
+  if (str.length <= maxLength) {
+    return str;
+  }
+
+  const trimmed = str.slice(0, maxLength);
+
+  // Remove any trailing dots and add our ellipsis
+  return `${trimmed.replace(/\.+$/, "")}...`;
+};
+
+export const trimName = (name: string) => trimStrMax(name, 255);
+export const trimParameters = (p: string) => trimStrMax(p, 120);
+export const trimCiInfoLabel = (label: string) => trimStrMax(label, 120);

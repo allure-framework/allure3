@@ -2,7 +2,7 @@ import type { Statistic, TestResult } from "@allurereport/core-api";
 import { getWorstStatus, statusesList } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext, TestResultFilter } from "@allurereport/plugin-api";
 import axios, { isAxiosError } from "axios";
-import { isJiraIssueKey, prepareTestResults } from "./helpers.js";
+import { isJiraIssueKey, prepareTestResults, trimCiInfoLabel, trimName } from "./helpers.js";
 import type {
   ClearPayload,
   ForgeAppOperations,
@@ -217,7 +217,7 @@ export class JiraPlugin implements Plugin {
     const jobUrl = context.ci?.pullRequestUrl ?? context.ci?.jobUrl ?? context.ci?.jobRunUrl;
     const jobLabel = context.ci?.pullRequestName ?? context.ci?.jobName ?? context.ci?.jobRunName;
 
-    return { url: jobUrl, label: jobLabel };
+    return { url: jobUrl, label: jobLabel ? trimCiInfoLabel(jobLabel) : undefined };
   }
 
   async #getReportDate(store: AllureStore) {
@@ -254,7 +254,7 @@ export class JiraPlugin implements Plugin {
         id: context.reportUuid,
         history: history.map(({ uuid }) => uuid),
         status: reportStatus,
-        name: context.reportName,
+        name: trimName(context.reportName),
         url: context.reportUrl,
         date,
         ciInfo: ciInfo.url ? { url: ciInfo.url, label: ciInfo.label } : undefined,
