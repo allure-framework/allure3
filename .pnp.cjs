@@ -258,6 +258,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-classic", "workspace:packages/plugin-classic"],\
           ["@allurereport/plugin-csv", "workspace:packages/plugin-csv"],\
           ["@allurereport/plugin-dashboard", "workspace:packages/plugin-dashboard"],\
+          ["@allurereport/plugin-jira", "workspace:packages/plugin-jira"],\
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
