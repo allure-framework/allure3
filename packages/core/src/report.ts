@@ -438,6 +438,8 @@ export class AllureReport {
       }
 
       await this.#store.restoreState(dumpState, resultsAttachments);
+
+      console.info(`Successfully restored state from "${stage}"`);
     }
   };
 
