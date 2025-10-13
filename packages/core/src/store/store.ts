@@ -12,6 +12,7 @@ import {
   type KnownTestFailure,
   type RepoData,
   type ReportVariables,
+  type Statistic,
   type TestCase,
   type TestEnvGroup,
   type TestError,
@@ -46,7 +47,6 @@ import type {
 import { isFlaky } from "../utils/flaky.js";
 import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
-import { getTestResultsStats } from "../utils/stats.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
@@ -437,9 +437,17 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } = { includeHidden: false },
   ): Promise<TestResult[]> {
     const { includeHidden } = options;
-    const result = Array.from(this.#testResults.values());
+    const result: TestResult[] = [];
 
-    return includeHidden ? result : result.filter((tr) => !tr.hidden);
+    for (const [, tr] of this.#testResults) {
+      if (!includeHidden && tr.hidden) {
+        continue;
+      }
+
+      result.push(tr);
+    }
+
+    return result;
   }
 
   async allAttachments(
@@ -449,10 +457,21 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } = {},
   ): Promise<AttachmentLink[]> {
     const { includeMissed = false, includeUnused = false } = options;
-    const attachments = Array.from(this.#attachments.values());
-    return attachments
-      .filter((link) => (!includeMissed ? !link.missed : true))
-      .filter((link) => (!includeUnused ? link.used : true));
+    const filteredAttachments: AttachmentLink[] = [];
+
+    for (const [, attachment] of this.#attachments) {
+      if (!includeMissed && attachment.missed) {
+        continue;
+      }
+
+      if (!includeUnused && !attachment.used) {
+        continue;
+      }
+
+      filteredAttachments.push(attachment);
+    }
+
+    return filteredAttachments;
   }
 
   async allMetadata(): Promise<Record<string, any>> {
@@ -474,16 +493,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allNewTestResults(): Promise<TestResult[]> {
-    const allTrs = await this.allTestResults();
+    const newTrs: TestResult[] = [];
     const allHistoryDps = await this.allHistoryDataPoints();
 
-    return allTrs.filter((tr) => {
-      if (!tr.historyId) {
-        return true;
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
       }
 
-      return !allHistoryDps.some((dp) => dp.testResults[tr.historyId!]);
-    });
+      if (!tr.historyId) {
+        newTrs.push(tr);
+        continue;
+      }
+
+      if (!allHistoryDps.some((dp) => dp.testResults[tr.historyId!])) {
+        newTrs.push(tr);
+      }
+    }
+
+    return newTrs;
   }
 
   // search api
@@ -549,9 +577,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // aggregate API
 
   async failedTestResults() {
-    const allTestResults = await this.allTestResults();
+    const failedTrs: TestResult[] = [];
 
-    return allTestResults.filter(({ status }) => status === "failed" || status === "broken");
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
+      }
+
+      if (tr.status === "failed" || tr.status === "broken") {
+        failedTrs.push(tr);
+      }
+    }
+
+    return failedTrs;
   }
 
   async unknownFailedTestResults() {
@@ -571,13 +609,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       _: [],
     };
 
-    const all = await this.allTestResults();
-    all.forEach((test) => {
+    for (const [, test] of this.#testResults) {
+      if (test.hidden) {
+        continue;
+      }
+
       const targetLabels = (test.labels ?? []).filter((label) => label.name === labelName);
 
       if (targetLabels.length === 0) {
         results._.push(test);
-        return;
+        continue;
       }
 
       targetLabels.forEach((label) => {
@@ -587,26 +628,48 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         results[label.value!].push(test);
       });
-    });
+    }
 
     return results;
   }
 
   async testsStatistic(filter?: TestResultFilter) {
-    const all = await this.allTestResults();
+    const statistic: Statistic = { total: 0 };
 
-    const allWithStats = await Promise.all(
-      all.map(async (tr) => {
-        const retries = await this.retriesByTr(tr);
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
+      }
 
-        return {
-          ...tr,
-          retries,
-        };
-      }),
-    );
+      if (filter && !filter(tr)) {
+        continue;
+      }
 
-    return getTestResultsStats(allWithStats, filter);
+      statistic.total++;
+
+      // This is fine because retriesByTr does not contain any async operations
+      const retries = await this.retriesByTr(tr);
+
+      if (retries.length > 0) {
+        statistic.retries = (statistic.retries ?? 0) + 1;
+      }
+
+      if (tr.flaky) {
+        statistic.flaky = (statistic.flaky ?? 0) + 1;
+      }
+
+      if (tr.transition === "new") {
+        statistic.new = (statistic.new ?? 0) + 1;
+      }
+
+      if (!statistic[tr.status]) {
+        statistic[tr.status] = 0;
+      }
+
+      statistic[tr.status]!++;
+    }
+
+    return statistic;
   }
 
   // environments
@@ -621,31 +684,37 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       includeHidden: boolean;
     } = { includeHidden: false },
   ) {
-    const allTrs = await this.allTestResults(options);
+    const trs: TestResult[] = [];
 
-    return allTrs.filter((tr) => tr.environment === env);
+    for (const [, tr] of this.#testResults) {
+      if (!options.includeHidden && tr.hidden) {
+        continue;
+      }
+
+      if (tr.environment === env) {
+        trs.push(tr);
+      }
+    }
+
+    return trs;
   }
 
   async allTestEnvGroups() {
-    const allTr = await this.allTestResults({ includeHidden: true });
-    const trByTestCaseId = allTr.reduce(
-      (acc, tr) => {
-        const testCaseId = tr?.testCase?.id;
+    const trByTestCaseId: Record<string, TestResult[]> = {};
 
-        if (!testCaseId) {
-          return acc;
-        }
+    for (const [, tr] of this.#testResults) {
+      const testCaseId = tr?.testCase?.id;
 
-        if (acc[testCaseId]) {
-          acc[testCaseId].push(tr);
-        } else {
-          acc[testCaseId] = [tr];
-        }
+      if (!testCaseId) {
+        continue;
+      }
 
-        return acc;
-      },
-      {} as Record<string, TestResult[]>,
-    );
+      if (trByTestCaseId[testCaseId]) {
+        trByTestCaseId[testCaseId].push(tr);
+      } else {
+        trByTestCaseId[testCaseId] = [tr];
+      }
+    }
 
     return Object.entries(trByTestCaseId).reduce((acc, [testCaseId, trs]) => {
       if (trs.length === 0) {
