@@ -21,11 +21,11 @@ export class GenerateCommand extends Command {
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
       [
-        "generate --stage=windows.zip --stage=macos.zip ./allure-results",
-        "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
+        "generate --stage=windows.tar.gz --stage=macos.tar.gz ./allure-results",
+        "Generate a report using data from windows.tar.gz and macos.tar.gz archives and using results from the ./allure-results directory",
       ],
       [
-        "generate --stage=allure-*.zip",
+        "generate --stage=allure-*.tar.gz",
         "Generate a report using data from any stage archive that matches the given pattern only (ignoring results directories)",
       ],
     ],

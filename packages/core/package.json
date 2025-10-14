@@ -43,9 +43,8 @@
     "@allurereport/summary": "workspace:*",
     "handlebars": "^4.7.8",
     "markdown-it": "^14.1.0",
-    "node-stream-zip": "^1.15.0",
-    "yoctocolors": "^2.1.1",
-    "zip-stream": "^7.0.2"
+    "tar": "^7.5.1",
+    "yoctocolors": "^2.1.1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
@@ -53,7 +52,7 @@
     "@types/handlebars": "^4.1.0",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.17.9",
-    "@types/zip-stream": "^7.0.0",
+    "@types/tar": "^6.1.13",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",

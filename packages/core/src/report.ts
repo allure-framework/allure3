@@ -20,16 +20,27 @@ import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBund
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
-import ZipReadStream from "node-stream-zip";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
-import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  lstat,
+  mkdtemp,
+  opendir,
+  readFile,
+  readdir,
+  realpath,
+  rename,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import ZipWriteStream from "zip-stream";
+import tar from "tar";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
@@ -269,86 +280,80 @@ export class AllureReport {
       indexKnownByHistoryId = {},
     } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
-    const dumpArchive = new ZipWriteStream({
-      zlib: { level: 5 },
-    });
-    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
-    const dumpArchiveWriteStream = createWriteStream(`${this.#stage}.zip`);
-    const promise = new Promise((res, rej) => {
-      dumpArchive.on("error", (err) => rej(err));
-      dumpArchiveWriteStream.on("finish", () => res(void 0));
-      dumpArchiveWriteStream.on("error", (err) => rej(err));
-    });
+    const tarTempDir = await mkdtemp(join(tmpdir(), "allure-dump-"));
 
-    dumpArchive.pipe(dumpArchiveWriteStream);
+    try {
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.TestResults), JSON.stringify(testResults));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.TestCases), JSON.stringify(testCases));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.Fixtures), JSON.stringify(fixtures));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.Attachments), JSON.stringify(attachmentsLinks));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.Environments), JSON.stringify(environments));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.ReportVariables), JSON.stringify(this.#reportVariables));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.GlobalAttachments), JSON.stringify(globalAttachments));
+      await writeFile(join(tarTempDir, AllureStoreDumpFiles.GlobalErrors), JSON.stringify(globalErrors));
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexAttachmentsByTestResults),
+        JSON.stringify(indexAttachmentByTestResult),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexTestResultsByHistoryId),
+        JSON.stringify(indexTestResultByHistoryId),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexTestResultsByTestCase),
+        JSON.stringify(indexTestResultByTestCase),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId),
+        JSON.stringify(indexLatestEnvTestResultByHistoryId),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexAttachmentsByFixture),
+        JSON.stringify(indexAttachmentByFixture),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexFixturesByTestResult),
+        JSON.stringify(indexFixturesByTestResult),
+      );
+      await writeFile(
+        join(tarTempDir, AllureStoreDumpFiles.IndexKnownByHistoryId),
+        JSON.stringify(indexKnownByHistoryId),
+      );
 
-    await addEntry(Buffer.from(JSON.stringify(testResults)), {
-      name: AllureStoreDumpFiles.TestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(testCases)), {
-      name: AllureStoreDumpFiles.TestCases,
-    });
-    await addEntry(Buffer.from(JSON.stringify(fixtures)), {
-      name: AllureStoreDumpFiles.Fixtures,
-    });
-    await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
-      name: AllureStoreDumpFiles.Attachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(environments)), {
-      name: AllureStoreDumpFiles.Environments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
-      name: AllureStoreDumpFiles.ReportVariables,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalAttachments)), {
-      name: AllureStoreDumpFiles.GlobalAttachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
-      name: AllureStoreDumpFiles.GlobalErrors,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByTestCase)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByTestCase,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexLatestEnvTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByFixture)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByFixture,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexFixturesByTestResult)), {
-      name: AllureStoreDumpFiles.IndexFixturesByTestResult,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexKnownByHistoryId,
-    });
+      for (const attachment of allAttachments) {
+        const content = await this.#store.attachmentContentById(attachment.id);
 
-    for (const attachment of allAttachments) {
-      const content = await this.#store.attachmentContentById(attachment.id);
+        if (!content) {
+          continue;
+        }
 
-      if (!content) {
-        continue;
+        if (content instanceof PathResultFile) {
+          await copyFile(content.path, join(tarTempDir, attachment.id));
+          continue;
+        }
+
+        const buffer = await content.asBuffer();
+
+        if (!buffer) {
+          continue;
+        }
+
+        await writeFile(join(tarTempDir, attachment.id), buffer);
       }
 
-      if (content instanceof PathResultFile) {
-        await addEntry(createReadStream(content.path), {
-          name: attachment.id,
-        });
-      } else {
-        await addEntry(await content.asBuffer(), {
-          name: attachment.id,
-        });
-      }
+      const files = await readdir(tarTempDir);
+
+      await tar.create(
+        {
+          gzip: true,
+          file: `${this.#stage}.tar.gz`,
+          cwd: tarTempDir,
+        },
+        files,
+      );
+    } finally {
+      await rm(tarTempDir, { recursive: true, force: true });
     }
-
-    dumpArchive.finalize();
-
-    return promise as Promise<void>;
   };
 
   restoreState = async (stages: string[]): Promise<void> => {
@@ -357,89 +362,86 @@ export class AllureReport {
         continue;
       }
 
-      const dump = new ZipReadStream.async({
-        file: stage,
-      });
-      const testResultsEntry = await dump.entryData(AllureStoreDumpFiles.TestResults);
-      const testCasesEntry = await dump.entryData(AllureStoreDumpFiles.TestCases);
-      const fixturesEntry = await dump.entryData(AllureStoreDumpFiles.Fixtures);
-      const attachmentsEntry = await dump.entryData(AllureStoreDumpFiles.Attachments);
-      const environmentsEntry = await dump.entryData(AllureStoreDumpFiles.Environments);
-      const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
-      const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
-      const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
-      const indexAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
-      const indexTestResultsByHistoryId = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
-      const indexTestResultsByTestCaseEntry = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByTestCase);
-      const indexLatestEnvTestResultsByHistoryIdEntry = await dump.entryData(
-        AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-      );
-      const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
-      const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
-      const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-      const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
-        switch (entryName) {
-          case AllureStoreDumpFiles.Attachments:
-          case AllureStoreDumpFiles.TestResults:
-          case AllureStoreDumpFiles.TestCases:
-          case AllureStoreDumpFiles.Fixtures:
-          case AllureStoreDumpFiles.Environments:
-          case AllureStoreDumpFiles.ReportVariables:
-          case AllureStoreDumpFiles.GlobalAttachments:
-          case AllureStoreDumpFiles.GlobalErrors:
-          case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
-          case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
-          case AllureStoreDumpFiles.IndexTestResultsByTestCase:
-          case AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId:
-          case AllureStoreDumpFiles.IndexAttachmentsByFixture:
-          case AllureStoreDumpFiles.IndexFixturesByTestResult:
-          case AllureStoreDumpFiles.IndexKnownByHistoryId:
-            return acc;
-          default:
-            return Object.assign(acc, {
-              [entryName]: entry,
-            });
-        }
-      }, {});
-      const dumpState: AllureStoreDump = {
-        testResults: JSON.parse(testResultsEntry.toString("utf8")),
-        testCases: JSON.parse(testCasesEntry.toString("utf8")),
-        fixtures: JSON.parse(fixturesEntry.toString("utf8")),
-        attachments: JSON.parse(attachmentsEntry.toString("utf8")),
-        environments: JSON.parse(environmentsEntry.toString("utf8")),
-        reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
-        globalAttachments: JSON.parse(globalAttachmentsEntry.toString("utf8")),
-        globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
-        indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
-        indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
-        indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
-        indexLatestEnvTestResultByHistoryId: JSON.parse(indexLatestEnvTestResultsByHistoryIdEntry.toString("utf8")),
-        indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
-        indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
-        indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
-      };
-      const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
-      const resultsAttachments: Record<string, ResultFile> = {};
+      const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".tar.gz")));
 
       this.#stageTempDirs.push(stageTempDir);
 
       try {
-        for (const [attachmentId] of Object.entries(attachmentsEntries)) {
-          const attachmentContentEntry = await dump.entryData(attachmentId);
-          const attachmentFilePath = join(stageTempDir, attachmentId);
+        await tar.extract({
+          file: stage,
+          cwd: stageTempDir,
+        });
 
-          await writeFile(attachmentFilePath, attachmentContentEntry);
+        const testResults = JSON.parse(await readFile(join(stageTempDir, AllureStoreDumpFiles.TestResults), "utf8"));
+        const testCases = JSON.parse(await readFile(join(stageTempDir, AllureStoreDumpFiles.TestCases), "utf8"));
+        const fixtures = JSON.parse(await readFile(join(stageTempDir, AllureStoreDumpFiles.Fixtures), "utf8"));
+        const attachmentsLinks = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.Attachments), "utf8"),
+        );
+        const environments = JSON.parse(await readFile(join(stageTempDir, AllureStoreDumpFiles.Environments), "utf8"));
+        const reportVariables = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.ReportVariables), "utf8"),
+        );
+        const globalAttachments = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.GlobalAttachments), "utf8"),
+        );
+        const globalErrors = JSON.parse(await readFile(join(stageTempDir, AllureStoreDumpFiles.GlobalErrors), "utf8"));
+        const indexAttachmentByTestResult = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexAttachmentsByTestResults), "utf8"),
+        );
+        const indexTestResultByHistoryId = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexTestResultsByHistoryId), "utf8"),
+        );
+        const indexTestResultByTestCase = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexTestResultsByTestCase), "utf8"),
+        );
+        const indexLatestEnvTestResultByHistoryId = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId), "utf8"),
+        );
+        const indexAttachmentByFixture = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexAttachmentsByFixture), "utf8"),
+        );
+        const indexFixturesByTestResult = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexFixturesByTestResult), "utf8"),
+        );
+        const indexKnownByHistoryId = JSON.parse(
+          await readFile(join(stageTempDir, AllureStoreDumpFiles.IndexKnownByHistoryId), "utf8"),
+        );
 
-          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
+        const dumpState: AllureStoreDump = {
+          testResults,
+          testCases,
+          fixtures,
+          attachments: attachmentsLinks,
+          environments,
+          reportVariables,
+          globalAttachments,
+          globalErrors,
+          indexAttachmentByTestResult,
+          indexTestResultByHistoryId,
+          indexTestResultByTestCase,
+          indexLatestEnvTestResultByHistoryId,
+          indexAttachmentByFixture,
+          indexFixturesByTestResult,
+          indexKnownByHistoryId,
+        };
+
+        const resultsAttachments: Record<string, ResultFile> = {};
+        const files = await readdir(stageTempDir);
+
+        for (const file of files) {
+          if (!Object.values(AllureStoreDumpFiles).includes(file as AllureStoreDumpFiles)) {
+            resultsAttachments[file] = new PathResultFile(join(stageTempDir, file), file);
+          }
         }
+
+        await this.#store.restoreState(dumpState, resultsAttachments);
+
+        console.info(`Successfully restored state from "${stage}"`);
       } catch (err) {
         console.error(`Can't restore state from "${stage}", continuing without it`);
         console.error(err);
       }
-
-      await this.#store.restoreState(dumpState, resultsAttachments);
-
-      console.info(`Successfully restored state from "${stage}"`);
     }
   };
 
