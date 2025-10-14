@@ -57,4 +57,9 @@ export interface FullConfig {
     project?: string;
     accessToken?: string;
   };
+  allureTestOps?: {
+    url?: string;
+    project: string;
+    token: string;
+  };
 }

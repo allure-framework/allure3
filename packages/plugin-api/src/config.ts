@@ -54,6 +54,11 @@ export interface Config {
     project?: string;
     accessToken?: string;
   };
+  allureTestOps?: {
+    url?: string;
+    project: string;
+    token: string;
+  };
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

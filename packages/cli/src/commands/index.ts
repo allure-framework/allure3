@@ -20,3 +20,4 @@ export * from "./logout.js";
 export * from "./whoami.js";
 export * from "./projects/index.js";
 export * from "./results/index.js";
+export * from "./testops/index.js";
