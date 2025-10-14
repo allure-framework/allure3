@@ -35,7 +35,7 @@ export interface JiraPluginOptions {
    */
   uploadReport?: boolean;
   /**
-   * Whether to upload the results
+   * Whether to upload the test results
    * @example true
    */
   uploadResults?: boolean;

@@ -306,9 +306,7 @@ describe("JiraPlugin", () => {
             results: [
               expect.objectContaining({
                 id: "hist-complex",
-                keyParams: expect.arrayContaining([
-                  { name: "common", value: "shared" },
-                ]),
+                keyParams: expect.arrayContaining([{ name: "common", value: "shared" }]),
                 runs: [
                   expect.objectContaining({ env: "env1" }),
                   expect.objectContaining({ env: "env2" }),
