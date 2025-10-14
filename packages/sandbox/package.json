@@ -8,6 +8,7 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
+    "g": "yarn allure generate --config=./allurerc.mjs",
     "pret": "rimraf ./allure-results",
     "t": "yarn allure run --stage=foo -- vitest run",
     "test": "vitest run"

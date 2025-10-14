@@ -1,5 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
-import { getWorstStatus, statusesList } from "@allurereport/core-api";
+import { DEFAULT_ENVIRONMENT, getWorstStatus, statusesList } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import axios, { isAxiosError } from "axios";
 import { isJiraIssueKey, prepareTestResults, trimCiInfoLabel, trimName } from "./helpers.js";
@@ -146,6 +146,10 @@ export class JiraPlugin implements Plugin {
     const envs = await store.allEnvironments();
 
     for (const env of envs) {
+      if (env === DEFAULT_ENVIRONMENT) {
+        continue;
+      }
+
       statisticByEnv[env] = await store.testsStatistic((tr) => tr.environment === env);
     }
 

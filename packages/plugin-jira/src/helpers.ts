@@ -1,4 +1,4 @@
-import type { TestParameter, TestResult } from "@allurereport/core-api";
+import { DEFAULT_ENVIRONMENT, type TestParameter, type TestResult } from "@allurereport/core-api";
 import { type ForgePluginTestResult } from "./types.js";
 
 /**
@@ -57,6 +57,14 @@ const filterKeyParams = (params: TestParameter[], runsCount: number) => {
   return result;
 };
 
+const filterOutDefaultEnvironment = (env?: string): string | undefined => {
+  if (env === DEFAULT_ENVIRONMENT) {
+    return undefined;
+  }
+
+  return env;
+};
+
 export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] => {
   const trMap = new Map<string, ForgePluginTestResult>();
 
@@ -82,7 +90,7 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
     const storedTr = trMap.get(trId)!;
 
     // aggregate evironment-specific runs of same test
-    storedTr.runs.push({ status: tr.status, env: tr.environment, date: tr.stop! });
+    storedTr.runs.push({ status: tr.status, env: filterOutDefaultEnvironment(tr.environment), date: tr.stop! });
     storedTr.keyParams.push(...tr.parameters);
   }
 
