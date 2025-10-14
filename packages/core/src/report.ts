@@ -23,7 +23,7 @@ import { generateSummary } from "@allurereport/summary";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
   copyFile,
   lstat,
@@ -34,12 +34,10 @@ import {
   realpath,
   rename,
   rm,
-  stat,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { promisify } from "node:util";
 import tar from "tar";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
