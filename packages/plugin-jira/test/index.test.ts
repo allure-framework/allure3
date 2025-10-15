@@ -167,7 +167,7 @@ describe("JiraPlugin", () => {
                   { name: "browser", value: "chrome" },
                   { name: "version", value: "1.0" },
                 ],
-                runs: expect.arrayContaining([
+                entries: expect.arrayContaining([
                   expect.objectContaining({ env: "dev" }),
                   expect.objectContaining({ env: "prod" }),
                 ]),
@@ -215,7 +215,7 @@ describe("JiraPlugin", () => {
               expect.objectContaining({
                 id: "hist-diff",
                 keyParams: [{ name: "browser", value: "chrome" }],
-                runs: expect.arrayContaining([
+                entries: expect.arrayContaining([
                   expect.objectContaining({ env: "dev" }),
                   expect.objectContaining({ env: "prod" }),
                 ]),
@@ -259,7 +259,7 @@ describe("JiraPlugin", () => {
       );
     });
 
-    it("should handle multiple test runs with mixed parameter scenarios", async () => {
+    it("should handle multiple test entries with mixed parameter scenarios", async () => {
       const testResult1 = createJiraTestResult("Complex test");
       testResult1.id = "test-1";
       testResult1.historyId = "hist-complex";
@@ -307,7 +307,7 @@ describe("JiraPlugin", () => {
               expect.objectContaining({
                 id: "hist-complex",
                 keyParams: expect.arrayContaining([{ name: "common", value: "shared" }]),
-                runs: [
+                entries: [
                   expect.objectContaining({ env: "env1" }),
                   expect.objectContaining({ env: "env2" }),
                   expect.objectContaining({ env: "env3" }),

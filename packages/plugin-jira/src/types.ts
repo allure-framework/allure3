@@ -4,7 +4,7 @@ type JiraIssue = string;
 
 export type ForgePluginTestResult = {
   id: string;
-  runs: { status: TestStatus; env?: string; date: number }[];
+  entries: { status: TestStatus; env?: string; date: number }[];
   keyParams: Pick<TestParameter, "name" | "value">[];
   issue: TestLink;
   name: string;

@@ -80,7 +80,7 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
     if (!trMap.has(trId)) {
       trMap.set(trId, {
         id: trId,
-        runs: [],
+        entries: [],
         issue: jiraLink,
         name: trimName(tr.name),
         keyParams: [],
@@ -89,15 +89,15 @@ export const prepareTestResults = (trs: TestResult[]): ForgePluginTestResult[] =
 
     const storedTr = trMap.get(trId)!;
 
-    // aggregate evironment-specific runs of same test
-    storedTr.runs.push({ status: tr.status, env: filterOutDefaultEnvironment(tr.environment), date: tr.stop! });
+    // aggregate evironment-specific entries of same test
+    storedTr.entries.push({ status: tr.status, env: filterOutDefaultEnvironment(tr.environment), date: tr.stop! });
     storedTr.keyParams.push(...tr.parameters);
   }
 
   return Array.from(trMap.values()).map((tr) => {
     return {
       ...tr,
-      keyParams: filterKeyParams(tr.keyParams as TestParameter[], tr.runs.length),
+      keyParams: filterKeyParams(tr.keyParams as TestParameter[], tr.entries.length),
     };
   });
 };
