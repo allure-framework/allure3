@@ -100,34 +100,12 @@ export const mapToObject = <K extends string | number | symbol, T = any>(map: Ma
   return result;
 };
 
-export const mergeMapWithRecord = <K extends string | number | symbol, T = any>(
+export const updateMapWithRecord = <K extends string | number | symbol, T = any>(
   map: Map<K, T>,
   record: Record<K, T>,
 ): Map<K, T> => {
   Object.entries(record).forEach(([key, value]) => {
-    const existingValue = map.get(key as K);
-
-    if (existingValue !== undefined) {
-      if (Array.isArray(existingValue) && Array.isArray(value)) {
-        // Merge arrays
-        map.set(key as K, [...existingValue, ...value] as unknown as T);
-      } else if (
-        typeof existingValue === "object" &&
-        existingValue !== null &&
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(existingValue) &&
-        !Array.isArray(value)
-      ) {
-        // Merge objects
-        map.set(key as K, { ...existingValue, ...value } as unknown as T);
-      } else {
-        // For primitives or incompatible types, just overwrite
-        map.set(key as K, value as T);
-      }
-    } else {
-      map.set(key as K, value as T);
-    }
+    map.set(key as K, value as T);
   });
 
   return map;
@@ -820,11 +798,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexKnownByHistoryId = {},
     } = stateDump;
 
-    mergeMapWithRecord(this.#testResults, testResults);
-    mergeMapWithRecord(this.#attachments, attachments);
-    mergeMapWithRecord(this.#testCases, testCases);
-    mergeMapWithRecord(this.#fixtures, fixtures);
-    mergeMapWithRecord(this.#attachmentContents, attachmentsContents);
+    updateMapWithRecord(this.#testResults, testResults);
+    updateMapWithRecord(this.#attachments, attachments);
+    updateMapWithRecord(this.#testCases, testCases);
+    updateMapWithRecord(this.#fixtures, fixtures);
+    updateMapWithRecord(this.#attachmentContents, attachmentsContents);
 
     this.#addEnvironments(environments);
     this.#globalAttachments.push(...globalAttachments);
