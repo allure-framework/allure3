@@ -81,7 +81,7 @@ export class ProjectsCreateCommand extends Command {
         "",
         green("{"),
         green("  allureService: {"),
-        green(`    project: "${project.name}"`),
+        green(`    project: "${project.id}"`),
         green("  }"),
         green("}"),
       ];

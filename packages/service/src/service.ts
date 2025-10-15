@@ -10,7 +10,7 @@ export class AllureServiceClient {
   readonly #client: HttpClient;
   readonly #url: string;
   readonly #pollingDelay: number;
-  project: string | undefined;
+  currentProjectUuid: string | undefined;
 
   constructor(readonly config: Config["allureService"] & { pollingDelay?: number }) {
     if (!config.url) {
@@ -20,19 +20,26 @@ export class AllureServiceClient {
     this.#url = config.url;
     this.#client = createServiceHttpClient(this.#url, config?.accessToken);
     this.#pollingDelay = config?.pollingDelay ?? 2500;
-    this.project = config?.project;
+    this.currentProjectUuid = config?.project;
   }
 
   setProject(project: string) {
-    this.project = project;
+    this.currentProjectUuid = project;
+  }
+
+  async #getClientUrl() {
+    const { url } = await this.#client.get<{ url: string }>("/info");
+
+    return url
   }
 
   /**
    * Exchanges the exchange token for an access token
    */
-  async login(): Promise<string> {
+  async login(): Promise<any> {
+    const clientUrl = await this.#getClientUrl();
     const exchangeToken = await writeExchangeToken();
-    const connectUrl = new URL("/connect", this.#url);
+    const connectUrl = new URL("/connect", clientUrl);
 
     connectUrl.searchParams.set("token", decryptExchangeToken(exchangeToken));
 
@@ -44,7 +51,7 @@ export class AllureServiceClient {
       const makeExchangeAttempt = (): NodeJS.Timeout => {
         return globalThis.setTimeout(async () => {
           const token = decryptExchangeToken(exchangeToken);
-          const { accessToken } = await this.#client.post<{ accessToken: string }>("/api/auth/tokens/exchange", {
+          const { accessToken } = await this.#client.post<{ accessToken: string }>("/auth/exchange", {
             headers: {
               "Content-Type": "application/json",
             },
@@ -80,14 +87,23 @@ export class AllureServiceClient {
    * Returns user profile
    */
   async profile() {
-    return this.#client.get<{ email: string }>("/api/user/profile");
+    const { user } = await this.#client.get<{ user: { email: string } }>("/user/profile");
+
+    return user;
   }
 
   /**
    * Returns list of all projects
    */
   async projects() {
-    return this.#client.get<{ id: string; name: string }[]>("/api/projects/list");
+    return this.#client.get<{ projects: { id: string; name: string }[] }>("/projects");
+  }
+
+  /**
+   * Returns specific project by UUID
+   */
+  async project(uuid: string) {
+    return this.#client.get<{ project: {  id: string; name: string  } }>(`/projects/${uuid}`)
   }
 
   /**
@@ -95,19 +111,19 @@ export class AllureServiceClient {
    * @param payload
    */
   async createProject(payload: { name: string }) {
-    return this.#client.post<{ id: string; name: string }>("/api/projects/create", {
+    const { project } = await this.#client.post<{ project: { id: string; name: string } }>("/projects", {
       body: payload,
     });
+
+    return project;
   }
 
   /**
    * Deletes a project
    * @param payload
    */
-  async deleteProject(payload: { name: string }) {
-    return this.#client.post<{ id: string; name: string }>("/api/projects/delete", {
-      body: payload,
-    });
+  async deleteProject(payload: { id: string }) {
+    return this.#client.delete(`/projects/${payload.id}`);
   }
 
   /**
@@ -115,17 +131,17 @@ export class AllureServiceClient {
    * @param payload
    */
   async appendHistory(payload: { history: HistoryDataPoint; branch?: string }) {
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post("/api/history/append", {
+    return this.#client.post("/history/append", {
       headers: {
         "Content-Type": "application/json",
       },
       body: {
         ...payload,
-        project: this.project,
+        project: this.currentProjectUuid,
       },
     });
   }
@@ -135,13 +151,13 @@ export class AllureServiceClient {
    * @param payload
    */
   async downloadHistory(payload?: { branch?: string }) {
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.get<HistoryDataPoint[]>("/api/history/download", {
+    return this.#client.get<HistoryDataPoint[]>("/history/download", {
       params: {
-        project: this.project,
+        project: this.currentProjectUuid,
         ...payload,
       },
     });
@@ -154,13 +170,13 @@ export class AllureServiceClient {
   async createReport(payload: { reportName: string; reportUuid?: string }) {
     const { reportName, reportUuid } = payload;
 
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post<{ url: string }>("/api/reports/create", {
+    return this.#client.post<{ url: string }>("/reports/create", {
       body: {
-        project: this.project,
+        project: this.currentProjectUuid,
         reportName,
         reportUuid,
       },
@@ -175,11 +191,11 @@ export class AllureServiceClient {
   async completeReport(payload: { reportUuid: string }) {
     const { reportUuid } = payload;
 
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post("/api/reports/complete", {
+    return this.#client.post("/reports/complete", {
       body: {
         id: reportUuid,
       },
@@ -208,7 +224,7 @@ export class AllureServiceClient {
     form.set("filename", filename);
     form.set("file", content);
 
-    return this.#client.post("/api/assets/upload", {
+    return this.#client.post("/assets/upload", {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -245,7 +261,7 @@ export class AllureServiceClient {
     form.set("filename", joinPosix(pluginId, filename));
     form.set("file", content);
 
-    await this.#client.post(`/api/reports/upload/${reportUuid}`, {
+    await this.#client.post(`/reports/upload/${reportUuid}`, {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
