@@ -469,7 +469,7 @@ export class AllureReport {
 
         for (const [filename, filepath] of Object.entries(pluginFiles)) {
           // publish data-files separately
-          if (/^(data|widgets|index\.html$)/.test(filename)) {
+          if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
             await this.#allureServiceClient.addReportFile({
               reportUuid: this.reportUuid,
               pluginId: context.id,

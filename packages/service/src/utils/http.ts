@@ -1,4 +1,4 @@
-import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, { AxiosError, isAxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { DEFAULT_HISTORY_SERVICE_URL } from "../model.js";
 import { readAccessToken } from "./token.js";
 
@@ -67,26 +67,20 @@ export const createServiceHttpClient = (
 
         return res.data;
       } catch (err) {
-        if (!(err instanceof AxiosError)) {
+        const axiosError = isAxiosError(err)
+
+        if (!axiosError) {
           throw err;
         }
 
         const { status = 500 } = (err as AxiosError).response ?? {};
+        const errorMessage = err.response?.data?.error || err.response?.data || err.message
 
         if (status < 500) {
-          throw new KnownError(err.response?.data ?? err.message, status);
+          throw new KnownError(errorMessage, status);
         }
 
-        // @ts-ignore
-        const { response, message, errors, stack } = err;
-
-        /**
-         * Trying to get axios actual error message
-         * Original error message from the server usually locates in the `error.response.data` field
-         * But when the error happened somewhere else, the error can be located in `error.errors` field
-         * As a fallback, we just use original axios error message
-         */
-        throw new UnknownError(response?.data ?? errors?.[0]?.message?.trim?.() ?? message, stack);
+        throw new UnknownError(errorMessage, err.stack);
       }
     };
 

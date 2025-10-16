@@ -20,7 +20,7 @@ export class ProjectsDeleteCommand extends Command {
     ],
   });
 
-  projectName = Option.String({ required: true, name: "Project name" });
+  projectUuid = Option.String({ required: true, name: "Project ID" });
 
   force = Option.Boolean("--force", {
     description: "Delete project with no confirmation",
@@ -54,7 +54,7 @@ export class ProjectsDeleteCommand extends Command {
       const res = await prompts({
         type: "confirm",
         name: "value",
-        message: `Are you sure you want to delete project "${this.projectName}"?`,
+        message: `Are you sure you want to delete project "${this.projectUuid}"?`,
       });
 
       if (!res.value) {
@@ -65,7 +65,7 @@ export class ProjectsDeleteCommand extends Command {
 
     try {
       await serviceClient.deleteProject({
-        name: this.projectName,
+        id: this.projectUuid,
       });
 
       // eslint-disable-next-line no-console
