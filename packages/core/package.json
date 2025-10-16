@@ -33,6 +33,7 @@
     "@allurereport/plugin-classic": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-dashboard": "workspace:*",
+    "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
