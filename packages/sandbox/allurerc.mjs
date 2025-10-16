@@ -54,15 +54,6 @@ export default defineConfig({
     ],
   },
   plugins: {
-    jira: {
-      options: {
-        webhook: "https://95f453e...",
-        token: "dmR2dWto...",
-        issue: "JIRA-123",
-        uploadReport: true,
-        uploadResults: true,
-      }
-    },
     allure2: {
       options: {
         reportName: "HelloWorld",
