@@ -131,6 +131,8 @@ export class AllureServiceClient {
    * @param payload
    */
   async appendHistory(payload: { history: HistoryDataPoint; branch?: string }) {
+    const { history: historyPoint, branch } = payload;
+
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
@@ -140,8 +142,9 @@ export class AllureServiceClient {
         "Content-Type": "application/json",
       },
       body: {
-        ...payload,
-        project: this.currentProjectUuid,
+        projectUuid: this.currentProjectUuid,
+        historyPoint,
+        branch,
       },
     });
   }
@@ -155,12 +158,13 @@ export class AllureServiceClient {
       throw new Error("Project is not set");
     }
 
-    return this.#client.get<HistoryDataPoint[]>("/history/download", {
+    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(`/history/download/${this.currentProjectUuid}`, {
       params: {
-        project: this.currentProjectUuid,
-        ...payload,
+        ...(payload ?? {}),
       },
     });
+
+    return history;
   }
 
   /**
@@ -174,9 +178,9 @@ export class AllureServiceClient {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post<{ url: string }>("/reports/create", {
+    return this.#client.post<{ url: string }>("/reports", {
       body: {
-        project: this.currentProjectUuid,
+        projectUuid: this.currentProjectUuid,
         reportName,
         reportUuid,
       },
@@ -195,10 +199,8 @@ export class AllureServiceClient {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post("/reports/complete", {
-      body: {
-        id: reportUuid,
-      },
+    return this.#client.post(`/reports/${reportUuid}/complete`, {
+      body: {}
     });
   }
 
@@ -261,7 +263,7 @@ export class AllureServiceClient {
     form.set("filename", joinPosix(pluginId, filename));
     form.set("file", content);
 
-    await this.#client.post(`/reports/upload/${reportUuid}`, {
+    await this.#client.post(`/reports/${reportUuid}/upload`, {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
