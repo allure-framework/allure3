@@ -4,7 +4,7 @@ import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it, vi } from "vitest";
-import { DefaultAllureStore, mapToObject, mergeMapWithRecord } from "../../src/store/store.js";
+import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
@@ -2325,91 +2325,24 @@ describe("dump state", () => {
   });
 });
 
-describe("mergeMapWithRecord", () => {
-  it("should merge a record into a map with string keys", () => {
-    const map = new Map<string, number>([["a", 1]]);
-    const record = { b: 2, c: 3 };
-    const result = mergeMapWithRecord(map, record);
+describe("updateMapWithRecord", () => {
+  it("should update a map with a record", () => {
+    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const record = { b: 3, c: 4 };
+    const result = updateMapWithRecord(map, record);
 
     expect(result).toBe(map);
     expect(Array.from(result.entries())).toEqual([
       ["a", 1],
-      ["b", 2],
-      ["c", 3],
+      ["b", 3],
+      ["c", 4],
     ]);
-  });
-
-  it("should overwrite existing keys with primitive values", () => {
-    const map = new Map<string, number>([
-      ["a", 1],
-      ["b", 2],
-    ]);
-    const record = { b: 42, c: 3 };
-
-    mergeMapWithRecord(map, record);
-
-    expect(map.get("b")).toBe(42);
-    expect(map.get("c")).toBe(3);
-  });
-
-  it("should merge arrays when both existing and new values are arrays", () => {
-    const map = new Map<string, any>([
-      ["a", [1, 2]],
-      ["b", "string"],
-      ["c", [5, 6]],
-    ]);
-    const record = { a: [3, 4], b: [7, 8], d: [9, 10] };
-
-    mergeMapWithRecord(map, record);
-
-    expect(Array.from(map.entries())).toEqual([
-      ["a", [1, 2, 3, 4]],
-      ["b", [7, 8]],
-      ["c", [5, 6]],
-      ["d", [9, 10]],
-    ]);
-  });
-
-  it("should merge objects when both existing and new values are objects", () => {
-    const map = new Map<string, any>([
-      ["a", { x: 1, y: 2 }],
-      ["b", "string"],
-      ["c", { z: 3 }],
-    ]);
-    const record = {
-      a: { y: 3, z: 4 },
-      b: { new: "object" },
-      d: { foo: "bar" },
-    };
-
-    mergeMapWithRecord(map, record);
-
-    expect(map.get("a")).toEqual({ x: 1, y: 3, z: 4 });
-    expect(map.get("b")).toEqual({ new: "object" });
-    expect(map.get("c")).toEqual({ z: 3 });
-    expect(map.get("d")).toEqual({ foo: "bar" });
-  });
-
-  it("should not merge when types are incompatible", () => {
-    const map = new Map<string, any>([
-      ["a", { x: 1 }],
-      ["b", [1, 2]],
-    ]);
-    const record = {
-      a: [3, 4], // object vs array
-      b: { y: 3 }, // array vs object
-    };
-
-    mergeMapWithRecord(map, record);
-
-    expect(map.get("a")).toEqual([3, 4]);
-    expect(map.get("b")).toEqual({ y: 3 });
   });
 
   it("should handle empty record and map", () => {
     const map = new Map();
     const record = {};
-    const result = mergeMapWithRecord(map, record);
+    const result = updateMapWithRecord(map, record);
 
     expect(result.size).toBe(0);
   });
