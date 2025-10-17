@@ -2327,7 +2327,10 @@ describe("dump state", () => {
 
 describe("updateMapWithRecord", () => {
   it("should update a map with a record", () => {
-    const map = new Map<string, number>([["a", 1], ["b", 2]]);
+    const map = new Map<string, number>([
+      ["a", 1],
+      ["b", 2],
+    ]);
     const record = { b: 3, c: 4 };
     const result = updateMapWithRecord(map, record);
 

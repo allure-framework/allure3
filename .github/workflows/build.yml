@@ -54,7 +54,7 @@ jobs:
     - name: Build project
       run: yarn build
     - name: Test Project
-      run: yarn allure run --config=./allurerc.gate.mjs --environment={{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
+      run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
