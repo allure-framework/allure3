@@ -5,7 +5,18 @@ import { describe, expect, it, vi } from "vitest";
 import type { JiraPluginOptions } from "../src/plugin.js";
 import { JiraPlugin } from "../src/plugin.js";
 
-const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => partialStore as AllureStore;
+const createMockStore = (partialStore: Partial<AllureStore>): AllureStore => {
+  const defaultStore = {
+    testsStatistic: vi.fn().mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
+    allTestResults: vi.fn().mockResolvedValue([]),
+    allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+    allGlobalErrors: vi.fn().mockResolvedValue([]),
+    globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
+    allEnvironments: vi.fn().mockResolvedValue([]),
+    retriesByTr: vi.fn().mockResolvedValue([]),
+  };
+  return { ...defaultStore, ...partialStore } as AllureStore;
+};
 
 const defaultPluginContext = {
   reportUrl: "http://example.com/report",
@@ -96,6 +107,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -149,6 +161,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -200,6 +213,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -238,6 +252,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -292,6 +307,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult1, testResult2, testResult3]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -326,6 +342,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue([testResult]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
 
       const axiosPostSpy = setupAxiosSpy();
@@ -389,6 +406,7 @@ describe("JiraPlugin", () => {
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue(mockTestResults),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
       const axiosPostSpy = vi.spyOn(axios, "post");
 
@@ -436,6 +454,9 @@ describe("JiraPlugin", () => {
         globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
         allEnvironments: vi.fn().mockResolvedValue([]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 1, passed: 1, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
       });
       const axiosPostSpy = vi.spyOn(axios, "post");
 
@@ -467,6 +488,13 @@ describe("JiraPlugin", () => {
                 total: 1,
                 passed: 1,
               }),
+              history: expect.arrayContaining(["hist-1"]),
+              date: expect.any(Number),
+              ciInfo: expect.objectContaining({
+                url: "http://ci.example.com/job/123",
+                label: "Test Job",
+              }),
+              statisticByEnv: expect.any(Object),
             }),
           }),
         }),
@@ -481,9 +509,16 @@ describe("JiraPlugin", () => {
         uploadReport: true,
       });
 
-      await expect(
-        plugin.done(defaultPluginContext, createMockStore({ allTestResults: vi.fn().mockResolvedValue([]) })),
-      ).rejects.toThrow("[Allure Jira Plugin] no test results found");
+      const mockStore = createMockStore({
+        allTestResults: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi
+          .fn()
+          .mockResolvedValue({ total: 0, passed: 0, failed: 0, broken: 0, skipped: 0, unknown: 0 }),
+      });
+
+      await expect(plugin.done(defaultPluginContext, mockStore)).rejects.toThrow(
+        "[Allure Jira Plugin] no test results found",
+      );
     });
   });
 
@@ -547,7 +582,6 @@ describe("JiraPlugin", () => {
   describe("Uploading both report and results", () => {
     it("should upload both report and results when both are enabled", async () => {
       const mockTestResults = [createJiraTestResult("Test 1")];
-
       const mockStore = createMockStore({
         allTestResults: vi.fn().mockResolvedValue(mockTestResults),
         allHistoryDataPoints: vi.fn().mockResolvedValue([{ uuid: "hist-1" } as any]),
@@ -555,6 +589,7 @@ describe("JiraPlugin", () => {
         globalExitCode: vi.fn().mockResolvedValue({ actual: 0, original: 0 }),
         allEnvironments: vi.fn().mockResolvedValue([]),
         retriesByTr: vi.fn().mockResolvedValue([]),
+        testsStatistic: vi.fn().mockResolvedValue({}),
       });
       const axiosPostSpy = vi.spyOn(axios, "post");
 
