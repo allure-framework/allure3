@@ -155,6 +155,13 @@ export const createStatusChangeTrendBarChartData = (
     () => statusChangeColors,
   );
 
+export const createSfbuTrendBarChartData = (chartId: ChartId, res: ChartsResponse): UIBarChartData | undefined => {
+  return createBarChartDataGeneric(
+    () => res[chartId] as ResponseBarChartData | undefined,
+    () => statusColors,
+  );
+};
+
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
   res: ChartsResponse,
@@ -264,6 +271,8 @@ export const createBarChartData = (
     return createStatusTrendBarChartData(chartId, res);
   } else if (chartData.dataType === BarChartType.StatusChangeTrend) {
     return createStatusChangeTrendBarChartData(chartId, res);
+  } else if ([BarChartType.SFBUTrend, BarChartType.SFBUCumulativeTrend].includes(chartData.dataType)) {
+    return createSfbuTrendBarChartData(chartId, res);
   }
 };
 

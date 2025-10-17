@@ -5,11 +5,13 @@ import { DEFAULT_CHART_HISTORY_LIMIT, limitHistoryDataPoints } from "../charts.j
 import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBarAccessor.js";
 import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAccessor.js";
 import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
+import { sfbuTrendAccessor } from "./accessors/sfbuTrendAccessor.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
   options: BarChartOptions,
   storeData: AllureChartsStoreData,
   dataAccessor: BarDataAccessor<P, T>,
+  isCumulative = false,
 ): BarChartData | undefined => {
   const { type, dataType, title, limit = DEFAULT_CHART_HISTORY_LIMIT, mode = ChartMode.Raw } = options;
 
@@ -18,7 +20,7 @@ export const generateBarChartGeneric = <P extends string, T extends string>(
   const limitedHistoryPoints = limitHistoryDataPoints(historyDataPoints, limit);
   const isFullHistory = limitedHistoryPoints.length === historyDataPoints.length;
 
-  const items = dataAccessor.getItems(storeData, limitedHistoryPoints, isFullHistory);
+  const items = dataAccessor.getItems(storeData, limitedHistoryPoints, isFullHistory, isCumulative);
 
   // Apply mode transformation if needed
   let processedData = items;
@@ -65,5 +67,9 @@ export const generateBarChart = (
     return generateBarChartGeneric(newOptions, storeData, statusTrendBarAccessor);
   } else if (dataType === BarChartType.StatusChangeTrend) {
     return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
+  } else if (dataType === BarChartType.SFBUTrend) {
+    return generateBarChartGeneric(newOptions, storeData, sfbuTrendAccessor);
+  } else if (dataType === BarChartType.SFBUCumulativeTrend) {
+    return generateBarChartGeneric(newOptions, storeData, sfbuTrendAccessor, true);
   }
 };

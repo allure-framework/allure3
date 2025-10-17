@@ -21,6 +21,8 @@ export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusTrend = "statusTrend",
   StatusChangeTrend = "statusChangeTrend",
+  SFBUTrend = "sfbuTrend",
+  SFBUCumulativeTrend = "sfbuCumulativeTrend",
 }
 
 export enum TreeMapChartType {

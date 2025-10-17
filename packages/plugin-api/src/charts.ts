@@ -192,6 +192,7 @@ export interface BarDataAccessor<G extends string, T extends string> {
     storeData: AllureChartsStoreData,
     limitedHistoryDataPoints: HistoryDataPoint[],
     isFullHistory: boolean,
+    isCumulative?: boolean,
   ) => BarGroup<G, T>[];
   // List of all possible values for the group
   getGroupKeys: () => readonly T[];
@@ -330,7 +331,13 @@ export const defaultChartsConfig = [
   },
   {
     type: "bar",
-    title: "FBSU age pyramid",
+    dataType: "sfbuTrend",
+    title: "SFBU age pyramid",
+  },
+  {
+    type: "bar",
+    dataType: "sfbuCumulativeTrend",
+    title: "SFBU cumulative age pyramid",
   },
   {
     type: "funnel",
