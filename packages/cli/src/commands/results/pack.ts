@@ -4,7 +4,7 @@ import { glob } from "glob";
 import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
-import { basename, join, resolve, sep } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { green, red } from "yoctocolors";
 
 export class ResultsPackCommand extends Command {
@@ -70,7 +70,7 @@ export class ResultsPackCommand extends Command {
         windowsPathsNoEscape: true,
         cwd,
       })
-    ).filter((p) => p.endsWith(sep));
+    ).filter((p) => /(\/|\\)$/.test(p));
     const resultsFiles = new Set<string>();
 
     if (resultsDirectories.length === 0) {

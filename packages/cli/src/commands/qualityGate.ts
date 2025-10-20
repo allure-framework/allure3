@@ -4,7 +4,6 @@ import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
-import { sep } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
@@ -117,7 +116,7 @@ export class QualityGateCommand extends Command {
         windowsPathsNoEscape: true,
         cwd,
       })
-    ).filter((p) => p.endsWith(sep));
+    ).filter((p) => /(\/|\\)$/.test(p));
 
     if (resultsDirectories.length === 0) {
       // eslint-disable-next-line no-console
