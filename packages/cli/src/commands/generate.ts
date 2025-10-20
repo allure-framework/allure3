@@ -3,7 +3,6 @@ import { KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
-import { sep } from "node:path";
 import { exit, cwd as processCwd } from "node:process";
 import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
