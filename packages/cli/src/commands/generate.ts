@@ -92,7 +92,7 @@ export class GenerateCommand extends Command {
           windowsPathsNoEscape: true,
           cwd,
         })
-      ).filter((p) => p.endsWith(sep));
+      ).filter((p) => /(\/|\\)$/.test(p));
 
       resultsDirectories.push(...matchedDirs);
     }

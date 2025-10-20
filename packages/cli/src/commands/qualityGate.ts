@@ -117,7 +117,7 @@ export class QualityGateCommand extends Command {
         windowsPathsNoEscape: true,
         cwd,
       })
-    ).filter((p) => p.endsWith(sep));
+    ).filter((p) => /(\/|\\)$/.test(p));
 
     if (resultsDirectories.length === 0) {
       // eslint-disable-next-line no-console

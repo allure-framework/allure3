@@ -70,7 +70,7 @@ export class ResultsPackCommand extends Command {
         windowsPathsNoEscape: true,
         cwd,
       })
-    ).filter((p) => p.endsWith(sep));
+    ).filter((p) => /(\/|\\)$/.test(p));
     const resultsFiles = new Set<string>();
 
     if (resultsDirectories.length === 0) {
