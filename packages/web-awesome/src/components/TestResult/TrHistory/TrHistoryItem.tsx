@@ -1,4 +1,4 @@
-import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
+import { type HistoryTestResult, type TestLabel, formatDuration } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
@@ -13,11 +13,13 @@ export const TrHistoryItem: FunctionalComponent<{
   testResultItem: HistoryTestResult;
 }> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
   const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
-  const { status, error, stop, duration, id, url } = testResultItem;
+  const { status, error, stop, duration, id, url, labels } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
   const convertedStop = stop ? timestampToDate(stop) : undefined;
   const formattedDuration = duration ? formatDuration(duration) : undefined;
   const { t } = useI18n("controls");
+  const versionLabel = reportOptions?.versionLabel;
+  const labelValue = versionLabel ? labels?.find((label: TestLabel) => label.name === versionLabel)?.value : undefined;
   const navigateUrl = useMemo(() => {
     if (!url) {
       return undefined;
@@ -52,10 +54,17 @@ export const TrHistoryItem: FunctionalComponent<{
     );
   };
   const renderItemContent = () => {
+    let displayText = convertedStop;
+    if (labelValue && convertedStop) {
+      displayText = `${labelValue}: ${convertedStop}`;
+    } else if (labelValue) {
+      displayText = labelValue;
+    }
+    
     return (
       <>
         <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-        {convertedStop && <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>}
+        {displayText && <Text className={styles["test-result-history-item-text"]}>{displayText}</Text>}
         <div className={styles["test-result-history-item-info"]}>
           {formattedDuration && (
             <Text type="ui" size={"s"} className={styles["item-time"]}>

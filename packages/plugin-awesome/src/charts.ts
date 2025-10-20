@@ -20,11 +20,42 @@ export const generateCharts = async (
     history: HistoryDataPoint[];
   },
 ): Promise<GeneratedChartsData | undefined> => {
-  const { charts } = options;
+  const { charts, versionLabel } = options;
 
   if (!charts) {
     return undefined;
   }
+
+  // Create custom execution ID accessor if versionLabel is configured
+  const getExecutionIdFromLabels = (executionOrder: number): string => {
+    if (!versionLabel) {
+      return `execution-${executionOrder}`;
+    }
+
+    // For current execution (last in order)
+    if (executionOrder > stores.history.length) {
+      // Get label from current test results
+      const labelValue = stores.trs
+        .flatMap((tr) => tr.labels || [])
+        .find((label) => label.name === versionLabel)?.value;
+      
+      return labelValue || `execution-${executionOrder}`;
+    }
+
+    // For historical executions
+    const historyIndex = executionOrder - 1;
+    if (historyIndex >= 0 && historyIndex < stores.history.length) {
+      const historyPoint = stores.history[historyIndex];
+      // Try to find label in any test result from this history point
+      const labelValue = Object.values(historyPoint.testResults)
+        .flatMap((tr) => tr.labels || [])
+        .find((label) => label.name === versionLabel)?.value;
+      
+      return labelValue || `execution-${executionOrder}`;
+    }
+
+    return `execution-${executionOrder}`;
+  };
 
   return charts.reduce(
     (acc, chartOptions) => {
@@ -33,7 +64,18 @@ export const generateCharts = async (
       let chart: GeneratedChartData | undefined;
 
       if (chartOptions.type === ChartType.Trend) {
-        chart = generateTrendChart(chartOptions, stores, context);
+        // Inject custom metadata accessor if versionLabel is configured
+        const enhancedChartOptions = versionLabel
+          ? {
+              ...chartOptions,
+              metadata: {
+                ...chartOptions.metadata,
+                executionIdAccessor: getExecutionIdFromLabels,
+              },
+            }
+          : chartOptions;
+
+        chart = generateTrendChart(enhancedChartOptions, stores, context);
       } else if (chartOptions.type === ChartType.Pie) {
         chart = generatePieChart(chartOptions, stores);
       } else if ([ChartType.HeatMap, ChartType.Bar, ChartType.Funnel, ChartType.TreeMap].includes(chartOptions.type)) {

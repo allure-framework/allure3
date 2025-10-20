@@ -1,8 +1,9 @@
 import { formatDuration } from "@allurereport/core-api";
 import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { getReportOptions } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { AwesomeReportOptions, AwesomeTestResult } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 import { useI18n } from "@/stores/locale";
@@ -16,14 +17,25 @@ export type TrRetriesItemProps = {
 };
 
 export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testResultItem, attempt, totalAttempts }) => {
-  const { id, status, error, stop, duration } = testResultItem;
+  const { id, status, error, stop, duration, labels } = testResultItem;
   const [isOpened, setIsOpen] = useState(false);
 
   const { t } = useI18n("ui");
+  const reportOptions = getReportOptions<AwesomeReportOptions>();
+  const versionLabel = reportOptions?.versionLabel;
 
   const retryTitlePrefix = t("attempt", { attempt, total: totalAttempts });
   const convertedStop = stop ? timestampToDate(stop) : undefined;
-  const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
+  const labelValue = versionLabel ? labels?.find((label) => label.name === versionLabel)?.value : undefined;
+  
+  let displayValue = convertedStop;
+  if (labelValue && convertedStop) {
+    displayValue = `${labelValue}: ${convertedStop}`;
+  } else if (labelValue) {
+    displayValue = labelValue;
+  }
+  
+  const retryTitle = displayValue ? `${retryTitlePrefix} – ${displayValue}` : retryTitlePrefix;
 
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
   const navigateUrl = id;

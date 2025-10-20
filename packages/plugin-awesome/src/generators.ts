@@ -436,6 +436,7 @@ export const generateStaticFiles = async (
     charts = [],
     defaultSection = "",
     ci,
+    versionLabel,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -499,6 +500,7 @@ export const generateStaticFiles = async (
     allureVersion,
     sections,
     defaultSection,
+    versionLabel,
   };
 
   try {

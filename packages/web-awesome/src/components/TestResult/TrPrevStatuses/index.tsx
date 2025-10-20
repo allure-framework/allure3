@@ -1,4 +1,4 @@
-import { type HistoryTestResult } from "@allurereport/core-api";
+import { type HistoryTestResult, type TestLabel } from "@allurereport/core-api";
 import { capitalize, getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
@@ -30,16 +30,20 @@ const TrPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }
   );
 };
 const TrPrevStatusTooltip: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {
+  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
   const convertedStop = item.stop && timestampToDate(item.stop);
   const { t } = useI18n("statuses");
   const status = t(item.status);
+  const versionLabel = reportOptions?.versionLabel;
+  const labelValue = versionLabel ? item.labels?.find((label: TestLabel) => label.name === versionLabel)?.value : undefined;
 
   return (
     <div className={styles["test-result-prev-status-tooltip"]}>
       <Text tag={"div"} size={"m"} bold>
         {capitalize(status)}
       </Text>
-      <Text size={"m"}>{convertedStop}</Text>
+      <Text tag={"div"} size={"m"}>{convertedStop}</Text>
+      {Boolean(labelValue) && <Text size={"m"}>{labelValue}</Text>}
     </div>
   );
 };
