@@ -1,0 +1,1 @@
+{"id":"1a7f1c29b108ccfa0e4295d0842d9e9a","fullName":"test/utils/time.test.ts#formatDuration should format days and hours","name":"should format days and hours","status":"passed","testResultsByEnv":{"windows-latest":"a127ee2c4969e6a7a209ced10a5716d4","ubuntu-latest":"0b7df6f4299950d7c4664d506b200cd2","macos-latest":"3a2ee0b2ba358f4e5ef9d3d42bbed45f"}}

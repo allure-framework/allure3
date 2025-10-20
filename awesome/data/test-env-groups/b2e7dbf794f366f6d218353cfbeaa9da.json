@@ -1,0 +1,1 @@
+{"id":"b2e7dbf794f366f6d218353cfbeaa9da","fullName":"test/service.test.ts#AllureServiceClient login should create a new exchange token","name":"should create a new exchange token","status":"passed","testResultsByEnv":{"windows-latest":"ad4a61374e9022b07ecdc6acd849dc51","ubuntu-latest":"a019da7efd7add9a11fd8636fbcfd437","macos-latest":"bb0e41ac47767b2f950e153c57bbde36"}}

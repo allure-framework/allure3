@@ -1,0 +1,1 @@
+{"id":"766f43623dbf39ef874175cd9a6b6114","fullName":"test/allure1.test.ts#allure1 reader steps should ignore an invalid steps collection","name":"should ignore an invalid steps collection","status":"passed","testResultsByEnv":{"windows-latest":"40c0f530e78b63d635a4976ae6503e55","ubuntu-latest":"caefb88b245c4a21f41f1cf65a22cec1","macos-latest":"a8aaf22bd1e65f85f4f5b460f0f0e456"}}

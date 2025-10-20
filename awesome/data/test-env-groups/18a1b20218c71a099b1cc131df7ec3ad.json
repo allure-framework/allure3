@@ -1,0 +1,1 @@
+{"id":"18a1b20218c71a099b1cc131df7ec3ad","fullName":"test/service.test.ts#AllureServiceClient profile should return the user profile","name":"should return the user profile","status":"passed","testResultsByEnv":{"windows-latest":"1d05bf9d46df125c88b02976e0d48f6b","ubuntu-latest":"3efa53689ae0c965ed1c7265d9a2aa6b","macos-latest":"e311ba12ac730f75a211444999332964"}}

@@ -1,0 +1,1 @@
+{"id":"1d2c30fb547191472b9157d3d1005a42","fullName":"test/report.test.ts#report should call plugins in specified order on done()","name":"should call plugins in specified order on done()","status":"passed","testResultsByEnv":{"windows-latest":"c00e169008078d226e5871b67d779dcf","ubuntu-latest":"359dabaa6a9a5bf0df3d0a4b8ac3450f","macos-latest":"f2f74565fb99b3c011cc5d1af1b35710"}}

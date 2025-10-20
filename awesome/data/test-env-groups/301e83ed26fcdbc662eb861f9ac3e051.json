@@ -1,0 +1,1 @@
+{"id":"301e83ed26fcdbc662eb861f9ac3e051","fullName":"test/allure2.test.ts#allure2 reader should parse environment.properties","name":"should parse environment.properties","status":"passed","testResultsByEnv":{"windows-latest":"33caf52d5fed5ff04f332450060e5f73","ubuntu-latest":"2f0eb0bd5e407d0fb2fc376c2fb056d4","macos-latest":"6e315663aab9b7f56b77c630b0775492"}}

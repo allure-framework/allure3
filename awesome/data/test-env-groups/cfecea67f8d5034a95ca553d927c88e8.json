@@ -1,0 +1,1 @@
+{"id":"cfecea67f8d5034a95ca553d927c88e8","fullName":"test/allure1.test.ts#allure1 reader parameters should handle a missing name","name":"should handle a missing name","status":"passed","testResultsByEnv":{"windows-latest":"8eebfc540becf5abc099efbb9c830726","ubuntu-latest":"b24a0253424d164fa507419dcce7b4b6","macos-latest":"dced560a4fdc3a4485c165abcc326580"}}

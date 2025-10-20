@@ -1,0 +1,1 @@
+{"id":"066fad92a6af2602ca7b06324b827260","fullName":"test/allure2.test.ts#allure2 reader should parse status case insensitive","name":"should parse status case insensitive","status":"passed","testResultsByEnv":{"windows-latest":"a3e75cafbdac6f45089cfecd246e895d","ubuntu-latest":"64bfae40084e665137dc0e7b374ab834","macos-latest":"d786ff478970de5de890ff57973a667e"}}

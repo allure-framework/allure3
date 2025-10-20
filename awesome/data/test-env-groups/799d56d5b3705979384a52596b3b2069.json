@@ -1,0 +1,1 @@
+{"id":"799d56d5b3705979384a52596b3b2069","fullName":"test/config.test.ts#findConfig should accept absolute path to config","name":"should accept absolute path to config","status":"passed","testResultsByEnv":{"windows-latest":"992f055d10e6e85c281d20bc983eb0cc","ubuntu-latest":"db0d15573eff5c3662b19f39138ad3f5","macos-latest":"501deaa0612cb8ff0593c2da1709d6f5"}}

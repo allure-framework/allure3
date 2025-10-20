@@ -1,0 +1,1 @@
+{"id":"5766f2e501d8d786aa6f75c1f2e4a676","fullName":"allure-awesome/test/testResult.test.ts:152:5","name":"broken test contains error message and stack","status":"passed","testResultsByEnv":{"windows-latest":"c7a31ade4cb36c88cdd56a276d7d475e","ubuntu-latest":"67b06ed4977a0328c90ab34c271794aa","macos-latest":"856d5a5b33385ce8b890e7d98cc564bd"}}

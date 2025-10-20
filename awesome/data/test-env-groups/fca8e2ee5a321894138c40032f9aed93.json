@@ -1,0 +1,1 @@
+{"id":"fca8e2ee5a321894138c40032f9aed93","fullName":"test/detect.test.ts#detectContentType should detect sample.tiff as image/tiff","name":"should detect sample.tiff as image/tiff","status":"passed","testResultsByEnv":{"windows-latest":"489fe6ad01b63e3655470a72e657a228","ubuntu-latest":"723774a5ae108296388c7ac5fe5ef30f","macos-latest":"6b4c1430f47e1a5af62b52b53c8c44d2"}}

@@ -1,0 +1,1 @@
+{"id":"94115b3059d6d65d0a50b3ccc763c6f3","fullName":"test/utils.test.ts#utils printTest prints error trace if `withTrace` is true","name":"prints error trace if `withTrace` is true","status":"passed","testResultsByEnv":{"windows-latest":"063ad330264780a8ae655d1c834431e5","ubuntu-latest":"06981aefb821c7f1feddc5a5eb7130b5","macos-latest":"636095a2b44fc9091117ad81332fc953"}}

@@ -1,0 +1,1 @@
+{"id":"7703aebf94c4b1e9c74cb1366a1fa033","fullName":"test/allure1.test.ts#allure1 reader should parse root element without namespace","name":"should parse root element without namespace","status":"passed","testResultsByEnv":{"windows-latest":"73b01a776e149fb85fae51c45b6ed96e","ubuntu-latest":"48aded2f933ba3797f78a3b1bb5155e4","macos-latest":"f19ec72fd5da678ff44434dc88cb9e75"}}

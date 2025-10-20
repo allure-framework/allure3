@@ -1,0 +1,1 @@
+{"id":"f3b6075131bc98870c0080c570d5907d","fullName":"test/store/store.test.ts#updateMapWithRecord should handle empty record and map","name":"should handle empty record and map","status":"passed","testResultsByEnv":{"windows-latest":"4ff322856c8dbd10a592fa8d02961d05","ubuntu-latest":"9cd2085f6922e4320ab6222de5a024dd","macos-latest":"18a67c05503fc6ec2c8f59fa21eb6a37"}}

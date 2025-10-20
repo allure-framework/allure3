@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test-suite xmlns="urn:model.allure.qatools.yandex.ru">
+    <test-cases>
+        <test-case>
+            <steps>
+                <step>
+                    <attachments>
+                        <attachment title="foo" source="bar">
+                            <type>
+                                <foo/>
+                            </type>
+                        </attachment>
+                    </attachments>
+                </step>
+            </steps>
+        </test-case>
+    </test-cases>
+</test-suite>

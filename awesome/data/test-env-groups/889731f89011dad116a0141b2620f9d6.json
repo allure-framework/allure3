@@ -1,0 +1,1 @@
+{"id":"889731f89011dad116a0141b2620f9d6","fullName":"test/utils.test.ts#extension should return original extension if any","name":"should return original extension if any","status":"passed","testResultsByEnv":{"windows-latest":"c406f87e1c3807e4b514120846f39c80","ubuntu-latest":"c4f0cdc768acadefff5c137900fae5ee","macos-latest":"8d3f2c6f1d83143b757ed59f65f1cfb3"}}

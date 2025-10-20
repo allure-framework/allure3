@@ -1,0 +1,1 @@
+{"id":"ea06b278f4ea53927be675727f32b2be","fullName":"test/xcresult.test.ts#A MAC machine named test should use the original function name in fullName","name":"should use the original function name in fullName","status":"passed","testResultsByEnv":{"macos-latest":"dd1f14825603230a3ea8156d30f0afd2"}}

@@ -1,0 +1,1 @@
+{"id":"d8b932d7cae3fc338d23e1047c1ebffa","fullName":"test/allure1.test.ts#allure1 reader statuses should treat a missing status as unknown","name":"should treat a missing status as unknown","status":"passed","testResultsByEnv":{"windows-latest":"f972c8d723961ec6bdad180a98696de8","ubuntu-latest":"53447220c7cc32b216cc1252c3128f19","macos-latest":"abb157ab06bd096504b75f10e0969220"}}

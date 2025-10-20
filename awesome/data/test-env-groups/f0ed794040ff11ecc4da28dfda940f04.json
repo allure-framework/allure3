@@ -1,0 +1,1 @@
+{"id":"f0ed794040ff11ecc4da28dfda940f04","fullName":"test/junitxml.test.ts#junit xml reader names should parse a testcase name","name":"should parse a testcase name","status":"passed","testResultsByEnv":{"windows-latest":"d93c1a4e299817e4b66c90069cef4776","ubuntu-latest":"139a9709c612bfea8f839f18d4f0c487","macos-latest":"ec78450ee67484f2960a698614a5d3a5"}}

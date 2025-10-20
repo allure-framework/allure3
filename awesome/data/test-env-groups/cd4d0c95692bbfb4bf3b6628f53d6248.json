@@ -1,0 +1,1 @@
+{"id":"cd4d0c95692bbfb4bf3b6628f53d6248","fullName":"test/toolRunner.test.ts#invokeJsonCliTool should collect all output","name":"should collect all output","status":"passed","testResultsByEnv":{"windows-latest":"10987586f865c050c858a83f4097146c","ubuntu-latest":"80e748dfac132bcc817f3bfeb6495d08","macos-latest":"c085a5773b929b15a89edbf90485db8b"}}

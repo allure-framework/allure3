@@ -1,0 +1,1 @@
+{"id":"663ecf4e548fa14bea81db588ea4082d","fullName":"test/junitxml.test.ts#junit xml reader attachments stderr should parse system-err","name":"should parse system-err","status":"passed","testResultsByEnv":{"windows-latest":"d8475d71a1d2afdd45f22a3474fcdd5f","ubuntu-latest":"f5232e79763159c9ba6ebc46da5eae5a","macos-latest":"929633c1d867535b6a9bb6d2fe9d3006"}}

@@ -1,0 +1,1 @@
+{"id":"a18965001cc6c782ab4d47eb25dab052","fullName":"test/allure1.test.ts#allure1 reader parameters should treat a missing kind as argument","name":"should treat a missing kind as argument","status":"passed","testResultsByEnv":{"windows-latest":"10ec2998c7ca11116d158eeb6066190b","ubuntu-latest":"ca26be3c5dbf112e52a0eee919c499a0","macos-latest":"b0b3650050b088d5d27eae6e6e081a93"}}

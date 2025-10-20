@@ -1,0 +1,1 @@
+{"id":"8c8d1ad70ed020d6906948e851706af6","fullName":"test/config.test.ts#defineConfig should return provided config","name":"should return provided config","status":"passed","testResultsByEnv":{"windows-latest":"e58f60ff7903bd3232998c3995455c9a","ubuntu-latest":"348cb8404498643db243f84054b9dab0","macos-latest":"743fc615080bffd92cc44f744a18a04c"}}

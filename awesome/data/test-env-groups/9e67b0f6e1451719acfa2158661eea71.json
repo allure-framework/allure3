@@ -1,0 +1,1 @@
+{"id":"9e67b0f6e1451719acfa2158661eea71","fullName":"test/index.test.ts#plugin prints all tests when filter is not provided","name":"prints all tests when filter is not provided","status":"passed","testResultsByEnv":{"windows-latest":"5e01a44a32198c59d84ef4dc00b97f85","ubuntu-latest":"327b572cecb073cf8193bd89189d4fe3","macos-latest":"03c98c9d4bce2aff69119abaa957f82d"}}

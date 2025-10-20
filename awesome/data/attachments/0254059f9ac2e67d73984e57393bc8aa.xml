@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test-suite xmlns="urn:model.allure.qatools.yandex.ru" version="1.4.4-SNAPSHOT">
+    <name>suite-name</name>
+    <title>suite-title</title>
+    <labels>
+        <label name="testClass" value="suite-class" />
+        <label name="testMethod" value="suite-method" />
+    </labels>
+    <test-cases>
+        <test-case>
+            <name>test-name</name>
+            <title>test-title</title>
+            <labels>
+                <label name="testClass" value="test-class" />
+            </labels>
+        </test-case>
+    </test-cases>
+</test-suite>

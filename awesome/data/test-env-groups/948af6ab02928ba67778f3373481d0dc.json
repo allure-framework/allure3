@@ -1,0 +1,1 @@
+{"id":"948af6ab02928ba67778f3373481d0dc","fullName":"commons/output.test.ts:51:3","name":"should generate summary page and sub-directories for every report","status":"passed","testResultsByEnv":{"windows-latest":"dc2cda9d2b78fe4a31a446095f9813cf","ubuntu-latest":"e780a906be92a2395724407ce40ece22","macos-latest":"5063fe093e9df067f116b0c13efc0e12"}}

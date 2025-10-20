@@ -1,0 +1,1 @@
+{"id":"e98cbc7f6eb1e75d55a9f3699bd680af","fullName":"test/allure1.test.ts#allure1 reader attachments should ignore a missing source","name":"should ignore a missing source","status":"passed","testResultsByEnv":{"windows-latest":"d296504791ba49c2285754d17b304d0f","ubuntu-latest":"cbf2373141705f525916d8a0ae4690e4","macos-latest":"5fa3df5a52eb4eb1a3a10453df3b6310"}}

@@ -1,0 +1,1 @@
+{"id":"fd6ffe1a1d229cd38aee3750de15f38e","fullName":"test/utils/time.test.ts#formatDuration should show 0h if exact days","name":"should show 0h if exact days","status":"passed","testResultsByEnv":{"windows-latest":"69605068853b1ec3b378c01f9d0a1356","ubuntu-latest":"71fa13aedde65eb51c43a9b020938bb1","macos-latest":"caf67447bdf4b296d1aae6f02c309754"}}

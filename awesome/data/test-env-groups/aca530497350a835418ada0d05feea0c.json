@@ -1,0 +1,1 @@
+{"id":"aca530497350a835418ada0d05feea0c","fullName":"test/cucumberjson.test.ts#cucumberjson reader reference names should handle empty feature uri","name":"should handle empty feature uri","status":"passed","testResultsByEnv":{"windows-latest":"c7b3585daf0ce08b16ac0eb9b3a6f654","ubuntu-latest":"40ea9376c70fcf9ca9349d93ade4a457","macos-latest":"1ba25fc4d5073df7fec01ff94f62fe04"}}

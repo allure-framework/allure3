@@ -1,0 +1,1 @@
+{"id":"b26017fa01a8a96255b324c62bc8eada","fullName":"test/allure1.test.ts#allure1 reader steps statuses should parse a pending step","name":"should parse a pending step","status":"passed","testResultsByEnv":{"windows-latest":"0e839848367b0e5672f06eb90b521746","ubuntu-latest":"bfa01c9db9ff06e13bb692d55a47015a","macos-latest":"72943adbd46f6e30304467b1afca983c"}}

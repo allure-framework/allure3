@@ -1,0 +1,15 @@
+[
+  {
+    "elements": [
+      {
+        "keyword": "Scenario",
+        "type": "scenario",
+        "id": { "foo": "bar" }
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

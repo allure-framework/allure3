@@ -1,0 +1,1 @@
+{"id":"06d0c68880eb70facb84b4a6ae77c945","fullName":"test/allure1.test.ts#allure1 reader steps names should use name if title is missing","name":"should use name if title is missing","status":"passed","testResultsByEnv":{"windows-latest":"8c5cc00613cf76dc31185c7121e4835e","ubuntu-latest":"1f906b6e9ecdcdf6e8132ff4632947ef","macos-latest":"d3feee2004f4644e47ec89a34d058142"}}

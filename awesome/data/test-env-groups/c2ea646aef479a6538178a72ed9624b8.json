@@ -1,0 +1,1 @@
+{"id":"c2ea646aef479a6538178a72ed9624b8","fullName":"test/util/event.test.ts#Events should batch test result events","name":"should batch test result events","status":"passed","testResultsByEnv":{"windows-latest":"4cf7ff195d4352f564aba3abc9222005","ubuntu-latest":"3b5a90513c9d7696cbb34cdce06a16f6","macos-latest":"776431b62131ffef44d3aaf8d0cd0f7d"}}

@@ -1,0 +1,1 @@
+{"id":"db1e27f3d4662ea88939449b70458339","fullName":"test/unit/static.test.ts#serves files without extension as binary ones","name":"serves files without extension as binary ones","status":"passed","testResultsByEnv":{"windows-latest":"b46a54f29050cb2d126bd56b66e8b17d","ubuntu-latest":"74a00a98765288e78e9a02590fdb38a4","macos-latest":"ffce82daf17190f70aa1763b0148e355"}}

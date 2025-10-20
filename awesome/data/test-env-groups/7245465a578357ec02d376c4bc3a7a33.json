@@ -1,0 +1,1 @@
+{"id":"7245465a578357ec02d376c4bc3a7a33","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns gray badge for unknown status","name":"returns gray badge for unknown status","status":"passed","testResultsByEnv":{"windows-latest":"4901d64c2d0d9f42f0bac877e136a8b3","ubuntu-latest":"5bf9de1544451479610f1d709eaea808","macos-latest":"cc2c4003e5def3920983edfa4cd805be"}}

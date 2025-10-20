@@ -1,0 +1,1 @@
+{"id":"5cac046b2424ca1a3bb75748f5ea2f87","fullName":"test/detectors/drone.test.ts#drone jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"windows-latest":"ec2a6d5f94be4c4538ce0939ca75c839","ubuntu-latest":"38ee1a5d30dab0d0d6db1f2ee2a4a55a","macos-latest":"2537089404f22e16b41e8d75a3cbf716"}}
