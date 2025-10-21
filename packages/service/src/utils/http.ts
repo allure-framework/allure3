@@ -1,4 +1,4 @@
-import axios, { AxiosError, isAxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
 import { DEFAULT_HISTORY_SERVICE_URL } from "../model.js";
 import { readAccessToken } from "./token.js";
 
@@ -67,14 +67,14 @@ export const createServiceHttpClient = (
 
         return res.data;
       } catch (err) {
-        const axiosError = isAxiosError(err)
+        const axiosError = isAxiosError(err);
 
         if (!axiosError) {
           throw err;
         }
 
         const { status = 500 } = (err as AxiosError).response ?? {};
-        const errorMessage = err.response?.data?.error || err.response?.data || err.message
+        const errorMessage = err.response?.data?.error || err.response?.data || err.message;
 
         if (status < 500) {
           throw new KnownError(errorMessage, status);

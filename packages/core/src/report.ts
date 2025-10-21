@@ -207,6 +207,7 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    const repoData = await this.#store.repoData();
     await this.#store.readHistory();
 
     if (this.#executionStage === "running") {
@@ -224,6 +225,7 @@ export class AllureReport {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
+        branch: repoData?.branch,
       });
 
       this.reportUrl = url;
@@ -451,6 +453,10 @@ export class AllureReport {
       throw new Error(initRequired);
     }
 
+    const testResults = await this.#store.allTestResults();
+    const testCases = await this.#store.allTestCases();
+    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+
     this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
     this.#executionStage = "done";
@@ -512,6 +518,7 @@ export class AllureReport {
     if (this.#publish) {
       await this.#allureServiceClient?.completeReport({
         reportUuid: this.reportUuid,
+        historyPoint: historyDataPoint,
       });
     }
 
@@ -553,10 +560,6 @@ export class AllureReport {
     }
 
     if (this.#history) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
-
       try {
         await this.#store.appendHistory(historyDataPoint);
       } catch (err) {

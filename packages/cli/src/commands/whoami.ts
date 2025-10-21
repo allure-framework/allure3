@@ -50,7 +50,7 @@ export class WhoamiCommand extends Command {
     try {
       const profile = await serviceClient.profile();
 
-      outputLines.push(`You are logged in as "${profile.email}"`)
+      outputLines.push(`You are logged in as "${profile.email}"`);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
@@ -69,10 +69,10 @@ export class WhoamiCommand extends Command {
 
         outputLines.push(`Current project is "${project.name}" (id: ${project.id})`);
       } catch (err) {
-        outputLines.push(`Configured project can't be resolved (id: ${config.allureService.project})`)
+        outputLines.push(`Configured project can't be resolved (id: ${config.allureService.project})`);
       }
     }
 
-    console.info(green(outputLines.join("\n")))
+    console.info(green(outputLines.join("\n")));
   }
 }

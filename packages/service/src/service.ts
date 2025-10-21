@@ -6,6 +6,8 @@ import open from "open";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 import { decryptExchangeToken, deleteAccessToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
+const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+
 export class AllureServiceClient {
   readonly #client: HttpClient;
   readonly #url: string;
@@ -30,7 +32,7 @@ export class AllureServiceClient {
   async #getClientUrl() {
     const { url } = await this.#client.get<{ url: string }>("/info");
 
-    return url
+    return url;
   }
 
   /**
@@ -103,7 +105,7 @@ export class AllureServiceClient {
    * Returns specific project by UUID
    */
   async project(uuid: string) {
-    return this.#client.get<{ project: {  id: string; name: string  } }>(`/projects/${uuid}`)
+    return this.#client.get<{ project: { id: string; name: string } }>(`/projects/${uuid}`);
   }
 
   /**
@@ -127,42 +129,17 @@ export class AllureServiceClient {
   }
 
   /**
-   * Appends history data point for a specific branch or create a new branch in case it doesn't exist
-   * @param payload
-   */
-  async appendHistory(payload: { history: HistoryDataPoint; branch?: string }) {
-    const { history: historyPoint, branch } = payload;
-
-    if (!this.currentProjectUuid) {
-      throw new Error("Project is not set");
-    }
-
-    return this.#client.post("/history/append", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        projectUuid: this.currentProjectUuid,
-        historyPoint,
-        branch,
-      },
-    });
-  }
-
-  /**
    * Downloads history data for a specific branch
    * @param payload
    */
-  async downloadHistory(payload?: { branch?: string }) {
+  async downloadHistory(branch: string) {
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(`/history/download/${this.currentProjectUuid}`, {
-      params: {
-        ...(payload ?? {}),
-      },
-    });
+    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
+      `/projects/${this.currentProjectUuid}/${branch}/history`,
+    );
 
     return history;
   }
@@ -171,8 +148,8 @@ export class AllureServiceClient {
    * Creates a new report and returns the URL
    * @param payload
    */
-  async createReport(payload: { reportName: string; reportUuid?: string }) {
-    const { reportName, reportUuid } = payload;
+  async createReport(payload: { reportName: string; reportUuid?: string; branch?: string }) {
+    const { reportName, reportUuid, branch } = payload;
 
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
@@ -183,24 +160,28 @@ export class AllureServiceClient {
         projectUuid: this.currentProjectUuid,
         reportName,
         reportUuid,
+        branch,
       },
     });
   }
 
   /**
-   * Marks report as a completed one
+   * Marks report as a completed one and assigns history data point to it
+   * Incompleted reports don't appear in the history
    * Use when all report files have been uploaded
    * @param payload
    */
-  async completeReport(payload: { reportUuid: string }) {
-    const { reportUuid } = payload;
+  async completeReport(payload: { reportUuid: string; historyPoint: HistoryDataPoint }) {
+    const { reportUuid, historyPoint } = payload;
 
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
     return this.#client.post(`/reports/${reportUuid}/complete`, {
-      body: {}
+      body: {
+        historyPoint,
+      },
     });
   }
 
@@ -219,6 +200,10 @@ export class AllureServiceClient {
 
     if (!content) {
       content = await readFile(filepath!);
+    }
+
+    if (content.length > ASSET_MAX_FILE_SIZE) {
+      throw new Error(`Asset size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
     const form = new FormData();
@@ -256,6 +241,10 @@ export class AllureServiceClient {
 
     if (!content) {
       content = await readFile(filepath!);
+    }
+
+    if (content.length > ASSET_MAX_FILE_SIZE) {
+      throw new Error(`Report file size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
     const form = new FormData();

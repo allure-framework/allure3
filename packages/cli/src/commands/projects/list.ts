@@ -45,7 +45,7 @@ export class ProjectsListCommand extends Command {
     try {
       const { projects } = await serviceClient.projects();
 
-      console.log({ projects })
+      console.log({ projects });
 
       if (projects.length === 0) {
         // eslint-disable-next-line no-console

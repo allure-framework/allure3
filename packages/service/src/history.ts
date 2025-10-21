@@ -5,11 +5,9 @@ import { KnownError } from "./utils/http.js";
 export class AllureRemoteHistory implements AllureHistory {
   constructor(readonly allureServiceClient: AllureServiceClient) {}
 
-  async readHistory(branch?: string) {
+  async readHistory(branch: string) {
     try {
-      const res = await this.allureServiceClient.downloadHistory({
-        branch,
-      });
+      const res = await this.allureServiceClient.downloadHistory(branch);
 
       return res;
     } catch (err) {
@@ -21,10 +19,7 @@ export class AllureRemoteHistory implements AllureHistory {
     }
   }
 
-  async appendHistory(data: HistoryDataPoint, branch?: string) {
-    await this.allureServiceClient.appendHistory({
-      history: data,
-      branch,
-    });
+  async appendHistory() {
+    // keep the method empty because we upload new remote history points when creating remote report
   }
 }
