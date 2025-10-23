@@ -30,9 +30,11 @@
     "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-awesome": "workspace:*",
+    "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
     "handlebars": "^4.7.8"
   },

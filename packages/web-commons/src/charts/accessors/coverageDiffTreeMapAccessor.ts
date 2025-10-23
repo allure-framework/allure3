@@ -1,8 +1,7 @@
-import type { HistoryTestResult, TestResult, TreeGroup, TreeLeaf, TreeMapNode } from "@allurereport/core-api";
-import type { TreeMapDataAccessor } from "../../charts.js";
-import { isChildrenLeavesOnly } from "../../charts.js";
-import { md5 } from "../../utils/misc.js";
-import { createTreeByLabels } from "../../utils/tree.js";
+import type { TreeMapDataAccessor, TreeMapNode } from "@allurereport/charts-api";
+import type { HistoryTestResult, TestResult, TreeGroup, TreeLeaf } from "@allurereport/core-api";
+import { createTreeByLabels, md5 } from "@allurereport/plugin-api";
+import { isChildrenLeavesOnly } from "../chart-utils.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";
 

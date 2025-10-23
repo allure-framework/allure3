@@ -17,6 +17,11 @@
     "minor": "Mineur",
     "trivial": "Trivial"
   },
+  "environments": {
+    "environment_one": "Environnement",
+    "environment_other": "Environnements",
+    "all": "Tous"
+  },
   "charts": {
     "trend": {
       "title": "Graphique de tendance: {{type}}",

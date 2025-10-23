@@ -1,4 +1,4 @@
-import { ChartMode } from "@allurereport/core-api";
+import { ChartMode } from "@allurereport/charts-api";
 import type { CSSProperties } from "preact/compat";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import type { Serie, Slice } from "@/components/Charts/TrendChart";

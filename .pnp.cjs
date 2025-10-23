@@ -15,6 +15,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:."\
     },\
     {\
+      "name": "@allurereport/charts-api",\
+      "reference": "workspace:packages/charts-api"\
+    },\
+    {\
       "name": "@allurereport/ci",\
       "reference": "workspace:packages/ci"\
     },\
@@ -142,6 +146,7 @@ const RAW_RUNTIME_STATE =
   "enableTopLevelFallback": true,\
   "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
   "fallbackExclusionList": [\
+    ["@allurereport/charts-api", ["workspace:packages/charts-api"]],\
     ["@allurereport/ci", ["workspace:packages/ci"]],\
     ["@allurereport/core", ["workspace:packages/core"]],\
     ["@allurereport/core-api", ["workspace:packages/core-api"]],\
@@ -215,6 +220,38 @@ const RAW_RUNTIME_STATE =
           ["@adobe/css-tools", "npm:4.4.1"]\
         ],\
         "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@allurereport/charts-api", [\
+      ["workspace:packages/charts-api", {\
+        "packageLocation": "./packages/charts-api/",\
+        "packageDependencies": [\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
+          ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
+          ["@types/d3-shape", "npm:3.1.6"],\
+          ["@types/eslint", "npm:8.56.12"],\
+          ["@types/mime-types", "npm:2.1.4"],\
+          ["@types/node", "npm:20.17.9"],\
+          ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-vitest", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:3.3.3"],\
+          ["d3-shape", "npm:3.2.0"],\
+          ["eslint", "npm:8.57.1"],\
+          ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
+          ["eslint-plugin-import", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.31.0"],\
+          ["eslint-plugin-jsdoc", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:50.6.0"],\
+          ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
+          ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
+          ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["rimraf", "npm:6.0.1"],\
+          ["ts-node", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2"],\
+          ["tslib", "npm:2.7.0"],\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+        ],\
+        "linkType": "SOFT"\
       }]\
     ]],\
     ["@allurereport/ci", [\
@@ -349,7 +386,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["rimraf", "npm:6.0.1"],\
-          ["ts-node", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2"],\
+          ["ts-node", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
         ],\
@@ -486,9 +523,11 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-awesome/",\
         "packageDependencies": [\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
+          ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -522,6 +561,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
           ["@allurereport/web-classic", "workspace:packages/web-classic"],\
+          ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -579,8 +619,10 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-dashboard/",\
         "packageDependencies": [\
           ["@allurereport/plugin-dashboard", "workspace:packages/plugin-dashboard"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
+          ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-dashboard", "workspace:packages/web-dashboard"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -838,7 +880,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
           ["mime-types", "npm:2.1.35"],\
           ["rimraf", "npm:6.0.1"],\
-          ["ts-node", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2"],\
+          ["ts-node", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
@@ -1027,6 +1069,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-awesome/",\
         "packageDependencies": [\
           ["@allurereport/web-awesome", "workspace:packages/web-awesome"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
@@ -1113,6 +1156,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-classic/",\
         "packageDependencies": [\
           ["@allurereport/web-classic", "workspace:packages/web-classic"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
@@ -1192,10 +1236,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-commons/",\
         "packageDependencies": [\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
+          ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
+          ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
@@ -1205,6 +1252,7 @@ const RAW_RUNTIME_STATE =
           ["ansi-to-html", "npm:0.7.2"],\
           ["d3-interpolate", "npm:3.0.1"],\
           ["d3-scale", "npm:4.0.2"],\
+          ["d3-shape", "npm:3.2.0"],\
           ["dompurify", "npm:3.2.6"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
@@ -1226,6 +1274,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-components/",\
         "packageDependencies": [\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@babel/core", "npm:7.27.4"],\
@@ -1332,7 +1381,7 @@ const RAW_RUNTIME_STATE =
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.4.7"],\
           ["style-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:4.0.0"],\
           ["svg-sprite-loader", "npm:6.0.11"],\
-          ["ts-node", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2"],\
+          ["ts-node", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["typescript-eslint", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.0"],\
@@ -1346,6 +1395,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/web-dashboard/",\
         "packageDependencies": [\
           ["@allurereport/web-dashboard", "workspace:packages/web-dashboard"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/web-commons", "workspace:packages/web-commons"],\
           ["@allurereport/web-components", "workspace:packages/web-components"],\
@@ -14016,6 +14066,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/cli/",\
         "packageDependencies": [\
           ["allure", "workspace:packages/cli"],\
+          ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core", "workspace:packages/core"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/directory-watcher", "workspace:packages/directory-watcher"],\
@@ -14235,6 +14286,24 @@ const RAW_RUNTIME_STATE =
           ["@vitest/runner", "npm:3.2.4"],\
           ["allure-js-commons", "virtual:bfa60f5d962d0ab969c24f3e03d4b9c220fa2285bf28252676d3281e50d9630b3c2b925289af83850543d61ea1d93301ff8ba5093cfe5e532e6d97cc0dcc5177#npm:3.3.2"],\
           ["vitest", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:3.2.4"]\
+        ],\
+        "packagePeers": [\
+          "@types/vitest",\
+          "@types/vitest__runner",\
+          "@vitest/runner",\
+          "vitest"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:3.3.3", {\
+        "packageLocation": "./.yarn/__virtual__/allure-vitest-virtual-85d7093ae9/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/",\
+        "packageDependencies": [\
+          ["allure-vitest", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:3.3.3"],\
+          ["@types/vitest", null],\
+          ["@types/vitest__runner", null],\
+          ["@vitest/runner", "npm:2.1.9"],\
+          ["allure-js-commons", "virtual:3a0053d30ea23e2bc05be9bf4b5d77dfc3e77528707765ce5095eda8f30c0d1e3c53e60056d14a6e7d073538fee14669af72a6f71251afeeca5e301c569a31e8#npm:3.3.3"],\
+          ["vitest", null]\
         ],\
         "packagePeers": [\
           "@types/vitest",\
@@ -28997,10 +29066,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2", {\
-        "packageLocation": "./.yarn/__virtual__/ts-node-virtual-73c600b9ac/0/cache/ts-node-npm-10.9.2-3f3890b9ac-a91a15b3c9.zip/node_modules/ts-node/",\
+      ["virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2", {\
+        "packageLocation": "./.yarn/__virtual__/ts-node-virtual-31b07f1aea/0/cache/ts-node-npm-10.9.2-3f3890b9ac-a91a15b3c9.zip/node_modules/ts-node/",\
         "packageDependencies": [\
-          ["ts-node", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.9.2"],\
+          ["ts-node", "virtual:d71d395a6b4618616c1e410204d96147c44309f2d66d69f577f1d29db106b35ae5b19306da1434e1f6cf513649801968f5e293a0f1a792bfe3b647a820f656f8#npm:10.9.2"],\
           ["@cspotcode/source-map-support", "npm:0.8.1"],\
           ["@swc/core", null],\
           ["@swc/wasm", null],\

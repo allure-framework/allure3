@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "g": "yarn allure generate --config=./allurerc.mjs",
+    "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
     "t": "yarn allure run --stage=foo -- vitest run",
     "test": "vitest run"

@@ -10,11 +10,11 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
+import { getPieChartValues } from "@allurereport/web-commons";
 import {
   type AllureStore,
   type ReportFiles,
@@ -347,7 +347,6 @@ export const generateStaticFiles = async (
       // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
-      return;
     }
 
     throw err;

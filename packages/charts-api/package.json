@@ -1,0 +1,57 @@
+{
+  "name": "@allurereport/charts-api",
+  "version": "3.0.0-beta.20",
+  "description": "Allure Charts API",
+  "keywords": [
+    "allure",
+    "testing",
+    "charts"
+  ],
+  "repository": "https://github.com/allure-framework/allure3",
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
+    "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
+    "test": "rimraf ./out && vitest run"
+  },
+  "dependencies": {
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "d3-shape": "^3.2.0"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "^2.6.1",
+    "@types/d3-shape": "^3.1.6",
+    "@types/eslint": "^8.56.11",
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^20.17.9",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/runner": "^2.1.9",
+    "allure-vitest": "^3.3.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^50.0.0",
+    "eslint-plugin-n": "^17.10.1",
+    "eslint-plugin-no-null": "^1.0.2",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.3"
+  }
+}

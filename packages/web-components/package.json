@@ -40,6 +40,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@floating-ui/dom": "^1.6.13",
     "@nivo/bar": "^0.88.0",

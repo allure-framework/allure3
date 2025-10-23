@@ -17,6 +17,11 @@
     "minor": "Mindre",
     "trivial": "Trivial"
   },
+  "environments": {
+    "environment_one": "Miljö",
+    "environment_other": "Miljöer",
+    "all": "Alla"
+  },
   "charts": {
     "trend": {
       "title": "Trenddiagram: {{type}}",

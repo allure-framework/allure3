@@ -17,6 +17,11 @@
     "minor": "경미",
     "trivial": "사소"
   },
+  "environments": {
+    "environment_one": "환경",
+    "environment_other": "환경",
+    "all": "모두"
+  },
   "charts": {
     "trend": {
       "title": "트렌드 차트: {{type}}",

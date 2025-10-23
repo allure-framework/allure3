@@ -1,14 +1,13 @@
-import type {
-  BarGroup,
-  HistoryDataPoint,
-  HistoryTestResult,
-  NewKey,
-  RemovedKey,
-  TestResult,
-  TestStatus,
-} from "@allurereport/core-api";
-import { BarGroupMode, capitalize } from "@allurereport/core-api";
-import { type BarDataAccessor, createEmptyStats } from "../../charts.js";
+import {
+  type BarDataAccessor,
+  type BarGroup,
+  BarGroupMode,
+  type NewKey,
+  type RemovedKey,
+} from "@allurereport/charts-api";
+import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import { capitalize } from "@allurereport/core-api";
+import { createEmptyStats } from "../chart-utils.js";
 
 // Types for new statuses trend chart data
 export type StatusChangeTrendKeys = NewKey<TestStatus> | RemovedKey<TestStatus>;

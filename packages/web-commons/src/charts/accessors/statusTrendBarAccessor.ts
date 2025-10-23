@@ -1,6 +1,8 @@
-import type { BarGroup, HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
-import { BarGroupMode, htrsByTr } from "@allurereport/core-api";
-import { type BarDataAccessor, createEmptyStats } from "../../charts.js";
+import type { BarDataAccessor, BarGroup } from "@allurereport/charts-api";
+import { BarGroupMode } from "@allurereport/charts-api";
+import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
+import { htrsByTr } from "@allurereport/core-api";
+import { createEmptyStats } from "../chart-utils.js";
 
 type TrendKey = Extract<TestStatus, "passed" | "failed" | "broken">;
 type TrendStats = Record<TrendKey, number>;

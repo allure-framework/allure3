@@ -1,7 +1,8 @@
+import type { BasePieSlice, PieChartValues } from "@allurereport/charts-api";
+import type { Statistic } from "@allurereport/core-api";
+import { statusesList } from "@allurereport/core-api";
 import { arc, pie } from "d3-shape";
 import type { PieArcDatum } from "d3-shape";
-import { statusesList } from "../constants.js";
-import type { BasePieSlice, PieChartValues, Statistic } from "../index.js";
 
 export const getPercentage = (value: number, total: number) => Math.floor((value / total) * 10000) / 100;
 

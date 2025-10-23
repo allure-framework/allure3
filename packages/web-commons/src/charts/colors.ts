@@ -1,4 +1,5 @@
-import type { NewKey, RemovedKey, SeverityLevel, TestStatus } from "@allurereport/core-api";
+import type { NewKey, RemovedKey } from "@allurereport/charts-api";
+import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 
 export const statusColors: Record<TestStatus, string> = {
   failed: "var(--bg-support-capella)",

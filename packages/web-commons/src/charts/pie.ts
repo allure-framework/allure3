@@ -1,6 +1,6 @@
+import type { PieChartData, PieChartOptions } from "@allurereport/charts-api";
 import type { Statistic } from "@allurereport/core-api";
-import { getPieChartValues } from "@allurereport/core-api";
-import type { PieChartData, PieChartOptions } from "../charts.js";
+import { getPieChartValues } from "./d3pie.js";
 
 export const getPieChartData = (stats: Statistic, chartOptions: PieChartOptions): PieChartData => ({
   type: chartOptions.type,

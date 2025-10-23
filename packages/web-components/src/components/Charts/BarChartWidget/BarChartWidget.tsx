@@ -1,4 +1,4 @@
-import { ChartMode } from "@allurereport/core-api";
+import { ChartMode } from "@allurereport/charts-api";
 import type { AxisProps } from "@nivo/axes";
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";

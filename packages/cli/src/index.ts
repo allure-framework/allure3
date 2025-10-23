@@ -70,4 +70,5 @@ cli.runExit(args);
 
 console.log(cwd());
 
-export { defineConfig, defaultChartsConfig } from "@allurereport/plugin-api";
+export { defineConfig } from "@allurereport/plugin-api";
+export { defaultChartsConfig } from "@allurereport/charts-api";

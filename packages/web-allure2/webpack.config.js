@@ -102,6 +102,11 @@ export default (env, argv) => {
         "@": join(__dirname, "src"),
       },
     },
+    externals: {
+      // Some packages use crypto from node:crypto, but webpack doesn't support it
+      // I think this does not end up in a bundle, so it is safe to do this
+      "node:crypto": "crypto",
+    },
   };
 
   if (SINGLE_FILE_MODE) {

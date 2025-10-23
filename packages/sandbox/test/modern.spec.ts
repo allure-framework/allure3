@@ -1,10 +1,13 @@
 import { expect, it } from "vitest";
+import { label } from "allure-js-commons";
 
 it("sample passed test", async () => {
+  await label("env", "foo");
   expect(true).toBe(true);
 });
 
 it("sample failed test", async () => {
+  await label("env", "bar");
   expect(true).toBe(false);
 });
 

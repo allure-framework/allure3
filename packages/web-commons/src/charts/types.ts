@@ -14,7 +14,7 @@ import type {
   TrendPointId,
   TrendSlice,
   TrendSliceId,
-} from "@allurereport/core-api";
+} from "@allurereport/charts-api";
 
 export type TreeMapTooltipAccessor = <T>(node: T) => string[];
 
@@ -83,15 +83,28 @@ export interface ResponseHeatMapChartData {
 export type ChartsResponse<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = Record<
-  ChartId,
-  | ResponseTrendChartData<SeriesType, Metadata>
-  | ResponsePieChartData
-  | ResponseBarChartData
-  | ResponseComingSoonChartData
-  | ResponseTreeMapChartData
-  | ResponseHeatMapChartData
->;
+> = {
+  general: Record<
+    ChartId,
+    | ResponseTrendChartData<SeriesType, Metadata>
+    | ResponsePieChartData
+    | ResponseBarChartData
+    | ResponseComingSoonChartData
+    | ResponseTreeMapChartData
+    | ResponseHeatMapChartData
+  >;
+  byEnv: {
+    [env: string]: Record<
+      ChartId,
+      | ResponseTrendChartData<SeriesType, Metadata>
+      | ResponsePieChartData
+      | ResponseBarChartData
+      | ResponseComingSoonChartData
+      | ResponseTreeMapChartData
+      | ResponseHeatMapChartData
+    >;
+  };
+};
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
   type: ChartType.Trend;
@@ -145,7 +158,25 @@ export type ChartsData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
 > = Record<ChartId, ChartData<SeriesType, Metadata>>;
+
+export type ChartsDataWithEnvs<
+  SeriesType extends string = string,
+  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
+> = {
+  general: Record<ChartId, ChartData<SeriesType, Metadata>>;
+  byEnv: {
+    [env: string]: Record<ChartId, ChartData<SeriesType, Metadata>>;
+  };
+};
+
 export type UIChartsData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = Record<
   ChartId,
   UIChartData<Metadata>
 >;
+
+export type UIChartsDataWithEnvs<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = {
+  general: UIChartsData<Metadata>;
+  byEnv: {
+    [env: string]: UIChartsData<Metadata>;
+  };
+};

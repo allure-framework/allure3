@@ -1,18 +1,22 @@
-import type { BaseTrendSliceMetadata, HistoryDataPoint, TrendPoint, TrendPointId } from "@allurereport/core-api";
-import { ChartDataType, ChartMode } from "@allurereport/core-api";
 import type {
   AllureChartsStoreData,
+  BaseTrendSliceMetadata,
   GenericTrendChartData,
+  SeverityTrendChartData,
+  StatusTrendChartData,
   TrendCalculationResult,
   TrendChartData,
   TrendChartOptions,
   TrendDataAccessor,
   TrendDataType,
-} from "../charts.js";
-import { DEFAULT_CHART_HISTORY_LIMIT, createEmptySeries, normalizeStatistic } from "../charts.js";
-import type { PluginContext } from "../plugin.js";
+  TrendPoint,
+  TrendPointId,
+} from "@allurereport/charts-api";
+import { ChartDataType, ChartMode, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
+import type { HistoryDataPoint } from "@allurereport/core-api";
 import { severityTrendDataAccessor } from "./accessors/severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./accessors/statusTrendAccessor.js";
+import { createEmptySeries, normalizeStatistic } from "./chart-utils.js";
 
 /**
  * Calculates percentage trend data points and series.
@@ -184,8 +188,8 @@ export const mergeTrendDataGeneric = <T extends TrendDataType, M extends BaseTre
 export const generateTrendChartGeneric = <T extends TrendDataType>(
   options: TrendChartOptions,
   storeData: AllureChartsStoreData,
-  context: PluginContext,
   dataAccessor: TrendDataAccessor<T>,
+  reportName: string,
 ): GenericTrendChartData<T> | undefined => {
   const { limit } = options;
   const historyLimit = limit && limit > 0 ? Math.max(0, limit - 1) : undefined;
@@ -214,7 +218,7 @@ export const generateTrendChartGeneric = <T extends TrendDataType>(
   // Get current report data
   const currentTrendData = getTrendDataGeneric(
     normalizeStatistic(currentData, allValues),
-    context.reportName,
+    reportName,
     historyDataPoints.length + 1, // Always use the full history length for current point order
     allValues,
     options,
@@ -256,14 +260,24 @@ export const generateTrendChartGeneric = <T extends TrendDataType>(
 export const generateTrendChart = (
   options: TrendChartOptions,
   storeData: AllureChartsStoreData,
-  context: PluginContext,
+  reportName: string,
 ): TrendChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
   if (dataType === ChartDataType.Status) {
-    return generateTrendChartGeneric(newOptions, storeData, context, statusTrendDataAccessor);
+    return generateTrendChartGeneric(
+      newOptions,
+      storeData,
+      statusTrendDataAccessor,
+      reportName,
+    ) as StatusTrendChartData;
   } else if (dataType === ChartDataType.Severity) {
-    return generateTrendChartGeneric(newOptions, storeData, context, severityTrendDataAccessor);
+    return generateTrendChartGeneric(
+      newOptions,
+      storeData,
+      severityTrendDataAccessor,
+      reportName,
+    ) as SeverityTrendChartData;
   }
 };

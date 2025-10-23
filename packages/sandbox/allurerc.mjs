@@ -1,4 +1,4 @@
-import { defineConfig, defaultChartsConfig } from "allure";
+import { defaultChartsConfig, defineConfig } from "allure";
 
 const chartLayout = [
   {
@@ -94,6 +94,25 @@ export default defineConfig({
       options: {
         groupBy: "none",
       },
+    },
+  },
+  variables: {
+    env_variable: "unknown",
+  },
+  environments: {
+    foo: {
+      variables: {
+        env_variable: "foo",
+        env_specific_variable: "foo",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+    },
+    bar: {
+      variables: {
+        env_variable: "bar",
+        env_specific_variable: "bar",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
   },
   // allureService: {

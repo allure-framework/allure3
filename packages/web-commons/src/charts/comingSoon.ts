@@ -1,5 +1,5 @@
-import { ChartType } from "@allurereport/core-api";
-import type { ComingSoonChartData, ComingSoonChartOptions } from "../charts.js";
+import type { ComingSoonChartData, ComingSoonChartOptions } from "@allurereport/charts-api";
+import { ChartType } from "@allurereport/charts-api";
 
 export const generateComingSoonChart = (options: ComingSoonChartOptions): ComingSoonChartData => {
   return {

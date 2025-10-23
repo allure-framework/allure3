@@ -1,6 +1,12 @@
-import type { TreeData, TreeGroup, TreeLeaf, TreeMapNode, WithChildren } from "@allurereport/core-api";
-import { TreeMapChartType } from "@allurereport/core-api";
-import type { AllureChartsStoreData, TreeMapChartData, TreeMapChartOptions, TreeMapDataAccessor } from "../charts.js";
+import type {
+  AllureChartsStoreData,
+  TreeMapChartData,
+  TreeMapChartOptions,
+  TreeMapDataAccessor,
+  TreeMapNode,
+} from "@allurereport/charts-api";
+import { TreeMapChartType } from "@allurereport/charts-api";
+import type { TreeData, TreeGroup, TreeLeaf, WithChildren } from "@allurereport/core-api";
 import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAccessor.js";
 import { successRateDistributionTreeMapAccessor } from "./accessors/successRateDistributionTreeMapAccessor.js";
 
