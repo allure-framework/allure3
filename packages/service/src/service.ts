@@ -226,7 +226,7 @@ export class AllureServiceClient {
    */
   async addReportFile(payload: {
     reportUuid: string;
-    pluginId: string;
+    pluginId?: string;
     filename: string;
     file?: Buffer;
     filepath?: string;
@@ -249,7 +249,7 @@ export class AllureServiceClient {
 
     const form = new FormData();
 
-    form.set("filename", joinPosix(pluginId, filename));
+    form.set("filename", pluginId ? joinPosix(pluginId, filename) : filename);
     form.set("file", content);
 
     await this.#client.post(`/reports/${reportUuid}/upload`, {

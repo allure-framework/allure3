@@ -515,6 +515,20 @@ export class AllureReport {
       await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
+    if (summaries.length > 1) {
+      const summaryPath = await generateSummary(this.#output, summaries);
+      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean)
+
+      // publish summary when there are multiple published plugins
+      if (this.#publish && summaryPath && publishedReports.length > 1) {
+        await this.#allureServiceClient?.addReportFile({
+          reportUuid: this.reportUuid,
+          filename: "index.html",
+          filepath: summaryPath,
+        });
+      }
+    }
+
     if (this.#publish) {
       await this.#allureServiceClient?.completeReport({
         reportUuid: this.reportUuid,
@@ -572,10 +586,6 @@ export class AllureReport {
           throw err;
         }
       }
-    }
-
-    if (summaries.length > 1) {
-      await generateSummary(this.#output, summaries);
     }
 
     if (remoteHrefs.length > 0) {
