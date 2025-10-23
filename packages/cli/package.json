@@ -31,6 +31,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",

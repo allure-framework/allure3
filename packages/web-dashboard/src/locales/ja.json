@@ -17,6 +17,11 @@
     "minor": "小規模",
     "trivial": "些細"
   },
+  "environments": {
+    "environment_one": "環境",
+    "environment_other": "環境",
+    "all": "すべて"
+  },
   "charts": {
     "trend": {
       "title": "トレンドチャート: {{type}}",

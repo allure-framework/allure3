@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType, capitalize } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/charts-api";
+import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
@@ -16,6 +17,7 @@ import {
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
+import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
@@ -114,7 +116,9 @@ export const Charts = () => {
       source={chartsStore}
       renderLoader={() => <PageLoader />}
       renderData={(data) => {
-        const charts = Object.entries(data).map(([chartId, value]) => {
+        const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+
+        const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
           const chartWidget = getChartWidgetByType(value, { t, empty });
 
           return (

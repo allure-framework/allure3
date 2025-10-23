@@ -1,8 +1,13 @@
-import { type ChartsResponse, type UIChartsData, createCharts, fetchReportJsonData } from "@allurereport/web-commons";
+import {
+  type ChartsResponse,
+  type UIChartsDataWithEnvs,
+  createChartsWithEnvs,
+  fetchReportJsonData,
+} from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
-export const dashboardStore = signal<StoreSignalState<UIChartsData>>({
+export const dashboardStore = signal<StoreSignalState<UIChartsDataWithEnvs>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -19,7 +24,7 @@ export const fetchDashboardData = async () => {
     const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json", { bustCache: true });
 
     dashboardStore.value = {
-      data: createCharts(res),
+      data: createChartsWithEnvs(res),
       error: undefined,
       loading: false,
     };

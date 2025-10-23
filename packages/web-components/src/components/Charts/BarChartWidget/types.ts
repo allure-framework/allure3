@@ -1,4 +1,4 @@
-import type { BarGroup, ChartMode } from "@allurereport/core-api";
+import type { BarGroup, ChartMode } from "@allurereport/charts-api";
 import type { CSSProperties } from "preact/compat";
 
 export interface BarChartWidgetProps {

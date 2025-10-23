@@ -6,7 +6,7 @@ import {
   type PluginSummary,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
-import { generateAllCharts, generateStaticFiles } from "./generators.js";
+import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
@@ -17,6 +17,7 @@ export class DashboardPlugin implements Plugin {
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     await generateAllCharts(this.#writer!, store, this.options, context);
+    await generateEnvirontmentsList(this.#writer!, store);
 
     const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles() : [];
 

@@ -8,9 +8,9 @@ import {
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
-import { generateAllCharts } from "./charts.js";
 import { filterEnv } from "./environments.js";
 import {
+  generateAllCharts,
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateEnvirontmentsList,

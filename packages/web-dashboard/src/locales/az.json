@@ -17,6 +17,11 @@
     "minor": "Kiçik",
     "trivial": "Əhəmiyyətsiz"
   },
+  "environments": {
+    "environment_one": "Mühit",
+    "environment_other": "Mühitlər",
+    "all": "Hamısı"
+  },
   "charts": {
     "trend": {
       "title": "Trend qrafiki: {{type}}",

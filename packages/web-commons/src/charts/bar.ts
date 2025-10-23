@@ -1,10 +1,15 @@
-import type { BarGroupValues } from "@allurereport/core-api";
-import { BarChartType, ChartMode } from "@allurereport/core-api";
-import type { AllureChartsStoreData, BarChartData, BarChartOptions, BarDataAccessor } from "../charts.js";
-import { DEFAULT_CHART_HISTORY_LIMIT, limitHistoryDataPoints } from "../charts.js";
+import type {
+  AllureChartsStoreData,
+  BarChartData,
+  BarChartOptions,
+  BarDataAccessor,
+  BarGroupValues,
+} from "@allurereport/charts-api";
+import { BarChartType, ChartMode, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBarAccessor.js";
 import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAccessor.js";
 import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
+import { limitHistoryDataPoints } from "./chart-utils.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
   options: BarChartOptions,

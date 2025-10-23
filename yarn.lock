@@ -12,6 +12,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@allurereport/charts-api@workspace:*, @allurereport/charts-api@workspace:packages/charts-api":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/charts-api@workspace:packages/charts-api"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@stylistic/eslint-plugin": "npm:^2.6.1"
+    "@types/d3-shape": "npm:^3.1.6"
+    "@types/eslint": "npm:^8.56.11"
+    "@types/mime-types": "npm:^2.1.4"
+    "@types/node": "npm:^20.17.9"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitest/runner": "npm:^2.1.9"
+    allure-vitest: "npm:^3.3.3"
+    d3-shape: "npm:^3.2.0"
+    eslint: "npm:^8.57.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-import: "npm:^2.29.1"
+    eslint-plugin-jsdoc: "npm:^50.0.0"
+    eslint-plugin-n: "npm:^17.10.1"
+    eslint-plugin-no-null: "npm:^1.0.2"
+    eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    rimraf: "npm:^6.0.1"
+    ts-node: "npm:^10.9.2"
+    tslib: "npm:^2.7.0"
+    typescript: "npm:^5.6.3"
+  languageName: unknown
+  linkType: soft
+
 "@allurereport/ci@workspace:*, @allurereport/ci@workspace:packages/ci":
   version: 0.0.0-use.local
   resolution: "@allurereport/ci@workspace:packages/ci"
@@ -269,9 +299,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-awesome@workspace:packages/plugin-awesome"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
@@ -303,6 +335,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-awesome": "workspace:*"
     "@allurereport/web-classic": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
@@ -356,8 +389,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-dashboard@workspace:packages/plugin-dashboard"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
+    "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-dashboard": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
@@ -778,6 +813,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-awesome@workspace:packages/web-awesome"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
@@ -862,6 +898,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-classic@workspace:packages/web-classic"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
@@ -939,10 +976,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-commons@workspace:packages/web-commons"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
+    "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
@@ -952,6 +992,7 @@ __metadata:
     ansi-to-html: "npm:^0.7.2"
     d3-interpolate: "npm:^3.0.1"
     d3-scale: "npm:^4.0.2"
+    d3-shape: "npm:^3.2.0"
     dompurify: "npm:^3.2.6"
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -971,6 +1012,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-components@workspace:packages/web-components"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@babel/core": "npm:^7.27.4"
@@ -1083,6 +1125,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/web-dashboard@workspace:packages/web-dashboard"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/web-commons": "workspace:*"
     "@allurereport/web-components": "workspace:*"
@@ -8505,6 +8548,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "allure@workspace:packages/cli"
   dependencies:
+    "@allurereport/charts-api": "workspace:*"
     "@allurereport/core": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/directory-watcher": "workspace:*"

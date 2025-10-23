@@ -1,4 +1,4 @@
-import { defineConfig, defaultChartsConfig } from "allure";
+import { defaultChartsConfig, defineConfig } from "allure";
 import { env } from "node:process";
 
 const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN } = env;
@@ -30,67 +30,85 @@ const config = {
         layout: [
           {
             type: "pie",
-            title: "Current status"
+            title: "Current status",
           },
           {
             type: "trend",
             dataType: "status",
-            title: "Status dynamics"
+            title: "Status dynamics",
           },
           {
             type: "bar",
             dataType: "statusBySeverity",
-            title: "Test result severities"
+            title: "Test result severities",
           },
           {
             type: "bar",
             dataType: "statusTrend",
-            title: "Status change dynamics"
+            title: "Status change dynamics",
           },
           {
             type: "bar",
             dataType: "statusChangeTrend",
-            title: "Test base growth dynamics"
+            title: "Test base growth dynamics",
           },
           {
             type: "treemap",
             dataType: "coverageDiff",
-            title: "Coverage diff map"
+            title: "Coverage diff map",
           },
           {
             type: "treemap",
             dataType: "successRateDistribution",
-            title: "Success rate disctribution"
+            title: "Success rate disctribution",
           },
           {
             type: "heatmap",
-            title: "Problems distribution by environment"
+            title: "Problems distribution by environment",
           },
           {
             type: "bar",
-            title: "Stability rate disctribution"
+            title: "Stability rate disctribution",
           },
           {
             type: "bar",
-            title: "Duration by layer histogram"
+            title: "Duration by layer histogram",
           },
           {
             type: "bar", // OR it might be trend
-            title: "Performance dynamics"
+            title: "Performance dynamics",
           },
           {
             type: "bar",
-            title: "FBSU age pyramid"
+            title: "FBSU age pyramid",
           },
           {
             type: "funnel",
-            title: "Testing pyramid"
+            title: "Testing pyramid",
           },
-        ]
+        ],
       },
     },
   },
-  variables: {},
+  variables: {
+    env_variable: "unknown",
+  },
+  environments: {
+    foo: {
+      variables: {
+        env_variable: "foo",
+        env_specific_variable: "foo",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+    },
+    bar: {
+      variables: {
+        env_variable: "bar",
+        env_specific_variable: "bar",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
+    },
+  },
 };
 
 if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN) {

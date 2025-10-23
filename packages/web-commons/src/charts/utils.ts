@@ -1,18 +1,13 @@
-import type { ChartId, SeverityLevel, TestStatus } from "@allurereport/core-api";
-import {
-  BarChartType,
-  ChartDataType,
-  ChartType,
-  TreeMapChartType,
-  severityLevels,
-  statusesList,
-} from "@allurereport/core-api";
+import type { ChartId } from "@allurereport/charts-api";
+import { BarChartType, ChartDataType, ChartType, TreeMapChartType } from "@allurereport/charts-api";
+import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
+import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
 import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
-  ChartsResponse,
+  ChartsDataWithEnvs,
   ResponseBarChartData,
   ResponseHeatMapChartData,
   ResponseTreeMapChartData,
@@ -21,6 +16,7 @@ import type {
   TrendChartItem,
   UIBarChartData,
   UIChartData,
+  UIChartsDataWithEnvs,
   UIHeatMapChartData,
   UITreeMapChartData,
   UITrendChartData,
@@ -120,36 +116,33 @@ export const createHeatMapChartDataGeneric = (
   };
 };
 
-export const createStatusTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
+export const createStatusTrendChartData = (chartId: ChartId, res: ChartsData): UITrendChartData | undefined =>
   createTrendChartDataGeneric(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => statusesList,
     (status) => statusColors[status],
   );
 
-export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsResponse): UITrendChartData | undefined =>
+export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsData): UITrendChartData | undefined =>
   createTrendChartDataGeneric(
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
   );
 
-export const createStatusBySeverityBarChartData = (chartId: ChartId, res: ChartsResponse): UIBarChartData | undefined =>
+export const createStatusBySeverityBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
   createBarChartDataGeneric(
     () => res[chartId] as ResponseBarChartData | undefined,
     () => statusColors,
   );
 
-export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsResponse): UIBarChartData | undefined =>
+export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
   createBarChartDataGeneric(
     () => res[chartId] as ResponseBarChartData | undefined,
     () => statusColors,
   );
 
-export const createStatusChangeTrendBarChartData = (
-  chartId: ChartId,
-  res: ChartsResponse,
-): UIBarChartData | undefined =>
+export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
   createBarChartDataGeneric(
     () => res[chartId] as ResponseBarChartData | undefined,
     () => statusChangeColors,
@@ -157,7 +150,7 @@ export const createStatusChangeTrendBarChartData = (
 
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
-  res: ChartsResponse,
+  res: ChartsData,
 ): UITreeMapChartData | undefined => {
   const chartColorDomain = [0, 1];
 
@@ -188,7 +181,7 @@ export const createSuccessRateDistributionTreeMapChartData = (
 
 export const createCoverageDiffTreeMapChartData = (
   chartId: ChartId,
-  res: ChartsResponse,
+  res: ChartsData,
 ): UITreeMapChartData | undefined => {
   const chartColorDomain = [0, 0.5, 1];
 
@@ -223,7 +216,7 @@ export const createCoverageDiffTreeMapChartData = (
 
 export const createProblemsDistributionHeatMapChartData = (
   chartId: ChartId,
-  res: ChartsResponse,
+  res: ChartsData,
 ): UIHeatMapChartData | undefined => {
   const chartColorDomain = [0, 1];
 
@@ -270,7 +263,7 @@ export const createBarChartData = (
 export const createTreeMapChartData = (
   chartId: ChartId,
   chartData: ResponseTreeMapChartData,
-  res: ChartsResponse,
+  res: ChartsData,
 ): UITreeMapChartData | undefined => {
   if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
     return createSuccessRateDistributionTreeMapChartData(chartId, res);
@@ -279,7 +272,7 @@ export const createTreeMapChartData = (
   }
 };
 
-export const createHeatMapChartData = (chartId: ChartId, res: ChartsResponse): UIHeatMapChartData | undefined => {
+export const createHeatMapChartData = (chartId: ChartId, res: ChartsData): UIHeatMapChartData | undefined => {
   return createProblemsDistributionHeatMapChartData(chartId, res);
 };
 
@@ -314,4 +307,22 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
     },
     {} as Record<ChartId, UIChartData>,
   );
+};
+
+export const createChartsWithEnvs = (res: ChartsDataWithEnvs): UIChartsDataWithEnvs => {
+  // This is a fall back for old data format
+  if (!("general" in res) && !("byEnv" in res)) {
+    return { general: createCharts(res as ChartsData), byEnv: {} };
+  }
+
+  const result: UIChartsDataWithEnvs = {
+    general: createCharts(res.general),
+    byEnv: {},
+  };
+
+  for (const [env, chartData] of Object.entries(res.byEnv)) {
+    result.byEnv[env] = createCharts(chartData);
+  }
+
+  return result;
 };

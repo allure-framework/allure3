@@ -1,27 +1,109 @@
-import type {
-  BarChartType,
-  BarGroup,
-  BarGroupMode,
-  BaseTrendSliceMetadata,
-  ChartDataType,
-  ChartId,
-  ChartMode,
-  ChartType,
-  HeatMapSerie,
-  HistoryDataPoint,
-  HistoryTestResult,
-  PieSlice,
-  SeverityLevel,
-  Statistic,
-  TestResult,
-  TestStatus,
-  TreeMapChartType,
-  TreeMapNode,
-  TrendPoint,
-  TrendPointId,
-  TrendSlice,
-  TrendSliceId,
-} from "@allurereport/core-api";
+import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus } from "@allurereport/core-api";
+
+// Chart types and enums
+export enum ChartType {
+  Trend = "trend",
+  Pie = "pie",
+  TreeMap = "treemap",
+  HeatMap = "heatmap",
+  Bar = "bar",
+  Funnel = "funnel",
+  ComingSoon = "coming-soon",
+}
+
+export enum ChartDataType {
+  Status = "status",
+  Severity = "severity",
+}
+
+// Specifies which Bar chart is being generated
+export enum BarChartType {
+  StatusBySeverity = "statusBySeverity",
+  StatusTrend = "statusTrend",
+  StatusChangeTrend = "statusChangeTrend",
+}
+
+export enum TreeMapChartType {
+  SuccessRateDistribution = "successRateDistribution",
+  CoverageDiff = "coverageDiff",
+}
+
+export enum ChartMode {
+  Raw = "raw",
+  Percent = "percent",
+}
+
+export type ChartId = string;
+export type TrendPointId = string;
+export type TrendSliceId = string;
+
+// Base metadata for trend slices
+export type BaseMetadata = Record<string, unknown>;
+export interface BaseTrendSliceMetadata extends BaseMetadata {
+  executionId: string;
+  executionName?: string;
+}
+
+// Point on a trend chart
+export interface TrendPoint {
+  x: string;
+  y: number;
+}
+
+// Metadata for a trend slice
+export type TrendSliceMetadata<Metadata extends BaseMetadata> = BaseTrendSliceMetadata & Metadata;
+
+// Slice of a trend chart
+export interface TrendSlice<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
+  // Minimum value on Y-axis of the trend chart slice
+  min: number;
+  // Maximum value on Y-axis of the trend chart slice
+  max: number;
+  // Metadata about this test execution
+  metadata: TrendSliceMetadata<Metadata>;
+}
+
+// Pie chart types
+export interface BasePieSlice {
+  status: TestStatus;
+  count: number;
+}
+
+export interface PieSlice extends BasePieSlice {
+  d: string | null;
+}
+
+export type PieChartValues = {
+  percentage: number;
+  slices: PieSlice[];
+};
+
+export type BarGroupValues<T extends string = string> = Record<T, number>;
+export type BarGroup<G extends string, T extends string = string> = { groupId: G } & BarGroupValues<T>;
+export enum BarGroupMode {
+  Grouped = "grouped",
+  Stacked = "stacked",
+}
+
+export type NewKey<T extends string> = `new${Capitalize<T>}`;
+export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
+
+export type TreeMapNode<T extends Record<string, any> = {}> = T & {
+  id: string;
+  value?: number;
+  colorValue?: number; // The normalized color value between 0 and 1 for the node
+  children?: TreeMapNode<T>[];
+};
+
+export type HeatMapPoint = {
+  x: string;
+  y?: number;
+};
+
+export type HeatMapSerie<T extends Record<string, any> = Record<string, any>> = {
+  id: string;
+  data: HeatMapPoint[];
+} & T;
 
 export type ExecutionIdFn = (executionOrder: number) => string;
 export type ExecutionNameFn = (executionOrder: number) => string;
@@ -206,134 +288,3 @@ export interface TreeMapDataAccessor<T extends TreeMapNode> {
 export interface HeatMapDataAccessor<T extends Record<string, unknown> = {}> {
   getHeatMap: (storeData: AllureChartsStoreData) => HeatMapSerie<T>[];
 }
-
-export const DEFAULT_CHART_HISTORY_LIMIT = 10;
-
-/**
- * @description Limits the history data points by a certain limit, that is necessary for charts data with a long history.
- * @param historyDataPoints - The history data points.
- * @param limit - The limit.
- * @returns The limited history data points.
- */
-export const limitHistoryDataPoints = (historyDataPoints: HistoryDataPoint[], limit: number): HistoryDataPoint[] => {
-  if (limit <= 0 || historyDataPoints.length === 0) {
-    return [];
-  }
-
-  const clampedLimit = Math.max(0, Math.floor(limit));
-
-  return historyDataPoints.slice(0, clampedLimit);
-};
-
-/**
- * Initializes series record with items as keys and empty arrays.
- * @param items - Items for series record.
- * @returns Record with items as keys and empty arrays.
- */
-export const createEmptySeries = <T extends string>(items: readonly T[]): Record<T, string[]> =>
-  items.reduce((acc, item) => ({ ...acc, [item]: [] }), {} as Record<T, string[]>);
-
-/**
- * Initializes stats record with items as keys and 0 as values.
- * @param items - Items for stats record.
- * @returns Record with items as keys and 0 values.
- */
-export const createEmptyStats = <T extends string>(items: readonly T[]): Record<T, number> =>
-  items.reduce((acc, item) => ({ ...acc, [item]: 0 }), {} as Record<T, number>);
-
-/**
- * Normalizes stats record, ensuring all items are represented.
- * @param statistic - Partial stats record.
- * @param itemType - All possible items.
- * @returns Complete stats record with all items.
- */
-export const normalizeStatistic = <T extends string>(
-  statistic: Partial<Record<T, number>>,
-  itemType: readonly T[],
-): Record<T, number> => {
-  return itemType.reduce(
-    (acc, item) => {
-      acc[item] = statistic[item] ?? 0;
-      return acc;
-    },
-    {} as Record<T, number>,
-  );
-};
-
-/**
- * Check if test has any of the specified labels
- * Generic function that works with any label hierarchy
- */
-export const hasLabels = <T extends string, TR extends TestResult | HistoryTestResult>(
-  test: TR,
-  labelHierarchy: T[],
-): boolean =>
-  test.labels?.some((label) => {
-    const { name } = label;
-    return name && labelHierarchy.includes(name as T);
-  }) ?? false;
-
-export const isChildrenLeavesOnly = <T extends TreeMapNode>(node: T): boolean => {
-  return node.children ? node.children.every((child) => child.children === undefined) : false;
-};
-
-export const defaultChartsConfig = [
-  {
-    type: "pie",
-    title: "Current status",
-  },
-  {
-    type: "trend",
-    dataType: "status",
-    title: "Status dynamics",
-  },
-  {
-    type: "bar",
-    dataType: "statusBySeverity",
-    title: "Test result severities",
-  },
-  {
-    type: "bar",
-    dataType: "statusTrend",
-    title: "Status change dynamics",
-  },
-  {
-    type: "bar",
-    dataType: "statusChangeTrend",
-    title: "Test base growth dynamics",
-  },
-  {
-    type: "treemap",
-    dataType: "coverageDiff",
-    title: "Coverage diff map",
-  },
-  {
-    type: "treemap",
-    dataType: "successRateDistribution",
-    title: "Success rate disctribution",
-  },
-  {
-    type: "heatmap",
-    title: "Problems distribution by environment",
-  },
-  {
-    type: "bar",
-    title: "Stability rate disctribution",
-  },
-  {
-    type: "bar",
-    title: "Duration by layer histogram",
-  },
-  {
-    type: "bar",
-    title: "Performance dynamics",
-  },
-  {
-    type: "bar",
-    title: "FBSU age pyramid",
-  },
-  {
-    type: "funnel",
-    title: "Testing pyramid",
-  },
-];

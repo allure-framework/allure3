@@ -1,5 +1,5 @@
-import { type HeatMapPoint, type TestResult, filterIncludedInSuccessRate } from "@allurereport/core-api";
-import type { HeatMapDataAccessor } from "../../charts.js";
+import type { HeatMapDataAccessor, HeatMapPoint } from "@allurereport/charts-api";
+import { type TestResult, filterIncludedInSuccessRate } from "@allurereport/core-api";
 
 const groupTestsByEnvironment = (testResults: TestResult[]): Record<string, TestResult[]> => {
   return testResults.reduce(

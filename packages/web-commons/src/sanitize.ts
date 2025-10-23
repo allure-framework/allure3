@@ -6,4 +6,4 @@ import DOMPurify from "dompurify";
  * @param config Config for the dompurify package.
  * @returns Sanitized HTML string.
  */
-export const sanitize = DOMPurify.sanitize.bind(DOMPurify);
+export const sanitize = (html: string, config?: Record<string, any>) => DOMPurify.sanitize(html, config);

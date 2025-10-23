@@ -1,29 +1,15 @@
 import {
-  ChartType,
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/core-api";
-import {
-  type AllureChartsStoreData,
-  type AllureStore,
-  type ComingSoonChartOptions,
-  type GeneratedChartData,
-  type GeneratedChartsData,
-  type PluginContext,
-  type ReportFiles,
-  generateBarChart,
-  generateComingSoonChart,
-  generateHeatMapChart,
-  generatePieChart,
-  generateTreeMapChart,
-  generateTrendChart,
-} from "@allurereport/plugin-api";
+import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
+import { generateCharts } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
-import { randomUUID } from "crypto";
 import Handlebars from "handlebars";
+import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
@@ -78,67 +64,29 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
-export const generateCharts = async (
-  options: DashboardPluginOptions,
-  store: AllureStore,
-  context: PluginContext,
-): Promise<GeneratedChartsData | undefined> => {
-  const { layout } = options;
-
-  if (!layout) {
-    return undefined;
-  }
-
-  const storeData: AllureChartsStoreData = await Promise.all([
-    store.allHistoryDataPoints(),
-    store.allTestResults(),
-    store.testsStatistic(),
-  ]).then(([historyDataPoints, testResults, statistic]) => ({
-    historyDataPoints,
-    testResults,
-    statistic,
-  }));
-
-  const chartsData: GeneratedChartsData = {};
-
-  for (const chartOptions of layout) {
-    const chartId = randomUUID();
-
-    let chart: GeneratedChartData | undefined;
-
-    if (chartOptions.type === ChartType.Trend) {
-      chart = generateTrendChart(chartOptions, storeData, context);
-    } else if (chartOptions.type === ChartType.Pie) {
-      chart = generatePieChart(chartOptions, storeData);
-    } else if (chartOptions.type === ChartType.Bar) {
-      chart = generateBarChart(chartOptions, storeData);
-    } else if (chartOptions.type === ChartType.TreeMap) {
-      chart = generateTreeMapChart(chartOptions, storeData);
-    } else if (chartOptions.type === ChartType.HeatMap) {
-      chart = generateHeatMapChart(chartOptions, storeData);
-    }
-
-    if (chart) {
-      chartsData[chartId] = chart;
-    } else {
-      chartsData[chartId] = generateComingSoonChart(chartOptions as ComingSoonChartOptions);
-    }
-  }
-
-  return chartsData;
-};
-
 export const generateAllCharts = async (
   writer: DashboardDataWriter,
   store: AllureStore,
   options: DashboardPluginOptions,
   context: PluginContext,
 ): Promise<void> => {
-  const charts = await generateCharts(options, store, context);
+  const { layout } = options;
 
-  if (charts && Object.keys(charts).length > 0) {
-    await writer.writeWidget("charts.json", charts);
+  if (!layout) {
+    return;
   }
+
+  const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID);
+
+  if (Object.keys(generatedChartsData.general).length > 0) {
+    await writer.writeWidget("charts.json", generatedChartsData);
+  }
+};
+
+export const generateEnvirontmentsList = async (writer: DashboardDataWriter, store: AllureStore) => {
+  const environments = await store.allEnvironments();
+
+  await writer.writeWidget("environments.json", environments);
 };
 
 export const generateStaticFiles = async (
@@ -230,7 +178,6 @@ export const generateStaticFiles = async (
       // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
-      return;
     }
 
     throw err;

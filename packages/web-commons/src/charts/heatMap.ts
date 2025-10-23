@@ -1,4 +1,9 @@
-import type { AllureChartsStoreData, HeatMapChartData, HeatMapChartOptions, HeatMapDataAccessor } from "../charts.js";
+import type {
+  AllureChartsStoreData,
+  HeatMapChartData,
+  HeatMapChartOptions,
+  HeatMapDataAccessor,
+} from "@allurereport/charts-api";
 import { problemsDistributionHeatMapAccessor } from "./accessors/problemsDistributionHeatMap.js";
 
 export const generateHeatMapChartGeneric = <T extends Record<string, unknown>>(
