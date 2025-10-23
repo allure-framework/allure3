@@ -1,1 +1,0 @@
-{"id":"5074347d8f61290451a224d08ce6eafc","fullName":"test/config.test.ts#findConfig should find provided config path first","name":"should find provided config path first","status":"passed","testResultsByEnv":{"windows-latest":"5465e12f2c4146ddce4b5f879ec282bd","ubuntu-latest":"4e01e4f8227feaa890ebf10d14ad5665","macos-latest":"94512f3cd481c5268dd3468eb48d17a7"}}

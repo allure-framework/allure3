@@ -1,1 +1,0 @@
-{"id":"99175b3e515f68b3f10479897c1ba30d","fullName":"test/junitxml.test.ts#junit xml reader statuses error should ignore an ill-formed message","name":"should ignore an ill-formed message","status":"passed","testResultsByEnv":{"windows-latest":"d6fe8a55b0c1800b51bc437c2473dc59","ubuntu-latest":"28e4a1da85a8c42ea2a815b6c5e71479","macos-latest":"d8a99e40cec0212a6642b0514a69f289"}}

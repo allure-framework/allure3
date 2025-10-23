@@ -1,8 +1,0 @@
-{
-  "name": "Test with message",
-  "fullName": "Test with message",
-  "status": "passed",
-  "statusDetails": {
-    "message": "some message"
-  }
-}

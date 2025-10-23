@@ -1,1 +1,0 @@
-{"id":"e996e4a60eb9498123d813b4cc2b8bad","fullName":"test/store/store.test.ts#dump state should allow to dump store state","name":"should allow to dump store state","status":"passed","testResultsByEnv":{"windows-latest":"4d03823a26151e18dfa423987f7321aa","ubuntu-latest":"41a808a2a9c2daf8f9bda030bce65f8c","macos-latest":"f8476104ef3e6c1b5817a66a2c7f04cf"}}

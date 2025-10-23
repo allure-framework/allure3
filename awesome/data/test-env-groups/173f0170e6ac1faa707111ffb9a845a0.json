@@ -1,1 +1,0 @@
-{"id":"173f0170e6ac1faa707111ffb9a845a0","fullName":"test/allure1.test.ts#allure1 reader steps names should use name if title is ill-formed","name":"should use name if title is ill-formed","status":"passed","testResultsByEnv":{"windows-latest":"36ec1ec666ba179681207b26a7d78313","ubuntu-latest":"d2d3054667128669b370ff900a47a1b2","macos-latest":"f54de5d06ea6a8593305b4e9f11ca4b8"}}
