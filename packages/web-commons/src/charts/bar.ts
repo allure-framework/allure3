@@ -10,6 +10,7 @@ import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBar
 import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAccessor.js";
 import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
 import { generateBarChartDurationsByLayer } from "./bar/generateBarChartDurationsByLayer.js";
+import { generateBarChartFbsuAgePyramid } from "./bar/generateBarChartFbsuAgePyramid.js";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
@@ -74,5 +75,7 @@ export const generateBarChart = (
       return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
     case BarChartType.DurationsByLayer:
       return generateBarChartDurationsByLayer(newOptions, storeData);
+    case BarChartType.FbsuAgePyramid:
+      return generateBarChartFbsuAgePyramid(newOptions, storeData);
   }
 };

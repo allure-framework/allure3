@@ -22,6 +22,7 @@ export enum BarChartType {
   StatusTrend = "statusTrend",
   StatusChangeTrend = "statusChangeTrend",
   DurationsByLayer = "durationsByLayer",
+  FbsuAgePyramid = "fbsuAgePyramid",
 }
 
 export enum TreeMapChartType {
@@ -32,6 +33,7 @@ export enum TreeMapChartType {
 export enum ChartMode {
   Raw = "raw",
   Percent = "percent",
+  Diverging = "diverging",
 }
 
 export type ChartId = string;
@@ -171,6 +173,7 @@ export interface BarChartData {
     legend?: string;
     enabled?: boolean;
     format?: string;
+    domain?: number[];
     tickValues?: number | number[];
   };
   yAxisConfig?: {
@@ -178,7 +181,9 @@ export interface BarChartData {
     enabled?: boolean;
     format?: string;
     tickValues?: number | number[];
+    domain?: number[];
   };
+  layout?: "horizontal" | "vertical";
 }
 
 // Tree map chart data types
@@ -301,3 +306,4 @@ export interface TreeMapDataAccessor<T extends TreeMapNode> {
 export interface HeatMapDataAccessor<T extends Record<string, unknown> = {}> {
   getHeatMap: (storeData: AllureChartsStoreData) => HeatMapSerie<T>[];
 }
+

@@ -163,6 +163,19 @@ export const createDurationsByLayerBarChartData = (chartId: ChartId, res: Charts
   };
 };
 
+export const createFbsuAgePyramidBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
+  const chart = res[chartId] as ResponseBarChartData | undefined;
+  if (!chart) {
+    return undefined;
+  }
+
+  return {
+    ...chart,
+    colors: statusColors,
+  };
+};
+
+
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
   res: ChartsData,
@@ -275,6 +288,8 @@ export const createBarChartData = (
       return createStatusChangeTrendBarChartData(chartId, res);
     case BarChartType.DurationsByLayer:
       return createDurationsByLayerBarChartData(chartId, res);
+    case BarChartType.FbsuAgePyramid:
+      return createFbsuAgePyramidBarChartData(chartId, res);
   }
 };
 

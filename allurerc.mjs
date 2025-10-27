@@ -82,6 +82,7 @@ const config = {
           },
           {
             type: "bar",
+            dataType: "fbsuAgePyramid",
             title: "FBSU age pyramid",
           },
           {

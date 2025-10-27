@@ -6,6 +6,7 @@ type AxisConfig = {
   enabled?: boolean;
   format?: string;
   tickValues?: number | number[];
+  domain?: number[];
 };
 
 export interface BarChartWidgetProps {
@@ -22,4 +23,5 @@ export interface BarChartWidgetProps {
   translations: Record<string, string>;
   yAxisConfig?: AxisConfig;
   xAxisConfig?: AxisConfig;
+  layout?: "horizontal" | "vertical";
 }
