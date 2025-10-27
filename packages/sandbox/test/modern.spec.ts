@@ -1,5 +1,5 @@
-import { expect, it } from "vitest";
 import { label } from "allure-js-commons";
+import { expect, it } from "vitest";
 
 it("sample passed test", async () => {
   await label("env", "foo");

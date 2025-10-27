@@ -1,4 +1,4 @@
-import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
+import type { AllureHistory } from "@allurereport/core-api";
 import type { AllureServiceClient } from "./service.js";
 import { KnownError } from "./utils/http.js";
 

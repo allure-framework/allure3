@@ -14,11 +14,11 @@ export const generateSummary = async (output: string, summaries: PluginSummary[]
   }
 
   const summaryHtml = await generateSummaryStaticFiles({ summaries });
-  const summaryPath = resolve(output, "index.html")
+  const summaryPath = resolve(output, "index.html");
 
   await writeFile(summaryPath, summaryHtml, "utf8");
 
-  return summaryPath
+  return summaryPath;
 };
 
 export default generateSummary;

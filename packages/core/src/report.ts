@@ -517,7 +517,7 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       const summaryPath = await generateSummary(this.#output, summaries);
-      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean)
+      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean);
 
       // publish summary when there are multiple published plugins
       if (this.#publish && summaryPath && publishedReports.length > 1) {

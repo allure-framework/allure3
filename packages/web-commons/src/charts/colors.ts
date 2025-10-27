@@ -37,7 +37,10 @@ export const statusChangeColors: Record<NewKey<TestStatus> | RemovedKey<TestStat
  * @param baseColor - base CSS color variable
  * @returns object with layer names as keys and color shades as values
  */
-export const generateLayerColors = (layers: string[], baseColor: string = "var(--bg-support-aldebaran)"): Record<string, string> => {
+export const generateLayerColors = (
+  layers: string[],
+  baseColor: string = "var(--bg-support-aldebaran)",
+): Record<string, string> => {
   const colors: Record<string, string> = {};
 
   if (layers.length === 0) {
@@ -62,9 +65,10 @@ export const generateLayerColors = (layers: string[], baseColor: string = "var(-
       colors[layer] = `color-mix(in srgb, ${baseColor} 80%, black)`;
     } else {
       // Middle layers - interpolated shades
-      const lightRatio = 60 + (20 * (1 - ratio)); // 60% to 80% base color
+      const lightRatio = 60 + 20 * (1 - ratio); // 60% to 80% base color
       const darkRatio = 20 * ratio; // 0% to 20% black
-      colors[layer] = `color-mix(in srgb, color-mix(in srgb, ${baseColor} ${lightRatio}%, white) ${100 - darkRatio}%, black)`;
+      colors[layer] =
+        `color-mix(in srgb, color-mix(in srgb, ${baseColor} ${lightRatio}%, white) ${100 - darkRatio}%, black)`;
     }
   });
 
