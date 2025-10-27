@@ -54,20 +54,20 @@ export default defineConfig({
     ],
   },
   plugins: {
-    // allure2: {
-    //   options: {
-    //     reportName: "HelloWorld",
-    //     singleFile: false,
-    //     reportLanguage: "en",
-    //   },
-    // },
-    // classic: {
-    //   options: {
-    //     reportName: "HelloWorld",
-    //     singleFile: false,
-    //     reportLanguage: "en",
-    //   },
-    // },
+    allure2: {
+      options: {
+        reportName: "HelloWorld",
+        singleFile: false,
+        reportLanguage: "en",
+      },
+    },
+    classic: {
+      options: {
+        reportName: "HelloWorld",
+        singleFile: false,
+        reportLanguage: "en",
+      },
+    },
     awesome: {
       options: {
         reportName: "HelloWorld",
@@ -78,19 +78,19 @@ export default defineConfig({
         publish: true,
       },
     },
-    // dashboard: {
-    //   options: {
-    //     singleFile: false,
-    //     reportName: "HelloWorld-Dashboard",
-    //     reportLanguage: "en",
-    //     layout: defaultChartsConfig,
-    //   },
-    // },
-    // csv: {
-    //   options: {
-    //     fileName: "allure-report.csv",
-    //   },
-    // },
+    dashboard: {
+      options: {
+        singleFile: false,
+        reportName: "HelloWorld-Dashboard",
+        reportLanguage: "en",
+        layout: defaultChartsConfig,
+      },
+    },
+    csv: {
+      options: {
+        fileName: "allure-report.csv",
+      },
+    },
     log: {
       options: {
         groupBy: "none",
@@ -116,8 +116,4 @@ export default defineConfig({
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
   },
-  // allureService: {
-  //   url: "http://localhost:5173",
-  //   project: "sandbox",
-  // },
 });
