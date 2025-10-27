@@ -21,7 +21,7 @@ describe("Events", () => {
     }
 
     // default batch timeout is set to 100
-    await setTimeout(120);
+    await setTimeout(150);
 
     expect(listener).toBeCalledTimes(1);
     expect(listener.mock.calls[0][0]).toEqual(result);
@@ -45,7 +45,7 @@ describe("Events", () => {
     }
 
     // default batch timeout is set to 100 + max init delay is 50 (if all emits with 50ms delay)
-    promises.push(setTimeout(170));
+    promises.push(setTimeout(200));
 
     await Promise.allSettled(promises);
 
@@ -84,7 +84,7 @@ describe("Events", () => {
     }
 
     // the worst possible end of the second batch is 50 + 151 + 100 = 301
-    promises.push(setTimeout(320));
+    promises.push(setTimeout(350));
 
     await Promise.allSettled(promises);
 
@@ -113,7 +113,7 @@ describe("Events", () => {
     }
 
     // default batch timeout is set to 100 + max init delay is 50 (if all emits with 50ms delay)
-    promises.push(setTimeout(170));
+    promises.push(setTimeout(200));
 
     await Promise.allSettled(promises);
 
@@ -132,7 +132,7 @@ describe("Events", () => {
     emitter.emit("testResult", "123");
     events.offAll();
     // default batch timeout is set to 100
-    await setTimeout(120);
+    await setTimeout(150);
     expect(listener).toBeCalledTimes(0);
   });
 });

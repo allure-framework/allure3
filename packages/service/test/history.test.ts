@@ -19,6 +19,8 @@ const fixtures = {
     testResults: {},
     url: "",
     metrics: {},
+    status: "passed",
+    stage: "test",
   } as HistoryDataPoint,
 };
 
@@ -46,25 +48,27 @@ describe("AllureRemoteHistory", () => {
 
   describe("readHistory", () => {
     it("should return resolved history data", async () => {
-      HttpClientMock.prototype.get.mockResolvedValue([
-        {
-          uuid: "1",
-          name: "test",
-          timestamp: 0,
-          knownTestCaseIds: [],
-          testResults: {},
-          url: "",
-          metrics: {},
-        },
-      ]);
+      HttpClientMock.prototype.get.mockResolvedValue({
+        history: [
+          {
+            uuid: "1",
+            name: "test",
+            timestamp: 0,
+            knownTestCaseIds: [],
+            testResults: {},
+            url: "",
+            metrics: {},
+            status: "passed",
+            stage: "test",
+          },
+        ],
+      });
 
       const result = await history.readHistory(fixtures.branch);
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history/download", {
-        params: {
-          branch: fixtures.branch,
-          project: fixtures.project,
-        },
-      });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/${fixtures.project}/${fixtures.branch}/history`,
+      );
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -84,19 +88,11 @@ describe("AllureRemoteHistory", () => {
   });
 
   describe("appendHistory", () => {
-    it("should call service.appendHistory with correct params", async () => {
-      await history.appendHistory(fixtures.historyDataPoint, fixtures.branch);
+    it("should be a no-op method", async () => {
+      const result = await history.appendHistory();
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/history/append", {
-        body: {
-          history: fixtures.historyDataPoint,
-          branch: fixtures.branch,
-          project: fixtures.project,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      expect(result).toBeUndefined();
+      expect(HttpClientMock.prototype.post).not.toHaveBeenCalled();
     });
   });
 });

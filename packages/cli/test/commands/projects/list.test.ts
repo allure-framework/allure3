@@ -70,7 +70,7 @@ describe("projects list command", () => {
   });
 
   it("should log a message if there are no projects", async () => {
-    AllureServiceClientMock.prototype.projects.mockResolvedValue([]);
+    AllureServiceClientMock.prototype.projects.mockResolvedValue({ projects: [] });
 
     const command = new ProjectsListCommand();
 
@@ -85,8 +85,8 @@ describe("projects list command", () => {
   });
 
   it("should prompt to select a project and log config if selected", async () => {
-    AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }, { name: "bar" }]);
-    (prompts as unknown as Mock).mockResolvedValue({ project: "foo" });
+    AllureServiceClientMock.prototype.projects.mockResolvedValue({ projects: [{ id: "foo-id", name: "foo" }, { id: "bar-id", name: "bar" }] });
+    (prompts as unknown as Mock).mockResolvedValue({ project: "foo-id" });
 
     const command = new ProjectsListCommand();
 
@@ -103,12 +103,12 @@ describe("projects list command", () => {
         name: "project",
         message: expect.any(String),
         choices: [
-          expect.objectContaining({ title: "foo", value: "foo" }),
-          expect.objectContaining({ title: "bar", value: "bar" }),
+          expect.objectContaining({ title: "foo", value: "foo-id" }),
+          expect.objectContaining({ title: "bar", value: "bar-id" }),
         ],
       }),
     );
-    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "foo"'));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "foo-id"'));
   });
 
   it("should print known service-error without logs writing", async () => {
@@ -156,7 +156,7 @@ describe("projects list command", () => {
   });
 
   it("should exit with error if no project is selected", async () => {
-    AllureServiceClientMock.prototype.projects.mockResolvedValue([{ name: "foo" }]);
+    AllureServiceClientMock.prototype.projects.mockResolvedValue({ projects: [{ id: "foo-id", name: "foo" }] });
     (prompts as unknown as Mock).mockResolvedValue({});
 
     const command = new ProjectsListCommand();

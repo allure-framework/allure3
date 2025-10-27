@@ -211,6 +211,7 @@ describe("report", () => {
       ...config,
       allureService: {
         url: fixtures.reportUrl,
+        project: "test-project",
       },
     });
 
@@ -220,6 +221,7 @@ describe("report", () => {
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledTimes(1);
     expect(AllureServiceClientMock.prototype.completeReport).toBeCalledWith({
       reportUuid: allureReport.reportUuid,
+      historyPoint: expect.any(Object),
     });
     expect(generateSummary).toBeCalledTimes(1);
     expect(generateSummary).toBeCalledWith(expect.any(String), [
@@ -227,10 +229,14 @@ describe("report", () => {
         ...fixtures.summaries[0],
         href: `${p1.id}/`,
         remoteHref: `${allureReport.reportUrl}/${p1.id}/`,
+        pullRequestHref: undefined,
+        jobHref: undefined,
       },
       {
         ...fixtures.summaries[1],
         href: `${p2.id}/`,
+        pullRequestHref: undefined,
+        jobHref: undefined,
       },
     ]);
   });
