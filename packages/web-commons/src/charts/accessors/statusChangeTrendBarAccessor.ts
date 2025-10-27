@@ -121,7 +121,8 @@ const getTrendData = (
   hdps: HistoryDataPoint[],
 ): BarGroup<string, StatusChangeTrendKeys>[] => {
   const historicalStats = getHistoricalStats(hdps);
-  const currentStats = getCurrentStats(currentTrs, Object.values(hdps[0].testResults));
+  const previousHdpTrs = hdps.length > 0 ? Object.values(hdps[0].testResults) : [];
+  const currentStats = getCurrentStats(currentTrs, previousHdpTrs);
 
   return [currentStats, ...historicalStats];
 };

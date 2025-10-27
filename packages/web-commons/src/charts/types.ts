@@ -121,6 +121,16 @@ export type UIPieChartData = ResponsePieChartData;
 
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
+  xAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+  };
+  yAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+  };
 }
 
 export type UIComingSoonChartData = ResponseComingSoonChartData;

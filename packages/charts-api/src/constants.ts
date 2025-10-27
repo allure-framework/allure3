@@ -33,7 +33,7 @@ export const defaultChartsConfig = [
   {
     type: "treemap",
     dataType: "successRateDistribution",
-    title: "Success rate disctribution",
+    title: "Success rate distribution",
   },
   {
     type: "heatmap",
@@ -41,22 +41,27 @@ export const defaultChartsConfig = [
   },
   {
     type: "bar",
-    title: "Stability rate disctribution",
+    dataType: "stabilityRate",
+    title: "Stability rate distribution",
   },
   {
     type: "bar",
-    title: "Duration by layer histogram",
+    dataType: "durationsByLayer",
+    title: "Durations by layer histogram",
   },
   {
     type: "bar",
+    dataType: "performanceTrend",
     title: "Performance dynamics",
   },
   {
     type: "bar",
+    dataType: "fbsuAgePyramid",
     title: "FBSU age pyramid",
   },
   {
     type: "funnel",
+    dataType: "testingPyramid",
     title: "Testing pyramid",
   },
 ];
