@@ -254,6 +254,13 @@ const createCoverageDiffTreeMap = (
 export const coverageDiffTreeMapAccessor: TreeMapDataAccessor<ExtendedTreeMapNode> = {
   getTreeMap: ({ testResults, historyDataPoints }) => {
     const testsWithBehaviorLabels = filterTestsWithBehaviorLabels(testResults);
+
+    // Check that historyDataPoints is not empty
+    if (!historyDataPoints || historyDataPoints.length === 0) {
+      // If no historical data, return empty structure
+      return createCoverageDiffTreeMap(testsWithBehaviorLabels, {});
+    }
+
     const closestHdp = historyDataPoints[0];
     const closestHtrs = closestHdp.testResults;
     const closestHtrsWithBehaviorLabels = filterTestsWithBehaviorLabels(Object.values(closestHtrs));

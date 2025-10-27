@@ -24,30 +24,45 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
   rootAriaLabel,
   colors,
   translations,
+  xAxisConfig = {},
+  yAxisConfig = {},
 }) => {
   const emptyLabel = translations["no-results"];
+  const xAxisLegend =
+    translations[xAxisConfig.legend!] ??
+    xAxisConfig?.legend ??
+    (groupMode === "stacked" ? "Data Points" : "Test Severity");
 
-  const yFormat = useMemo(() => (mode === ChartMode.Percent ? " >-.2%" : " >-.2f"), [mode]);
+  const yAxisLegend =
+    translations[yAxisConfig.legend!] ??
+    yAxisConfig?.legend ??
+    (mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests");
 
-  const bottomAxisConfig = useMemo<AxisProps<BarDatum>>(
+  const yFormat = yAxisConfig.format ?? (mode === ChartMode.Percent ? " >-.2%" : " >-.2f");
+  const xFormat = xAxisConfig.format ?? undefined;
+
+  const xAxisComputedConfig = useMemo<AxisProps<BarDatum>>(
     () => ({
       ...defaultBarChartAxisBottomConfig,
-      legend: groupMode === "stacked" ? "Data Points" : "Test Severity",
+      legend: xAxisLegend,
       legendPosition: "middle",
       legendOffset: 32,
+      format: xFormat,
+      tickValues: xAxisConfig.tickValues as unknown as BarDatum[],
     }),
-    [groupMode],
+    [xAxisLegend, xFormat, xAxisConfig.tickValues],
   );
 
-  const leftAxisConfig = useMemo<AxisProps<BarDatum>>(
+  const yAxisComputedConfig = useMemo<AxisProps<BarDatum>>(
     () => ({
       ...defaultBarChartAxisLeftConfig,
-      legend: mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests",
+      legend: yAxisLegend,
       legendPosition: "middle",
       legendOffset: -60,
       format: yFormat,
+      tickValues: yAxisConfig.tickValues as unknown as BarDatum[],
     }),
-    [mode, yFormat],
+    [yFormat, yAxisLegend, yAxisConfig.tickValues],
   );
 
   return (
@@ -63,8 +78,8 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
         indexBy={indexBy}
         groupMode={groupMode}
         colors={({ id }) => colors[id]}
-        axisBottom={bottomAxisConfig}
-        axisLeft={leftAxisConfig}
+        axisBottom={xAxisConfig?.enabled === false ? undefined : xAxisComputedConfig}
+        axisLeft={yAxisConfig?.enabled === false ? undefined : yAxisComputedConfig}
         legends={[defaultBarChartLegendsConfig]}
       />
     </Widget>

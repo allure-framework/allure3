@@ -21,6 +21,7 @@ export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusTrend = "statusTrend",
   StatusChangeTrend = "statusChangeTrend",
+  DurationsByLayer = "durationsByLayer",
 }
 
 export enum TreeMapChartType {
@@ -166,6 +167,18 @@ export interface BarChartData {
   keys: readonly string[];
   indexBy: string;
   groupMode: BarGroupMode;
+  xAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+    tickValues?: number | number[];
+  };
+  yAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+    tickValues?: number | number[];
+  };
 }
 
 // Tree map chart data types

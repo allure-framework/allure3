@@ -68,11 +68,13 @@ const config = {
           },
           {
             type: "bar",
-            title: "Stability rate disctribution",
+            dataType: "stabilityRate",
+            title: "Stability rate distribution",
           },
           {
             type: "bar",
-            title: "Duration by layer histogram",
+            dataType: "durationsByLayer",
+            title: "Durations by layer histogram",
           },
           {
             type: "bar", // OR it might be trend

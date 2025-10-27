@@ -4,7 +4,7 @@ import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
-import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
+import { generateLayerColors, resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsDataWithEnvs,
@@ -148,6 +148,21 @@ export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: Chart
     () => statusChangeColors,
   );
 
+export const createDurationsByLayerBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
+  const chart = res[chartId] as ResponseBarChartData | undefined;
+  if (!chart) {
+    return undefined;
+  }
+
+  // Extract layer names from chart data
+  const layerNames = chart.keys as string[];
+
+  return {
+    ...chart,
+    colors: generateLayerColors(layerNames),
+  };
+};
+
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
   res: ChartsData,
@@ -251,12 +266,15 @@ export const createBarChartData = (
   chartData: ResponseBarChartData,
   res: ChartsData,
 ): UIBarChartData | undefined => {
-  if (chartData.dataType === BarChartType.StatusBySeverity) {
-    return createStatusBySeverityBarChartData(chartId, res);
-  } else if (chartData.dataType === BarChartType.StatusTrend) {
-    return createStatusTrendBarChartData(chartId, res);
-  } else if (chartData.dataType === BarChartType.StatusChangeTrend) {
-    return createStatusChangeTrendBarChartData(chartId, res);
+  switch (chartData.dataType) {
+    case BarChartType.StatusBySeverity:
+      return createStatusBySeverityBarChartData(chartId, res);
+    case BarChartType.StatusTrend:
+      return createStatusTrendBarChartData(chartId, res);
+    case BarChartType.StatusChangeTrend:
+      return createStatusChangeTrendBarChartData(chartId, res);
+    case BarChartType.DurationsByLayer:
+      return createDurationsByLayerBarChartData(chartId, res);
   }
 };
 

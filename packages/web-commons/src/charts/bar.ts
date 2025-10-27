@@ -9,6 +9,7 @@ import { BarChartType, ChartMode, DEFAULT_CHART_HISTORY_LIMIT } from "@allurerep
 import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBarAccessor.js";
 import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAccessor.js";
 import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
+import { generateBarChartDurationsByLayer } from "./bar/generateBarChartDurationsByLayer.js";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
@@ -64,11 +65,14 @@ export const generateBarChart = (
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
   const { dataType } = newOptions;
 
-  if (dataType === BarChartType.StatusBySeverity) {
-    return generateBarChartGeneric(newOptions, storeData, statusBySeverityBarDataAccessor);
-  } else if (dataType === BarChartType.StatusTrend) {
-    return generateBarChartGeneric(newOptions, storeData, statusTrendBarAccessor);
-  } else if (dataType === BarChartType.StatusChangeTrend) {
-    return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
+  switch (dataType) {
+    case BarChartType.StatusBySeverity:
+      return generateBarChartGeneric(newOptions, storeData, statusBySeverityBarDataAccessor);
+    case BarChartType.StatusTrend:
+      return generateBarChartGeneric(newOptions, storeData, statusTrendBarAccessor);
+    case BarChartType.StatusChangeTrend:
+      return generateBarChartGeneric(newOptions, storeData, statusChangeTrendBarAccessor);
+    case BarChartType.DurationsByLayer:
+      return generateBarChartDurationsByLayer(newOptions, storeData);
   }
 };

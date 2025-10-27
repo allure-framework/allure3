@@ -69,6 +69,8 @@ const getChartWidgetByType = (
           indexBy={chartData.indexBy}
           colors={chartData.colors}
           groupMode={chartData.groupMode}
+          xAxisConfig={chartData.xAxisConfig}
+          yAxisConfig={chartData.yAxisConfig}
           translations={{ "no-results": empty("no-results") }}
         />
       );
