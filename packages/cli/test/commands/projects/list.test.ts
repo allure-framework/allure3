@@ -85,7 +85,12 @@ describe("projects list command", () => {
   });
 
   it("should prompt to select a project and log config if selected", async () => {
-    AllureServiceClientMock.prototype.projects.mockResolvedValue({ projects: [{ id: "foo-id", name: "foo" }, { id: "bar-id", name: "bar" }] });
+    AllureServiceClientMock.prototype.projects.mockResolvedValue({
+      projects: [
+        { id: "foo-id", name: "foo" },
+        { id: "bar-id", name: "bar" },
+      ],
+    });
     (prompts as unknown as Mock).mockResolvedValue({ project: "foo-id" });
 
     const command = new ProjectsListCommand();

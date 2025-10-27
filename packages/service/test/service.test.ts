@@ -78,9 +78,7 @@ describe("AllureServiceClient", () => {
 
       await serviceClient.login();
 
-      expect(open.default).toHaveBeenCalledWith(
-        `${fixtures.url}/connect?token=${fixtures.decryptedToken}`,
-      );
+      expect(open.default).toHaveBeenCalledWith(`${fixtures.url}/connect?token=${fixtures.decryptedToken}`);
     });
 
     it("should write and return the retrieved access token", async () => {
@@ -170,9 +168,7 @@ describe("AllureServiceClient", () => {
 
       const res = await serviceClient.downloadHistory("main");
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/${fixtures.project}/main/history`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/${fixtures.project}/main/history`);
       expect(res).toEqual([fixtures.history]);
     });
   });
