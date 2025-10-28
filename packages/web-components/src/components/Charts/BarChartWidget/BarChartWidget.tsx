@@ -26,6 +26,7 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
   translations,
   xAxisConfig = {},
   yAxisConfig = {},
+  layout = "vertical",
 }) => {
   const emptyLabel = translations["no-results"];
   const xAxisLegend =
@@ -33,10 +34,16 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
     xAxisConfig?.legend ??
     (groupMode === "stacked" ? "Data Points" : "Test Severity");
 
-  const yAxisLegend =
-    translations[yAxisConfig.legend!] ??
-    yAxisConfig?.legend ??
-    (mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests");
+  let yAxisLegend = translations[yAxisConfig.legend!] ?? yAxisConfig?.legend;
+
+  if (!yAxisLegend) {
+    if (mode === ChartMode.Percent) {
+      yAxisLegend = "Percentage of Tests";
+    }
+    if (mode === ChartMode.Raw) {
+      yAxisLegend = "Number of Tests";
+    }
+  }
 
   const yFormat = yAxisConfig.format ?? (mode === ChartMode.Percent ? " >-.2%" : " >-.2f");
   const xFormat = xAxisConfig.format ?? undefined;
@@ -47,10 +54,15 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
       legend: xAxisLegend,
       legendPosition: "middle",
       legendOffset: 32,
-      format: xFormat,
+      format:
+        mode === ChartMode.Diverging
+          ? (value: any) => `${Math.abs(value)}%`
+          : xFormat === "preserve"
+            ? undefined
+            : xFormat,
       tickValues: xAxisConfig.tickValues as unknown as BarDatum[],
     }),
-    [xAxisLegend, xFormat, xAxisConfig.tickValues],
+    [xAxisLegend, xFormat, xAxisConfig.tickValues, mode],
   );
 
   const yAxisComputedConfig = useMemo<AxisProps<BarDatum>>(
@@ -59,11 +71,15 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
       legend: yAxisLegend,
       legendPosition: "middle",
       legendOffset: -60,
-      format: yFormat,
+      format: yFormat === "preserve" ? undefined : yFormat,
       tickValues: yAxisConfig.tickValues as unknown as BarDatum[],
     }),
     [yFormat, yAxisLegend, yAxisConfig.tickValues],
   );
+
+  // Get domain from config if provided
+  const minValue = yAxisConfig?.domain?.[0];
+  const maxValue = yAxisConfig?.domain?.[1];
 
   return (
     <Widget title={title}>
@@ -81,6 +97,10 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
         axisBottom={xAxisConfig?.enabled === false ? undefined : xAxisComputedConfig}
         axisLeft={yAxisConfig?.enabled === false ? undefined : yAxisComputedConfig}
         legends={[defaultBarChartLegendsConfig]}
+        layout={layout}
+        minValue={minValue}
+        maxValue={maxValue}
+        valueFormat={mode === ChartMode.Diverging ? (value: number) => `${Math.abs(value)}` : undefined}
       />
     </Widget>
   );

@@ -130,7 +130,9 @@ export interface UIBarChartData extends ResponseBarChartData {
     legend?: string;
     enabled?: boolean;
     format?: string;
+    domain?: number[];
   };
+  layout?: "horizontal" | "vertical";
 }
 
 export type UIComingSoonChartData = ResponseComingSoonChartData;

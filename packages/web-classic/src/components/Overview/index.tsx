@@ -71,6 +71,7 @@ const getChartWidgetByType = (
           groupMode={chartData.groupMode}
           xAxisConfig={chartData.xAxisConfig}
           yAxisConfig={chartData.yAxisConfig}
+          layout={chartData.layout}
           translations={{ "no-results": empty("no-results") }}
         />
       );
