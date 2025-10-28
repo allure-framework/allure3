@@ -1,0 +1,1 @@
+{"id":"24162668acebb06f0c6d79739e9cabd5","fullName":"test/commands/open.test.ts#open command should serve with custom options","name":"should serve with custom options","status":"passed","testResultsByEnv":{"windows-latest":"1485acfcec0593e65b394df4cae6ae15","ubuntu-latest":"2769348f23b4c08ad0770503ef283ee3","macos-latest":"56eefc4ff23cea55965c5d79eef59e1c"}}

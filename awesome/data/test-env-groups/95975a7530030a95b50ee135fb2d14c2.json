@@ -1,0 +1,1 @@
+{"id":"95975a7530030a95b50ee135fb2d14c2","fullName":"test/store/store.test.ts#environments should return all environments","name":"should return all environments","status":"passed","testResultsByEnv":{"windows-latest":"bc7fc86ff215b6df69eee39570552b06","ubuntu-latest":"1152d5774dddedc37ffefe7928dff194","macos-latest":"82a1d820bbed768342c81776ce0bf6ad"}}

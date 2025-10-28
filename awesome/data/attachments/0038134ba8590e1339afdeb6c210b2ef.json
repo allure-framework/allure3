@@ -1,0 +1,36 @@
+{
+  "name": "Test with steps",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "Step 1",
+      "status": "passed",
+      "steps": []
+    },
+    {
+      "name": "Step 2",
+      "status": "passed",
+      "steps": [
+        {
+          "name": "Step 2.1",
+          "status": "passed",
+          "steps": []
+        },
+        {
+          "name": "Step 2.2",
+          "status": "passed",
+          "steps": [
+            {
+              "name": "Step 2.2.1",
+              "status": "passed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Step 3",
+      "status": "passed"
+    }
+  ]
+}

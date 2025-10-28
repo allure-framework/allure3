@@ -1,0 +1,1 @@
+{"id":"5e4f992a8677d026b8a300f9278fa75e","fullName":"commons/summary.test.ts:93:3","name":"should render cards for each generated report with summary","status":"passed","testResultsByEnv":{"windows-latest":"012b9379264341306155c9ba52fac672","ubuntu-latest":"bf5e2ecc72dbf98e3e7c8cb3251013bb","macos-latest":"665aa385275437bd2610da21a4dbe9f2"}}

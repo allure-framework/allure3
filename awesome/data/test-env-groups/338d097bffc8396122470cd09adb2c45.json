@@ -1,0 +1,1 @@
+{"id":"338d097bffc8396122470cd09adb2c45","fullName":"test/allure2.test.ts#allure2 reader should ignore invalid json","name":"should ignore invalid json","status":"passed","testResultsByEnv":{"windows-latest":"703944a77d79993f35ae9e84a1f82428","ubuntu-latest":"d970770bd274877564d4ed1b4266da53","macos-latest":"4e2e6936867d8a48d059b38923e8baa3"}}

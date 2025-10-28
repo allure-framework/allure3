@@ -1,0 +1,1 @@
+{"id":"2db12424d50d5241ed312cf188c5b3b6","fullName":"test/toolRunner.test.ts#invokeJsonCliTool should return a JSON entity","name":"should return a JSON entity","status":"passed","testResultsByEnv":{"windows-latest":"8bf19ab1db57ddbc58c8370bbb06723f","ubuntu-latest":"82eebdbfdce6dfaa39f56635595111eb","macos-latest":"6bca02247a2ed190d82dc2aefad3f70f"}}

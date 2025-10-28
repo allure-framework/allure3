@@ -1,0 +1,1 @@
+{"id":"cf5c9cd1e00996c02bd169c6779d7e1d","fullName":"test/config.test.ts#resolveConfig should set default name if it's not provided","name":"should set default name if it's not provided","status":"passed","testResultsByEnv":{"windows-latest":"6f6bffcf04c1bff702cd507b4af994b1","ubuntu-latest":"3b3ff26ae24dc137723d6e5c3553ed34","macos-latest":"3e95c0f3a22bbb7a72631ffe53401474"}}

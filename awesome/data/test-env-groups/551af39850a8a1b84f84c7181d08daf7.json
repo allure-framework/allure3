@@ -1,0 +1,1 @@
+{"id":"551af39850a8a1b84f84c7181d08daf7","fullName":"test/config.test.ts#resolvePlugin throws an error when plugin can't be resolved","name":"throws an error when plugin can't be resolved","status":"passed","testResultsByEnv":{"windows-latest":"8e0c7e95d8fa32e6ce046f14a06c5581","ubuntu-latest":"e8ebb6314d6f35586d76d85b9366d93d","macos-latest":"7f14d455fd29cc706454d9c9d4e9d897"}}

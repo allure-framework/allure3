@@ -1,0 +1,1 @@
+{"id":"6e095a00b3ce0602db38a073cc67fbd9","fullName":"test/allure1.test.ts#allure1 reader failures should parse message and trace","name":"should parse message and trace","status":"passed","testResultsByEnv":{"windows-latest":"5f63579334db0fb246b4264c8a78682d","ubuntu-latest":"80910ae8c39c4da72f3bd3547f6765ea","macos-latest":"1931c5e937e55e4af00bd36dbd72b10e"}}

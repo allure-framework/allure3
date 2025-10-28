@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test-suite xmlns="urn:model.allure.qatools.yandex.ru" version="1.4.4-SNAPSHOT">
+    <test-cases>
+        <test-case status="failed">
+        </test-case>
+    </test-cases>
+</test-suite>

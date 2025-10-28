@@ -1,0 +1,1 @@
+{"id":"771bb937ea37f36299e16c796caff2e7","fullName":"test/report.test.ts#report should not fail with the empty report","name":"should not fail with the empty report","status":"passed","testResultsByEnv":{"windows-latest":"dd386f9fabb2fbeeca31e85ee8b4c3ba","ubuntu-latest":"f1c501d85f3e9326883a6a01b512f8e1","macos-latest":"2a74df8854bbd7fbaa72bc97e34a00c5"}}

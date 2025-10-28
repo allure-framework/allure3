@@ -1,0 +1,1 @@
+{"id":"b34a539a4705b4c3953cf94b7270604a","fullName":"test/config.test.ts#resolveConfig should allow to override given report name","name":"should allow to override given report name","status":"passed","testResultsByEnv":{"windows-latest":"2a2206a23bcc51e0d5e76c82bbe1361b","ubuntu-latest":"e5c314f620c8b381f5e7a5b592aee370","macos-latest":"1db6e81325e28c6dd6eccd1b47b630ac"}}

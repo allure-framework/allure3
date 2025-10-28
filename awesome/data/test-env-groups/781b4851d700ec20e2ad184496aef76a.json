@@ -1,0 +1,1 @@
+{"id":"781b4851d700ec20e2ad184496aef76a","fullName":"allure-awesome/features/transitions.test.ts:117:3","name":"should be able to filter fixed tests with using freshely fixed status filter","status":"passed","testResultsByEnv":{"windows-latest":"dc3ebf541e6e1d0ab81d8a0a2b7b2190","ubuntu-latest":"65b42bf1ce7100fe9b2e0f36136b298d","macos-latest":"30ea11d558137870c71ddab85aca3afa"}}

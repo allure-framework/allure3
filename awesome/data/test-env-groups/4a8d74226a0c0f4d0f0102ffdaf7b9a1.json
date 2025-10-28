@@ -1,0 +1,1 @@
+{"id":"4a8d74226a0c0f4d0f0102ffdaf7b9a1","fullName":"test/junitxml.test.ts#junit xml reader attachments stdout should parse system-out","name":"should parse system-out","status":"passed","testResultsByEnv":{"windows-latest":"75560c36cc81a1e7d3e0d2a5f86a72c9","ubuntu-latest":"222ffa7d6c57890e1f584ced99002e34","macos-latest":"4fd43686d65d12fa221bc87ad6ee6794"}}

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "foo",
+    "uri": "features/foo.feature",
+    "keyword": "Feature",
+    "name": "Foo",
+    "elements": [
+      {
+        "keyword": "Background",
+        "name": "Bar",
+        "type": "background",
+        "steps": [
+          {
+            "keyword": "Given ",
+            "name": "pass",
+            "result": {
+              "status": "passed",
+              "duration": 10000
+            }
+          }
+        ]
+      },
+      {
+        "id": "foo;baz",
+        "keyword": "Scenario",
+        "name": "Baz",
+        "type": "scenario",
+        "steps": [
+          {
+            "keyword": "Given ",
+            "name": "pass",
+            "result": {
+              "status": "passed",
+              "duration": 12000
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

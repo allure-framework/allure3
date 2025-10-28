@@ -1,0 +1,1 @@
+{"id":"2ebe82117f03d64a70c7d255b963a621","fullName":"test/junitxml.test.ts#junit xml reader statuses error should parse an empty element","name":"should parse an empty element","status":"passed","testResultsByEnv":{"windows-latest":"446f0f824db905f46c405b2e95d6a63d","ubuntu-latest":"4e94755fe352e831dca16751305366f4","macos-latest":"b8b8fe12d06f03cb5da552a4a7bc665d"}}

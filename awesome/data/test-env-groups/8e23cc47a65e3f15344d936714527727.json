@@ -1,0 +1,1 @@
+{"id":"8e23cc47a65e3f15344d936714527727","fullName":"test/store/store.test.ts#dump state should merge two dumps with no envs","name":"should merge two dumps with no envs","status":"passed","testResultsByEnv":{"windows-latest":"1862b4da4c888eb9a0805a028c27f7cd","ubuntu-latest":"288227dee15b8efed8705b9da0039a62","macos-latest":"0c01d44ad6f98d8337f13167d03891fa"}}
