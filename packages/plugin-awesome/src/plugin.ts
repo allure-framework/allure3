@@ -88,14 +88,15 @@ export class AwesomePlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
-    const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
-
     await generateGlobals(this.#writer!, {
       globalAttachments,
       globalErrors,
       globalExitCode,
       contentFunction: (id) => store.attachmentContentById(id),
     });
+
+    const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
+
     await generateStaticFiles({
       ...this.options,
       id: context.id,
