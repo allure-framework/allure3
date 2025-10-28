@@ -221,11 +221,11 @@ export class AllureReport {
     this.#executionStage = "running";
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish) {
+    if (this.#allureServiceClient && this.#publish && repoData?.branch) {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
-        branch: repoData?.branch,
+        branch: repoData.branch,
       });
 
       this.reportUrl = url;

@@ -18,6 +18,9 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 vi.mock("@allurereport/summary", () => ({
   generateSummary: vi.fn(),
 }));
+vi.mock("@allurereport/ci", () => ({
+  detect: vi.fn().mockReturnValue({}),
+}));
 
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
   const plugin: Mocked<Required<Plugin>> = {
