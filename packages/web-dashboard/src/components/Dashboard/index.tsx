@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType } from "@allurereport/charts-api";
+import { BarChartType, ChartType } from "@allurereport/charts-api";
 import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
@@ -10,6 +10,7 @@ import {
   HeatMapWidget,
   Loadable,
   PageLoader,
+  StabilityRateDistributionWidget,
   SuccessRatePieChart,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -58,6 +59,25 @@ const getChartWidgetByType = (
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
+
+      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
+        return (
+          <StabilityRateDistributionWidget
+            title={title}
+            mode={chartData.mode}
+            data={chartData.data}
+            keys={chartData.keys}
+            indexBy={chartData.indexBy}
+            colors={chartData.colors}
+            groupMode={chartData.groupMode}
+            xAxisConfig={chartData.xAxisConfig}
+            yAxisConfig={chartData.yAxisConfig}
+            layout={chartData.layout}
+            threshold={chartData.threshold}
+            translations={{ "no-results": empty("no-results") }}
+          />
+        );
+      }
 
       return (
         <BarChartWidget
