@@ -45,8 +45,6 @@ export class ProjectsListCommand extends Command {
     try {
       const { projects } = await serviceClient.projects();
 
-      console.log({ projects });
-
       if (projects.length === 0) {
         // eslint-disable-next-line no-console
         console.info(yellow("No projects found. Create a new one with `allure project-create` command"));
