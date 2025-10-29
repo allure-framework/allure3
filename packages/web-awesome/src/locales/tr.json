@@ -19,8 +19,9 @@
   "tabs": {
     "total": "Tümü",
     "results": "Sonuçlar",
-    "globalAttachments": "Global Ekler",
-    "globalErrors": "Global Hatalar"
+    "globalAttachments": "Küresel Ekler",
+    "globalErrors": "Küresel Hatalar",
+    "qualityGates": "Kalite Kapıları"
   },
   "search": {
     "search": "Ara",

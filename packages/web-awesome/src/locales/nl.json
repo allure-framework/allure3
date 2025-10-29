@@ -20,7 +20,8 @@
     "total": "Alle",
     "results": "Resultaten",
     "globalAttachments": "Globale Bijlagen",
-    "globalErrors": "Globale Fouten"
+    "globalErrors": "Globale Fouten",
+    "qualityGates": "Kwaliteitspoorten"
   },
   "search": {
     "search": "Zoeken",

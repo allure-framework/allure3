@@ -20,7 +20,8 @@
     "total": "Alla",
     "results": "Resultat",
     "globalAttachments": "Globala Bilagor",
-    "globalErrors": "Globala Fel"
+    "globalErrors": "Globala Fel",
+    "qualityGates": "Kvalitetsportar"
   },
   "search": {
     "search": "Sök",

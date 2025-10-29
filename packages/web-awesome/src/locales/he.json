@@ -20,7 +20,8 @@
     "total": "הכל",
     "results": "תוצאות",
     "globalAttachments": "קבצים מצורפים גלובליים",
-    "globalErrors": "שגיאות גלובליות"
+    "globalErrors": "שגיאות גלובליות",
+    "qualityGates": "שערי איכות"
   },
   "search": {
     "search": "חפש",

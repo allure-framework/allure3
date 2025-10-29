@@ -17,10 +17,11 @@
     "new": "Nowe testy"
   },
   "tabs": {
-    "total": "Wszytkie",
+    "total": "Wszystkie",
     "results": "Wyniki",
     "globalAttachments": "Globalne Załączniki",
-    "globalErrors": "Globalne Błędy"
+    "globalErrors": "Globalne Błędy",
+    "qualityGates": "Bramy Jakości"
   },
   "search": {
     "search": "Poszukiwanie",

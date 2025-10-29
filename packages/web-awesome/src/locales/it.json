@@ -20,7 +20,8 @@
     "total": "Tutti",
     "results": "Risultati",
     "globalAttachments": "Allegati Globali",
-    "globalErrors": "Errori Globali"
+    "globalErrors": "Errori Globali",
+    "qualityGates": "Porte di Qualità"
   },
   "search": {
     "search": "Cerca",

@@ -20,7 +20,8 @@
     "total": "ყველა",
     "results": "შედეგები",
     "globalAttachments": "გლობალური დანართები",
-    "globalErrors": "გლობალური შეცდომები"
+    "globalErrors": "გლობალური შეცდომები",
+    "qualityGates": "ხარისხის კარიბჭეები"
   },
   "search": {
     "search": "ძებნა",

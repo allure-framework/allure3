@@ -17,10 +17,11 @@
     "new": "Pruebas nuevas"
   },
   "tabs": {
-    "total": "Todo",
+    "total": "Todos",
     "results": "Resultados",
     "globalAttachments": "Adjuntos Globales",
-    "globalErrors": "Errores Globales"
+    "globalErrors": "Errores Globales",
+    "qualityGates": "Puertas de Calidad"
   },
   "search": {
     "search": "Buscar",

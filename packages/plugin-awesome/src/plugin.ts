@@ -17,6 +17,7 @@ import {
   generateGlobals,
   generateHistoryDataPoints,
   generateNav,
+  generateQualityGateResults,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -46,6 +47,7 @@ export class AwesomePlugin implements Plugin {
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
+    const qualityGateResults = await store.qualityGateResults();
 
     for (const env of environments) {
       envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
@@ -88,6 +90,7 @@ export class AwesomePlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
+    await generateQualityGateResults(this.#writer!, qualityGateResults);
     await generateGlobals(this.#writer!, {
       globalAttachments,
       globalErrors,

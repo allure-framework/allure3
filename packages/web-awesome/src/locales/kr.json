@@ -17,10 +17,11 @@
     "new": "새로운 테스트들"
   },
   "tabs": {
-    "total": "전체",
+    "total": "모두",
     "results": "결과",
-    "globalAttachments": "글로벌 첨부파일",
-    "globalErrors": "글로벌 오류"
+    "globalAttachments": "전역 첨부파일",
+    "globalErrors": "전역 오류",
+    "qualityGates": "품질 게이트"
   },
   "search": {
     "search": "검색",

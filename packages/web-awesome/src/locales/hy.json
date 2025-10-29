@@ -17,10 +17,11 @@
     "new": "Նոր թեստեր"
   },
   "tabs": {
-    "total": "Բոլոր",
+    "total": "Բոլորը",
     "results": "Արդյունքներ",
     "globalAttachments": "Գլոբալ կցորդներ",
-    "globalErrors": "Գլոբալ սխալներ"
+    "globalErrors": "Գլոբալ սխալներ",
+    "qualityGates": "Որակի դարպասներ"
   },
   "search": {
     "search": "Որոնում",

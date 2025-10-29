@@ -19,8 +19,9 @@
   "tabs": {
     "total": "Все",
     "results": "Результаты",
-    "globalAttachments": "Глобальные вложения",
-    "globalErrors": "Глобальные ошибки"
+    "globalAttachments": "Глобальные Вложения",
+    "globalErrors": "Глобальные Ошибки",
+    "qualityGates": "Ворота Качества"
   },
   "search": {
     "search": "Поиск",

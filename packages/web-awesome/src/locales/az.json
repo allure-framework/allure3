@@ -17,10 +17,11 @@
     "new": "Yeni testlər"
   },
   "tabs": {
-    "total": "Bütün",
+    "total": "Hamısı",
     "results": "Nəticələr",
     "globalAttachments": "Qlobal Əlavələr",
-    "globalErrors": "Qlobal Səhvlər"
+    "globalErrors": "Qlobal Xətalar",
+    "qualityGates": "Keyfiyyət Darvazaları"
   },
   "search": {
     "search": "Axtarış",

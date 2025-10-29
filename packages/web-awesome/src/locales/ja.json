@@ -20,7 +20,8 @@
     "total": "すべて",
     "results": "結果",
     "globalAttachments": "グローバル添付ファイル",
-    "globalErrors": "グローバルエラー"
+    "globalErrors": "グローバルエラー",
+    "qualityGates": "品質ゲート"
   },
   "search": {
     "search": "検索",

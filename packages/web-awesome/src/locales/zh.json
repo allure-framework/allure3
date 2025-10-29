@@ -17,10 +17,11 @@
     "new": "新的测试"
   },
   "tabs": {
-    "total": "所有",
+    "total": "全部",
     "results": "结果",
     "globalAttachments": "全局附件",
-    "globalErrors": "全局错误"
+    "globalErrors": "全局错误",
+    "qualityGates": "质量门"
   },
   "search": {
     "search": "搜索",
