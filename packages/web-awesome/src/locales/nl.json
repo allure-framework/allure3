@@ -20,7 +20,8 @@
     "total": "Alle",
     "results": "Resultaten",
     "globalAttachments": "Globale Bijlagen",
-    "globalErrors": "Globale Fouten"
+    "globalErrors": "Globale Fouten",
+    "qualityGates": "Kwaliteitspoorten"
   },
   "search": {
     "search": "Zoeken",
@@ -79,7 +80,8 @@
     "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
-    "no-global-errors-results": "No global errors information available",
+    "no-global-errors-results": "Geen globale fouteninformatie beschikbaar",
+    "no-quality-gate-results": "Geen kwaliteitspoort resultaten beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",

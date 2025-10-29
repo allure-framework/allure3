@@ -17,10 +17,11 @@
     "new": "新的测试"
   },
   "tabs": {
-    "total": "所有",
+    "total": "全部",
     "results": "结果",
     "globalAttachments": "全局附件",
-    "globalErrors": "全局错误"
+    "globalErrors": "全局错误",
+    "qualityGates": "质量门"
   },
   "search": {
     "search": "搜索",
@@ -79,7 +80,8 @@
     "no-message-provided": "未提供消息",
     "clear-filters": "清除过滤器",
     "no-attachments-results": "没有附件信息",
-    "no-global-errors-results": "No global errors information available",
+    "no-global-errors-results": "没有全局错误信息",
+    "no-quality-gate-results": "没有质量门结果",
     "no-history-results": "没有历史信息",
     "no-retries-results": "没有重试信息",
     "no-test-steps-results": "没有可用的测试步骤信息",

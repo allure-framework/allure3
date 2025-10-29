@@ -21,6 +21,7 @@ import { currentSection, getSection } from "@/stores/sections";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
+import { fetchQualityGateResults } from "./stores/qualityGate";
 import * as styles from "./styles.scss";
 
 const Loader = () => {
@@ -44,6 +45,7 @@ const App = () => {
       fetchEnvironments,
       fetchEnvInfo,
       fetchGlobals,
+      fetchQualityGateResults,
     ];
 
     if (globalThis) {

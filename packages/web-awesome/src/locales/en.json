@@ -20,7 +20,8 @@
     "total": "All",
     "results": "Results",
     "globalAttachments": "Global Attachments",
-    "globalErrors": "Global Errors"
+    "globalErrors": "Global Errors",
+    "qualityGates": "Quality Gates"
   },
   "search": {
     "search": "Search",
@@ -80,6 +81,7 @@
     "clear-filters": "Clear filters",
     "no-attachments-results": "No attachments information available",
     "no-global-errors-results": "No global errors information available",
+    "no-quality-gate-results": "No quality gate results available",
     "no-history-results": "No history information available",
     "no-retries-results": "No retries information available",
     "no-test-steps-results": "No test steps information available",

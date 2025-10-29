@@ -21,6 +21,7 @@ import type {
   ExitCode,
   PluginContext,
   PluginGlobals,
+  QualityGateValidationResult,
   ReportFiles,
   ResultFile,
   TestResultFilter,
@@ -411,6 +412,13 @@ export const generateGlobals = async (
   }
 
   await writer.writeWidget("globals.json", globals);
+};
+
+export const generateQualityGateResults = async (
+  writer: AwesomeDataWriter,
+  qualityGateResults: QualityGateValidationResult[] = [],
+) => {
+  await writer.writeWidget("quality-gate.json", qualityGateResults);
 };
 
 export const generateStaticFiles = async (

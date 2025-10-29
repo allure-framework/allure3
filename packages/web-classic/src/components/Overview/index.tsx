@@ -1,8 +1,8 @@
 /* eslint-disable @stylistic/quotes */
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { capitalize } from "@allurereport/core-api";
 import { ChartType } from "@allurereport/charts-api";
+import { capitalize } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,

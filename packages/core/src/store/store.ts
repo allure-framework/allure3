@@ -750,6 +750,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
+      qualityGateResultsByRules: this.#qualityGateResultsByRules,
     };
 
     this.indexLatestEnvTestResultByHistoryId.forEach((envMap) => {
@@ -796,6 +797,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
+      qualityGateResultsByRules = {},
     } = stateDump;
 
     updateMapWithRecord(this.#testResults, testResults);
@@ -809,7 +811,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);
-
     Object.entries(indexAttachmentByTestResult).forEach(([trId, links]) => {
       const attachmentsLinks = links.map((id) => this.#attachments.get(id)).filter(Boolean);
 
@@ -826,7 +827,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
     });
-
     Object.entries(indexTestResultByHistoryId).forEach(([historyId, trIds]) => {
       const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean) as TestResult[];
 
@@ -843,7 +843,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingTrs.push(...trs);
     });
-
     Object.entries(indexTestResultByTestCase).forEach(([tcId, trIds]) => {
       const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
 
@@ -860,7 +859,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingTrs.push(...(trs as TestResult[]));
     });
-
     Object.entries(indexAttachmentByFixture).forEach(([fxId, attachmentIds]) => {
       const attachmentsLinks = attachmentIds.map((id) => this.#attachments.get(id)).filter(Boolean);
 
@@ -877,7 +875,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
     });
-
     Object.entries(indexFixturesByTestResult).forEach(([trId, fixtureIds]) => {
       const fxs = fixtureIds.map((id) => this.#fixtures.get(id)).filter(Boolean);
 
@@ -894,7 +891,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingFixtures.push(...(fxs as TestFixtureResult[]));
     });
-
     Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
       const existingKnown = this.indexKnownByHistoryId.get(historyId);
 
@@ -905,7 +901,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-
     Object.values(indexLatestEnvTestResultByHistoryId).forEach((trId) => {
       const tr = this.#testResults.get(trId);
 
@@ -915,5 +910,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, tr);
     });
+    Object.assign(this.#qualityGateResultsByRules, qualityGateResultsByRules);
   }
 }

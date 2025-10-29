@@ -26,27 +26,36 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TrError: FunctionalComponent<TestError & { status?: TestStatus }> = ({
-  message,
+export const TrError: FunctionalComponent<TestError & { className?: string; status?: TestStatus }> = ({
+  className,
+  message = "",
   trace,
   actual,
   expected,
   status,
+  ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
-
   const openDiff = () =>
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <TrDiff actual={actual} expected={expected} />,
     });
+  const sanitizedMessage = ansiToHTML(message, {
+    fg: "var(--on-text-primary)",
+    colors: {},
+  });
 
   return (
-    <div data-testid="test-result-error" className={clsx(styles["test-result-error"], styles[`tr-status-${status}`])}>
+    <div
+      data-testid="test-result-error"
+      className={clsx(styles["test-result-error"], styles[`tr-status-${status}`], className)}
+      {...rest}
+    >
       {message ? (
         <>
           <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
@@ -71,7 +80,8 @@ export const TrError: FunctionalComponent<TestError & { status?: TestStatus }> =
           </div>
           <div className={styles["test-result-error-message"]} onClick={() => setIsOpen(!isOpen)}>
             <Code data-testid="test-result-error-message" size={"s"}>
-              <pre>{message}</pre>
+              {/* eslint-disable-next-line react/no-danger */}
+              <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
             </Code>
           </div>
         </>
@@ -88,7 +98,7 @@ export const TrError: FunctionalComponent<TestError & { status?: TestStatus }> =
           onClick={openDiff}
         />
       )}
-      {isOpen && Boolean(trace.length) && <TrErrorTrace trace={trace} />}
+      {isOpen && Boolean(trace?.length) && <TrErrorTrace trace={trace} />}
     </div>
   );
 };
