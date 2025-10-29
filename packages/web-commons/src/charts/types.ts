@@ -133,6 +133,8 @@ export interface UIBarChartData extends ResponseBarChartData {
     domain?: number[];
   };
   layout?: "horizontal" | "vertical";
+  // Threshold value for the stability rate distribution chart
+  threshold?: number;
 }
 
 export type UIComingSoonChartData = ResponseComingSoonChartData;

@@ -23,6 +23,7 @@ export enum BarChartType {
   StatusChangeTrend = "statusChangeTrend",
   DurationsByLayer = "durationsByLayer",
   FbsuAgePyramid = "fbsuAgePyramid",
+  StabilityRateDistribution = "stabilityRateDistribution",
 }
 
 export enum TreeMapChartType {
@@ -184,6 +185,8 @@ export interface BarChartData {
     domain?: number[];
   };
   layout?: "horizontal" | "vertical";
+  // Threshold value for the stability rate distribution chart
+  threshold?: number;
 }
 
 // Tree map chart data types
@@ -245,6 +248,7 @@ export type BarChartOptions = {
   mode?: ChartMode;
   title?: string;
   limit?: number;
+  threshold?: number;
 };
 
 export type TreeMapChartOptions = {
@@ -306,4 +310,3 @@ export interface TreeMapDataAccessor<T extends TreeMapNode> {
 export interface HeatMapDataAccessor<T extends Record<string, unknown> = {}> {
   getHeatMap: (storeData: AllureChartsStoreData) => HeatMapSerie<T>[];
 }
-

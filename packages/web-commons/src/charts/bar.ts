@@ -11,6 +11,7 @@ import { statusChangeTrendBarAccessor } from "./accessors/statusChangeTrendBarAc
 import { statusTrendBarAccessor } from "./accessors/statusTrendBarAccessor.js";
 import { generateBarChartDurationsByLayer } from "./bar/generateBarChartDurationsByLayer.js";
 import { generateBarChartFbsuAgePyramid } from "./bar/generateBarChartFbsuAgePyramid.js";
+import { generateStabilityRateDistribution } from "./bar/generateStabilityRateDistribution.js";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
@@ -77,5 +78,7 @@ export const generateBarChart = (
       return generateBarChartDurationsByLayer(newOptions, storeData);
     case BarChartType.FbsuAgePyramid:
       return generateBarChartFbsuAgePyramid(newOptions, storeData);
+    case BarChartType.StabilityRateDistribution:
+      return generateStabilityRateDistribution(newOptions, storeData);
   }
 };

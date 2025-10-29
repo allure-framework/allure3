@@ -68,7 +68,7 @@ const config = {
           },
           {
             type: "bar",
-            dataType: "stabilityRate",
+            dataType: "stabilityRateDistribution",
             title: "Stability rate distribution",
           },
           {
