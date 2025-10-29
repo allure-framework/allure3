@@ -81,6 +81,7 @@
     "clear-filters": "Cancella filtri",
     "no-attachments-results": "Nessuna informazione sugli allegati disponibile",
     "no-global-errors-results": "Nessuna informazione sugli errori globali disponibile",
+    "no-quality-gate-results": "Nessun risultato delle porte di qualità disponibile",
     "no-history-results": "Nessuna informazione sulla cronologia disponibile",
     "no-retries-results": "Nessuna informazione sui ritentativi disponibile",
     "no-test-steps-results": "Nessuna informazione disponibile sui passaggi del test",

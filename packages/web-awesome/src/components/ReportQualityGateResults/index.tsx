@@ -1,4 +1,3 @@
-import { ansiToHTML } from "@allurereport/web-commons";
 import { Loadable, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
