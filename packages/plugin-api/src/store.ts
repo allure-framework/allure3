@@ -71,6 +71,7 @@ export interface AllureStoreDump {
   fixtures: Record<string, TestFixtureResult>;
   environments: string[];
   reportVariables: ReportVariables;
+  qualityGateResultsByRules: Record<string, QualityGateValidationResult>;
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
@@ -96,4 +97,5 @@ export enum AllureStoreDumpFiles {
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   IndexKnownByHistoryId = "index-known-by-history-id.json",
+  QualityGateResultsByRules = "quality-gate-results-by-rules.json",
 }

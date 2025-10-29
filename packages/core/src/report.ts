@@ -267,6 +267,7 @@ export class AllureReport {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
+      qualityGateResultsByRules = {},
     } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
@@ -327,6 +328,9 @@ export class AllureReport {
     await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
       name: AllureStoreDumpFiles.IndexKnownByHistoryId,
     });
+    await addEntry(Buffer.from(JSON.stringify(qualityGateResultsByRules)), {
+      name: AllureStoreDumpFiles.QualityGateResultsByRules,
+    });
 
     for (const attachment of allAttachments) {
       const content = await this.#store.attachmentContentById(attachment.id);
@@ -377,6 +381,8 @@ export class AllureReport {
       const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
       const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
       const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+      const qualityGateResultsByRulesEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResultsByRules);
+
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -394,6 +400,7 @@ export class AllureReport {
           case AllureStoreDumpFiles.IndexAttachmentsByFixture:
           case AllureStoreDumpFiles.IndexFixturesByTestResult:
           case AllureStoreDumpFiles.IndexKnownByHistoryId:
+          case AllureStoreDumpFiles.QualityGateResultsByRules:
             return acc;
           default:
             return Object.assign(acc, {
@@ -417,7 +424,9 @@ export class AllureReport {
         indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
         indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
         indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+        qualityGateResultsByRules: JSON.parse(qualityGateResultsByRulesEntry.toString("utf8")),
       };
+
       const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};
 

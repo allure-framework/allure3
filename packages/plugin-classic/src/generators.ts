@@ -14,7 +14,6 @@ import {
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
-import { getPieChartValues } from "@allurereport/web-commons";
 import {
   type AllureStore,
   type ReportFiles,
@@ -32,6 +31,7 @@ import type {
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
+import { getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
