@@ -1,6 +1,6 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
 import { type HistoryDataPoint, type TestError } from "@allurereport/core-api";
-import { type ExitCode } from "@allurereport/plugin-api";
+import { type ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
@@ -26,6 +26,7 @@ export type GeneratorParams = {
     errors?: TestError[];
     attachments?: Record<string, Buffer>;
   };
+  qualityGateResults?: QualityGateValidationResult[];
 };
 
 export interface ReportBootstrap {
@@ -54,6 +55,7 @@ export const generateReport = async (payload: GeneratorParams) => {
     attachments = [],
     history = [],
     globals,
+    qualityGateResults,
   } = payload;
   const hasHistory = history.length > 0;
   const historyPath = resolve(rootDir, `history-${randomUUID()}.jsonl`);
@@ -113,6 +115,10 @@ export const generateReport = async (payload: GeneratorParams) => {
         report.realtimeDispatcher.sendGlobalAttachment(resultFile);
       });
     }
+  }
+
+  if (qualityGateResults?.length > 0) {
+    report.realtimeDispatcher.sendQualityGateResults(qualityGateResults);
   }
 
   await report.readDirectory(resultsDir);

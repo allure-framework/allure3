@@ -18,14 +18,18 @@ export const ReportQualityGateResults = () => {
         return (
           <ul className={styles["report-quality-gate-results"]}>
             {results.map((result) => (
-              <li key={result.rule}>
+              <li key={result.rule} data-testid="report-quality-gate-result">
                 <div className={styles["report-quality-gate-result"]}>
                   <SvgIcon id={allureIcons.solidXCircle} className={styles["report-quality-gate-result-icon"]} />
                   <div className={styles["report-quality-gate-result-content"]}>
-                    <Text tag="p" size="l" type="ui" bold>
+                    <Text tag="p" size="l" type="ui" bold data-testid="report-quality-gate-result-rule">
                       {result.rule}
                     </Text>
-                    <TrError className={styles["report-quality-gate-result-error"]} message={result.message} />
+                    <TrError
+                      className={styles["report-quality-gate-result-error"]}
+                      message={result.message}
+                      data-testid="report-quality-gate-result-message"
+                    />
                   </div>
                 </div>
               </li>

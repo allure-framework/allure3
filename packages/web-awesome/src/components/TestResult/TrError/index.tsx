@@ -33,6 +33,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
   actual,
   expected,
   status,
+  ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
@@ -53,6 +54,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
     <div
       data-testid="test-result-error"
       className={clsx(styles["test-result-error"], styles[`tr-status-${status}`], className)}
+      {...rest}
     >
       {message ? (
         <>
