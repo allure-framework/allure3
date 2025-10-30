@@ -26,6 +26,10 @@ export enum BarChartType {
   StabilityRateDistribution = "stabilityRateDistribution",
 }
 
+export enum FunnelChartType {
+  TestingPyramid = "testingPyramid",
+}
+
 export enum TreeMapChartType {
   SuccessRateDistribution = "successRateDistribution",
   CoverageDiff = "coverageDiff",
@@ -217,6 +221,14 @@ export interface ComingSoonChartData {
   title?: string;
 }
 
+// Funnel chart data types
+export interface FunnelChartData {
+  type: ChartType.Funnel;
+  dataType: FunnelChartType;
+  title?: string;
+  data: Record<string, number | string>[];
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -224,7 +236,9 @@ export type GeneratedChartData =
   | BarChartData
   | ComingSoonChartData
   | TreeMapChartData
-  | HeatMapChartData;
+  | HeatMapChartData
+  | FunnelChartData;
+
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
 // Chart options
@@ -267,13 +281,21 @@ export type ComingSoonChartOptions = {
   title?: string;
 };
 
+export type FunnelChartOptions = {
+  type: ChartType.Funnel;
+  dataType: FunnelChartType;
+  title?: string;
+  layers?: string[];
+};
+
 export type ChartOptions =
   | TrendChartOptions
   | PieChartOptions
   | BarChartOptions
   | ComingSoonChartOptions
   | TreeMapChartOptions
-  | HeatMapChartOptions;
+  | HeatMapChartOptions
+  | FunnelChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

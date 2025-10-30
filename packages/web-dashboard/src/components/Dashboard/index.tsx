@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartType } from "@allurereport/charts-api";
+import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
 import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
@@ -12,6 +12,7 @@ import {
   PageLoader,
   StabilityRateDistributionWidget,
   SuccessRatePieChart,
+  TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
   Widget,
@@ -113,6 +114,19 @@ const getChartWidgetByType = (
           title={chartData.title}
           data={chartData.data}
           colors={chartData.colors}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.Funnel: {
+      if (chartData.dataType !== FunnelChartType.TestingPyramid) {
+        return null;
+      }
+
+      return (
+        <TestingPyramidWidget
+          title={chartData.title}
+          data={chartData.data}
           translations={{ "no-results": empty("no-results") }}
         />
       );
