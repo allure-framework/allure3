@@ -367,7 +367,7 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
           acc[chartId] = chartData;
         }
       } else if ([ChartType.Pie, ChartType.ComingSoon].includes(chart.type)) {
-        acc[chartId] = chart;
+        return acc;
       }
 
       return acc;
