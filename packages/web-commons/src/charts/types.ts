@@ -7,6 +7,7 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  FunnelChartType,
   HeatMapSerie,
   PieSlice,
   TreeMapChartType,
@@ -150,6 +151,20 @@ export interface UIHeatMapChartData extends ResponseHeatMapChartData {
   colors: (value: number, domain?: number[]) => string;
 }
 
+export interface UITestingPyramidChartData extends ResponseTestingPyramidChartData {}
+
+export interface ResponseTestingPyramidChartData {
+  type: ChartType.Funnel;
+  dataType: FunnelChartType;
+  title?: string;
+  data: {
+    layer: string;
+    testCount: number;
+    successRate: number;
+    percentage: number;
+  }[];
+}
+
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -159,14 +174,17 @@ export type ChartData<
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
-  | ResponseHeatMapChartData;
+  | ResponseHeatMapChartData
+  | ResponseTestingPyramidChartData;
+
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UIPieChartData
   | UIBarChartData
   | UIComingSoonChartData
   | UITreeMapChartData
-  | UIHeatMapChartData;
+  | UIHeatMapChartData
+  | UITestingPyramidChartData;
 
 export type ChartsData<
   SeriesType extends string = string,

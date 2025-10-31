@@ -8,6 +8,7 @@ import {
   ChartMode,
   ChartType,
 } from "@allurereport/charts-api";
+import { formatDuration } from "@allurereport/core-api";
 
 export const generateBarChartDurationsByLayer = (
   options: BarChartOptions,
@@ -62,7 +63,7 @@ export const generateBarChartDurationsByLayer = (
     buckets.push({
       min: Math.min(...allDurations),
       max: Infinity,
-      label: `${Math.round(Math.min(...allDurations))}+ms`,
+      label: `${formatDuration(Math.round(Math.min(...allDurations)))}+`,
     });
   } else {
     // Create buckets based on quantiles to ensure data distribution
@@ -78,7 +79,9 @@ export const generateBarChartDurationsByLayer = (
       const bucketMax = i === maxBuckets - 1 ? sortedDurations[sortedDurations.length - 1] : sortedDurations[maxIndex];
 
       const label =
-        i === maxBuckets - 1 ? `${Math.round(bucketMin)}+ms` : `${Math.round(bucketMin)}-${Math.round(bucketMax)}ms`;
+        i === maxBuckets - 1
+          ? `${formatDuration(Math.round(bucketMin))}+`
+          : `${formatDuration(Math.round(bucketMin))}-${formatDuration(Math.round(bucketMax))}`;
 
       buckets.push({
         min: bucketMin,

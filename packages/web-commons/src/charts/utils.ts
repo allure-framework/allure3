@@ -1,5 +1,5 @@
 import type { ChartId } from "@allurereport/charts-api";
-import { BarChartType, ChartDataType, ChartType, TreeMapChartType } from "@allurereport/charts-api";
+import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
@@ -10,6 +10,7 @@ import type {
   ChartsDataWithEnvs,
   ResponseBarChartData,
   ResponseHeatMapChartData,
+  ResponseTestingPyramidChartData,
   ResponseTreeMapChartData,
   ResponseTrendChartData,
   TreeMapTooltipAccessor,
@@ -18,6 +19,7 @@ import type {
   UIChartData,
   UIChartsDataWithEnvs,
   UIHeatMapChartData,
+  UITestingPyramidChartData,
   UITreeMapChartData,
   UITrendChartData,
 } from "./types.js";
@@ -321,6 +323,16 @@ export const createTreeMapChartData = (
   }
 };
 
+export const createFunnelChartData = (
+  chartId: string,
+  chartData: ResponseTestingPyramidChartData,
+): UITestingPyramidChartData | undefined => {
+  switch (chartData.dataType) {
+    case FunnelChartType.TestingPyramid:
+      return chartData;
+  }
+};
+
 export const createHeatMapChartData = (chartId: ChartId, res: ChartsData): UIHeatMapChartData | undefined => {
   return createProblemsDistributionHeatMapChartData(chartId, res);
 };
@@ -345,6 +357,12 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         }
       } else if (chart.type === ChartType.HeatMap) {
         const chartData = createHeatMapChartData(chartId, res);
+        if (chartData) {
+          acc[chartId] = chartData;
+        }
+      } else if (chart.type === ChartType.Funnel) {
+        const chartData = createFunnelChartData(chartId, chart);
+
         if (chartData) {
           acc[chartId] = chartData;
         }

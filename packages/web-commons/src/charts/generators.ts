@@ -9,6 +9,7 @@ import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
 import { generateBarChart } from "./bar.js";
 import { generateComingSoonChart } from "./comingSoon.js";
+import { generateFunnelChart } from "./funnel/index.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTrendChart } from "./line.js";
 import { generatePieChart } from "./pie.js";
@@ -52,6 +53,9 @@ const generateChartData = async (props: {
         break;
       case ChartType.HeatMap:
         result[chartId] = generateHeatMapChart(chartOption, storeData)!;
+        break;
+      case ChartType.Funnel:
+        result[chartId] = generateFunnelChart(chartOption, storeData)!;
         break;
       default:
         result[chartId] = generateComingSoonChart(chartOption);
