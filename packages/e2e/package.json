@@ -19,7 +19,7 @@
     "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
     "@faker-js/faker": "^9.8.0",
-    "@playwright/test": "^1.48.2",
+    "@playwright/test": "^1.56.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
     "@types/lodash.times": "^4.3.9",
