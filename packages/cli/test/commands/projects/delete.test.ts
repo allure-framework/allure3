@@ -11,7 +11,7 @@ import { AllureServiceClientMock } from "../../utils.js";
 const fixtures = {
   config: "./custom/allurerc.mjs",
   cwd: ".",
-  projectName: "foo",
+  projectUuid: "foo-id",
 };
 
 vi.mock("prompts", () => ({
@@ -77,14 +77,14 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = fixtures.projectName;
+    command.projectUuid = fixtures.projectUuid;
     command.force = true;
 
     await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ name: fixtures.projectName });
+    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ id: fixtures.projectUuid });
     expect(console.info).toHaveBeenCalledTimes(1);
     expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Project has been deleted"));
   });
@@ -97,14 +97,14 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = "bar";
+    command.projectUuid = "bar-id";
     command.force = false;
 
     await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ name: "bar" });
+    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ id: "bar-id" });
     expect(console.info).toHaveBeenCalledTimes(1);
     expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Project has been deleted"));
   });
@@ -116,7 +116,7 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = "baz";
+    command.projectUuid = "baz-id";
     command.force = false;
 
     await command.execute();
@@ -141,7 +141,7 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = "qux";
+    command.projectUuid = "qux-id";
     command.force = false;
 
     await command.execute();
@@ -167,7 +167,7 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = "qux";
+    command.projectUuid = "qux2-id";
     command.force = false;
 
     await command.execute();
@@ -185,14 +185,14 @@ describe("projects delete command", () => {
 
     command.cwd = fixtures.cwd;
     command.config = fixtures.config;
-    command.projectName = "qux";
+    command.projectUuid = "qux3-id";
     command.force = true;
 
     await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
     expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledTimes(1);
-    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ name: "qux" });
+    expect(AllureServiceClientMock.prototype.deleteProject).toHaveBeenCalledWith({ id: "qux3-id" });
     expect(prompts).not.toHaveBeenCalled();
     expect(console.info).toHaveBeenCalledTimes(1);
     expect(console.info).toHaveBeenCalledWith(expect.stringContaining("Project has been deleted"));

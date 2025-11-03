@@ -43,7 +43,7 @@ export class ProjectsListCommand extends Command {
     const serviceClient = new AllureServiceClient(config.allureService);
 
     try {
-      const projects = await serviceClient.projects();
+      const { projects } = await serviceClient.projects();
 
       if (projects.length === 0) {
         // eslint-disable-next-line no-console
@@ -57,7 +57,7 @@ export class ProjectsListCommand extends Command {
         message: "Select a project",
         choices: projects.map((project) => ({
           title: project.name,
-          value: project.name,
+          value: project.id,
         })),
       });
 

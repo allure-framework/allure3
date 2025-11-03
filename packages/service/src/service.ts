@@ -6,11 +6,13 @@ import open from "open";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 import { decryptExchangeToken, deleteAccessToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
+const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+
 export class AllureServiceClient {
   readonly #client: HttpClient;
   readonly #url: string;
   readonly #pollingDelay: number;
-  project: string | undefined;
+  currentProjectUuid: string | undefined;
 
   constructor(readonly config: Config["allureService"] & { pollingDelay?: number }) {
     if (!config.url) {
@@ -20,19 +22,26 @@ export class AllureServiceClient {
     this.#url = config.url;
     this.#client = createServiceHttpClient(this.#url, config?.accessToken);
     this.#pollingDelay = config?.pollingDelay ?? 2500;
-    this.project = config?.project;
+    this.currentProjectUuid = config?.project;
   }
 
   setProject(project: string) {
-    this.project = project;
+    this.currentProjectUuid = project;
+  }
+
+  async #getClientUrl() {
+    const { url } = await this.#client.get<{ url: string }>("/info");
+
+    return url;
   }
 
   /**
    * Exchanges the exchange token for an access token
    */
-  async login(): Promise<string> {
+  async login(): Promise<any> {
+    const clientUrl = await this.#getClientUrl();
     const exchangeToken = await writeExchangeToken();
-    const connectUrl = new URL("/connect", this.#url);
+    const connectUrl = new URL("/connect", clientUrl);
 
     connectUrl.searchParams.set("token", decryptExchangeToken(exchangeToken));
 
@@ -44,7 +53,7 @@ export class AllureServiceClient {
       const makeExchangeAttempt = (): NodeJS.Timeout => {
         return globalThis.setTimeout(async () => {
           const token = decryptExchangeToken(exchangeToken);
-          const { accessToken } = await this.#client.post<{ accessToken: string }>("/api/auth/tokens/exchange", {
+          const { accessToken } = await this.#client.post<{ accessToken: string }>("/auth/exchange", {
             headers: {
               "Content-Type": "application/json",
             },
@@ -80,14 +89,23 @@ export class AllureServiceClient {
    * Returns user profile
    */
   async profile() {
-    return this.#client.get<{ email: string }>("/api/user/profile");
+    const { user } = await this.#client.get<{ user: { email: string } }>("/user/profile");
+
+    return user;
   }
 
   /**
    * Returns list of all projects
    */
   async projects() {
-    return this.#client.get<{ id: string; name: string }[]>("/api/projects/list");
+    return this.#client.get<{ projects: { id: string; name: string }[] }>("/projects");
+  }
+
+  /**
+   * Returns specific project by UUID
+   */
+  async project(uuid: string) {
+    return this.#client.get<{ project: { id: string; name: string } }>(`/projects/${uuid}`);
   }
 
   /**
@@ -95,93 +113,74 @@ export class AllureServiceClient {
    * @param payload
    */
   async createProject(payload: { name: string }) {
-    return this.#client.post<{ id: string; name: string }>("/api/projects/create", {
+    const { project } = await this.#client.post<{ project: { id: string; name: string } }>("/projects", {
       body: payload,
     });
+
+    return project;
   }
 
   /**
    * Deletes a project
    * @param payload
    */
-  async deleteProject(payload: { name: string }) {
-    return this.#client.post<{ id: string; name: string }>("/api/projects/delete", {
-      body: payload,
-    });
-  }
-
-  /**
-   * Appends history data point for a specific branch or create a new branch in case it doesn't exist
-   * @param payload
-   */
-  async appendHistory(payload: { history: HistoryDataPoint; branch?: string }) {
-    if (!this.project) {
-      throw new Error("Project is not set");
-    }
-
-    return this.#client.post("/api/history/append", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        ...payload,
-        project: this.project,
-      },
-    });
+  async deleteProject(payload: { id: string }) {
+    return this.#client.delete(`/projects/${payload.id}`);
   }
 
   /**
    * Downloads history data for a specific branch
    * @param payload
    */
-  async downloadHistory(payload?: { branch?: string }) {
-    if (!this.project) {
+  async downloadHistory(branch: string) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.get<HistoryDataPoint[]>("/api/history/download", {
-      params: {
-        project: this.project,
-        ...payload,
-      },
-    });
+    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
+      `/projects/${this.currentProjectUuid}/${branch}/history`,
+    );
+
+    return history;
   }
 
   /**
    * Creates a new report and returns the URL
    * @param payload
    */
-  async createReport(payload: { reportName: string; reportUuid?: string }) {
-    const { reportName, reportUuid } = payload;
+  async createReport(payload: { reportName: string; reportUuid?: string; branch?: string }) {
+    const { reportName, reportUuid, branch } = payload;
 
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post<{ url: string }>("/api/reports/create", {
+    return this.#client.post<{ url: string }>("/reports", {
       body: {
-        project: this.project,
+        projectUuid: this.currentProjectUuid,
         reportName,
         reportUuid,
+        branch,
       },
     });
   }
 
   /**
-   * Marks report as a completed one
+   * Marks report as a completed one and assigns history data point to it
+   * Incompleted reports don't appear in the history
    * Use when all report files have been uploaded
    * @param payload
    */
-  async completeReport(payload: { reportUuid: string }) {
-    const { reportUuid } = payload;
+  async completeReport(payload: { reportUuid: string; historyPoint: HistoryDataPoint }) {
+    const { reportUuid, historyPoint } = payload;
 
-    if (!this.project) {
+    if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
-    return this.#client.post("/api/reports/complete", {
+    return this.#client.post(`/reports/${reportUuid}/complete`, {
       body: {
-        id: reportUuid,
+        historyPoint,
       },
     });
   }
@@ -203,12 +202,16 @@ export class AllureServiceClient {
       content = await readFile(filepath!);
     }
 
+    if (content.length > ASSET_MAX_FILE_SIZE) {
+      throw new Error(`Asset size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+
     const form = new FormData();
 
     form.set("filename", filename);
     form.set("file", content);
 
-    return this.#client.post("/api/assets/upload", {
+    return this.#client.post("/assets/upload", {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -223,7 +226,7 @@ export class AllureServiceClient {
    */
   async addReportFile(payload: {
     reportUuid: string;
-    pluginId: string;
+    pluginId?: string;
     filename: string;
     file?: Buffer;
     filepath?: string;
@@ -240,12 +243,16 @@ export class AllureServiceClient {
       content = await readFile(filepath!);
     }
 
+    if (content.length > ASSET_MAX_FILE_SIZE) {
+      throw new Error(`Report file size exceeds the maximum allowed size of ${ASSET_MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+
     const form = new FormData();
 
-    form.set("filename", joinPosix(pluginId, filename));
+    form.set("filename", pluginId ? joinPosix(pluginId, filename) : filename);
     form.set("file", content);
 
-    await this.#client.post(`/api/reports/upload/${reportUuid}`, {
+    await this.#client.post(`/reports/${reportUuid}/upload`, {
       body: form,
       headers: {
         "Content-Type": "multipart/form-data",

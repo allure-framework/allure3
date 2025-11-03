@@ -207,6 +207,7 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    const repoData = await this.#store.repoData();
     await this.#store.readHistory();
 
     if (this.#executionStage === "running") {
@@ -220,10 +221,11 @@ export class AllureReport {
     this.#executionStage = "running";
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish) {
+    if (this.#allureServiceClient && this.#publish && repoData?.branch) {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
+        branch: repoData.branch,
       });
 
       this.reportUrl = url;
@@ -460,6 +462,10 @@ export class AllureReport {
       throw new Error(initRequired);
     }
 
+    const testResults = await this.#store.allTestResults();
+    const testCases = await this.#store.allTestCases();
+    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+
     this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
     this.#executionStage = "done";
@@ -478,7 +484,7 @@ export class AllureReport {
 
         for (const [filename, filepath] of Object.entries(pluginFiles)) {
           // publish data-files separately
-          if (/^(data|widgets|index\.html$)/.test(filename)) {
+          if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
             await this.#allureServiceClient.addReportFile({
               reportUuid: this.reportUuid,
               pluginId: context.id,
@@ -518,9 +524,24 @@ export class AllureReport {
       await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
+    if (summaries.length > 1) {
+      const summaryPath = await generateSummary(this.#output, summaries);
+      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean);
+
+      // publish summary when there are multiple published plugins
+      if (this.#publish && summaryPath && publishedReports.length > 1) {
+        await this.#allureServiceClient?.addReportFile({
+          reportUuid: this.reportUuid,
+          filename: "index.html",
+          filepath: summaryPath,
+        });
+      }
+    }
+
     if (this.#publish) {
       await this.#allureServiceClient?.completeReport({
         reportUuid: this.reportUuid,
+        historyPoint: historyDataPoint,
       });
     }
 
@@ -562,10 +583,6 @@ export class AllureReport {
     }
 
     if (this.#history) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
-
       try {
         await this.#store.appendHistory(historyDataPoint);
       } catch (err) {
@@ -578,10 +595,6 @@ export class AllureReport {
           throw err;
         }
       }
-    }
-
-    if (summaries.length > 1) {
-      await generateSummary(this.#output, summaries);
     }
 
     if (remoteHrefs.length > 0) {

@@ -75,6 +75,7 @@ export default defineConfig({
         reportLanguage: "en",
         open: false,
         charts: chartLayout,
+        publish: true,
       },
     },
     dashboard: {
@@ -115,8 +116,4 @@ export default defineConfig({
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
   },
-  // allureService: {
-  //   url: "http://localhost:5173",
-  //   project: "sandbox",
-  // },
 });

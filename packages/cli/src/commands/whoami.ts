@@ -45,17 +45,12 @@ export class WhoamiCommand extends Command {
     }
 
     const serviceClient = new AllureServiceClient(config.allureService);
+    const outputLines: string[] = [];
 
     try {
       const profile = await serviceClient.profile();
-      const lines: string[] = [`You are logged in as "${profile.email}"`];
 
-      if (config.allureService?.project) {
-        lines.push(`Current project is "${config.allureService.project}"`);
-      }
-
-      // eslint-disable-next-line no-console
-      console.info(green(lines.join("\n")));
+      outputLines.push(`You are logged in as "${profile.email}"`);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
@@ -67,5 +62,17 @@ export class WhoamiCommand extends Command {
       await logError("Failed to get profile due to unexpected error", error as Error);
       exit(1);
     }
+
+    if (config.allureService.project) {
+      try {
+        const { project } = await serviceClient.project(config.allureService.project);
+
+        outputLines.push(`Current project is "${project.name}" (id: ${project.id})`);
+      } catch (err) {
+        outputLines.push(`Configured project can't be resolved (id: ${config.allureService.project})`);
+      }
+    }
+
+    console.info(green(outputLines.join("\n")));
   }
 }

@@ -235,8 +235,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     const repoData = await this.repoData();
 
-    this.#historyPoints = (await this.#history.readHistory(repoData?.branch)) ?? [];
-
+    this.#historyPoints = (await this.#history.readHistory(repoData!.branch)) ?? [];
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;

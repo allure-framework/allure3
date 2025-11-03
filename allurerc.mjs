@@ -1,7 +1,7 @@
 import { defaultChartsConfig, defineConfig } from "allure";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
 
 const config = {
   name: "Allure Report 3",
@@ -114,10 +114,10 @@ const config = {
   },
 };
 
-if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN) {
+if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_PROJECT) {
   config.allureService = {
     url: ALLURE_SERVICE_URL,
-    project: "allure3",
+    project: ALLURE_SERVICE_PROJECT,
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
     publish: true,
   };
