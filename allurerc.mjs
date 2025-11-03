@@ -14,6 +14,7 @@ const config = {
         reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
         charts: defaultChartsConfig,
+        publish: true,
       },
     },
     log: {
@@ -90,6 +91,7 @@ const config = {
             title: "Testing pyramid",
           },
         ],
+        publish: true,
       },
     },
   },
