@@ -1,7 +1,6 @@
 import { Builtins, Cli } from "clipanion";
-import console from "node:console";
 import { readFileSync } from "node:fs";
-import { argv, cwd } from "node:process";
+import { argv } from "node:process";
 import {
   Allure2Command,
   AwesomeCommand,
@@ -68,5 +67,5 @@ cli.register(ResultsUnpackCommand);
 cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 
-export { Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
+export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";
