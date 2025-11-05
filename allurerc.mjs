@@ -3,6 +3,9 @@ import { env } from "node:process";
 
 const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
 
+/**
+ * @type {import("allure").AllureConfig}
+ */
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
