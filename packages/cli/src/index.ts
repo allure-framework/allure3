@@ -68,7 +68,5 @@ cli.register(ResultsUnpackCommand);
 cli.register(Builtins.HelpCommand);
 cli.runExit(args);
 
-console.log(cwd());
-
 export { Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
 export { defaultChartsConfig } from "@allurereport/charts-api";
