@@ -309,6 +309,7 @@ const RAW_RUNTIME_STATE =
           ["@types/handlebars", "npm:4.1.0"],\
           ["@types/markdown-it", "npm:14.1.2"],\
           ["@types/node", "npm:20.17.9"],\
+          ["@types/progress", "npm:2.0.7"],\
           ["@types/zip-stream", "npm:7.0.0"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
@@ -326,6 +327,8 @@ const RAW_RUNTIME_STATE =
           ["handlebars", "npm:4.7.8"],\
           ["markdown-it", "npm:14.1.0"],\
           ["node-stream-zip", "npm:1.15.0"],\
+          ["p-limit", "npm:7.2.0"],\
+          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
@@ -12396,6 +12399,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/progress", [\
+      ["npm:2.0.7", {\
+        "packageLocation": "./.yarn/cache/@types-progress-npm-2.0.7-a48bb0b7f8-80c506e0fb.zip/node_modules/@types/progress/",\
+        "packageDependencies": [\
+          ["@types/progress", "npm:2.0.7"],\
+          ["@types/node", "npm:20.11.21"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/prompts", [\
       ["npm:2.4.9", {\
         "packageLocation": "./.yarn/cache/@types-prompts-npm-2.4.9-a99ca98ad4-69b8372f4c.zip/node_modules/@types/prompts/",\
@@ -23980,6 +23993,14 @@ const RAW_RUNTIME_STATE =
           ["yocto-queue", "npm:1.0.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.2.0", {\
+        "packageLocation": "./.yarn/cache/p-limit-npm-7.2.0-72063c9642-ea1cae6e8b.zip/node_modules/p-limit/",\
+        "packageDependencies": [\
+          ["p-limit", "npm:7.2.0"],\
+          ["yocto-queue", "npm:1.2.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["p-locate", [\
@@ -26141,6 +26162,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/process-nextick-args-npm-2.0.1-b8d7971609-1d38588e52.zip/node_modules/process-nextick-args/",\
         "packageDependencies": [\
           ["process-nextick-args", "npm:2.0.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["progress", [\
+      ["npm:2.0.3", {\
+        "packageLocation": "./.yarn/cache/progress-npm-2.0.3-d1f87e2ac6-e6f0bcb71f.zip/node_modules/progress/",\
+        "packageDependencies": [\
+          ["progress", "npm:2.0.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -31646,6 +31676,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/yocto-queue-npm-1.0.0-7b502f1987-2cac84540f.zip/node_modules/yocto-queue/",\
         "packageDependencies": [\
           ["yocto-queue", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:1.2.1", {\
+        "packageLocation": "./.yarn/cache/yocto-queue-npm-1.2.1-98b92882fa-0843d6c2c0.zip/node_modules/yocto-queue/",\
+        "packageDependencies": [\
+          ["yocto-queue", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
