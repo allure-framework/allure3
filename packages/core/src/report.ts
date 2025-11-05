@@ -29,6 +29,8 @@ import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } fro
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
+import pLimit from "p-limit";
+import ProgressBar from "progress";
 import ZipWriteStream from "zip-stream";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
@@ -476,28 +478,42 @@ export class AllureReport {
       return;
     }
 
+    // isolate logs of different reports stages: done and summary
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
-
+    });
+    await this.#eachPlugin(false, async (plugin, context) => {
       if (this.#allureServiceClient && context.publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
+        const pluginFilesEntries = Object.entries(pluginFiles);
+        const progressBar = new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
+          total: pluginFilesEntries.length,
+          width: 20,
+        });
+        const limitFn = pLimit(50);
+        const fns = pluginFilesEntries.map(([filename, filepath]) =>
+          limitFn(async () => {
+            if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
+              await this.#allureServiceClient!.addReportFile({
+                reportUuid: this.reportUuid,
+                pluginId: context.id,
+                filename,
+                filepath,
+              });
+            } else {
+              await this.#allureServiceClient!.addReportAsset({
+                filename,
+                filepath,
+              });
+            }
 
-        for (const [filename, filepath] of Object.entries(pluginFiles)) {
-          // publish data-files separately
-          if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-            await this.#allureServiceClient.addReportFile({
-              reportUuid: this.reportUuid,
-              pluginId: context.id,
-              filename,
-              filepath,
-            });
-          } else {
-            await this.#allureServiceClient.addReportAsset({
-              filename,
-              filepath,
-            });
-          }
-        }
+            progressBar.tick();
+          }),
+        );
+
+        progressBar.render();
+
+        await Promise.all(fns);
       }
 
       const summary = await plugin?.info?.(context, this.#store);
@@ -509,7 +525,7 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish) {
+      if (context.publish && this.reportUrl) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
 
         remoteHrefs.push(summary.remoteHref);

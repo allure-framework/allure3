@@ -45,6 +45,8 @@
     "handlebars": "^4.7.8",
     "markdown-it": "^14.1.0",
     "node-stream-zip": "^1.15.0",
+    "p-limit": "^7.2.0",
+    "progress": "^2.0.3",
     "yoctocolors": "^2.1.1",
     "zip-stream": "^7.0.2"
   },
@@ -54,6 +56,7 @@
     "@types/handlebars": "^4.1.0",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.17.9",
+    "@types/progress": "^2",
     "@types/zip-stream": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
