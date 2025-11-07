@@ -34,9 +34,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
-      ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -71,8 +68,6 @@ jobs:
       ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
       ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
-      ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
