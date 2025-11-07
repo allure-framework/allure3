@@ -69,6 +69,7 @@ jobs:
       contents: write
     env:
       ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
+      ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
       ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
 
