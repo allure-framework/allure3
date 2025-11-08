@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   lint:
@@ -95,6 +96,11 @@ jobs:
         run: yarn build
       - name: Generate report
         run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
+      - name: Allure Report Official
+        uses: allure-framework/allure-action@v0.1.0
+        with:
+          report-directory: "./allure-report"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
