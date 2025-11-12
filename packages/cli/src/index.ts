@@ -65,6 +65,7 @@ cli.register(ProjectsListCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
 cli.register(Builtins.HelpCommand);
+cli.register(Builtins.VersionCommand);
 cli.runExit(args);
 
 export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
