@@ -48,10 +48,10 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
                   <IconButton
                     icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
-                    isDisabled={currentIndex === data.length}
+                    isDisabled={currentIndex <= 1}
                     data-testid="test-result-nav-prev"
                     className={styles["test-result-nav-prev"]}
-                    onClick={() => navigateTo(data[currentIndex])}
+                    onClick={() => navigateTo(data[currentIndex-2])}
                   />
                 </TooltipWrapper>
                 <Code
@@ -65,9 +65,9 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
                   <IconButton
                     icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
-                    isDisabled={currentIndex <= 1}
+                    isDisabled={currentIndex === data.length}
                     data-testid="test-result-nav-next"
-                    onClick={() => navigateTo(data[currentIndex - 2])}
+                    onClick={() => navigateTo(data[currentIndex])}
                   />
                 </TooltipWrapper>
               </div>
