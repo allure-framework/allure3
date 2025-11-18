@@ -19,7 +19,6 @@ export type QualityGateRules = Record<string, any> & {
 
 export type QualityGateRuleResult = {
   success: boolean;
-  expected: any;
   actual: any;
 };
 

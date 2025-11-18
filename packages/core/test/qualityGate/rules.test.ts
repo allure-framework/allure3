@@ -1,7 +1,7 @@
 import { type KnownTestFailure, TestResult, TestStatus } from "@allurereport/core-api";
-import { vi, describe, expect, it, beforeEach } from "vitest";
-import { maxFailuresRule, minTestsCountRule, successRateRule } from "../../src/qualityGate/rules.js";
 import { QualityGateRuleState } from "@allurereport/plugin-api";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { maxFailuresRule, minTestsCountRule, successRateRule } from "../../src/qualityGate/rules.js";
 
 const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
   ({
@@ -22,14 +22,14 @@ const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-})
+});
 
 describe("maxFailuresRule", () => {
   const setState = vi.fn();
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
     setResult: (value) => setState(value),
-  }
+  };
 
   it("should pass when failures count is less than expected", async () => {
     const testResults: TestResult[] = [
@@ -47,7 +47,6 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
     expect(setState).toHaveBeenCalledWith(1);
   });
 
@@ -67,7 +66,6 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(2);
-    expect(result.expected).toBe(expected);
     expect(setState).toHaveBeenCalledWith(2);
   });
 
@@ -87,7 +85,6 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
   });
 });
 
@@ -96,7 +93,7 @@ describe("minTestsCountRule", () => {
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
     setResult: (value) => setState(value),
-  }
+  };
 
   it("should pass when test count is greater than expected", async () => {
     const testResults: TestResult[] = [
@@ -114,7 +111,6 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(3);
-    expect(result.expected).toBe(expected);
     expect(setState).toHaveBeenCalledWith(3);
   });
 
@@ -130,7 +126,6 @@ describe("minTestsCountRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
     expect(setState).toHaveBeenCalledWith(1);
   });
 });
@@ -140,7 +135,7 @@ describe("successRateRule", () => {
   const state: QualityGateRuleState<number> = {
     getResult: () => 0,
     setResult: (value) => setState(value),
-  }
+  };
 
   it("should pass when success rate is greater than expected", async () => {
     const testResults: TestResult[] = [
@@ -158,7 +153,6 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
-    expect(result.expected).toBe(expected);
     expect(setState).not.toHaveBeenCalled();
   });
 
@@ -178,7 +172,6 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
-    expect(result.expected).toBe(expected);
     expect(setState).not.toHaveBeenCalled();
   });
 
@@ -198,7 +191,6 @@ describe("successRateRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0.5);
-    expect(result.expected).toBe(expected);
     expect(setState).not.toHaveBeenCalled();
   });
 });

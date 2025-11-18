@@ -17,7 +17,6 @@ export const maxFailuresRule: QualityGateRule<number> = {
     return {
       success: actual <= expected,
       actual,
-      expected,
     };
   },
 };
@@ -34,7 +33,6 @@ export const minTestsCountRule: QualityGateRule<number> = {
     return {
       success: actual >= expected,
       actual,
-      expected,
     };
   },
 };
@@ -52,7 +50,6 @@ export const successRateRule: QualityGateRule<number> = {
     return {
       success: rate >= expected,
       actual: rate,
-      expected,
     };
   },
 };

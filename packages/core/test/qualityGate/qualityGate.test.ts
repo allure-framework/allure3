@@ -326,7 +326,7 @@ describe("QualityGate", () => {
         rule: "mockRule",
         message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
         validate: async ({ state }) => {
-          const actual = (state.getResult() ?? 0) + 1
+          const actual = (state.getResult() ?? 0) + 1;
 
           state.setResult(actual);
 
@@ -334,7 +334,7 @@ describe("QualityGate", () => {
             success: true,
             expected: 3,
             actual,
-          }
+          };
         },
       };
       const config: QualityGateConfig = {
@@ -376,23 +376,14 @@ describe("QualityGate", () => {
         rules: [{ mockRuleNoState: 0 }],
         use: [mockRule],
       };
-      const validateSpy = vi.spyOn(mockRule, "validate");
       const qualityGate = new QualityGate(config);
       const testResults: TestResult[] = [createTestResult("1", "passed")];
-
-      await qualityGate.validate({
-        trs: testResults,
-        knownIssues: [],
-      });
-      await qualityGate.validate({
+      const result = await qualityGate.validate({
         trs: testResults,
         knownIssues: [],
       });
 
-      // expect(validateSpy).toHaveBeenCalled();
-      // expect(validateSpy).toHaveBeenCalledTimes(2);
-      // expect(validateSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ state: undefined }));
-      // expect(validateSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({ state: undefined }));
+      expect(result.results).toHaveLength(0);
     });
 
     it("should throw error for unknown rule", async () => {

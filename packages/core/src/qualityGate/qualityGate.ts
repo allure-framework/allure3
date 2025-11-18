@@ -74,7 +74,7 @@ export class QualityGate {
         break;
       }
 
-      for (const [key, value] of Object.entries(ruleset)) {
+      for (const [key, expected] of Object.entries(ruleset)) {
         // reserved rules configuration keys
         if (key === "filter" || key === "id" || key === "fastFail") {
           continue;
@@ -90,7 +90,7 @@ export class QualityGate {
 
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
-          expected: value,
+          expected,
           trs,
           knownIssues,
           state: {
@@ -105,8 +105,12 @@ export class QualityGate {
 
         results.push({
           ...result,
+          expected,
           rule: ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule,
-          message: rule.message(result),
+          message: rule.message({
+            actual: result.actual,
+            expected,
+          }),
         });
 
         if (ruleset.fastFail) {
