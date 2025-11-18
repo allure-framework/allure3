@@ -486,10 +486,10 @@ export class AllureReport {
       if (this.#allureServiceClient && context.publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
         const pluginFilesEntries = Object.entries(pluginFiles);
-        const progressBar = new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
+        const progressBar = pluginFilesEntries?.length > 0 ? new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
           total: pluginFilesEntries.length,
           width: 20,
-        });
+        }) : undefined;
         const limitFn = pLimit(50);
         const fns = pluginFilesEntries.map(([filename, filepath]) =>
           limitFn(async () => {
@@ -507,11 +507,11 @@ export class AllureReport {
               });
             }
 
-            progressBar.tick();
+            progressBar?.tick?.();
           }),
         );
 
-        progressBar.render();
+        progressBar?.render?.();
 
         await Promise.all(fns);
       }

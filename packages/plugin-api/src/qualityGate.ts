@@ -23,14 +23,19 @@ export type QualityGateRuleResult = {
   actual: any;
 };
 
-export type QualityGateRule<T = any> = {
+export interface QualityGateRuleState<T> {
+  getResult(): T | undefined;
+  setResult(value: T): void;
+}
+
+export type QualityGateRule<T = any, K = T> = {
   rule: string;
   message: (payload: { expected: T; actual: T }) => string;
   validate: (payload: {
     expected: T;
     trs: TestResult[];
     knownIssues: KnownTestFailure[];
-    state?: T;
+    state: QualityGateRuleState<K>;
   }) => Promise<QualityGateRuleResult>;
 };
 
