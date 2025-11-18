@@ -1,10 +1,10 @@
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
+import type { ClassicTestResult } from "types";
 import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 import { TestResultRetriesItem } from "@/components/TestResult/TestResultRetriesView/TestResultRetriesItem";
 import { useI18n } from "@/stores";
 
-export const TestResultRetriesView: FunctionalComponent<{ testResult: AwesomeTestResult }> = ({ testResult }) => {
+export const TestResultRetriesView: FunctionalComponent<{ testResult: ClassicTestResult }> = ({ testResult }) => {
   const { retries } = testResult ?? {};
   const { t } = useI18n("empty");
 
