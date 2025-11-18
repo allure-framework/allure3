@@ -437,7 +437,7 @@ export const generateStaticFiles = async (
     reportLanguage = "en",
     singleFile,
     logo = "",
-    theme = "light",
+    theme = "auto",
     groupBy,
     reportFiles,
     reportDataFiles,

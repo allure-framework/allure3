@@ -1,32 +1,30 @@
 import { getReportOptions } from "@allurereport/web-commons";
+import type { Theme } from "@allurereport/web-components";
 import { signal } from "@preact/signals";
 import type { AwesomeReportOptions } from "../../types.js";
 
-type Theme = "light" | "dark";
+export const themeStore = signal<Theme>("auto");
 
-export const themeStore = signal<Theme>("light");
+export const setTheme = (mode: "light" | "dark" | "auto") => {
+  themeStore.value = mode;
 
-export const setTheme = (newTheme: Theme): void => {
-  themeStore.value = newTheme;
-  document.documentElement.setAttribute("data-theme", newTheme);
-  window.localStorage.setItem("theme", newTheme);
+  try {
+    window.localStorage.setItem("theme", mode);
+  } catch {}
+
+  document.documentElement.setAttribute("data-theme", mode);
 };
 
 export const toggleTheme = () => {
-  setTheme(themeStore.value === "light" ? "dark" : "light");
+  const order = ["light", "dark", "auto"];
+  const current = themeStore.value;
+  const next = order[(order.indexOf(current) + 1) % order.length] as Theme;
+  setTheme(next);
 };
 
 export const getTheme = () => {
   const { theme } = getReportOptions<AwesomeReportOptions>() ?? {};
   const themeFromLS = (window.localStorage.getItem("theme") as Theme | null) || (theme as Theme);
 
-  if (themeFromLS) {
-    setTheme(themeFromLS);
-    return;
-  }
-
-  const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme = prefersDarkScheme ? "dark" : "light";
-
-  setTheme(initialTheme);
+  setTheme(themeFromLS);
 };
