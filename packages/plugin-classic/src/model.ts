@@ -4,8 +4,8 @@ export type ClassicOptions = {
   reportName?: string;
   singleFile?: boolean;
   logo?: string;
-  theme?: "light" | "dark";
-  reportLanguage?: "en" | "ru";
+  theme?: "light" | "dark" | "auto";
+  reportLanguage?: "en";
   groupBy?: string[];
   ci?: {
     type: "github" | "jenkins";

@@ -1,4 +1,5 @@
 import { defineConfig } from "allure";
+import { qualityGateDefaultRules } from "allure/rules";
 
 export default defineConfig({
   name: "Allure Report 3",
@@ -18,5 +19,6 @@ export default defineConfig({
         fastFail: true,
       },
     ],
+    use: [...qualityGateDefaultRules],
   },
 });

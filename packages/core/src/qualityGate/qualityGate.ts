@@ -1,5 +1,5 @@
 import type { KnownTestFailure, TestError, TestResult } from "@allurereport/core-api";
-import type { QualityGateConfig, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
 import { qualityGateDefaultRules } from "./rules.js";
 
@@ -58,7 +58,7 @@ export class QualityGate {
     knownIssues: KnownTestFailure[];
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, knownIssues } = payload;
-    const { rules, use = [...qualityGateDefaultRules] } = this.config;
+    const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
 
@@ -74,7 +74,7 @@ export class QualityGate {
         break;
       }
 
-      for (const [key, value] of Object.entries(ruleset)) {
+      for (const [key, expected] of Object.entries(ruleset)) {
         // reserved rules configuration keys
         if (key === "filter" || key === "id" || key === "fastFail") {
           continue;
@@ -88,15 +88,17 @@ export class QualityGate {
           );
         }
 
+        const trsToValidate = ruleset.filter ? trs.filter(ruleset.filter) : trs;
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
-          expected: value,
-          trs,
+          trs: trsToValidate,
+          state: {
+            getResult: () => state?.getResult?.(ruleId),
+            setResult: (value: any) => state?.setResult?.(ruleId, value),
+          },
+          expected,
           knownIssues,
-          state: state?.getResult?.(ruleId),
         });
-
-        state?.setResult(ruleId, result.actual);
 
         if (result.success) {
           continue;
@@ -104,8 +106,12 @@ export class QualityGate {
 
         results.push({
           ...result,
+          expected,
           rule: ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule,
-          message: rule.message(result),
+          message: rule.message({
+            actual: result.actual,
+            expected,
+          }),
         });
 
         if (ruleset.fastFail) {

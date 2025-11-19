@@ -1,12 +1,12 @@
 import { Text } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ClassicTestResult } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import * as styles from "./styles.scss";
 
 export type TestResultDescriptionProps = {
-  description: AwesomeTestResult["description"];
+  description: ClassicTestResult["description"];
 };
 
 export const TestResultDescription: FunctionalComponent<TestResultDescriptionProps> = ({ description }) => {

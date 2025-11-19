@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-classic",
-  "version": "3.0.0-beta.22",
+  "version": "3.0.0-beta.23",
   "description": "The classic version of Allure HTML report",
   "keywords": [
     "allure",

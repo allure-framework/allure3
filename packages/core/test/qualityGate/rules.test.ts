@@ -1,5 +1,6 @@
 import { type KnownTestFailure, TestResult, TestStatus } from "@allurereport/core-api";
-import { describe, expect, it } from "vitest";
+import { QualityGateRuleState } from "@allurereport/plugin-api";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { maxFailuresRule, minTestsCountRule, successRateRule } from "../../src/qualityGate/rules.js";
 
 const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
@@ -19,8 +20,18 @@ const createTestResult = (id: string, status: TestStatus, historyId?: string) =>
     sourceMetadata: { readerId: "", metadata: {} },
   }) as TestResult;
 
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("maxFailuresRule", () => {
-  it("should pass when failures count is less than expected (without state)", async () => {
+  const setState = vi.fn();
+  const state: QualityGateRuleState<number> = {
+    getResult: () => 0,
+    setResult: (value) => setState(value),
+  };
+
+  it("should pass when failures count is less than expected", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
       createTestResult("2", "passed"),
@@ -31,15 +42,15 @@ describe("maxFailuresRule", () => {
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
+    expect(setState).toHaveBeenCalledWith(1);
   });
 
-  it("should fail when failures count is greater than expected (without state)", async () => {
+  it("should fail when failures count is greater than expected", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
       createTestResult("2", "failed"),
@@ -50,50 +61,12 @@ describe("maxFailuresRule", () => {
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(2);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should pass when failures count plus state is less than expected (with state)", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "passed"),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 3;
-    const result = await maxFailuresRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 1,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(2);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should fail when failures count plus state is greater than expected (with state)", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed"),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 3;
-    const result = await maxFailuresRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 2,
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.actual).toBe(4);
-    expect(result.expected).toBe(expected);
+    expect(setState).toHaveBeenCalledWith(2);
   });
 
   it("should filter out known issues", async () => {
@@ -107,17 +80,22 @@ describe("maxFailuresRule", () => {
       trs: testResults,
       expected,
       knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
   });
 });
 
 describe("minTestsCountRule", () => {
-  it("should pass when test count is greater than expected (without state)", async () => {
+  const setState = vi.fn();
+  const state: QualityGateRuleState<number> = {
+    getResult: () => 0,
+    setResult: (value) => setState(value),
+  };
+
+  it("should pass when test count is greater than expected", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
       createTestResult("2", "passed"),
@@ -128,66 +106,38 @@ describe("minTestsCountRule", () => {
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(3);
-    expect(result.expected).toBe(expected);
+    expect(setState).toHaveBeenCalledWith(3);
   });
 
-  it("should fail when test count is less than expected (without state)", async () => {
+  it("should fail when test count is less than expected", async () => {
     const testResults: TestResult[] = [createTestResult("1", "passed")];
     const expected = 2;
     const result = await minTestsCountRule.validate({
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should pass when test count is greater than expected (with state)", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "passed"),
-      createTestResult("3", "passed"),
-    ];
-    const expected = 3;
-    const result = await minTestsCountRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 2,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(5);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should fail when test count is less than expected (with state)", async () => {
-    const testResults: TestResult[] = [createTestResult("1", "passed")];
-    const expected = 3;
-    const result = await minTestsCountRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 1,
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.actual).toBe(2);
-    expect(result.expected).toBe(expected);
+    expect(setState).toHaveBeenCalledWith(1);
   });
 });
 
 describe("successRateRule", () => {
-  it("should pass when success rate is greater than expected (without state)", async () => {
+  const setState = vi.fn();
+  const state: QualityGateRuleState<number> = {
+    getResult: () => 0,
+    setResult: (value) => setState(value),
+  };
+
+  it("should pass when success rate is greater than expected", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
       createTestResult("2", "passed"),
@@ -198,15 +148,15 @@ describe("successRateRule", () => {
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(2 / 3);
-    expect(result.expected).toBe(expected);
+    expect(setState).not.toHaveBeenCalled();
   });
 
-  it("should fail when success rate is less than expected (without state)", async () => {
+  it("should fail when success rate is less than expected", async () => {
     const testResults: TestResult[] = [
       createTestResult("1", "passed"),
       createTestResult("2", "failed"),
@@ -217,50 +167,12 @@ describe("successRateRule", () => {
       trs: testResults,
       expected,
       knownIssues: [] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(1 / 3);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should pass when success rate is greater than expected (with state)", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "passed"),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 0.6;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 0.1,
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.actual).toBe(2 / 3);
-    expect(result.expected).toBe(expected);
-  });
-
-  it("should fail when success rate is less than expected (with state)", async () => {
-    const testResults: TestResult[] = [
-      createTestResult("1", "passed"),
-      createTestResult("2", "failed"),
-      createTestResult("3", "failed"),
-    ];
-    const expected = 0.6;
-    const result = await successRateRule.validate({
-      trs: testResults,
-      expected,
-      knownIssues: [] as KnownTestFailure[],
-      state: 0.2,
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.actual).toBe(1 / 3);
-    expect(result.expected).toBe(expected);
+    expect(setState).not.toHaveBeenCalled();
   });
 
   it("should filter out known issues", async () => {
@@ -274,11 +186,11 @@ describe("successRateRule", () => {
       trs: testResults,
       expected,
       knownIssues: [{ historyId: "known-issue-1" }] as KnownTestFailure[],
-      state: 0,
+      state,
     });
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(0.5);
-    expect(result.expected).toBe(expected);
+    expect(setState).not.toHaveBeenCalled();
   });
 });

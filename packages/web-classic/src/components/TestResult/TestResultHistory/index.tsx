@@ -1,11 +1,11 @@
 import type { FunctionalComponent } from "preact";
 import { TestResultHistoryItem } from "@/components/TestResult/TestResultHistory/TestResultHistoryItem";
 import { useI18n } from "@/stores";
-import { type AwesomeTestResult } from "../../../../types";
+import { type ClassicTestResult } from "../../../../types";
 import * as styles from "./styles.scss";
 
 export type TestResultHistoryViewProps = {
-  testResult?: AwesomeTestResult;
+  testResult?: ClassicTestResult;
 };
 
 const TestResultHistoryView: FunctionalComponent<TestResultHistoryViewProps> = ({ testResult }) => {

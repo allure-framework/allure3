@@ -66,6 +66,7 @@ import lineSecurityKey from "@/assets/svg/line-security-key.svg";
 import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
 import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
+import lineShapesThemeAuto from "@/assets/svg/line-shapes-theme-auto.svg";
 import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
 import playwrightLogo from "@/assets/svg/playwright-logo.svg";
 import reportLogo from "@/assets/svg/report-logo.svg";
@@ -82,22 +83,22 @@ import view from "@/assets/svg/view.svg";
 import styles from "./styles.scss";
 
 export const allureIcons = {
-  arrowsChevronDown: arrowsChevronDown.id,
-  environment: environment.id,
   amazon: amazon.id,
+  arrowsChevronDown: arrowsChevronDown.id,
   azure: azure.id,
   bitbucket: bitbucket.id,
   circleci: circleci.id,
-  drone: drone.id,
-  gitlab: gitlab.id,
-  github: github.id,
-  jenkins: jenkins.id,
   draggable: draggable.id,
+  drone: drone.id,
+  environment: environment.id,
+  github: github.id,
+  gitlab: gitlab.id,
+  jenkins: jenkins.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
-  lineAlertsNotificationBox: lineAlertsNotificationBox.id,
-  lineAlertsNew: lineAlertsNew.id,
-  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
   lineAlertsFixed: lineAlertsFixed.id,
+  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
+  lineAlertsNew: lineAlertsNew.id,
+  lineAlertsNotificationBox: lineAlertsNotificationBox.id,
   lineAlertsRegressed: lineAlertsRegressed.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
   lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
@@ -119,16 +120,21 @@ export const allureIcons = {
   lineFilesFileAttachment2: lineFilesFileAttachment2.id,
   lineFilesFolder: lineFilesFolder.id,
   lineGeneralCheck: lineGeneralCheck.id,
+  lineGeneralCheckCircle: lineGeneralCheckCircle.id,
   lineGeneralChecklist3: lineGeneralChecklist3.id,
   lineGeneralCopy3: lineGeneralCopy3.id,
   lineGeneralDownloadCloud: lineGeneralDownloadCloud.id,
   lineGeneralEqual: lineGeneralEqual.id,
   lineGeneralEye: lineGeneralEye.id,
+  lineGeneralHelpCircle: lineGeneralHelpCircle.id,
   lineGeneralHomeLine: lineGeneralHomeLine.id,
+  lineGeneralInfoCircle: lineGeneralInfoCircle.id,
   lineGeneralLink1: lineGeneralLink1.id,
   lineGeneralLinkExternal: lineGeneralLinkExternal.id,
+  lineGeneralMinusCircle: lineGeneralMinusCircle.id,
   lineGeneralSearchMd: lineGeneralSearchMd.id,
   lineGeneralSettings1: lineGeneralSettings1.id,
+  lineGeneralXCircle: lineGeneralXCircle.id,
   lineGeneralXClose: lineGeneralXClose.id,
   lineGeneralZap: lineGeneralZap.id,
   lineHelpersFlag: lineHelpersFlag.id,
@@ -143,6 +149,7 @@ export const allureIcons = {
   lineShapesDotCircle: lineShapesDotCircle.id,
   lineShapesMoon: lineShapesMoon.id,
   lineShapesSun: lineShapesSun.id,
+  lineShapesThemeAuto: lineShapesThemeAuto.id,
   lineTimeClockStopwatch: lineTimeClockStopwatch.id,
   playwrightLogo: playwrightLogo.id,
   reportLogo: reportLogo.id,
@@ -150,17 +157,12 @@ export const allureIcons = {
   solidCheckCircle: solidCheckCircle.id,
   solidHelpCircle: solidHelpCircle.id,
   solidMinusCircle: solidMinusCircle.id,
-  solidXCircle: solidXCircle.id,
   solidPlusCircle: solidPlusCircle.id,
+  solidXCircle: solidXCircle.id,
   spinner: spinner.id,
+  testNew: testNew.id,
   view: view.id,
   viewOff: viewOff.id,
-  lineGeneralCheckCircle: lineGeneralCheckCircle.id,
-  lineGeneralHelpCircle: lineGeneralHelpCircle.id,
-  lineGeneralInfoCircle: lineGeneralInfoCircle.id,
-  lineGeneralMinusCircle: lineGeneralMinusCircle.id,
-  lineGeneralXCircle: lineGeneralXCircle.id,
-  testNew: testNew.id,
 };
 
 export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {

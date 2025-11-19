@@ -52,6 +52,7 @@ jobs:
       run: yarn build
     - name: Test Project
       run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
+      continue-on-error: true
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
@@ -97,7 +98,7 @@ jobs:
       - name: Generate report
         run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
       - name: Allure Report Official
-        uses: allure-framework/allure-action@v0.1.0
+        uses: allure-framework/allure-action@v0
         with:
           report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
