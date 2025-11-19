@@ -321,63 +321,26 @@ describe("QualityGate", () => {
       expect(validateSpy2).not.toHaveBeenCalled();
     });
 
-    it("shouldn't maintain state when no state is provided", async () => {
+    it("should use external state between validations", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",
         message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
-        validate: async ({ state = 0 }) => ({
-          success: true,
-          actual: state + 1,
-          expected: 3,
-        }),
+        validate: async ({ state }) => {
+          const actual = (state.getResult() ?? 0) + 1;
+
+          state.setResult(actual);
+
+          return {
+            success: true,
+            expected: 3,
+            actual,
+          };
+        },
       };
       const config: QualityGateConfig = {
         rules: [{ mockRule: 3 }],
         use: [mockRule],
       };
-      const validateSpy = vi.spyOn(mockRule, "validate");
-      const qualityGate = new QualityGate(config);
-      const testResults: TestResult[] = [createTestResult("1", "passed")];
-
-      await qualityGate.validate({
-        trs: testResults,
-        knownIssues: [],
-      });
-      await qualityGate.validate({
-        trs: testResults,
-        knownIssues: [],
-      });
-
-      expect(validateSpy).toHaveBeenCalledTimes(2);
-      expect(validateSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          state: undefined,
-        }),
-      );
-      expect(validateSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.objectContaining({
-          state: undefined,
-        }),
-      );
-    });
-
-    it("should re-use external state between validations", async () => {
-      const mockRule: QualityGateRule<number> = {
-        rule: "mockRule",
-        message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
-        validate: async ({ state = 0 }) => ({
-          success: true,
-          actual: state + 1,
-          expected: 3,
-        }),
-      };
-      const config: QualityGateConfig = {
-        rules: [{ mockRule: 3 }],
-        use: [mockRule],
-      };
-      const validateSpy = vi.spyOn(mockRule, "validate");
       const qualityGate = new QualityGate(config);
       const testResults: TestResult[] = [createTestResult("1", "passed")];
       const qgState = new QualityGateState();
@@ -394,15 +357,12 @@ describe("QualityGate", () => {
         knownIssues: [],
       });
 
-      expect(validateSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          state: 1,
-        }),
-      );
+      // rule had been called twice, so the rule state incremented twice
+      expect(qgState.getResult("mockRule")).toBe(2);
       expect(fastFailed).toBe(false);
     });
 
-    it("should work without external state and pass undefined state to rules", async () => {
+    it("should work without external state", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRuleNoState",
         message: () => "ok",
@@ -416,23 +376,14 @@ describe("QualityGate", () => {
         rules: [{ mockRuleNoState: 0 }],
         use: [mockRule],
       };
-      const validateSpy = vi.spyOn(mockRule, "validate");
       const qualityGate = new QualityGate(config);
       const testResults: TestResult[] = [createTestResult("1", "passed")];
-
-      await qualityGate.validate({
-        trs: testResults,
-        knownIssues: [],
-      });
-      await qualityGate.validate({
+      const result = await qualityGate.validate({
         trs: testResults,
         knownIssues: [],
       });
 
-      expect(validateSpy).toHaveBeenCalled();
-      expect(validateSpy).toHaveBeenCalledTimes(2);
-      expect(validateSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ state: undefined }));
-      expect(validateSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({ state: undefined }));
+      expect(result.results).toHaveLength(0);
     });
 
     it("should throw error for unknown rule", async () => {
@@ -493,6 +444,62 @@ describe("QualityGate", () => {
       expect(results).toHaveLength(1);
       expect(results[0].rule).toBe("maxFailures");
       expect(fastFailed).toBe(false);
+    });
+
+    it("should not filter test results when filter function is not provided", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults,
+        }),
+      );
+    });
+
+    it("should filter test results when filter function is provided", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0, filter: (tr) => tr.status === "passed" }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults.slice(0, 1),
+        }),
+      );
     });
   });
 });
