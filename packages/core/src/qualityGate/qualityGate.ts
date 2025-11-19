@@ -88,15 +88,16 @@ export class QualityGate {
           );
         }
 
+        const trsToValidate = ruleset.filter ? trs.filter(ruleset.filter) : trs;
         const ruleId = ruleset.id ? [ruleset.id, rule.rule].join("/") : rule.rule;
         const result = await rule.validate({
-          expected,
-          trs,
-          knownIssues,
+          trs: trsToValidate,
           state: {
             getResult: () => state?.getResult?.(ruleId),
             setResult: (value: any) => state?.setResult?.(ruleId, value),
           },
+          expected,
+          knownIssues,
         });
 
         if (result.success) {

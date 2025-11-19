@@ -445,5 +445,61 @@ describe("QualityGate", () => {
       expect(results[0].rule).toBe("maxFailures");
       expect(fastFailed).toBe(false);
     });
+
+    it("should not filter test results when filter function is not provided", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0 }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults,
+        }),
+      );
+    });
+
+    it("should filter test results when filter function is provided", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: () => `Done`,
+        validate: vi.fn().mockResolvedValue({
+          success: true,
+          actual: 1,
+        }),
+      };
+      const config: QualityGateConfig = {
+        rules: [{ mockRule: 0, filter: (tr) => tr.status === "passed" }],
+        use: [mockRule],
+      };
+      const qualityGate = new QualityGate(config);
+      const testResults: TestResult[] = [createTestResult("1", "passed"), createTestResult("2", "failed")];
+
+      await qualityGate.validate({
+        trs: testResults,
+        knownIssues: [],
+      });
+
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: testResults.slice(0, 1),
+        }),
+      );
+    });
   });
 });
