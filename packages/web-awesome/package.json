@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-awesome",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.22",
   "description": "The static files for Allure Awesome Report",
   "keywords": [
     "allure",
@@ -31,6 +31,7 @@
     "IE 11"
   ],
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
@@ -104,7 +105,7 @@
     "terser-webpack-plugin": "^5.3.14",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.6.0",
-    "vite": "^7.0.6",
+    "vite": "^5.4.21",
     "vitest": "^3.2.4",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4",

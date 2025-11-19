@@ -1,18 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-import { platform } from "node:os";
-
-const getOsLabel = () => {
-  switch (platform()) {
-    case "win32":
-      return "Windows";
-    case "darwin":
-      return "macOS";
-    case "linux":
-      return "Linux";
-    default:
-      return platform();
-  }
-};
 
 export default defineConfig({
   testDir: "./test",
@@ -38,7 +24,6 @@ export default defineConfig({
         resultsDir: "./out/allure-results",
         globalLabels: [
           { name: "module", value: "e2e" },
-          { name: "os", value: getOsLabel() },
         ],
         links: {
           issue: {

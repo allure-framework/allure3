@@ -17,6 +17,11 @@
     "minor": "Klein",
     "trivial": "Triviaal"
   },
+  "environments": {
+    "environment_one": "Omgeving",
+    "environment_other": "Omgevingen",
+    "all": "Alle"
+  },
   "charts": {
     "trend": {
       "title": "Trendgrafiek: {{type}}",

@@ -1,10 +1,10 @@
 /* eslint-disable max-lines */
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
-import { md5 } from "@allurereport/plugin-api";
+import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import { describe, expect, it } from "vitest";
-import { DefaultAllureStore } from "../../src/store/store.js";
+import { describe, expect, it, vi } from "vitest";
+import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
   constructor(readonly history: HistoryDataPoint[]) {}
@@ -1215,7 +1215,7 @@ describe("attachments", () => {
     });
   });
 
-  it("should use extension based on detected content type if no extension and content type is provided (link first)", async () => {
+  it("should use extension based on detected content type if no extension and content type specified in link (link first)", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1243,7 +1243,7 @@ describe("attachments", () => {
     });
   });
 
-  it("should use extension based on detected content type if no extension and content type is provided (file first)", async () => {
+  it("should use extension based on detected content type if no extension and content type specified in link (file first)", async () => {
     const store = new DefaultAllureStore();
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -1274,7 +1274,7 @@ describe("attachments", () => {
 
 describe("history", () => {
   it("should return history data points sorted by timestamp", async () => {
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1299,7 +1299,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1337,7 +1337,7 @@ describe("history", () => {
   });
 
   it("should return empty history for test result if no history data is found", async () => {
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1352,7 +1352,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1376,7 +1376,7 @@ describe("history", () => {
   it("should return history for test result", async () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1391,7 +1391,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1422,7 +1422,7 @@ describe("history", () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
     const now = Date.now();
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1465,7 +1465,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1506,7 +1506,7 @@ describe("history", () => {
     const testId = "some-test-id";
     const historyId = `${md5(testId)}.${md5("")}`;
     const now = Date.now();
-    const history: HistoryDataPoint[] = [
+    const history = [
       {
         uuid: "hp1",
         name: "Allure Report",
@@ -1549,7 +1549,7 @@ describe("history", () => {
         knownTestCaseIds: [],
         metrics: {},
       },
-    ];
+    ] as unknown as HistoryDataPoint[];
     const testHistory = new AllureTestHistory(history);
     const store = new DefaultAllureStore({
       history: testHistory,
@@ -1839,5 +1839,556 @@ describe("variables", () => {
     const result = await store.envVariables("default");
 
     expect(result).toEqual(fixture);
+  });
+});
+
+describe("dump state", () => {
+  it("should allow to dump store state", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "full test result 1",
+      status: "passed",
+      testId: "test-id-1",
+    };
+    const tr2: RawTestResult = {
+      name: "test result 2",
+      fullName: "full test result 2",
+      status: "failed",
+      testId: "test-id-2",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+    await store.visitTestResult(tr2, { readerId });
+
+    const attachmentFile = new BufferResultFile(Buffer.from("test content"), "attachment.txt");
+    const attachmentId = md5(attachmentFile.getOriginalFileName());
+
+    await store.visitAttachmentFile(attachmentFile, { readerId });
+
+    const testResults = await store.allTestResults();
+    const attachments = await store.allAttachments({
+      includeMissed: false,
+      includeUnused: true,
+    });
+    const dump = store.dumpState();
+
+    testResults.forEach((tr) => {
+      dump.testResults[tr.id] = tr;
+    });
+    attachments.forEach((attachment) => {
+      dump.attachments[attachment.id] = attachment;
+    });
+
+    expect(dump).toBeDefined();
+    expect(Object.keys(dump.testResults).length).toBe(2);
+    expect(Object.keys(dump.attachments).length).toBe(1);
+    expect(dump.attachments[attachmentId]).toBeDefined();
+    expect(dump.environments).toContain("default");
+    expect(dump.reportVariables).toEqual({});
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
+  });
+
+  it("should include globalAttachments and globalErrors in dump state", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      fullName: "full test result 1",
+      status: "passed",
+      testId: "test-id-1",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const globalError1 = {
+      message: "Global setup error",
+      trace: "Error stack trace 1",
+    };
+    const globalError2 = {
+      message: "Global teardown error",
+      trace: "Error stack trace 2",
+    };
+    const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
+
+    await onGlobalErrorCallback(globalError1);
+    await onGlobalErrorCallback(globalError2);
+
+    const mockGlobalAttachmentFile1 = {
+      getOriginalFileName: () => "global-log.txt",
+      getExtension: () => ".txt",
+      getContentType: () => "text/plain",
+      getContentLength: () => 100,
+    };
+    const mockGlobalAttachmentFile2 = {
+      getOriginalFileName: () => "global-screenshot.png",
+      getExtension: () => ".png",
+      getContentType: () => "image/png",
+      getContentLength: () => 2048,
+    };
+    const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
+
+    await onGlobalAttachmentCallback(mockGlobalAttachmentFile1);
+    await onGlobalAttachmentCallback(mockGlobalAttachmentFile2);
+
+    const dump = store.dumpState();
+
+    expect(dump.globalAttachments).toHaveLength(2);
+    expect(dump.globalAttachments[0].originalFileName).toBe("global-log.txt");
+    expect(dump.globalAttachments[1].originalFileName).toBe("global-screenshot.png");
+    expect(dump.globalErrors).toHaveLength(2);
+    expect(dump.globalErrors).toEqual([globalError1, globalError2]);
+  });
+
+  it("should include empty arrays for globalAttachments and globalErrors when none exist", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      status: "passed",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const dump = store.dumpState();
+
+    expect(dump.globalAttachments).toEqual([]);
+    expect(dump.globalErrors).toEqual([]);
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
+  });
+
+  it("should restore globalAttachments and globalErrors from dump", async () => {
+    const globalAttachment1 = {
+      id: "global-attachment-1",
+      originalFileName: "global-log.txt",
+      contentType: "text/plain",
+      ext: ".txt",
+      used: false,
+      missed: false,
+      contentLength: 100,
+    };
+    const globalAttachment2 = {
+      id: "global-attachment-2",
+      originalFileName: "global-screenshot.png",
+      contentType: "image/png",
+      ext: ".png",
+      used: false,
+      missed: false,
+      contentLength: 2048,
+    };
+    const globalError1 = {
+      message: "Global setup error",
+      trace: "Error stack trace 1",
+    };
+    const globalError2 = {
+      message: "Global teardown error",
+      trace: "Error stack trace 2",
+    };
+    const testResult = {
+      id: "test-result-id",
+      name: "test result",
+      fullName: "test result",
+      status: "passed",
+    };
+    const dump = {
+      testResults: {
+        "test-result-id": testResult,
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachments: [globalAttachment1, globalAttachment2],
+      globalErrors: [globalError1, globalError2],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const restoredGlobalAttachments = await store.allGlobalAttachments();
+    const restoredGlobalErrors = await store.allGlobalErrors();
+    const testResults = await store.allTestResults();
+
+    expect(restoredGlobalAttachments).toHaveLength(2);
+    expect(restoredGlobalAttachments).toEqual([globalAttachment1, globalAttachment2]);
+    expect(restoredGlobalErrors).toHaveLength(2);
+    expect(restoredGlobalErrors).toEqual([globalError1, globalError2]);
+    expect(testResults).toHaveLength(1);
+  });
+
+  it("should append globalAttachments and globalErrors when restoring to existing store", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const initialError = {
+      message: "Initial error",
+      trace: "Initial stack trace",
+    };
+    const mockInitialAttachmentFile = {
+      getOriginalFileName: () => "initial.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 50,
+    };
+    const onGlobalErrorCallback = mockRealtimeSubscriber.onGlobalError.mock.calls[0][0];
+    const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
+
+    await onGlobalErrorCallback(initialError);
+    await onGlobalAttachmentCallback(mockInitialAttachmentFile);
+
+    const dumpAttachment = {
+      id: "dump-attachment",
+      originalFileName: "dump.log",
+      contentType: "text/plain",
+      ext: ".log",
+      used: false,
+      missed: false,
+      contentLength: 75,
+    };
+    const dumpError = {
+      message: "Dump error",
+      trace: "Dump stack trace",
+    };
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachments: [dumpAttachment],
+      globalErrors: [dumpError],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const allGlobalAttachments = await store.allGlobalAttachments();
+    const allGlobalErrors = await store.allGlobalErrors();
+
+    expect(allGlobalAttachments).toHaveLength(2);
+    expect(allGlobalAttachments.some((att) => att.originalFileName === "initial.log")).toBe(true);
+    expect(allGlobalAttachments.some((att) => att.originalFileName === "dump.log")).toBe(true);
+    expect(allGlobalErrors).toHaveLength(2);
+    expect(allGlobalErrors).toContain(initialError);
+    expect(allGlobalErrors).toContain(dumpError);
+  });
+
+  it("should handle restoreState with missing globalAttachments and globalErrors gracefully", async () => {
+    const dump = {
+      testResults: {
+        "test-result-id": {
+          id: "test-result-id",
+          name: "test result 1",
+          status: "passed",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      environments: ["default"],
+      reportVariables: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const restoredGlobalAttachments = await store.allGlobalAttachments();
+    const restoredGlobalErrors = await store.allGlobalErrors();
+
+    expect(restoredGlobalAttachments).toEqual([]);
+    expect(restoredGlobalErrors).toEqual([]);
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].id).toBe("test-result-id");
+  });
+
+  it("should handle restoreState with missing index properties gracefully", async () => {
+    const dump = {
+      testResults: {
+        "test-result-id": {
+          id: "test-result-id",
+          name: "test result 1",
+          status: "passed",
+          historyId: "history-1",
+          testCase: { id: "test-case-1", name: "Test Case 1" },
+          environment: "default",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      globalAttachments: [],
+      globalErrors: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      // Missing new index properties to test graceful handling
+      environments: ["default"],
+      reportVariables: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const testResults = await store.allTestResults();
+
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].id).toBe("test-result-id");
+
+    const testResultsByTestCase = await store.testResultsByTcId("test-case-1");
+
+    expect(testResultsByTestCase).toBeDefined();
+  });
+
+  it("should dump and restore index properties with actual data", async () => {
+    const store = new DefaultAllureStore();
+    const tr1: RawTestResult = {
+      name: "test result 1",
+      status: "passed",
+      testId: "test-id-1",
+      historyId: "history-1",
+    };
+
+    await store.visitTestResult(tr1, { readerId });
+
+    const dump = store.dumpState();
+
+    expect(dump.indexAttachmentByTestResult).toBeDefined();
+    expect(dump.indexTestResultByHistoryId).toBeDefined();
+    expect(dump.indexTestResultByTestCase).toBeDefined();
+    expect(dump.indexLatestEnvTestResultByHistoryId).toBeDefined();
+    expect(dump.indexAttachmentByFixture).toBeDefined();
+    expect(dump.indexFixturesByTestResult).toBeDefined();
+    expect(dump.indexKnownByHistoryId).toBeDefined();
+
+    const newStore = new DefaultAllureStore();
+
+    await newStore.restoreState(dump, {});
+
+    const allTestResults = await newStore.allTestResults();
+
+    expect(allTestResults).toHaveLength(1);
+  });
+
+  it("should merge two dumps with different envs", async () => {
+    let ndumps = 1;
+
+    const generateDump = async (env: string) => {
+      const store = new DefaultAllureStore({ environment: env });
+      const trs = [1, 2].flatMap((t) =>
+        [1, 2].map(
+          (a) =>
+            ({
+              name: `Env ${env}, test ${t}, attempt ${a}`,
+              status: "passed",
+              testId: `test-${t}`,
+              historyId: `test-${t}`,
+              start: ndumps * 1000 + t * 100 + a * 10,
+            }) as RawTestResult,
+        ),
+      );
+      for (const tr of trs) {
+        await store.visitTestResult(tr, { readerId });
+      }
+      ndumps++;
+      return store.dumpState();
+    };
+
+    const targetStore = new DefaultAllureStore();
+    const dump1 = await generateDump("1");
+    const dump2 = await generateDump("2");
+
+    await targetStore.restoreState(dump1);
+    await targetStore.restoreState(dump2);
+
+    const allTrs = await targetStore.allTestResults();
+    const env1Test1Id = allTrs.find(({ name }) => name === "Env 1, test 1, attempt 2")?.id;
+    const env1Test2Id = allTrs.find(({ name }) => name === "Env 1, test 2, attempt 2")?.id;
+    const env2Test1Id = allTrs.find(({ name }) => name === "Env 2, test 1, attempt 2")?.id;
+    const env2Test2Id = allTrs.find(({ name }) => name === "Env 2, test 2, attempt 2")?.id;
+    const env1Test1Retries = env1Test1Id ? await targetStore.retriesByTrId(env1Test1Id) : [];
+    const env1Test2Retries = env1Test2Id ? await targetStore.retriesByTrId(env1Test2Id) : [];
+    const env2Test1Retries = env2Test1Id ? await targetStore.retriesByTrId(env2Test1Id) : [];
+    const env2Test2Retries = env2Test2Id ? await targetStore.retriesByTrId(env2Test2Id) : [];
+
+    expect(allTrs.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        "Env 1, test 1, attempt 2",
+        "Env 1, test 2, attempt 2",
+        "Env 2, test 1, attempt 2",
+        "Env 2, test 2, attempt 2",
+      ]),
+    );
+    expect(env1Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
+    expect(env1Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
+    expect(env2Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
+    expect(env2Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
+  });
+
+  it("should merge two dumps with no envs", async () => {
+    let ndumps = 1;
+
+    const generateDump = async () => {
+      const store = new DefaultAllureStore();
+      const trs = [1, 2].flatMap((t) =>
+        [1, 2].map(
+          (a) =>
+            ({
+              name: `Dump ${ndumps}, test ${t}, attempt ${a}`,
+              status: "passed",
+              testId: `test-${t}`,
+              historyId: `test-${t}`,
+              start: ndumps * 1000 + t * 100 + a * 10,
+            }) as RawTestResult,
+        ),
+      );
+      for (const tr of trs) {
+        await store.visitTestResult(tr, { readerId });
+      }
+      ndumps++;
+      return store.dumpState();
+    };
+
+    const targetStore = new DefaultAllureStore();
+
+    // dump 2 contains retries for the same set of tests
+    const dump1 = await generateDump();
+    const dump2 = await generateDump();
+
+    await targetStore.restoreState(dump1);
+    await targetStore.restoreState(dump2);
+
+    const allTrs = await targetStore.allTestResults();
+    const test1Id = allTrs.find(({ name }) => name === "Dump 2, test 1, attempt 2")?.id;
+    const test2Id = allTrs.find(({ name }) => name === "Dump 2, test 2, attempt 2")?.id;
+    const test1Retries = test1Id ? await targetStore.retriesByTrId(test1Id) : [];
+    const test2Retries = test2Id ? await targetStore.retriesByTrId(test2Id) : [];
+
+    expect(allTrs.map(({ name }) => name)).toEqual(
+      expect.arrayContaining(["Dump 2, test 1, attempt 2", "Dump 2, test 2, attempt 2"]),
+    );
+    expect(test1Retries.map(({ name }) => name)).toEqual([
+      "Dump 2, test 1, attempt 1",
+      "Dump 1, test 1, attempt 2",
+      "Dump 1, test 1, attempt 1",
+    ]);
+    expect(test2Retries.map(({ name }) => name)).toEqual([
+      "Dump 2, test 2, attempt 1",
+      "Dump 1, test 2, attempt 2",
+      "Dump 1, test 2, attempt 1",
+    ]);
+  });
+});
+
+describe("updateMapWithRecord", () => {
+  it("should update a map with a record", () => {
+    const map = new Map<string, number>([
+      ["a", 1],
+      ["b", 2],
+    ]);
+    const record = { b: 3, c: 4 };
+    const result = updateMapWithRecord(map, record);
+
+    expect(result).toBe(map);
+    expect(Array.from(result.entries())).toEqual([
+      ["a", 1],
+      ["b", 3],
+      ["c", 4],
+    ]);
+  });
+
+  it("should handle empty record and map", () => {
+    const map = new Map();
+    const record = {};
+    const result = updateMapWithRecord(map, record);
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe("mapToObject", () => {
+  it("should convert a map with string keys to an object", () => {
+    const map = new Map<string, number>([
+      ["a", 1],
+      ["b", 2],
+    ]);
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({ a: 1, b: 2 });
+  });
+
+  it("should convert a map with number keys to an object", () => {
+    const map = new Map<number, string>([
+      [1, "one"],
+      [2, "two"],
+    ]);
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({ 1: "one", 2: "two" });
+  });
+
+  it("should convert a map with symbol keys to an object", () => {
+    const symA = Symbol("a");
+    const symB = Symbol("b");
+    const map = new Map<symbol, string>([
+      [symA, "A"],
+      [symB, "B"],
+    ]);
+    const obj = mapToObject(map);
+
+    expect(obj[symA]).toBe("A");
+    expect(obj[symB]).toBe("B");
+  });
+
+  it("should return an empty object for an empty map", () => {
+    const map = new Map();
+    const obj = mapToObject(map);
+
+    expect(obj).toEqual({});
   });
 });

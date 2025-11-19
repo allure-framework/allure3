@@ -1,6 +1,6 @@
 import { BarChartWidget } from "@allurereport/web-components";
 import type { BarChartWidgetProps } from "@allurereport/web-components";
-import { ChartMode } from "@allurereport/core-api";
+import { ChartMode } from "@allurereport/charts-api";
 import type { Meta, StoryObj } from "@storybook/react";
 import { TREND_CATEGORIES, createTrendBarChartData, trendColors } from "./BarChart/mocks";
 

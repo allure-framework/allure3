@@ -1,5 +1,5 @@
 import { createCharts, fetchReportJsonData } from "@allurereport/web-commons";
-import type { ChartsResponse, UIChartsData } from "@allurereport/web-commons";
+import type { ChartsData, ChartsResponse, UIChartsData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
@@ -19,8 +19,10 @@ export const fetchTrendData = async () => {
   try {
     const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json", { bustCache: true });
 
+    const data = "general" in res && "byEnv" in res ? res.general : res;
+
     trendStore.value = {
-      data: createCharts(res),
+      data: createCharts(data as ChartsData),
       error: undefined,
       loading: false,
     };

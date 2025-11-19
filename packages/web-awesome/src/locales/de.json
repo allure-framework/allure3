@@ -20,7 +20,8 @@
     "total": "Alle",
     "results": "Ergebnisse",
     "globalAttachments": "Globale Anhänge",
-    "globalErrors": "Globale Fehler"
+    "globalErrors": "Globale Fehler",
+    "qualityGates": "Qualitätstore"
   },
   "search": {
     "search": "Suchen",
@@ -80,6 +81,7 @@
     "clear-filters": "Filter zurücksetzen",
     "no-attachments-results": "Keine Anhängeinformationen verfügbar",
     "no-global-errors-results": "Keine globalen Fehlerinformationen verfügbar",
+    "no-quality-gate-results": "Keine Qualitätstor-Ergebnisse verfügbar",
     "no-history-results": "Keine Verlaufsinformationen verfügbar",
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",

@@ -1,6 +1,7 @@
-import { type PieChartValues, type Statistic, getPieChartValues } from "@allurereport/core-api";
-import { createCharts, fetchReportJsonData } from "@allurereport/web-commons";
-import type { ChartsResponse, UIChartsData } from "@allurereport/web-commons";
+import type { PieChartValues } from "@allurereport/charts-api";
+import { type Statistic } from "@allurereport/core-api";
+import { createChartsWithEnvs, fetchReportJsonData, getPieChartValues } from "@allurereport/web-commons";
+import type { ChartsResponse, UIChartsDataWithEnvs } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
@@ -35,7 +36,7 @@ export const fetchPieChartData = async (env: string) => {
   }
 };
 
-export const chartsStore = signal<StoreSignalState<UIChartsData>>({
+export const chartsStore = signal<StoreSignalState<UIChartsDataWithEnvs>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -52,7 +53,7 @@ export const fetchChartsData = async () => {
     const res = await fetchReportJsonData<ChartsResponse>("widgets/charts.json", { bustCache: true });
 
     chartsStore.value = {
-      data: createCharts(res),
+      data: createChartsWithEnvs(res),
       error: undefined,
       loading: false,
     };

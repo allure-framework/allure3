@@ -210,6 +210,10 @@ export class RunCommand extends Command {
     examples: [
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
+      [
+        "run --stage=my-stage -- npm run test",
+        "Run npm run test and pack inner report state into my-stage.zip archive to restore the state in the next run",
+      ],
     ],
   });
 
@@ -239,6 +243,16 @@ export class RunCommand extends Command {
 
   ignoreLogs = Option.Boolean("--ignore-logs", {
     description: "Prevent logs attaching to the report (default: false)",
+  });
+
+  stage = Option.String("--stage", {
+    description:
+      "Runs tests in stage mode to collect results to a stage archive with the provided name (default: empty string)",
+  });
+
+  environment = Option.String("--environment", {
+    description:
+      "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
   });
 
   commandToRun = Option.Rest();
@@ -290,9 +304,10 @@ export class RunCommand extends Command {
         console.error("could not clean output directory", e);
       }
     }
-
     const allureReport = new AllureReport({
       ...config,
+      environment: this.environment,
+      stage: this.stage,
       realTime: false,
       plugins: [
         ...(config.plugins?.length

@@ -17,10 +17,11 @@
     "new": "Yeni testlər"
   },
   "tabs": {
-    "total": "Bütün",
+    "total": "Hamısı",
     "results": "Nəticələr",
     "globalAttachments": "Qlobal Əlavələr",
-    "globalErrors": "Qlobal Səhvlər"
+    "globalErrors": "Qlobal Xətalar",
+    "qualityGates": "Keyfiyyət Darvazaları"
   },
   "search": {
     "search": "Axtarış",
@@ -80,6 +81,7 @@
     "clear-filters": "Filtrləri təmizlə",
     "no-attachments-results": "Əlavə məlumatı mövcud deyil",
     "no-global-errors-results": "Qlobal səhvlər haqqında məlumat mövcud deyil",
+    "no-quality-gate-results": "Keyfiyyət darvazası nəticələri mövcud deyil",
     "no-history-results": "Tarixçə məlumatı mövcud deyil",
     "no-retries-results": "Təkrar məlumatı mövcud deyil",
     "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",

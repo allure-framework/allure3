@@ -1,23 +1,37 @@
 import { detect } from "@allurereport/ci";
-import type { AllureHistory, CiDescriptor, KnownTestFailure, TestResult } from "@allurereport/core-api";
 import type {
-  Plugin,
-  PluginContext,
-  PluginState,
-  PluginSummary,
-  ReportFiles,
-  ResultFile,
+  AllureHistory,
+  CiDescriptor,
+  KnownTestFailure,
+  ReportVariables,
+  TestResult,
+} from "@allurereport/core-api";
+import {
+  type AllureStoreDump,
+  AllureStoreDumpFiles,
+  type Plugin,
+  type PluginContext,
+  type PluginState,
+  type PluginSummary,
+  type ReportFiles,
+  type ResultFile,
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
+import ZipReadStream from "node-stream-zip";
 import console from "node:console";
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { readFileSync } from "node:fs";
-import { lstat, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
+import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
+import { promisify } from "node:util";
+import pLimit from "p-limit";
+import ProgressBar from "progress";
+import ZipWriteStream from "zip-stream";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
@@ -30,6 +44,7 @@ const initRequired = "report is not initialised. Call the start() method first."
 
 export class AllureReport {
   readonly #reportName: string;
+  readonly #reportVariables: ReportVariables;
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
@@ -43,9 +58,11 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
+  readonly #stage: string | undefined;
 
+  #stageTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
-  #stage: "init" | "running" | "done" = "init";
+  #executionStage: "init" | "running" | "done" = "init";
 
   readonly reportUuid: string;
   reportUrl?: string;
@@ -61,9 +78,11 @@ export class AllureReport {
       historyPath,
       defaultLabels = {},
       variables = {},
+      environment,
       environments,
       output,
       qualityGate,
+      stage,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -74,10 +93,12 @@ export class AllureReport {
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
+    this.#reportVariables = variables;
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
+    this.#stage = stage;
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory(this.#allureServiceClient);
@@ -97,6 +118,7 @@ export class AllureReport {
       history: this.#history,
       known,
       defaultLabels,
+      environment,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
@@ -128,7 +150,7 @@ export class AllureReport {
   }
 
   readDirectory = async (resultsDir: string) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
@@ -154,14 +176,14 @@ export class AllureReport {
   };
 
   readFile = async (resultsFile: string) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
     await this.readResult(new PathResultFile(resultsFile));
   };
 
   readResult = async (data: ResultFile) => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
@@ -187,23 +209,25 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
+    const repoData = await this.#store.repoData();
     await this.#store.readHistory();
 
-    if (this.#stage === "running") {
+    if (this.#executionStage === "running") {
       throw new Error("the report is already started");
     }
 
-    if (this.#stage === "done") {
+    if (this.#executionStage === "done") {
       throw new Error("the report is already stopped, the restart isn't supported at the moment");
     }
 
-    this.#stage = "running";
+    this.#executionStage = "running";
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish) {
+    if (this.#allureServiceClient && this.#publish && repoData?.branch) {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
+        branch: repoData.branch,
       });
 
       this.reportUrl = url;
@@ -223,7 +247,7 @@ export class AllureReport {
   };
 
   #update = async (): Promise<void> => {
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       return;
     }
     await this.#eachPlugin(false, async (plugin, context) => {
@@ -231,40 +255,265 @@ export class AllureReport {
     });
   };
 
+  dumpState = async (): Promise<void> => {
+    const {
+      testResults,
+      testCases,
+      fixtures,
+      attachments: attachmentsLinks,
+      environments,
+      globalAttachments = [],
+      globalErrors = [],
+      indexAttachmentByTestResult = {},
+      indexTestResultByHistoryId = {},
+      indexTestResultByTestCase = {},
+      indexLatestEnvTestResultByHistoryId = {},
+      indexAttachmentByFixture = {},
+      indexFixturesByTestResult = {},
+      indexKnownByHistoryId = {},
+      qualityGateResultsByRules = {},
+    } = this.#store.dumpState();
+    const allAttachments = await this.#store.allAttachments();
+    const dumpArchive = new ZipWriteStream({
+      zlib: { level: 5 },
+    });
+    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
+    const dumpArchiveWriteStream = createWriteStream(`${this.#stage}.zip`);
+    const promise = new Promise((res, rej) => {
+      dumpArchive.on("error", (err) => rej(err));
+      dumpArchiveWriteStream.on("finish", () => res(void 0));
+      dumpArchiveWriteStream.on("error", (err) => rej(err));
+    });
+
+    dumpArchive.pipe(dumpArchiveWriteStream);
+
+    await addEntry(Buffer.from(JSON.stringify(testResults)), {
+      name: AllureStoreDumpFiles.TestResults,
+    });
+    await addEntry(Buffer.from(JSON.stringify(testCases)), {
+      name: AllureStoreDumpFiles.TestCases,
+    });
+    await addEntry(Buffer.from(JSON.stringify(fixtures)), {
+      name: AllureStoreDumpFiles.Fixtures,
+    });
+    await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
+      name: AllureStoreDumpFiles.Attachments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(environments)), {
+      name: AllureStoreDumpFiles.Environments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
+      name: AllureStoreDumpFiles.ReportVariables,
+    });
+    await addEntry(Buffer.from(JSON.stringify(globalAttachments)), {
+      name: AllureStoreDumpFiles.GlobalAttachments,
+    });
+    await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
+      name: AllureStoreDumpFiles.GlobalErrors,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
+      name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexTestResultByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexTestResultsByHistoryId,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexTestResultByTestCase)), {
+      name: AllureStoreDumpFiles.IndexTestResultsByTestCase,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexLatestEnvTestResultByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByFixture)), {
+      name: AllureStoreDumpFiles.IndexAttachmentsByFixture,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexFixturesByTestResult)), {
+      name: AllureStoreDumpFiles.IndexFixturesByTestResult,
+    });
+    await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
+      name: AllureStoreDumpFiles.IndexKnownByHistoryId,
+    });
+    await addEntry(Buffer.from(JSON.stringify(qualityGateResultsByRules)), {
+      name: AllureStoreDumpFiles.QualityGateResultsByRules,
+    });
+
+    for (const attachment of allAttachments) {
+      const content = await this.#store.attachmentContentById(attachment.id);
+
+      if (!content) {
+        continue;
+      }
+
+      if (content instanceof PathResultFile) {
+        await addEntry(createReadStream(content.path), {
+          name: attachment.id,
+        });
+      } else {
+        await addEntry(await content.asBuffer(), {
+          name: attachment.id,
+        });
+      }
+    }
+
+    dumpArchive.finalize();
+
+    return promise as Promise<void>;
+  };
+
+  restoreState = async (stages: string[]): Promise<void> => {
+    for (const stage of stages) {
+      if (!existsSync(stage)) {
+        continue;
+      }
+
+      const dump = new ZipReadStream.async({
+        file: stage,
+      });
+      const testResultsEntry = await dump.entryData(AllureStoreDumpFiles.TestResults);
+      const testCasesEntry = await dump.entryData(AllureStoreDumpFiles.TestCases);
+      const fixturesEntry = await dump.entryData(AllureStoreDumpFiles.Fixtures);
+      const attachmentsEntry = await dump.entryData(AllureStoreDumpFiles.Attachments);
+      const environmentsEntry = await dump.entryData(AllureStoreDumpFiles.Environments);
+      const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
+      const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
+      const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
+      const indexAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
+      const indexTestResultsByHistoryId = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
+      const indexTestResultsByTestCaseEntry = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByTestCase);
+      const indexLatestEnvTestResultsByHistoryIdEntry = await dump.entryData(
+        AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
+      );
+      const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
+      const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
+      const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+      const qualityGateResultsByRulesEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResultsByRules);
+
+      const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
+        switch (entryName) {
+          case AllureStoreDumpFiles.Attachments:
+          case AllureStoreDumpFiles.TestResults:
+          case AllureStoreDumpFiles.TestCases:
+          case AllureStoreDumpFiles.Fixtures:
+          case AllureStoreDumpFiles.Environments:
+          case AllureStoreDumpFiles.ReportVariables:
+          case AllureStoreDumpFiles.GlobalAttachments:
+          case AllureStoreDumpFiles.GlobalErrors:
+          case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
+          case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
+          case AllureStoreDumpFiles.IndexTestResultsByTestCase:
+          case AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId:
+          case AllureStoreDumpFiles.IndexAttachmentsByFixture:
+          case AllureStoreDumpFiles.IndexFixturesByTestResult:
+          case AllureStoreDumpFiles.IndexKnownByHistoryId:
+          case AllureStoreDumpFiles.QualityGateResultsByRules:
+            return acc;
+          default:
+            return Object.assign(acc, {
+              [entryName]: entry,
+            });
+        }
+      }, {});
+      const dumpState: AllureStoreDump = {
+        testResults: JSON.parse(testResultsEntry.toString("utf8")),
+        testCases: JSON.parse(testCasesEntry.toString("utf8")),
+        fixtures: JSON.parse(fixturesEntry.toString("utf8")),
+        attachments: JSON.parse(attachmentsEntry.toString("utf8")),
+        environments: JSON.parse(environmentsEntry.toString("utf8")),
+        reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
+        globalAttachments: JSON.parse(globalAttachmentsEntry.toString("utf8")),
+        globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
+        indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
+        indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
+        indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
+        indexLatestEnvTestResultByHistoryId: JSON.parse(indexLatestEnvTestResultsByHistoryIdEntry.toString("utf8")),
+        indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
+        indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
+        indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
+        qualityGateResultsByRules: JSON.parse(qualityGateResultsByRulesEntry.toString("utf8")),
+      };
+
+      const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
+      const resultsAttachments: Record<string, ResultFile> = {};
+
+      this.#stageTempDirs.push(stageTempDir);
+
+      try {
+        for (const [attachmentId] of Object.entries(attachmentsEntries)) {
+          const attachmentContentEntry = await dump.entryData(attachmentId);
+          const attachmentFilePath = join(stageTempDir, attachmentId);
+
+          await writeFile(attachmentFilePath, attachmentContentEntry);
+
+          resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
+        }
+      } catch (err) {
+        console.error(`Can't restore state from "${stage}", continuing without it`);
+        console.error(err);
+      }
+
+      await this.#store.restoreState(dumpState, resultsAttachments);
+
+      console.info(`Successfully restored state from "${stage}"`);
+    }
+  };
+
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
     const remoteHrefs: string[] = [];
 
-    if (this.#stage !== "running") {
+    if (this.#executionStage !== "running") {
       throw new Error(initRequired);
     }
 
+    const testResults = await this.#store.allTestResults();
+    const testCases = await this.#store.allTestCases();
+    const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+
     this.#realtimeSubscriber.offAll();
     // closing it early, to prevent future reads
-    this.#stage = "done";
+    this.#executionStage = "done";
 
+    // just dump state when stage is set and generate nothing
+    if (this.#stage) {
+      await this.dumpState();
+      return;
+    }
+
+    // isolate logs of different reports stages: done and summary
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
-
+    });
+    await this.#eachPlugin(false, async (plugin, context) => {
       if (this.#allureServiceClient && context.publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
+        const pluginFilesEntries = Object.entries(pluginFiles);
+        const progressBar = new ProgressBar(`Publishing "${context.id}" report [:bar] :current/:total`, {
+          total: pluginFilesEntries.length,
+          width: 20,
+        });
+        const limitFn = pLimit(50);
+        const fns = pluginFilesEntries.map(([filename, filepath]) =>
+          limitFn(async () => {
+            if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
+              await this.#allureServiceClient!.addReportFile({
+                reportUuid: this.reportUuid,
+                pluginId: context.id,
+                filename,
+                filepath,
+              });
+            } else {
+              await this.#allureServiceClient!.addReportAsset({
+                filename,
+                filepath,
+              });
+            }
 
-        for (const [filename, filepath] of Object.entries(pluginFiles)) {
-          // publish data-files separately
-          if (/^(data|widgets|index\.html$)/.test(filename)) {
-            await this.#allureServiceClient.addReportFile({
-              reportUuid: this.reportUuid,
-              pluginId: context.id,
-              filename,
-              filepath,
-            });
-          } else {
-            await this.#allureServiceClient.addReportAsset({
-              filename,
-              filepath,
-            });
-          }
-        }
+            progressBar.tick();
+          }),
+        );
+
+        progressBar.render();
+
+        await Promise.all(fns);
       }
 
       const summary = await plugin?.info?.(context, this.#store);
@@ -276,7 +525,7 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish) {
+      if (context.publish && this.reportUrl) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
 
         remoteHrefs.push(summary.remoteHref);
@@ -291,9 +540,24 @@ export class AllureReport {
       await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
+    if (summaries.length > 1) {
+      const summaryPath = await generateSummary(this.#output, summaries);
+      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean);
+
+      // publish summary when there are multiple published plugins
+      if (this.#publish && summaryPath && publishedReports.length > 1) {
+        await this.#allureServiceClient?.addReportFile({
+          reportUuid: this.reportUuid,
+          filename: "index.html",
+          filepath: summaryPath,
+        });
+      }
+    }
+
     if (this.#publish) {
       await this.#allureServiceClient?.completeReport({
         reportUuid: this.reportUuid,
+        historyPoint: historyDataPoint,
       });
     }
 
@@ -327,11 +591,14 @@ export class AllureReport {
       await rm(reportPath, { recursive: true });
     }
 
-    if (this.#history) {
-      const testResults = await this.#store.allTestResults();
-      const testCases = await this.#store.allTestCases();
-      const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
+    // remove all stage dump temp dirs
+    for (const dir of this.#stageTempDirs) {
+      try {
+        await rm(dir, { recursive: true });
+      } catch (ignored) {}
+    }
 
+    if (this.#history) {
       try {
         await this.#store.appendHistory(historyDataPoint);
       } catch (err) {
@@ -344,10 +611,6 @@ export class AllureReport {
           throw err;
         }
       }
-    }
-
-    if (summaries.length > 1) {
-      await generateSummary(this.#output, summaries);
     }
 
     if (remoteHrefs.length > 0) {
@@ -407,6 +670,7 @@ export class AllureReport {
         reportName: this.#reportName,
         state: pluginState,
         reportFiles: pluginFiles,
+        reportUrl: this.reportUrl,
         ci: this.#ci,
       };
 

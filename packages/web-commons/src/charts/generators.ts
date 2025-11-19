@@ -1,0 +1,119 @@
+import {
+  type AllureChartsStoreData,
+  type ChartOptions,
+  ChartType,
+  type ComingSoonChartOptions,
+  type GeneratedChartsData,
+} from "@allurereport/charts-api";
+import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
+import { type AllureStore } from "@allurereport/plugin-api";
+import { generateBarChart } from "./bar.js";
+import { generateComingSoonChart } from "./comingSoon.js";
+import { generateFunnelChart } from "./funnel/index.js";
+import { generateHeatMapChart } from "./heatMap.js";
+import { generateTrendChart } from "./line.js";
+import { generatePieChart } from "./pie.js";
+import { generateTreeMapChart } from "./treeMap.js";
+
+const generateChartData = async (props: {
+  env?: string;
+  chartsOptions: ChartOptions[];
+  store: AllureStore;
+  reportName: string;
+  generateUuid: () => string;
+}) => {
+  const { env, chartsOptions, store, reportName, generateUuid } = props;
+  const result: GeneratedChartsData = {};
+
+  const storeData: AllureChartsStoreData = await Promise.all([
+    await store.allHistoryDataPoints(),
+    env ? await store.testResultsByEnvironment(env) : await store.allTestResults(),
+    env ? await store.testsStatistic((tr) => tr.environment === env) : await store.testsStatistic(),
+  ]).then(([historyDataPoints, testResults, statistic]) => ({
+    historyDataPoints,
+    testResults,
+    statistic,
+  }));
+
+  for (const chartOption of chartsOptions) {
+    const chartId = generateUuid();
+
+    switch (chartOption.type) {
+      case ChartType.Trend:
+        result[chartId] = generateTrendChart(chartOption, storeData, reportName)!;
+        break;
+      case ChartType.Pie:
+        result[chartId] = generatePieChart(chartOption, storeData)!;
+        break;
+      case ChartType.Bar:
+        result[chartId] = generateBarChart(chartOption, storeData)!;
+        break;
+      case ChartType.TreeMap:
+        result[chartId] = generateTreeMapChart(chartOption, storeData)!;
+        break;
+      case ChartType.HeatMap:
+        result[chartId] = generateHeatMapChart(chartOption, storeData)!;
+        break;
+      case ChartType.Funnel:
+        result[chartId] = generateFunnelChart(chartOption, storeData)!;
+        break;
+      default:
+        result[chartId] = generateComingSoonChart(chartOption);
+        break;
+    }
+
+    if (!result[chartId]) {
+      result[chartId] = generateComingSoonChart(chartOption as ComingSoonChartOptions);
+    }
+  }
+
+  return result;
+};
+
+type ChartsWidgetData = {
+  /**
+   * General charts data for all environments
+   */
+  general: GeneratedChartsData;
+  /**
+   * Charts data for each environment.
+   */
+  byEnv: {
+    [env: string]: GeneratedChartsData;
+  };
+};
+
+const hasOnlyDefaultEnvironment = (environments: string[]): boolean => {
+  return environments.length === 1 && environments[0] === DEFAULT_ENVIRONMENT;
+};
+
+export const generateCharts = async (
+  chartsOptions: ChartOptions[],
+  store: AllureStore,
+  reportName: string,
+  generateUuid: () => string,
+): Promise<ChartsWidgetData> => {
+  const environments = await store.allEnvironments();
+
+  const chartsData: ChartsWidgetData = {
+    general: await generateChartData({ chartsOptions, store, reportName, generateUuid }),
+    byEnv: {},
+  };
+
+  // If there is only one environment, return only the general data
+  if (hasOnlyDefaultEnvironment(environments)) {
+    return chartsData;
+  }
+
+  for (const environment of environments) {
+    chartsData.byEnv[environment] = await generateChartData({
+      chartsOptions,
+      store,
+      reportName,
+      env: environment,
+      generateUuid,
+    });
+  }
+
+  return chartsData;
+};

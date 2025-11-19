@@ -110,8 +110,6 @@ describe("maxFailuresRule", () => {
       state: 0,
     });
 
-    console.log(result);
-
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
     expect(result.expected).toBe(expected);

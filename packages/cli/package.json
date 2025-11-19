@@ -1,6 +1,6 @@
 {
   "name": "allure",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.22",
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
@@ -31,6 +31,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",
@@ -40,6 +41,7 @@
     "@allurereport/plugin-classic": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-dashboard": "workspace:*",
+    "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-server-reload": "workspace:*",
@@ -49,8 +51,8 @@
     "@allurereport/static-server": "workspace:*",
     "adm-zip": "^0.5.16",
     "clipanion": "^4.0.0-rc.4",
+    "glob": "^11.0.3",
     "lodash.omit": "^4.5.0",
-    "picomatch": "^4.0.3",
     "prompts": "^2.4.2",
     "terminate": "^2.8.0",
     "typanion": "^3.14.0",
@@ -62,7 +64,6 @@
     "@types/eslint": "^8.56.11",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
-    "@types/picomatch": "^4",
     "@types/prompts": "^2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

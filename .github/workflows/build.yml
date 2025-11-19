@@ -34,9 +34,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
-      ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -54,9 +51,7 @@ jobs:
     - name: Build project
       run: yarn build
     - name: Test Project
-      run: yarn test
-    - name: Pack test results
-      run: yarn allure results pack --name allure-results-${{ matrix.os }}.zip "**/out/allure-results"
+      run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
@@ -69,8 +64,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     env:
       ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
+      ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -97,10 +94,13 @@ jobs:
         run: yarn install --immutable --immutable-cache --check-cache
       - name: Build project
         run: yarn build
-      - name: Unpack test results
-        run: yarn allure results unpack --output ./allure-results allure-results-macos-latest.zip allure-results-ubuntu-latest.zip allure-results-windows-latest.zip
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --output=./allure-report ./allure-results
+        run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
+      - name: Allure Report Official
+        uses: allure-framework/allure-action@v0
+        with:
+          report-directory: "./allure-report"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3

@@ -1,13 +1,15 @@
 /* eslint-disable @stylistic/quotes */
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType, capitalize } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/charts-api";
+import { capitalize } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
   ComingSoonChartWidget,
   Grid,
   GridItem,
+  HeatMapWidget,
   Loadable,
   PageLoader,
   SuccessRatePieChart,
@@ -67,6 +69,9 @@ const getChartWidgetByType = (
           indexBy={chartData.indexBy}
           colors={chartData.colors}
           groupMode={chartData.groupMode}
+          xAxisConfig={chartData.xAxisConfig}
+          yAxisConfig={chartData.yAxisConfig}
+          layout={chartData.layout}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -80,6 +85,16 @@ const getChartWidgetByType = (
           colors={chartData.colors}
           legendDomain={chartData.legendDomain}
           tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.HeatMap: {
+      return (
+        <HeatMapWidget
+          title={chartData.title}
+          data={chartData.data}
+          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );

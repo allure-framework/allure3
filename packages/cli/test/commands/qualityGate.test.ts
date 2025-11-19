@@ -1,5 +1,5 @@
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { findMatching } from "@allurereport/directory-watcher";
+import { glob } from "glob";
 import * as console from "node:console";
 import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -40,8 +40,8 @@ vi.mock("node:process", async (importOriginal) => ({
 vi.mock("node:fs/promises", () => ({
   realpath: vi.fn().mockResolvedValue(""),
 }));
-vi.mock("@allurereport/directory-watcher", () => ({
-  findMatching: vi.fn(),
+vi.mock("glob", () => ({
+  glob: vi.fn(),
 }));
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
@@ -53,9 +53,6 @@ vi.mock("@allurereport/core", async (importOriginal) => {
     AllureReport: AllureReportMock,
   };
 });
-vi.mock("@allurereport/directory-watcher", () => ({
-  findMatching: vi.fn(),
-}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -63,9 +60,7 @@ beforeEach(() => {
 
 describe("quality-gate command", () => {
   it("should exit with code 0 when there are no quality gate violations", async () => {
-    (findMatching as Mock).mockImplementation((cwd: string, dirs: Set<string>) => {
-      dirs.add("./allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true as any;
     AllureReportMock.prototype.realtimeSubscriber = {
@@ -92,9 +87,7 @@ describe("quality-gate command", () => {
   it("should exit with code 1 on fast-fail during realtime validation", async () => {
     let onTestResultsCb: (ids: string[]) => void;
 
-    (findMatching as Mock).mockImplementation((cwd: string, dirs: Set<string>) => {
-      dirs.add("./allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true as any;
     AllureReportMock.prototype.realtimeSubscriber = {
@@ -135,10 +128,7 @@ describe("quality-gate command", () => {
   });
 
   it("should use recursive discovery when resultsDir is not provided", async () => {
-    (findMatching as unknown as Mock).mockImplementationOnce(async (cwd: string, set: Set<string>) => {
-      set.add("dir1/allure-results");
-      set.add("dir2/allure-results");
-    });
+    (glob as unknown as Mock).mockResolvedValueOnce(["dir1/allure-results/", "dir2/allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     AllureReportMock.prototype.hasQualityGate = true as any;
     AllureReportMock.prototype.realtimeSubscriber = {
@@ -158,13 +148,13 @@ describe("quality-gate command", () => {
 
     await command.execute();
 
-    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir1/allure-results");
-    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir2/allure-results");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir1/allure-results/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("dir2/allure-results/");
     expect(exit).toHaveBeenCalledWith(0);
   });
 
   it("should exit with code 0 and print a message when no results directories found", async () => {
-    (findMatching as unknown as Mock).mockImplementationOnce(async (_targetDir: string, _set: Set<string>) => {});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
 
@@ -206,7 +196,7 @@ describe("quality-gate command", () => {
     (AllureReportMock.prototype as any).store = {
       allKnownIssues: vi.fn().mockResolvedValue([]),
     };
-    (findMatching as Mock).mockImplementation(async () => {});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
     AllureReportMock.prototype.hasQualityGate = true as any;
 
     const command = new QualityGateCommand();

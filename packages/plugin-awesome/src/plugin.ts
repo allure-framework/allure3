@@ -8,15 +8,16 @@ import {
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
-import { generateAllCharts } from "./charts.js";
 import { filterEnv } from "./environments.js";
 import {
+  generateAllCharts,
   generateAttachmentsFiles,
   generateEnvironmentJson,
   generateEnvirontmentsList,
   generateGlobals,
   generateHistoryDataPoints,
   generateNav,
+  generateQualityGateResults,
   generateStaticFiles,
   generateStatistic,
   generateTestCases,
@@ -46,8 +47,7 @@ export class AwesomePlugin implements Plugin {
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
-    // TODO:
-    // const qualityGateResults = await store.qualityGateResults();
+    const qualityGateResults = await store.qualityGateResults();
 
     for (const env of environments) {
       envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
@@ -90,14 +90,16 @@ export class AwesomePlugin implements Plugin {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));
     }
 
-    const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
-
+    await generateQualityGateResults(this.#writer!, qualityGateResults);
     await generateGlobals(this.#writer!, {
       globalAttachments,
       globalErrors,
       globalExitCode,
       contentFunction: (id) => store.attachmentContentById(id),
     });
+
+    const reportDataFiles = singleFile ? (this.#writer! as InMemoryReportDataWriter).reportFiles() : [];
+
     await generateStaticFiles({
       ...this.options,
       id: context.id,

@@ -10,7 +10,6 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -32,6 +31,7 @@ import type {
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
+import { getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -347,7 +347,6 @@ export const generateStaticFiles = async (
       // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
-      return;
     }
 
     throw err;

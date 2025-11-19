@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-dashboard",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.22",
   "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",
@@ -31,6 +31,7 @@
     "IE 11"
   ],
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-components": "workspace:*",

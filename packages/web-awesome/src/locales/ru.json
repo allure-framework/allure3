@@ -19,8 +19,9 @@
   "tabs": {
     "total": "Все",
     "results": "Результаты",
-    "globalAttachments": "Глобальные вложения",
-    "globalErrors": "Глобальные ошибки"
+    "globalAttachments": "Глобальные Вложения",
+    "globalErrors": "Глобальные Ошибки",
+    "qualityGates": "Ворота Качества"
   },
   "search": {
     "search": "Поиск",
@@ -80,6 +81,7 @@
     "clear-filters": "Очистить фильтры",
     "no-attachments-results": "Информация о вложениях отсутствует",
     "no-global-errors-results": "Информация о глобальных ошибках отсутствует",
+    "no-quality-gate-results": "Информация о воротах качества отсутствует",
     "no-history-results": "Информация об истории отсутствует",
     "no-retries-results": "Информация о перезапусках отсутствует",
     "no-test-steps-results": "Нет информации о шагах тестирования",

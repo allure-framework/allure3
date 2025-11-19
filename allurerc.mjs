@@ -1,8 +1,11 @@
-import { defineConfig, defaultChartsConfig } from "allure";
+import { defaultChartsConfig, defineConfig } from "allure";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
 
+/**
+ * @type {import("allure").AllureConfig}
+ */
 const config = {
   name: "Allure Report 3",
   output: "./out/allure-report",
@@ -14,6 +17,7 @@ const config = {
         reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
         charts: defaultChartsConfig,
+        publish: true,
       },
     },
     log: {
@@ -30,84 +34,95 @@ const config = {
         layout: [
           {
             type: "pie",
-            title: "Current status"
+            title: "Current status",
           },
           {
             type: "trend",
             dataType: "status",
-            title: "Status dynamics"
+            title: "Status dynamics",
           },
           {
             type: "bar",
             dataType: "statusBySeverity",
-            title: "Test result severities"
+            title: "Test result severities",
           },
           {
             type: "bar",
             dataType: "statusTrend",
-            title: "Status change dynamics"
+            title: "Status change dynamics",
           },
           {
             type: "bar",
             dataType: "statusChangeTrend",
-            title: "Test base growth dynamics"
+            title: "Test base growth dynamics",
           },
           {
             type: "treemap",
             dataType: "coverageDiff",
-            title: "Coverage diff map"
+            title: "Coverage diff map",
           },
           {
             type: "treemap",
             dataType: "successRateDistribution",
-            title: "Success rate disctribution"
+            title: "Success rate disctribution",
           },
           {
             type: "heatmap",
-            title: "Problems distribution by environment"
+            title: "Problems distribution by environment",
           },
           {
             type: "bar",
-            title: "Stability rate disctribution"
+            dataType: "stabilityRateDistribution",
+            title: "Stability rate distribution",
           },
           {
             type: "bar",
-            title: "Duration by layer histogram"
+            dataType: "durationsByLayer",
+            title: "Durations by layer histogram",
           },
           {
             type: "bar", // OR it might be trend
-            title: "Performance dynamics"
+            title: "Performance dynamics",
           },
           {
             type: "bar",
-            title: "FBSU age pyramid"
+            dataType: "fbsuAgePyramid",
+            title: "FBSU age pyramid",
           },
           {
             type: "funnel",
-            title: "Testing pyramid"
+            title: "Testing pyramid",
           },
-        ]
+        ],
+        publish: true,
       },
     },
   },
-  variables: {},
+  variables: {
+    env_variable: "unknown",
+  },
   environments: {
-    windows: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Windows"),
+    foo: {
+      variables: {
+        env_variable: "foo",
+        env_specific_variable: "foo",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
     },
-    macos: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "macOS"),
-    },
-    linux: {
-      matcher: ({ labels }) => labels.find(({ name, value }) => name === "os" && value === "Linux"),
+    bar: {
+      variables: {
+        env_variable: "bar",
+        env_specific_variable: "bar",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
   },
 };
 
-if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN) {
+if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_PROJECT) {
   config.allureService = {
     url: ALLURE_SERVICE_URL,
-    project: "allure3",
+    project: ALLURE_SERVICE_PROJECT,
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
     publish: true,
   };

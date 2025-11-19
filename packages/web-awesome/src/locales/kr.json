@@ -17,10 +17,11 @@
     "new": "새로운 테스트들"
   },
   "tabs": {
-    "total": "전체",
+    "total": "모두",
     "results": "결과",
-    "globalAttachments": "글로벌 첨부파일",
-    "globalErrors": "글로벌 오류"
+    "globalAttachments": "전역 첨부파일",
+    "globalErrors": "전역 오류",
+    "qualityGates": "품질 게이트"
   },
   "search": {
     "search": "검색",
@@ -79,7 +80,8 @@
     "no-message-provided": "메시지가 제공되지 않음",
     "clear-filters": "필터 지우기",
     "no-attachments-results": "첨부파일 정보를 사용할 수 없습니다",
-    "no-global-errors-results": "No global errors information available",
+    "no-global-errors-results": "전역 오류 정보를 사용할 수 없습니다",
+    "no-quality-gate-results": "품질 게이트 결과를 사용할 수 없습니다",
     "no-history-results": "기록 정보를 사용할 수 없습니다",
     "no-retries-results": "재시도 정보를 사용할 수 없습니다",
     "no-test-steps-results": "테스트 단계 정보가 없습니다",

@@ -17,6 +17,11 @@
     "minor": "משני",
     "trivial": "שולי"
   },
+  "environments": {
+    "environment_one": "סביבה",
+    "environment_other": "סביבות",
+    "all": "הכל"
+  },
   "charts": {
     "trend": {
       "title": "תרשים מגמה: {{type}}",

@@ -17,6 +17,11 @@
     "minor": "მცირე",
     "trivial": "უმნიშვნელო"
   },
+  "environments": {
+    "environment_one": "გარემობა",
+    "environment_other": "გარემობები",
+    "all": "ყველა"
+  },
   "charts": {
     "trend": {
       "title": "ტრენდის გრაფიკი: {{type}}",

@@ -12,18 +12,21 @@ import {
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-  getPieChartValues,
   incrementStatistic,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
+import type {
+  AllureStore,
+  ExitCode,
+  PluginContext,
+  PluginGlobals,
+  QualityGateValidationResult,
+  ReportFiles,
+  ResultFile,
+  TestResultFilter,
+} from "@allurereport/plugin-api";
 import {
-  type AllureStore,
-  type ExitCode,
-  type PluginGlobals,
-  type ReportFiles,
-  type ResultFile,
-  type TestResultFilter,
   createTreeByLabels,
   createTreeByTitlePath,
   filterTree,
@@ -38,7 +41,9 @@ import type {
   AwesomeTreeGroup,
   AwesomeTreeLeaf,
 } from "@allurereport/web-awesome";
+import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
+import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
@@ -355,6 +360,7 @@ export const generateAttachmentsFiles = async (
       return;
     }
     const content = await contentFunction(id);
+
     if (!content) {
       continue;
     }
@@ -406,6 +412,13 @@ export const generateGlobals = async (
   }
 
   await writer.writeWidget("globals.json", globals);
+};
+
+export const generateQualityGateResults = async (
+  writer: AwesomeDataWriter,
+  qualityGateResults: QualityGateValidationResult[] = [],
+) => {
+  await writer.writeWidget("quality-gate.json", qualityGateResults);
 };
 
 export const generateStaticFiles = async (
@@ -518,9 +531,27 @@ export const generateStaticFiles = async (
       // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
-      return;
     }
 
     throw err;
+  }
+};
+
+export const generateAllCharts = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  options: AwesomeOptions,
+  context: PluginContext,
+): Promise<void> => {
+  const { charts } = options;
+
+  if (!charts) {
+    return;
+  }
+
+  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID);
+
+  if (Object.keys(generatedChartsData.general).length > 0) {
+    await writer.writeWidget("charts.json", generatedChartsData);
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.22",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -33,6 +33,7 @@
     "@allurereport/plugin-classic": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-dashboard": "workspace:*",
+    "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
@@ -43,7 +44,11 @@
     "@allurereport/summary": "workspace:*",
     "handlebars": "^4.7.8",
     "markdown-it": "^14.1.0",
-    "yoctocolors": "^2.1.1"
+    "node-stream-zip": "^1.15.0",
+    "p-limit": "^7.2.0",
+    "progress": "^2.0.3",
+    "yoctocolors": "^2.1.1",
+    "zip-stream": "^7.0.2"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
@@ -51,6 +56,8 @@
     "@types/handlebars": "^4.1.0",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.17.9",
+    "@types/progress": "^2",
+    "@types/zip-stream": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",

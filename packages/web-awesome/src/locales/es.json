@@ -17,10 +17,11 @@
     "new": "Pruebas nuevas"
   },
   "tabs": {
-    "total": "Todo",
+    "total": "Todos",
     "results": "Resultados",
     "globalAttachments": "Adjuntos Globales",
-    "globalErrors": "Errores Globales"
+    "globalErrors": "Errores Globales",
+    "qualityGates": "Puertas de Calidad"
   },
   "search": {
     "search": "Buscar",
@@ -80,6 +81,7 @@
     "clear-filters": "Limpiar filtros",
     "no-attachments-results": "No hay información de adjuntos disponible",
     "no-global-errors-results": "No hay información de errores globales disponible",
+    "no-quality-gate-results": "No hay resultados de puertas de calidad disponibles",
     "no-history-results": "No hay información de historial disponible",
     "no-retries-results": "No hay información de reintentos disponible",
     "no-test-steps-results": "No hay información disponible sobre los pasos de prueba",

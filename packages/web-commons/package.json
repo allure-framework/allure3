@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.0.0-beta.18",
+  "version": "3.0.0-beta.22",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
@@ -23,16 +23,20 @@
     "clean": "rimraf ./dist"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
     "ansi-to-html": "^0.7.2",
     "d3-interpolate": "^3.0.1",
     "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
     "dompurify": "^3.2.6"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/d3-interpolate": "^3.0.4",
     "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

@@ -7,13 +7,15 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  FunnelChartType,
+  HeatMapSerie,
   PieSlice,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
   TrendSlice,
   TrendSliceId,
-} from "@allurereport/core-api";
+} from "@allurereport/charts-api";
 
 export type TreeMapTooltipAccessor = <T>(node: T) => string[];
 
@@ -73,17 +75,37 @@ export interface ResponseTreeMapChartData {
   treeMap: TreeMapNode;
 }
 
+export interface ResponseHeatMapChartData {
+  type: ChartType.HeatMap;
+  title?: string;
+  data: HeatMapSerie[];
+}
+
 export type ChartsResponse<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = Record<
-  ChartId,
-  | ResponseTrendChartData<SeriesType, Metadata>
-  | ResponsePieChartData
-  | ResponseBarChartData
-  | ResponseComingSoonChartData
-  | ResponseTreeMapChartData
->;
+> = {
+  general: Record<
+    ChartId,
+    | ResponseTrendChartData<SeriesType, Metadata>
+    | ResponsePieChartData
+    | ResponseBarChartData
+    | ResponseComingSoonChartData
+    | ResponseTreeMapChartData
+    | ResponseHeatMapChartData
+  >;
+  byEnv: {
+    [env: string]: Record<
+      ChartId,
+      | ResponseTrendChartData<SeriesType, Metadata>
+      | ResponsePieChartData
+      | ResponseBarChartData
+      | ResponseComingSoonChartData
+      | ResponseTreeMapChartData
+      | ResponseHeatMapChartData
+    >;
+  };
+};
 
 export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
   type: ChartType.Trend;
@@ -100,6 +122,20 @@ export type UIPieChartData = ResponsePieChartData;
 
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
+  xAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+  };
+  yAxisConfig?: {
+    legend?: string;
+    enabled?: boolean;
+    format?: string;
+    domain?: number[];
+  };
+  layout?: "horizontal" | "vertical";
+  // Threshold value for the stability rate distribution chart
+  threshold?: number;
 }
 
 export type UIComingSoonChartData = ResponseComingSoonChartData;
@@ -111,6 +147,24 @@ export interface UITreeMapChartData extends ResponseTreeMapChartData {
   tooltipRows?: TreeMapTooltipAccessor;
 }
 
+export interface UIHeatMapChartData extends ResponseHeatMapChartData {
+  colors: (value: number, domain?: number[]) => string;
+}
+
+export interface UITestingPyramidChartData extends ResponseTestingPyramidChartData {}
+
+export interface ResponseTestingPyramidChartData {
+  type: ChartType.Funnel;
+  dataType: FunnelChartType;
+  title?: string;
+  data: {
+    layer: string;
+    testCount: number;
+    successRate: number;
+    percentage: number;
+  }[];
+}
+
 export type ChartData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
@@ -119,19 +173,42 @@ export type ChartData<
   | ResponsePieChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
-  | ResponseTreeMapChartData;
+  | ResponseTreeMapChartData
+  | ResponseHeatMapChartData
+  | ResponseTestingPyramidChartData;
+
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UIPieChartData
   | UIBarChartData
   | UIComingSoonChartData
-  | UITreeMapChartData;
+  | UITreeMapChartData
+  | UIHeatMapChartData
+  | UITestingPyramidChartData;
 
 export type ChartsData<
   SeriesType extends string = string,
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
 > = Record<ChartId, ChartData<SeriesType, Metadata>>;
+
+export type ChartsDataWithEnvs<
+  SeriesType extends string = string,
+  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
+> = {
+  general: Record<ChartId, ChartData<SeriesType, Metadata>>;
+  byEnv: {
+    [env: string]: Record<ChartId, ChartData<SeriesType, Metadata>>;
+  };
+};
+
 export type UIChartsData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = Record<
   ChartId,
   UIChartData<Metadata>
 >;
+
+export type UIChartsDataWithEnvs<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = {
+  general: UIChartsData<Metadata>;
+  byEnv: {
+    [env: string]: UIChartsData<Metadata>;
+  };
+};

@@ -17,6 +17,11 @@
     "minor": "次要",
     "trivial": "轻微"
   },
+  "environments": {
+    "environment_one": "环境",
+    "environment_other": "环境",
+    "all": "所有"
+  },
   "charts": {
     "trend": {
       "title": "趋势图表: {{type}}",

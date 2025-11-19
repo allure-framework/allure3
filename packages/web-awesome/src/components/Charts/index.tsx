@@ -1,20 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartType, capitalize } from "@allurereport/core-api";
+import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
+import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
   ComingSoonChartWidget,
   Grid,
   GridItem,
+  HeatMapWidget,
   Loadable,
   PageLoader,
+  StabilityRateDistributionWidget,
   SuccessRatePieChart,
+  TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
   Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
+import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
@@ -56,6 +61,25 @@ const getChartWidgetByType = (
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
 
+      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
+        return (
+          <StabilityRateDistributionWidget
+            title={title}
+            mode={chartData.mode}
+            data={chartData.data}
+            keys={chartData.keys}
+            indexBy={chartData.indexBy}
+            colors={chartData.colors}
+            groupMode={chartData.groupMode}
+            xAxisConfig={chartData.xAxisConfig}
+            yAxisConfig={chartData.yAxisConfig}
+            layout={chartData.layout}
+            threshold={chartData.threshold}
+            translations={{ "no-results": empty("no-results") }}
+          />
+        );
+      }
+
       return (
         <BarChartWidget
           title={title}
@@ -65,6 +89,9 @@ const getChartWidgetByType = (
           indexBy={chartData.indexBy}
           colors={chartData.colors}
           groupMode={chartData.groupMode}
+          xAxisConfig={chartData.xAxisConfig}
+          yAxisConfig={chartData.yAxisConfig}
+          layout={chartData.layout}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -78,6 +105,29 @@ const getChartWidgetByType = (
           colors={chartData.colors}
           legendDomain={chartData.legendDomain}
           tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.HeatMap: {
+      return (
+        <HeatMapWidget
+          title={chartData.title}
+          data={chartData.data}
+          colors={chartData.colors}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.Funnel: {
+      if (chartData.dataType !== FunnelChartType.TestingPyramid) {
+        return null;
+      }
+
+      return (
+        <TestingPyramidWidget
+          title={chartData.title}
+          data={chartData.data}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -103,7 +153,9 @@ export const Charts = () => {
       source={chartsStore}
       renderLoader={() => <PageLoader />}
       renderData={(data) => {
-        const charts = Object.entries(data).map(([chartId, value]) => {
+        const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+
+        const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
           const chartWidget = getChartWidgetByType(value, { t, empty });
 
           return (

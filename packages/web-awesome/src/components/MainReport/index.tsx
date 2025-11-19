@@ -10,10 +10,13 @@ import { reportStatsStore } from "@/stores";
 import { useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
 import { isSplitMode } from "@/stores/layout";
+import { qualityGateStore } from "@/stores/qualityGate";
+import { ReportQualityGateResults } from "../ReportQualityGateResults";
 import * as styles from "./styles.scss";
 
 enum ReportRootTab {
   Results = "results",
+  QualityGate = "qualityGate",
   GlobalAttachments = "globalAttachments",
   GlobalErrors = "globalErrors",
 }
@@ -27,6 +30,7 @@ const viewsByTab = {
   ),
   [ReportRootTab.GlobalAttachments]: () => <ReportGlobalAttachments />,
   [ReportRootTab.GlobalErrors]: () => <ReportGlobalErrors />,
+  [ReportRootTab.QualityGate]: () => <ReportQualityGateResults />,
 };
 
 const MainReportContent = () => {
@@ -53,6 +57,17 @@ const MainReport = () => {
                   <NavTab id={ReportRootTab.Results}>
                     {t("results")} <Counter count={stats?.total ?? 0} />
                   </NavTab>
+                )}
+              />
+              <Loadable
+                source={qualityGateStore}
+                renderData={(results) => (
+                  <>
+                    <NavTab id={ReportRootTab.QualityGate}>
+                      {t("qualityGates")}{" "}
+                      <Counter status={results.length > 0 ? "failed" : undefined} count={results.length} />
+                    </NavTab>
+                  </>
                 )}
               />
               <Loadable

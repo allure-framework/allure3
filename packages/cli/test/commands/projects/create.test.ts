@@ -99,6 +99,7 @@ describe("projects create command", () => {
       },
     });
     AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
+      id: "foo-id",
       name: "foo",
     });
 
@@ -116,7 +117,7 @@ describe("projects create command", () => {
       name: "foo",
     });
     expect(console.info).toHaveBeenCalledTimes(1);
-    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "foo"'));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "foo-id"'));
   });
 
   it("should create a project with a name retrieved from git repo", async () => {
@@ -127,6 +128,7 @@ describe("projects create command", () => {
     });
     (getGitRepoName as Mock).mockResolvedValue("bar");
     AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
+      id: "bar-id",
       name: "bar",
     });
 
@@ -144,7 +146,7 @@ describe("projects create command", () => {
       name: "bar",
     });
     expect(console.info).toHaveBeenCalledTimes(1);
-    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "bar"'));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "bar-id"'));
   });
 
   it("should ask user to enter a project name if it's not provided and can't be retrieved from git repo", async () => {
@@ -158,6 +160,7 @@ describe("projects create command", () => {
       name: "baz",
     });
     AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
+      id: "baz-id",
       name: "baz",
     });
 
@@ -175,10 +178,15 @@ describe("projects create command", () => {
       name: "baz",
     });
     expect(console.info).toHaveBeenCalledTimes(1);
-    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "baz"'));
+    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('project: "baz-id"'));
   });
 
   it("should exit with an error if no project name is provided and can't be retrieved from git repo", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        url: "https://allure.example.com",
+      },
+    });
     (getGitRepoName as Mock).mockRejectedValue(new Error("No git repo found"));
     (prompts as unknown as Mock).mockResolvedValue(undefined);
 

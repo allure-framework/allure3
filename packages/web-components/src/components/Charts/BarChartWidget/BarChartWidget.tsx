@@ -1,4 +1,4 @@
-import { ChartMode } from "@allurereport/core-api";
+import { ChartMode } from "@allurereport/charts-api";
 import type { AxisProps } from "@nivo/axes";
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
@@ -24,31 +24,62 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
   rootAriaLabel,
   colors,
   translations,
+  xAxisConfig = {},
+  yAxisConfig = {},
+  layout = "vertical",
 }) => {
   const emptyLabel = translations["no-results"];
+  const xAxisLegend =
+    translations[xAxisConfig.legend!] ??
+    xAxisConfig?.legend ??
+    (groupMode === "stacked" ? "Data Points" : "Test Severity");
 
-  const yFormat = useMemo(() => (mode === ChartMode.Percent ? " >-.2%" : " >-.2f"), [mode]);
+  let yAxisLegend = translations[yAxisConfig.legend!] ?? yAxisConfig?.legend;
 
-  const bottomAxisConfig = useMemo<AxisProps<BarDatum>>(
+  if (!yAxisLegend) {
+    if (mode === ChartMode.Percent) {
+      yAxisLegend = "Percentage of Tests";
+    }
+    if (mode === ChartMode.Raw) {
+      yAxisLegend = "Number of Tests";
+    }
+  }
+
+  const yFormat = yAxisConfig.format ?? (mode === ChartMode.Percent ? " >-.2%" : " >-.2f");
+  const xFormat = xAxisConfig.format ?? undefined;
+
+  const xAxisComputedConfig = useMemo<AxisProps<BarDatum>>(
     () => ({
       ...defaultBarChartAxisBottomConfig,
-      legend: groupMode === "stacked" ? "Data Points" : "Test Severity",
+      legend: xAxisLegend,
       legendPosition: "middle",
       legendOffset: 32,
+      format:
+        mode === ChartMode.Diverging
+          ? (value: any) => `${Math.abs(value)}%`
+          : xFormat === "preserve"
+            ? undefined
+            : xFormat,
+      tickValues: xAxisConfig.tickValues as unknown as BarDatum[],
     }),
-    [groupMode],
+    [xAxisLegend, xFormat, xAxisConfig.tickValues, mode],
   );
 
-  const leftAxisConfig = useMemo<AxisProps<BarDatum>>(
+  const yAxisComputedConfig = useMemo<AxisProps<BarDatum>>(
     () => ({
       ...defaultBarChartAxisLeftConfig,
-      legend: mode === ChartMode.Percent ? "Percentage of Tests" : "Number of Tests",
+      legend: yAxisLegend,
       legendPosition: "middle",
       legendOffset: -60,
-      format: yFormat,
+      format: yFormat === "preserve" ? undefined : yFormat,
+      tickValues: yAxisConfig.tickValues as unknown as BarDatum[],
     }),
-    [mode, yFormat],
+    [yFormat, yAxisLegend, yAxisConfig.tickValues],
   );
+
+  // Get domain from config if provided
+  const minValue = yAxisConfig?.domain?.[0];
+  const maxValue = yAxisConfig?.domain?.[1];
 
   return (
     <Widget title={title}>
@@ -63,9 +94,13 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
         indexBy={indexBy}
         groupMode={groupMode}
         colors={({ id }) => colors[id]}
-        axisBottom={bottomAxisConfig}
-        axisLeft={leftAxisConfig}
+        axisBottom={xAxisConfig?.enabled === false ? undefined : xAxisComputedConfig}
+        axisLeft={yAxisConfig?.enabled === false ? undefined : yAxisComputedConfig}
         legends={[defaultBarChartLegendsConfig]}
+        layout={layout}
+        minValue={minValue}
+        maxValue={maxValue}
+        valueFormat={mode === ChartMode.Diverging ? (value: number) => `${Math.abs(value)}` : undefined}
       />
     </Widget>
   );

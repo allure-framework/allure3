@@ -17,10 +17,11 @@
     "new": "Nowe testy"
   },
   "tabs": {
-    "total": "Wszytkie",
+    "total": "Wszystkie",
     "results": "Wyniki",
     "globalAttachments": "Globalne Załączniki",
-    "globalErrors": "Globalne Błędy"
+    "globalErrors": "Globalne Błędy",
+    "qualityGates": "Bramy Jakości"
   },
   "search": {
     "search": "Poszukiwanie",
@@ -79,7 +80,8 @@
     "no-message-provided": "Nie podano komunikatu",
     "clear-filters": "Wyczyść filtry",
     "no-attachments-results": "Brak dostępnych informacji o załącznikach",
-    "no-global-errors-results": "No global errors information available",
+    "no-global-errors-results": "Brak dostępnych informacji o błędach globalnych",
+    "no-quality-gate-results": "Brak dostępnych wyników bram jakości",
     "no-history-results": "Brak dostępnych informacji o historii",
     "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
     "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
