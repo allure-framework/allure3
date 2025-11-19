@@ -1,6 +1,6 @@
 import type {
-  CiDescriptor,
   AttachmentTestStepResult,
+  CiDescriptor,
   DefaultTreeGroup,
   HistoryTestResult,
   TestFixtureResult,
@@ -17,9 +17,9 @@ export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
   logo?: string;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: "en";
   createdAt: number;
   reportUuid: string;
   layout?: Layout;

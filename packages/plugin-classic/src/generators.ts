@@ -25,12 +25,12 @@ import {
   transformTree,
 } from "@allurereport/plugin-api";
 import type {
-  AwesomeFixtureResult,
-  AwesomeReportOptions,
-  AwesomeTestResult,
-  AwesomeTreeGroup,
-  AwesomeTreeLeaf,
-} from "@allurereport/web-awesome";
+  ClassicFixtureResult,
+  ClassicReportOptions,
+  ClassicTestResult,
+  ClassicTreeGroup,
+  ClassicTreeLeaf,
+} from "@allurereport/web-classic";
 import { getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
@@ -89,7 +89,7 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
-const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
+const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc, label) => {
       if (!acc[label.name]) {
@@ -120,12 +120,12 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
 
 export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
-  let convertedTrs: AwesomeTestResult[] = [];
+  let convertedTrs: ClassicTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = await store.fixturesByTrId(tr.id);
-    const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr);
+    const convertedTrFixtures: ClassicFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTr: ClassicTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
     const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
     const matchedCategories = matchCategories(categories, {
@@ -173,10 +173,10 @@ export const generateTree = async (
   writer: ClassicDataWriter,
   treeName: string,
   labels: string[],
-  tests: AwesomeTestResult[],
+  tests: ClassicTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
     labels,
     ({ id, name, status, duration, flaky, transition, start, retries }) => {
@@ -268,7 +268,7 @@ export const generateStaticFiles = async (
     reportLanguage = "en",
     singleFile,
     logo = "",
-    theme = "light",
+    theme = "auto",
     groupBy,
     reportFiles,
     reportDataFiles,
@@ -316,7 +316,7 @@ export const generateStaticFiles = async (
   }
 
   const now = Date.now();
-  const reportOptions: AwesomeReportOptions = {
+  const reportOptions: ClassicReportOptions = {
     reportName,
     logo,
     theme,
@@ -356,13 +356,13 @@ export const generateStaticFiles = async (
 export const generateTreeByCategories = async (
   writer: ClassicDataWriter,
   treeName: string,
-  tests: AwesomeTestResult[],
+  tests: ClassicTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
 
-  const tree = createTreeByCategories<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, transition, start, retries }: AwesomeTestResult) => {
+    ({ id, name, status, duration, flaky, transition, start, retries }: ClassicTestResult) => {
       const retriesCount = retries?.length ?? 0;
 
       return {
@@ -378,15 +378,15 @@ export const generateTreeByCategories = async (
       };
     },
     undefined,
-    (group: TreeGroup<AwesomeTreeGroup>, leaf: TreeLeaf<AwesomeTreeLeaf>) => {
+    (group: TreeGroup<ClassicTreeGroup>, leaf: TreeLeaf<ClassicTreeLeaf>) => {
       incrementStatistic(group.statistic, leaf.status);
     },
   );
 
   // @ts-ignore
-  filterTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>) => !leaf.hidden);
+  filterTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>) => !leaf.hidden);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>, idx: number) => ({
+  transformTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
     ...leaf,
     groupOrder: idx + 1,
   }));
