@@ -14632,7 +14632,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/archiver-utils-npm-5.0.2-a19b25b4fd-9dde4aa3f0.zip/node_modules/archiver-utils/",\
         "packageDependencies": [\
           ["archiver-utils", "npm:5.0.2"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["graceful-fs", "npm:4.2.11"],\
           ["is-stream", "npm:2.0.1"],\
           ["lazystream", "npm:1.0.1"],\
@@ -15739,7 +15739,7 @@ const RAW_RUNTIME_STATE =
           ["cacache", "npm:18.0.2"],\
           ["@npmcli/fs", "npm:3.1.0"],\
           ["fs-minipass", "npm:3.0.3"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["lru-cache", "npm:10.2.0"],\
           ["minipass", "npm:7.0.4"],\
           ["minipass-collect", "npm:2.0.1"],\
@@ -20068,15 +20068,6 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["foreground-child", [\
-      ["npm:3.1.1", {\
-        "packageLocation": "./.yarn/cache/foreground-child-npm-3.1.1-77e78ed774-087edd4485.zip/node_modules/foreground-child/",\
-        "packageDependencies": [\
-          ["foreground-child", "npm:3.1.1"],\
-          ["cross-spawn", "npm:7.0.3"],\
-          ["signal-exit", "npm:4.1.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
       ["npm:3.3.1", {\
         "packageLocation": "./.yarn/cache/foreground-child-npm-3.3.1-b7775fda04-427b33f997.zip/node_modules/foreground-child/",\
         "packageDependencies": [\
@@ -20561,11 +20552,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["glob", [\
-      ["npm:10.4.5", {\
-        "packageLocation": "./.yarn/cache/glob-npm-10.4.5-8c63175f05-698dfe1182.zip/node_modules/glob/",\
+      ["npm:10.5.0", {\
+        "packageLocation": "./.yarn/cache/glob-npm-10.5.0-b569657078-ab3bccfefc.zip/node_modules/glob/",\
         "packageDependencies": [\
-          ["glob", "npm:10.4.5"],\
-          ["foreground-child", "npm:3.1.1"],\
+          ["glob", "npm:10.5.0"],\
+          ["foreground-child", "npm:3.3.1"],\
           ["jackspeak", "npm:3.4.3"],\
           ["minimatch", "npm:9.0.5"],\
           ["minipass", "npm:7.1.2"],\
@@ -23550,7 +23541,7 @@ const RAW_RUNTIME_STATE =
           ["node-gyp", "npm:10.0.1"],\
           ["env-paths", "npm:2.2.1"],\
           ["exponential-backoff", "npm:3.1.1"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["graceful-fs", "npm:4.2.11"],\
           ["make-fetch-happen", "npm:13.0.0"],\
           ["nopt", "npm:7.2.0"],\
@@ -24171,7 +24162,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["path-scurry", "npm:1.11.1"],\
           ["lru-cache", "npm:10.4.3"],\
-          ["minipass", "npm:7.0.4"]\
+          ["minipass", "npm:7.1.2"]\
         ],\
         "linkType": "HARD"\
       }],\
