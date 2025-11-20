@@ -3,7 +3,7 @@ import type { CiDescriptor, EnvironmentsConfig, TestResult } from "@allurereport
 
 export type AwesomeOptions = {
   reportName?: string;
-  singleFile?: boolean;
+  singleFile?: boolean | string;
   logo?: string;
   theme?: "light" | "dark" | "auto";
   reportLanguage?: "en";
