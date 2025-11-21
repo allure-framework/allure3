@@ -19,6 +19,12 @@ export const github: CiDescriptor = {
     return getEnv("GITHUB_ACTIONS") !== "";
   },
 
+  get repoName(): string {
+    const repo = getRepo();
+
+    return repo.split("/")?.[1] ?? repo;
+  },
+
   get jobUid(): string {
     return `${getRepo()}_${getWorkflow()}`;
   },

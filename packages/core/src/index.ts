@@ -2,7 +2,6 @@ export type * from "./api.js";
 export * from "./utils/misc.js";
 export * from "./utils/crypto.js";
 export * from "./utils/path.js";
-export * from "./utils/git.js";
 export * from "./utils/new.js";
 export * from "./utils/flaky.js";
 export * from "./history.js";

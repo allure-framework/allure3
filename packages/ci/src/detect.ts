@@ -7,11 +7,15 @@ import { drone } from "./detectors/drone.js";
 import { github } from "./detectors/github.js";
 import { gitlab } from "./detectors/gitlab.js";
 import { jenkins } from "./detectors/jenkins.js";
+import { local } from "./detectors/local.js";
 
 /**
  * Tries to detect current CI
  * Returns CI descriptor if some detected, otherwise undefined
  */
 export const detect = (): CiDescriptor | undefined => {
-  return [amazon, azure, bitbucket, circle, drone, github, gitlab, jenkins].find((descriptor) => descriptor.detected);
+  return (
+    [amazon, azure, bitbucket, circle, drone, github, gitlab, jenkins].find((descriptor) => descriptor.detected) ??
+    local
+  );
 };

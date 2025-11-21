@@ -58,6 +58,38 @@ describe("github", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should extract repository name from full path", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REPOSITORY") {
+          return "myorg/myrepo";
+        }
+      });
+
+      expect(github.repoName).toBe("myrepo");
+    });
+
+    it("should return the repository name as-is when no slash present", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REPOSITORY") {
+          return "myrepo";
+        }
+      });
+
+      expect(github.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when GITHUB_REPOSITORY is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_REPOSITORY") {
+          return "";
+        }
+      });
+
+      expect(github.repoName).toBe("");
+    });
+  });
+
   describe("jobURL", () => {
     it("should return the correct job URL", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

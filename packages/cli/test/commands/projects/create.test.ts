@@ -1,4 +1,4 @@
-import { getGitRepoName, readConfig } from "@allurereport/core";
+import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import * as console from "node:console";
 import { exit } from "node:process";
@@ -36,17 +36,21 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 });
 vi.mock("@allurereport/core", async (importOriginal) => ({
   ...(await importOriginal()),
-  getGitRepoName: vi.fn(),
   readConfig: vi.fn().mockResolvedValue({
     allureService: {
       url: "https://allure.example.com",
     },
   }),
 }));
+vi.mock("@allurereport/ci", () => ({
+  detect: vi.fn(),
+}));
 vi.mock("../../../src/utils/logs.js", async (importOriginal) => ({
   ...(await importOriginal()),
   logError: vi.fn(),
 }));
+
+const { detect } = await import("@allurereport/ci");
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -126,7 +130,9 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    (getGitRepoName as Mock).mockResolvedValue("bar");
+    (detect as Mock).mockReturnValue({
+      repoName: "bar",
+    });
     AllureServiceClientMock.prototype.createProject.mockResolvedValueOnce({
       id: "bar-id",
       name: "bar",
@@ -155,7 +161,9 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    (getGitRepoName as Mock).mockRejectedValue(new Error("No git repo found"));
+    (detect as Mock).mockReturnValue({
+      repoName: "",
+    });
     (prompts as unknown as Mock).mockResolvedValue({
       name: "baz",
     });
@@ -187,7 +195,9 @@ describe("projects create command", () => {
         url: "https://allure.example.com",
       },
     });
-    (getGitRepoName as Mock).mockRejectedValue(new Error("No git repo found"));
+    (detect as Mock).mockReturnValue({
+      repoName: "",
+    });
     (prompts as unknown as Mock).mockResolvedValue(undefined);
 
     const command = new ProjectsCreateCommand();

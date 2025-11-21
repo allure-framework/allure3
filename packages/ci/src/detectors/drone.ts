@@ -19,6 +19,10 @@ export const drone: CiDescriptor = {
     return getEnv("DRONE_SYSTEM_HOST") !== "";
   },
 
+  get repoName(): string {
+    return getEnv("DRONE_REPO_NAME");
+  },
+
   get jobUid(): string {
     return getEnv("DRONE_REPO");
   },

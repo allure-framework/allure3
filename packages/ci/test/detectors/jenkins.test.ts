@@ -2,9 +2,14 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { jenkins } from "../../src/detectors/jenkins.js";
 import { getEnv } from "../../src/utils.js";
 
-vi.mock("../../src/utils.js", () => ({
-  getEnv: vi.fn(),
-}));
+vi.mock("../../src/utils.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../src/utils.js")>();
+
+  return {
+    ...actual,
+    getEnv: vi.fn(),
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -30,6 +35,38 @@ describe("jenkins", () => {
       });
 
       expect(jenkins.detected).toBe(false);
+    });
+  });
+
+  describe("repoName", () => {
+    it("should extract repository name from git url", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GIT_URL") {
+          return "https://github.com/owner/myrepo.git";
+        }
+      });
+
+      expect(jenkins.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when unable to extract repository name", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GIT_URL") {
+          return "invalid-url";
+        }
+      });
+
+      expect(jenkins.repoName).toBe("");
+    });
+
+    it("should return empty string when GIT_URL is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GIT_URL") {
+          return "";
+        }
+      });
+
+      expect(jenkins.repoName).toBe("");
     });
   });
 

@@ -14,6 +14,10 @@ export const bitbucket: CiDescriptor = {
     return getEnv("BITBUCKET_PIPELINE_UUID") !== "";
   },
 
+  get repoName(): string {
+    return getEnv("BITBUCKET_REPO_SLUG");
+  },
+
   get jobUid(): string {
     return getEnv("BITBUCKET_REPO_FULL_NAME");
   },

@@ -125,7 +125,7 @@ export class AllureReport {
     this.#reportFiles = reportFiles;
     this.#output = output;
     this.#history = this.#allureServiceClient
-      ? new AllureRemoteHistory(this.#allureServiceClient)
+      ? new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch)
       : new AllureLocalHistory(historyPath);
   }
 
@@ -209,7 +209,8 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    const repoData = await this.#store.repoData();
+    const branch = this.#ci?.jobRunBranch;
+
     await this.#store.readHistory();
 
     if (this.#executionStage === "running") {
@@ -223,11 +224,11 @@ export class AllureReport {
     this.#executionStage = "running";
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish && repoData?.branch) {
+    if (this.#allureServiceClient && this.#publish && branch) {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
-        branch: repoData.branch,
+        branch,
       });
 
       this.reportUrl = url;

@@ -7,11 +7,13 @@ export enum CiType {
   Github = "github",
   Gitlab = "gitlab",
   Jenkins = "jenkins",
+  Local = "local",
 }
 
 export interface CiDescriptor {
   type: CiType;
   detected: boolean;
+  repoName: string;
   jobUid: string;
   jobUrl: string;
   jobName: string;

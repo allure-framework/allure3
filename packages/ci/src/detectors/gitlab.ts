@@ -8,6 +8,10 @@ export const gitlab: CiDescriptor = {
     return getEnv("GITLAB_CI") !== "";
   },
 
+  get repoName(): string {
+    return getEnv("CI_PROJECT_NAME");
+  },
+
   get jobUid(): string {
     return getEnv("CI_PROJECT_ID");
   },

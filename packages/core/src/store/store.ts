@@ -10,7 +10,6 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
-  type RepoData,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -45,7 +44,6 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { isFlaky } from "../utils/flaky.js";
-import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
@@ -140,7 +138,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
-  #repoData?: RepoData;
   #environments: string[] = [];
 
   constructor(params?: {
@@ -233,9 +230,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    const repoData = await this.repoData();
-
-    this.#historyPoints = (await this.#history.readHistory(repoData!.branch)) ?? [];
+    this.#historyPoints = (await this.#history.readHistory()) ?? [];
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;
@@ -246,30 +241,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return;
     }
 
-    const repoData = await this.repoData();
-
     this.#historyPoints.push(history);
 
-    await this.#history.appendHistory(history, repoData?.branch);
-  }
-
-  // git state
-
-  async repoData() {
-    if (this.#repoData) {
-      return this.#repoData;
-    }
-
-    try {
-      this.#repoData = {
-        name: await getGitRepoName(),
-        branch: await getGitBranch(),
-      };
-
-      return this.#repoData;
-    } catch (err) {
-      return undefined;
-    }
+    await this.#history.appendHistory(history);
   }
 
   // quality gate data

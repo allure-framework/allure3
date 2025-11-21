@@ -1,4 +1,5 @@
-import { getGitRepoName, readConfig } from "@allurereport/core";
+import { detect } from "@allurereport/ci";
+import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
@@ -50,7 +51,9 @@ export class ProjectsCreateCommand extends Command {
     // try to retrieve project name from git repo
     if (!name) {
       try {
-        name = await getGitRepoName();
+        const ci = detect();
+
+        name = ci?.repoName;
       } catch (ignored) {}
     }
 

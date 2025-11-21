@@ -1,11 +1,21 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
-import { getEnv } from "../utils.js";
+import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 export const jenkins: CiDescriptor = {
   type: CiType.Jenkins,
 
   get detected(): boolean {
     return getEnv("JENKINS_URL") !== "";
+  },
+
+  get repoName(): string {
+    const gitUrl = getEnv("GIT_URL");
+
+    if (!gitUrl) {
+      return "";
+    }
+
+    return getReponameFromRepoUrl(gitUrl);
   },
 
   get jobUid(): string {
