@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
+    "@allurereport/ci": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",

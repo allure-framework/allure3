@@ -109,6 +109,28 @@ describe("circle", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should return repository name when CIRCLE_PROJECT_REPONAME is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CIRCLE_PROJECT_REPONAME") {
+          return "myrepo";
+        }
+      });
+
+      expect(circle.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when CIRCLE_PROJECT_REPONAME is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CIRCLE_PROJECT_REPONAME") {
+          return "";
+        }
+      });
+
+      expect(circle.repoName).toBe("");
+    });
+  });
+
   describe("jobUID", () => {
     it("should return the correct job UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

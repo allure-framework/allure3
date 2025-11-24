@@ -121,6 +121,38 @@ describe("azure", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should extract repository name from full path", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_NAME") {
+          return "myorg/myrepo";
+        }
+      });
+
+      expect(azure.repoName).toBe("myrepo");
+    });
+
+    it("should return the repository name as-is when no slash present", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_NAME") {
+          return "myrepo";
+        }
+      });
+
+      expect(azure.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when BUILD_REPOSITORY_NAME is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BUILD_REPOSITORY_NAME") {
+          return "";
+        }
+      });
+
+      expect(azure.repoName).toBe("");
+    });
+  });
+
   describe("jobUID", () => {
     it("should return the correct job UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

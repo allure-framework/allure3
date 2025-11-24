@@ -14240,6 +14240,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["allure", "workspace:packages/cli"],\
           ["@allurereport/charts-api", "workspace:packages/charts-api"],\
+          ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core", "workspace:packages/core"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/directory-watcher", "workspace:packages/directory-watcher"],\

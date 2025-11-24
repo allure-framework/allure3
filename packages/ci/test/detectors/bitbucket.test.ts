@@ -55,6 +55,28 @@ describe("bitbucket", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should return repository name when BITBUCKET_REPO_SLUG is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BITBUCKET_REPO_SLUG") {
+          return "myrepo";
+        }
+      });
+
+      expect(bitbucket.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when BITBUCKET_REPO_SLUG is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "BITBUCKET_REPO_SLUG") {
+          return "";
+        }
+      });
+
+      expect(bitbucket.repoName).toBe("");
+    });
+  });
+
   describe("jobUID", () => {
     it("should return the correct job UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

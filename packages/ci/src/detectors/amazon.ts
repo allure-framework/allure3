@@ -1,5 +1,5 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
-import { getEnv } from "../utils.js";
+import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;
 const PIPELINE_REGEXP = /^(?:codepipeline\/)(.+)$/;
@@ -41,6 +41,16 @@ export const amazon: CiDescriptor = {
     const buildArn = getEnv("CODEBUILD_BUILD_ARN");
 
     return buildArn !== "" && parseArnValues(buildArn).length > 0;
+  },
+
+  get repoName(): string {
+    const repoUrl = getEnv("CODEBUILD_SOURCE_REPO_URL");
+
+    if (!repoUrl) {
+      return "";
+    }
+
+    return getReponameFromRepoUrl(repoUrl);
   },
 
   get jobUid(): string {

@@ -19,7 +19,9 @@ vi.mock("@allurereport/summary", () => ({
   generateSummary: vi.fn(),
 }));
 vi.mock("@allurereport/ci", () => ({
-  detect: vi.fn().mockReturnValue({}),
+  detect: vi.fn().mockReturnValue({
+    jobRunBranch: "main",
+  }),
 }));
 
 const createPlugin = (id: string, enabled: boolean = true, options: Record<string, any> = {}) => {
@@ -204,7 +206,7 @@ describe("report", () => {
     (p1.plugin.info as Mock).mockResolvedValue(fixtures.summaries[0]);
     (p2.plugin.info as Mock).mockResolvedValue(fixtures.summaries[1]);
     (p3.plugin.info as Mock).mockResolvedValue(undefined);
-    (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValueOnce({
+    (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue({
       url: fixtures.reportUrl,
     });
 
@@ -231,7 +233,7 @@ describe("report", () => {
       {
         ...fixtures.summaries[0],
         href: `${p1.id}/`,
-        remoteHref: `${allureReport.reportUrl}/${p1.id}/`,
+        remoteHref: `${fixtures.reportUrl}/${p1.id}/`,
         pullRequestHref: undefined,
         jobHref: undefined,
       },
