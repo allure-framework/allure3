@@ -1,3 +1,4 @@
+/* eslint max-lines: 0 */
 import { detect } from "@allurereport/ci";
 import type {
   AllureHistory,
@@ -498,7 +499,7 @@ export class AllureReport {
               })
             : undefined;
         const limitFn = pLimit(50);
-        const fns = pluginFilesEntries.map(([filename, filepath], i) =>
+        const fns = pluginFilesEntries.map(([filename, filepath]) =>
           limitFn(async () => {
             // skip next plugin files upload if the plugin upload has already failed
             if (cancelledPluginsIds.has(context.id)) {
