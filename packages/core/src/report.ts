@@ -460,6 +460,8 @@ export class AllureReport {
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
     const remoteHrefs: string[] = [];
+    // track plugins that failed to upload to prevent wrong remote links generation
+    const cancelledPluginsIds: Set<string> = new Set();
 
     if (this.#executionStage !== "running") {
       throw new Error(initRequired);
@@ -498,6 +500,11 @@ export class AllureReport {
         const limitFn = pLimit(50);
         const fns = pluginFilesEntries.map(([filename, filepath], i) =>
           limitFn(async () => {
+            // skip next plugin files upload if the plugin upload has already failed
+            if (cancelledPluginsIds.has(context.id)) {
+              return;
+            }
+
             if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
               await this.#allureServiceClient!.addReportFile({
                 reportUuid: this.reportUuid,
@@ -521,6 +528,8 @@ export class AllureReport {
         try {
           await Promise.all(fns);
         } catch (err) {
+          cancelledPluginsIds.add(context.id);
+
           // cleanup the report on failure to prevent incomplete reports on the server
           // even lack of one file can make the report unusable
           await this.#allureServiceClient.deleteReport({
@@ -542,7 +551,7 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish && this.reportUrl) {
+      if (context.publish && this.reportUrl && !cancelledPluginsIds.has(context.id)) {
         summary.remoteHref = `${this.reportUrl}/${context.id}/`;
 
         remoteHrefs.push(summary.remoteHref);
@@ -559,7 +568,9 @@ export class AllureReport {
 
     if (summaries.length > 1) {
       const summaryPath = await generateSummary(this.#output, summaries);
-      const publishedReports = this.#plugins.map((plugin) => !!plugin?.options?.publish).filter(Boolean);
+      const publishedReports = this.#plugins
+        .map((plugin) => !!plugin?.options?.publish && !cancelledPluginsIds.has(plugin.id))
+        .filter(Boolean);
 
       // publish summary when there are multiple published plugins
       if (this.#publish && summaryPath && publishedReports.length > 1) {
