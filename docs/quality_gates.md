@@ -142,3 +142,54 @@ export default defineConfig({
 
 > [!IMPORTANT]  
 > If you're using TypeScript, ensure that you compiled your custom rule file before use! Allure doesn't support on-the-fly TypeScript compilation.
+
+## Rules custom messages
+
+You can customize any rule message. To do this, provide a new `message` function to the specific rule in `use` array:
+
+```js
+import { defineConfig } from "allure";
+import { myRule } from "./myRule";
+
+export default defineConfig({
+  name: "Allure Report 3",
+  qualityGate: {
+    rules: [
+      {
+        myRule: 100,
+      },
+    ],
+    use: [
+      {
+        // don't forget to use rest spread operator to keep rest rule's fields intact
+        ...myRule,
+        message: ({ expected, actual }) => `Custom message: expected ${expected}, got ${actual}`,
+      }
+    ],
+  },
+});
+```
+
+## Using env variables in rules configuration
+
+Allure Runtime configuration file is a plain JavaScript so you can use environment variables to configure quality gate rules dynamically:
+
+```js
+import { defineConfig } from "allure";
+import { myRule } from "./myRule";
+
+const { MY_RULE_VALUE } = process.env;
+
+export default defineConfig({
+  name: "Allure Report 3",
+  qualityGate: {
+    rules: [
+      {
+        // use 100 as a fallback value when env variable is not set
+        myRule: Number(MY_RULE_VALUE) || 100,
+      },
+    ],
+    use: [myRule],
+  },
+});
+```
