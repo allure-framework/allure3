@@ -55,7 +55,7 @@ export const github: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("GITHUB_REF");
+    return getEnv("GITHUB_HEAD_REF") || getEnv("GITHUB_REF");
   },
 
   get pullRequestUrl(): string {

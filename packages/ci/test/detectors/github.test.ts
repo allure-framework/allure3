@@ -179,14 +179,42 @@ describe("github", () => {
   });
 
   describe("jobRunBranch", () => {
-    it("should return the correct job run branch", () => {
+    it("should return branch from GITHUB_HEAD_REF variable when it is set (pull request)", () => {
       (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_HEAD_REF") {
+          return "feature-branch";
+        }
+
+        if (key === "GITHUB_REF") {
+          return "refs/pull/123/merge";
+        }
+      });
+
+      expect(github.jobRunBranch).toBe("feature-branch");
+    });
+
+    it("should return branch name from GITHUB_REF variable when GITHUB_HEAD_REF is not set (regular branch push)", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_HEAD_REF") {
+          return "";
+        }
+
         if (key === "GITHUB_REF") {
           return "refs/heads/main";
         }
       });
 
       expect(github.jobRunBranch).toBe("refs/heads/main");
+    });
+
+    it("should return empty string when neither environment variable is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_HEAD_REF" || key === "GITHUB_REF") {
+          return "";
+        }
+      });
+
+      expect(github.jobRunBranch).toBe("");
     });
   });
 
