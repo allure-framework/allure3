@@ -186,6 +186,25 @@ export class AllureServiceClient {
   }
 
   /**
+   * Entirely deletes a report by its UUID with all the uploaded files
+   * If plugin id is provided, delete report for the plugin only
+   * @param payload
+   */
+  async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
+    const { reportUuid, pluginId = "" } = payload;
+
+    if (!this.currentProjectUuid) {
+      throw new Error("Project is not set");
+    }
+
+    return this.#client.post(`/reports/${reportUuid}/delete`, {
+      body: {
+        pluginId,
+      },
+    });
+  }
+
+  /**
    * Uploads report asset which can be shared between multiple reports at once
    * @param payload
    */

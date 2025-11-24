@@ -484,6 +484,7 @@ export class AllureReport {
       await plugin.done?.(context, this.#store);
     });
     await this.#eachPlugin(false, async (plugin, context) => {
+      // publish report files to the remote service
       if (this.#allureServiceClient && context.publish) {
         const pluginFiles = (await context.state.get("files")) ?? {};
         const pluginFilesEntries = Object.entries(pluginFiles);
@@ -495,7 +496,7 @@ export class AllureReport {
               })
             : undefined;
         const limitFn = pLimit(50);
-        const fns = pluginFilesEntries.map(([filename, filepath]) =>
+        const fns = pluginFilesEntries.map(([filename, filepath], i) =>
           limitFn(async () => {
             if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
               await this.#allureServiceClient!.addReportFile({
@@ -517,7 +518,19 @@ export class AllureReport {
 
         progressBar?.render?.();
 
-        await Promise.all(fns);
+        try {
+          await Promise.all(fns);
+        } catch (err) {
+          // cleanup the report on failure to prevent incomplete reports on the server
+          // even lack of one file can make the report unusable
+          await this.#allureServiceClient.deleteReport({
+            reportUuid: this.reportUuid,
+            pluginId: context.id,
+          });
+
+          console.error(`Plugin "${context.id}" upload has failed, the plugin won't be published`);
+          console.error(err);
+        }
       }
 
       const summary = await plugin?.info?.(context, this.#store);
