@@ -112,7 +112,8 @@ npx allure --version
 
 Allure 3 uses an `allurerc.mjs` or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
-> 💡 **Tip:** We recommend using the **Awesome** plugin for the best experience.  
+> [!TIP]
+> We recommend using the **Awesome** plugin for the best experience.  
 > Support for Classic and Allure 2-style reports is currently experimental.
 
 ### Example Configuration File
