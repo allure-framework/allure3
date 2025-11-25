@@ -110,7 +110,7 @@ npx allure --version
 
 ## Configuration
 
-Allure 3 uses an `allurerc.mjs` configuration file to manage report settings, including the report name, output directory, and plugin options.
+Allure 3 uses an `allurerc.mjs` or `allurerc.js` configuration file to manage report settings, including the report name, output directory, and plugin options.
 
 > 💡 **Tip:** We recommend using the **Awesome** plugin for the best experience.  
 > Support for Classic and Allure 2-style reports is currently experimental.
@@ -156,6 +156,14 @@ The **Awesome** plugin offers several customizable options:
   `az`, `br`, `de`, `en`, `es`, `fr`, `he`, `ja`, `kr`, `nl`, `pl`, `ru`, `sv`, `tr`, `zh`.
 
 For example, setting `"reportLanguage": "fr"` will render the report interface in French.
+
+### Declarative configuration format
+
+You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
+
+> [!WARNING]  
+> Declarative formats don't support advanced features like tests filtering or environments.
+> If you need these features, please consider using the `allurerc.mjs` or `allurerc.js` files.
 
 ## Final Notes
 
