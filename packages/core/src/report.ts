@@ -9,10 +9,10 @@ import type {
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
+  type AllureSummary,
   type Plugin,
   type PluginContext,
   type PluginState,
-  type PluginSummary,
   type ReportFiles,
   type ResultFile,
 } from "@allurereport/plugin-api";
@@ -457,7 +457,7 @@ export class AllureReport {
   };
 
   done = async (): Promise<void> => {
-    const summaries: PluginSummary[] = [];
+    const summaries: AllureSummary[] = [];
     const remoteHrefs: string[] = [];
 
     if (this.#executionStage !== "running") {

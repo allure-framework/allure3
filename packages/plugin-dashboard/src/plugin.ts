@@ -1,9 +1,9 @@
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type AllureSummary,
   type Plugin,
   type PluginContext,
-  type PluginSummary,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
@@ -55,7 +55,7 @@ export class DashboardPlugin implements Plugin {
     await this.#generate(context, store);
   };
 
-  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
+  async info(context: PluginContext, store: AllureStore): Promise<AllureSummary> {
     const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
     const newTrs = await store.allNewTestResults();
     const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
