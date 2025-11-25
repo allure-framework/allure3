@@ -8,6 +8,8 @@ import {
   findConfig,
   getPluginId,
   getPluginInstance,
+  loadJsonConfig,
+  loadYamlConfig,
   resolveConfig,
   resolvePlugin,
   validateConfig,
@@ -293,5 +295,103 @@ describe("getPluginInstance", () => {
     const pluginInstance = getPluginInstance(config, ({ plugin }) => plugin instanceof PluginFixture);
 
     expect(pluginInstance).toEqual(fixture1);
+  });
+});
+
+describe("loadJsonConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-loadJsonConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch (err) {}
+  });
+
+  it("should load valid json config file", async () => {
+    const configPath = join(fixturesDir, "config.json");
+    const configData = {
+      name: "Test Report",
+      historyPath: "./history.jsonl",
+    };
+
+    await writeFile(configPath, JSON.stringify(configData), "utf-8");
+
+    const config = await loadJsonConfig(configPath);
+
+    expect(config).toEqual(configData);
+  });
+
+  it("should return default config when file doesn't exist", async () => {
+    const configPath = join(fixturesDir, "nonexistent.json");
+    const config = await loadJsonConfig(configPath);
+
+    expect(config).toEqual({});
+  });
+
+  it("should throw error when json is invalid", async () => {
+    const configPath = join(fixturesDir, "invalid.json");
+
+    await writeFile(configPath, "{ invalid json }", "utf-8");
+
+    await expect(loadJsonConfig(configPath)).rejects.toThrow();
+  });
+
+  it("should return default config when parsed json is null", async () => {
+    const configPath = join(fixturesDir, "empty.json");
+
+    await writeFile(configPath, "null", "utf-8");
+
+    const config = await loadJsonConfig(configPath);
+
+    expect(config).toEqual({});
+  });
+});
+
+describe("loadYamlConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-loadYamlConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch (err) {}
+  });
+
+  it("should load valid yaml config file", async () => {
+    const configPath = join(fixturesDir, "config.yaml");
+    const yamlContent = `name: Test Report
+historyPath: ./history.jsonl
+knownIssuesPath: ./known.json`;
+    await writeFile(configPath, yamlContent, "utf-8");
+
+    const config = await loadYamlConfig(configPath);
+
+    expect(config).toEqual({
+      name: "Test Report",
+      historyPath: "./history.jsonl",
+      knownIssuesPath: "./known.json",
+    });
+  });
+
+  it("should return default config when file doesn't exist", async () => {
+    const configPath = join(fixturesDir, "nonexistent.yaml");
+    const config = await loadYamlConfig(configPath);
+
+    expect(config).toEqual({});
+  });
+
+  it("should throw error when yaml is invalid", async () => {
+    const configPath = join(fixturesDir, "invalid.yaml");
+
+    await writeFile(configPath, "name: Test\n  invalid: yaml\n   structure", "utf-8");
+
+    await expect(loadYamlConfig(configPath)).rejects.toThrow();
   });
 });

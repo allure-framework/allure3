@@ -47,6 +47,7 @@
     "node-stream-zip": "^1.15.0",
     "p-limit": "^7.2.0",
     "progress": "^2.0.3",
+    "yaml": "^2.8.1",
     "yoctocolors": "^2.1.1",
     "zip-stream": "^7.0.2"
   },
