@@ -1,0 +1,1 @@
+{"id":"2d621d9c6c9dc68e167366c7f756a1e0","fullName":"test/config.test.ts#loadJsonConfig should throw error when json is invalid","name":"should throw error when json is invalid","status":"passed","testResultsByEnv":{"windows-latest":"62510d0178360624e1782d4a4461f664","ubuntu-latest":"c32cf6ad0eb83736e5b6ae18ba84e082","macos-latest":"2ba0b362bfad458b81d4a8e2fd234bcf"}}
