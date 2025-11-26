@@ -62,9 +62,15 @@ export class AwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
+    const hasTitlePathInGroupBy = hasGroupBy && groupBy.includes("titlePath");
+
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
+
+    if (hasTitlePathInGroupBy) {
+      treeLabels.push("titlePath");
+    }
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);

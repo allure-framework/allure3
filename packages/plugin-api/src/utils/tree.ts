@@ -365,3 +365,72 @@ export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = D
     addLeafToGroup,
   );
 };
+
+const byLabelsAndTitlePath = (item: TestResult, labelNames: string[], appendTitlePath: boolean): string[][] => {
+  const leaves: string[][] = [];
+
+  for (const labelName of labelNames) {
+    const values = item.labels.filter((label) => label.name === labelName).map((label) => label.value ?? "");
+
+    if (!values.length) {
+      continue;
+    }
+
+    leaves.push(values);
+  }
+
+  if (appendTitlePath) {
+    const titlePath = (item as any).titlePath as string[] | undefined;
+
+    if (Array.isArray(titlePath) && titlePath.length > 0) {
+      for (const segment of titlePath) {
+        leaves.push([segment]);
+      }
+    }
+  }
+
+  return leaves;
+};
+
+export const createTreeByLabelsAndTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  labelNames: string[] = [],
+  appendTitlePath: boolean = true,
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const lastIsTitlePath = labelNames[labelNames.length - 1] === "titlePath";
+  const effectiveAppendTitlePath = lastIsTitlePath ? true : appendTitlePath;
+  const effectiveLabelNames = lastIsTitlePath ? labelNames.slice(0, -1) : labelNames;
+
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
+  return createTree<T, L, G>(
+    data,
+    (item) => byLabelsAndTitlePath(item as TestResult, effectiveLabelNames, effectiveAppendTitlePath),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
+  );
+};
