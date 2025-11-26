@@ -1,21 +1,35 @@
 import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
 import * as console from "node:console";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import * as process from "node:process";
+import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 
+export interface ConfigOverride {
+  name?: Config["name"];
+  output?: Config["output"];
+  historyPath?: Config["historyPath"];
+  knownIssuesPath?: Config["knownIssuesPath"];
+  plugins?: Config["plugins"];
+}
+
+const CONFIG_FILENAMES = ["allurerc.js", "allurerc.mjs", "allurerc.json"] as const;
+const DEFAULT_CONFIG: Config = {} as const;
+
 export const getPluginId = (key: string) => {
   return key.replace(/^@.*\//, "").replace(/[/\\]/g, "-");
 };
 
-const configNames = ["allurerc.js", "allurerc.mjs"];
-const defaultConfig: Config = {};
-
+/**
+ * Tries to find the well-known config file in the given cwd or uses the provided config path
+ * @param cwd
+ * @param configPath
+ */
 export const findConfig = async (cwd: string, configPath?: string) => {
   if (configPath) {
     const resolved = resolve(cwd, configPath);
@@ -33,8 +47,8 @@ export const findConfig = async (cwd: string, configPath?: string) => {
     throw new Error(`invalid config path ${resolved}: not a regular file`);
   }
 
-  for (const configName of configNames) {
-    const resolved = resolve(cwd, configName);
+  for (const configFilename of CONFIG_FILENAMES) {
+    const resolved = resolve(cwd, configFilename);
 
     try {
       const stats = await stat(resolved);
@@ -47,14 +61,6 @@ export const findConfig = async (cwd: string, configPath?: string) => {
     }
   }
 };
-
-export interface ConfigOverride {
-  name?: Config["name"];
-  output?: Config["output"];
-  historyPath?: Config["historyPath"];
-  knownIssuesPath?: Config["knownIssuesPath"];
-  plugins?: Config["plugins"];
-}
 
 /**
  * Validates the provided config
@@ -88,7 +94,51 @@ export const validateConfig = (config: Config) => {
   };
 };
 
-export const loadConfig = async (configPath: string): Promise<Config> => {
+/**
+ * Loads the yaml config from the given path
+ * If the file does not exist, returns the default config
+ * @param configPath
+ */
+export const loadYamlConfig = async (configPath: string): Promise<Config> => {
+  try {
+    const rawConfig = await readFile(configPath, "utf-8");
+    const parsedConfig = parse(rawConfig) as Config;
+
+    return parsedConfig || DEFAULT_CONFIG;
+  } catch (err) {
+    if ((err as any)?.code === "ENOENT") {
+      return DEFAULT_CONFIG;
+    }
+
+    throw err;
+  }
+};
+
+/**
+ * Loads the json config from the given path
+ * If the file does not exist, returns the default config
+ * @param configPath
+ */
+export const loadJsonConfig = async (configPath: string): Promise<Config> => {
+  try {
+    const rawConfig = await readFile(configPath, "utf-8");
+    const parsedConfig = JSON.parse(rawConfig) as Config;
+
+    return parsedConfig || DEFAULT_CONFIG;
+  } catch (err) {
+    if ((err as any)?.code === "ENOENT") {
+      return DEFAULT_CONFIG;
+    }
+
+    throw err;
+  }
+};
+
+/**
+ * Loads the javascript config from the given path
+ * @param configPath
+ */
+export const loadJsConfig = async (configPath: string): Promise<Config> => {
   return (await import(normalizeImportPath(configPath))).default;
 };
 
@@ -134,15 +184,40 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   };
 };
 
+/**
+ * Tries to read Allure Runtime configuration file in given cwd
+ * If config path is not provided, tries to find well-known config file
+ * Supports javascript, json and yaml config files
+ * If nothing is found returns an empty config
+ * @param cwd
+ * @param configPath
+ * @param override
+ */
 export const readConfig = async (
   cwd: string = process.cwd(),
   configPath?: string,
   override?: ConfigOverride,
 ): Promise<FullConfig> => {
-  const cfg = await findConfig(cwd, configPath);
-  const config = cfg ? await loadConfig(cfg) : { ...defaultConfig };
+  const cfg = (await findConfig(cwd, configPath)) ?? "";
+  let config: Config;
 
-  return await resolveConfig(config, override);
+  switch (true) {
+    case /allurerc\.json$/.test(cfg):
+      config = await loadJsonConfig(cfg);
+      break;
+    case /allurerc\.ya?ml$/.test(cfg):
+      config = await loadYamlConfig(cfg);
+      break;
+    case /allurerc\.(m|c)?js$/.test(cfg):
+      config = await loadJsConfig(cfg);
+      break;
+    default:
+      config = DEFAULT_CONFIG;
+  }
+
+  const fullConfig = await resolveConfig(config, override);
+
+  return fullConfig;
 };
 
 /**

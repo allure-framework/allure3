@@ -145,6 +145,7 @@ __metadata:
     tslib: "npm:^2.7.0"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.9"
+    yaml: "npm:^2.8.1"
     yoctocolors: "npm:^2.1.1"
     zip-stream: "npm:^7.0.2"
   languageName: unknown
@@ -21058,6 +21059,15 @@ __metadata:
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: 10/e088b37b4d4885b70b50c9fa1b7e54bd2e27f5c87205f9deaffd1fb293ab263d9c964feadb9817a7b129a5bf30a06582cb08750f810568ecc14f3cdbabb79cb3
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "yaml@npm:2.8.1"
+  bin:
+    yaml: bin.mjs
+  checksum: 10/eae07b3947d405012672ec17ce27348aea7d1fa0534143355d24a43a58f5e05652157ea2182c4fe0604f0540be71f99f1173f9d61018379404507790dff17665
   languageName: node
   linkType: hard
 
