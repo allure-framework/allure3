@@ -263,7 +263,6 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
       testsWithoutTitlePath,
       defaultLabels,
       false,
-      false,
       leafFactory,
       undefined,
       (group, leaf) => incrementStatistic(group.statistic, leaf.status),
@@ -323,7 +322,6 @@ const buildTreeByLabelsAndTitlePathCombined = (
   return createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     tests,
     labelNames,
-    true,
     undefined,
     leafFactory,
     undefined,
