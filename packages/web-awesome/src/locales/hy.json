@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Գրաֆիկներ"
+    "charts": "Գրաֆիկներ",
+    "timeline": "Ժամանակային գիծ"
+  },
+  "timeline": {
+    "empty": "Տվյալներ չկան",
+    "empty_host": "Տվյալներ չկան {{ host }}-ի համար",
+    "selected_one": "Ընտրվել է {{ count }} թեստ ({{ percentage }}%) {{ minDuration }}-ից ավելի և {{ maxDuration }}-ից պակաս տևողությամբ",
+    "selected_other": "Ընտրվել են {{ count }} թեստեր ({{ percentage }}%) {{ minDuration }}-ից ավելի և {{ maxDuration }}-ից պակաս տևողությամբ",
+    "host": "Հոստ: {{ host }}"
   },
   "charts": {
     "trend": {

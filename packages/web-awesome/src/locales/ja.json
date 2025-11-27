@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "グラフ"
+    "charts": "グラフ",
+    "timeline": "タイムライン"
+  },
+  "timeline": {
+    "empty": "データなし",
+    "empty_host": "{{ host }} のデータなし",
+    "selected_one": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "selected_other": "{{ count }} 件のテスト（{{ percentage }}%）が選択されました。期間は {{ minDuration }} より長く、{{ maxDuration }} より短い",
+    "host": "ホスト: {{ host }}"
   },
   "charts": {
     "trend": {

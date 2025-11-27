@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "გრაფიკები"
+    "charts": "გრაფიკები",
+    "timeline": "დროის ხაზი"
+  },
+  "timeline": {
+    "empty": "მონაცემები არ არის",
+    "empty_host": "მონაცემები არ არის {{ host }}-ისთვის",
+    "selected_one": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "selected_other": "არჩეულია {{ count }} ტესტი ({{ percentage }}%) {{ minDuration }}-ზე მეტი და {{ maxDuration }}-ზე ნაკლები ხანგრძლივობით",
+    "host": "ჰოსტი: {{ host }}"
   },
   "charts": {
     "trend": {

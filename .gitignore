@@ -53,3 +53,5 @@ allure-results.zip
 .cursorrules
 .cursorignore
 .cursorindexingignore
+
+*storybook.log

@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "图形"
+    "charts": "图形",
+    "timeline": "时间轴"
+  },
+  "timeline": {
+    "empty": "无数据",
+    "empty_host": "{{ host }} 无数据",
+    "selected_one": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
+    "selected_other": "已选择 {{ count }} 个测试（{{ percentage }}%），持续时间大于 {{ minDuration }} 且小于 {{ maxDuration }}",
+    "host": "主机: {{ host }}"
   },
   "charts": {
     "trend": {

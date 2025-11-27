@@ -1,0 +1,177 @@
+.timelineContainer {
+  --timeline-font-family: var(--font-family);
+  --timeline-grid: var(--on-border-muted);
+  --timeline-axis: var(--on-border-primary);
+  --timeline-border-primary: var(--on-border-primary);
+  --timeline-axis-text: var(--on-text-primary);
+  --timeline-text: var(--on-text-secondary);
+  --timeline-bg: var(--bg-base-primary);
+  --timeline-selection-bg: var(--bg-control-flat-medium);
+  --timeline-selection-bg-hover: var(--bg-control-flat-heavy);
+  --timeline-status-failed: var(--bg-support-capella);
+  --timeline-status-broken: var(--bg-support-atlas);
+  --timeline-status-passed: var(--bg-support-castor);
+  --timeline-status-skipped: var(--bg-support-rau);
+  --timeline-status-unknown: var(--bg-support-skat);
+
+  background: var(--timeline-bg);
+}
+
+.durationRangeText {
+  font: 12px var(--timeline-font-family, sans-serif);
+  fill: var(--timeline-text, #011228ad);
+}
+
+.timelineChart {
+  text-align: center;
+
+  /* Cancel selection interaction */
+  user-select: none;
+
+  & text {
+    font: 12px var(--timeline-font-family, sans-serif);
+    color: var(--timeline-text, #011228ad);
+  }
+
+  & .axises {
+    line,
+    path {
+      stroke: var(--timeline-grid, #1d4f8114);
+    }
+
+    & .xAxis {
+      font: 12px var(--timeline-font-family, sans-serif);
+      color: var(--timeline-axis-text, #011228ad);
+
+      & :global(.tick) text {
+        fill: var(--timeline-axis-text, #011228ad);
+      }
+
+      & :global(.tick) line {
+        stroke: var(--timeline-axis, #1d4f8114);
+      }
+    }
+
+    & .xGrid line {
+      stroke: var(--timeline-grid, #1d4f8114);
+      stroke-dasharray: 4;
+    }
+
+    & .yAxis,
+    & .groupAxis {
+      line,
+      path {
+        stroke: none;
+      }
+      text {
+        fill: var(--timeline-axis-text, #011228ad);
+      }
+    }
+  }
+
+  & .group {
+    /* stroke: var(--timeline-grid, #1d4f8114); */
+    /* stroke-opacity: 1; */
+  }
+
+  & .segment {
+    /* stroke: none; */
+  }
+
+  & .group,
+  & .segment {
+    cursor: crosshair;
+  }
+
+  & .legend {
+    font-family: Sans-Serif;
+
+    & .legendText {
+      fill: #666;
+    }
+  }
+}
+
+.brusher {
+  & .brusherGridBackground {
+    fill: var(--timeline-bg, #ffffff);
+  }
+
+  & .xGrid :global(.domain) {
+    stroke: none;
+  }
+
+  & :global(.axis) path {
+    display: none;
+  }
+
+  & :global(.tick) text {
+    text-anchor: middle;
+  }
+
+  & :global(.grid) {
+    line,
+    path {
+      stroke: var(--timeline-grid, #1d4f8114);
+      stroke-dasharray: 4;
+      stroke-width: 1;
+    }
+  }
+}
+
+.brush {
+  // fill: var(--timeline-bg, #1d4f8114);
+}
+
+:global(.handle) {
+  fill: transparent;
+}
+
+.brusher {
+  fill: var(--timeline-bg, #1d4f8114);
+}
+
+.zoomSelection,
+.brusher .brush :global(.selection) {
+  stroke: var(--timeline-border-primary, #031c3a6b);
+  stroke-opacity: 1;
+  fill: var(--timeline-selection-bg, #1d4f8114);
+  fill-opacity: 1;
+  shape-rendering: crispEdges;
+
+  &:hover {
+    fill: var(--timeline-selection-bg-hover, #1d4f8114);
+  }
+}
+
+.tooltip {
+  border: 1px solid var(--on-border-primary);
+  box-shadow: var(--shadow-medium);
+  border-radius: 6px;
+  background-color: var(--constant-bg-base-modal);
+  color: var(--constant-on-text-primary);
+  padding: 4px 8px;
+  font-size: 12px;
+  max-width: 600px;
+  min-width: max-content;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  & * {
+    color: var(--constant-on-text-primary);
+  }
+
+  &[data-visible="true"] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  & .tooltipContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+}
