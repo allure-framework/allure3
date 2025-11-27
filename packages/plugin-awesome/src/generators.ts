@@ -27,7 +27,6 @@ import type {
   TestResultFilter,
 } from "@allurereport/plugin-api";
 import {
-  TITLE_PATH_LABEL_NAME,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -266,7 +265,6 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     treeByDefaultLabels = createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
       testsWithoutTitlePath,
       defaultLabels,
-      false,
       leafFactory,
       undefined,
       (group, leaf) => incrementStatistic(group.statistic, leaf.status),
@@ -319,7 +317,6 @@ const buildTreeByLabelsAndTitlePathCombined = (
   createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     tests,
     labels,
-    undefined,
     leafFactory,
     undefined,
     (group, leaf) => incrementStatistic(group.statistic, leaf.status),
