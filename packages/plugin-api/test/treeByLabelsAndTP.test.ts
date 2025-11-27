@@ -83,13 +83,7 @@ describe("createTreeByLabelsAndTitlePath", () => {
       titlePath: ["Cart", "add item"],
     });
 
-    const result = createTreeByLabelsAndTitlePath(
-      [tr1, tr2],
-      ["epic", "titlePath"],
-      undefined,
-      undefined,
-      sampleLeafFactory,
-    );
+    const result = createTreeByLabelsAndTitlePath([tr1, tr2], ["epic", "titlePath"], undefined, sampleLeafFactory);
 
     expect(result.root.groups).toHaveLength(1);
     const epicGroup = result.groupsById[result.root.groups![0]];

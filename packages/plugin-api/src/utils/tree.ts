@@ -12,6 +12,8 @@ import {
 import { emptyStatistic } from "@allurereport/core-api";
 import { md5 } from "./misc.js";
 
+export const TITLE_PATH_LABEL_NAME = "__titlePath";
+
 const addLeaf = (node: WithChildren, nodeId: string) => {
   if (node.leaves === undefined) {
     node.leaves = [];
@@ -357,16 +359,16 @@ export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = D
         statistic: emptyStatistic(),
       }) as unknown as TreeGroup<G>);
 
-  return createTree<T, L, G>(
+  return createTree(
     data,
-    (item: any) => (item.titlePath ?? []).map((segment: string) => [segment]),
+    (item) => ((item as TestResult).titlePath ?? []).map((segment: string) => [segment]),
     leafFactoryFn,
     groupFactoryFn,
     addLeafToGroup,
   );
 };
 
-const byLabelsAndTitlePath = (item: TestResult, labelNames: string[], appendTitlePath: boolean): string[][] => {
+const byLabelsAndTitlePath = (item: TestResult, labelNames: string[]): string[][] => {
   const leaves: string[][] = [];
 
   for (const labelName of labelNames) {
@@ -379,13 +381,10 @@ const byLabelsAndTitlePath = (item: TestResult, labelNames: string[], appendTitl
     leaves.push(values);
   }
 
-  if (appendTitlePath) {
-    const titlePath = (item as any).titlePath as string[] | undefined;
-
-    if (Array.isArray(titlePath) && titlePath.length > 0) {
-      for (const segment of titlePath) {
-        leaves.push([segment]);
-      }
+  const titlePath = item.titlePath;
+  if (Array.isArray(titlePath) && titlePath.length > 0) {
+    for (const segment of titlePath) {
+      leaves.push([segment]);
     }
   }
 
@@ -395,15 +394,10 @@ const byLabelsAndTitlePath = (item: TestResult, labelNames: string[], appendTitl
 export const createTreeByLabelsAndTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
   data: T[],
   labelNames: string[] = [],
-  appendTitlePath: boolean = true,
   leafFactory?: (item: T) => TreeLeaf<L>,
   groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
   addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
 ) => {
-  const lastIsTitlePath = labelNames[labelNames.length - 1] === "titlePath";
-  const effectiveAppendTitlePath = lastIsTitlePath ? true : appendTitlePath;
-  const effectiveLabelNames = lastIsTitlePath ? labelNames.slice(0, -1) : labelNames;
-
   const leafFactoryFn =
     leafFactory ??
     ((tr: T) => {
@@ -428,7 +422,7 @@ export const createTreeByLabelsAndTitlePath = <T = TestResult, L = DefaultTreeLe
 
   return createTree<T, L, G>(
     data,
-    (item) => byLabelsAndTitlePath(item as TestResult, effectiveLabelNames, effectiveAppendTitlePath),
+    (item) => byLabelsAndTitlePath(item as TestResult, labelNames),
     leafFactoryFn,
     groupFactoryFn,
     addLeafToGroup,

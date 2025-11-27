@@ -4,6 +4,7 @@ import {
   type Plugin,
   type PluginContext,
   type PluginSummary,
+  TITLE_PATH_LABEL_NAME,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
@@ -62,26 +63,28 @@ export class AwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
-    const hasTitlePathInGroupBy = hasGroupBy && groupBy.includes("titlePath");
+    const hasTitlePathInGroupBy = hasGroupBy && groupBy.includes(TITLE_PATH_LABEL_NAME);
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
 
-    if (hasTitlePathInGroupBy) {
-      treeLabels.push("titlePath");
-    }
-
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
-    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs);
+    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, hasTitlePathInGroupBy);
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     for (const reportEnvironment of reportEnvironments) {
       const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
-      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs);
+      await generateTree(
+        this.#writer!,
+        join(reportEnvironment, "tree.json"),
+        treeLabels,
+        envConvertedTrs,
+        hasTitlePathInGroupBy,
+      );
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
 

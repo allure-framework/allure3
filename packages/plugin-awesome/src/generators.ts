@@ -27,6 +27,7 @@ import type {
   TestResultFilter,
 } from "@allurereport/plugin-api";
 import {
+  TITLE_PATH_LABEL_NAME,
   createTreeByLabels,
   createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
@@ -198,15 +199,18 @@ export const generateTree = async (
   treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
+  hasTitlePathInGroupBy: boolean,
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const useCombined = labels.includes("titlePath");
+  let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
-  const tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> = labels.length
-    ? useCombined
-      ? buildTreeByLabelsAndTitlePathCombined(visibleTests, labels)
-      : buildTreeByLabels(visibleTests, labels)
-    : buildTreeByTitlePath(visibleTests);
+  if (labels.length === 0) {
+    tree = buildTreeByTitlePath(visibleTests);
+  } else if (hasTitlePathInGroupBy && labels.length) {
+    tree = buildTreeByLabelsAndTitlePathCombined(visibleTests, labels);
+  } else {
+    tree = buildTreeByLabels(visibleTests, labels);
+  }
 
   // @ts-ignore
   filterTree(tree, (leaf) => !leaf.hidden);
@@ -311,23 +315,15 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
 const buildTreeByLabelsAndTitlePathCombined = (
   tests: AwesomeTestResult[],
   labels: string[],
-): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> => {
-  const hasTitlePathMarker = labels.includes("titlePath");
-  const labelNames = hasTitlePathMarker ? labels.filter((name) => name !== "titlePath") : labels;
-
-  if (!hasTitlePathMarker) {
-    return buildTreeByLabels(tests, labelNames);
-  }
-
-  return createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
+  createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
     tests,
-    labelNames,
+    labels,
     undefined,
     leafFactory,
     undefined,
     (group, leaf) => incrementStatistic(group.statistic, leaf.status),
   );
-};
 
 const leafFactory = ({
   id,
