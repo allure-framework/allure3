@@ -26,7 +26,7 @@ const namespaces = [
   "charts",
   "sections",
   "transitions.description",
-];
+] as const;
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
 export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
@@ -63,8 +63,12 @@ export const waitForI18next = i18next
     interpolation: { escapeValue: false },
   });
 
-export const useI18n = (namespace?: string) => {
-  const t = computed(() => (key: string, options?: TOptions) => i18next.t(key, { ns: namespace, ...options }));
+export const useI18n = (namespace: (typeof namespaces)[number]) => {
+  const t = computed(
+    () =>
+      (key: string, options: TOptions = {}) =>
+        i18next.t(key, { ns: namespace, ...options }),
+  );
 
   return {
     t: t.value,
