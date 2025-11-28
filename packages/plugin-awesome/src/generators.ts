@@ -198,14 +198,14 @@ export const generateTree = async (
   treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
-  hasTitlePathInGroupBy: boolean,
+  appendTitlePath?: boolean,
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
   let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
   if (labels.length === 0) {
     tree = buildTreeByTitlePath(visibleTests);
-  } else if (hasTitlePathInGroupBy && labels.length) {
+  } else if (appendTitlePath && labels.length) {
     tree = buildTreeByLabelsAndTitlePathCombined(visibleTests, labels);
   } else {
     tree = buildTreeByLabels(visibleTests, labels);

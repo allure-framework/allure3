@@ -36,7 +36,7 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter } = this.options ?? {};
+    const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -63,7 +63,6 @@ export class AwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
-    const hasTitlePathInGroupBy = hasGroupBy && groupBy.includes(TITLE_PATH_LABEL_NAME);
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
@@ -71,7 +70,7 @@ export class AwesomePlugin implements Plugin {
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
-    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, hasTitlePathInGroupBy);
+    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, appendTitlePath);
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
@@ -83,7 +82,7 @@ export class AwesomePlugin implements Plugin {
         join(reportEnvironment, "tree.json"),
         treeLabels,
         envConvertedTrs,
-        hasTitlePathInGroupBy,
+        appendTitlePath,
       );
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }

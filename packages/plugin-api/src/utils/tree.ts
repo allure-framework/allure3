@@ -12,8 +12,6 @@ import {
 import { emptyStatistic } from "@allurereport/core-api";
 import { md5 } from "./misc.js";
 
-export const TITLE_PATH_LABEL_NAME = "__titlePath";
-
 const addLeaf = (node: WithChildren, nodeId: string) => {
   if (node.leaves === undefined) {
     node.leaves = [];

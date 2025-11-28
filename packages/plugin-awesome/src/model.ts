@@ -16,6 +16,7 @@ export type AwesomeOptions = {
   sections?: string[];
   defaultSection?: string;
   publish?: boolean;
+  appendTitlePath?: boolean;
 };
 
 export type TemplateManifest = Record<string, string>;
