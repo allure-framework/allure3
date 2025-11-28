@@ -69,20 +69,16 @@ export class AwesomePlugin implements Plugin {
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
-    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, appendTitlePath);
+    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     for (const reportEnvironment of reportEnvironments) {
       const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
-      await generateTree(
-        this.#writer!,
-        join(reportEnvironment, "tree.json"),
-        treeLabels,
-        envConvertedTrs,
+      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
-      );
+      });
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
 

@@ -198,9 +198,12 @@ export const generateTree = async (
   treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
-  appendTitlePath?: boolean,
+  options?: {
+    appendTitlePath?: boolean;
+  },
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
+  const { appendTitlePath } = options || {};
   let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
   if (labels.length === 0) {
