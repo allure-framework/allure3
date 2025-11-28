@@ -119,6 +119,30 @@ test.describe("allure-awesome", () => {
       await expect(testResultPage.titleLocator).toHaveText(testTitleText);
     });
 
+    test("navigation arrows navigate in the expected direction between test results", async () => {
+      await treePage.clickNthLeaf(0);
+
+      const startingPageIndex = 1;
+      let navCounterText = await testResultPage.navCurrentLocator.textContent();
+      const navStartingPageNumber = Number(navCounterText?.split("/")[0]);
+
+      let isPressBackButtonDisabled = await testResultPage.navPrevLocator.isDisabled();
+      expect(isPressBackButtonDisabled).toBe(true);
+
+      expect(navStartingPageNumber).toEqual(startingPageIndex);
+      await testResultPage.clickNextTestResult();
+      
+      navCounterText = await testResultPage.navCurrentLocator.textContent();
+      const navNextPageNumber = Number(navCounterText?.split("/")[0]);
+      expect(navNextPageNumber).toEqual(startingPageIndex + 1);
+
+      await testResultPage.clickPrevTestResult();
+      
+      navCounterText = await testResultPage.navCurrentLocator.textContent();
+      const navPreviousPageNumber = Number(navCounterText?.split("/")[0]);
+      expect(navPreviousPageNumber).toEqual(startingPageIndex);
+    });
+  
     test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {
       test.skip(browserName !== "chromium", "Only chromium supports clipboard API");
 
