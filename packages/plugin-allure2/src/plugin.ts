@@ -2,9 +2,9 @@ import type { EnvironmentItem } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
+  type AllureSummary,
   type Plugin,
   type PluginContext,
-  type PluginSummary,
   convertToSummaryTestResult,
   preciseTreeLabels,
 } from "@allurereport/plugin-api";
@@ -101,7 +101,7 @@ export class Allure2Plugin implements Plugin {
     });
   };
 
-  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
+  async info(context: PluginContext, store: AllureStore): Promise<AllureSummary> {
     const allTrs = await store.allTestResults();
     const newTrs = await store.allNewTestResults();
     const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
