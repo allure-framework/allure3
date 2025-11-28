@@ -4,7 +4,6 @@ import {
   type Plugin,
   type PluginContext,
   type PluginSummary,
-  TITLE_PATH_LABEL_NAME,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
