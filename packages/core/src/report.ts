@@ -102,7 +102,7 @@ export class AllureReport {
     this.#stage = stage;
 
     if (this.#allureServiceClient) {
-      this.#history = new AllureRemoteHistory(this.#allureServiceClient);
+      this.#history = new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch);
     } else if (historyPath) {
       this.#history = new AllureLocalHistory(historyPath);
     }
