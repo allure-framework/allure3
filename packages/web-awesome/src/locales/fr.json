@@ -172,8 +172,29 @@
         "severity": "Sévérité"
       }
     },
-    "pie": {
-      "title": "Taux de réussite des tests"
+    "currentStatus": {
+      "title": "Statut actuel",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "sur {{total}}",
+      "total": "total",
+      "tests": {
+        "new_zero": "Aucun nouveau test",
+        "new_one": "{{count}} nouveau test",
+        "new_other": "{{count}} nouveaux tests",
+        "flaky_zero": "Aucun test instable",
+        "flaky_one": "{{count}} test instable",
+        "flaky_other": "{{count}} tests instables",
+        "retries_zero": "Aucun test relancé",
+        "retries_one": "{{count}} test relancé",
+        "retries_other": "{{count}} tests relancés"
+      }
     }
   },
   "transitions.description": {

@@ -30,8 +30,29 @@
         "severity": "Severidad"
       }
     },
-    "pie": {
-      "title": "Tasa de éxito de pruebas"
+    "currentStatus": {
+      "title": "Estado actual",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "de {{total}}",
+      "total": "{{total}}",
+      "tests": {
+        "new_zero": "No hay pruebas nuevas",
+        "new_one": "{{count}} prueba nueva",
+        "new_other": "{{count}} pruebas nuevas",
+        "flaky_zero": "No hay pruebas inestables",
+        "flaky_one": "{{count}} prueba inestable",
+        "flaky_other": "{{count}} pruebas inestables",
+        "retries_zero": "No hay pruebas reintentadas",
+        "retries_one": "{{count}} prueba reintentada",
+        "retries_other": "{{count}} pruebas reintentadas"
+      }
     }
   }
 }

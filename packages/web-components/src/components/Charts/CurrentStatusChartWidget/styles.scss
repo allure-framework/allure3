@@ -1,0 +1,45 @@
+.centeredMetricTitle {
+  font-weight: var(--font-weight-bold);
+  fill: var(--on-text-primary);
+}
+
+.centeredMetricDescription {
+  font-weight: var(--font-weight-normal);
+  fill: var(--on-text-secondary);
+}
+
+.pie {
+  max-width: 300px;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  gap: 32px;
+
+  &[data-layout="vertical"] {
+    flex-direction: row;
+  }
+
+  &[data-layout="horizontal"] {
+    flex-direction: column;
+    gap: 32px;
+  }
+}
+
+.additionalStats {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+
+  &[data-layout="vertical"] {
+    flex-direction: column;
+  }
+
+  &[data-layout="horizontal"] {
+    flex-direction: row;
+  }
+}

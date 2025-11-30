@@ -10,9 +10,9 @@ import { type AllureStore } from "@allurereport/plugin-api";
 import { generateBarChart } from "./bar.js";
 import { generateComingSoonChart } from "./comingSoon.js";
 import { generateFunnelChart } from "./funnel/index.js";
+import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTrendChart } from "./line.js";
-import { generatePieChart } from "./pie.js";
 import { generateTreeMapChart } from "./treeMap.js";
 
 const generateChartData = async (props: {
@@ -42,8 +42,8 @@ const generateChartData = async (props: {
       case ChartType.Trend:
         result[chartId] = generateTrendChart(chartOption, storeData, reportName)!;
         break;
-      case ChartType.Pie:
-        result[chartId] = generatePieChart(chartOption, storeData)!;
+      case ChartType.CurrentStatus:
+        result[chartId] = generateCurrentStatusChart(chartOption, storeData)!;
         break;
       case ChartType.Bar:
         result[chartId] = generateBarChart(chartOption, storeData)!;

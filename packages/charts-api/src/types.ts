@@ -3,7 +3,7 @@ import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus
 // Chart types and enums
 export enum ChartType {
   Trend = "trend",
-  Pie = "pie",
+  CurrentStatus = "currentStatus",
   TreeMap = "treemap",
   HeatMap = "heatmap",
   Bar = "bar",
@@ -207,14 +207,6 @@ export interface HeatMapChartData<T extends Record<string, any> = {}> {
   data: HeatMapSerie<T>[];
 }
 
-// Pie chart data types
-export interface PieChartData {
-  type: ChartType.Pie;
-  title?: string;
-  slices: PieSlice[];
-  percentage: number;
-}
-
 // Coming soon chart data types
 export interface ComingSoonChartData {
   type: ChartType.ComingSoon;
@@ -229,11 +221,17 @@ export interface FunnelChartData {
   data: Record<string, number | string>[];
 }
 
+export interface CurrentStatusChartData {
+  type: ChartType.CurrentStatus;
+  title?: string;
+  data: Statistic;
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
-  | PieChartData
   | BarChartData
+  | CurrentStatusChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -251,9 +249,29 @@ export type TrendChartOptions = {
   metadata?: TrendMetadataFnOverrides;
 };
 
-export type PieChartOptions = {
-  type: ChartType.Pie;
+export type CurrentStatusChartOptions = {
+  type: ChartType.CurrentStatus;
+  /**
+   * Title of the chart
+   *
+   * @default "Current Status"
+   */
   title?: string;
+  /**
+   * List of test statuses that will be
+   * used to create the chart.
+   *
+   * @default ["passed", "failed", "broken", "skipped", "unknown"]
+   */
+  statuses?: TestStatus[];
+  /**
+   * Status that will be used to calculate
+   * the percentage against total number of tests
+   * in the center of the chart.
+   *
+   * @default "passed"
+   */
+  metric?: TestStatus;
 };
 
 export type BarChartOptions = {
@@ -290,7 +308,7 @@ export type FunnelChartOptions = {
 
 export type ChartOptions =
   | TrendChartOptions
-  | PieChartOptions
+  | CurrentStatusChartOptions
   | BarChartOptions
   | ComingSoonChartOptions
   | TreeMapChartOptions

@@ -4,7 +4,6 @@ export * from "./colors.js";
 export * from "./chart-utils.js";
 export * from "./bar.js";
 export * from "./line.js";
-export * from "./pie.js";
 export * from "./treeMap.js";
 export * from "./heatMap.js";
 export * from "./comingSoon.js";

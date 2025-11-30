@@ -30,8 +30,29 @@
         "severity": "重要度"
       }
     },
-    "pie": {
-      "title": "テスト成功率"
+    "currentStatus": {
+      "title": "現在のステータス",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}} のうち",
+      "total": "{{total}}",
+      "tests": {
+        "new_zero": "新しいテストなし",
+        "new_one": "{{count}} 件の新しいテスト",
+        "new_other": "{{count}} 件の新しいテスト",
+        "flaky_zero": "不安定なテストなし",
+        "flaky_one": "{{count}} 件の不安定なテスト",
+        "flaky_other": "{{count}} 件の不安定なテスト",
+        "retries_zero": "再試行テストなし",
+        "retries_one": "{{count}} 件の再試行テスト",
+        "retries_other": "{{count}} 件の再試行テスト"
+      }
     }
   }
 }

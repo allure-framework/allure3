@@ -30,8 +30,29 @@
         "severity": "严重程度"
       }
     },
-    "pie": {
-      "title": "测试成功率"
+    "currentStatus": {
+      "title": "当前状态",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "共 {{total}}",
+      "total": "{{total}}",
+      "tests": {
+        "new_zero": "没有新测试",
+        "new_one": "{{count}} 个新测试",
+        "new_other": "{{count}} 个新测试",
+        "flaky_zero": "没有不稳定测试",
+        "flaky_one": "{{count}} 个不稳定测试",
+        "flaky_other": "{{count}} 个不稳定测试",
+        "retries_zero": "没有重试测试",
+        "retries_one": "{{count}} 个重试测试",
+        "retries_other": "{{count}} 个重试测试"
+      }
     }
   }
 }

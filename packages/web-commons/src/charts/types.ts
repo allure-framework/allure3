@@ -9,13 +9,13 @@ import type {
   ChartType,
   FunnelChartType,
   HeatMapSerie,
-  PieSlice,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
   TrendSlice,
   TrendSliceId,
 } from "@allurereport/charts-api";
+import type { Statistic, TestStatus } from "@allurereport/core-api";
 
 export type TreeMapTooltipAccessor = <T>(node: T) => string[];
 
@@ -45,11 +45,12 @@ export interface ResponseTrendChartData<
   series: Record<SeriesType, TrendPointId[]>;
 }
 
-export interface ResponsePieChartData {
-  type: ChartType.Pie;
+export interface CurrentStatusChartData {
+  type: ChartType.CurrentStatus;
   title?: string;
-  percentage: number;
-  slices: PieSlice[];
+  data: Statistic;
+  statuses?: TestStatus[];
+  metric?: TestStatus;
 }
 
 export interface ResponseBarChartData {
@@ -88,7 +89,7 @@ export type ChartsResponse<
   general: Record<
     ChartId,
     | ResponseTrendChartData<SeriesType, Metadata>
-    | ResponsePieChartData
+    | CurrentStatusChartData
     | ResponseBarChartData
     | ResponseComingSoonChartData
     | ResponseTreeMapChartData
@@ -98,7 +99,7 @@ export type ChartsResponse<
     [env: string]: Record<
       ChartId,
       | ResponseTrendChartData<SeriesType, Metadata>
-      | ResponsePieChartData
+      | CurrentStatusChartData
       | ResponseBarChartData
       | ResponseComingSoonChartData
       | ResponseTreeMapChartData
@@ -118,7 +119,7 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
   title?: string;
 }
 
-export type UIPieChartData = ResponsePieChartData;
+export type UICurrentStatusChartData = CurrentStatusChartData;
 
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
@@ -170,7 +171,7 @@ export type ChartData<
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
 > =
   | ResponseTrendChartData<SeriesType, Metadata>
-  | ResponsePieChartData
+  | CurrentStatusChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
@@ -179,7 +180,7 @@ export type ChartData<
 
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
-  | UIPieChartData
+  | UICurrentStatusChartData
   | UIBarChartData
   | UIComingSoonChartData
   | UITreeMapChartData

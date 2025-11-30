@@ -30,6 +30,7 @@
   --constant-on-border-heavy: var(--constant-on-border-heavy-day);
   --constant-on-icon-primary: var(--constant-on-icon-primary-day);
   --constant-on-text-primary: var(--constant-on-text-primary-day);
+  --constant-on-text-secondary: var(--gray-neutral-alpha-night-300);
   --on-border-control: var(--on-border-control-day);
   --on-border-heavy: var(--on-border-heavy-day);
   --on-border-medium: var(--on-border-medium-day);
@@ -98,6 +99,7 @@
     --constant-on-border-heavy: var(--constant-on-border-heavy-night);
     --constant-on-icon-primary: var(--constant-on-icon-primary-night);
     --constant-on-text-primary: var(--constant-on-text-primary-night);
+    --constant-on-text-secondary: var(--gray-neutral-alpha-night-300);
     --on-border-control: var(--on-border-control-night);
     --on-border-heavy: var(--on-border-heavy-night);
     --on-border-medium: var(--on-border-medium-night);

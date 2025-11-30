@@ -5,17 +5,16 @@ import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
   ComingSoonChartWidget,
+  CurrentStatusChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
   Loadable,
   PageLoader,
   StabilityRateDistributionWidget,
-  SuccessRatePieChart,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
-  Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { dashboardStore, fetchDashboardData } from "@/stores/dashboard";
@@ -44,17 +43,17 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.Pie: {
-      const title = chartData.title ?? t("pie.title");
+    case ChartType.CurrentStatus: {
+      const title = chartData.title ?? t("currentStatus.title");
 
       return (
-        <Widget title={title}>
-          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
-            </div>
-          </div>
-        </Widget>
+        <CurrentStatusChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          metric={chartData.metric}
+          i18n={(key, props = {}) => t(`currentStatus.${key}`, props)}
+        />
       );
     }
     case ChartType.Bar: {

@@ -39,6 +39,14 @@ const config: StorybookConfig = {
       use: ["style-loader", "css-loader", "sass-loader"],
     });
 
+    config.externals = {
+      // @ts-expect-error this is fine
+      ...(config.externals || {}),
+      // Some packages use crypto from node:crypto, but webpack doesn't support it
+      // I think this does not end up in a bundle, so it is safe to do this
+      "node:crypto": "crypto",
+    };
+
     return config;
   },
 };
