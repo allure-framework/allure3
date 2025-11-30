@@ -491,6 +491,7 @@ export const generateStaticFiles = async (
     allureVersion,
     layout = "base",
     charts = [],
+    timeline,
     defaultSection = "",
     ci,
   } = payload;
@@ -502,6 +503,10 @@ export const generateStaticFiles = async (
 
   if (charts.length) {
     sections.push("charts");
+  }
+
+  if (timeline) {
+    sections.push("timeline");
   }
 
   if (!payload.singleFile) {

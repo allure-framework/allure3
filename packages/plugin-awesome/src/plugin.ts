@@ -9,6 +9,7 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { filterEnv } from "./environments.js";
+import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
@@ -59,6 +60,8 @@ export class AwesomePlugin implements Plugin {
       envs: environments,
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
+
+    await generateTimeline(this.#writer!, store, this.options);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
