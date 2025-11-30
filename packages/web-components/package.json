@@ -48,6 +48,7 @@
     "@nivo/funnel": "^0.99.0",
     "@nivo/heatmap": "^0.99.0",
     "@nivo/line": "^0.99.0",
+    "@nivo/pie": "^0.99.0",
     "@nivo/text": "^0.99.0",
     "@nivo/theming": "^0.99.0",
     "@nivo/treemap": "^0.99.0",

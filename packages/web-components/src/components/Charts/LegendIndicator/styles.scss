@@ -1,0 +1,22 @@
+.legendIndicatorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.legendIndicatorContainerBase {
+  display: flex;
+  background-color: white;
+  border-radius: 2px;
+}
+
+.legendIndicator {
+  position: relative;
+  z-index: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background-color: var(--bg-control-secondary);
+}
