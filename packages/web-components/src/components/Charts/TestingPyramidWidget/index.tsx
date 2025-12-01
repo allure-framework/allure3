@@ -138,7 +138,11 @@ export const TestingPyramidWidget = (props: Props) => {
   );
 
   if (!data || data.length === 0) {
-    return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyLabel} />;
+    return (
+      <Widget title={title}>
+        <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyLabel} />
+      </Widget>
+    );
   }
 
   return (

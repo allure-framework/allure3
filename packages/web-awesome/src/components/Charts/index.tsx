@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
-import { capitalize } from "@allurereport/core-api";
+import { BarChartType, ChartDataType, ChartType, FunnelChartType } from "@allurereport/charts-api";
+import { capitalize, statusesList } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
@@ -31,12 +31,17 @@ const getChartWidgetByType = (
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
       const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
+      let isDataEmpty = false;
+
+      if (chartData.dataType === ChartDataType.Status) {
+        isDataEmpty = !chartData.slices.some((slice) => slice.min > 0 || slice.max > 0);
+      }
 
       return (
         <TrendChartWidget
           title={title}
           mode={chartData.mode}
-          items={chartData.items}
+          items={isDataEmpty ? [] : chartData.items}
           slices={chartData.slices}
           min={chartData.min}
           max={chartData.max}
@@ -60,6 +65,13 @@ const getChartWidgetByType = (
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
+      /**
+       * A flag that indicates whether the chart data should be considered empty.
+       * For some chart types, simply checking the `data` array length is not sufficient,
+       * because additional logic may be needed to assess the presence of meaningful data.
+       * This flag ensures that specific conditions for data emptiness are handled per chart type.
+       */
+      let isDataEmpty = false;
 
       if (chartData.dataType === BarChartType.StabilityRateDistribution) {
         return (
@@ -80,11 +92,54 @@ const getChartWidgetByType = (
         );
       }
 
+      if (chartData.dataType === BarChartType.StatusChangeTrend) {
+        /*
+         * For StatusChangeTrend data:
+         * - The data consists of keys such as newPassed, newFailed, newBroken, newSkipped, etc., all with numeric values.
+         * - We must check if any of these metrics in any group are greater than 0.
+         * - If at least one statistic is greater than 0, we should display the chart.
+         */
+        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
+      }
+
+      if (chartData.dataType === BarChartType.StatusBySeverity) {
+        /*
+         * Data for this chart type consists of statistics where each group contains
+         * metrics such as passed, failed, broken, etc., represented as numbers.
+         * To determine if the chart should be displayed, we need to check if any of these
+         * metrics in any group is greater than 0. If at least one of the statistics is
+         * greater than 0, we display the chart; otherwise, we consider the data empty.
+         */
+        isDataEmpty = !chartData.data.some(
+          (item) => chartData.keys.includes(item.groupId) && statusesList.some((status) => (item[status] ?? 0) > 0),
+        );
+      }
+
+      if (chartData.dataType === BarChartType.StatusTrend) {
+        /*
+         * The data structure contains keys such as passed, failed, and broken, each associated with numeric values.
+         * To determine whether the chart should be displayed, we need to check if any value for these keys
+         * is greater than 0 in any of the data groups. If at least one of those metrics is greater than 0,
+         * the chart will be displayed; otherwise, it should be considered empty.
+         */
+        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
+      }
+
+      if (chartData.dataType === BarChartType.FbsuAgePyramid) {
+        /*
+         * For FbsuAgePyramid data:
+         * - Each group contains keys such as passed, failed, broken, etc., with numeric values.
+         * - To determine if the chart should be shown, check if any statistic in any group is greater than 0.
+         * - If at least one such statistic exists, display the chart; otherwise, consider the data empty.
+         */
+        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
+      }
+
       return (
         <BarChartWidget
           title={title}
           mode={chartData.mode}
-          data={chartData.data}
+          data={isDataEmpty ? [] : chartData.data}
           keys={chartData.keys}
           indexBy={chartData.indexBy}
           colors={chartData.colors}
@@ -124,10 +179,12 @@ const getChartWidgetByType = (
         return null;
       }
 
+      const isDataEmpty = !chartData.data.some((item) => item.testCount > 0);
+
       return (
         <TestingPyramidWidget
           title={chartData.title}
-          data={chartData.data}
+          data={isDataEmpty ? [] : chartData.data}
           translations={{ "no-results": empty("no-results") }}
         />
       );
