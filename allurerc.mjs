@@ -33,8 +33,11 @@ const config = {
         reportLanguage: "en",
         layout: [
           {
-            type: "pie",
+            type: "currentStatus",
             title: "Current status",
+            // e.g. do not include skipped status in the dashboard
+            statuses: ["passed", "failed", "broken", "unknown"],
+            metric: "passed",
           },
           {
             type: "trend",

@@ -1033,6 +1033,7 @@ __metadata:
     "@nivo/heatmap": "npm:^0.99.0"
     "@nivo/legends": "npm:^0.99.0"
     "@nivo/line": "npm:^0.99.0"
+    "@nivo/pie": "npm:^0.99.0"
     "@nivo/scales": "npm:^0.99.0"
     "@nivo/text": "npm:^0.99.0"
     "@nivo/theming": "npm:^0.99.0"
@@ -5011,6 +5012,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nivo/arcs@npm:0.99.0":
+  version: 0.99.0
+  resolution: "@nivo/arcs@npm:0.99.0"
+  dependencies:
+    "@nivo/colors": "npm:0.99.0"
+    "@nivo/core": "npm:0.99.0"
+    "@nivo/text": "npm:0.99.0"
+    "@nivo/theming": "npm:0.99.0"
+    "@react-spring/core": "npm:9.4.5 || ^9.7.2 || ^10.0"
+    "@react-spring/web": "npm:9.4.5 || ^9.7.2 || ^10.0"
+    "@types/d3-shape": "npm:^3.1.6"
+    d3-shape: "npm:^3.2.0"
+  peerDependencies:
+    react: ^16.14 || ^17.0 || ^18.0 || ^19.0
+  checksum: 10/27dd0c33d67664e9986355b85c7dca893617a2fbac24cf840da5aa1f17ab932ae89fca836dcc13fbe49b2ca26690330d85a5ae64e98817430894a33d2cd5916c
+  languageName: node
+  linkType: hard
+
 "@nivo/axes@npm:0.99.0, @nivo/axes@npm:^0.99.0":
   version: 0.99.0
   resolution: "@nivo/axes@npm:0.99.0"
@@ -5185,6 +5204,24 @@ __metadata:
   peerDependencies:
     react: ^16.14 || ^17.0 || ^18.0 || ^19.0
   checksum: 10/bdb7b44e593c8f0d469ebdfc2f127df6fd23f5239c78a38d76cdc9656b30f86f778008c7fc0d8823024c046d90b28f8a5a101a40b47624b85ac143c3151e83d6
+  languageName: node
+  linkType: hard
+
+"@nivo/pie@npm:^0.99.0":
+  version: 0.99.0
+  resolution: "@nivo/pie@npm:0.99.0"
+  dependencies:
+    "@nivo/arcs": "npm:0.99.0"
+    "@nivo/colors": "npm:0.99.0"
+    "@nivo/core": "npm:0.99.0"
+    "@nivo/legends": "npm:0.99.0"
+    "@nivo/theming": "npm:0.99.0"
+    "@nivo/tooltip": "npm:0.99.0"
+    "@types/d3-shape": "npm:^3.1.6"
+    d3-shape: "npm:^3.2.0"
+  peerDependencies:
+    react: ^16.14 || ^17.0 || ^18.0 || ^19.0
+  checksum: 10/764ea81ad880fe27cb46c0343014313312c789b5c062f16cccef8fb5a75f75d99140ea8832e7214088d9c45e1e42aac17e95117f1b18a4487b07351938312ea9
   languageName: node
   linkType: hard
 

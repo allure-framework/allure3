@@ -172,8 +172,29 @@
         "severity": "Ծանրություն"
       }
     },
-    "pie": {
-      "title": "Թեստերի հաջողության գործակից"
+    "currentStatus": {
+      "title": "Ընթացիկ կարգավիճակ",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}}-ից",
+      "total": "ընդամենը",
+      "tests": {
+        "new_zero": "Նոր թեստեր չկան",
+        "new_one": "{{count}} նոր թեստ",
+        "new_other": "{{count}} նոր թեստ",
+        "flaky_zero": "Անկայուն թեստեր չկան",
+        "flaky_one": "{{count}} անկայուն թեստ",
+        "flaky_other": "{{count}} անկայուն թեստ",
+        "retries_zero": "Կրկնակի թեստեր չկան",
+        "retries_one": "{{count}} կրկնակի թեստ",
+        "retries_other": "{{count}} կրկնակի թեստ"
+      }
     }
   },
   "transitions.description": {

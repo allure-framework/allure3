@@ -61,6 +61,11 @@ export const waitForI18next = i18next
     fallbackLng: "en",
     ns: namespaces,
     interpolation: { escapeValue: false },
+  })
+  .then(() => {
+    i18next.services.formatter.add("capitalize", (value) => {
+      return value.charAt(0).toLocaleUpperCase() + value.slice(1);
+    });
   });
 
 export const useI18n = (namespace: (typeof namespaces)[number]) => {

@@ -172,8 +172,29 @@
         "severity": "სიმძიმე"
       }
     },
-    "pie": {
-      "title": "ტესტების წარმატების მაჩვენებელი"
+    "currentStatus": {
+      "title": "მიმდინარე სტატუსი",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "{{total}}-დან",
+      "total": "სულ",
+      "tests": {
+        "new_zero": "ახალი ტესტები არ არის",
+        "new_one": "{{count}} ახალი ტესტი",
+        "new_other": "{{count}} ახალი ტესტი",
+        "flaky_zero": "არასტაბილური ტესტები არ არის",
+        "flaky_one": "{{count}} არასტაბილური ტესტი",
+        "flaky_other": "{{count}} არასტაბილური ტესტი",
+        "retries_zero": "განმეორებითი ტესტები არ არის",
+        "retries_one": "{{count}} განმეორებითი ტესტი",
+        "retries_other": "{{count}} განმეორებითი ტესტი"
+      }
     }
   },
   "transitions.description": {

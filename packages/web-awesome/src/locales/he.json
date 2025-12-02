@@ -172,8 +172,29 @@
         "severity": "חומרה"
       }
     },
-    "pie": {
-      "title": "שיעור הצלחת הבדיקות"
+    "currentStatus": {
+      "title": "סטטוס נוכחי",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "מתוך {{total}}",
+      "total": "סה\"כ",
+      "tests": {
+        "new_zero": "אין בדיקות חדשות",
+        "new_one": "{{count}} בדיקה חדשה",
+        "new_other": "{{count}} בדיקות חדשות",
+        "flaky_zero": "אין בדיקות לא יציבות",
+        "flaky_one": "{{count}} בדיקה לא יציבה",
+        "flaky_other": "{{count}} בדיקות לא יציבות",
+        "retries_zero": "אין בדיקות שנוסו שוב",
+        "retries_one": "{{count}} בדיקה שנוסתה שוב",
+        "retries_other": "{{count}} בדיקות שנוסו שוב"
+      }
     }
   },
   "transitions.description": {

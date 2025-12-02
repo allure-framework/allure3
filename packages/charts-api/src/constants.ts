@@ -1,67 +1,76 @@
+import {
+  BarChartType,
+  ChartDataType,
+  type ChartOptions,
+  ChartType,
+  FunnelChartType,
+  TreeMapChartType,
+} from "./types.js";
+
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
 
-export const defaultChartsConfig = [
+export const defaultChartsConfig: ChartOptions[] = [
   {
-    type: "pie",
+    type: ChartType.CurrentStatus,
     title: "Current status",
   },
   {
-    type: "trend",
-    dataType: "status",
+    type: ChartType.Trend,
+    dataType: ChartDataType.Status,
     title: "Status dynamics",
   },
   {
-    type: "bar",
-    dataType: "statusBySeverity",
+    type: ChartType.Bar,
+    dataType: BarChartType.StatusBySeverity,
     title: "Test result severities",
   },
   {
-    type: "bar",
-    dataType: "statusTrend",
+    type: ChartType.Bar,
+    dataType: BarChartType.StatusTrend,
     title: "Status change dynamics",
   },
   {
-    type: "bar",
-    dataType: "statusChangeTrend",
+    type: ChartType.Bar,
+    dataType: BarChartType.StatusChangeTrend,
     title: "Test base growth dynamics",
   },
   {
-    type: "treemap",
-    dataType: "coverageDiff",
+    type: ChartType.TreeMap,
+    dataType: TreeMapChartType.CoverageDiff,
     title: "Coverage diff map",
   },
   {
-    type: "treemap",
-    dataType: "successRateDistribution",
+    type: ChartType.TreeMap,
+    dataType: TreeMapChartType.SuccessRateDistribution,
     title: "Success rate distribution",
   },
   {
-    type: "heatmap",
+    type: ChartType.HeatMap,
     title: "Problems distribution by environment",
   },
   {
-    type: "bar",
-    dataType: "stabilityRateDistribution",
+    type: ChartType.Bar,
+    dataType: BarChartType.StabilityRateDistribution,
     title: "Stability rate distribution",
   },
   {
-    type: "bar",
-    dataType: "durationsByLayer",
+    type: ChartType.Bar,
+    dataType: BarChartType.DurationsByLayer,
     title: "Durations by layer histogram",
   },
   {
-    type: "bar",
-    dataType: "performanceTrend",
+    type: ChartType.Bar,
+    dataType: "performanceTrend" as any,
     title: "Performance dynamics",
   },
   {
-    type: "bar",
-    dataType: "fbsuAgePyramid",
+    type: ChartType.Bar,
+    dataType: BarChartType.FbsuAgePyramid,
     title: "FBSU age pyramid",
   },
   {
-    type: "funnel",
-    dataType: "testingPyramid",
+    type: ChartType.Funnel,
+    dataType: FunnelChartType.TestingPyramid,
     title: "Testing pyramid",
   },
 ];

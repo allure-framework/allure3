@@ -1,0 +1,30 @@
+.label {
+  display: inline-block;
+  width: fit-content;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon {
+  .label[data-style="primary"] & {
+    color: var(--on-icon-primary);
+  }
+
+  .label[data-style="secondary"] & {
+    color: var(--on-icon-secondary);
+  }
+}
+
+.text {
+  .label[data-style="primary"] & {
+    color: var(--on-text-primary);
+  }
+
+  .label[data-style="secondary"] & {
+    color: var(--on-text-secondary);
+  }
+}

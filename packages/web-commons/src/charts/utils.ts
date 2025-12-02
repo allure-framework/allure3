@@ -1,4 +1,4 @@
-import type { ChartId } from "@allurereport/charts-api";
+import type { ChartId, CurrentStatusChartData } from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
@@ -340,7 +340,9 @@ export const createHeatMapChartData = (chartId: ChartId, res: ChartsData): UIHea
 export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce(
     (acc, [chartId, chart]) => {
-      if (chart.type === ChartType.Trend) {
+      if (chart.type === ChartType.CurrentStatus) {
+        acc[chartId] = res[chartId] as CurrentStatusChartData;
+      } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {
           acc[chartId] = chartData;
@@ -366,7 +368,7 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if ([ChartType.Pie, ChartType.ComingSoon].includes(chart.type)) {
+      } else if ([ChartType.ComingSoon].includes(chart.type)) {
         return acc;
       }
 
