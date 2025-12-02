@@ -162,7 +162,17 @@
   },
   "sections": {
     "report": "Отчет",
-    "charts": "Графики"
+    "charts": "Графики",
+    "timeline": "Таймлайн"
+  },
+  "timeline": {
+    "empty": "Нет данных",
+    "empty_host": "Нет данных для {{ host }}",
+    "selected_one": "Выбран {{ count }} тест ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_few": "Выбрано {{ count }} теста ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_many": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "selected_other": "Выбрано {{ count }} тестов ({{ percentage }}%) с длительностью более {{ minDuration }} и менее {{ maxDuration }}",
+    "host": "Хост: {{ host }}"
   },
   "charts": {
     "trend": {

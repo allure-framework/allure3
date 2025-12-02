@@ -29,6 +29,7 @@ import lineArrowsSortLineAsc from "@/assets/svg/line-arrows-sort-line-asc.svg";
 import lineArrowsSortLineDesc from "@/assets/svg/line-arrows-sort-line-desc.svg";
 import lineArrowsSwitchVertical1 from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import lineChartsBarChartSquare from "@/assets/svg/line-charts-bar-chart-square.svg";
+import lineChartsTimeline from "@/assets/svg/line-charts-timeline.svg";
 import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
 import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
 import lineDevDataflow3 from "@/assets/svg/line-dev-dataflow-3.svg";
@@ -112,6 +113,7 @@ export const allureIcons = {
   lineArrowsSortLineDesc: lineArrowsSortLineDesc.id,
   lineArrowsSwitchVertical1: lineArrowsSwitchVertical1.id,
   lineChartsBarChartSquare: lineChartsBarChartSquare.id,
+  lineChartsTimeline: lineChartsTimeline.id,
   lineDevBug2: lineDevBug2.id,
   lineDevCodeSquare: lineDevCodeSquare.id,
   lineDevDataflow3: lineDevDataflow3.id,

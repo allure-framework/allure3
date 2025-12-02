@@ -13,6 +13,9 @@ export type AwesomeOptions = {
   ci?: CiDescriptor;
   filter?: (testResult: TestResult) => boolean;
   charts?: ChartOptions[];
+  timeline?: {
+    minDuration?: number;
+  };
   sections?: string[];
   defaultSection?: string;
   publish?: boolean;

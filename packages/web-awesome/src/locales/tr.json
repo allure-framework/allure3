@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Grafikler"
+    "charts": "Grafikler",
+    "timeline": "Zaman çizelgesi"
+  },
+  "timeline": {
+    "empty": "Veri yok",
+    "empty_host": "{{ host }} için veri yok",
+    "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
+    "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}'dan fazla ve {{ maxDuration }}'dan az süreyle seçildi",
+    "host": "Ana bilgisayar: {{ host }}"
   },
   "charts": {
     "trend": {

@@ -41,3 +41,4 @@ export * from "./components/Charts/HeatMapWidget";
 export * from "./components/Charts/StabilityRateDistributionWidget";
 export * from "./components/Charts/TestingPyramidWidget";
 export * from "./components/Charts/CurrentStatusChartWidget";
+export * from "./components/Timeline";
