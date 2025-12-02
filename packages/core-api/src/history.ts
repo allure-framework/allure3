@@ -9,6 +9,8 @@ export interface HistoryTestResult {
   name: string;
   fullName?: string;
 
+  environment?: string;
+
   status: TestStatus;
   error?: TestError;
 

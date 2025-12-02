@@ -439,6 +439,40 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#historyPoints;
   }
 
+  async allHistoryDataPointsByEnvironment(environment: string): Promise<HistoryDataPoint[]> {
+    return this.#historyPoints.reduce((result, dp) => {
+      const filteredTestResults: HistoryTestResult[] = [];
+
+      for (const tr of Object.values(dp.testResults)) {
+        const hasLabels = tr.labels && tr.labels.length > 0;
+        const trEnvironment =
+          tr.environment ??
+          (hasLabels ? matchEnvironment(this.#environmentsConfig, tr as Pick<TestResult, "labels">) : undefined);
+
+        if (trEnvironment === environment) {
+          filteredTestResults.push(tr);
+        }
+      }
+      const hasNoEnvironmentTestResults = filteredTestResults.length === 0;
+
+      result.push({
+        ...dp,
+        testResults: hasNoEnvironmentTestResults
+          ? {}
+          : filteredTestResults.reduce(
+              (acc, tr) => {
+                acc[tr.historyId!] = tr;
+                return acc;
+              },
+              {} as Record<string, HistoryTestResult>,
+            ),
+        knownTestCaseIds: hasNoEnvironmentTestResults ? [] : filteredTestResults.map((tr) => tr.id),
+      });
+
+      return result;
+    }, [] as HistoryDataPoint[]);
+  }
+
   async allKnownIssues(): Promise<KnownTestFailure[]> {
     return this.#known;
   }

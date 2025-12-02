@@ -25,6 +25,7 @@ export interface AllureStore {
   allMetadata: () => Promise<Record<string, any>>;
   allFixtures: () => Promise<TestFixtureResult[]>;
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
+  allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: () => Promise<TestResult[]>;
   // quality gate data
