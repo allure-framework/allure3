@@ -6,23 +6,38 @@ import { isFileNotFoundError } from "./utils/misc.js";
 const createHistoryItems = (testResults: TestResult[]) => {
   return testResults
     .filter((tr) => tr.historyId)
-    .map(({ id, name, fullName, historyId, status, error: { message, trace } = {}, start, stop, duration, labels }) => {
-      return {
+    .map(
+      ({
         id,
         name,
         fullName,
+        environment,
+        historyId,
         status,
-        message,
-        trace,
+        error: { message, trace } = {},
         start,
         stop,
         duration,
         labels,
-        url: "",
-        historyId: historyId!,
-        reportLinks: [],
-      } as HistoryTestResult;
-    })
+      }) => {
+        return {
+          id,
+          name,
+          fullName,
+          environment,
+          status,
+          message,
+          trace,
+          start,
+          stop,
+          duration,
+          labels,
+          url: "",
+          historyId: historyId!,
+          reportLinks: [],
+        } as HistoryTestResult;
+      },
+    )
     .reduce(
       (acc, item) => {
         acc[item.historyId!] = item;

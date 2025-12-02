@@ -26,7 +26,7 @@ const generateChartData = async (props: {
   const result: GeneratedChartsData = {};
 
   const storeData: AllureChartsStoreData = await Promise.all([
-    await store.allHistoryDataPoints(),
+    env ? await store.allHistoryDataPointsByEnvironment(env) : await store.allHistoryDataPoints(),
     env ? await store.testResultsByEnvironment(env) : await store.allTestResults(),
     env ? await store.testsStatistic((tr) => tr.environment === env) : await store.testsStatistic(),
   ]).then(([historyDataPoints, testResults, statistic]) => ({

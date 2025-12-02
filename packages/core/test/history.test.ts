@@ -48,6 +48,7 @@ it("should create history file", async () => {
     testResults: {},
     knownTestCaseIds: [],
     metrics: {},
+    url: "",
   };
 
   await writeHistory(historyPath, data);
@@ -75,6 +76,7 @@ it("should append data to existing history file", async () => {
     testResults: {},
     knownTestCaseIds: [],
     metrics: {},
+    url: "",
   };
   await writeHistory(historyPath, data);
 
@@ -101,6 +103,7 @@ it("should read multiple data points from history file", async () => {
     testResults: {},
     knownTestCaseIds: ["a"],
     metrics: {},
+    url: "",
   };
 
   const data2 = {
@@ -110,6 +113,7 @@ it("should read multiple data points from history file", async () => {
     testResults: {},
     knownTestCaseIds: ["a", "b"],
     metrics: {},
+    url: "",
   };
 
   const data3 = {
@@ -119,6 +123,7 @@ it("should read multiple data points from history file", async () => {
     testResults: {},
     knownTestCaseIds: ["a", "c"],
     metrics: {},
+    url: "",
   };
 
   await writeHistory(historyPath, data1);
