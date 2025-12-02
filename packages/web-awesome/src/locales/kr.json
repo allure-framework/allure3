@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "그래프"
+    "charts": "그래프",
+    "timeline": "타임라인"
+  },
+  "timeline": {
+    "empty": "데이터 없음",
+    "empty_host": "{{ host }}에 대한 데이터 없음",
+    "selected_one": "{{ count }}개의 테스트({{ percentage }}%)가 {{ minDuration }}보다 길고 {{ maxDuration }}보다 짧은 지속 시간으로 선택되었습니다",
+    "selected_other": "{{ count }}개의 테스트({{ percentage }}%)가 {{ minDuration }}보다 길고 {{ maxDuration }}보다 짧은 지속 시간으로 선택되었습니다",
+    "host": "호스트: {{ host }}"
   },
   "charts": {
     "trend": {

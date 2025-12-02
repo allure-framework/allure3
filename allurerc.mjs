@@ -17,6 +17,9 @@ const config = {
         reportName: "Allure 3 Report",
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
         charts: defaultChartsConfig,
+        timeline: {
+          minDuration: 1,
+        },
         publish: true,
       },
     },

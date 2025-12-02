@@ -162,7 +162,17 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Wykresy"
+    "charts": "Wykresy",
+    "timeline": "Oś czasu"
+  },
+  "timeline": {
+    "empty": "Brak danych",
+    "empty_host": "Brak danych dla {{ host }}",
+    "selected_one": "Wybrano {{ count }} test ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_few": "Wybrano {{ count }} testy ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_many": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "selected_other": "Wybrano {{ count }} testów ({{ percentage }}%) z czasem trwania większym niż {{ minDuration }} i mniejszym niż {{ maxDuration }}",
+    "host": "Host: {{ host }}"
   },
   "charts": {
     "trend": {

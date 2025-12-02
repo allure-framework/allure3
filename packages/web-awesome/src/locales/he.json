@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "גרפים"
+    "charts": "גרפים",
+    "timeline": "ציר זמן"
+  },
+  "timeline": {
+    "empty": "אין נתונים",
+    "empty_host": "אין נתונים עבור {{ host }}",
+    "selected_one": "{{ count }} בדיקה ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרה",
+    "selected_other": "{{ count }} בדיקות ({{ percentage }}%) עם משך זמן יותר מ-{{ minDuration }} ופחות מ-{{ maxDuration }} נבחרו",
+    "host": "מארח: {{ host }}"
   },
   "charts": {
     "trend": {

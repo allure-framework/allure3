@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Grafer"
+    "charts": "Grafer",
+    "timeline": "Tidslinje"
+  },
+  "timeline": {
+    "empty": "Inga data",
+    "empty_host": "Inga data för {{ host }}",
+    "selected_one": "{{ count }} test ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} vald",
+    "selected_other": "{{ count }} tester ({{ percentage }}%) med varaktighet mer än {{ minDuration }} och mindre än {{ maxDuration }} valda",
+    "host": "Värd: {{ host }}"
   },
   "charts": {
     "trend": {

@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Grafici"
+    "charts": "Grafici",
+    "timeline": "Cronologia"
+  },
+  "timeline": {
+    "empty": "Nessun dato",
+    "empty_host": "Nessun dato per {{ host }}",
+    "selected_one": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionato",
+    "selected_other": "{{ count }} test ({{ percentage }}%) con durata superiore a {{ minDuration }} e inferiore a {{ maxDuration }} selezionati",
+    "host": "Host: {{ host }}"
   },
   "charts": {
     "trend": {

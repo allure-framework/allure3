@@ -162,7 +162,15 @@
   },
   "sections": {
     "report": "Report",
-    "charts": "Grafieken"
+    "charts": "Grafieken",
+    "timeline": "Tijdlijn"
+  },
+  "timeline": {
+    "empty": "Geen gegevens",
+    "empty_host": "Geen gegevens voor {{ host }}",
+    "selected_one": "{{ count }} test ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "selected_other": "{{ count }} tests ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "host": "Host: {{ host }}"
   },
   "charts": {
     "trend": {
