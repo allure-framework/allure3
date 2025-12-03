@@ -42,6 +42,11 @@ export const LANG_LOCALE: Record<
     full: "Русский",
     iso: "ru-RU",
   },
+  ua: {
+    short: "Ук",
+    full: "Українська",
+    iso: "uk-UA",
+  },
   pl: {
     short: "Pl",
     full: "Polski",
