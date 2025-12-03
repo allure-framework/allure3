@@ -47,7 +47,7 @@
     "semver": "^7.5.2",
     "tar": "^6.2.1",
     "vite": "^5.4.17",
-    "webpack": "^5.99.9"
+    "webpack": "^5.103.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
