@@ -1,6 +1,7 @@
 export const AVAILABLE_LOCALES = [
   "en",
   "ru",
+  "ua",
   "pl",
   "es",
   "pt",
