@@ -23917,10 +23917,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["node-forge", [\
-      ["npm:1.3.2", {\
-        "packageLocation": "./.yarn/cache/node-forge-npm-1.3.2-39b26c0214-dcc54aaffe.zip/node_modules/node-forge/",\
+      ["npm:1.3.3", {\
+        "packageLocation": "./.yarn/cache/node-forge-npm-1.3.3-6f469a1f76-f41c31b929.zip/node_modules/node-forge/",\
         "packageDependencies": [\
-          ["node-forge", "npm:1.3.2"]\
+          ["node-forge", "npm:1.3.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -27729,7 +27729,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["selfsigned", "npm:2.4.1"],\
           ["@types/node-forge", "npm:1.3.11"],\
-          ["node-forge", "npm:1.3.2"]\
+          ["node-forge", "npm:1.3.3"]\
         ],\
         "linkType": "HARD"\
       }]\
