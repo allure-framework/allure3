@@ -3,7 +3,12 @@ import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import type { StoreSignalState } from "@/stores/types";
 
-export const timelineStore = signal<StoreSignalState<TestResult[]>>({
+export type TimlineTr = Pick<
+  TestResult,
+  "id" | "name" | "status" | "flaky" | "hidden" | "labels" | "environment" | "start" | "stop" | "duration"
+>;
+
+export const timelineStore = signal<StoreSignalState<TimlineTr[]>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -17,7 +22,7 @@ export const fetchTimelineData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<TestResult[]>("widgets/timeline.json", { bustCache: true });
+    const res = await fetchReportJsonData<TimlineTr[]>("widgets/timeline.json", { bustCache: true });
 
     timelineStore.value = {
       data: res,

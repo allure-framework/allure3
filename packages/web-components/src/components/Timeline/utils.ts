@@ -166,15 +166,25 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
     const newSegments = group?.segments ?? [];
 
     const segmentId = test.historyId ?? test.id;
+    const hasSegment = newSegments.findIndex(({ id }) => id === segmentId) !== -1;
+    const segmentWithSameTimeRange = newSegments.find(
+      ({ timeRange }) => timeRange[0].getTime() === test.start && timeRange[1].getTime() === test.stop,
+    );
 
-    if (newSegments.findIndex(({ id }) => id === segmentId) === -1) {
+    if (!hasSegment && !segmentWithSameTimeRange) {
       newSegments.push({
         label: test.name,
+        labelGroup: [test.name],
         timeRange: [new Date(test.start as number), new Date(test.stop as number)],
         val: test.duration!,
         status: test.status,
         id: test.historyId ?? test.id,
+        hidden: test.hidden,
       });
+    }
+
+    if (!hasSegment && segmentWithSameTimeRange) {
+      segmentWithSameTimeRange.labelGroup.push(test.name);
     }
 
     if (group) {
@@ -189,4 +199,12 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
   }
 
   return groups;
+};
+
+export const minPositive = (value: number | undefined) => {
+  if (!value) {
+    return 0;
+  }
+
+  return value < 0 ? 0 : value;
 };

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { formatDuration } from "@allurereport/core-api";
+import { formatDuration, statusesList } from "@allurereport/core-api";
 import { ascending as d3Ascending, max as d3Max, min as d3Min } from "d3-array";
 import {
   type ScaleTime,
@@ -11,7 +11,8 @@ import { pointer as d3Pointer, select as d3Select } from "d3-selection";
 import { transition as d3Transition } from "d3-transition";
 import type { FunctionComponent } from "preact";
 import { createPortal } from "preact/compat";
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "preact/hooks";
+import { REDUCE_MOTION } from "../Charts/config.js";
 import { DurationRange } from "./DurationRange.js";
 import { GroupTooltip } from "./GroupTooltip.js";
 import { useWidth } from "./ResponsiveWrapper/context.js";
@@ -30,6 +31,7 @@ import {
   d3AxisTop,
   isZoomXEqual,
   isZoomYEqual,
+  minPositive,
   toTimelineData,
   useStateRef,
 } from "./utils.js";
@@ -53,6 +55,39 @@ const getColorFromStatus = (status: "failed" | "broken" | "passed" | "skipped" |
   return colorMap[status] || colorMap.unknown;
 };
 
+const getPatternBgFromStatus = (status: "failed" | "broken" | "passed" | "skipped" | "unknown"): string => {
+  const colorMap: Record<typeof status, string> = {
+    // corresponds to --bg-support-capella-heavy
+    failed: "var(--on-support-capella, #E8452CFF)",
+    // corresponds to --bg-support-atlas
+    broken: "var(--on-support-atlas, #E88D2CFF)",
+    // corresponds to --bg-support-castor
+    passed: "var(--on-support-castor, #099337FF)",
+    // corresponds to --bg-support-rau
+    skipped: "var(--on-support-rau, #7281A1FF)",
+    // corresponds to --bg-support-skat
+    unknown: "var(--on-support-skat, #B92CE8FF)",
+  };
+  return colorMap[status] || colorMap.unknown;
+};
+
+// Calculate border radius based on segment width
+// Returns 4 for width >= 20, 0 for width < 4, and smoothly interpolates between
+const getBorderRadius = (width: number): number => {
+  if (width >= 20) {
+    return 4;
+  }
+
+  if (width < 4) {
+    return 0;
+  }
+
+  // Smooth interpolation between 4 and 20 using ease-out (slow end) for natural transition
+  const normalized = (width - 4) / (20 - 4); // 0 to 1
+  const eased = normalized * (2 - normalized); // Ease-out quadratic: fast start, slow end
+  return eased * 4; // Scale to 0-4 range
+};
+
 type TimelineProps = {
   data?: TimelineData;
   width?: number;
@@ -68,7 +103,6 @@ const RIGHT_MARGIN = 100;
 const TOP_MARGIN = 26;
 const BOTTOM_MARGIN = 30;
 
-const MIN_SEGMENT_DURATION = 1;
 // So that every the segment is visible even if it's very short
 const MIN_SEGMENT_WIDTH = 2;
 const OVERVIEW_HEIGHT = 20;
@@ -82,7 +116,8 @@ const GAP = 2;
 const ROW_HEIGHT = SEGMENT_HEIGHT + GAP * 2;
 
 const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) => {
-  const { data = [], enableAnimations = true, translations } = props;
+  const { data = [], translations } = props;
+  const innerId = useId();
 
   const { durationRange, handleDurationChange, durationDomain } = useDurationRange(data);
   const width = useWidth();
@@ -116,14 +151,14 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
     data: segmentTooltipData,
   } = useTooltip<FlatDataItem>("bottom");
 
-  const animationDuration = enableAnimations ? ANIMATION_DURATION : 0;
-  const transitionDuration = enableAnimations ? TRANSITION_DURATION : 0;
+  const animationDuration = !REDUCE_MOTION ? ANIMATION_DURATION : 0;
+  const transitionDuration = !REDUCE_MOTION ? TRANSITION_DURATION : 0;
   const disableHoverRef = useRef(false);
 
   const nLines = data.length;
 
-  const graphW = width - LEFT_MARGIN - RIGHT_MARGIN;
-  const graphH = nLines * ROW_HEIGHT || 0;
+  const graphW = minPositive(width - LEFT_MARGIN - RIGHT_MARGIN);
+  const graphH = minPositive(nLines * ROW_HEIGHT);
   const height = graphH + TOP_MARGIN + BOTTOM_MARGIN;
 
   const flatData = useMemo(() => {
@@ -131,17 +166,13 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
 
     for (const group of data) {
       for (const segment of group.segments) {
-        const segmentDuration = segment.val;
-
-        if (MIN_SEGMENT_DURATION > 0 && segmentDuration < MIN_SEGMENT_DURATION) {
-          continue;
-        }
-
         result.push({
           groupId: group.id,
           groupName: group.name,
           label: segment.label,
+          labelGroup: segment.labelGroup,
           timeRange: segment.timeRange,
+          hidden: segment.hidden,
           val: segment.val,
           labelVal: segment.val,
           segment: segment,
@@ -192,6 +223,12 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
   const [xScaleRef, xScale, setXScale] = useStateRef<ScaleTime<number, number>>(() =>
     d3ScaleUtc().domain(defaultZoomX).range([0, graphW]).clamp(true),
   );
+
+  useEffect(() => {
+    setXScale(() => xScaleRef.current.copy().domain(defaultZoomX));
+    handleZoomXChange(defaultZoomX as ZoomX);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...defaultZoomX, handleZoomXChange]);
 
   // Update X scale when graph width changes
   useEffect(() => {
@@ -358,6 +395,12 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       return;
     }
 
+    const [minXScale, maxXScale] = xScale.range();
+
+    if (minXScale === maxXScale) {
+      return;
+    }
+
     // X axis
     xAxisRef_d3.current.scale(xScale);
     xAxisRef_d3.current.ticks(7);
@@ -404,7 +447,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
     const minHeight = d3Min(grpRange, (d, i) => {
       return i > 0 ? d - grpRange[i - 1] : d * 2;
     });
-    fontSize = Math.min(14, (minHeight || 0) * fontVerticalMargin * Math.sqrt(2));
+    fontSize = Math.min(14, minPositive(minHeight) * fontVerticalMargin * Math.sqrt(2));
     maxChars = Math.floor(LEFT_MARGIN / (fontSize / Math.sqrt(2)));
 
     grpAxisRef_d3.current.tickFormat((d) => {
@@ -477,7 +520,9 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       .attr("x", 0)
       .attr("y", 0)
       .attr("height", 0)
-      .style("fill", "transparent");
+      .attr("fill", "none")
+      .style("fill-opacity", 0)
+      .style("stroke-opacity", 0);
 
     // Update dimensions for new and existing groups
     groups
@@ -494,7 +539,9 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
         }
 
         return f - graphH / nLines / 2;
-      });
+      })
+      .style("fill-opacity", 1)
+      .style("stroke-opacity", 1);
   }, [
     timelineGroups,
     graphW,
@@ -558,142 +605,126 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       return;
     }
 
-    const graphSelection = d3Select(graphRef.current);
-    const hoverEnlargeRatio = 0.1;
+    const render = async () => {
+      const graphSelection = d3Select(graphRef.current);
+      const hoverEnlargeRatio = 0.1;
 
-    let timelines = graphSelection
-      .selectAll<SVGRectElement, FlatDataItem>(`rect.${styles.segment}`)
-      .data(segments, (d) => d.id);
+      let timelines = graphSelection
+        .selectAll<SVGRectElement, FlatDataItem>(`rect.${styles.segment}`)
+        .data(segments, (d) => d.id);
 
-    // Trigger exit animation for segments that are no longer on the chart
-    timelines.exit().transition().duration(animationDuration).style("fill-opacity", 0).remove();
+      if (segments.length === 0) {
+        timelines.exit().remove();
+        return;
+      }
+      // Trigger exit animation for segments that are no longer on the chart
+      timelines.exit().transition().duration(animationDuration).style("fill-opacity", 0).remove();
 
-    // Trigger enter animation for new segments
-    const newSegments = timelines
-      .enter()
-      .append("rect")
-      .attr("class", styles.segment)
-      .attr("rx", 1)
-      .attr("ry", 1)
-      .attr("x", (d) => xScale(d.timeRange[0]))
-      .attr("y", (d) => {
-        return (yScale(d.groupId) || 0) - SEGMENT_HEIGHT / 2;
-      })
-      .attr("width", 0)
-      .attr("height", 0)
-      .style("fill", (d) => getColorFromStatus(d.segment.status))
-      .style("fill-opacity", 0);
+      // Trigger enter animation for new segments
+      const newSegments = timelines
+        .enter()
+        .append("rect")
+        .attr("class", styles.segment)
+        .attr("rx", 1)
+        .attr("ry", 1)
+        .attr("x", (d) => xScale(d.timeRange[0]))
+        .attr("y", (d) => {
+          return (yScale(d.groupId) || 0) - SEGMENT_HEIGHT / 2;
+        })
+        .attr("width", 0)
+        .attr("height", 0)
+        .style("fill", (d) => getColorFromStatus(d.segment.status))
+        .style("fill-opacity", 0);
 
-    // Add event handlers for new segments
-    newSegments
-      .on("mouseover", function (event: MouseEvent, d: FlatDataItem) {
-        // Disable hover while selecting area to zoom
-        if (disableHoverRef.current) {
-          return;
-        }
+      // Add event handlers for new segments
+      newSegments
+        .on("mouseover", function (event: MouseEvent, d: FlatDataItem) {
+          // Disable hover while selecting area to zoom
+          if (disableHoverRef.current) {
+            return;
+          }
 
-        const hoverEnlarge = SEGMENT_HEIGHT * hoverEnlargeRatio;
+          const hoverEnlarge = SEGMENT_HEIGHT * hoverEnlargeRatio;
 
-        d3Select(this)
-          .transition()
-          .duration(transitionDuration)
-          .attr("x", xScaleRef.current(d.timeRange[0]) - hoverEnlarge / 2)
-          .attr(
-            "width",
-            d3Max([MIN_SEGMENT_WIDTH, xScaleRef.current(d.timeRange[1]) - xScaleRef.current(d.timeRange[0])])! +
-              hoverEnlarge,
-          )
-          .attr("y", (yScaleRef.current(d.groupId) || 0) - (SEGMENT_HEIGHT + hoverEnlarge) / 2)
-          .attr("height", SEGMENT_HEIGHT + hoverEnlarge)
-          .style("fill-opacity", 1);
+          d3Select(this)
+            .transition()
+            .duration(transitionDuration)
+            .attr("x", xScaleRef.current(d.timeRange[0]) - hoverEnlarge / 2)
+            .attr(
+              "width",
+              d3Max([MIN_SEGMENT_WIDTH, xScaleRef.current(d.timeRange[1]) - xScaleRef.current(d.timeRange[0])])! +
+                hoverEnlarge,
+            )
+            .attr("y", (yScaleRef.current(d.groupId) || 0) - (SEGMENT_HEIGHT + hoverEnlarge) / 2)
+            .attr("height", SEGMENT_HEIGHT + hoverEnlarge)
+            .style("fill-opacity", 1);
 
-        handleSegmentTooltipShow(event.target as HTMLElement, d);
-      })
-      .on("mouseout", function (event: MouseEvent, d: FlatDataItem) {
-        // Disable hover while selecting area to zoom
-        if (disableHoverRef.current) {
-          return;
-        }
+          handleSegmentTooltipShow(event.target as HTMLElement, d);
+        })
+        .on("mouseout", function (event: MouseEvent, d: FlatDataItem) {
+          // Disable hover while selecting area to zoom
+          if (disableHoverRef.current) {
+            return;
+          }
 
-        const mouseOutW = xScaleRef.current(d.timeRange[1]) - xScaleRef.current(d.timeRange[0]);
+          const mouseOutW = xScaleRef.current(d.timeRange[1]) - xScaleRef.current(d.timeRange[0]);
 
-        d3Select(this)
-          .transition()
-          .duration(transitionDuration)
-          .attr("x", xScaleRef.current(d.timeRange[0]))
-          .attr("width", d3Max([MIN_SEGMENT_WIDTH, mouseOutW]) ?? 0)
-          .attr("y", (yScaleRef.current(d.groupId) ?? 0) - SEGMENT_HEIGHT / 2)
-          .attr("height", SEGMENT_HEIGHT)
-          .style("fill-opacity", 1);
+          d3Select(this)
+            .transition()
+            .duration(transitionDuration)
+            .attr("x", xScaleRef.current(d.timeRange[0]))
+            .attr("width", d3Max([MIN_SEGMENT_WIDTH, mouseOutW]) ?? 0)
+            .attr("y", (yScaleRef.current(d.groupId) ?? 0) - SEGMENT_HEIGHT / 2)
+            .attr("height", SEGMENT_HEIGHT)
+            .style("fill-opacity", 1);
 
-        handleSegmentTooltipHide(event.target as HTMLElement);
-      });
+          handleSegmentTooltipHide(event.target as HTMLElement);
+        });
 
-    timelines = timelines.merge(newSegments);
+      timelines = timelines.merge(newSegments);
 
-    timelines
-      .attr("rx", (d) => {
-        const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
+      timelines
+        .attr("rx", (d) => {
+          const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
+          return getBorderRadius(w);
+        })
+        .attr("ry", (d) => {
+          const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
+          return getBorderRadius(w);
+        })
+        .attr("stroke-width", (d) => {
+          const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
 
-        if (w >= 20) {
-          return 4;
-        }
+          if (w >= 12) {
+            return 0.5;
+          }
 
-        if (w >= 12) {
-          return 3;
-        }
+          return 0.1;
+        })
+        .attr("stroke", "var(--timeline-bg, #ffffff)")
+        .attr("height", SEGMENT_HEIGHT);
 
-        if (w >= 4) {
-          return 2;
-        }
+      timelines
+        .transition()
+        .duration(animationDuration)
+        .attr("x", (d) => xScale(d.timeRange[0]))
+        .attr("y", (d) => {
+          return (yScale(d.groupId) || 0) - SEGMENT_HEIGHT / 2;
+        })
+        .attr("width", (d) => {
+          const calculated = d3Max([MIN_SEGMENT_WIDTH, (xScale(d.timeRange[1]) ?? 0) - (xScale(d.timeRange[0]) ?? 0)]);
+          return (calculated ?? 0) < 0 ? 0 : (calculated ?? 0);
+        })
+        .attr("height", SEGMENT_HEIGHT)
+        .style("fill", (d) =>
+          d.hidden ? `url(#gradient-${innerId}-${d.segment.status})` : getColorFromStatus(d.segment.status),
+        )
+        .style("fill-opacity", 1);
+    };
 
-        return 0;
-      })
-      .attr("ry", (d) => {
-        const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
-
-        if (w >= 20) {
-          return 4;
-        }
-
-        if (w >= 12) {
-          return 3;
-        }
-
-        if (w >= 4) {
-          return 2;
-        }
-
-        return 0;
-      })
-      .attr("stroke-width", (d) => {
-        const w = xScale(d.timeRange[1]) - xScale(d.timeRange[0]);
-
-        if (w >= 12) {
-          return 0.5;
-        }
-
-        return 0.1;
-      })
-      .attr("stroke", "var(--timeline-bg, #ffffff)")
-      .attr("height", SEGMENT_HEIGHT);
-
-    timelines
-      .transition()
-      .duration(animationDuration)
-      .attr("x", (d) => xScale(d.timeRange[0]))
-      .attr("y", (d) => {
-        return (yScale(d.groupId) || 0) - SEGMENT_HEIGHT / 2;
-      })
-      .attr(
-        "width",
-        (d) => d3Max([MIN_SEGMENT_WIDTH, (xScale(d.timeRange[1]) ?? 0) - (xScale(d.timeRange[0]) ?? 0)]) ?? 0,
-      )
-      .attr("height", SEGMENT_HEIGHT)
-      .style("fill", (d) => getColorFromStatus(d.segment.status))
-      .style("fill-opacity", 1);
+    render();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segments, graphW, graphH, graphW, animationDuration, zoomX, xScale, transitionDuration, yScale]);
+  }, [segments, graphW, graphH, graphW, animationDuration, zoomX, xScale, transitionDuration, yScale, innerId]);
 
   // Update SVG dimensions
   useEffect(() => {
@@ -709,24 +740,51 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
     [handleZoomXChange],
   );
 
+  const [min, max] = xScale.range();
+
+  const showBrushes = min !== max;
+
+  if (!showBrushes) {
+    return null;
+  }
+
   return (
     <div className={styles.timelineChart}>
-      <DurationRange
-        selectedTestsCount={filteredByDurationSegmentsCount}
-        totalTestsCount={flatData.length}
-        translations={translations}
-        // Reinit the component when the width changes
-        key={width}
-        width={width}
-        height={OVERVIEW_HEIGHT + TOP_MARGIN + BOTTOM_MARGIN}
-        margins={{ top: TOP_MARGIN, right: RIGHT_MARGIN, bottom: BOTTOM_MARGIN, left: LEFT_MARGIN }}
-        domainRange={durationDomain}
-        currentSelection={[minDuration, maxDuration]}
-        onChange={handleDurationChange}
-        onReset={() => handleDurationChange(durationDomain[0], durationDomain[1])}
-        tickFormat={(value) => formatDuration(value)}
-      />
+      {durationDomain[0] !== durationDomain[1] && showBrushes && (
+        <DurationRange
+          selectedTestsCount={filteredByDurationSegmentsCount}
+          totalTestsCount={flatData.length}
+          translations={translations}
+          // Reinit the component when the width changes
+          key={width}
+          width={width}
+          height={OVERVIEW_HEIGHT + TOP_MARGIN + BOTTOM_MARGIN}
+          margins={{ top: TOP_MARGIN, right: RIGHT_MARGIN, bottom: BOTTOM_MARGIN, left: LEFT_MARGIN }}
+          domainRange={durationDomain}
+          currentSelection={[minDuration, maxDuration]}
+          onChange={handleDurationChange}
+          onReset={() => handleDurationChange(durationDomain[0], durationDomain[1])}
+          tickFormat={(value) => formatDuration(value)}
+        />
+      )}
       <svg ref={svgRef} width={width} height={height}>
+        <defs>
+          {statusesList.map((status) => {
+            return (
+              <pattern
+                key={status}
+                id={`gradient-${innerId}-${status}`}
+                patternUnits="userSpaceOnUse"
+                width="10"
+                height="10"
+                patternTransform="rotate(-45 5 5)"
+              >
+                <rect width="5" height="10" fill={getPatternBgFromStatus(status)} />
+                <rect x="5" width="5" height="10" fill={getColorFromStatus(status)} />
+              </pattern>
+            );
+          })}
+        </defs>
         <g
           ref={axisesRef}
           className={styles.axises}
@@ -741,17 +799,19 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
           <rect data-label="graph-selection" x={0} y={0} width={graphW} height={graphH} fill="transparent" />
         </g>
       </svg>
-      <TimeOverview
-        width={width}
-        height={OVERVIEW_HEIGHT + TOP_MARGIN + BOTTOM_MARGIN}
-        margins={{ top: TOP_MARGIN, right: RIGHT_MARGIN, bottom: BOTTOM_MARGIN, left: LEFT_MARGIN }}
-        scale={xScale}
-        domainRange={defaultZoomX}
-        currentSelection={zoomX as [Date, Date]}
-        onChange={handleOverviewChange}
-        onReset={() => handleZoomXChange(defaultZoomX)}
-        tickFormat={(value) => formatDuration(value.getTime() - timeRange[0].getTime())}
-      />
+      {defaultZoomX[0].getTime() !== defaultZoomX[1].getTime() && showBrushes && (
+        <TimeOverview
+          width={width}
+          height={OVERVIEW_HEIGHT + TOP_MARGIN + BOTTOM_MARGIN}
+          margins={{ top: TOP_MARGIN, right: RIGHT_MARGIN, bottom: BOTTOM_MARGIN, left: LEFT_MARGIN }}
+          scale={xScale}
+          domainRange={defaultZoomX}
+          currentSelection={zoomX as [Date, Date]}
+          onChange={handleOverviewChange}
+          onReset={() => handleZoomXChange(defaultZoomX)}
+          tickFormat={(value) => formatDuration(value.getTime() - timeRange[0].getTime())}
+        />
+      )}
       {createPortal(
         <div ref={groupTooltipRef} data-visible={isGroupTooltipVisible} className={styles.tooltip}>
           <GroupTooltip

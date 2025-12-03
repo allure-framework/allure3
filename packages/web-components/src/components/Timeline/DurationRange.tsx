@@ -6,9 +6,9 @@ import { brushX as d3BrushX } from "d3-brush";
 import { scaleLinear } from "d3-scale";
 import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
-import { useLayoutEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import styles from "./styles.scss";
-import { useStateRef } from "./utils.js";
+import { minPositive, useStateRef } from "./utils.js";
 
 type DurationRangeProps = {
   width?: number;
@@ -24,6 +24,7 @@ type DurationRangeProps = {
   translations: {
     selected: (props: { count: number; percentage: string; minDuration: string; maxDuration: string }) => string;
   };
+  transitionDuration?: number;
 };
 
 const d3AxisBottom = (): Axis<number> => {
@@ -50,14 +51,15 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
     selectedTestsCount,
     totalTestsCount,
     translations,
+    transitionDuration = 300,
   } = props;
 
-  const brushWidth = width - margins.left - margins.right;
-  const brushHeight = height - margins.top - margins.bottom;
+  const brushWidth = minPositive(width - margins.left - margins.right);
+  const brushHeight = minPositive(height - margins.top - margins.bottom);
 
   const [scaleRef, scale, setScale] = useStateRef(() => scaleLinear().domain(domainRange).range([0, brushWidth]));
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setScale(() => scaleLinear().domain(domainRange).range([0, brushWidth]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainRange, brushWidth]);
@@ -72,7 +74,7 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
   const onResetRef = useRef(onReset);
 
   // Keep refs in sync with props
-  useLayoutEffect(() => {
+  useEffect(() => {
     onChangeRef.current = onChange;
     onResetRef.current = onReset;
   }, [onChange, onReset]);
@@ -103,7 +105,7 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
   );
 
   // Update when props change
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!svgRef.current || !scale) {
       return;
     }
@@ -129,21 +131,25 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
     xGridAxisRef.current.scale(scale).tickSize(-brushHeight).tickValues(tickValues);
 
     // Update margins transform
-    brusherMarginsRef.current?.setAttribute("transform", `translate(${margins.left},${margins.top})`);
+    d3Select(brusherMarginsRef.current).attr("transform", `translate(${margins.left},${margins.top})`);
 
     // Update grid background
-    gridBackgroundRef.current?.setAttribute("width", String(brushWidth));
-    gridBackgroundRef.current?.setAttribute("height", String(brushHeight));
+    d3Select(gridBackgroundRef.current)
+      .exit()
+      .transition()
+      .duration(transitionDuration)
+      .attr("width", 0)
+      .attr("height", 0);
 
     // Update grid
     if (xGridRef.current) {
-      xGridRef.current.setAttribute("transform", `translate(0,${brushHeight})`);
+      d3Select(xGridRef.current).attr("transform", `translate(0,${brushHeight})`);
       d3Select(xGridRef.current).call(xGridAxisRef.current);
     }
 
     // Update axis
     if (xAxisRef.current) {
-      xAxisRef.current.setAttribute("transform", `translate(0,${brushHeight})`);
+      d3Select(xAxisRef.current).attr("transform", `translate(0,${brushHeight})`);
       d3Select(xAxisRef.current).call(xAxisAxisRef.current).selectAll("text").attr("y", 8);
     }
 
@@ -169,7 +175,7 @@ export const DurationRange: FunctionComponent<DurationRangeProps> = (props) => {
 
       brushBehaviorRef.current.move(brushSelection as any, selection);
     }
-  }, [margins, scale, domainRange, currentSelection, tickFormat, brushWidth, brushHeight]);
+  }, [margins, scale, domainRange, currentSelection, tickFormat, brushWidth, brushHeight, transitionDuration]);
 
   const selectedTestsPercentage = ((selectedTestsCount / totalTestsCount) * 100).toFixed(2);
 

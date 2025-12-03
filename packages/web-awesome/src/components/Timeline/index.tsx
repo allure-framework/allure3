@@ -1,27 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type { TestResult } from "@allurereport/core-api";
 import { Timeline as AllureTimeline, Grid, GridItem, Loadable, PageLoader, Widget } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import { useEffect, useMemo } from "preact/hooks";
 import { useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
+import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 import * as styles from "./styles.scss";
 
-const getHosts = (tests: TestResult[]) => [
+const getHosts = (tests: TimlineTr[]) => [
   ...new Set(tests.map((test) => test.labels.find((label) => label.name === "host")?.value).filter(Boolean)),
 ];
 
-const filterTestsByHost = (tests: TestResult[], host: string) =>
+const filterTestsByHost = (tests: TimlineTr[], host: string) =>
   tests.filter((test) => test.labels.find((label) => label.name === "host")?.value === host);
 
 const currentTimelineData = computed(() => {
-  if (!timelineStore.value.data) {
+  const tests = timelineStore.value.data ?? [];
+  if (!tests.length) {
     return [];
   }
 
   if (currentEnvironment.value) {
-    const testsToEnv = timelineStore.value.data.filter((test) => test.environment === currentEnvironment.value);
+    const testsToEnv = tests.filter((test) => test.environment === currentEnvironment.value);
     const hostsByEnv = getHosts(testsToEnv);
 
     return hostsByEnv.map((host) => ({
@@ -30,16 +30,14 @@ const currentTimelineData = computed(() => {
     }));
   }
 
-  const hosts = getHosts(timelineStore.value.data);
+  const hosts = getHosts(tests);
 
   return hosts.map((host) => ({
-    data: filterTestsByHost(timelineStore.value.data, host),
+    data: filterTestsByHost(tests, host),
     host,
   }));
 });
 
-// Detects if the user prefers reduced motion to disable animations for accessibility
-const prefersLessMovement = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 export const Timeline = () => {
   const { t } = useI18n("timeline");
 
@@ -87,13 +85,7 @@ export const Timeline = () => {
                 <GridItem key={host} className={styles["overview-grid-item"]}>
                   <Widget title={t("host", { host })}>
                     {data.length > 0 && (
-                      <AllureTimeline
-                        data={data}
-                        dataId={host}
-                        width={100}
-                        enableAnimations={!prefersLessMovement}
-                        translations={translations}
-                      />
+                      <AllureTimeline data={data} dataId={host} width={100} translations={translations} />
                     )}
                     {data.length === 0 && <div className={styles.empty}>{t("empty_host", { host })}</div>}
                   </Widget>

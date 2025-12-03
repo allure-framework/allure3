@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import type { TimelineData } from "../types.js";
 
 export const useDurationRange = (data: TimelineData) => {
@@ -23,6 +23,14 @@ export const useDurationRange = (data: TimelineData) => {
 
   const [minDuration, setMinDuration] = useState<number>(durationDomain[0]);
   const [maxDuration, setMaxDuration] = useState<number>(durationDomain[1]);
+
+  useEffect(() => {
+    setMinDuration(durationDomain[0]);
+  }, [durationDomain[0]]);
+
+  useEffect(() => {
+    setMaxDuration(durationDomain[1]);
+  }, [durationDomain[1]]);
 
   const handleDurationChange = useCallback((min: number, max: number) => {
     setMinDuration(min);

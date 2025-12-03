@@ -5,9 +5,9 @@ import { brushX as d3BrushX } from "d3-brush";
 import type { ScaleTime } from "d3-scale";
 import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
-import { useLayoutEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import styles from "./styles.scss";
-import { useStateRef } from "./utils.js";
+import { minPositive, useStateRef } from "./utils.js";
 
 export type TimeOverviewProps = {
   width?: number;
@@ -19,6 +19,7 @@ export type TimeOverviewProps = {
   tickFormat: (domainValue: Date, index: number) => string;
   onChange?: (selectionStart: Date, selectionEnd: Date) => void;
   onReset?: () => void;
+  transitionDuration?: number;
 };
 
 const d3AxisBottom = (): Axis<Date> => {
@@ -43,11 +44,12 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
     tickFormat,
     onChange = noop,
     onReset = noop,
+    transitionDuration = 300,
   } = props;
 
   const [scaleRef, scale, setScale] = useStateRef(() => scaleProp.copy());
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setScale(() => {
       if (scaleRef.current.domain() === scaleProp.domain() && scaleRef.current.range() === scaleProp.range()) {
         return scaleRef.current;
@@ -58,10 +60,10 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scaleProp]);
 
-  const brushWidth = width - margins.left - margins.right;
-  const brushHeight = height - margins.top - margins.bottom;
+  const brushWidth = minPositive(width - margins.left - margins.right);
+  const brushHeight = minPositive(height - margins.top - margins.bottom);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setScale(() =>
       scaleProp
         .copy()
@@ -105,13 +107,13 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
   );
 
   // Keep refs in sync with props
-  useLayoutEffect(() => {
+  useEffect(() => {
     onChangeRef.current = onChange;
     onResetRef.current = onReset;
   }, [onChange, onReset]);
 
   // Update when props change
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!svgRef.current || !scale) {
       return;
     }
@@ -126,21 +128,24 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
     xGridAxisRef.current.ticks(7);
 
     // Update margins transform
-    brusherMarginsRef.current?.setAttribute("transform", `translate(${margins.left},${margins.top})`);
+    d3Select(brusherMarginsRef.current).attr("transform", `translate(${margins.left},${margins.top})`);
 
     // Update grid background
-    gridBackgroundRef.current?.setAttribute("width", String(brushWidth));
-    gridBackgroundRef.current?.setAttribute("height", String(brushHeight));
+    d3Select(gridBackgroundRef.current)
+      .transition()
+      .duration(transitionDuration)
+      .attr("width", String(brushWidth))
+      .attr("height", String(brushHeight));
 
     // Update grid
     if (xGridRef.current) {
-      xGridRef.current.setAttribute("transform", `translate(0,${brushHeight})`);
+      d3Select(xGridRef.current).attr("transform", `translate(0,${brushHeight})`);
       d3Select(xGridRef.current).call(xGridAxisRef.current);
     }
 
     // Update axis
     if (xAxisRef.current) {
-      xAxisRef.current.setAttribute("transform", `translate(0,${brushHeight})`);
+      d3Select(xAxisRef.current).attr("transform", `translate(0,${brushHeight})`);
       d3Select(xAxisRef.current).call(xAxisAxisRef.current).selectAll("text").attr("y", 8);
     }
 
@@ -166,7 +171,7 @@ export const TimeOverview: FunctionComponent<TimeOverviewProps> = (props) => {
 
       brushBehaviorRef.current.move(brushSelection as any, selection);
     }
-  }, [brushWidth, brushHeight, margins, domainRange, currentSelection, tickFormat, scale]);
+  }, [brushWidth, brushHeight, margins, domainRange, currentSelection, tickFormat, scale, transitionDuration]);
 
   return (
     <svg ref={svgRef} className={styles.brusher} width={width} height={height}>
