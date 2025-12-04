@@ -1,1 +1,1 @@
-{"id":"ff4e95bc8ce02da47d610af3df12a488","fullName":"test/xcresult.test.ts#A MAC machine labels a test with no suites should set parentSuite to bundle","name":"should set parentSuite to bundle","status":"passed","testResultsByEnv":{"macos-latest":"7ba9474d764db4ce5d063bcaa8e9dc8e"}}
+{"id":"ff4e95bc8ce02da47d610af3df12a488","fullName":"test/xcresult.test.ts#A MAC machine labels a test with no suites should set parentSuite to bundle","name":"should set parentSuite to bundle","status":"passed","testResultsByEnv":{"macos-latest":"9e14a13e7c38b51ada460ce0ce3f6c94"}}
