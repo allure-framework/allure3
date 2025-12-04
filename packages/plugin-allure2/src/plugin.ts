@@ -116,6 +116,7 @@ export class Allure2Plugin implements Plugin {
       status: worstStatus ?? "passed",
       duration,
       createdAt,
+      withTestResultsLinks: true,
       plugin: "Allure2",
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
