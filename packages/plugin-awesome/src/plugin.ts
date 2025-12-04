@@ -164,6 +164,7 @@ export class AwesomePlugin implements Plugin {
       status: worstStatus ?? "passed",
       duration,
       createdAt,
+      withTestResultsLinks: true,
       plugin: "Awesome",
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),

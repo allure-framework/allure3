@@ -55,6 +55,11 @@ export interface PluginSummary {
   status: TestStatus;
   duration: number;
   plugin?: string;
+  /**
+   * Marks the summary as containing remote test results links (e.g. to new, flaky and retry tests)
+   * Enable for plugins that support direct test results opening (like awesome or classic)
+   */
+  withTestResultsLinks?: boolean;
   newTests?: SummaryTestResult[];
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
