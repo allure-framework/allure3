@@ -1,7 +1,10 @@
 .widget {
   border-radius: 8px;
-  box-shadow: var(--shadow-small);
-  overflow: hidden;
+
+  &[data-drop-shadow="true"] {
+    box-shadow: var(--shadow-small);
+  }
+
   height: 100%;
   display: flex;
   flex-direction: column;

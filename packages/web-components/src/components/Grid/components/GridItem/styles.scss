@@ -5,7 +5,6 @@
   height: 100%;
   box-sizing: border-box;
   border: 1px solid var(--on-border-primary);
-  overflow: hidden;
   background-color: var(--bg-base-primary);
   border-radius: 8px;
   box-shadow: var(--shadow-raised);
@@ -13,7 +12,6 @@
 }
 
 .grid-item-content {
-  overflow: hidden;
   min-width: 0;
   width: 100%;
   height: 100%;

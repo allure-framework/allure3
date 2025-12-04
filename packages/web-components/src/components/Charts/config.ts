@@ -13,7 +13,7 @@ export const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)
 
 const CHART_PALETTE = {
   axesTickColor: "var(--on-text-secondary)",
-  gridLineColor: "var(--on-border-light)",
+  gridLineColor: "var(--on-border-muted)",
   chartBackgroundColor: "var(--bg-base-primary)",
 } as const;
 

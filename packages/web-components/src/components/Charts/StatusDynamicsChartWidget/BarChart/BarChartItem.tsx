@@ -1,0 +1,287 @@
+import type { BarCustomLayerProps, BarDatum, BarItemProps } from "@nivo/bar";
+import { useMotionConfig } from "@nivo/core";
+import { useTheme } from "@nivo/theming";
+import { animated, to, useSpring } from "@react-spring/web";
+import { toNumber } from "lodash";
+import type { FunctionalComponent } from "preact";
+import { createElement } from "preact";
+import { createPortal } from "preact/compat";
+import { useCallback, useId, useMemo } from "preact/hooks";
+import { useTooltip } from "@/components/Charts/hooks/useTooltip";
+import { isPresent } from "../../Legend/LegendItem";
+import type { LegendItemValue } from "../../Legend/LegendItem/types";
+import { useBarChartState } from "./context";
+
+export interface BarChartTooltipProps<T extends BarDatum> {
+  value: T;
+}
+
+const BORDER_RADIUS = 4;
+const BORDER_WIDTH = 1;
+
+// Copy https://github.com/plouc/nivo/blob/0f5ac2fec4da359ec2baf8a8daf8a40c0ff0230d/packages/bar/src/BarItem.tsx
+// add border top, border top radius
+export const BarChartItem = <T extends BarDatum>({
+  bar,
+  style,
+  isFocusable,
+  ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy,
+  legend,
+}: Omit<BarItemProps<T>, "tooltip"> & {
+  legend: LegendItemValue<T>[];
+}) => {
+  const { width, height, color, data } = bar;
+  const orders: LegendItemValue<T>[] = legend.filter((item) => isPresent(data.data[item.id]));
+  const lastOrderId = orders[orders.length - 1]?.id;
+  const isTopBar = data.id === lastOrderId;
+  const isSmallBar = height < BORDER_RADIUS;
+  const barsCount = orders.length;
+  const { background: chartBackgroundColor } = useTheme();
+
+  const hasBorder = height > 0 && barsCount > 1 && !isTopBar;
+
+  const id = useId();
+
+  const computedWidth = to(width, (value) => Math.max(value, 0));
+  const barWidth = to(width, (value) => {
+    if (value < 0) {
+      return 0;
+    }
+
+    return Math.min(value, 16);
+  });
+  const diff: number = computedWidth.toJSON() - barWidth.toJSON();
+  const margin = diff < 0 ? 0 : diff / 2;
+
+  const borderRadius = isSmallBar ? BORDER_RADIUS / 2 : BORDER_RADIUS;
+
+  return (
+    <>
+      <animated.g transform={style.transform} pointerEvents="none">
+        <defs>
+          <clipPath id={`clip-${id}`}>
+            {isTopBar ? (
+              <>
+                {/* Add border radius */}
+                <animated.rect
+                  x={margin}
+                  y={0}
+                  width={barWidth}
+                  height={borderRadius * 2} // Rounding height
+                  rx={borderRadius}
+                  ry={borderRadius}
+                />
+                {/* Remove bottom border radius */}
+                <animated.rect
+                  x={margin}
+                  y={borderRadius}
+                  width={barWidth}
+                  height={to(height - borderRadius, (value) => Math.max(value, 0))}
+                />
+              </>
+            ) : (
+              <animated.rect
+                x={margin}
+                y={0}
+                width={barWidth}
+                height={to(height, (value) => Math.max(value, 0))} // Rounding height
+              />
+            )}
+          </clipPath>
+        </defs>
+        <animated.rect
+          x={margin}
+          width={barWidth}
+          height={to(height, (value) => Math.max(value, 0))}
+          fill={color}
+          focusable={isFocusable}
+          tabIndex={isFocusable ? 0 : undefined}
+          aria-label={ariaLabel ? ariaLabel(data) : undefined}
+          aria-labelledby={ariaLabelledBy ? ariaLabelledBy(data) : undefined}
+          aria-describedby={ariaDescribedBy ? ariaDescribedBy(data) : undefined}
+          clipPath={`url(#clip-${id})`}
+        />
+        {/* Top border */}
+        {hasBorder && (
+          <animated.rect x={margin} y={0} width={barWidth} height={BORDER_WIDTH} fill={chartBackgroundColor} />
+        )}
+      </animated.g>
+    </>
+  );
+};
+
+export const BarChartItemHoverLayer = <T extends BarDatum>(
+  props: Omit<BarCustomLayerProps<T>, "tooltip"> & {
+    tooltip: (props: BarChartTooltipProps<T>) => any;
+    indexBy: Extract<keyof T, string>;
+    hasValueFn?: (data: T) => boolean;
+  },
+): any => {
+  const {
+    isInteractive,
+    isFocusable,
+    xScale,
+    innerHeight,
+    tooltip,
+    indexBy,
+    hasValueFn = (data: T) =>
+      Object.entries(data)
+        .filter(([key]) => key !== props.indexBy)
+        .reduce((acc, [, val]) => acc + toNumber(val ?? 0), 0) > 0,
+  } = props;
+  const bars = props.bars.slice(0, xScale.domain().length);
+
+  const { handleShowTooltip, isVisible, handleHideTooltip, tooltipRef, data } = useTooltip<T>("left");
+  const { animate, config: motionConfig } = useMotionConfig();
+
+  const { opacity: tooltipOpacity } = useSpring({
+    opacity: isVisible ? 1 : 0,
+    config: { ...motionConfig, duration: 75 },
+    immediate: !animate,
+  });
+
+  const [firstBar, secondBar] = bars;
+
+  if (!firstBar) {
+    return null;
+  }
+
+  const width = secondBar?.x ? secondBar.x - firstBar.x : firstBar.width;
+  const diff = width - firstBar.width;
+
+  if (!isInteractive) {
+    return null;
+  }
+
+  return (
+    <>
+      {bars.map((bar, index) => {
+        const x = bar.x - diff / 2;
+
+        const hasValue = hasValueFn(bar.data.data);
+
+        if (!hasValue) {
+          return null;
+        }
+
+        return (
+          <BarChartItemHoverArea
+            key={index}
+            x={x}
+            width={width}
+            height={innerHeight}
+            value={bar.data.data}
+            indexBy={indexBy}
+            absX={bar.absX}
+            absY={bar.absY}
+            isInteractive={isInteractive}
+            isFocusable={isFocusable}
+            onTooltipShow={handleShowTooltip}
+            onTooltipHide={handleHideTooltip}
+          />
+        );
+      })}
+      {createPortal(
+        <animated.div ref={tooltipRef} style={{ display: tooltipOpacity ? "block" : "none", opacity: tooltipOpacity }}>
+          {isVisible && data && createElement(tooltip, { value: data })}
+        </animated.div>,
+        document.body,
+      )}
+    </>
+  );
+};
+
+const BarChartItemHoverArea = <T extends BarDatum>({
+  absX,
+  absY,
+  x,
+  width,
+  height,
+  value,
+  isInteractive = true,
+  isFocusable = true,
+  indexBy,
+  onTooltipShow,
+  onTooltipHide,
+}: {
+  absX: number;
+  absY: number;
+  x: number;
+  width: number;
+  height: number;
+  value: T;
+  isInteractive?: boolean;
+  isFocusable?: boolean;
+  indexBy: Extract<keyof T, string>;
+  onTooltipShow: (target: HTMLElement, data: T) => void;
+  onTooltipHide: (target: HTMLElement) => void;
+}) => {
+  const [hoverState, setHoverState] = useBarChartState();
+  const { animate, config: motionConfig } = useMotionConfig();
+
+  const indexByValue = value[indexBy];
+  const isHovered = hoverState === String(indexByValue);
+
+  const { fill: animatedFill } = useSpring({
+    fill: isHovered ? "var(--bg-control-flat-medium)" : "transparent",
+    config: motionConfig,
+    immediate: !animate,
+  });
+
+  const handleTooltip = useCallback(
+    (event: MouseEvent) => {
+      onTooltipShow(event.target as HTMLElement, value);
+    },
+    [onTooltipShow, value],
+  );
+
+  const handleMouseEnter = useCallback(
+    (event: MouseEvent) => {
+      onTooltipShow(event.target as HTMLElement, value);
+      setHoverState(String(indexByValue));
+    },
+    [onTooltipShow, value, setHoverState, indexByValue],
+  );
+
+  const handleMouseLeave = useCallback(
+    (event: MouseEvent) => {
+      onTooltipHide(event.target as HTMLElement);
+      setHoverState(undefined);
+    },
+    [onTooltipHide, setHoverState],
+  );
+
+  const handleFocus = useCallback(
+    (event: FocusEvent) => {
+      onTooltipShow(event.target as HTMLElement, value);
+      setHoverState(String(indexByValue));
+    },
+    [onTooltipShow, value, absX, width, absY, setHoverState, indexByValue],
+  );
+
+  const handleBlur = useCallback(
+    (event: FocusEvent) => {
+      onTooltipHide(event.target as HTMLElement);
+      setHoverState(undefined);
+    },
+    [onTooltipHide, setHoverState],
+  );
+
+  return (
+    <animated.rect
+      x={x}
+      y={0}
+      data-testid="hover-rect"
+      width={width}
+      height={height}
+      fill={animatedFill}
+      onMouseMove={isInteractive ? handleTooltip : undefined}
+      onMouseEnter={isInteractive ? handleMouseEnter : undefined}
+      onMouseLeave={isInteractive ? handleMouseLeave : undefined}
+      onFocus={isInteractive && isFocusable ? handleFocus : undefined}
+      onBlur={isInteractive && isFocusable ? handleBlur : undefined}
+    />
+  );
+};

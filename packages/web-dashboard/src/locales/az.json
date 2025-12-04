@@ -8,7 +8,8 @@
     "total": "Cəmi"
   },
   "empty": {
-    "no-results": "Nəticə tapılmadı"
+    "no-results": "Nəticə tapılmadı",
+    "no-history-results": "Tarixçə məlumatı mövcud deyil"
   },
   "severity": {
     "blocker": "Bloklayıcı",
@@ -52,6 +53,26 @@
         "retries_zero": "Yenidən cəhd edilmiş test yoxdur",
         "retries_one": "{{count}} yenidən cəhd edilmiş test",
         "retries_other": "{{count}} yenidən cəhd edilmiş test"
+      }
+    },
+    "statusDynamics": {
+      "title": "Status dinamikası",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+      },
+      "ticks": {
+        "current": "Sonuncu",
+        "history": "{{timestamp, timestamp_date}}"
       }
     }
   }

@@ -43,8 +43,7 @@ const config = {
             metric: "passed",
           },
           {
-            type: "trend",
-            dataType: "status",
+            type: "statusDynamics",
             title: "Status dynamics",
           },
           {

@@ -203,6 +203,26 @@
         "retries_one": "{{count}} herhaalde test",
         "retries_other": "{{count}} herhaalde tests"
       }
+    },
+    "statusDynamics": {
+      "title": "Statusdynamiek",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions.description": {

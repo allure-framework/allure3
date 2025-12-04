@@ -1,6 +1,7 @@
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import { clsx } from "clsx";
 import { type ComponentChildren, type VNode, createContext } from "preact";
+import { createPortal } from "preact/compat";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import check from "@/assets/svg/line-general-check.svg";
 import { SvgIcon } from "@/components/SvgIcon";
@@ -96,13 +97,13 @@ export const Menu = (props: {
       computePosition(triggerRef.current, menuRef.current, {
         placement,
         middleware: [offset(6), flip(), shift({ padding: 5 })],
-      }).then(({ x, y }) => {
+        strategy: "fixed",
+      }).then(({ x, y, strategy }) => {
         if (menuRef.current) {
           Object.assign(menuRef.current.style, {
-            "left": `${x}px`,
-            "top": `${y}px`,
-            "position": "absolute",
-            "z-index": 10,
+            left: `${x}px`,
+            top: `${y}px`,
+            position: strategy,
           });
         }
       });
@@ -129,9 +130,12 @@ export const Menu = (props: {
             })}
           </MenuTriggerWrapper>
         )}
-        <div ref={menuRef}>
-          {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
-        </div>
+        {createPortal(
+          <div ref={menuRef}>
+            {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
+          </div>,
+          document.body,
+        )}
       </>
     </MenuContext.Provider>
   );
