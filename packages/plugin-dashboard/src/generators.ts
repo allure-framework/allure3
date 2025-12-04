@@ -1,3 +1,4 @@
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
@@ -70,11 +71,7 @@ export const generateAllCharts = async (
   options: DashboardPluginOptions,
   context: PluginContext,
 ): Promise<void> => {
-  const { layout } = options;
-
-  if (!layout) {
-    return;
-  }
+  const { layout = defaultChartsConfig } = options;
 
   const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID);
 

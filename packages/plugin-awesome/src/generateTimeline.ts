@@ -16,13 +16,16 @@ type TimlineTr = Pick<
   "id" | "name" | "status" | "hidden" | "labels" | "environment" | "start" | "stop" | "duration" | "historyId"
 >;
 
+const DEFAULT_TIMELINE_OPTIONS = {
+  minDuration: DEFAULT_MIN_DURATION,
+} as const;
+
 export const generateTimeline = async (writer: Writer, store: AllureStore, options: AwesomeOptions) => {
-  if (!options.timeline) {
-    return;
-  }
+  const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
+  const { minDuration = DEFAULT_MIN_DURATION } = timeline;
+
   const testResults = await store.allTestResults({ includeHidden: true });
 
-  const { minDuration = DEFAULT_MIN_DURATION } = options.timeline;
   const result: TimlineTr[] = [];
 
   for (const test of testResults) {
@@ -53,7 +56,7 @@ export const generateTimeline = async (writer: Writer, store: AllureStore, optio
       environment: test.environment,
       start: test.start,
       stop: test.stop,
-      duration: duration,
+      duration,
     });
   }
 
