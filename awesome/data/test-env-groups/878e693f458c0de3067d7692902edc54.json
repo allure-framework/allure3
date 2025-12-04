@@ -1,1 +1,0 @@
-{"id":"878e693f458c0de3067d7692902edc54","fullName":"test/report.test.ts#report should not allow to readDirectory() before start()","name":"should not allow to readDirectory() before start()","status":"passed","testResultsByEnv":{"windows-latest":"06dd7caff964949bda173e443404c034","ubuntu-latest":"ba7b658a8911f65c1340a18f146e824d"}}

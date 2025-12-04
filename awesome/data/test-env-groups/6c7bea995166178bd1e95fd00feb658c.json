@@ -1,1 +1,0 @@
-{"id":"6c7bea995166178bd1e95fd00feb658c","fullName":"test/store/convert.test.ts#testResultRawToState should omit empty parameters array from history id calculation","name":"should omit empty parameters array from history id calculation","status":"passed","testResultsByEnv":{"windows-latest":"89365e6163ac3118014f852895e13334","ubuntu-latest":"c5fc2be792dc08bed7c72530e224e846"}}

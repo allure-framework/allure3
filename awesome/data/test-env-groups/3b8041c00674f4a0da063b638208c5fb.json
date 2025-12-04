@@ -1,1 +1,0 @@
-{"id":"3b8041c00674f4a0da063b638208c5fb","fullName":"test/config.test.ts#loadJsonConfig should return default config when parsed json is null","name":"should return default config when parsed json is null","status":"passed","testResultsByEnv":{"windows-latest":"2dad1d6942cf7ff90dec643be57eb854","ubuntu-latest":"99b18350ee7cfc2fdba57d09436dee23"}}

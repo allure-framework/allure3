@@ -1,1 +1,0 @@
-{"id":"d3cddb52a1c769444de0a8d8a9842996","fullName":"test/store/store.test.ts#dump state should restore globalAttachments and globalErrors from dump","name":"should restore globalAttachments and globalErrors from dump","status":"passed","testResultsByEnv":{"windows-latest":"4a1d30c80442d10dc3830706b2268704","ubuntu-latest":"4a5b7d0d68255d4d2c5c5054c9ba7dee"}}

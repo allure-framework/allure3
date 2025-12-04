@@ -1,1 +1,0 @@
-{"id":"ffd87a267eecc40b5109d6be9cf71821","fullName":"test/commands/projects/list.test.ts#projects list command should print known service-error without logs writing","name":"should print known service-error without logs writing","status":"passed","testResultsByEnv":{"windows-latest":"1fbef9b8a44b9bae200a9e5080c02e3c","ubuntu-latest":"37019c2afac07564c616c6d1cb5aa5ed"}}

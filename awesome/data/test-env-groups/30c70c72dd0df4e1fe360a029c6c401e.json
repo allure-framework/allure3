@@ -1,1 +1,0 @@
-{"id":"30c70c72dd0df4e1fe360a029c6c401e","fullName":"test/store/store.test.ts#mapToObject should convert a map with symbol keys to an object","name":"should convert a map with symbol keys to an object","status":"passed","testResultsByEnv":{"windows-latest":"ae780d3d45869d9e1699ce3808b016ff","ubuntu-latest":"bc919cd4b3f11bb5b27d6e0d148a58d8"}}

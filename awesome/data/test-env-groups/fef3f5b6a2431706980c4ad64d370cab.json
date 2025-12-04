@@ -1,1 +1,0 @@
-{"id":"fef3f5b6a2431706980c4ad64d370cab","fullName":"test/qualityGate/qualityGate.test.ts#QualityGate validate should throw error for unknown rule","name":"should throw error for unknown rule","status":"passed","testResultsByEnv":{"windows-latest":"4d929b3fecd03a4a048f0501629e346a","ubuntu-latest":"bdf6196cadd8803a694b8095746d59be"}}

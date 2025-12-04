@@ -1,1 +1,0 @@
-{"id":"d4ba178a3b8478be1b2a9289b2e7af2c","fullName":"test/store/store.test.ts#variables should return report-wide variables for the default environment","name":"should return report-wide variables for the default environment","status":"passed","testResultsByEnv":{"windows-latest":"e8060aa6fb235a48aba92574e32c885b","ubuntu-latest":"92b46a1a2a872e88bfeb82fff024f181"}}

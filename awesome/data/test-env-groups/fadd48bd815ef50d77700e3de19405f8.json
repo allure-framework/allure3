@@ -1,1 +1,0 @@
-{"id":"fadd48bd815ef50d77700e3de19405f8","fullName":"test/commands/whoami.test.ts#whoami command should initialize allure service and call profile method","name":"should initialize allure service and call profile method","status":"passed","testResultsByEnv":{"windows-latest":"3e376e3e8004aae5ba2c841959358be2","ubuntu-latest":"e75d8901894cedb61f7b24bb9e76ebf8"}}

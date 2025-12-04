@@ -1,1 +1,0 @@
-{"id":"75f9271592b6b4ce44efa8abf01f37c8","fullName":"test/store/store.test.ts#history should return empty history for test result if no history data is found","name":"should return empty history for test result if no history data is found","status":"passed","testResultsByEnv":{"windows-latest":"89420d8516405d19cee566c0dc754733","ubuntu-latest":"e458cd5aa6273c002392a67492d258ae"}}

@@ -1,1 +1,0 @@
-{"id":"321e0475b0a845d4cd0ed64176614e5f","fullName":"test/commands/projects/list.test.ts#projects list command should print unknown service-error with logs writing","name":"should print unknown service-error with logs writing","status":"passed","testResultsByEnv":{"windows-latest":"334da43a1caae81e7ac507cf2202b2cf","ubuntu-latest":"f1d784a3c0fa7d585b49cc22eb1cb366"}}

@@ -1,1 +1,0 @@
-{"id":"9c2cf859c4fd290b8d23ead745895d1f","fullName":"test/commands/login.test.ts#login command should initialize allure service and call login method","name":"should initialize allure service and call login method","status":"passed","testResultsByEnv":{"windows-latest":"4854b7b8827f1e413e8f11c9be732b2a","ubuntu-latest":"e3820cc2340271b14dcf3f6ab2b3a821"}}

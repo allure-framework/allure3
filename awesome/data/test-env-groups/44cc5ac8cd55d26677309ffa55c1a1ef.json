@@ -1,1 +1,0 @@
-{"id":"44cc5ac8cd55d26677309ffa55c1a1ef","fullName":"test/qualityGate/rules.test.ts#successRateRule should fail when success rate is less than expected","name":"should fail when success rate is less than expected","status":"passed","testResultsByEnv":{"windows-latest":"91800eb13aa8f4fce3c2c7a8bc269726","ubuntu-latest":"f901b2490829a22149a945e64842b8c6"}}

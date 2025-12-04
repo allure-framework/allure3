@@ -1,1 +1,0 @@
-{"id":"0d73a138152cba02c57ac18ea2d7d9a8","fullName":"test/store/store.test.ts#dump state should handle restoreState with missing index properties gracefully","name":"should handle restoreState with missing index properties gracefully","status":"passed","testResultsByEnv":{"windows-latest":"a43d0f5a5f65a64365205d085692e309","ubuntu-latest":"36a49c2312821c2ab50030c2d2b80b54"}}

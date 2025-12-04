@@ -1,1 +1,0 @@
-{"id":"6698b8272ec671f93d3a9d1dffb5d503","fullName":"test/qualityGate/qualityGate.test.ts#QualityGate validate should return empty array when no rules are defined","name":"should return empty array when no rules are defined","status":"passed","testResultsByEnv":{"windows-latest":"00381c6b2f3d53451fbff015ee90a9e9","ubuntu-latest":"cd6825882e85449094c93746455ffec9"}}

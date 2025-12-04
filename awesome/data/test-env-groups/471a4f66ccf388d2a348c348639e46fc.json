@@ -1,1 +1,0 @@
-{"id":"471a4f66ccf388d2a348c348639e46fc","fullName":"test/commands/projects/create.test.ts#projects create command should create a project with a provided name","name":"should create a project with a provided name","status":"passed","testResultsByEnv":{"windows-latest":"b082849bb9a7cb43d9ee48dac611ba37","ubuntu-latest":"4462e2adb42c9f8ff6e0e668c51f9024"}}

@@ -1,1 +1,0 @@
-{"id":"8dd629c6d06b5285534a2c23246f8d71","fullName":"allure-awesome/test/environments.test.ts:245:3","name":"should use different navigations between all environments and a specific one","status":"passed","testResultsByEnv":{"windows-latest":"9d9da35ece4d7610b4306509a96bd7ab","ubuntu-latest":"37d60d5f80439c56e04e660da035f25d"}}

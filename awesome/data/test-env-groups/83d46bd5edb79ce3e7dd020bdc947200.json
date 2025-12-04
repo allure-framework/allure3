@@ -1,1 +1,0 @@
-{"id":"83d46bd5edb79ce3e7dd020bdc947200","fullName":"test/config.test.ts#findConfig should fail if provided config file is not found","name":"should fail if provided config file is not found","status":"passed","testResultsByEnv":{"windows-latest":"6ff9df2f3dcf26fffffe9006328bbb4b","ubuntu-latest":"7938860615f76de7c2d85c95c58bd39a"}}

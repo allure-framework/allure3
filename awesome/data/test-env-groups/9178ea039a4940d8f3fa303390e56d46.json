@@ -1,1 +1,0 @@
-{"id":"9178ea039a4940d8f3fa303390e56d46","fullName":"test/commands/logout.test.ts#logout command should print unknown service-error with logs writing","name":"should print unknown service-error with logs writing","status":"passed","testResultsByEnv":{"windows-latest":"1feb77200cc15e152f465045e5a500b6","ubuntu-latest":"6a6a908d11b5162d1bf55b6464c40540"}}

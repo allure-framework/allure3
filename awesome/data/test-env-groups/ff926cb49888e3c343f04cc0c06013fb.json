@@ -1,1 +1,0 @@
-{"id":"ff926cb49888e3c343f04cc0c06013fb","fullName":"allure-awesome/test/reportOptions.test.ts:64:7","name":"should render split layout when it's enabled in the plugin options","status":"passed","testResultsByEnv":{"windows-latest":"d179a8c735fdd865df70145f8a0e796c","ubuntu-latest":"3186d826fe203f26b80423d1dcdc7f28"}}

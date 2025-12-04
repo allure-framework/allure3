@@ -1,1 +1,0 @@
-{"id":"f96de517bcab4604ab54b465314daa9e","fullName":"test/store/store.test.ts#dump state should include globalAttachments and globalErrors in dump state","name":"should include globalAttachments and globalErrors in dump state","status":"passed","testResultsByEnv":{"windows-latest":"2efbf1b35693298dea283051fdc32a22","ubuntu-latest":"7025adf4a886d455f4307fd967b1cf08"}}

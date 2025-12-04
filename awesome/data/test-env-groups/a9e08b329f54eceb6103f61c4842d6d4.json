@@ -1,1 +1,0 @@
-{"id":"a9e08b329f54eceb6103f61c4842d6d4","fullName":"test/qualityGate/qualityGate.test.ts#stringifyQualityGateResults should return empty string for empty results","name":"should return empty string for empty results","status":"passed","testResultsByEnv":{"windows-latest":"d3f244c884f6b7832a76229bd390c026","ubuntu-latest":"940500519fe3e5b66aecbaf3bed37801"}}

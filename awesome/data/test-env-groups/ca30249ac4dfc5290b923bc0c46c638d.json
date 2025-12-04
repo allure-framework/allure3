@@ -1,1 +1,0 @@
-{"id":"ca30249ac4dfc5290b923bc0c46c638d","fullName":"test/commands/projects/list.test.ts#projects list command should exit with error if no project is selected","name":"should exit with error if no project is selected","status":"passed","testResultsByEnv":{"windows-latest":"2f75557d8d6e9bf45f7575c86d06ab80","ubuntu-latest":"2748ed23f9de4ee35b7dedbd58d7fb3b"}}

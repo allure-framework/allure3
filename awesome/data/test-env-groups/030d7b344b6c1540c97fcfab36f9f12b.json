@@ -1,1 +1,0 @@
-{"id":"030d7b344b6c1540c97fcfab36f9f12b","fullName":"test/commands/projects/delete.test.ts#projects delete command should forcily delete a project without confirmation","name":"should forcily delete a project without confirmation","status":"passed","testResultsByEnv":{"windows-latest":"6a7f417eb00b5f6f32f7f2cb5ace94c7","ubuntu-latest":"4c76cc1aae446a43745b787605127f66"}}

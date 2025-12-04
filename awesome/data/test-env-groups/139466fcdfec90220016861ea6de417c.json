@@ -1,1 +1,0 @@
-{"id":"139466fcdfec90220016861ea6de417c","fullName":"test/config.test.ts#getPluginId returns the same string if it doesn't have scope","name":"returns the same string if it doesn't have scope","status":"passed","testResultsByEnv":{"windows-latest":"04a785dfb33f26e020f386d6c08ae851","ubuntu-latest":"ab9496665b7175f0cf56d5ccaec30952"}}

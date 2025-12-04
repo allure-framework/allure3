@@ -1,1 +1,0 @@
-{"id":"3a7d433708f38c011b1334673794298e","fullName":"test/commands/logout.test.ts#logout command should print known service-error without logs writing","name":"should print known service-error without logs writing","status":"passed","testResultsByEnv":{"windows-latest":"d4778e0bcf68277ced9c54454c6377d5","ubuntu-latest":"1c508739bc86b6239cbbc51c9ddfc855"}}

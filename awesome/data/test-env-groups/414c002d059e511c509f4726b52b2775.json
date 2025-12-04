@@ -1,1 +1,0 @@
-{"id":"414c002d059e511c509f4726b52b2775","fullName":"test/commands/projects/list.test.ts#projects list command should log a message if there are no projects","name":"should log a message if there are no projects","status":"passed","testResultsByEnv":{"windows-latest":"26023a6a06c90bc1a50be1d56e00f6bb","ubuntu-latest":"8d1a7d6a6a2e8ce35a99a6bec22c2bcb"}}

@@ -1,1 +1,0 @@
-{"id":"cb0ca9c1d5366af19f78f511451dc98e","fullName":"test/qualityGate/rules.test.ts#maxFailuresRule should pass when failures count is less than expected","name":"should pass when failures count is less than expected","status":"passed","testResultsByEnv":{"windows-latest":"a8cdb60ee16b84ed3ecc7d7c235a56e5","ubuntu-latest":"ed7e6a6020d143d859f0bff35d0e785c"}}

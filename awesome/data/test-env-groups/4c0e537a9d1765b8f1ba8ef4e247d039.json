@@ -1,1 +1,0 @@
-{"id":"4c0e537a9d1765b8f1ba8ef4e247d039","fullName":"test/commands/login.test.ts#login command should print known service-error as is without logs writting","name":"should print known service-error as is without logs writting","status":"passed","testResultsByEnv":{"windows-latest":"39fe6fb232fe502ee9cc44eba4412e95","ubuntu-latest":"a71259283526b64b184a9c5e55d58b94"}}

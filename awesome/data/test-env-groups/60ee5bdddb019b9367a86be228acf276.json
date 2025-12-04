@@ -1,1 +1,0 @@
-{"id":"60ee5bdddb019b9367a86be228acf276","fullName":"allure-awesome/test/environments.test.ts:126:8","name":"should render all environment tree sections by default and allow to toggle them","status":"skipped","testResultsByEnv":{"windows-latest":"fc916c5f8333a50066e4aa1fa953dab0","ubuntu-latest":"a24560cf6487bc3cbdc8cde49bc065c4"}}
