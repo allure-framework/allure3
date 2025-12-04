@@ -18,7 +18,7 @@ const config = {
         groupBy: ["module", "parentSuite", "suite", "subSuite"],
         charts: defaultChartsConfig,
         timeline: {
-          minDuration: 1,
+          minDuration: 0,
         },
         publish: true,
       },
