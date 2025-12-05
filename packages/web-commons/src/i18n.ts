@@ -1,6 +1,7 @@
 export const AVAILABLE_LOCALES = [
   "en",
   "ru",
+  "ua",
   "pl",
   "es",
   "pt",
@@ -40,6 +41,11 @@ export const LANG_LOCALE: Record<
     short: "Ру",
     full: "Русский",
     iso: "ru-RU",
+  },
+  ua: {
+    short: "Ук",
+    full: "Українська",
+    iso: "uk-UA",
   },
   pl: {
     short: "Pl",
