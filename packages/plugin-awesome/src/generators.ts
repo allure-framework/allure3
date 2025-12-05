@@ -1,3 +1,4 @@
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -490,8 +491,6 @@ export const generateStaticFiles = async (
     reportUuid,
     allureVersion,
     layout = "base",
-    charts = [],
-    timeline,
     defaultSection = "",
     ci,
   } = payload;
@@ -499,15 +498,7 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const sections: string[] = [];
-
-  if (charts.length) {
-    sections.push("charts");
-  }
-
-  if (timeline) {
-    sections.push("timeline");
-  }
+  const sections: string[] = ["charts", "timeline"];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -594,11 +585,7 @@ export const generateAllCharts = async (
   options: AwesomeOptions,
   context: PluginContext,
 ): Promise<void> => {
-  const { charts } = options;
-
-  if (!charts) {
-    return;
-  }
+  const { charts = defaultChartsConfig } = options;
 
   const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID);
 
