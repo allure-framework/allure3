@@ -210,9 +210,11 @@ export const SvgIcon = ({
   inline = false,
   className = "",
   "data-testid": dataTestId,
+  ...restProps
 }: SvgIconProps) => {
   return (
     <svg
+      {...(restProps as any)}
       className={clsx(styles.icon, styles[`size-${size}`], inline && styles.inline, className)}
       data-testid={dataTestId}
     >

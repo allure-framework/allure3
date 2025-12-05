@@ -13,6 +13,7 @@ import type { FunctionComponent } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "preact/hooks";
 import { REDUCE_MOTION } from "../Charts/config.js";
+import { useTooltip } from "../Charts/hooks/useTooltip.js";
 import { DurationRange } from "./DurationRange.js";
 import { GroupTooltip } from "./GroupTooltip.js";
 import { useWidth } from "./ResponsiveWrapper/context.js";
@@ -20,7 +21,6 @@ import { ResponsiveWrapper } from "./ResponsiveWrapper/index.js";
 import { SegmentTooltip } from "./SegmentTooltip.js";
 import { TimeOverview } from "./TimeOverview.js";
 import { useDurationRange } from "./hooks/useDurationRange.js";
-import { useTooltip } from "./hooks/useTooltip.js";
 import styles from "./styles.scss";
 import type { FlatDataItem, TimelineChartData, TimelineData, TimelineDataGroup } from "./types.js";
 import type { ZoomX, ZoomY } from "./utils.js";
@@ -814,18 +814,20 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
       )}
       {createPortal(
         <div ref={groupTooltipRef} data-visible={isGroupTooltipVisible} className={styles.tooltip}>
-          <GroupTooltip
-            segments={segments}
-            groupId={tooltipGroupData.id}
-            groupName={tooltipGroupData.name}
-            offsetTime={timeRange[0].getTime()}
-          />
+          {tooltipGroupData?.id && (
+            <GroupTooltip
+              segments={segments}
+              groupId={tooltipGroupData.id}
+              groupName={tooltipGroupData.name}
+              offsetTime={timeRange[0].getTime()}
+            />
+          )}
         </div>,
         document.body,
       )}
       {createPortal(
         <div ref={segmentTooltipRef} data-visible={isSegmentTooltipVisible} className={styles.tooltip}>
-          <SegmentTooltip segment={segmentTooltipData} offsetTime={timeRange[0].getTime()} />
+          {segmentTooltipData && <SegmentTooltip segment={segmentTooltipData} offsetTime={timeRange[0].getTime()} />}
         </div>,
         document.body,
       )}

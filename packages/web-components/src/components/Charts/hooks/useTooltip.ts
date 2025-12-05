@@ -1,30 +1,32 @@
 import type { Placement } from "@floating-ui/dom";
-import { autoUpdate, computePosition, flip, offset } from "@floating-ui/dom";
+import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import { useCallback, useRef, useState } from "preact/hooks";
 
 export const useTooltip = <D extends Record<string, any>>(placement?: Placement) => {
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [tooltipData, setData] = useState<D>({} as D);
+  const [tooltipData, setData] = useState<D | null>(null);
   const tooltipTargetRef = useRef<HTMLElement | null>(null);
   const autoUpdateRef = useRef<() => void>(() => {});
 
   const handleShowTooltip = useCallback(
-    (target: HTMLElement, data: D) => {
+    async (target: HTMLElement, data: D) => {
       if (!tooltipRef.current) {
         return;
       }
 
-      setIsVisible(true);
-      setData(data);
+      // Tootlip is already shown for this target
+      if (tooltipTargetRef.current === target) {
+        return;
+      }
 
       const updatePosition = () => {
         if (!tooltipRef.current) {
           return;
         }
 
-        computePosition(target, tooltipRef.current, {
-          middleware: [flip(), offset(6)],
+        return computePosition(target, tooltipRef.current, {
+          middleware: [flip(), offset(6), shift({ padding: 5 })],
           strategy: "fixed",
           placement,
         }).then(({ x, y, strategy }) => {
@@ -32,13 +34,17 @@ export const useTooltip = <D extends Record<string, any>>(placement?: Placement)
             return;
           }
 
-          tooltipTargetRef.current = target;
-
+          tooltipRef.current.style.position = strategy;
+          tooltipRef.current.style.pointerEvents = `none`;
           tooltipRef.current.style.left = `${x}px`;
           tooltipRef.current.style.top = `${y}px`;
-          tooltipRef.current.style.position = strategy;
         });
       };
+
+      await updatePosition();
+      tooltipTargetRef.current = target;
+      setIsVisible(true);
+      setData(data);
 
       autoUpdateRef.current = autoUpdate(target, tooltipRef.current, updatePosition);
     },
@@ -51,8 +57,9 @@ export const useTooltip = <D extends Record<string, any>>(placement?: Placement)
     }
 
     autoUpdateRef.current();
+    tooltipTargetRef.current = null;
     setIsVisible(false);
-    setData({} as D);
+    setData(null);
   }, []);
 
   return {

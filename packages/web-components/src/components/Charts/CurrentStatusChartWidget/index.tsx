@@ -6,7 +6,7 @@ import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 import { Widget } from "@/components/Widget";
 import { ChartTooltip } from "../ChartTooltip";
-import { LegendItem } from "../LegendItem";
+import { LegendItem } from "../Legend/LegendItem";
 import { WidthProvider } from "../WidthProvider";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { AdditionalStats } from "./AdditionalStats";
@@ -66,6 +66,7 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
                 enableArcLinkLabels={false}
                 isInteractive={!isEmpty}
                 sortByValue
+                transitionMode="startAngle"
                 layers={[
                   "arcs",
                   (layerProps: PieCustomLayerProps<ChartDatum>) => (

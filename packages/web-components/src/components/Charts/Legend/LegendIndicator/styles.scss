@@ -8,8 +8,12 @@
 
 .legendIndicatorContainerBase {
   display: flex;
-  background-color: white;
+  background-color: var(--bg-base-secondary);
   border-radius: 2px;
+
+  &[data-has-color] {
+    background-color: transparent;
+  }
 }
 
 .legendIndicator {
@@ -19,4 +23,5 @@
   height: 12px;
   border-radius: 2px;
   background-color: var(--bg-control-secondary);
+  border: 1px solid var(--on-border-muted);
 }

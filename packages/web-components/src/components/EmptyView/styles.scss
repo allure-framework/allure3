@@ -1,0 +1,115 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  &[data-border] {
+    border: 1px solid var(--on-border-muted);
+  }
+
+  &[data-size="s"] {
+    padding: 32px;
+  }
+
+  &[data-size="m"] {
+    padding: 72px 32px;
+  }
+
+  &[data-size="xs"] {
+    padding: 8px;
+  }
+
+  &[data-full-height] {
+    height: 100%;
+  }
+}
+
+.title {
+  color: var(--on-text-primary);
+  text-align: center;
+}
+
+.description {
+  color: var(--on-text-secondary);
+  text-align: center;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 400px;
+}
+
+.emptyIcon {
+  width: 24px;
+  height: 24px;
+
+  &[data-size="s"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  &[data-size="m"] {
+    width: 24px;
+    height: 24px;
+  }
+
+  &[data-size="l"] {
+    width: 32px;
+    height: 32px;
+  }
+
+  color: var(--on-icon-secondary);
+
+  &[data-color="skat"] {
+    color: var(--on-support-skat);
+  }
+
+  &[data-color="aldebaran"] {
+    color: var(--on-support-aldebaran);
+  }
+
+  &[data-color="castor"] {
+    color: var(--on-support-castor);
+  }
+
+  &[data-color="atlas"] {
+    color: var(--on-support-atlas);
+  }
+
+  &[data-color="betelgeuse"] {
+    color: var(--on-support-betelgeuse);
+  }
+
+  &[data-color="sirius"] {
+    color: var(--on-support-sirius);
+  }
+
+  &[data-color="antares"] {
+    color: var(--on-support-antares);
+  }
+
+  &[data-color="gliese"] {
+    color: var(--on-support-gliese);
+  }
+
+  &[data-color="capella"] {
+    color: var(--on-support-capella);
+  }
+
+  &[data-color="rigel"] {
+    color: var(--on-support-rigel);
+  }
+
+  &[data-color="mirach"] {
+    color: var(--on-support-mirach);
+  }
+
+  &[data-color="rau"] {
+    color: var(--on-support-rau);
+  }
+}

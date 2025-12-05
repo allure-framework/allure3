@@ -1,6 +1,6 @@
 import type { FunctionalComponent } from "preact";
 import { Text } from "@/components/Typography";
-import { LegendIndicator } from "../LegendIndicator";
+import { LegendIndicator } from "../Legend/LegendIndicator";
 import styles from "./styles.scss";
 
 export const ChartTooltip: FunctionalComponent<{

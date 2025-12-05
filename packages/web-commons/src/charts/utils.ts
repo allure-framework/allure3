@@ -1,4 +1,4 @@
-import type { ChartId, CurrentStatusChartData } from "@allurereport/charts-api";
+import type { ChartId, CurrentStatusChartData, StatusDynamicsChartData } from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
@@ -342,6 +342,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
     (acc, [chartId, chart]) => {
       if (chart.type === ChartType.CurrentStatus) {
         acc[chartId] = res[chartId] as CurrentStatusChartData;
+      } else if (chart.type === ChartType.StatusDynamics) {
+        acc[chartId] = res[chartId] as StatusDynamicsChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

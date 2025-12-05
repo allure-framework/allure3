@@ -1037,6 +1037,7 @@ __metadata:
     "@nivo/scales": "npm:^0.99.0"
     "@nivo/text": "npm:^0.99.0"
     "@nivo/theming": "npm:^0.99.0"
+    "@nivo/tooltip": "npm:^0.99.0"
     "@nivo/treemap": "npm:^0.99.0"
     "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.9.4"
@@ -5290,7 +5291,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nivo/tooltip@npm:0.99.0":
+"@nivo/tooltip@npm:0.99.0, @nivo/tooltip@npm:^0.99.0":
   version: 0.99.0
   resolution: "@nivo/tooltip@npm:0.99.0"
   dependencies:

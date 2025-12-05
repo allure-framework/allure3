@@ -1,11 +1,4 @@
-import {
-  BarChartType,
-  ChartDataType,
-  type ChartOptions,
-  ChartType,
-  FunnelChartType,
-  TreeMapChartType,
-} from "./types.js";
+import { BarChartType, type ChartOptions, ChartType, FunnelChartType, TreeMapChartType } from "./types.js";
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
 
@@ -15,8 +8,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Current status",
   },
   {
-    type: ChartType.Trend,
-    dataType: ChartDataType.Status,
+    type: ChartType.StatusDynamics,
     title: "Status dynamics",
   },
   {

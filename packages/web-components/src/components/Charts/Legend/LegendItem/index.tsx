@@ -3,28 +3,13 @@ import { useMemo } from "preact/hooks";
 import { Text } from "@/components/Typography";
 import { LegendIndicator } from "../LegendIndicator";
 import styles from "./styles.scss";
+import type { LegendItemProps } from "./types";
 
-interface LegendItemValue<T extends Record<string, number | string>> {
-  id: Extract<keyof T, string>;
-  color: string;
-  pointHoverColor?: string;
-  label: string | number;
-  type?: "default" | "point" | "tree";
-  link?: string;
-  value?: string | number;
-}
-
-interface LegendItemProps<T extends Record<string, number | string>> {
-  legend: LegendItemValue<T>;
-  mode?: "default" | "menu";
-  onClick?: (item: LegendItemValue<T>) => void;
-}
-
-const isPresent = (value: number | string | undefined): value is number | string => {
+export const isPresent = (value: number | string | undefined): value is number | string => {
   return (typeof value === "number" && !Number.isNaN(value)) || (typeof value === "string" && !!value);
 };
 
-const formatNumber = (value: number | string | undefined, locale: string = "en-US") => {
+export const formatNumber = (value: number | string | undefined, locale: string = "en-US") => {
   if (!isPresent(value)) {
     return "";
   }

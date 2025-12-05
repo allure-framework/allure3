@@ -211,6 +211,26 @@
         "retries_many": "{{count}} повторных тестов",
         "retries_other": "{{count}} повторных тестов"
       }
+    },
+    "statusDynamics": {
+      "title": "Динамика статусов",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions.description": {

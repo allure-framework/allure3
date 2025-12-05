@@ -12,6 +12,7 @@ import {
   Loadable,
   PageLoader,
   StabilityRateDistributionWidget,
+  StatusDynamicsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -53,6 +54,19 @@ const getChartWidgetByType = (
           statuses={chartData.statuses}
           metric={chartData.metric}
           i18n={(key, props = {}) => t(`currentStatus.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.StatusDynamics: {
+      const title = chartData.title ?? t("statusDynamics.title");
+
+      return (
+        <StatusDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          limit={chartData.limit}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`statusDynamics.${key}`, props)}
         />
       );
     }

@@ -1,7 +1,7 @@
 .tooltip {
   align-items: center;
   background-color: var(--constant-bg-base-modal);
-  border: 1px solid var(--on-border-light);
+  border: 1px solid var(--on-border-muted);
   border-radius: 8px;
   box-shadow: var(--shadow-small);
   color: var(--constant-on-text-primary);
@@ -28,4 +28,5 @@
   flex-wrap: nowrap;
   gap: 6px;
   padding: 4px 4px 0;
+  text-wrap: auto;
 }

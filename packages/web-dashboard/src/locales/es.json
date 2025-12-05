@@ -8,7 +8,8 @@
     "total": "Total"
   },
   "empty": {
-    "no-results": "Sin resultados"
+    "no-results": "Sin resultados",
+    "no-history-results": "No hay información de historial disponible"
   },
   "severity": {
     "blocker": "Bloqueante",
@@ -52,6 +53,26 @@
         "retries_zero": "No hay pruebas reintentadas",
         "retries_one": "{{count}} prueba reintentada",
         "retries_other": "{{count}} pruebas reintentadas"
+      }
+    },
+    "statusDynamics": {
+      "title": "Dinámica de estado",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Último informe ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Informe del {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Reciente",
+        "history": "{{timestamp, timestamp_date}}"
       }
     }
   }

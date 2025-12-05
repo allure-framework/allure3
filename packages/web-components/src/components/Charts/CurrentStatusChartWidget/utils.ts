@@ -1,4 +1,5 @@
 import { type Statistic, type TestStatus, statusesList } from "@allurereport/core-api";
+import { getColorFromStatus } from "../utils";
 import type { ChartData, I18nProp } from "./types";
 
 const UNITS = [
@@ -165,14 +166,6 @@ export const formatDescriptionToFitWidth = ({
   return result;
 };
 
-const statusColors = {
-  passed: "var(--bg-support-castor)",
-  broken: "var(--bg-support-atlas)",
-  failed: "var(--bg-support-capella)",
-  skipped: "var(--bg-support-rau)",
-  unknown: "var(--bg-support-skat)",
-} as const;
-
 export const toChartData = (props: { data: Statistic; i18n: I18nProp; statuses?: TestStatus[] }): ChartData => {
   const { data, i18n, statuses = statusesList } = props;
   const chartData: ChartData = [];
@@ -180,7 +173,7 @@ export const toChartData = (props: { data: Statistic; i18n: I18nProp; statuses?:
   for (const status of statuses) {
     if (status in data) {
       chartData.push({
-        color: statusColors[status],
+        color: getColorFromStatus(status),
         id: status,
         value: data[status] ?? 0,
         label: i18n(`status.${status}`),

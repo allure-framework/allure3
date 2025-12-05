@@ -8,7 +8,8 @@
     "total": "总计"
   },
   "empty": {
-    "no-results": "无结果"
+    "no-results": "无结果",
+    "no-history-results": "无历史信息"
   },
   "severity": {
     "blocker": "阻塞",
@@ -52,6 +53,26 @@
         "retries_zero": "没有重试测试",
         "retries_one": "{{count}} 个重试测试",
         "retries_other": "{{count}} 个重试测试"
+      }
+    },
+    "statusDynamics": {
+      "title": "状态动态",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的报告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
       }
     }
   }
