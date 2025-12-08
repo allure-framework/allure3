@@ -10,6 +10,7 @@ import {
   getPluginInstance,
   loadJsonConfig,
   loadYamlConfig,
+  readConfig,
   resolveConfig,
   resolvePlugin,
   validateConfig,
@@ -465,5 +466,79 @@ knownIssuesPath: ./known.json`;
     await writeFile(configPath, "name: Test\n  invalid: yaml\n   structure", "utf-8");
 
     await expect(loadYamlConfig(configPath)).rejects.toThrow();
+  });
+});
+
+describe("readConfig", () => {
+  let fixturesDir: string;
+
+  beforeEach(async () => {
+    fixturesDir = await mkdtemp("config.test.ts-readConfig-");
+  });
+
+  afterEach(async () => {
+    try {
+      await rm(fixturesDir, { recursive: true });
+    } catch (err) {}
+  });
+
+  it("should read a .js config", async () => {
+    const configName = "config.js";
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .mjs config", async () => {
+    const configName = "config.mjs";
+    const configContent = "export default { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .cjs config", async () => {
+    const configName = "config.cjs";
+    const configContent = "module.exports = { name: 'Foo' };";
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .json config", async () => {
+    const configName = "config.json";
+    const configContent = '{ "name": "Foo" }';
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .yaml config", async () => {
+    const configName = "config.yaml";
+    const configContent = 'name: "Foo"';
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read a .yml config", async () => {
+    const configName = "config.yaml";
+    const configContent = 'name: "Foo"';
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
   });
 });
