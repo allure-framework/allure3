@@ -53,6 +53,13 @@ describe("findConfig", () => {
     expect(found).toEqual(resolve(fixturesDir, "allurerc.mjs"));
   });
 
+  it("should find allurerc.cjs in cwd", async () => {
+    await writeFile(join(fixturesDir, "allurerc.cjs"), "some content", "utf-8");
+
+    const found = await findConfig(fixturesDir);
+    expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
+  });
+
   it("should find allurerc.json in cwd", async () => {
     await writeFile(join(fixturesDir, "allurerc.json"), "some content", "utf-8");
 
@@ -64,18 +71,28 @@ describe("findConfig", () => {
     it("shoild attempt finding allurerc.js before allurerc.mjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.js"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
 
       const found = await findConfig(fixturesDir);
       expect(found).toEqual(resolve(fixturesDir, "allurerc.js"));
     });
 
-    it("shoild attempt finding allurerc.mjs before allurerc.json", async () => {
+    it("shoild attempt finding allurerc.mjs before allurerc.cjs", async () => {
       await writeFile(join(fixturesDir, "allurerc.mjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
       await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
 
       const found = await findConfig(fixturesDir);
       expect(found).toEqual(resolve(fixturesDir, "allurerc.mjs"));
+    });
+
+    it("shoild attempt finding allurerc.cjs before allurerc.json", async () => {
+      await writeFile(join(fixturesDir, "allurerc.cjs"), "", "utf-8");
+      await writeFile(join(fixturesDir, "allurerc.json"), "", "utf-8");
+
+      const found = await findConfig(fixturesDir);
+      expect(found).toEqual(resolve(fixturesDir, "allurerc.cjs"));
     });
   });
 

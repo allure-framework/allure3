@@ -18,7 +18,7 @@ export interface ConfigOverride {
   plugins?: Config["plugins"];
 }
 
-const CONFIG_FILENAMES = ["allurerc.js", "allurerc.mjs", "allurerc.json"] as const;
+const CONFIG_FILENAMES = ["allurerc.js", "allurerc.mjs", "allurerc.cjs", "allurerc.json"] as const;
 const DEFAULT_CONFIG: Config = {} as const;
 
 export const getPluginId = (key: string) => {
