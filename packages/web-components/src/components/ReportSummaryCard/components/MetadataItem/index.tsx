@@ -1,7 +1,7 @@
-import { Text } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
-import * as styles from "./styles.scss";
+import { Text } from "../../../Typography";
+import styles from "./styles.scss";
 
 export type MetadataProps = {
   count?: number;
@@ -18,11 +18,11 @@ export const MetadataValue: FunctionalComponent<MetadataProps> = ({ count }) => 
   );
 };
 
-interface ReportMetadataItemProps {
+export type ReportMetadataItemProps = {
   className?: string;
   renderComponent?: FunctionalComponent<MetadataProps>;
   props?: MetadataProps;
-}
+};
 
 export const MetadataTestType: FunctionalComponent<MetadataProps> = ({ status, count }) => {
   return (
@@ -35,7 +35,7 @@ export const MetadataTestType: FunctionalComponent<MetadataProps> = ({ status, c
   );
 };
 
-const MetadataItem: FunctionalComponent<ReportMetadataItemProps> = ({
+export const MetadataItem: FunctionalComponent<ReportMetadataItemProps> = ({
   className,
   renderComponent: RenderComponent = MetadataValue,
   props,
@@ -52,5 +52,3 @@ const MetadataItem: FunctionalComponent<ReportMetadataItemProps> = ({
     </div>
   );
 };
-
-export default MetadataItem;

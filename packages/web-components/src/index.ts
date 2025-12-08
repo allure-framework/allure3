@@ -42,3 +42,4 @@ export * from "./components/Charts/StabilityRateDistributionWidget";
 export * from "./components/Charts/TestingPyramidWidget";
 export * from "./components/Charts/CurrentStatusChartWidget";
 export * from "./components/Timeline";
+export * from "./components/ReportSummaryCard";

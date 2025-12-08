@@ -1,0 +1,25 @@
+@import "../../../../assets/scss/mixins.scss";
+
+.metadata-item-title {
+  color: var(--on-text-secondary);
+  margin-bottom: 6px;
+}
+
+.metadata-item-value {
+  font-weight: bold;
+}
+
+.metadata-test-type {
+  display: flex;
+  color: var(--on-text-secondary);
+}
+
+.metadata-color-badge {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--on-text-secondary);
+  margin-right: 8px;
+  align-self: center;
+  @include status-bg-and-text();
+}
