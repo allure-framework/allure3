@@ -1,7 +1,7 @@
 import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
 import * as console from "node:console";
 import { readFile, stat } from "node:fs/promises";
-import { resolve } from "node:path";
+import { extname, resolve } from "node:path";
 import * as process from "node:process";
 import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
@@ -18,7 +18,14 @@ export interface ConfigOverride {
   plugins?: Config["plugins"];
 }
 
-const CONFIG_FILENAMES = ["allurerc.js", "allurerc.mjs", "allurerc.json"] as const;
+const CONFIG_FILENAMES = [
+  "allurerc.js",
+  "allurerc.mjs",
+  "allurerc.cjs",
+  "allurerc.json",
+  "allurerc.yaml",
+  "allurerc.yml",
+] as const;
 const DEFAULT_CONFIG: Config = {} as const;
 
 export const getPluginId = (key: string) => {
@@ -201,14 +208,17 @@ export const readConfig = async (
   const cfg = (await findConfig(cwd, configPath)) ?? "";
   let config: Config;
 
-  switch (true) {
-    case /allurerc\.json$/.test(cfg):
+  switch (extname(cfg)) {
+    case ".json":
       config = await loadJsonConfig(cfg);
       break;
-    case /allurerc\.ya?ml$/.test(cfg):
+    case ".yaml":
+    case ".yml":
       config = await loadYamlConfig(cfg);
       break;
-    case /allurerc\.(m|c)?js$/.test(cfg):
+    case ".js":
+    case ".cjs":
+    case ".mjs":
       config = await loadJsConfig(cfg);
       break;
     default:

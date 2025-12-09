@@ -59,7 +59,7 @@ const fixtures: any = {
         fixtures.testResults.unknown,
       ]),
     allNewTestResults: () => Promise.resolve([]),
-    testsStatistic: async (filter) => {
+    testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
 
       return getTestResultsStats(all, filter);
@@ -90,6 +90,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        withTestResultsLinks: true,
       });
     });
 
@@ -113,6 +114,7 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
+        withTestResultsLinks: true,
       });
     });
   });
