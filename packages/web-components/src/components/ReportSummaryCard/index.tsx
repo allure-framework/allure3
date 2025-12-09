@@ -1,13 +1,15 @@
 import { type Statistic, type TestStatus, capitalize, formatDuration } from "@allurereport/core-api";
 import { getPieChartValues } from "@allurereport/web-commons";
-import { Heading, IconLabel, StatusLabel, SuccessRatePieChart, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { MetadataProps } from "@/components/MetadataRow/MetadataItem";
-import MetadataItem, { MetadataTestType } from "@/components/MetadataRow/MetadataItem";
-import { currentLocaleIso, useI18n } from "@/stores";
-import * as styles from "./styles.scss";
+import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
+import { IconLabel } from "../IconLabel";
+import { StatusLabel } from "../StatusLabel";
+import { allureIcons } from "../SvgIcon";
+import { Heading, Text } from "../Typography";
+import { MetadataItem, type MetadataProps, MetadataTestType } from "./components/MetadataItem";
+import styles from "./styles.scss";
 
-export type ReportCardProps = {
+export type ReportSummaryCardProps = {
   href: string;
   name: string;
   status: TestStatus;
@@ -19,9 +21,22 @@ export type ReportCardProps = {
   duration: number;
   plugin?: string;
   createdAt?: number;
+  localeIso?: string;
+  locales?: {
+    in?: string;
+    new?: string;
+    flaky?: string;
+    retry?: string;
+    total?: string;
+    failed?: string;
+    broken?: string;
+    passed?: string;
+    skipped?: string;
+    unknown?: string;
+  };
 };
 
-export const ReportCard: FunctionalComponent<ReportCardProps> = ({
+export const ReportSummaryCard: FunctionalComponent<ReportSummaryCardProps> = ({
   href,
   status,
   stats,
@@ -32,11 +47,12 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
   newTests,
   flakyTests,
   retryTests,
+  locales,
+  localeIso = "en-US",
 }) => {
-  const { t } = useI18n("summary");
   const { percentage, slices } = getPieChartValues(stats);
   const formattedDuration = formatDuration(duration);
-  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
+  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(localeIso as string, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -70,22 +86,22 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
           </Text>
         )}
         <div className={styles["report-card-status"]}>
-          <StatusLabel status={status}>{t(status)}</StatusLabel>
+          <StatusLabel status={status}>{locales?.[status] ?? status}</StatusLabel>
           <Text type={"ui"} size={"s"}>
-            {t("in")}
+            {locales?.in ?? "in"}
           </Text>
           <Text type={"ui"} size={"s"} bold>
             {formattedDuration}
           </Text>
         </div>
         <div className={styles["report-card-metadata-icons"]}>
-          <IconLabel tooltip={capitalize(t("new"))} icon={allureIcons.testNew}>
+          <IconLabel tooltip={capitalize(locales?.new ?? "new")} icon={allureIcons.testNew}>
             {newTests?.length ?? 0}
           </IconLabel>
-          <IconLabel tooltip={capitalize(t("flaky"))} icon={allureIcons.lineIconBomb2}>
+          <IconLabel tooltip={capitalize(locales?.flaky ?? "flaky")} icon={allureIcons.lineIconBomb2}>
             {flakyTests?.length ?? 0}
           </IconLabel>
-          <IconLabel tooltip={capitalize(t("retry"))} icon={allureIcons.lineGeneralZap}>
+          <IconLabel tooltip={capitalize(locales?.retry ?? "retry")} icon={allureIcons.lineGeneralZap}>
             {retryTests?.length ?? 0}
           </IconLabel>
         </div>
@@ -101,7 +117,7 @@ export const ReportCard: FunctionalComponent<ReportCardProps> = ({
             .filter((item) => item.value)
             .map(({ label, value }) => {
               const props = {
-                title: capitalize(t(label)),
+                title: capitalize(locales?.[label as keyof typeof locales] ?? label),
                 count: value,
                 status: label,
               } as MetadataProps;
