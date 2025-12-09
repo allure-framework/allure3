@@ -3,8 +3,8 @@ import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
 import { Widget } from "../../Widget/index.js";
-import { defaultBarChartAxisBottomConfig, defaultBarChartAxisLeftConfig } from "../BarChart/config.js";
-import { BarChart } from "../BarChart/index.js";
+import { defaultBarChartAxisBottomConfig, defaultBarChartAxisLeftConfig } from "../LegacyBarChart/config.js";
+import { LegacyBarChart } from "../LegacyBarChart/index.js";
 import type { StabilityRateDistributionWidgetProps } from "./types.js";
 
 export const StabilityRateDistributionWidget: FunctionalComponent<StabilityRateDistributionWidgetProps> = ({
@@ -59,7 +59,7 @@ export const StabilityRateDistributionWidget: FunctionalComponent<StabilityRateD
 
   return (
     <Widget title={title}>
-      <BarChart
+      <LegacyBarChart
         data={data}
         height={height}
         width={width}

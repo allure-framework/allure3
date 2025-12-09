@@ -8,8 +8,8 @@ import { createElement } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useId, useMemo } from "preact/hooks";
 import { useTooltip } from "@/components/Charts/hooks/useTooltip";
-import { isPresent } from "../../Legend/LegendItem";
-import type { LegendItemValue } from "../../Legend/LegendItem/types";
+import { isPresent } from "../Legend/LegendItem";
+import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { useBarChartState } from "./context";
 
 export interface BarChartTooltipProps<T extends BarDatum> {

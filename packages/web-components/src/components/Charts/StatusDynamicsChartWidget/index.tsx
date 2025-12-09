@@ -5,10 +5,10 @@ import type { FunctionalComponent } from "preact";
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
 import { Widget } from "@/components/Widget";
+import { BarChart } from "../BarChart/BarChart";
 import { formatNumber } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { getColorFromStatus } from "../utils";
-import { BarChart } from "./BarChart/BarChart";
 import type { Props } from "./types";
 
 export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => {
