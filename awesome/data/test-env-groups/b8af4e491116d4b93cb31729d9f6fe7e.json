@@ -1,0 +1,1 @@
+{"id":"b8af4e491116d4b93cb31729d9f6fe7e","fullName":"test/config.test.ts#findConfig should find allurerc.cjs in cwd","name":"should find allurerc.cjs in cwd","status":"passed","testResultsByEnv":{"windows-latest":"37b6860d55385d2da05e929028388ec8","ubuntu-latest":"394e17c2e3ab69a7cf5edf5faaf3f602","macos-latest":"c28d522e743697bc5319c2327cd82a20"}}

@@ -1,0 +1,1 @@
+{"id":"a38b65a0494662acbecc9667f001c818","fullName":"test/config.test.ts#readConfig should read a .yml config","name":"should read a .yml config","status":"passed","testResultsByEnv":{"windows-latest":"93fbd009cceca47ccf3ec99ab9a2df6c","ubuntu-latest":"eb54036b54d67f899882fd460f2f9e84","macos-latest":"a4de9238822748a927fef80577f40407"}}

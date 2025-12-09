@@ -1,0 +1,1 @@
+{"id":"e75e41b888c85726524f3d94d4baaf07","fullName":"allure-awesome/test/environments.test.ts:258:3","name":"should render report variables by default","status":"passed","testResultsByEnv":{"windows-latest":"c13dc60c5499dd881d41d2dedf479bb5","ubuntu-latest":"eb3de9b85f58bb2fe7ee830c6e431294","macos-latest":"c62d0bdd548a25645fc35b47b48f4d92"}}

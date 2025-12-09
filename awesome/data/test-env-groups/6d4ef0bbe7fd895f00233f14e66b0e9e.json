@@ -1,0 +1,1 @@
+{"id":"6d4ef0bbe7fd895f00233f14e66b0e9e","fullName":"test/config.test.ts#loadYamlConfig should throw error when yaml is invalid","name":"should throw error when yaml is invalid","status":"passed","testResultsByEnv":{"windows-latest":"e1d6417d66edaae09d713625bbcc228d","ubuntu-latest":"45f2de32513ce9217ba18723eff951a7","macos-latest":"97d110975eafae79f7419d14c773f87c"}}

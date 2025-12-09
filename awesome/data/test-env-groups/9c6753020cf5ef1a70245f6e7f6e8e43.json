@@ -1,0 +1,1 @@
+{"id":"9c6753020cf5ef1a70245f6e7f6e8e43","fullName":"test/config.test.ts#getPluginId replaces slashes with dashes","name":"replaces slashes with dashes","status":"passed","testResultsByEnv":{"windows-latest":"2615d7c86f126aa4a81e1c2ef1d97ab7","ubuntu-latest":"ece35973bd573b94e3b2cf46b3455968","macos-latest":"ef009ad2a5f43b02b2a96eb764bab53f"}}

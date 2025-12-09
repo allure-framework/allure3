@@ -1,0 +1,1 @@
+{"id":"e8a7a49672953662530a9772d2d30e37","fullName":"test/util/event.test.ts#Events should batch async test result events","name":"should batch async test result events","status":"passed","testResultsByEnv":{"windows-latest":"0d76a7cf94b4ed841470798be9cb36e9","ubuntu-latest":"17c6aa25f6b3f8e074538380f6d31ca2","macos-latest":"c39305c04fa6bfb1a0d4999c484ac322"}}

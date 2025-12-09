@@ -1,0 +1,1 @@
+{"id":"9299dcc17de0fbf26bfe17263d7eab01","fullName":"allure-awesome/features/attachments.test.ts:129:5","name":"should render attachment in the test result body and allow to preview it","status":"passed","testResultsByEnv":{"windows-latest":"bae07b7cac42d9145e193360ec01fe4e","ubuntu-latest":"848d2b030449bf1d69adcb1bae93cce1","macos-latest":"4de958799995c4b17e5175e3f2f769db"}}
