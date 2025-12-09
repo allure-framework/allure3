@@ -53,6 +53,19 @@ export interface CurrentStatusChartData {
   metric?: TestStatus;
 }
 
+export interface StatusDynamicsChartData {
+  type: ChartType.StatusDynamics;
+  title?: string;
+  data: {
+    statistic: Statistic;
+    id: string;
+    timestamp: number;
+    name: string;
+  }[];
+  limit?: number;
+  statuses?: TestStatus[];
+}
+
 export interface ResponseBarChartData {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -120,6 +133,7 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
 }
 
 export type UICurrentStatusChartData = CurrentStatusChartData;
+export type UIStatusDynamicsChartData = StatusDynamicsChartData;
 
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
@@ -172,6 +186,7 @@ export type ChartData<
 > =
   | ResponseTrendChartData<SeriesType, Metadata>
   | CurrentStatusChartData
+  | StatusDynamicsChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
@@ -181,6 +196,7 @@ export type ChartData<
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UICurrentStatusChartData
+  | UIStatusDynamicsChartData
   | UIBarChartData
   | UIComingSoonChartData
   | UITreeMapChartData

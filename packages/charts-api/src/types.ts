@@ -4,6 +4,7 @@ import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus
 export enum ChartType {
   Trend = "trend",
   CurrentStatus = "currentStatus",
+  StatusDynamics = "statusDynamics",
   TreeMap = "treemap",
   HeatMap = "heatmap",
   Bar = "bar",
@@ -227,11 +228,25 @@ export interface CurrentStatusChartData {
   data: Statistic;
 }
 
+export interface StatusDynamicsChartData {
+  type: ChartType.StatusDynamics;
+  title?: string;
+  data: {
+    statistic: Statistic;
+    id: string;
+    timestamp: number;
+    name: string;
+  }[];
+  limit?: number;
+  statuses?: TestStatus[];
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
   | BarChartData
   | CurrentStatusChartData
+  | StatusDynamicsChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -274,6 +289,24 @@ export type CurrentStatusChartOptions = {
   metric?: TestStatus;
 };
 
+export type StatusDynamicsChartOptions = {
+  type: ChartType.StatusDynamics;
+  title?: string;
+  /**
+   * Limit of history data points
+   *
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * List of test statuses that will be
+   * used to create the chart.
+   *
+   * @default ["passed", "failed", "broken", "skipped", "unknown"]
+   */
+  statuses?: TestStatus[];
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -309,6 +342,7 @@ export type FunnelChartOptions = {
 export type ChartOptions =
   | TrendChartOptions
   | CurrentStatusChartOptions
+  | StatusDynamicsChartOptions
   | BarChartOptions
   | ComingSoonChartOptions
   | TreeMapChartOptions

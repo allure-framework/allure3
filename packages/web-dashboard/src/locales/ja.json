@@ -8,7 +8,8 @@
     "total": "合計"
   },
   "empty": {
-    "no-results": "結果がありません"
+    "no-results": "結果がありません",
+    "no-history-results": "履歴情報がありません"
   },
   "severity": {
     "blocker": "ブロッカー",
@@ -52,6 +53,26 @@
         "retries_zero": "再試行テストなし",
         "retries_one": "{{count}} 件の再試行テスト",
         "retries_other": "{{count}} 件の再試行テスト"
+      }
+    },
+    "statusDynamics": {
+      "title": "ステータス動態",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
       }
     }
   }

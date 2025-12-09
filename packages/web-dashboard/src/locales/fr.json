@@ -8,7 +8,8 @@
     "total": "Total"
   },
   "empty": {
-    "no-results": "Aucun résultat"
+    "no-results": "Aucun résultat",
+    "no-history-results": "Aucune information d'historique disponible"
   },
   "severity": {
     "blocker": "Bloquant",
@@ -52,6 +53,26 @@
         "retries_zero": "Aucun test relancé",
         "retries_one": "{{count}} test relancé",
         "retries_other": "{{count}} tests relancés"
+      }
+    },
+    "statusDynamics": {
+      "title": "Dynamique des statuts",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
       }
     }
   }
