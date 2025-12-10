@@ -74,6 +74,37 @@
         "current": "최신",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "상태 전환",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "최신 보고서 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 보고서"
+      },
+      "ticks": {
+        "current": "최신",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "이 테스트 결과가 보고서에 처음 나타남",
+      "fixed": "이전에 \"실패\" 또는 \"손상됨\"이었던 테스트가 이제 \"통과\"됨",
+      "regressed": "이전에 \"통과\" 또는 \"손상됨\"이었던 테스트가 이제 \"실패\"됨",
+      "malfunctioned": "이전에 \"통과\" 또는 \"실패\"였던 테스트가 이제 \"손상됨\"됨"
+    },
+    "new": "새로운",
+    "fixed": "수정됨",
+    "regressed": "퇴행",
+    "malfunctioned": "고장"
   }
 }

@@ -174,12 +174,37 @@
     },
     "pie": {
       "title": "Успішність тестування"
+    },
+    "statusTransitions": {
+      "title": "Status transitions",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Перша поява цього результату тесту в звіті",
-    "fixed": "Раніше \"неуспішний\" або \"зламаний\" тест, який тепер \"успішний\"",
-    "regressed": "Раніше \"успішний\" або \"зламаний\" тест, який тепер \"неуспішний\"",
-    "malfunctioned": "Раніше \"успішний\" або \"неуспішний\" тест, який тепер \"зламаний\""
+  "transitions": {
+    "description": {
+      "new": "Перша поява цього результату тесту в звіті",
+      "fixed": "Раніше \"неуспішний\" або \"зламаний\" тест, який тепер \"успішний\"",
+      "regressed": "Раніше \"успішний\" або \"зламаний\" тест, який тепер \"неуспішний\"",
+      "malfunctioned": "Раніше \"успішний\" або \"неуспішний\" тест, який тепер \"зламаний\""
+    },
+    "new": "Нові",
+    "fixed": "Виправлені",
+    "regressed": "Регресовані",
+    "malfunctioned": "Зламані"
   }
 }

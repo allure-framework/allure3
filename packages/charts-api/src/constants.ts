@@ -17,9 +17,8 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Test result severities",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StatusTrend,
-    title: "Status change dynamics",
+    type: ChartType.StatusTransitions,
+    title: "Status transitions",
   },
   {
     type: ChartType.Bar,

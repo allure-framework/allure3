@@ -74,6 +74,37 @@
         "current": "Recente",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Transições de status",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Relatório mais recente ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Relatório de {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Recente",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "Primeira ocorrência deste resultado de teste no relatório",
+      "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
+      "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
+      "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\""
+    },
+    "new": "Novo",
+    "fixed": "Corrigido",
+    "regressed": "Regredido",
+    "malfunctioned": "Defeituoso"
   }
 }

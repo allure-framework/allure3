@@ -74,6 +74,37 @@
         "current": "Վերջինը",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Վիճակի անցումներ",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Վերջին հաշվետվություն ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} հաշվետվություն"
+      },
+      "ticks": {
+        "current": "Վերջինը",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "Այս թեստի արդյունքի առաջին հայտնվելը հաշվետվությունում",
+      "fixed": "Նախկինում \"ձախողված\" կամ \"կոտրված\" թեստ, որը այժմ \"անցել\" է",
+      "regressed": "Նախկինում \"անցած\" կամ \"կոտրված\" թեստ, որը այժմ \"ձախողվել\" է",
+      "malfunctioned": "Նախկինում \"անցած\" կամ \"ձախողված\" թեստ, որը այժմ \"կոտրված\" է"
+    },
+    "new": "Նոր",
+    "fixed": "Ուղղված",
+    "regressed": "Ռեգրեսիա",
+    "malfunctioned": "Կոտրված"
   }
 }

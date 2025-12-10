@@ -26,7 +26,7 @@ const namespaces = [
   "charts",
   "sections",
   "timeline",
-  "transitions.description",
+  "transitions",
 ] as const;
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);

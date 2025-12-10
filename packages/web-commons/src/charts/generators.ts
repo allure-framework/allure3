@@ -11,6 +11,7 @@ import { generateBarChart } from "./bar.js";
 import { generateComingSoonChart } from "./comingSoon.js";
 import { generateFunnelChart } from "./funnel/index.js";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
+import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTrendChart } from "./line.js";
@@ -48,6 +49,9 @@ const generateChartData = async (props: {
         break;
       case ChartType.StatusDynamics:
         result[chartId] = generateStatusDynamicsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.StatusTransitions:
+        result[chartId] = generateStatusTransitionsChart({ options: chartOption, storeData })!;
         break;
       case ChartType.Bar:
         result[chartId] = generateBarChart(chartOption, storeData)!;

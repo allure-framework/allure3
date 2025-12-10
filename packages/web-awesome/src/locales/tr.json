@@ -223,12 +223,37 @@
         "current": "Son",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Durum geçişleri",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Bu test sonucunun rapordaki ilk görünümü",
-    "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",
-    "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
-    "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\""
+  "transitions": {
+    "description": {
+      "new": "Bu test sonucunun rapordaki ilk görünümü",
+      "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",
+      "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
+      "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\""
+    },
+    "new": "Yeni",
+    "fixed": "Düzeltildi",
+    "regressed": "Geri Döndü",
+    "malfunctioned": "Bozuk"
   }
 }

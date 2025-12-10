@@ -231,12 +231,37 @@
         "current": "Wcześniejsze",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Przejścia statusu",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Najnowszy raport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Raport z {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Wcześniejsze",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",
-    "fixed": "Wcześniej \"nieudany\" lub \"uszkodzony\" test, który teraz jest \"udany\"",
-    "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
-    "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\""
+  "transitions": {
+    "description": {
+      "new": "Pierwsze wystąpienie tego wyniku testu w raporcie",
+      "fixed": "Wcześniej \"nieudany\" lub \"uszkodzony\" test, który teraz jest \"udany\"",
+      "regressed": "Wcześniej \"udany\" lub \"uszkodzony\" test, który teraz jest \"nieudany\"",
+      "malfunctioned": "Wcześniej \"udany\" lub \"nieudany\" test, który teraz jest \"uszkodzony\""
+    },
+    "new": "Nowe",
+    "fixed": "Naprawione",
+    "regressed": "Zaregresowane",
+    "malfunctioned": "Uszkodzone"
   }
 }

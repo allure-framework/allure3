@@ -32,8 +32,11 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
     ...item.statistic,
   }));
 
+  const isChartEmpty = chartData.every((item) => item.total === 0);
+  const noChartHistory = chartData.filter((item) => item.id !== "current").every((item) => item.total === 0);
+
   // No data at all
-  if (!currentData || currentData.statistic.total === 0) {
+  if (isChartEmpty || !currentData || currentData.statistic.total === 0) {
     return (
       <Widget title={title}>
         <EmptyView title={i18n("no-results")} icon={allureIcons.lineChartsBarChartSquare} />
@@ -42,7 +45,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
   }
 
   // We have data only for current run, but no history
-  if (data.length === 1 && currentData) {
+  if ((data.length === 1 && currentData) || noChartHistory) {
     return (
       <Widget title={title}>
         <EmptyView title={i18n("no-history")} icon={allureIcons.lineChartsBarChartSquare} />
@@ -53,6 +56,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
   return (
     <Widget title={title}>
       <BarChart
+        groupMode="stacked"
         data={chartData}
         legend={legend}
         indexBy={"id"}

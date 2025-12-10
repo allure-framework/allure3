@@ -44,7 +44,7 @@ const PointIcon = ({ color }: { color: string }) => {
 
 export const LegendItem = <T extends Record<string, number | string>>(props: LegendItemProps<T>) => {
   const { onClick, legend, mode = "default" } = props;
-  const { color, label, link, value } = legend;
+  const { color, border, label, link, value } = legend;
 
   const Tag = link ? "a" : "div";
 
@@ -67,7 +67,7 @@ export const LegendItem = <T extends Record<string, number | string>>(props: Leg
       }
     >
       <div className={styles.legendName}>
-        {type === "default" && <LegendIndicator color={color} />}
+        {type === "default" && <LegendIndicator color={color} border={border} />}
         {type === "point" && <PointIcon color={color} />}
         <Text type="ui" size="s" className={styles.legendLabel}>
           {label}

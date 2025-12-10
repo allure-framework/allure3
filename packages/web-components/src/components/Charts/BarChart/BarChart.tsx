@@ -14,6 +14,7 @@ import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { BarChartItem, BarChartItemHoverLayer } from "./BarChartItem";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
+import { TrendLinesLayer } from "./TrendLinesLayer";
 import { BarChartStateProvider } from "./context";
 import styles from "./styles.scss";
 import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
@@ -22,6 +23,8 @@ type BarChartProps<T extends BarDatum> = {
   data: T[];
   legend: LegendItemValue<T>[];
   indexBy: Extract<keyof T, string>;
+  lineKeys?: Extract<keyof T, string>[];
+  hideEmptyTrendLines?: boolean;
   formatLegendValue?: (legend: LegendItemValue<T>) => string;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: AxisProps["renderTick"];
@@ -33,6 +36,9 @@ type BarChartProps<T extends BarDatum> = {
   formatLeftTick?: (value: number | string) => string | number;
   bottomTickRotation?: number;
   noLegend?: boolean;
+  minValue?: number;
+  maxValue?: number;
+  groupMode?: "grouped" | "stacked";
 };
 
 export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
@@ -51,6 +57,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     formatLeftTick = (value: number | string) => formatNumber(value, currentLocale),
     bottomTickRotation = 0,
     noLegend = false,
+    minValue,
+    maxValue,
+    groupMode = "stacked",
+    lineKeys = [],
+    hideEmptyTrendLines = true,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const keys = useMemo(() => [...legendMap.keys()], [legendMap]);
@@ -63,6 +74,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
           <ResponsiveBar
             data={data}
             theme={CHART_THEME}
+            groupMode={groupMode}
             keys={keys}
             indexBy={indexBy}
             margin={{
@@ -79,7 +91,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             }}
             padding={padding}
             innerPadding={0}
-            valueScale={{ type: "linear", nice: true }}
+            valueScale={{ type: "linear", nice: true, min: minValue, max: maxValue }}
             indexScale={{ type: "band", round: true }}
             layers={[
               "grid",
@@ -104,6 +116,17 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                 />
               ),
               "bars",
+              (layerProps: BarCustomLayerProps<T>) =>
+                lineKeys.length > 0 && (
+                  <TrendLinesLayer
+                    {...layerProps}
+                    legend={legend}
+                    trendKeys={lineKeys}
+                    minValue={minValue}
+                    maxValue={maxValue}
+                    hideEmptyTrendLines
+                  />
+                ),
               BottomAxisLine,
             ]}
             colors={(d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? ""}
@@ -133,7 +156,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}
-            barComponent={(barProps: BarItemProps<T>) => <BarChartItem {...barProps} legend={legend} />}
+            barComponent={(barProps: BarItemProps<T>) => (
+              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} />
+            )}
           />
         </BarChartStateProvider>
       </div>

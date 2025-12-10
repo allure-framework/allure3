@@ -5,10 +5,17 @@ export enum ChartType {
   Trend = "trend",
   CurrentStatus = "currentStatus",
   StatusDynamics = "statusDynamics",
+  StatusTransitions = "statusTransitions",
   TreeMap = "treemap",
   HeatMap = "heatmap",
+  /**
+   * @deprecated
+   */
   Bar = "bar",
   Funnel = "funnel",
+  /**
+   * @deprecated
+   */
   ComingSoon = "coming-soon",
 }
 
@@ -20,7 +27,6 @@ export enum ChartDataType {
 // Specifies which Bar chart is being generated
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
-  StatusTrend = "statusTrend",
   StatusChangeTrend = "statusChangeTrend",
   DurationsByLayer = "durationsByLayer",
   FbsuAgePyramid = "fbsuAgePyramid",
@@ -241,12 +247,28 @@ export interface StatusDynamicsChartData {
   statuses?: TestStatus[];
 }
 
+export interface StatusTransitionsChartData {
+  type: ChartType.StatusTransitions;
+  title?: string;
+  data: {
+    id: string | "current";
+    timestamp: number;
+    prevItemTimestamp: number;
+    fixed: number;
+    regressed: number;
+    malfunctioned: number;
+  }[];
+  hideEmptyLines?: boolean;
+  lines?: ("fixed" | "regressed" | "malfunctioned")[];
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
   | BarChartData
   | CurrentStatusChartData
   | StatusDynamicsChartData
+  | StatusTransitionsChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -307,6 +329,31 @@ export type StatusDynamicsChartOptions = {
   statuses?: TestStatus[];
 };
 
+export type StatusTransitionsChartOptions = {
+  type: ChartType.StatusTransitions;
+  title?: string;
+  /**
+   * List of lines that will be displayed in the chart.
+   * Corresponds to test result transitions.
+   *
+   * @default ["regressed", "malfunctioned"]
+   */
+  lines?: ("fixed" | "regressed" | "malfunctioned")[];
+  /**
+   * Whether to hide lines that have no data in every point of the chart
+   * (theses lines always goes through 0 mark)
+   *
+   * @default true
+   */
+  hideEmptyLines?: boolean;
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -347,7 +394,8 @@ export type ChartOptions =
   | ComingSoonChartOptions
   | TreeMapChartOptions
   | HeatMapChartOptions
-  | FunnelChartOptions;
+  | FunnelChartOptions
+  | StatusTransitionsChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

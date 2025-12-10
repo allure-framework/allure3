@@ -74,6 +74,37 @@
         "current": "מהאחרון",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "מעברי סטטוס",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "מהאחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "הופעה ראשונה של תוצאת בדיקה זו בדוח",
+      "fixed": "בדיקה שהייתה קודם \"נכשלה\" או \"שבורה\" ועכשיו \"עברה\"",
+      "regressed": "בדיקה שהייתה קודם \"עברה\" או \"שבורה\" ועכשיו \"נכשלה\"",
+      "malfunctioned": "בדיקה שהייתה קודם \"עברה\" או \"נכשלה\" ועכשיו \"שבורה\""
+    },
+    "new": "חדש",
+    "fixed": "מתוקן",
+    "regressed": "נסוג",
+    "malfunctioned": "פגום"
   }
 }

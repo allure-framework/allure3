@@ -74,6 +74,37 @@
         "current": "Latest",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Status transitions",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "The first occurrence of this test result in the report",
+      "fixed": "A previously \"failed\" or \"broken\" test that is now \"passed\"",
+      "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
+      "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\""
+    },
+    "new": "new",
+    "fixed": "fixed",
+    "regressed": "regressed",
+    "malfunctioned": "malfunctioned"
   }
 }

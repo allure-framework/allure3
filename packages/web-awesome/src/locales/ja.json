@@ -223,12 +223,37 @@
         "current": "最新",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "ステータス遷移",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "このテスト結果がレポートに初めて表示される",
-    "fixed": "以前「失敗」または「破損」だったテストが「成功」になった",
-    "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
-    "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった"
+  "transitions": {
+    "description": {
+      "new": "このテスト結果がレポートに初めて表示される",
+      "fixed": "以前「失敗」または「破損」だったテストが「成功」になった",
+      "regressed": "以前「成功」または「破損」だったテストが「失敗」になった",
+      "malfunctioned": "以前「成功」または「失敗」だったテストが「破損」になった"
+    },
+    "new": "新規",
+    "fixed": "修正済み",
+    "regressed": "退行",
+    "malfunctioned": "破損"
   }
 }

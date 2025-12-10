@@ -74,6 +74,37 @@
         "current": "Derniers",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Transitions de statut",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Derniers",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "Première apparition de ce résultat de test dans le rapport",
+      "fixed": "Test précédemment \"échoué\" ou \"cassé\" qui est maintenant \"réussi\"",
+      "regressed": "Test précédemment \"réussi\" ou \"cassé\" qui est maintenant \"échoué\"",
+      "malfunctioned": "Test précédemment \"réussi\" ou \"échoué\" qui est maintenant \"cassé\""
+    },
+    "new": "Nouveaux",
+    "fixed": "Corrigés",
+    "regressed": "Régression",
+    "malfunctioned": "Défectueux"
   }
 }

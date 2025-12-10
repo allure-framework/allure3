@@ -80,6 +80,37 @@
         "current": "Последний",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Переходы статусов",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
+  },
+  "transitions": {
+    "description": {
+      "new": "Первое появление этого результата теста в отчёте",
+      "fixed": "Ранее \"неуспешный\" или \"сломанный\" тест, который теперь \"успешный\"",
+      "regressed": "Ранее \"успешный\" или \"сломанный\" тест, который теперь \"неуспешный\"",
+      "malfunctioned": "Ранее \"успешный\" или \"неуспешный\" тест, который теперь \"сломанный\""
+    },
+    "new": "Новые",
+    "fixed": "Исправленные",
+    "regressed": "Регрессированные",
+    "malfunctioned": "Сломанные"
   }
 }

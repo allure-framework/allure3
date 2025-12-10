@@ -1,6 +1,7 @@
 export interface LegendItemValue<T extends Record<string, number | string>> {
   id: Extract<keyof T, string>;
   color: string;
+  border?: string;
   pointHoverColor?: string;
   label: string | number;
   type?: "default" | "point" | "tree";
