@@ -66,6 +66,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      checks: write
     env:
       ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
       ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
