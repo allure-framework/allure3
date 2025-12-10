@@ -1,5 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import DashboardPlugin from "@allurereport/plugin-dashboard";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardCommand } from "../../src/commands/dashboard.js";
 
@@ -89,5 +90,29 @@ describe("dashboard command", () => {
         ]),
       }),
     );
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(DashboardCommand, ["dashboard", "--output", "foo", "--report-name", "bar", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: "foo",
+      name: "bar",
+    });
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(DashboardCommand, ["dashboard", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: undefined,
+      name: undefined,
+    });
   });
 });

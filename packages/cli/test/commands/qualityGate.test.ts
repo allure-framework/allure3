@@ -1,4 +1,5 @@
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import { run } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
 import { exit } from "node:process";
@@ -212,5 +213,29 @@ describe("quality-gate command", () => {
     await command.execute();
 
     expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+
+    await run(QualityGateCommand, ["quality-gate", "--known-issues", "foo"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      knownIssuesPath: "foo",
+    });
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+
+    await run(QualityGateCommand, ["quality-gate"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      knownIssuesPath: undefined,
+    });
   });
 });

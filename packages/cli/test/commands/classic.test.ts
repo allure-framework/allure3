@@ -1,5 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import ClassicPlugin from "@allurereport/plugin-classic";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { ClassicCommand } from "../../src/commands/classic.js";
 
@@ -89,5 +90,44 @@ describe("classic command", () => {
         ]),
       }),
     );
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(ClassicCommand, [
+      "classic",
+      "--report-name",
+      "foo",
+      "--output",
+      "bar",
+      "--known-issues",
+      "baz",
+      "--history-path",
+      "qux",
+      "./allure-results",
+    ]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: "foo",
+      output: "bar",
+      knownIssuesPath: "baz",
+      historyPath: "qux",
+    });
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(ClassicCommand, ["classic", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      knownIssuesPath: undefined,
+      historyPath: undefined,
+    });
   });
 });

@@ -60,7 +60,7 @@ export class GenerateCommand extends Command {
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
-      output: this.output ?? "allure-report",
+      output: this.output,
     });
     const stageDumpFiles: string[] = [];
     const resultsDirectories: string[] = [];

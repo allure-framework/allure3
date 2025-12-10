@@ -33,7 +33,7 @@ export class OpenCommand extends Command {
   });
 
   async execute() {
-    const config = await readConfig(this.cwd, this.config, { output: this.reportDir ?? "./allure-report" });
+    const config = await readConfig(this.cwd, this.config, { output: this.reportDir });
 
     await serve({
       port: this.port ? parseInt(this.port, 10) : undefined,

@@ -1,5 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import CsvPlugin from "@allurereport/plugin-csv";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { CsvCommand } from "../../src/commands/csv.js";
 
@@ -88,5 +89,29 @@ describe("csv command", () => {
         ]),
       }),
     );
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, ["csv", "--output", "foo", "--known-issues", "bar", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: "foo",
+      knownIssuesPath: "bar",
+    });
+  });
+
+  it("should set output to default and take other props from readConfig if no CLI arguments provided", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, ["csv", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: "allure.csv",
+      knownIssuesPath: undefined,
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
+import { run } from "clipanion";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OpenCommand } from "../../src/commands/open.js";
 
@@ -50,7 +51,7 @@ describe("open command", () => {
     await command.execute();
 
     expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: "./allure-report" });
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, { output: undefined });
     expect(serve).toHaveBeenCalledTimes(1);
     expect(serve).toHaveBeenCalledWith({
       port: undefined,
@@ -79,6 +80,24 @@ describe("open command", () => {
       servePath: "allure-report",
       live: true,
       open: true,
+    });
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    await run(OpenCommand, ["open", "foo"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(undefined, undefined, {
+      output: "foo",
+    });
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    await run(OpenCommand, ["open"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(undefined, undefined, {
+      output: undefined,
     });
   });
 });
