@@ -1,5 +1,6 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
+import { run } from "clipanion";
 import { glob } from "glob";
 import * as console from "node:console";
 import { exit } from "node:process";
@@ -171,5 +172,31 @@ describe("generate command", () => {
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
+  });
+
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+
+    await run(GenerateCommand, ["generate", "--output", "foo", "--report-name", "bar", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: "foo",
+      name: "bar",
+    });
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+
+    await run(GenerateCommand, ["generate", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: undefined,
+      name: undefined,
+    });
   });
 });

@@ -78,8 +78,8 @@ export class AwesomeCommand extends Command {
       groupBy: this.groupBy?.split?.(",") ?? ["parentSuite", "suite", "subSuite"],
     } as AwesomePluginOptions;
     const config = await readConfig(cwd, this.config, {
-      output: this.output ?? "allure-report",
-      name: this.reportName ?? "Allure Report",
+      output: this.output,
+      name: this.reportName,
       knownIssuesPath: this.knownIssues,
       historyPath: this.historyPath,
     });

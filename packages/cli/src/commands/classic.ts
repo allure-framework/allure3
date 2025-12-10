@@ -63,8 +63,8 @@ export class ClassicCommand extends Command {
       reportLanguage: this.reportLanguage,
     } as ClassicPluginOptions;
     const config = await readConfig(cwd, this.config, {
-      output: this.output ?? "allure-report",
-      name: this.reportName ?? "Allure Report",
+      output: this.output,
+      name: this.reportName,
       knownIssuesPath: this.knownIssues,
       historyPath: this.historyPath,
     });
