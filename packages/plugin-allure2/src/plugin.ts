@@ -111,16 +111,20 @@ export class Allure2Plugin implements Plugin {
     const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
     return {
+      reportId: context.reportUuid,
       name: this.options.reportName || context.reportName,
       stats: await store.testsStatistic(),
       status: worstStatus ?? "passed",
       duration,
       createdAt,
-      withTestResultsLinks: true,
       plugin: "Allure2",
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 

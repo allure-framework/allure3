@@ -46,6 +46,7 @@ export interface PluginContext {
 export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
 
 export interface PluginSummary {
+  reportId: string;
   href?: string;
   remoteHref?: string;
   jobHref?: string;
@@ -55,15 +56,15 @@ export interface PluginSummary {
   status: TestStatus;
   duration: number;
   plugin?: string;
-  /**
-   * Marks the summary as containing remote test results links (e.g. to new, flaky and retry tests)
-   * Enable for plugins that support direct test results opening (like awesome or classic)
-   */
-  withTestResultsLinks?: boolean;
   newTests?: SummaryTestResult[];
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
   createdAt?: number;
+  /**
+   * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
+   * The field can be used in integrations to make better experience
+   */
+  meta?: Record<string, any>;
 }
 
 export interface ExitCode {
