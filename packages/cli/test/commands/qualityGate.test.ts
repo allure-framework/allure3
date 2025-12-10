@@ -54,7 +54,10 @@ vi.mock("@allurereport/core", async (importOriginal) => {
   };
 });
 
+const originalAllureReportMockPrototype = AllureReportMock.prototype;
+
 beforeEach(() => {
+  AllureReportMock.prototype = { ...originalAllureReportMockPrototype };
   vi.clearAllMocks();
 });
 
@@ -157,6 +160,7 @@ describe("quality-gate command", () => {
     (glob as unknown as Mock).mockResolvedValueOnce([]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
 
     const errorSpy = vi.spyOn(console, "error");
     const command = new QualityGateCommand();
