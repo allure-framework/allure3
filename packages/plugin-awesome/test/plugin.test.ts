@@ -76,7 +76,6 @@ describe("plugin", () => {
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
-        reportId: fixtures.context.reportUuid,
         createdAt: 0,
         duration: 0,
         name: "Sample report",
@@ -94,6 +93,7 @@ describe("plugin", () => {
         flakyTests: [],
         retryTests: [],
         meta: {
+          reportId: fixtures.context.reportUuid,
           singleFile: false,
           withTestResultsLinks: true,
         },
@@ -108,7 +108,6 @@ describe("plugin", () => {
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info).toEqual({
-        reportId: fixtures.context.reportUuid,
         createdAt: 0,
         duration: 0,
         name: "Sample report",
@@ -122,6 +121,7 @@ describe("plugin", () => {
         flakyTests: [],
         retryTests: [],
         meta: {
+          reportId: fixtures.context.reportUuid,
           singleFile: false,
           withTestResultsLinks: true,
         },

@@ -65,7 +65,6 @@ export class DashboardPlugin implements Plugin {
     const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
     return {
-      reportId: context.reportUuid,
       name: this.options.reportName || context.reportName,
       stats: await store.testsStatistic(this.options.filter),
       status: worstStatus ?? "passed",
@@ -76,6 +75,7 @@ export class DashboardPlugin implements Plugin {
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
       meta: {
+        reportId: context.reportUuid,
         singleFile: this.options.singleFile ?? false,
       },
     };

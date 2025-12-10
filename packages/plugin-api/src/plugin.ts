@@ -46,7 +46,6 @@ export interface PluginContext {
 export type SummaryTestResult = Pick<TestResult, "name" | "id" | "status" | "duration">;
 
 export interface PluginSummary {
-  reportId: string;
   href?: string;
   remoteHref?: string;
   jobHref?: string;
