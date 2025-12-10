@@ -44,13 +44,13 @@ vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
 vi.mock("@allurereport/core", async (importOriginal) => {
-  const { AllureReportMock } = await import("../utils.js");
+  const utils = await import("../utils.js");
 
   return {
     ...(await importOriginal()),
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
-    AllureReport: AllureReportMock,
+    AllureReport: utils.AllureReportMock,
   };
 });
 
@@ -62,11 +62,11 @@ describe("quality-gate command", () => {
   it("should exit with code 0 when there are no quality gate violations", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
-    AllureReportMock.prototype.hasQualityGate = true as any;
+    AllureReportMock.prototype.hasQualityGate = true;
     AllureReportMock.prototype.realtimeSubscriber = {
-      onTestResults: (_cb: (ids: string[]) => void) => {},
-    } as any;
-    (AllureReportMock.prototype as any).store = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       allKnownIssues: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn(),
@@ -89,13 +89,13 @@ describe("quality-gate command", () => {
 
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
-    AllureReportMock.prototype.hasQualityGate = true as any;
+    AllureReportMock.prototype.hasQualityGate = true;
     AllureReportMock.prototype.realtimeSubscriber = {
       onTestResults: (cb: (ids: string[]) => void) => {
         onTestResultsCb = cb;
       },
-    } as any;
-    (AllureReportMock.prototype as any).store = {
+    };
+    AllureReportMock.prototype.store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn().mockResolvedValue({}),
       allKnownIssues: vi.fn().mockResolvedValue([]),
@@ -130,11 +130,11 @@ describe("quality-gate command", () => {
   it("should use recursive discovery when resultsDir is not provided", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["dir1/allure-results/", "dir2/allure-results/"]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
-    AllureReportMock.prototype.hasQualityGate = true as any;
+    AllureReportMock.prototype.hasQualityGate = true;
     AllureReportMock.prototype.realtimeSubscriber = {
-      onTestResults: (_cb: (ids: string[]) => void) => {},
-    } as any;
-    (AllureReportMock.prototype as any).store = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
       allTestResults: vi.fn().mockResolvedValue([]),
       testResultById: vi.fn(),
       allKnownIssues: vi.fn().mockResolvedValue([]),
@@ -162,7 +162,7 @@ describe("quality-gate command", () => {
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
-    command.resultsDir = undefined as any;
+    command.resultsDir = undefined;
 
     await command.execute();
 
@@ -172,10 +172,10 @@ describe("quality-gate command", () => {
 
   it("should exit with code -1 when quality gate is not configured", async () => {
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
-    (AllureReportMock.prototype as any).store = {
+    AllureReportMock.prototype.store = {
       allKnownIssues: vi.fn().mockResolvedValue([]),
     };
-    AllureReportMock.prototype.hasQualityGate = false as any;
+    AllureReportMock.prototype.hasQualityGate = false;
 
     const command = new QualityGateCommand();
 
@@ -193,11 +193,11 @@ describe("quality-gate command", () => {
 
   it("should exit with code 0 when there is no test results found", async () => {
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [], qualityGate: fixtures.qualityGateConfig });
-    (AllureReportMock.prototype as any).store = {
+    AllureReportMock.prototype.store = {
       allKnownIssues: vi.fn().mockResolvedValue([]),
     };
     (glob as unknown as Mock).mockResolvedValueOnce([]);
-    AllureReportMock.prototype.hasQualityGate = true as any;
+    AllureReportMock.prototype.hasQualityGate = true;
 
     const command = new QualityGateCommand();
 
