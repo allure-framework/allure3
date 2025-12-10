@@ -1,0 +1,1 @@
+{"id":"591addf499ce769f7888cf8fd5c1ee0e","fullName":"test/commands/awesome.test.ts#awesome command should prefer CLI arguments over config and defaults","name":"should prefer CLI arguments over config and defaults","status":"passed","testResultsByEnv":{"ubuntu-latest":"9669a00b5547620dabc557597a3e9268","macos-latest":"2343775b91827dd23754522022dc7a7b"}}

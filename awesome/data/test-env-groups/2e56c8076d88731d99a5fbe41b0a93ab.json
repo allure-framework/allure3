@@ -1,0 +1,1 @@
+{"id":"2e56c8076d88731d99a5fbe41b0a93ab","fullName":"test/commands/classic.test.ts#classic command should prefer CLI arguments over config and defaults","name":"should prefer CLI arguments over config and defaults","status":"passed","testResultsByEnv":{"ubuntu-latest":"a6d95c1b3b313fbf8fe032e4bf7d1f7e","macos-latest":"8500d9ea8a55f89647895fac3e0d9830"}}

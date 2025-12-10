@@ -1,0 +1,1 @@
+{"id":"9c6165772674201c6db96cfbf59aeaf1","fullName":"test/commands/generate.test.ts#generate command should prefer CLI arguments over config and defaults","name":"should prefer CLI arguments over config and defaults","status":"passed","testResultsByEnv":{"ubuntu-latest":"3f32645125c011cda538c65975d5fee5","macos-latest":"1659edd93e2a5d5a81881d409be60716"}}

@@ -1,0 +1,1 @@
+{"id":"db7a1c23c9c87440005ff420af626ac8","fullName":"test/commands/csv.test.ts#csv command should prefer CLI arguments over config and defaults","name":"should prefer CLI arguments over config and defaults","status":"passed","testResultsByEnv":{"ubuntu-latest":"149f31b2620c5eec3e0d966a04b241b4","macos-latest":"f86b182310ab7de3cad1fcfaa7099451"}}

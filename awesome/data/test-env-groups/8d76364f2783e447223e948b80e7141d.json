@@ -1,0 +1,1 @@
+{"id":"8d76364f2783e447223e948b80e7141d","fullName":"test/plugin.test.ts#plugin info should add single file mode flag to the summary meta","name":"should add single file mode flag to the summary meta","status":"passed","testResultsByEnv":{"ubuntu-latest":"804024e85601331637f1c0ca5d5187af","macos-latest":"1502c142f161d704f471ee7b9878c11d"}}
