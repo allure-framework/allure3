@@ -164,11 +164,15 @@ export class AwesomePlugin implements Plugin {
       status: worstStatus ?? "passed",
       duration,
       createdAt,
-      withTestResultsLinks: true,
       plugin: "Awesome",
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 }

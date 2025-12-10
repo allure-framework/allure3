@@ -48,7 +48,9 @@ const fixtures: any = {
       status: "skipped",
     },
   },
-  context: {} as PluginContext,
+  context: {
+    reportUuid: "report-uuid",
+  } as PluginContext,
   store: {
     allTestResults: () =>
       Promise.resolve([
@@ -90,7 +92,11 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
-        withTestResultsLinks: true,
+        meta: {
+          reportId: fixtures.context.reportUuid,
+          singleFile: false,
+          withTestResultsLinks: true,
+        },
       });
     });
 
@@ -114,8 +120,22 @@ describe("plugin", () => {
         newTests: [],
         flakyTests: [],
         retryTests: [],
-        withTestResultsLinks: true,
+        meta: {
+          reportId: fixtures.context.reportUuid,
+          singleFile: false,
+          withTestResultsLinks: true,
+        },
       });
+    });
+
+    it("should add single file mode flag to the summary meta", async () => {
+      const plugin = new AwesomePlugin({
+        reportName: "Sample report",
+        singleFile: true,
+      });
+      const info = await plugin.info(fixtures.context, fixtures.store);
+
+      expect(info?.meta?.singleFile).toBe(true);
     });
   });
 });
