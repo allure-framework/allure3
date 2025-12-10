@@ -104,6 +104,7 @@ export const Menu = (props: {
             left: `${x}px`,
             top: `${y}px`,
             position: strategy,
+            zIndex: 1,
           });
         }
       });
