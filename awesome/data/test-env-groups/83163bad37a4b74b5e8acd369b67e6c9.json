@@ -1,1 +1,1 @@
-{"id":"83163bad37a4b74b5e8acd369b67e6c9","fullName":"allure-awesome/test/reportOptions.test.ts:38:5","name":"should contain title from config in the page title","status":"passed","testResultsByEnv":{"ubuntu-latest":"b8c46d893e4f225114e16038d007a11c"}}
+{"id":"83163bad37a4b74b5e8acd369b67e6c9","fullName":"allure-awesome/test/reportOptions.test.ts:38:5","name":"should contain title from config in the page title","status":"passed","testResultsByEnv":{"ubuntu-latest":"8f6ff17f8713fde294334be8796c475c"}}

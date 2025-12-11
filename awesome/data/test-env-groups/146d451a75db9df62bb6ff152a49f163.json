@@ -1,1 +1,1 @@
-{"id":"146d451a75db9df62bb6ff152a49f163","fullName":"test/unit/static.test.ts#serves .bin files","name":"serves .bin files","status":"passed","testResultsByEnv":{"ubuntu-latest":"9b17d8eadc1e43019fa78b484f9063e5","macos-latest":"653b538db11edddbe86fc85580de3aa7"}}
+{"id":"146d451a75db9df62bb6ff152a49f163","fullName":"test/unit/static.test.ts#serves .bin files","name":"serves .bin files","status":"passed","testResultsByEnv":{"ubuntu-latest":"8e08d808dd7bc18b2ed94df7cd972444","macos-latest":"d9c12ffbb25f0d22465bb23a41315238"}}

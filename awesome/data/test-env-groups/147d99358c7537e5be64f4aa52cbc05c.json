@@ -1,1 +1,1 @@
-{"id":"147d99358c7537e5be64f4aa52cbc05c","fullName":"test/allure2.test.ts#allure2 reader should parse null status","name":"should parse null status","status":"passed","testResultsByEnv":{"ubuntu-latest":"8d63a75c14049c199c130a214a3007fb","macos-latest":"8e06c1c1e237f54851c7f13883dc34e2"}}
+{"id":"147d99358c7537e5be64f4aa52cbc05c","fullName":"test/allure2.test.ts#allure2 reader should parse null status","name":"should parse null status","status":"passed","testResultsByEnv":{"ubuntu-latest":"b5fa079910f32419847c5873839ed82a","macos-latest":"28e8e03b892f46cb8ba0452fcb786e99"}}

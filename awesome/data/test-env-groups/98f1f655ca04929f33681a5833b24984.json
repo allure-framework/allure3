@@ -1,1 +1,1 @@
-{"id":"98f1f655ca04929f33681a5833b24984","fullName":"allure-awesome/test/tree.test.ts:280:3","name":"should not display groups when test results don't have related label","status":"passed","testResultsByEnv":{"ubuntu-latest":"51c4f86b0422f0da171c61a7d0845a36"}}
+{"id":"98f1f655ca04929f33681a5833b24984","fullName":"allure-awesome/test/tree.test.ts:280:3","name":"should not display groups when test results don't have related label","status":"passed","testResultsByEnv":{"ubuntu-latest":"ebe32b2ddf1da88e21b10089bd9c4b0e"}}

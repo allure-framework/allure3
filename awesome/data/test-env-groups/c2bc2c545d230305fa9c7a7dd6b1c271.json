@@ -1,1 +1,1 @@
-{"id":"c2bc2c545d230305fa9c7a7dd6b1c271","fullName":"test/allure2.test.ts#allure2 reader should parse stop","name":"should parse stop","status":"passed","testResultsByEnv":{"ubuntu-latest":"5ffe563873880afb72954896845657fe","macos-latest":"a15bb19b2a947e64dbb97072c0deedfe"}}
+{"id":"c2bc2c545d230305fa9c7a7dd6b1c271","fullName":"test/allure2.test.ts#allure2 reader should parse stop","name":"should parse stop","status":"passed","testResultsByEnv":{"ubuntu-latest":"059737c0cdada0961931960c86b47b46","macos-latest":"c32c76688b099c0fbf98cc3993bf4463"}}

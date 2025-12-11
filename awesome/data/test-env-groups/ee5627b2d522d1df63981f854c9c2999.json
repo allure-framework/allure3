@@ -1,1 +1,1 @@
-{"id":"ee5627b2d522d1df63981f854c9c2999","fullName":"allure-awesome/test/tree.test.ts:342:3","name":"should assign default labels when test results don't any matched one label","status":"passed","testResultsByEnv":{"ubuntu-latest":"d90acef752ecfd68c8a01ae3c54fbe79"}}
+{"id":"ee5627b2d522d1df63981f854c9c2999","fullName":"allure-awesome/test/tree.test.ts:342:3","name":"should assign default labels when test results don't any matched one label","status":"passed","testResultsByEnv":{"ubuntu-latest":"7b53f60c6502238e3e0554999f235119"}}

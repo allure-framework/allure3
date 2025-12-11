@@ -1,1 +1,1 @@
-{"id":"1538427332f48c8a1227276be770b007","fullName":"test/allure2.test.ts#allure2 reader should parse actual","name":"should parse actual","status":"passed","testResultsByEnv":{"ubuntu-latest":"2ba7bf8e20c2a9d03939723fab648c15","macos-latest":"3b0459c92ab2d92ccd879257b52cde4b"}}
+{"id":"1538427332f48c8a1227276be770b007","fullName":"test/allure2.test.ts#allure2 reader should parse actual","name":"should parse actual","status":"passed","testResultsByEnv":{"ubuntu-latest":"1da32bbcf5ed2b43e5f9bac8009a74b0","macos-latest":"3f8046570ff6da5f1a9077ad621d9b6e"}}

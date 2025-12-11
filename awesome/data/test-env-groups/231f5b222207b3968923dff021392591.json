@@ -1,1 +1,1 @@
-{"id":"231f5b222207b3968923dff021392591","fullName":"test/allure2.test.ts#allure2 reader should parse historyId","name":"should parse historyId","status":"passed","testResultsByEnv":{"ubuntu-latest":"463332a37e487db212cbe1f8bc18bd01","macos-latest":"4dc40117c72aa7b552a86b9ca4bee864"}}
+{"id":"231f5b222207b3968923dff021392591","fullName":"test/allure2.test.ts#allure2 reader should parse historyId","name":"should parse historyId","status":"passed","testResultsByEnv":{"ubuntu-latest":"7e6dbfa341f4e9c48b27f40f56ea71d1","macos-latest":"eec3a5b2cecf2a433ac3ecac3230f375"}}
