@@ -52,9 +52,9 @@ jobs:
       run: yarn build
     - name: Test Project
       run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
-      continue-on-error: true
     - name: Upload test results
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: allure-results-${{ matrix.os }}
         path: ./allure-results-${{ matrix.os }}.zip
@@ -63,6 +63,7 @@ jobs:
     needs: test
     name: Build report
     runs-on: ubuntu-latest
+    if: always()
     permissions:
       contents: write
       pull-requests: write
