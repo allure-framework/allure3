@@ -78,7 +78,7 @@ export interface ExitCode {
 }
 
 export interface PluginGlobals {
-  exitCode: ExitCode;
+  exitCode?: ExitCode;
   errors: TestError[];
   attachments: AttachmentLink[];
 }
