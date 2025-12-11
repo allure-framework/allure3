@@ -1,1 +1,1 @@
-{"id":"9674fedabf4860051424db5075f26baa","fullName":"test/config.test.ts#readConfig should read a .cjs config","name":"should read a .cjs config","status":"passed","testResultsByEnv":{"ubuntu-latest":"cb778f0db4ea0bf6f60a11b6e681b17e","macos-latest":"f3a279aeb0382d7171d2e65eed0fd4cc"}}
+{"id":"9674fedabf4860051424db5075f26baa","fullName":"test/config.test.ts#readConfig should read a .cjs config","name":"should read a .cjs config","status":"passed","testResultsByEnv":{"ubuntu-latest":"55b707a91b7be446169bac3509da0453","macos-latest":"0682718ccdfdc5b4b30db6697e753d41"}}

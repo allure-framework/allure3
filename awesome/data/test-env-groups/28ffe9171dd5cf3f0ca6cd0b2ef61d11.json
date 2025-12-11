@@ -1,1 +1,1 @@
-{"id":"28ffe9171dd5cf3f0ca6cd0b2ef61d11","fullName":"test/allure2.test.ts#allure2 reader should parse message","name":"should parse message","status":"passed","testResultsByEnv":{"ubuntu-latest":"f5555d5e6b89d3ec83c7c23ceffd5b42","macos-latest":"ef543770473d48f16136f4589675fb22"}}
+{"id":"28ffe9171dd5cf3f0ca6cd0b2ef61d11","fullName":"test/allure2.test.ts#allure2 reader should parse message","name":"should parse message","status":"passed","testResultsByEnv":{"ubuntu-latest":"acfcd305d55b3418806bf35a821bcd8f","macos-latest":"857e2b3c0e2b6093d03acafa26512ce2"}}

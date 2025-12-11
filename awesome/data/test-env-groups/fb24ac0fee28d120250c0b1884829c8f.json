@@ -1,1 +1,1 @@
-{"id":"fb24ac0fee28d120250c0b1884829c8f","fullName":"test/watcher.test.ts#md5File should calculate file hash","name":"should calculate file hash","status":"passed","testResultsByEnv":{"ubuntu-latest":"535d7a5138da2354c236a79f1b81214b","macos-latest":"82c13f352d64af837578f1ada536e970"}}
+{"id":"fb24ac0fee28d120250c0b1884829c8f","fullName":"test/watcher.test.ts#md5File should calculate file hash","name":"should calculate file hash","status":"passed","testResultsByEnv":{"ubuntu-latest":"d6eec2c08d54e97e51884df72340aae8","macos-latest":"b52894df4ec6f23daaed3eb7dff1f978"}}

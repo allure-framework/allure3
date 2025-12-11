@@ -1,1 +1,1 @@
-{"id":"83ff1f4adb6d390b7e62cb682653c541","fullName":"test/allure2.test.ts#allure2 reader should parse attachments","name":"should parse attachments","status":"passed","testResultsByEnv":{"ubuntu-latest":"32456bf80efe168380f64f50e5f55c1f","macos-latest":"c5866124c9b87e8e52ed28b9f97b859f"}}
+{"id":"83ff1f4adb6d390b7e62cb682653c541","fullName":"test/allure2.test.ts#allure2 reader should parse attachments","name":"should parse attachments","status":"passed","testResultsByEnv":{"ubuntu-latest":"29489eccba1de320cd0830a8f2a583de","macos-latest":"7bb6446b4d1eaf8dff79e52cd246fbf7"}}

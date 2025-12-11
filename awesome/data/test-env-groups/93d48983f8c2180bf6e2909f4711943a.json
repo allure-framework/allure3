@@ -1,1 +1,1 @@
-{"id":"93d48983f8c2180bf6e2909f4711943a","fullName":"allure-awesome/test/testResult.test.ts:135:5","name":"failed test contains error message and stack","status":"passed","testResultsByEnv":{"ubuntu-latest":"8d5e20bda9f4f4c063cc2c2bfc7e4501"}}
+{"id":"93d48983f8c2180bf6e2909f4711943a","fullName":"allure-awesome/test/testResult.test.ts:135:5","name":"failed test contains error message and stack","status":"passed","testResultsByEnv":{"ubuntu-latest":"39e31ca7b54960b21debda7938401529"}}
