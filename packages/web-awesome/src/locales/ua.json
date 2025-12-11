@@ -193,6 +193,25 @@
         "current": "Latest",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Гістограма тривалостей за {{groupBy}}",
+      "title_none": "Гістограма тривалостей",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Немає",
+        "layer": "Шар"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Кількість тестів"
+      }
     }
   },
   "transitions": {

@@ -1,4 +1,4 @@
-import type { AxisProps } from "@nivo/axes";
+import type { AxisTickProps } from "@nivo/axes";
 import {
   type BarCustomLayerProps,
   type BarDatum,
@@ -25,14 +25,15 @@ type BarChartProps<T extends BarDatum> = {
   indexBy: Extract<keyof T, string>;
   lineKeys?: Extract<keyof T, string>[];
   hideEmptyTrendLines?: boolean;
-  formatLegendValue?: (legend: LegendItemValue<T>) => string;
+  formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
-  renderBottomTick?: AxisProps["renderTick"];
+  renderBottomTick?: (props: AxisTickProps<number | string>) => any;
+  bottomTickSize?: number;
   onBarClick?: (value: ComputedDatum<T>) => void;
   padding?: number;
   hasValueFn?: (data: T) => boolean;
   currentLocale?: string;
-  formatBottomTick?: (value: number | string) => string | number;
+  formatBottomTick?: (value: number | string, item: T) => string | number;
   formatLeftTick?: (value: number | string) => string | number;
   bottomTickRotation?: number;
   noLegend?: boolean;
@@ -62,10 +63,23 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     groupMode = "stacked",
     lineKeys = [],
     hideEmptyTrendLines = true,
+    bottomTickSize = 12,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const keys = useMemo(() => [...legendMap.keys()], [legendMap]);
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
+
+  const barSize = useMemo(() => {
+    if (data.length >= 8) {
+      return "s";
+    }
+
+    if (data.length >= 6) {
+      return "m";
+    }
+
+    return "l";
+  }, [data]);
 
   return (
     <div className={styles.container}>
@@ -124,7 +138,8 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                     trendKeys={lineKeys}
                     minValue={minValue}
                     maxValue={maxValue}
-                    hideEmptyTrendLines
+                    hideEmptyTrendLines={hideEmptyTrendLines}
+                    barSize={barSize}
                   />
                 ),
               BottomAxisLine,
@@ -140,12 +155,17 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               tickRotation: bottomTickRotation,
               truncateTickAt: 0,
               renderTick: renderBottomTick,
-              format: formatBottomTick,
+              style: {
+                ticks: {
+                  text: {
+                    fontSize: bottomTickSize,
+                  },
+                },
+              },
+              format: (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!),
               tickValues:
                 data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
             }}
-            // Without Infinity 0 is shown on Y axe @TODO: check if this is still needed
-            // maxValue={isEmpty ? Infinity : undefined}
             axisLeft={{
               tickSize: 0,
               tickPadding: 8,
@@ -157,7 +177,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}
             barComponent={(barProps: BarItemProps<T>) => (
-              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} />
+              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} barSize={barSize} />
             )}
           />
         </BarChartStateProvider>

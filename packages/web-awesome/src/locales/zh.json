@@ -242,6 +242,25 @@
         "current": "最新",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "按{{groupBy}}的持续时间直方图",
+      "title_none": "持续时间直方图",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "无",
+        "layer": "层"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "测试数量"
+      }
     }
   },
   "transitions": {

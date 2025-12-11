@@ -93,6 +93,25 @@
         "current": "מהאחרון",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "היסטוגרמת משכי זמן לפי {{groupBy}}",
+      "title_none": "היסטוגרמת משכי זמן",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "ללא",
+        "layer": "שכבה"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "מספר בדיקות"
+      }
     }
   },
   "transitions": {

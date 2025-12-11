@@ -93,6 +93,25 @@
         "current": "최신",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "{{groupBy}}별 지속 시간 히스토그램",
+      "title_none": "지속 시간 히스토그램",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "없음",
+        "layer": "레이어"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "테스트 수"
+      }
     }
   },
   "transitions": {

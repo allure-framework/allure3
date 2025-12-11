@@ -6,6 +6,7 @@ import {
   BarChartWidget,
   ComingSoonChartWidget,
   CurrentStatusChartWidget,
+  DurationsChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
@@ -86,6 +87,23 @@ const getChartWidgetByType = (
           lines={chartData.lines}
           hideEmptyLines={chartData.hideEmptyLines}
           i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.Durations: {
+      const title =
+        chartData.title ??
+        (chartData.groupBy === "none"
+          ? t("durations.title_none")
+          : t("durations.title", { groupBy: chartData.groupBy }));
+
+      return (
+        <DurationsChartWidget
+          title={title}
+          data={chartData.data}
+          groupBy={chartData.groupBy}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`durations.${key}`, props)}
         />
       );
     }

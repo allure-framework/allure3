@@ -250,6 +250,25 @@
         "current": "Последний",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Гистограмма длительностей по {{groupBy}}",
+      "title_none": "Гистограмма длительностей",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Нет",
+        "layer": "Слой"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Количество тестов"
+      }
     }
   },
   "transitions": {

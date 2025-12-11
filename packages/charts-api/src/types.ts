@@ -6,6 +6,7 @@ export enum ChartType {
   CurrentStatus = "currentStatus",
   StatusDynamics = "statusDynamics",
   StatusTransitions = "statusTransitions",
+  Durations = "durations",
   TreeMap = "treemap",
   HeatMap = "heatmap",
   /**
@@ -28,7 +29,6 @@ export enum ChartDataType {
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusChangeTrend = "statusChangeTrend",
-  DurationsByLayer = "durationsByLayer",
   FbsuAgePyramid = "fbsuAgePyramid",
   StabilityRateDistribution = "stabilityRateDistribution",
 }
@@ -262,6 +262,34 @@ export interface StatusTransitionsChartData {
   lines?: ("fixed" | "regressed" | "malfunctioned")[];
 }
 
+export interface DurationsChartData {
+  type: ChartType.Durations;
+  title?: string;
+  /**
+   * Buckets of test results by duration
+   */
+  data: {
+    /**
+     * Start of the duration bucket
+     */
+    from: number;
+    /**
+     * End of the duration bucket
+     */
+    to: number;
+    /**
+     * Number of test results in the bucket
+     * by key from the `keys` map
+     */
+    [key: string]: number;
+  }[];
+  /**
+   * Map of key IDs to key names
+   */
+  keys: { [id: string]: string };
+  groupBy: "layer" | "none";
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -269,6 +297,7 @@ export type GeneratedChartData =
   | CurrentStatusChartData
   | StatusDynamicsChartData
   | StatusTransitionsChartData
+  | DurationsChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -354,6 +383,19 @@ export type StatusTransitionsChartOptions = {
   limit?: number;
 };
 
+export type DurationsChartOptions = {
+  type: ChartType.Durations;
+  title?: string;
+  /**
+   * By what to group the test results
+   * - "layer" - group by layer
+   * - "none" - do not group
+   *
+   * @default "none"
+   */
+  groupBy?: "layer" | "none";
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -391,6 +433,7 @@ export type ChartOptions =
   | CurrentStatusChartOptions
   | StatusDynamicsChartOptions
   | BarChartOptions
+  | DurationsChartOptions
   | ComingSoonChartOptions
   | TreeMapChartOptions
   | HeatMapChartOptions

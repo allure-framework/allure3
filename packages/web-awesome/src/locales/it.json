@@ -242,6 +242,25 @@
         "current": "Ultimi",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Istogramma delle durate per {{groupBy}}",
+      "title_none": "Istogramma delle durate",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Nessuno",
+        "layer": "Livello"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Numero di test"
+      }
     }
   },
   "transitions": {

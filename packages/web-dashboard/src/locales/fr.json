@@ -93,6 +93,25 @@
         "current": "Derniers",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Histogramme des durées par {{groupBy}}",
+      "title_none": "Histogramme des durées",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Aucun",
+        "layer": "Couche"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Nombre de tests"
+      }
     }
   },
   "transitions": {

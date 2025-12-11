@@ -50,9 +50,9 @@ export const LegendItem = <T extends Record<string, number | string>>(props: Leg
 
   const type = legend.type ?? "default";
 
-  const formattedValue = useMemo(() => {
-    return formatNumber(value);
-  }, [value]);
+  if (value === undefined) {
+    return null;
+  }
 
   return (
     <Tag
@@ -77,7 +77,7 @@ export const LegendItem = <T extends Record<string, number | string>>(props: Leg
         <>
           <div className={clsx(mode === "menu" ? styles.menuSpace : styles.space)} />
           <Text type="ui" size="s" className={styles.legendValue}>
-            {formattedValue}
+            {value}
           </Text>
         </>
       )}

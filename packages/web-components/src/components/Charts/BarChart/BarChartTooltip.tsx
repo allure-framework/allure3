@@ -8,7 +8,7 @@ export interface BarChartTooltipProps<T extends BarDatum> {
   indexBy: Extract<keyof T, string>;
   legend: LegendItemValue<T>[];
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
-  formatLegendValue?: (legend: LegendItemValue<T>) => string;
+  formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   allowZeroValues?: boolean;
 }
 

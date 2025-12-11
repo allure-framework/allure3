@@ -93,6 +93,25 @@
         "current": "Laatste",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Histogram van duur per {{groupBy}}",
+      "title_none": "Histogram van duur",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Geen",
+        "layer": "Laag"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Aantal tests"
+      }
     }
   },
   "transitions": {

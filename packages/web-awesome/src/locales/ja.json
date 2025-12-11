@@ -242,6 +242,25 @@
         "current": "最新",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "{{groupBy}}別の継続時間ヒストグラム",
+      "title_none": "継続時間ヒストグラム",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "なし",
+        "layer": "レイヤー"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "テスト数"
+      }
     }
   },
   "transitions": {

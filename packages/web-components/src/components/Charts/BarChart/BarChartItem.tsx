@@ -16,11 +16,16 @@ export interface BarChartTooltipProps<T extends BarDatum> {
 
 const BORDER_RADIUS = 4;
 const BORDER_WIDTH = 1;
-export const MAX_BAR_WIDTH = 16;
 
-export function getBarWidth(width: number) {
-  return Math.min(width, MAX_BAR_WIDTH);
-}
+const BAR_SIZE_WIDTH = {
+  s: 16,
+  m: 24,
+  l: 32,
+};
+
+export const getBarWidth = (width: number, barSize: "s" | "m" | "l") => {
+  return Math.min(width, BAR_SIZE_WIDTH[barSize]);
+};
 
 // Copy https://github.com/plouc/nivo/blob/0f5ac2fec4da359ec2baf8a8daf8a40c0ff0230d/packages/bar/src/BarItem.tsx
 // add border top, border top radius
@@ -31,9 +36,11 @@ export const BarChartItem = <T extends BarDatum>({
   ariaLabelledBy,
   ariaDescribedBy,
   legend,
+  barSize,
 }: Omit<BarItemProps<T>, "tooltip"> & {
   legend: LegendItemValue<T>[];
   indexBy: Extract<keyof T, string>;
+  barSize: "s" | "m" | "l";
 }) => {
   const { width, height, color, data, key } = bar;
   const { background: chartBackgroundColor } = useTheme();
@@ -71,7 +78,7 @@ export const BarChartItem = <T extends BarDatum>({
       return 0;
     }
 
-    return getBarWidth(value);
+    return getBarWidth(value, barSize);
   });
   const diff: number = computedWidth.toJSON() - barWidth.toJSON();
   const margin = diff < 0 ? 0 : diff / 2;
@@ -196,8 +203,8 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     innerHeight,
     tooltip,
     indexBy,
-    hasValueFn = (data: T) =>
-      Object.entries(data)
+    hasValueFn = (item: T) =>
+      Object.entries(item)
         .filter(([key]) => key !== props.indexBy)
         .reduce((acc, [, val]) => acc + toNumber(val ?? 0), 0) > 0,
   } = props;
@@ -264,8 +271,6 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
 };
 
 const BarChartItemHoverArea = <T extends BarDatum>({
-  absX,
-  absY,
   x,
   width,
   height,
@@ -330,7 +335,7 @@ const BarChartItemHoverArea = <T extends BarDatum>({
       onTooltipShow(event.target as HTMLElement, value);
       setHoverState(String(indexByValue));
     },
-    [onTooltipShow, value, absX, width, absY, setHoverState, indexByValue],
+    [onTooltipShow, value, setHoverState, indexByValue],
   );
 
   const handleBlur = useCallback(

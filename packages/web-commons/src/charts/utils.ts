@@ -3,13 +3,14 @@ import type {
   CurrentStatusChartData,
   StatusTransitionsChartData,
   StatusDynamicsChartData,
+  DurationsChartData,
 } from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
-import { generateLayerColors, resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
+import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsDataWithEnvs,
@@ -155,21 +156,6 @@ export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: Chart
     () => statusChangeColors,
   );
 
-export const createDurationsByLayerBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  // Extract layer names from chart data
-  const layerNames = chart.keys as string[];
-
-  return {
-    ...chart,
-    colors: generateLayerColors(layerNames),
-  };
-};
-
 export const createFbsuAgePyramidBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
   const chart = res[chartId] as ResponseBarChartData | undefined;
   if (!chart) {
@@ -305,8 +291,6 @@ export const createBarChartData = (
       return createStatusBySeverityBarChartData(chartId, res);
     case BarChartType.StatusChangeTrend:
       return createStatusChangeTrendBarChartData(chartId, res);
-    case BarChartType.DurationsByLayer:
-      return createDurationsByLayerBarChartData(chartId, res);
     case BarChartType.FbsuAgePyramid:
       return createFbsuAgePyramidBarChartData(chartId, res);
     case BarChartType.StabilityRateDistribution:
@@ -349,6 +333,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as StatusDynamicsChartData;
       } else if (chart.type === ChartType.StatusTransitions) {
         acc[chartId] = res[chartId] as StatusTransitionsChartData;
+      } else if (chart.type === ChartType.Durations) {
+        acc[chartId] = res[chartId] as DurationsChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

@@ -93,6 +93,25 @@
         "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "{{groupBy}} görə müddət histogramı",
+      "title_none": "Müddət histogramı",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Yoxdur",
+        "layer": "Qat"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Test sayı"
+      }
     }
   },
   "transitions": {

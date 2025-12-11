@@ -45,9 +45,14 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Stability rate distribution",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.DurationsByLayer,
+    type: ChartType.Durations,
+    title: "Durations histogram",
+    groupBy: "none",
+  },
+  {
+    type: ChartType.Durations,
     title: "Durations by layer histogram",
+    groupBy: "layer",
   },
   {
     type: ChartType.Bar,

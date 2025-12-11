@@ -250,6 +250,25 @@
         "current": "Wcześniejsze",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Histogram czasu trwania według {{groupBy}}",
+      "title_none": "Histogram czasu trwania",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Brak",
+        "layer": "Warstwa"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Liczba testów"
+      }
     }
   },
   "transitions": {

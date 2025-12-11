@@ -1,9 +1,9 @@
-import { BarCustomLayerProps, BarDatum } from "@nivo/bar";
+import type { BarCustomLayerProps, BarDatum } from "@nivo/bar";
 import { curveFromProp, useMotionConfig } from "@nivo/core";
 import { animated, useSpring } from "@react-spring/web";
 import { line } from "d3-shape";
 import { useMemo } from "preact/hooks";
-import { LegendItemValue } from "../Legend/LegendItem/types";
+import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { getBarWidth } from "./BarChartItem";
 
 const STROKE_WIDTH = 2;
@@ -16,9 +16,10 @@ export const TrendLinesLayer = <T extends BarDatum>(
     minValue?: number;
     maxValue?: number;
     hideEmptyTrendLines?: boolean;
+    barSize: "s" | "m" | "l";
   },
 ) => {
-  const { legend, bars, trendKeys, hideEmptyTrendLines } = props;
+  const { legend, bars, trendKeys, hideEmptyTrendLines, barSize } = props;
 
   const barsCount = Math.max(...bars.map((bar) => bar.data.index + 1));
 
@@ -30,21 +31,21 @@ export const TrendLinesLayer = <T extends BarDatum>(
         bars: bars.filter((bar) => bar.data.id === trendKey),
         key: trendKey,
       }))
-      .filter(({ bars }) => !hideEmptyTrendLines || !bars.every((bar) => bar.data.value === 0))
-      .map(({ bars, key }) => {
+      .filter(({ bars: trendBars }) => !hideEmptyTrendLines || !trendBars.every((bar) => bar.data.value === 0))
+      .map(({ bars: trendBars, key }) => {
         const color = legendMap.get(key)?.color ?? "";
 
-        const firstX = Math.min(...bars.map((bar) => bar.x));
-        const lastX = Math.max(...bars.map((bar) => bar.x));
+        const firstX = Math.min(...trendBars.map((bar) => bar.x));
+        const lastX = Math.max(...trendBars.map((bar) => bar.x));
 
         return {
           key,
           color,
-          points: bars.map((bar) => {
+          points: trendBars.map((bar) => {
             const isBlank = bar.data.value === 0;
 
             const barCenter = bar.x + bar.width / 2;
-            const halfBarWidth = getBarWidth(bar.width) / 2;
+            const halfBarWidth = getBarWidth(bar.width, barSize) / 2;
             let x = barCenter;
 
             if (bar.x === firstX) {
@@ -73,7 +74,7 @@ export const TrendLinesLayer = <T extends BarDatum>(
       });
 
     for (let i = 0; i < barsCount; i++) {
-      const points = lines.map((line) => line.points[i]);
+      const points = lines.map((l) => l.points[i]);
 
       if (points.length === 0) {
         continue;
@@ -92,7 +93,7 @@ export const TrendLinesLayer = <T extends BarDatum>(
       });
     }
     return lines;
-  }, [bars, trendKeys, hideEmptyTrendLines]);
+  }, [bars, trendKeys, hideEmptyTrendLines, barSize, barsCount, legend]);
 
   return (
     <animated.g data-testid="trend-lines-layer" style={{ pointerEvents: "none" }}>
