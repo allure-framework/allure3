@@ -438,12 +438,15 @@ export const generateGlobals = async (
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
   },
 ) => {
-  const { globalExitCode = { original: 0 }, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const { globalExitCode, globalAttachments = [], globalErrors = [], contentFunction } = payload;
   const globals: PluginGlobals = {
-    exitCode: globalExitCode,
     errors: globalErrors,
     attachments: [],
   };
+
+  if (globalExitCode) {
+    globals.exitCode = globalExitCode;
+  }
 
   for (const attachment of globalAttachments) {
     const src = `${attachment.id}${attachment.ext}`;
