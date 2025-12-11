@@ -223,12 +223,37 @@
         "current": "Neueste",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Statusübergänge",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Neuester Bericht ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Bericht vom {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Neueste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
-    "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
-    "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
-    "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist"
+  "transitions": {
+    "description": {
+      "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
+      "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
+      "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
+      "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist"
+    },
+    "new": "Neu",
+    "fixed": "Behoben",
+    "regressed": "Regressiert",
+    "malfunctioned": "Defekt"
   }
 }

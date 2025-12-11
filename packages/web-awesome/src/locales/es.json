@@ -223,12 +223,37 @@
         "current": "Reciente",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Transiciones de estado",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Último informe ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Informe del {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Reciente",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Primera aparición de este resultado de prueba en el informe",
-    "fixed": "Prueba que anteriormente \"falló\" o estaba \"rota\" y ahora está \"aprobada\"",
-    "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
-    "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\""
+  "transitions": {
+    "description": {
+      "new": "Primera aparición de este resultado de prueba en el informe",
+      "fixed": "Prueba que anteriormente \"falló\" o estaba \"rota\" y ahora está \"aprobada\"",
+      "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
+      "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\""
+    },
+    "new": "Nuevo",
+    "fixed": "Corregido",
+    "regressed": "Regresado",
+    "malfunctioned": "Defectuoso"
   }
 }

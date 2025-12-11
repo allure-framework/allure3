@@ -223,12 +223,37 @@
         "current": "Laatste",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Statusovergangen",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
-    "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
-    "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
-    "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is"
+  "transitions": {
+    "description": {
+      "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
+      "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
+      "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
+      "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is"
+    },
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect"
   }
 }

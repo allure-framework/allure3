@@ -9,6 +9,7 @@ import type {
   ChartType,
   FunnelChartType,
   HeatMapSerie,
+  StatusTransitionsChartData,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
@@ -134,7 +135,7 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
 
 export type UICurrentStatusChartData = CurrentStatusChartData;
 export type UIStatusDynamicsChartData = StatusDynamicsChartData;
-
+export type UIStatusTransitionsChartData = StatusTransitionsChartData;
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
   xAxisConfig?: {
@@ -187,6 +188,7 @@ export type ChartData<
   | ResponseTrendChartData<SeriesType, Metadata>
   | CurrentStatusChartData
   | StatusDynamicsChartData
+  | StatusTransitionsChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
@@ -201,7 +203,8 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UIComingSoonChartData
   | UITreeMapChartData
   | UIHeatMapChartData
-  | UITestingPyramidChartData;
+  | UITestingPyramidChartData
+  | UIStatusTransitionsChartData;
 
 export type ChartsData<
   SeriesType extends string = string,

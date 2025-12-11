@@ -13,6 +13,7 @@ import {
   PageLoader,
   StabilityRateDistributionWidget,
   StatusDynamicsChartWidget,
+  StatusTransitionsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -67,6 +68,19 @@ const getChartWidgetByType = (
           limit={chartData.limit}
           statuses={chartData.statuses}
           i18n={(key, props = {}) => t(`statusDynamics.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.StatusTransitions: {
+      const title = chartData.title ?? t("statusTransitions.title");
+
+      return (
+        <StatusTransitionsChartWidget
+          title={title}
+          data={chartData.data}
+          lines={chartData.lines}
+          hideEmptyLines={chartData.hideEmptyLines}
+          i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
         />
       );
     }

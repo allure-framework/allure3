@@ -223,12 +223,37 @@
         "current": "ბოლო",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "სტატუსის გადასვლები",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "ბოლო ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} ანგარიში"
+      },
+      "ticks": {
+        "current": "ბოლო",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "ამ ტესტის შედეგის პირველი გამოჩენა ანგარიშში",
-    "fixed": "ადრე \"წარუმატებელი\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარმატებული\"ა",
-    "regressed": "ადრე \"წარმატებული\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარუმატებელი\"ა",
-    "malfunctioned": "ადრე \"წარმატებული\" ან \"წარუმატებელი\" ტესტი, რომელიც ახლა \"დამტვრეული\"ა"
+  "transitions": {
+    "description": {
+      "new": "ამ ტესტის შედეგის პირველი გამოჩენა ანგარიშში",
+      "fixed": "ადრე \"წარუმატებელი\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარმატებული\"ა",
+      "regressed": "ადრე \"წარმატებული\" ან \"დამტვრეული\" ტესტი, რომელიც ახლა \"წარუმატებელი\"ა",
+      "malfunctioned": "ადრე \"წარმატებული\" ან \"წარუმატებელი\" ტესტი, რომელიც ახლა \"დამტვრეული\"ა"
+    },
+    "new": "ახალი",
+    "fixed": "გასწორებული",
+    "regressed": "რეგრესია",
+    "malfunctioned": "დაზიანებული"
   }
 }

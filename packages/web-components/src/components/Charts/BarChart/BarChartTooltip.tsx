@@ -1,7 +1,7 @@
 import type { BarDatum } from "@nivo/bar";
-import { ChartTooltip } from "../../ChartTooltip";
-import { LegendItem, isPresent } from "../../Legend/LegendItem";
-import type { LegendItemValue } from "../../Legend/LegendItem/types";
+import { ChartTooltip } from "../ChartTooltip";
+import { LegendItem, isPresent } from "../Legend/LegendItem";
+import type { LegendItemValue } from "../Legend/LegendItem/types";
 
 export interface BarChartTooltipProps<T extends BarDatum> {
   value: T;

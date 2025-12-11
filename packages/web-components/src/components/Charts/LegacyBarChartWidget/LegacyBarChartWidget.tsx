@@ -8,11 +8,14 @@ import {
   defaultBarChartAxisBottomConfig,
   defaultBarChartAxisLeftConfig,
   defaultBarChartLegendsConfig,
-} from "../BarChart/config.js";
-import { BarChart } from "../BarChart/index.js";
+} from "../LegacyBarChart/config.js";
+import { LegacyBarChart } from "../LegacyBarChart/index.js";
 import type { BarChartWidgetProps } from "./types.js";
 
-export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
+/**
+ * @deprecated Use BarChart instead
+ */
+export const LegacyBarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
   title,
   mode,
   data,
@@ -83,7 +86,7 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
 
   return (
     <Widget title={title}>
-      <BarChart
+      <LegacyBarChart
         data={data}
         height={height}
         width={width}
@@ -98,6 +101,7 @@ export const BarChartWidget: FunctionalComponent<BarChartWidgetProps> = ({
         axisLeft={yAxisConfig?.enabled === false ? undefined : yAxisComputedConfig}
         legends={[defaultBarChartLegendsConfig]}
         layout={layout}
+        // @ts-ignore
         minValue={minValue}
         maxValue={maxValue}
         valueFormat={mode === ChartMode.Diverging ? (value: number) => `${Math.abs(value)}` : undefined}

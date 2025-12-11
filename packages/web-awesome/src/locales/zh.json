@@ -223,12 +223,37 @@
         "current": "最新",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "状态转换",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的报告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "此测试结果在报告中的首次出现",
-    "fixed": "之前\"失败\"或\"损坏\"的测试现在\"通过\"了",
-    "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
-    "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了"
+  "transitions": {
+    "description": {
+      "new": "此测试结果在报告中的首次出现",
+      "fixed": "之前\"失败\"或\"损坏\"的测试现在\"通过\"了",
+      "regressed": "之前\"通过\"或\"损坏\"的测试现在\"失败\"了",
+      "malfunctioned": "之前\"通过\"或\"失败\"的测试现在\"损坏\"了"
+    },
+    "new": "新的",
+    "fixed": "已修复",
+    "regressed": "已回归",
+    "malfunctioned": "已损坏"
   }
 }

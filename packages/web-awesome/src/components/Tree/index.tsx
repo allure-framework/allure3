@@ -22,13 +22,13 @@ import * as styles from "./styles.scss";
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
-  const { t: tooltip } = useI18n("transitions.description");
+  const { t: tooltip } = useI18n("transitions");
   const { currentTab } = useTabsContext();
   const routeId = route.value.params?.testResultId;
 
   const localizers = useMemo(
     () => ({
-      tooltip,
+      tooltip: (key: string) => t(`description.${key}`),
     }),
     [tooltip],
   );

@@ -13,6 +13,7 @@ import {
   PageLoader,
   StabilityRateDistributionWidget,
   StatusDynamicsChartWidget,
+  StatusTransitionsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -75,6 +76,19 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.StatusTransitions: {
+      const title = chartData.title ?? t("statusTransitions.title");
+
+      return (
+        <StatusTransitionsChartWidget
+          title={title}
+          data={chartData.data}
+          lines={chartData.lines}
+          hideEmptyLines={chartData.hideEmptyLines}
+          i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
@@ -126,16 +140,6 @@ const getChartWidgetByType = (
         isDataEmpty = !chartData.data.some(
           (item) => chartData.keys.includes(item.groupId) && statusesList.some((status) => (item[status] ?? 0) > 0),
         );
-      }
-
-      if (chartData.dataType === BarChartType.StatusTrend) {
-        /*
-         * The data structure contains keys such as passed, failed, and broken, each associated with numeric values.
-         * To determine whether the chart should be displayed, we need to check if any value for these keys
-         * is greater than 0 in any of the data groups. If at least one of those metrics is greater than 0,
-         * the chart will be displayed; otherwise, it should be considered empty.
-         */
-        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
       }
 
       if (chartData.dataType === BarChartType.FbsuAgePyramid) {
@@ -224,6 +228,10 @@ export const Charts = () => {
       renderLoader={() => <PageLoader />}
       renderData={(data) => {
         const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+
+        if (!currentChartsData) {
+          return null;
+        }
 
         const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
           const chartWidget = getChartWidgetByType(value, { t, empty });

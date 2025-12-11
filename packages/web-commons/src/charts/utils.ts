@@ -1,4 +1,9 @@
-import type { ChartId, CurrentStatusChartData, StatusDynamicsChartData } from "@allurereport/charts-api";
+import type {
+  ChartId,
+  CurrentStatusChartData,
+  StatusTransitionsChartData,
+  StatusDynamicsChartData,
+} from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
@@ -298,8 +303,6 @@ export const createBarChartData = (
   switch (chartData.dataType) {
     case BarChartType.StatusBySeverity:
       return createStatusBySeverityBarChartData(chartId, res);
-    case BarChartType.StatusTrend:
-      return createStatusTrendBarChartData(chartId, res);
     case BarChartType.StatusChangeTrend:
       return createStatusChangeTrendBarChartData(chartId, res);
     case BarChartType.DurationsByLayer:
@@ -344,6 +347,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as CurrentStatusChartData;
       } else if (chart.type === ChartType.StatusDynamics) {
         acc[chartId] = res[chartId] as StatusDynamicsChartData;
+      } else if (chart.type === ChartType.StatusTransitions) {
+        acc[chartId] = res[chartId] as StatusTransitionsChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

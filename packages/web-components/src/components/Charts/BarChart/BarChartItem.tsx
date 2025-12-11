@@ -3,13 +3,11 @@ import { useMotionConfig } from "@nivo/core";
 import { useTheme } from "@nivo/theming";
 import { animated, to, useSpring } from "@react-spring/web";
 import { toNumber } from "lodash";
-import type { FunctionalComponent } from "preact";
 import { createElement } from "preact";
 import { createPortal } from "preact/compat";
-import { useCallback, useId, useMemo } from "preact/hooks";
+import { useCallback, useId } from "preact/hooks";
 import { useTooltip } from "@/components/Charts/hooks/useTooltip";
-import { isPresent } from "../../Legend/LegendItem";
-import type { LegendItemValue } from "../../Legend/LegendItem/types";
+import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { useBarChartState } from "./context";
 
 export interface BarChartTooltipProps<T extends BarDatum> {
@@ -18,29 +16,52 @@ export interface BarChartTooltipProps<T extends BarDatum> {
 
 const BORDER_RADIUS = 4;
 const BORDER_WIDTH = 1;
+export const MAX_BAR_WIDTH = 16;
+
+export function getBarWidth(width: number) {
+  return Math.min(width, MAX_BAR_WIDTH);
+}
 
 // Copy https://github.com/plouc/nivo/blob/0f5ac2fec4da359ec2baf8a8daf8a40c0ff0230d/packages/bar/src/BarItem.tsx
 // add border top, border top radius
 export const BarChartItem = <T extends BarDatum>({
   bar,
   style,
-  isFocusable,
   ariaLabel,
   ariaLabelledBy,
   ariaDescribedBy,
   legend,
 }: Omit<BarItemProps<T>, "tooltip"> & {
   legend: LegendItemValue<T>[];
+  indexBy: Extract<keyof T, string>;
 }) => {
-  const { width, height, color, data } = bar;
-  const orders: LegendItemValue<T>[] = legend.filter((item) => isPresent(data.data[item.id]));
-  const lastOrderId = orders[orders.length - 1]?.id;
-  const isTopBar = data.id === lastOrderId;
-  const isSmallBar = height < BORDER_RADIUS;
-  const barsCount = orders.length;
+  const { width, height, color, data, key } = bar;
   const { background: chartBackgroundColor } = useTheme();
 
-  const hasBorder = height > 0 && barsCount > 1 && !isTopBar;
+  const isBelowZero = data.value < 0;
+
+  const orders: LegendItemValue<T>[] = legend.filter((item) => {
+    if (!(item.id in data.data)) {
+      return false;
+    }
+
+    const itemValue = Number(item.value ?? 0) ?? 0;
+
+    // If this bar is on opposite side of zero,
+    // we need to filter out the legend items that are on the same side
+    if (isBelowZero) {
+      return itemValue < 0;
+    }
+
+    return itemValue >= 0;
+  });
+  const lastOrderId = orders[orders.length - 1]?.id;
+  const firstOrderId = orders[0]?.id;
+
+  const isTopBar = data.id === lastOrderId;
+  const isLastBar = data.id === firstOrderId;
+
+  const isSmallBar = height < BORDER_RADIUS;
 
   const id = useId();
 
@@ -50,65 +71,114 @@ export const BarChartItem = <T extends BarDatum>({
       return 0;
     }
 
-    return Math.min(value, 16);
+    return getBarWidth(value);
   });
   const diff: number = computedWidth.toJSON() - barWidth.toJSON();
   const margin = diff < 0 ? 0 : diff / 2;
 
   const borderRadius = isSmallBar ? BORDER_RADIUS / 2 : BORDER_RADIUS;
 
+  const hasTopBorderRadius = isTopBar && !isBelowZero;
+  const hasGap = !hasTopBorderRadius;
+
+  const hasBottomBorderRadius = isLastBar && isBelowZero;
+  const hasBorderRadius = hasTopBorderRadius || hasBottomBorderRadius;
+
+  const borderWidth = BORDER_WIDTH > height ? height : BORDER_WIDTH;
+
+  if (height === 0) {
+    return null;
+  }
+
   return (
-    <>
-      <animated.g transform={style.transform} pointerEvents="none">
-        <defs>
-          <clipPath id={`clip-${id}`}>
-            {isTopBar ? (
-              <>
-                {/* Add border radius */}
-                <animated.rect
-                  x={margin}
-                  y={0}
-                  width={barWidth}
-                  height={borderRadius * 2} // Rounding height
-                  rx={borderRadius}
-                  ry={borderRadius}
-                />
-                {/* Remove bottom border radius */}
-                <animated.rect
-                  x={margin}
-                  y={borderRadius}
-                  width={barWidth}
-                  height={to(height - borderRadius, (value) => Math.max(value, 0))}
-                />
-              </>
-            ) : (
+    <animated.g key={key} transform={style.transform} pointerEvents="none" data-testid="bar-chart-item" data-id={key}>
+      <defs>
+        <clipPath id={`clip-${id}`}>
+          {
+            /* Adds top border radius */
+            hasTopBorderRadius && (
+              <animated.rect
+                x={margin}
+                y={0}
+                width={barWidth}
+                height={borderRadius * 2} // Rounding height
+                rx={borderRadius}
+                ry={borderRadius}
+              />
+            )
+          }
+          {
+            /* Adds bottom border radius */
+            hasBottomBorderRadius && (
+              <animated.rect
+                x={margin}
+                y={height - borderRadius * 2}
+                width={barWidth}
+                height={borderRadius * 2} // Rounding height
+                rx={borderRadius}
+                ry={borderRadius}
+              />
+            )
+          }
+          {
+            /* clip nothing */
+            !hasBorderRadius && (
               <animated.rect
                 x={margin}
                 y={0}
                 width={barWidth}
                 height={to(height, (value) => Math.max(value, 0))} // Rounding height
               />
-            )}
-          </clipPath>
-        </defs>
-        <animated.rect
-          x={margin}
-          width={barWidth}
-          height={to(height, (value) => Math.max(value, 0))}
-          fill={color}
-          focusable={isFocusable}
-          tabIndex={isFocusable ? 0 : undefined}
-          aria-label={ariaLabel ? ariaLabel(data) : undefined}
-          aria-labelledby={ariaLabelledBy ? ariaLabelledBy(data) : undefined}
-          aria-describedby={ariaDescribedBy ? ariaDescribedBy(data) : undefined}
-          clipPath={`url(#clip-${id})`}
-        />
-        {/* Top border */}
-        {hasBorder && (
-          <animated.rect x={margin} y={0} width={barWidth} height={BORDER_WIDTH} fill={chartBackgroundColor} />
-        )}
-      </animated.g>
-    </>
+            )
+          }
+          {
+            /* Removes bottom border radius */
+            hasTopBorderRadius && (
+              <animated.rect
+                x={margin}
+                y={borderRadius}
+                width={barWidth}
+                height={to(height - borderRadius, (value) => Math.max(value, 0))}
+              />
+            )
+          }
+          {
+            /* Removes top border radius */
+            hasBottomBorderRadius && (
+              <animated.rect
+                x={margin}
+                y={0}
+                width={barWidth}
+                height={to(height - borderRadius, (value) => Math.max(value, 0))}
+              />
+            )
+          }
+        </clipPath>
+      </defs>
+      <animated.rect
+        x={margin}
+        width={barWidth}
+        height={to(height, (value) => Math.max(value, 0))}
+        fill={color}
+        aria-label={ariaLabel ? ariaLabel(data) : undefined}
+        aria-labelledby={ariaLabelledBy ? ariaLabelledBy(data) : undefined}
+        aria-describedby={ariaDescribedBy ? ariaDescribedBy(data) : undefined}
+        clipPath={`url(#clip-${id})`}
+      />
+      {
+        /* Adds gap to the bar to separate it from the bar above */
+        hasGap && (
+          <animated.rect
+            x={margin}
+            // -borderWidth / 2 to center the gap
+            y={-borderWidth / 2}
+            width={barWidth}
+            height={borderWidth}
+            fill={chartBackgroundColor}
+          />
+        )
+      }
+    </animated.g>
   );
 };
 
@@ -156,7 +226,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
   }
 
   return (
-    <>
+    <animated.g data-testid="hover-layer">
       {bars.map((bar, index) => {
         const x = bar.x - diff / 2;
 
@@ -189,7 +259,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
         </animated.div>,
         document.body,
       )}
-    </>
+    </animated.g>
   );
 };
 
@@ -225,8 +295,10 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   const isHovered = hoverState === String(indexByValue);
 
   const { fill: animatedFill } = useSpring({
-    fill: isHovered ? "var(--bg-control-flat-medium)" : "transparent",
-    config: motionConfig,
+    from: { fill: "#ffffff00" },
+    to: { fill: "var(--bg-control-flat-medium)" },
+    config: { ...motionConfig, duration: 150 },
+    reverse: !isHovered,
     immediate: !animate,
   });
 

@@ -223,12 +223,37 @@
         "current": "Senast",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "statusTransitions": {
+      "title": "Statusövergångar",
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
-  "transitions.description": {
-    "new": "Första förekomsten av detta testresultat i rapporten",
-    "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
-    "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
-    "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\""
+  "transitions": {
+    "description": {
+      "new": "Första förekomsten av detta testresultat i rapporten",
+      "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
+      "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
+      "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\""
+    },
+    "new": "Ny",
+    "fixed": "Åtgärdad",
+    "regressed": "Regresserad",
+    "malfunctioned": "Felaktig"
   }
 }
