@@ -39,12 +39,11 @@ export const Menu = (props: {
     size = "m",
     isInitialOpened = false,
     placement = "bottom-end",
+    ...rest
   } = props;
-
   const [isOpened, setIsOpened] = useState(isInitialOpened);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-
   const handleTriggerClick = () => {
     setIsOpened(!isOpened);
   };
@@ -62,7 +61,6 @@ export const Menu = (props: {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpened]);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!isOpened) {
@@ -86,7 +84,6 @@ export const Menu = (props: {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [isOpened]);
-
   useEffect(() => {
     const updatePosition = () => {
       if (!menuRef.current && !triggerRef.current) {
@@ -132,7 +129,7 @@ export const Menu = (props: {
           </MenuTriggerWrapper>
         )}
         {createPortal(
-          <div ref={menuRef}>
+          <div ref={menuRef} {...rest}>
             {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
           </div>,
           document.body,
@@ -160,6 +157,7 @@ type ItemProps = {
   closeMenuOnClick?: boolean;
   ariaLabel?: string;
   setIsOpened?: (isOpened: boolean) => void;
+  dataTestId?: string;
 };
 
 Menu.Item = (props: ItemProps) => {
@@ -168,7 +166,6 @@ Menu.Item = (props: ItemProps) => {
   const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
   const isInteractive = typeof onClick === "function";
   const hasLeadingIcon = typeof leadingIcon === "string";
-
   const handleItemClick = (e: MouseEvent) => {
     if (isInteractive && closeMenuOnClick) {
       e.stopPropagation();
@@ -205,6 +202,7 @@ Menu.ItemWithCheckmark = (
   },
 ) => {
   const { isChecked = false, ...itemProps } = props;
+
   return (
     <Menu.Item {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
   );
