@@ -4,14 +4,57 @@ import type { Unknown } from "./validation.js";
 const LINE_SPLIT_PATTERN = /\r\n|\r|\n/;
 
 export type ProcessRunOptions = {
+  /**
+   * An expected exit code or an exit code validation function.
+   */
   exitCode?: number | ((code: number) => boolean);
+
+  /**
+   * An stdout encoding. If specified, tool runner functions will emit stdout as strings.
+   */
   encoding?: BufferEncoding;
+
+  /**
+   * An stderr encoding. If specified, tool runner functions will emit stderr as strings.
+   */
   stderrEncoding?: BufferEncoding;
+
+  /**
+   * If set to a number greater than zero, sends the timeout signal to the tool process after the specified amount
+   * of milliseconds.
+   */
   timeout?: number;
+
+  /**
+   * A signal to send when the timeout is reached. `"SIGTERM"` by default.
+   */
   timeoutSignal?: NodeJS.Signals;
+
+  /**
+   * If set to `true`, no stderr is captured. Otherwise, stderr will be reported as a part of `Error`
+   * in case the tool fails.
+   */
   ignoreStderr?: boolean;
 };
 
+/**
+ * Runs a CLI tool ignoring its stdout. Useful for tools that produces the output as files or communicate
+ * it by other means than via stdout.
+ * @param executable A path to the tool. If it's the name of the executable, it must be available in `PATH`.
+ * @param args An array of CLI arguments to pass to the tool.
+ * @param param2 Tool invocation options.
+ * @example
+ * ```ts
+ * const ensureNodeInstalled = () => {
+ *   try {
+ *     await invokeCliTool("node", ["--help"], { ignoreStderr: true });
+ *   } catch (e) {
+ *     console.log("Node.js is not installed!");
+ *   }
+ *   console.log("Node.js is installed");
+ * };
+ * ```
+ */
 export const invokeCliTool = async (
   executable: string,
   args: readonly string[],
@@ -20,7 +63,7 @@ export const invokeCliTool = async (
   const toolProcess = spawn(executable, args, {
     stdio: ["ignore", "ignore", ignoreStderr ? "ignore" : "pipe"],
     shell: false,
-    timeout: timeout,
+    timeout,
     killSignal: timeoutSignal,
   });
 
@@ -63,6 +106,22 @@ export const invokeCliTool = async (
 
 type ResolveCliOutput<T> = T extends { encoding: BufferEncoding } ? string : Buffer;
 
+/**
+ * Invokes a CLI tool that communicates its result via stdout.
+ * @param executable A path to the tool. If it's the name of the executable, it must be available in `PATH`.
+ * @param args An array of CLI arguments to pass to the tool.
+ * @param options Tool invocation options.
+ * @returns An async generator. If `encoding` is set, the generator produces stdout lines as strings. Otherwise,
+ * it produces instances of `Buffer` as they are emitted by Node.js.
+ * @example
+ * ```ts
+ * const getNodeVersion = async () => {
+ *   for await (const line of invokeStdoutCliTool("node", ["--version"], { encoding: "utf-8" })) {
+ *     console.log(`Node.js version is ${line}`);
+ *   }
+ * };
+ * ```
+ */
 export const invokeStdoutCliTool = async function* <T extends ProcessRunOptions | undefined>(
   executable: string,
   args: readonly string[],
@@ -197,22 +256,52 @@ export const invokeStdoutCliTool = async function* <T extends ProcessRunOptions 
   }
 };
 
-export const invokeTextStdoutCliTool = async function* (
+/**
+ * Invokes a CLI tool and collects its output in a single string using an encoding of choice.
+ * @param executable A path to the tool. If it's the name of the executable, it must be available in `PATH`.
+ * @param args An array of CLI arguments to pass to the tool.
+ * @param options Tool invocation options. If `encoding` is not specified, `UTF-8` is used by default.
+ * @returns A string containing the exact stdout of the tool.
+ * @example
+ * ```ts
+ * const getNodeVersion = async () => {
+ *   return await collectCliToolStdoutText("node", ["--version"]);
+ * };
+ * ```
+ */
+export const collectCliToolStdoutText = async (
   executable: string,
   args: readonly string[],
   options: ProcessRunOptions = {},
-) {
-  yield* invokeStdoutCliTool(executable, args, { encoding: "utf-8", ...options });
+) => {
+  const { encoding = "utf-8", ...rest } = options;
+  const chunks: Buffer[] = [];
+  for await (const chunk of invokeStdoutCliTool(executable, args, rest)) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString(encoding);
 };
 
+/**
+ * Invokes a CLI tool and parses its stdout as a single JSON element.
+ * @param executable A path to the tool. If it's the name of the executable, it must be available in `PATH`.
+ * @param args An array of CLI arguments to pass to the tool.
+ * @param options Tool invocation options. If `encoding` is not specified, `UTF-8` is used by default.
+ * @returns A value parsed from the JSON stdout of the tool.
+ * @example
+ * const sayHello = async () => {
+ *   const { message } = await invokeJsonCliTool(
+ *     "node",
+ *     ["-e", "console.log('{ \"message\": \"Hello from Node.js!\" }')"],
+ *   );
+ *   console.log(message);
+ * };
+ */
 export const invokeJsonCliTool = async <T>(
   tool: string,
   args: readonly string[],
   options: ProcessRunOptions = {},
 ): Promise<Unknown<T>> => {
-  const lines: string[] = [];
-  for await (const line of invokeTextStdoutCliTool(tool, args, options)) {
-    lines.push(line);
-  }
-  return JSON.parse(lines.join(""));
+  const text = await collectCliToolStdoutText(tool, args, options);
+  return JSON.parse(text);
 };

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   type ProcessRunOptions,
+  collectCliToolStdoutText,
   invokeJsonCliTool,
   invokeStdoutCliTool,
-  invokeTextStdoutCliTool,
 } from "../src/toolRunner.js";
 
-describe("invokeTextStdoutCliTool", () => {
+describe("invokeStdoutCliTool", () => {
   it("should stop with a timeout", async () => {
     await expect(
       invokeStdoutCliTool("node", ["-e", "setTimeout(() => {}, 1000);"], { timeout: 10 }).next(),
@@ -99,7 +99,7 @@ describe("invokeTextStdoutCliTool", () => {
           };
           write();
         `),
-      ).toEqual(Buffer.from([...new Array(100).keys()]));
+      ).toEqual(Buffer.from([...Array.from(new Array(100).keys())]));
     });
   });
 
@@ -120,7 +120,7 @@ describe("invokeTextStdoutCliTool", () => {
       expect(await collectAsync("console.log('Hello, world')")).toEqual(["Hello, world"]);
     });
 
-    it("should iterate over a multiple lines", async () => {
+    it("should iterate over multiple lines", async () => {
       expect(
         await collectAsync(`
         console.log("Lorem Ipsum");
@@ -150,96 +150,93 @@ describe("invokeTextStdoutCliTool", () => {
   });
 });
 
-describe("invokeTextStdoutCliTool", () => {
-  const collectAsync = async (code: string, options: ProcessRunOptions = {}) => {
-    const lines: string[] = [];
-    for await (const line of invokeTextStdoutCliTool("node", ["-e", code], options)) {
-      lines.push(line);
-    }
-    return lines;
-  };
-
+describe("collectCliToolStdoutText", () => {
   it("should iterate empty output", async () => {
-    expect(await collectAsync("")).toEqual([]);
+    expect(await collectCliToolStdoutText("node", ["-e", ""])).toEqual("");
   });
 
   it("should iterate over a single line", async () => {
-    expect(await collectAsync("console.log('Hello, world')")).toEqual(["Hello, world"]);
+    expect(await collectCliToolStdoutText("node", ["-e", "console.log('Hello, world')"])).toEqual("Hello, world\n");
   });
 
-  it("should iterate over a multiple lines", async () => {
+  it("should iterate over multiple lines", async () => {
     expect(
-      await collectAsync(`
-        console.log("Lorem Ipsum");
-        console.log("Dolor Sit Amet,");
-        console.log("Consectetur Adipiscing Elit");
-      `),
-    ).toEqual(["Lorem Ipsum", "Dolor Sit Amet,", "Consectetur Adipiscing Elit"]);
+      await collectCliToolStdoutText("node", [
+        "-e",
+        `
+          console.log("Lorem Ipsum");
+          console.log("Dolor Sit Amet,");
+          console.log("Consectetur Adipiscing Elit");
+        `,
+      ]),
+    ).toEqual("Lorem Ipsum\nDolor Sit Amet,\nConsectetur Adipiscing Elit\n");
   });
 
   it("should emit unterminated line", async () => {
-    expect(await collectAsync("process.stdout.write('Lorem Ipsum');")).toEqual(["Lorem Ipsum"]);
+    expect(await collectCliToolStdoutText("node", ["-e", "process.stdout.write('Lorem Ipsum');"])).toEqual(
+      "Lorem Ipsum",
+    );
   });
 
   it("should stop with a timeout", async () => {
     await expect(
-      invokeTextStdoutCliTool("node", ["-e", "setTimeout(() => {}, 1000);"], { timeout: 10 }).next(),
+      collectCliToolStdoutText("node", ["-e", "setTimeout(() => {}, 1000);"], { timeout: 10 }),
     ).rejects.toThrow("node was terminated by timeout (10 ms)");
   });
 
   it("should stop with a specific timeout signal", async () => {
     await expect(
-      invokeTextStdoutCliTool(
+      collectCliToolStdoutText(
         "node",
         ["-e", "process.on('SIGTERM', () => { return false; }); setTimeout(() => {}, 1000);"],
         {
           timeout: 50,
           timeoutSignal: "SIGINT",
         },
-      ).next(),
+      ),
     ).rejects.toThrow("node was terminated by timeout (50 ms)");
   });
 
   it("should throw on non-zero exit code", async () => {
-    await expect(invokeTextStdoutCliTool("node", ["-e", "process.exit(1)"]).next()).rejects.toThrow(
+    await expect(collectCliToolStdoutText("node", ["-e", "process.exit(1)"])).rejects.toThrow(
       "node finished with an unexpected exit code 1",
     );
   });
 
   it("should accept a user-defined exit code", async () => {
-    await expect(
-      invokeTextStdoutCliTool("node", ["-e", "process.exit(1)"], { exitCode: 1 }).next(),
-    ).resolves.toMatchObject({ done: true });
+    await expect(collectCliToolStdoutText("node", ["-e", "process.exit(1)"], { exitCode: 1 })).resolves.toEqual("");
   });
 
   it("should accept if a user-defined exit code predicate returns true", async () => {
     await expect(
-      invokeTextStdoutCliTool("node", ["-e", "process.exit(1)"], { exitCode: (e) => e > 0 }).next(),
-    ).resolves.toMatchObject({ done: true });
+      collectCliToolStdoutText("node", ["-e", "process.exit(1)"], { exitCode: (e) => e > 0 }),
+    ).resolves.toEqual("");
   });
 
   it("should throw if a user-defined exit code predicate returns false", async () => {
-    await expect(invokeTextStdoutCliTool("node", ["-e", ""], { exitCode: (e) => e > 0 }).next()).rejects.toThrow(
+    await expect(collectCliToolStdoutText("node", ["-e", ""], { exitCode: (e) => e > 0 })).rejects.toThrow(
       "node finished with an unexpected exit code 0",
     );
   });
 
   it("shows stderr if failed", async () => {
-    await expect(
-      invokeTextStdoutCliTool("node", ["-e", "console.error('foo'); process.exit(1);"]).next(),
-    ).rejects.toThrow("node finished with an unexpected exit code 1\n\nStandard error:\n\nfoo\n");
+    await expect(collectCliToolStdoutText("node", ["-e", "console.error('foo'); process.exit(1);"])).rejects.toThrow(
+      "node finished with an unexpected exit code 1\n\nStandard error:\n\nfoo\n",
+    );
   });
 
   it("ignores stderr if ignoreStderr is set", async () => {
     await expect(
-      invokeTextStdoutCliTool("node", ["-e", "console.error('foo'); process.exit(1);"], { ignoreStderr: true }).next(),
+      collectCliToolStdoutText("node", ["-e", "console.error('foo'); process.exit(1);"], { ignoreStderr: true }),
     ).rejects.toThrow(/^node finished with an unexpected exit code 1$/);
   });
 
   it("should use the specified encoding to decode stdout", async () => {
-    expect(await collectAsync("process.stdout.write(Buffer.from([0xAC, 0x20]));", { encoding: "utf-16le" })).toEqual([
-      "€",
-    ]);
+    expect(
+      await collectCliToolStdoutText("node", ["-e", "process.stdout.write(Buffer.from([0xAC, 0x20]));"], {
+        encoding: "utf-16le",
+      }),
+    ).toEqual("€");
   });
 });
 

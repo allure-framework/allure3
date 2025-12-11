@@ -1,8 +1,7 @@
+import { invokeStdoutCliTool, isDefined } from "@allurereport/reader-api";
 import { lstat } from "node:fs/promises";
 import { platform } from "node:os";
 import path from "node:path";
-import { invokeStdoutCliTool } from "../toolRunner.js";
-import { isDefined } from "../validation.js";
 
 const XCODE_INSTALL_URL =
   "https://developer.apple.com/documentation/safari-developer-tools/installing-xcode-and-simulators";

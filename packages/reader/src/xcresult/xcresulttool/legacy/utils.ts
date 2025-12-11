@@ -1,5 +1,5 @@
+import { isDefined } from "@allurereport/reader-api";
 import type { RawTestStatus } from "@allurereport/reader-api";
-import { isDefined } from "../../../validation.js";
 import type { Suite } from "./model.js";
 
 /**
