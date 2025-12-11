@@ -21,7 +21,7 @@ jobs:
         run: |
           expr "${{ github.event.inputs.releaseVersion }}" : '\(^[1-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\(-beta\.[0-9][0-9]*\)\{0,1\}\)$'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.QAMETA_CI }}
 
@@ -30,7 +30,7 @@ jobs:
           git config --global user.name qameta-ci
           git config --global user.email qameta-ci@qameta.io
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: 'yarn'
