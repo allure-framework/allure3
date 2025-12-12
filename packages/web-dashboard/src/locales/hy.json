@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "Թեստերի քանակ"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Կայունության բաշխում",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Կայունության գործակից"
+      }
     }
   },
   "transitions": {

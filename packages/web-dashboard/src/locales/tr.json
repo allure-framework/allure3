@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "Test sayısı"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Kararlılık dağılımı",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Kararlılık oranı"
+      }
     }
   },
   "transitions": {

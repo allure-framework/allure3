@@ -261,6 +261,13 @@
         "value": "{{value}}",
         "total": "Test sayı"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Sabitlik paylanması",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Sabitlik dərəcəsi"
+      }
     }
   },
   "transitions": {

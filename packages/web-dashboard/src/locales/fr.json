@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "Nombre de tests"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Distribution de stabilité",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Taux de stabilité"
+      }
     }
   },
   "transitions": {

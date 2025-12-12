@@ -40,9 +40,25 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Problems distribution by environment",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StabilityRateDistribution,
-    title: "Stability rate distribution",
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by features",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "feature",
+  },
+  {
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by epics",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "epic",
+  },
+  {
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by stories",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "story",
   },
   {
     type: ChartType.Durations,

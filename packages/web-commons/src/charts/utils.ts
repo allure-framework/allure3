@@ -1,15 +1,17 @@
 import type {
   ChartId,
   CurrentStatusChartData,
-  StatusTransitionsChartData,
-  StatusDynamicsChartData,
   DurationsChartData,
+  StabilityDistributionChartData,
+  StatusDynamicsChartData,
+  StatusTransitionsChartData,
 } from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
+import { nanoid } from "nanoid";
 import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
@@ -168,21 +170,6 @@ export const createFbsuAgePyramidBarChartData = (chartId: ChartId, res: ChartsDa
   };
 };
 
-export const createStabilityRateDistributionBarChartData = (
-  chartId: ChartId,
-  res: ChartsData,
-): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: {},
-  };
-};
-
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
   res: ChartsData,
@@ -293,8 +280,6 @@ export const createBarChartData = (
       return createStatusChangeTrendBarChartData(chartId, res);
     case BarChartType.FbsuAgePyramid:
       return createFbsuAgePyramidBarChartData(chartId, res);
-    case BarChartType.StabilityRateDistribution:
-      return createStabilityRateDistributionBarChartData(chartId, res);
   }
 };
 
@@ -335,6 +320,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as StatusTransitionsChartData;
       } else if (chart.type === ChartType.Durations) {
         acc[chartId] = res[chartId] as DurationsChartData;
+      } else if (chart.type === ChartType.StabilityDistribution) {
+        acc[chartId] = res[chartId] as StabilityDistributionChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {
@@ -387,4 +374,38 @@ export const createChartsWithEnvs = (res: ChartsDataWithEnvs): UIChartsDataWithE
   }
 
   return result;
+};
+
+export const createHashStorage = () => {
+  const hashes = new Map<string, string>();
+  return {
+    get: (key: string) => {
+      if (!hashes.has(key)) {
+        hashes.set(key, nanoid());
+      }
+      return hashes.get(key) as string;
+    },
+    set: (key: string, value: string) => hashes.set(key, value),
+  };
+};
+
+export const createMapWithDefault = <K, V>(defaultValue: V) => {
+  const map = new Map<K, V>();
+
+  return {
+    set: (key: K, value: V) => map.set(key, value),
+    get: (key: K) => {
+      if (!map.has(key)) {
+        map.set(key, defaultValue);
+      }
+
+      return map.get(key)!;
+    },
+    get values() {
+      return Array.from(map.values());
+    },
+    get entries() {
+      return Array.from(map.entries());
+    },
+  } as const;
 };

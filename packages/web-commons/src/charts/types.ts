@@ -10,6 +10,7 @@ import type {
   DurationsChartData,
   FunnelChartType,
   HeatMapSerie,
+  StabilityDistributionChartData,
   StatusTransitionsChartData,
   TreeMapChartType,
   TreeMapNode,
@@ -192,6 +193,7 @@ export type ChartData<
   | StatusDynamicsChartData
   | StatusTransitionsChartData
   | DurationsChartData
+  | StabilityDistributionChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
@@ -208,7 +210,8 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UIHeatMapChartData
   | UITestingPyramidChartData
   | UIStatusTransitionsChartData
-  | UIDurationsChartData;
+  | UIDurationsChartData
+  | StabilityDistributionChartData;
 
 export type ChartsData<
   SeriesType extends string = string,

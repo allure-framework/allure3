@@ -38,7 +38,7 @@ export * from "./components/Charts/TreeMapChart";
 export * from "./components/Charts/TreeMapChartWidget";
 export * from "./components/Charts/HeatMap";
 export * from "./components/Charts/HeatMapWidget";
-export * from "./components/Charts/StabilityRateDistributionWidget";
+export * from "./components/Charts/StabilityDistributionWidget";
 export * from "./components/Charts/TestingPyramidWidget";
 export * from "./components/Charts/CurrentStatusChartWidget";
 export * from "./components/Charts/StatusDynamicsChartWidget";

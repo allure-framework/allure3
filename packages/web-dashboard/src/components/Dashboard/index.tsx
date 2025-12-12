@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
+import { ChartType, FunnelChartType } from "@allurereport/charts-api";
 import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
@@ -12,7 +12,7 @@ import {
   HeatMapWidget,
   Loadable,
   PageLoader,
-  StabilityRateDistributionWidget,
+  StabilityDistributionWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
   TestingPyramidWidget,
@@ -102,28 +102,21 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.StabilityDistribution: {
+      const title = chartData.title ?? t("stabilityDistribution.title");
+
+      return (
+        <StabilityDistributionWidget
+          title={title}
+          data={chartData.data}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-
-      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
-        return (
-          <StabilityRateDistributionWidget
-            title={title}
-            mode={chartData.mode}
-            data={chartData.data}
-            keys={chartData.keys}
-            indexBy={chartData.indexBy}
-            colors={chartData.colors}
-            groupMode={chartData.groupMode}
-            xAxisConfig={chartData.xAxisConfig}
-            yAxisConfig={chartData.yAxisConfig}
-            layout={chartData.layout}
-            threshold={chartData.threshold}
-            translations={{ "no-results": empty("no-results") }}
-          />
-        );
-      }
 
       return (
         <BarChartWidget

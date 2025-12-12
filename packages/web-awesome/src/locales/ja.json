@@ -261,6 +261,13 @@
         "value": "{{value}}",
         "total": "テスト数"
       }
+    },
+    "stabilityDistribution": {
+      "title": "安定性分布",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "安定性率"
+      }
     }
   },
   "transitions": {

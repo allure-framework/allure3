@@ -6,6 +6,7 @@ import {
   type ComputedDatum,
   ResponsiveBar,
 } from "@nivo/bar";
+import type { CartesianMarkerProps } from "@nivo/core";
 import { useMemo } from "preact/hooks";
 import { Legends } from "../Legend";
 import { formatNumber } from "../Legend/LegendItem";
@@ -40,6 +41,7 @@ type BarChartProps<T extends BarDatum> = {
   minValue?: number;
   maxValue?: number;
   groupMode?: "grouped" | "stacked";
+  markers?: readonly CartesianMarkerProps<string | number>[];
 };
 
 export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
@@ -64,6 +66,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     lineKeys = [],
     hideEmptyTrendLines = true,
     bottomTickSize = 12,
+    markers = [],
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const keys = useMemo(() => [...legendMap.keys()], [legendMap]);
@@ -142,8 +145,10 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                     barSize={barSize}
                   />
                 ),
+              "markers",
               BottomAxisLine,
             ]}
+            markers={markers}
             colors={(d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? ""}
             enableLabel={false}
             enableTotals={false}

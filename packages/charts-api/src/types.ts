@@ -6,6 +6,7 @@ export enum ChartType {
   CurrentStatus = "currentStatus",
   StatusDynamics = "statusDynamics",
   StatusTransitions = "statusTransitions",
+  StabilityDistribution = "stabilityDistribution",
   Durations = "durations",
   TreeMap = "treemap",
   HeatMap = "heatmap",
@@ -30,7 +31,6 @@ export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusChangeTrend = "statusChangeTrend",
   FbsuAgePyramid = "fbsuAgePyramid",
-  StabilityRateDistribution = "stabilityRateDistribution",
 }
 
 export enum FunnelChartType {
@@ -290,6 +290,39 @@ export interface DurationsChartData {
   groupBy: "layer" | "none";
 }
 
+export interface StabilityDistributionChartData {
+  type: ChartType.StabilityDistribution;
+  title?: string;
+  /**
+   * Buckets of test results by duration
+   */
+  data: {
+    /**
+     * as key ID from the `keys` map
+     */
+    id: string;
+    /**
+     * Stability rate
+     *
+     * as percentage like 0.90
+     */
+    stabilityRate: number;
+  }[];
+  /**
+   * Map of key IDs to key names
+   */
+  keys: { [id: string]: string };
+  /**
+   * Threshold for the stability rate
+   *
+   * if the stability rate is less than the threshold,
+   * the feature will be marked as unstable
+   *
+   * @default 90
+   */
+  threshold?: number;
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -298,6 +331,7 @@ export type GeneratedChartData =
   | StatusDynamicsChartData
   | StatusTransitionsChartData
   | DurationsChartData
+  | StabilityDistributionChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -396,6 +430,49 @@ export type DurationsChartOptions = {
   groupBy?: "layer" | "none";
 };
 
+export type StabilityDistributionChartOptions = {
+  type: ChartType.StabilityDistribution;
+  title?: string;
+  /**
+   * Threshold for the stability rate
+   *
+   * if the stability rate is less than the threshold,
+   * the feature will be marked as unstable
+   *
+   * @default 90
+   */
+  threshold?: number;
+  /**
+   * List of test statuses that will be skipped
+   *
+   * @default ["unknown", "skipped"]
+   */
+  skipStatuses?: TestStatus[];
+  /**
+   * By what to group the test results on chart
+   *
+   * - "feature" - group by feature
+   * - "epic" - group by epic
+   * - "story" - group by story
+   * - "suite" - group by suite
+   * - "severity" - group by severity
+   * - "owner" - group by owner
+   * - "label-name:foo" - group by label name "foo"
+   * - "label-name:bar" - group by label name "bar"
+   *
+   * @default "feature"
+   */
+  groupBy?: "feature" | "epic" | "story" | "suite" | "severity" | "owner" | `label-name:${string}`;
+  /**
+   * List of values to group by
+   * Allows to narrow down the list of values to group by
+   * if not provided, all values will be used for grouping
+   *
+   * @default []
+   */
+  groupValues?: string[];
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -438,7 +515,8 @@ export type ChartOptions =
   | TreeMapChartOptions
   | HeatMapChartOptions
   | FunnelChartOptions
-  | StatusTransitionsChartOptions;
+  | StatusTransitionsChartOptions
+  | StabilityDistributionChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "테스트 수"
       }
+    },
+    "stabilityDistribution": {
+      "title": "안정성 분포",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "안정성 비율"
+      }
     }
   },
   "transitions": {

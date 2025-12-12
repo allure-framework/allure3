@@ -5,7 +5,7 @@ import {
   type DurationsChartOptions,
 } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
-import { nanoid } from "nanoid";
+import { createHashStorage } from "./utils.js";
 
 type EnrichedTr = Omit<TestResult, "duration"> & {
   layer?: string;
@@ -56,19 +56,6 @@ const enrichAndFilterTrs = (trs: TestResult[], groupBy: DurationsChartOptions["g
   }
 
   return enrichedTrs;
-};
-
-const createHashStorage = () => {
-  const hashes = new Map<string, string>();
-  return {
-    get: (key: string) => {
-      if (!hashes.has(key)) {
-        hashes.set(key, nanoid());
-      }
-      return hashes.get(key) as string;
-    },
-    set: (key: string, value: string) => hashes.set(key, value),
-  };
 };
 
 const getBucketsFromDurations = (durations: number[]) => {

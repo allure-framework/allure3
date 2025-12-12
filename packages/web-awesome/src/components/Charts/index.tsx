@@ -12,7 +12,7 @@ import {
   HeatMapWidget,
   Loadable,
   PageLoader,
-  StabilityRateDistributionWidget,
+  StabilityDistributionWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
   TestingPyramidWidget,
@@ -29,6 +29,7 @@ const getChartWidgetByType = (
   chartData: UIChartData,
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
+  console.log(chartData);
   switch (chartData.type) {
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
@@ -107,6 +108,19 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.StabilityDistribution: {
+      const title = chartData.title ?? t("stabilityDistribution.title");
+      console.log(chartData);
+
+      return (
+        <StabilityDistributionWidget
+          title={title}
+          data={chartData.data}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
@@ -117,25 +131,6 @@ const getChartWidgetByType = (
        * This flag ensures that specific conditions for data emptiness are handled per chart type.
        */
       let isDataEmpty = false;
-
-      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
-        return (
-          <StabilityRateDistributionWidget
-            title={title}
-            mode={chartData.mode}
-            data={chartData.data}
-            keys={chartData.keys}
-            indexBy={chartData.indexBy}
-            colors={chartData.colors}
-            groupMode={chartData.groupMode}
-            xAxisConfig={chartData.xAxisConfig}
-            yAxisConfig={chartData.yAxisConfig}
-            layout={chartData.layout}
-            threshold={chartData.threshold}
-            translations={{ "no-results": empty("no-results") }}
-          />
-        );
-      }
 
       if (chartData.dataType === BarChartType.StatusChangeTrend) {
         /*

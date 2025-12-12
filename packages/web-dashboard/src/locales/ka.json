@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "ტესტების რაოდენობა"
       }
+    },
+    "stabilityDistribution": {
+      "title": "სტაბილურობის განაწილება",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "სტაბილურობის მაჩვენებელი"
+      }
     }
   },
   "transitions": {

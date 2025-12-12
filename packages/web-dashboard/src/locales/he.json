@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "מספר בדיקות"
       }
+    },
+    "stabilityDistribution": {
+      "title": "התפלגות יציבות",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "שיעור יציבות"
+      }
     }
   },
   "transitions": {

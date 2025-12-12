@@ -212,6 +212,13 @@
         "value": "{{value}}",
         "total": "Кількість тестів"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Розподіл стабільності",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Коефіцієнт стабільності"
+      }
     }
   },
   "transitions": {

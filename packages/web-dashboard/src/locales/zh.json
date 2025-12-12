@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "测试数量"
       }
+    },
+    "stabilityDistribution": {
+      "title": "稳定性分布",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "稳定性率"
+      }
     }
   },
   "transitions": {

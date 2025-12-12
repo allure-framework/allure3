@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "Antal tester"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Stabilitetsfördelning",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabilitetsgrad"
+      }
     }
   },
   "transitions": {

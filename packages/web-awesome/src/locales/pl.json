@@ -269,6 +269,13 @@
         "value": "{{value}}",
         "total": "Liczba testów"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Rozkład stabilności",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Wskaźnik stabilności"
+      }
     }
   },
   "transitions": {

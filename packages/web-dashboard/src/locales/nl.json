@@ -112,6 +112,13 @@
         "value": "{{value}}",
         "total": "Aantal tests"
       }
+    },
+    "stabilityDistribution": {
+      "title": "Stabiliteitsverdeling",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabiliteitspercentage"
+      }
     }
   },
   "transitions": {
