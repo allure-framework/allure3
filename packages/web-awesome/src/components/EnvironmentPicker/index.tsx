@@ -36,11 +36,20 @@ export const EnvironmentPicker = () => {
         )}
       >
         <Menu.Section>
-          <Menu.ItemWithCheckmark onClick={() => handleSelect("")} isChecked={!environment}>
+          <Menu.ItemWithCheckmark
+            data-testid={"environment-picker-item"}
+            onClick={() => handleSelect("")}
+            isChecked={!environment}
+          >
             {t("all")}
           </Menu.ItemWithCheckmark>
           {environmentsStore.value.data.map((env) => (
-            <Menu.ItemWithCheckmark onClick={() => handleSelect(env)} key={env} isChecked={env === environment}>
+            <Menu.ItemWithCheckmark
+              data-testid={"environment-picker-item"}
+              onClick={() => handleSelect(env)}
+              key={env}
+              isChecked={env === environment}
+            >
               {env}
             </Menu.ItemWithCheckmark>
           ))}
