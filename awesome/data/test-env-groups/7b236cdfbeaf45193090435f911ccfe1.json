@@ -1,1 +1,1 @@
-{"id":"7b236cdfbeaf45193090435f911ccfe1","fullName":"commons/summary.test.ts:55:3","name":"should not generate summary on the single report re-generation","status":"passed","testResultsByEnv":{"ubuntu-latest":"26c9806692fd55795d1cac7840d239f6"}}
+{"id":"7b236cdfbeaf45193090435f911ccfe1","fullName":"commons/summary.test.ts:55:3","name":"should not generate summary on the single report re-generation","status":"passed","testResultsByEnv":{"windows-latest":"c90878c64c69f3cc87aa79babfdd4be2","ubuntu-latest":"2c51a36505f6cea529c6f804d8c0f8f8"}}

@@ -1,1 +1,1 @@
-{"id":"5e4f992a8677d026b8a300f9278fa75e","fullName":"commons/summary.test.ts:93:3","name":"should render cards for each generated report with summary","status":"passed","testResultsByEnv":{"ubuntu-latest":"868c52b0160a3c80438725e53b2d7d23"}}
+{"id":"5e4f992a8677d026b8a300f9278fa75e","fullName":"commons/summary.test.ts:93:3","name":"should render cards for each generated report with summary","status":"passed","testResultsByEnv":{"windows-latest":"a4dde4bf08df00973dae26dd0b7fc9c9","ubuntu-latest":"71a9d08a78ab975eb28e34b0373678d6"}}

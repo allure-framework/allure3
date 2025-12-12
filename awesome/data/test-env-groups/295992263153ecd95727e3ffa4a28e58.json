@@ -1,1 +1,1 @@
-{"id":"295992263153ecd95727e3ffa4a28e58","fullName":"test/store/store.test.ts#test results should add test results","name":"should add test results","status":"passed","testResultsByEnv":{"ubuntu-latest":"cd9af13a48e8211b2ca47252d94f4173","macos-latest":"5075cbcb81b9768dcd07a88c4ac32e65"}}
+{"id":"295992263153ecd95727e3ffa4a28e58","fullName":"test/store/store.test.ts#test results should add test results","name":"should add test results","status":"passed","testResultsByEnv":{"windows-latest":"80cbc628e0768a3ef5e56132cd69ba72","ubuntu-latest":"c4c2b234158376fafc10a0da4708e9d0"}}

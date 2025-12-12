@@ -1,1 +1,1 @@
-{"id":"885f4e55285a13ee37044d1453b45ec2","fullName":"allure-awesome/test/steps.test.ts:142:3","name":"unique errors are always rendered","status":"passed","testResultsByEnv":{"ubuntu-latest":"6788e141a205f55d54db61273d873f28"}}
+{"id":"885f4e55285a13ee37044d1453b45ec2","fullName":"allure-awesome/test/steps.test.ts:142:3","name":"unique errors are always rendered","status":"passed","testResultsByEnv":{"windows-latest":"46211ea23c7e1a12d68cd285b8196d0f","ubuntu-latest":"fd61c22144b8441a6153add101e6558b"}}
