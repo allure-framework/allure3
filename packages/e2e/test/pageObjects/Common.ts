@@ -9,6 +9,7 @@ export class CommonPage extends PageObject {
   baseLayoutLocator: Locator;
 
   envPickerLocator: Locator;
+  envPickerItemsLocator: Locator;
   envPickerButtonLocator: Locator;
 
   constructor(readonly page: Page) {
@@ -21,6 +22,7 @@ export class CommonPage extends PageObject {
     this.baseLayoutLocator = page.getByTestId("base-layout");
 
     this.envPickerLocator = page.getByTestId("environment-picker");
+    this.envPickerItemsLocator = page.getByTestId("environment-picker-item");
     this.envPickerButtonLocator = page.getByTestId("environment-picker-button");
   }
 
@@ -30,7 +32,7 @@ export class CommonPage extends PageObject {
 
   async selectEnv(env: string) {
     await this.envPickerButtonLocator.click();
-    await this.envPickerLocator.getByText(env).click();
+    await this.envPickerItemsLocator.getByText(env).click();
   }
 
   /**
