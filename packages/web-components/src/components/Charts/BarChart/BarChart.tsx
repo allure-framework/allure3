@@ -79,7 +79,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     leftAxisTickValues,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
-  const keys = useMemo(() => [...legendMap.keys()], [legendMap]);
+  const keys = useMemo(() => legend.map((item) => item.id), [legend]);
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
 
   const barSize = useMemo(() => {

@@ -5,6 +5,7 @@ import type {
   StabilityDistributionChartData,
   StatusDynamicsChartData,
   StatusTransitionsChartData,
+  TestBaseGrowthDynamicsChartData,
 } from "@allurereport/charts-api";
 import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
@@ -276,8 +277,6 @@ export const createBarChartData = (
   switch (chartData.dataType) {
     case BarChartType.StatusBySeverity:
       return createStatusBySeverityBarChartData(chartId, res);
-    case BarChartType.StatusChangeTrend:
-      return createStatusChangeTrendBarChartData(chartId, res);
     case BarChartType.FbsuAgePyramid:
       return createFbsuAgePyramidBarChartData(chartId, res);
   }
@@ -322,6 +321,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as DurationsChartData;
       } else if (chart.type === ChartType.StabilityDistribution) {
         acc[chartId] = res[chartId] as StabilityDistributionChartData;
+      } else if (chart.type === ChartType.TestBaseGrowthDynamics) {
+        acc[chartId] = res[chartId] as TestBaseGrowthDynamicsChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

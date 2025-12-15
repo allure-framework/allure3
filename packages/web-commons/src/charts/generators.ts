@@ -15,6 +15,7 @@ import { generateDurationsChart } from "./generateDurationsChart.js";
 import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
+import { generateTestBaseGrowthDynamicsChart } from "./generateTestBaseGrowthDynamicsChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTrendChart } from "./line.js";
 import { generateTreeMapChart } from "./treeMap.js";
@@ -60,6 +61,9 @@ const generateChartData = async (props: {
         break;
       case ChartType.StabilityDistribution:
         result[chartId] = generateStabilityDistributionChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.TestBaseGrowthDynamics:
+        result[chartId] = generateTestBaseGrowthDynamicsChart({ options: chartOption, storeData })!;
         break;
       case ChartType.Bar:
         result[chartId] = generateBarChart(chartOption, storeData)!;

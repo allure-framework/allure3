@@ -15,6 +15,7 @@ import {
   StabilityDistributionWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
+  TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -120,6 +121,18 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.TestBaseGrowthDynamics: {
+      const title = chartData.title ?? t("testBaseGrowthDynamics.title");
+
+      return (
+        <TestBaseGrowthDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`testBaseGrowthDynamics.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
@@ -130,16 +143,6 @@ const getChartWidgetByType = (
        * This flag ensures that specific conditions for data emptiness are handled per chart type.
        */
       let isDataEmpty = false;
-
-      if (chartData.dataType === BarChartType.StatusChangeTrend) {
-        /*
-         * For StatusChangeTrend data:
-         * - The data consists of keys such as newPassed, newFailed, newBroken, newSkipped, etc., all with numeric values.
-         * - We must check if any of these metrics in any group are greater than 0.
-         * - If at least one statistic is greater than 0, we should display the chart.
-         */
-        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
-      }
 
       if (chartData.dataType === BarChartType.StatusBySeverity) {
         /*

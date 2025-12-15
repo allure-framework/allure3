@@ -21,8 +21,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Status transitions",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StatusChangeTrend,
+    type: ChartType.TestBaseGrowthDynamics,
     title: "Test base growth dynamics",
   },
   {

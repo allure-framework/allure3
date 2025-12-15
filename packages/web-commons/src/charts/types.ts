@@ -12,6 +12,7 @@ import type {
   HeatMapSerie,
   StabilityDistributionChartData,
   StatusTransitionsChartData,
+  TestBaseGrowthDynamicsChartData,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
@@ -198,6 +199,7 @@ export type ChartData<
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
   | ResponseHeatMapChartData
+  | TestBaseGrowthDynamicsChartData
   | ResponseTestingPyramidChartData;
 
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
@@ -211,6 +213,7 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UITestingPyramidChartData
   | UIStatusTransitionsChartData
   | UIDurationsChartData
+  | TestBaseGrowthDynamicsChartData
   | StabilityDistributionChartData;
 
 export type ChartsData<

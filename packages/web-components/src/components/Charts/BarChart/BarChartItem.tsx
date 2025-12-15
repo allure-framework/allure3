@@ -1,6 +1,5 @@
 import type { BarCustomLayerProps, BarDatum, BarItemProps } from "@nivo/bar";
 import { useMotionConfig } from "@nivo/core";
-import { useTheme } from "@nivo/theming";
 import { animated, to, useSpring } from "@react-spring/web";
 import { toNumber } from "lodash";
 import { createElement } from "preact";
@@ -16,6 +15,7 @@ export interface BarChartTooltipProps<T extends BarDatum> {
 
 const BORDER_RADIUS = 4;
 const BORDER_WIDTH = 1;
+const MIN_BAR_HEIGHT_FOR_CLIPPING = 4;
 
 const BAR_SIZE_WIDTH = {
   s: 16,
@@ -43,7 +43,6 @@ export const BarChartItem = <T extends BarDatum>({
   barSize: "s" | "m" | "l";
 }) => {
   const { width, height, color, data, key } = bar;
-  const { background: chartBackgroundColor } = useTheme();
 
   const isBelowZero = data.value < 0;
 
@@ -63,10 +62,8 @@ export const BarChartItem = <T extends BarDatum>({
     return itemValue >= 0;
   });
   const lastOrderId = orders[orders.length - 1]?.id;
-  const firstOrderId = orders[0]?.id;
 
-  const isTopBar = data.id === lastOrderId;
-  const isLastBar = data.id === firstOrderId;
+  const isBarredBar = data.id === lastOrderId;
 
   const isSmallBar = height < BORDER_RADIUS;
 
@@ -85,13 +82,20 @@ export const BarChartItem = <T extends BarDatum>({
 
   const borderRadius = isSmallBar ? BORDER_RADIUS / 2 : BORDER_RADIUS;
 
-  const hasTopBorderRadius = isTopBar && !isBelowZero;
-  const hasGap = !hasTopBorderRadius;
+  const borderWidth = BORDER_WIDTH > height ? height : BORDER_WIDTH;
 
-  const hasBottomBorderRadius = isLastBar && isBelowZero;
+  const hasTopBorderRadius = isBarredBar && !isBelowZero;
+  const hasBottomBorderRadius = isBarredBar && isBelowZero;
   const hasBorderRadius = hasTopBorderRadius || hasBottomBorderRadius;
 
-  const borderWidth = BORDER_WIDTH > height ? height : BORDER_WIDTH;
+  const hasGapBottom = !hasBottomBorderRadius;
+  const hasGapTop = !hasTopBorderRadius;
+
+  const heightIsLessThanBorderRadius = height < borderRadius * 2;
+  const shouldHalfWidth = heightIsLessThanBorderRadius && hasBorderRadius;
+  const barWidthConsideringBorder = to(barWidth, (v) => (shouldHalfWidth ? v - borderRadius : v));
+
+  const noClip = height <= MIN_BAR_HEIGHT_FOR_CLIPPING;
 
   if (height === 0) {
     return null;
@@ -103,12 +107,13 @@ export const BarChartItem = <T extends BarDatum>({
         <clipPath id={`clip-${id}`}>
           {
             /* Adds top border radius */
-            hasTopBorderRadius && (
+            hasTopBorderRadius && !heightIsLessThanBorderRadius && (
               <animated.rect
+                data-testid="adds-top-border-radius"
                 x={margin}
                 y={0}
                 width={barWidth}
-                height={borderRadius * 2} // Rounding height
+                height={borderRadius * 2}
                 rx={borderRadius}
                 ry={borderRadius}
               />
@@ -116,8 +121,9 @@ export const BarChartItem = <T extends BarDatum>({
           }
           {
             /* Adds bottom border radius */
-            hasBottomBorderRadius && (
+            hasBottomBorderRadius && !heightIsLessThanBorderRadius && (
               <animated.rect
+                data-testid="adds-bottom-border-radius"
                 x={margin}
                 y={height - borderRadius * 2}
                 width={barWidth}
@@ -131,10 +137,13 @@ export const BarChartItem = <T extends BarDatum>({
             /* clip nothing */
             !hasBorderRadius && (
               <animated.rect
+                data-testid="!hasBorderRadius"
                 x={margin}
-                y={0}
+                y={hasGapTop ? borderWidth / 2 : 0}
                 width={barWidth}
-                height={to(height, (value) => Math.max(value, 0))} // Rounding height
+                height={to(height, (value) =>
+                  Math.max(value - (hasGapTop ? borderWidth / 2 : 0) - (hasGapBottom ? borderWidth / 2 : 0), 0),
+                )}
               />
             )
           }
@@ -142,10 +151,11 @@ export const BarChartItem = <T extends BarDatum>({
             /* Removes bottom border radius */
             hasTopBorderRadius && (
               <animated.rect
+                data-testid="hasTopBorderRadius"
                 x={margin}
                 y={borderRadius}
                 width={barWidth}
-                height={to(height - borderRadius, (value) => Math.max(value, 0))}
+                height={to(height - borderRadius - (hasGapBottom ? borderWidth / 2 : 0), (value) => Math.max(value, 0))}
               />
             )
           }
@@ -153,8 +163,9 @@ export const BarChartItem = <T extends BarDatum>({
             /* Removes top border radius */
             hasBottomBorderRadius && (
               <animated.rect
+                data-testid="hasBottomBorderRadius"
                 x={margin}
-                y={0}
+                y={hasGapTop ? borderWidth / 2 : 0}
                 width={barWidth}
                 height={to(height - borderRadius, (value) => Math.max(value, 0))}
               />
@@ -163,28 +174,15 @@ export const BarChartItem = <T extends BarDatum>({
         </clipPath>
       </defs>
       <animated.rect
-        x={margin}
-        width={barWidth}
+        x={shouldHalfWidth ? margin + borderRadius / 2 : margin}
+        width={barWidthConsideringBorder}
         height={to(height, (value) => Math.max(value, 0))}
         fill={color}
         aria-label={ariaLabel ? ariaLabel(data) : undefined}
         aria-labelledby={ariaLabelledBy ? ariaLabelledBy(data) : undefined}
         aria-describedby={ariaDescribedBy ? ariaDescribedBy(data) : undefined}
-        clipPath={`url(#clip-${id})`}
+        clipPath={noClip ? undefined : `url(#clip-${id})`}
       />
-      {
-        /* Adds gap to the bar to separate it from the bar above */
-        hasGap && (
-          <animated.rect
-            x={margin}
-            // -borderWidth / 2 to center the gap
-            y={-borderWidth / 2}
-            width={barWidth}
-            height={borderWidth}
-            fill={chartBackgroundColor}
-          />
-        )
-      }
     </animated.g>
   );
 };

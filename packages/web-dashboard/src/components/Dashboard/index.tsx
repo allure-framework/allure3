@@ -7,6 +7,7 @@ import {
   ComingSoonChartWidget,
   CurrentStatusChartWidget,
   DurationsChartWidget,
+  TestBaseGrowthDynamicsChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
@@ -112,6 +113,18 @@ const getChartWidgetByType = (
           data={chartData.data}
           keys={chartData.keys}
           i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.TestBaseGrowthDynamics: {
+      const title = chartData.title ?? t("testBaseGrowthDynamics.title");
+
+      return (
+        <TestBaseGrowthDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`testBaseGrowthDynamics.${key}`, props)}
         />
       );
     }
