@@ -392,11 +392,23 @@ export const createHashStorage = () => {
 export const createMapWithDefault = <K, V>(defaultValue: V) => {
   const map = new Map<K, V>();
 
+  const createDefaultValue = (): V => {
+    if (Array.isArray(defaultValue)) {
+      return [...defaultValue] as V;
+    }
+
+    if (typeof defaultValue === "object") {
+      return { ...defaultValue } as V;
+    }
+
+    return defaultValue;
+  };
+
   return {
     set: (key: K, value: V) => map.set(key, value),
     get: (key: K) => {
       if (!map.has(key)) {
-        map.set(key, defaultValue);
+        map.set(key, createDefaultValue());
       }
 
       return map.get(key)!;

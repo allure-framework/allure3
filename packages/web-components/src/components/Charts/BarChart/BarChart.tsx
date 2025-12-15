@@ -24,7 +24,13 @@ type BarChartProps<T extends BarDatum> = {
   data: T[];
   legend: LegendItemValue<T>[];
   indexBy: Extract<keyof T, string>;
-  lineKeys?: Extract<keyof T, string>[];
+  lines?: {
+    /**
+     * Corresponding key of the line in the legend
+     */
+    key: Extract<keyof T, string>;
+    curveSharpness?: number;
+  }[];
   hideEmptyTrendLines?: boolean;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
@@ -36,12 +42,14 @@ type BarChartProps<T extends BarDatum> = {
   currentLocale?: string;
   formatBottomTick?: (value: number | string, item: T) => string | number;
   formatLeftTick?: (value: number | string) => string | number;
+  leftAxisTickValues?: number[];
   bottomTickRotation?: number;
   noLegend?: boolean;
   minValue?: number;
   maxValue?: number;
   groupMode?: "grouped" | "stacked";
   markers?: readonly CartesianMarkerProps<string | number>[];
+  colors?: (data: ComputedDatum<T>) => string;
 };
 
 export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
@@ -63,10 +71,12 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     minValue,
     maxValue,
     groupMode = "stacked",
-    lineKeys = [],
+    lines = [],
     hideEmptyTrendLines = true,
     bottomTickSize = 12,
     markers = [],
+    colors,
+    leftAxisTickValues,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const keys = useMemo(() => [...legendMap.keys()], [legendMap]);
@@ -92,6 +102,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             data={data}
             theme={CHART_THEME}
             groupMode={groupMode}
+            defaultHeight={275}
             keys={keys}
             indexBy={indexBy}
             margin={{
@@ -134,11 +145,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               ),
               "bars",
               (layerProps: BarCustomLayerProps<T>) =>
-                lineKeys.length > 0 && (
+                lines.length > 0 && (
                   <TrendLinesLayer
                     {...layerProps}
                     legend={legend}
-                    trendKeys={lineKeys}
+                    lines={lines}
                     minValue={minValue}
                     maxValue={maxValue}
                     hideEmptyTrendLines={hideEmptyTrendLines}
@@ -149,7 +160,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               BottomAxisLine,
             ]}
             markers={markers}
-            colors={(d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? ""}
+            colors={
+              typeof colors === "function"
+                ? colors
+                : (d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? "var(--bg-base-secondary)"
+            }
             enableLabel={false}
             enableTotals={false}
             axisTop={null}
@@ -177,6 +192,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               tickRotation: 0,
               truncateTickAt: 0,
               format: formatLeftTick,
+              tickValues: leftAxisTickValues,
             }}
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}

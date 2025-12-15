@@ -10,16 +10,16 @@ import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import type { Props } from "./types.js";
 
 const COLORS = [
-  "var(--bg-support-sirius)",
-  "var(--bg-support-betelgeuse)",
   "var(--bg-support-aldebaran)",
+  "var(--bg-support-betelgeuse)",
+  "var(--bg-support-sirius)",
   "var(--bg-support-mirach)",
   "var(--bg-support-rigel)",
   "var(--bg-support-gliese)",
   "var(--bg-support-rau)",
-  "var(--bg-support-sirius-heavy)",
-  "var(--bg-support-betelgeuse-heavy)",
   "var(--bg-support-aldebaran-heavy)",
+  "var(--bg-support-betelgeuse-heavy)",
+  "var(--bg-support-sirius-heavy)",
   "var(--bg-support-mirach-heavy)",
   "var(--bg-support-gliese-heavy)",
   "var(--bg-support-rigel-heavy)",
@@ -90,7 +90,7 @@ export const DurationsChartWidget: FunctionalComponent<Props> = (props) => {
     );
   }, [chartData, keys]);
 
-  const headroomedMaxValue = maxValue * 1.1;
+  const headroomedMaxValue = maxValue * 1.01;
 
   const isChartEmpty = chartData.length === 0;
 
@@ -128,7 +128,16 @@ export const DurationsChartWidget: FunctionalComponent<Props> = (props) => {
           return i18n("legend.value", { value });
         }}
         noLegend
-        formatLeftTick={(value) => formatNumber(Math.abs(Number(value)))}
+        formatLeftTick={(value) => {
+          const numberedValue = Math.abs(Number(value));
+
+          // Do not show half values on the left axis
+          if (!Number.isInteger(numberedValue)) {
+            return "";
+          }
+
+          return formatNumber(Math.abs(Number(value)));
+        }}
         maxValue={headroomedMaxValue}
       />
     </Widget>

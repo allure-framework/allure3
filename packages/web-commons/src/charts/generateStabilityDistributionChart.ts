@@ -92,7 +92,7 @@ export const generateStabilityDistributionChart = (props: {
     // Add limits
     data: trsStatsByLabelValues.entries.map(([id, { passed, total }]) => ({
       id,
-      stabilityRate: getStabilityRate(passed, total),
+      stabilityRate: total > 0 ? getStabilityRate(passed, total) : 0,
     })),
     keys,
     type: ChartType.StabilityDistribution,

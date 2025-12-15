@@ -29,7 +29,6 @@ const getChartWidgetByType = (
   chartData: UIChartData,
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
-  console.log(chartData);
   switch (chartData.type) {
     case ChartType.Trend: {
       const type = t(`trend.type.${chartData.dataType}`);
@@ -86,6 +85,7 @@ const getChartWidgetByType = (
           title={title}
           data={chartData.data}
           lines={chartData.lines}
+          linesSharpness={chartData.linesSharpness}
           hideEmptyLines={chartData.hideEmptyLines}
           i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
         />
@@ -110,7 +110,6 @@ const getChartWidgetByType = (
     }
     case ChartType.StabilityDistribution: {
       const title = chartData.title ?? t("stabilityDistribution.title");
-      console.log(chartData);
 
       return (
         <StabilityDistributionWidget

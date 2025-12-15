@@ -1,4 +1,4 @@
-import { TestStatusTransition, statusesList } from "@allurereport/core-api";
+import type { TestStatusTransition } from "@allurereport/core-api";
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 import { EmptyView } from "@/components/EmptyView";
@@ -25,7 +25,14 @@ const getColorFromTransition = (transition: TestStatusTransition): string => {
 const transitionsList = ["fixed", "regressed", "malfunctioned"] as const;
 
 export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) => {
-  const { title, data, i18n, lines = ["regressed", "malfunctioned"], hideEmptyLines = true } = props;
+  const {
+    title,
+    data,
+    i18n,
+    lines = ["regressed", "malfunctioned"],
+    hideEmptyLines = true,
+    linesSharpness = 0.2,
+  } = props;
 
   const currentData = data.find((item) => item.id === "current");
   const legend: LegendItemValue<BarDatum>[] = transitionsList.map((transition) => ({
@@ -44,6 +51,11 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
     // on the bottom side of the chart
     regressed: item.regressed === 0 ? 0 : -item.regressed,
     malfunctioned: item.malfunctioned === 0 ? 0 : -item.malfunctioned,
+  }));
+
+  const linesData = lines.map((line) => ({
+    key: line,
+    curveSharpness: linesSharpness,
   }));
 
   const isChartEmpty = chartData.every((item) => item.fixed === 0 && item.regressed === 0 && item.malfunctioned === 0);
@@ -83,13 +95,13 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
     }),
   );
 
-  // 10% "headroom" above the actual maximum
-  const domainValue = Math.ceil(maxStackedValue * 1.1);
+  // 1% "headroom" above the actual maximum
+  const domainValue = Math.ceil(maxStackedValue * 1.01);
 
   return (
     <Widget title={title}>
       <BarChart
-        lineKeys={lines}
+        lines={linesData}
         hideEmptyTrendLines={hideEmptyLines}
         groupMode="stacked"
         data={chartData}
@@ -108,7 +120,7 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
             return i18n("ticks.current");
           }
 
-          const item = chartData.find((item) => item.id === id);
+          const item = chartData.find((chartItem) => chartItem.id === id);
 
           if (!item) {
             return "";
@@ -125,7 +137,16 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
           return formatNumber(Math.abs(Number(value)));
         }}
         noLegend
-        formatLeftTick={(value) => formatNumber(Math.abs(Number(value)))}
+        formatLeftTick={(value) => {
+          const numberedValue = Math.abs(Number(value));
+
+          // Do not show half values on the left axis
+          if (!Number.isInteger(numberedValue)) {
+            return "";
+          }
+
+          return formatNumber(Math.abs(Number(value)));
+        }}
         // Diverging chart requires minValue and maxValue to be set
         // Also minValue should be negative and maxValue should be positive
         minValue={-domainValue}

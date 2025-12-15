@@ -7,6 +7,7 @@ export enum ChartType {
   StatusDynamics = "statusDynamics",
   StatusTransitions = "statusTransitions",
   StabilityDistribution = "stabilityDistribution",
+  TestBaseGrowthDynamics = "testBaseGrowthDynamics",
   Durations = "durations",
   TreeMap = "treemap",
   HeatMap = "heatmap",
@@ -260,6 +261,7 @@ export interface StatusTransitionsChartData {
   }[];
   hideEmptyLines?: boolean;
   lines?: ("fixed" | "regressed" | "malfunctioned")[];
+  linesSharpness?: number;
 }
 
 export interface DurationsChartData {
@@ -323,6 +325,18 @@ export interface StabilityDistributionChartData {
   threshold?: number;
 }
 
+export interface TestBaseGrowthDynamicsChartData {
+  type: ChartType.TestBaseGrowthDynamics;
+  title?: string;
+  data: ({
+    [key in `new:${TestStatus}` | `removed:${TestStatus}`]: number;
+  } & {
+    id: string;
+    timestamp: number;
+  })[];
+  statuses: TestStatus[];
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -332,6 +346,7 @@ export type GeneratedChartData =
   | StatusTransitionsChartData
   | DurationsChartData
   | StabilityDistributionChartData
+  | TestBaseGrowthDynamicsChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -403,6 +418,15 @@ export type StatusTransitionsChartOptions = {
    */
   lines?: ("fixed" | "regressed" | "malfunctioned")[];
   /**
+   * Sharpness controls where the curve bends between points
+   * - 0 = sharp transition (curve changes immediately after leaving previous point)
+   * - 0.5 = symmetric curve
+   * - 1 = gradual transition (curve holds previous value longer)
+   *
+   * @default 0.2
+   */
+  linesSharpness?: number;
+  /**
    * Whether to hide lines that have no data in every point of the chart
    * (theses lines always goes through 0 mark)
    *
@@ -473,6 +497,23 @@ export type StabilityDistributionChartOptions = {
   groupValues?: string[];
 };
 
+export type TestBaseGrowthDynamicsChartOptions = {
+  type: ChartType.TestBaseGrowthDynamics;
+  title?: string;
+  /**
+   * List of test statuses that will be used to create the chart.
+   *
+   * @default ["passed", "failed", "broken", "skipped", "unknown"]
+   */
+  statuses?: TestStatus[];
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -516,7 +557,8 @@ export type ChartOptions =
   | HeatMapChartOptions
   | FunnelChartOptions
   | StatusTransitionsChartOptions
-  | StabilityDistributionChartOptions;
+  | StabilityDistributionChartOptions
+  | TestBaseGrowthDynamicsChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

@@ -1,10 +1,11 @@
 import type { BarCustomLayerProps, BarDatum } from "@nivo/bar";
-import { curveFromProp, useMotionConfig } from "@nivo/core";
+import { useMotionConfig } from "@nivo/core";
 import { animated, useSpring } from "@react-spring/web";
 import { line } from "d3-shape";
 import { useMemo } from "preact/hooks";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { getBarWidth } from "./BarChartItem";
+import { curveAllureBumpX } from "./curveAllureBumpX";
 
 const STROKE_WIDTH = 2;
 const LINE_CAP_OFFSET = 1;
@@ -12,36 +13,65 @@ const LINE_CAP_OFFSET = 1;
 export const TrendLinesLayer = <T extends BarDatum>(
   props: BarCustomLayerProps<T> & {
     legend: LegendItemValue<T>[];
-    trendKeys: Extract<keyof T, string>[];
+    lines: {
+      key: Extract<keyof T, string>;
+      curveSharpness?: number;
+    }[];
     minValue?: number;
     maxValue?: number;
     hideEmptyTrendLines?: boolean;
     barSize: "s" | "m" | "l";
   },
 ) => {
-  const { legend, bars, trendKeys, hideEmptyTrendLines, barSize } = props;
+  const { legend, bars, lines, hideEmptyTrendLines, barSize, innerHeight, innerWidth, minValue } = props;
 
-  const barsCount = Math.max(...bars.map((bar) => bar.data.index + 1));
+  const [leftBorderPoint, rightBorderPoint] = useMemo(() => {
+    let y = 0;
+
+    if (typeof minValue === "number" && minValue < 0) {
+      // Graph is diverging, so we need to place the lines in the middle of the graph
+      y = innerHeight / 2;
+    }
+
+    return [
+      { x: 0, y },
+      { x: innerWidth, y },
+    ] as const;
+  }, [innerHeight, innerWidth, minValue]);
 
   const lineData = useMemo(() => {
     const legendMap = new Map(legend.map((item) => [item.id, item]));
 
-    const lines = trendKeys
-      .map((trendKey) => ({
-        bars: bars.filter((bar) => bar.data.id === trendKey),
-        key: trendKey,
+    const linesData = lines
+      .map(({ key, curveSharpness }) => ({
+        bars: bars.filter((bar) => bar.data.id === key),
+        key,
+        curveSharpness,
       }))
+      .sort((a, b) => {
+        const aValue = Number(legendMap.get(a.key)?.value ?? 0);
+        const bValue = Number(legendMap.get(b.key)?.value ?? 0);
+
+        // Sort positive (or zero) values first, then negative values last; within groups, sort by ascending value
+        if (aValue < 0 && bValue >= 0) {
+          return 1;
+        }
+        if (aValue >= 0 && bValue < 0) {
+          return -1;
+        }
+
+        return aValue - bValue;
+      })
       .filter(({ bars: trendBars }) => !hideEmptyTrendLines || !trendBars.every((bar) => bar.data.value === 0))
-      .map(({ bars: trendBars, key }) => {
+      .map(({ bars: trendBars, key, curveSharpness }) => {
         const color = legendMap.get(key)?.color ?? "";
+        const isBelowZero = Number(legendMap.get(key)?.value ?? 0) < 0;
 
         const firstX = Math.min(...trendBars.map((bar) => bar.x));
         const lastX = Math.max(...trendBars.map((bar) => bar.x));
 
-        return {
-          key,
-          color,
-          points: trendBars.map((bar) => {
+        const trendKeyPoints = trendBars.reduce(
+          (points, bar) => {
             const isBlank = bar.data.value === 0;
 
             const barCenter = bar.x + bar.width / 2;
@@ -63,25 +93,53 @@ export const TrendLinesLayer = <T extends BarDatum>(
               x = barCenter;
             }
 
-            return {
+            let yOffset = bar.height / 2;
+
+            if (bar.height > STROKE_WIDTH * 4) {
+              yOffset = STROKE_WIDTH * 2;
+
+              if (isBelowZero) {
+                yOffset = bar.height - STROKE_WIDTH * 2;
+              }
+            }
+
+            if (isBlank) {
+              yOffset = 0;
+            }
+
+            return points.concat({
               x,
-              y: bar.y + bar.height / 2,
+              y: bar.y + yOffset,
               key: bar.key,
               isBlank,
-            };
-          }),
+            });
+          },
+          [] as { x: number; y: number; key: string; isBlank: boolean }[],
+        );
+
+        return {
+          key,
+          color,
+          curveSharpness,
+          points: [
+            { ...leftBorderPoint, key: `${key}/leftBorderPoint`, isBlank: false },
+            ...trendKeyPoints,
+            { ...rightBorderPoint, key: `${key}/rightBorderPoint`, isBlank: false },
+          ],
         };
       });
 
-    for (let i = 0; i < barsCount; i++) {
-      const points = lines.map((l) => l.points[i]);
+    const maxPointsCount = Math.max(...linesData.map((l) => l.points.length));
+
+    for (let i = 0; i < maxPointsCount; i++) {
+      const points = linesData.map((l) => l.points[i]);
 
       if (points.length === 0) {
         continue;
       }
 
       const intersectingOnYPoints = points.filter((point) =>
-        points.some((p) => p.key !== point.key && p.y === point.y),
+        points.some((p) => p && p.key !== point.key && p.y === point.y),
       );
 
       const centerIndex = (intersectingOnYPoints.length - 1) / 2;
@@ -92,26 +150,34 @@ export const TrendLinesLayer = <T extends BarDatum>(
         point.y = point.y + offset;
       });
     }
-    return lines;
-  }, [bars, trendKeys, hideEmptyTrendLines, barSize, barsCount, legend]);
+
+    return linesData.map(({ points, ...rest }) => ({ ...rest, points: points.filter((point) => !point.isBlank) }));
+  }, [bars, lines, hideEmptyTrendLines, barSize, legend, leftBorderPoint, rightBorderPoint]);
 
   return (
     <animated.g data-testid="trend-lines-layer" style={{ pointerEvents: "none" }}>
-      {lineData.map(({ key, points, color }) => (
-        <Line key={key} points={points} color={color} />
+      {lineData.map(({ key, points, color, curveSharpness }) => (
+        <Line key={key} points={points} color={color} curveSharpness={curveSharpness} />
       ))}
     </animated.g>
   );
 };
 
-const lineGenerator = line<{ x: number; y: number }>()
-  .x((point) => point.x)
-  .y((point) => point.y)
-  .curve(curveFromProp("monotoneX"));
+const useLineGenerator = (sharpness: number = 0.2) => {
+  return useMemo(
+    () =>
+      line<{ x: number; y: number }>()
+        .x((point) => point.x)
+        .y((point) => point.y)
+        .curve(curveAllureBumpX(sharpness)),
+    [sharpness],
+  );
+};
 
-const Line = (props: { points: { x: number; y: number }[]; color: string }) => {
-  const { points, color } = props;
+const Line = (props: { points: { x: number; y: number }[]; color: string; curveSharpness?: number }) => {
+  const { points, color, curveSharpness } = props;
   const { animate, config: motionConfig } = useMotionConfig();
+  const lineGenerator = useLineGenerator(curveSharpness);
 
   const { d } = useSpring({
     d: lineGenerator(points) ?? undefined,

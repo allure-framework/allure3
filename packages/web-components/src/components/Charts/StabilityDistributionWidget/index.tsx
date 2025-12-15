@@ -29,6 +29,21 @@ const isAboveThreshold = (stabilityRate: number, threshold: number) => {
   return stabilityRate >= threshold;
 };
 
+const colorByStRateAndTh = (stabilityRate: number, threshold: number) => {
+  if (stabilityRate >= threshold) {
+    return "var(--bg-support-castor-heavy)";
+  }
+
+  // Calculate warning zone: if remaining distance to threshold is less than 5%
+  const warningThreshold = threshold > 20 ? threshold - 5 : undefined;
+
+  if (warningThreshold && stabilityRate >= warningThreshold) {
+    return "var(--bg-support-atlas-heavy)";
+  }
+
+  return "var(--bg-support-capella-heavy)";
+};
+
 const getThresholdPoisition = (threshold: number) => {
   if (threshold >= 91) {
     return "bottom-right";
@@ -118,7 +133,9 @@ export const StabilityDistributionWidget: FunctionalComponent<Props> = (props) =
         noLegend
         formatLeftTick={(value) => `${value}%`}
         maxValue={MAX_STABILITY_RATE}
+        leftAxisTickValues={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
         bottomTickRotation={45}
+        colors={(d) => colorByStRateAndTh(d.data.stabilityRate, restrictedThreshold)}
       />
     </Widget>
   );
