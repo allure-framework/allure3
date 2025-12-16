@@ -7,7 +7,6 @@ import { ChartType } from "@allurereport/charts-api";
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 import { createHashStorage, createMapWithDefault } from "./utils.js";
 
-const MAX_POINTS = 20;
 const DEFAULT_THRESHOLD = 90;
 const DEFAULT_GROUP_BY = "feature";
 const CUSTOM_LABEL_NAME_PREFIX = "label-name:";

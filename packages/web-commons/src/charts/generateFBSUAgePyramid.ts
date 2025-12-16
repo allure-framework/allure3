@@ -41,6 +41,20 @@ export const generateFBSUAgePyramid = (props: {
     (a, b) => a.timestamp - b.timestamp,
   );
 
+  if (limitedHistoryPoints.length === 0) {
+    return {
+      type: ChartType.FBSUAgePyramid,
+      title: options.title,
+      data: [
+        {
+          id: "current",
+          timestamp: currentReportTimestamp,
+          ...createEmptyStats(STATUSES),
+        },
+      ],
+      statuses: STATUSES,
+    };
+  }
   const [earliestHdp, ...hdps] = limitedHistoryPoints;
 
   const dataPoints = [

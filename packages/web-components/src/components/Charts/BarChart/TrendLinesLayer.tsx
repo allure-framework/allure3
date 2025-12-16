@@ -4,7 +4,7 @@ import { animated, useSpring } from "@react-spring/web";
 import { line } from "d3-shape";
 import { useMemo } from "preact/hooks";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
-import { getBarWidth } from "./BarChartItem";
+import { getBarSize } from "./Layers";
 import { curveAllureBumpX } from "./curveAllureBumpX";
 
 const STROKE_WIDTH = 2;
@@ -75,7 +75,7 @@ export const TrendLinesLayer = <T extends BarDatum>(
             const isBlank = bar.data.value === 0;
 
             const barCenter = bar.x + bar.width / 2;
-            const halfBarWidth = getBarWidth(bar.width, barSize) / 2;
+            const halfBarWidth = getBarSize(bar.width, barSize) / 2;
             let x = barCenter;
 
             if (bar.x === firstX) {

@@ -39,6 +39,21 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
     (a, b) => a.timestamp - b.timestamp,
   );
 
+  if (limitedHistoryPoints.length === 0) {
+    return {
+      type: ChartType.TestBaseGrowthDynamics,
+      title: options.title,
+      data: [
+        {
+          id: "current",
+          timestamp: currentReportTimestamp,
+          ...createEmptyStats(statusList),
+        },
+      ],
+      statuses: statusList,
+    };
+  }
+
   const [earliestHdp, ...hdps] = limitedHistoryPoints;
 
   const dataPoints = [
@@ -60,12 +75,12 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
     },
   ];
 
-  dataPoints.forEach(({ testResults: trs, stats }, index, dataPointsAscending) => {
+  dataPoints.forEach(({ testResults: trs, stats }, index) => {
     const isFirst = index === 0;
-    const isLast = index === dataPointsAscending.length - 1;
+    const isLast = index === dataPoints.length - 1;
     // Add earliest history point to the beginning of the array if it's the first data point
-    const hpsPriorToCurrent = isFirst ? [earliestHdp] : dataPointsAscending.slice(0, index);
-    const hpsAfterCurrent = isLast ? [] : dataPointsAscending.slice(index + 1);
+    const hpsPriorToCurrent = isFirst ? [earliestHdp] : dataPoints.slice(0, index);
+    const hpsAfterCurrent = dataPoints.slice(index + 1);
 
     const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
 
@@ -75,16 +90,20 @@ export const generateTestBaseGrowthDynamicsChart = (props: {
         continue;
       }
 
-      // Compare only to latest history point, as we don't know the previous history
       const htrsPriortoCurr = htrsByTr(hpsPriorToCurrent as HistoryDataPoint[], cTr);
-      const htrsAfterCurrent = htrsByTr(hpsAfterCurrent as HistoryDataPoint[], cTr);
 
       // Test result is new, because it has no history
       if (htrsPriortoCurr.length === 0) {
         stats[`new:${cTr.status}`]++;
       }
 
-      if (htrsAfterCurrent.length === 0 && !isLast) {
+      if (isLast) {
+        continue;
+      }
+
+      const htrsAfterCurrent = htrsByTr(hpsAfterCurrent as HistoryDataPoint[], cTr);
+
+      if (htrsAfterCurrent.length === 0) {
         stats[`removed:${cTr.status}`]++;
       }
     }

@@ -22,6 +22,24 @@ export const generateStatusDynamicsChart = (props: {
 
   const latestStop = testResults.reduce((acc, testResult) => Math.max(acc, testResult.stop ?? 0), 0);
 
+  // Filter current statistic to only include selected statuses, matching history data structure
+  const currentStatistic = statuses.reduce(
+    (acc, status) => {
+      acc[status] = storeData.statistic[status];
+      return acc;
+    },
+    { total: storeData.statistic.total } as Statistic,
+  );
+
+  if (limitedHistoryPoints.length === 0) {
+    return {
+      type: ChartType.StatusDynamics,
+      title: options.title,
+      data: [{ statistic: currentStatistic, id: "current", timestamp: latestStop, name: "current" }],
+      statuses: options.statuses,
+    };
+  }
+
   const historyData = limitedHistoryPoints.map((point) => {
     const statistic = emptyStatistic();
     for (const testResult of Object.values(point.testResults)) {
@@ -40,15 +58,6 @@ export const generateStatusDynamicsChart = (props: {
       timestamp: point.timestamp,
     };
   });
-
-  // Filter current statistic to only include selected statuses, matching history data structure
-  const currentStatistic = statuses.reduce(
-    (acc, status) => {
-      acc[status] = storeData.statistic[status];
-      return acc;
-    },
-    { total: storeData.statistic.total } as Statistic,
-  );
 
   return {
     type: ChartType.StatusDynamics,

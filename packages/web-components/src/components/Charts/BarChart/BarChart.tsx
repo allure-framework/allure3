@@ -1,20 +1,14 @@
 import type { AxisTickProps } from "@nivo/axes";
-import {
-  type BarCustomLayerProps,
-  type BarDatum,
-  type BarItemProps,
-  type ComputedDatum,
-  ResponsiveBar,
-} from "@nivo/bar";
+import { type BarCustomLayerProps, type BarDatum, type ComputedDatum, ResponsiveBar } from "@nivo/bar";
 import type { CartesianMarkerProps } from "@nivo/core";
 import { useMemo } from "preact/hooks";
 import { Legends } from "../Legend";
 import { formatNumber } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
-import { BarChartItem, BarChartItemHoverLayer } from "./BarChartItem";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
+import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
 import { TrendLinesLayer } from "./TrendLinesLayer";
 import { BarChartStateProvider } from "./context";
 import styles from "./styles.scss";
@@ -132,6 +126,11 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             layers={[
               "grid",
               "axes",
+              BottomAxisLine,
+              (layerProps: BarCustomLayerProps<T>) => (
+                <BarChartBars<T> {...layerProps} indexBy={indexBy} layout={layout} legend={legend} barSize={barSize} />
+              ),
+              "markers",
               (layerProps: BarCustomLayerProps<T>) => (
                 <BarChartItemHoverLayer<T>
                   {...layerProps}
@@ -152,7 +151,6 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   }
                 />
               ),
-              "bars",
               (layerProps: BarCustomLayerProps<T>) =>
                 lines.length > 0 && (
                   <TrendLinesLayer
@@ -165,8 +163,6 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                     barSize={barSize}
                   />
                 ),
-              "markers",
-              BottomAxisLine,
             ]}
             markers={markers}
             colors={
@@ -212,9 +208,6 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}
-            barComponent={(barProps: BarItemProps<T>) => (
-              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} barSize={barSize} layout={layout} />
-            )}
           />
         </BarChartStateProvider>
       </div>
