@@ -8,6 +8,7 @@ export enum ChartType {
   StatusTransitions = "statusTransitions",
   StabilityDistribution = "stabilityDistribution",
   TestBaseGrowthDynamics = "testBaseGrowthDynamics",
+  FBSUAgePyramid = "fbsuAgePyramid",
   Durations = "durations",
   TreeMap = "treemap",
   HeatMap = "heatmap",
@@ -31,7 +32,6 @@ export enum ChartDataType {
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusChangeTrend = "statusChangeTrend",
-  FbsuAgePyramid = "fbsuAgePyramid",
 }
 
 export enum FunnelChartType {
@@ -337,6 +337,20 @@ export interface TestBaseGrowthDynamicsChartData {
   statuses: TestStatus[];
 }
 
+export interface FBSUAgePyramidChartData {
+  type: ChartType.FBSUAgePyramid;
+  title?: string;
+  data: {
+    id: string;
+    timestamp: number;
+    failed: number;
+    broken: number;
+    skipped: number;
+    unknown: number;
+  }[];
+  statuses: Exclude<TestStatus, "passed">[];
+}
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -347,6 +361,7 @@ export type GeneratedChartData =
   | DurationsChartData
   | StabilityDistributionChartData
   | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -514,6 +529,17 @@ export type TestBaseGrowthDynamicsChartOptions = {
   limit?: number;
 };
 
+export type FBSUAgePyramidChartOptions = {
+  type: ChartType.FBSUAgePyramid;
+  title?: string;
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type BarChartOptions = {
   type: ChartType.Bar;
   dataType: BarChartType;
@@ -558,6 +584,7 @@ export type ChartOptions =
   | FunnelChartOptions
   | StatusTransitionsChartOptions
   | StabilityDistributionChartOptions
+  | FBSUAgePyramidChartOptions
   | TestBaseGrowthDynamicsChartOptions;
 
 export interface AllureChartsStoreData {

@@ -125,6 +125,51 @@
       "legend": {
         "stabilityRate": "Коэффициент стабильности"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Динамика роста базы тестов",
+      "status": {
+        "newpassed": "Новый $t(statuses:passed)",
+        "newfailed": "Новый $t(statuses:failed)",
+        "newbroken": "Новый $t(statuses:broken)",
+        "newskipped": "Новый $t(statuses:skipped)",
+        "newunknown": "Новый $t(statuses:unknown)",
+        "removedpassed": "Удалённый $t(statuses:passed)",
+        "removedfailed": "Удалённый $t(statuses:failed)",
+        "removedbroken": "Удалённый $t(statuses:broken)",
+        "removedskipped": "Удалённый $t(statuses:skipped)",
+        "removedunknown": "Удалённый $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU пирамида возраста",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

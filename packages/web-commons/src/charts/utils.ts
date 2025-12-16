@@ -2,6 +2,7 @@ import type {
   ChartId,
   CurrentStatusChartData,
   DurationsChartData,
+  FBSUAgePyramidChartData,
   StabilityDistributionChartData,
   StatusDynamicsChartData,
   StatusTransitionsChartData,
@@ -159,18 +160,6 @@ export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: Chart
     () => statusChangeColors,
   );
 
-export const createFbsuAgePyramidBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: statusColors,
-  };
-};
-
 export const createSuccessRateDistributionTreeMapChartData = (
   chartId: ChartId,
   res: ChartsData,
@@ -277,8 +266,6 @@ export const createBarChartData = (
   switch (chartData.dataType) {
     case BarChartType.StatusBySeverity:
       return createStatusBySeverityBarChartData(chartId, res);
-    case BarChartType.FbsuAgePyramid:
-      return createFbsuAgePyramidBarChartData(chartId, res);
   }
 };
 
@@ -323,6 +310,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as StabilityDistributionChartData;
       } else if (chart.type === ChartType.TestBaseGrowthDynamics) {
         acc[chartId] = res[chartId] as TestBaseGrowthDynamicsChartData;
+      } else if (chart.type === ChartType.FBSUAgePyramid) {
+        acc[chartId] = res[chartId] as FBSUAgePyramidChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

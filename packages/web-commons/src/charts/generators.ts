@@ -12,6 +12,7 @@ import { generateComingSoonChart } from "./comingSoon.js";
 import { generateFunnelChart } from "./funnel/index.js";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
+import { generateFBSUAgePyramid } from "./generateFBSUAgePyramid.js";
 import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
@@ -64,6 +65,9 @@ const generateChartData = async (props: {
         break;
       case ChartType.TestBaseGrowthDynamics:
         result[chartId] = generateTestBaseGrowthDynamicsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.FBSUAgePyramid:
+        result[chartId] = generateFBSUAgePyramid({ options: chartOption, storeData })!;
         break;
       case ChartType.Bar:
         result[chartId] = generateBarChart(chartOption, storeData)!;

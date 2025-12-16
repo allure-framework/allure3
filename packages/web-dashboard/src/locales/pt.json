@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "Taxa de estabilidade"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Dinâmica de crescimento da base de testes",
+      "status": {
+        "newpassed": "Novo $t(statuses:passed)",
+        "newfailed": "Novo $t(statuses:failed)",
+        "newbroken": "Novo $t(statuses:broken)",
+        "newskipped": "Novo $t(statuses:skipped)",
+        "newunknown": "Novo $t(statuses:unknown)",
+        "removedpassed": "Removido $t(statuses:passed)",
+        "removedfailed": "Removido $t(statuses:failed)",
+        "removedbroken": "Removido $t(statuses:broken)",
+        "removedskipped": "Removido $t(statuses:skipped)",
+        "removedunknown": "Removido $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Último relatório ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Relatório de {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Último",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "Pirâmide etária FBSU",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Último relatório ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Relatório de {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Último",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

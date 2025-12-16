@@ -268,6 +268,51 @@
       "legend": {
         "stabilityRate": "安定性率"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "テストベースの成長動態",
+      "status": {
+        "newpassed": "新規 $t(statuses:passed)",
+        "newfailed": "新規 $t(statuses:failed)",
+        "newbroken": "新規 $t(statuses:broken)",
+        "newskipped": "新規 $t(statuses:skipped)",
+        "newunknown": "新規 $t(statuses:unknown)",
+        "removedpassed": "削除 $t(statuses:passed)",
+        "removedfailed": "削除 $t(statuses:failed)",
+        "removedbroken": "削除 $t(statuses:broken)",
+        "removedskipped": "削除 $t(statuses:skipped)",
+        "removedunknown": "削除 $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU年齢ピラミッド",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新レポート ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} のレポート"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

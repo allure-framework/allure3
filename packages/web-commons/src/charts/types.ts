@@ -8,6 +8,7 @@ import type {
   ChartMode,
   ChartType,
   DurationsChartData,
+  FBSUAgePyramidChartData,
   FunnelChartType,
   HeatMapSerie,
   StabilityDistributionChartData,
@@ -200,6 +201,7 @@ export type ChartData<
   | ResponseTreeMapChartData
   | ResponseHeatMapChartData
   | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
   | ResponseTestingPyramidChartData;
 
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
@@ -214,6 +216,7 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UIStatusTransitionsChartData
   | UIDurationsChartData
   | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
   | StabilityDistributionChartData;
 
 export type ChartsData<

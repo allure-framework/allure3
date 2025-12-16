@@ -219,6 +219,51 @@
       "legend": {
         "stabilityRate": "Коефіцієнт стабільності"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Динаміка росту бази тестів",
+      "status": {
+        "newpassed": "Новий $t(statuses:passed)",
+        "newfailed": "Новий $t(statuses:failed)",
+        "newbroken": "Новий $t(statuses:broken)",
+        "newskipped": "Новий $t(statuses:skipped)",
+        "newunknown": "Новий $t(statuses:unknown)",
+        "removedpassed": "Видалений $t(statuses:passed)",
+        "removedfailed": "Видалений $t(statuses:failed)",
+        "removedbroken": "Видалений $t(statuses:broken)",
+        "removedskipped": "Видалений $t(statuses:skipped)",
+        "removedunknown": "Видалений $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Останній",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU вікова піраміда",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Останній",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

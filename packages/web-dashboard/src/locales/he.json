@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "שיעור יציבות"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "דינמיקת צמיחת בסיס הבדיקות",
+      "status": {
+        "newpassed": "חדש $t(statuses:passed)",
+        "newfailed": "חדש $t(statuses:failed)",
+        "newbroken": "חדש $t(statuses:broken)",
+        "newskipped": "חדש $t(statuses:skipped)",
+        "newunknown": "חדש $t(statuses:unknown)",
+        "removedpassed": "הוסר $t(statuses:passed)",
+        "removedfailed": "הוסר $t(statuses:failed)",
+        "removedbroken": "הוסר $t(statuses:broken)",
+        "removedskipped": "הוסר $t(statuses:skipped)",
+        "removedunknown": "הוסר $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "אחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "פירמידת גילאים FBSU",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "דוח אחרון ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "דוח מ-{{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "אחרון",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

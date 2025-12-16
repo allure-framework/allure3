@@ -4,10 +4,9 @@ import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
-  ComingSoonChartWidget,
   CurrentStatusChartWidget,
   DurationsChartWidget,
-  TestBaseGrowthDynamicsChartWidget,
+  FBSUAgePyramidChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
@@ -16,6 +15,7 @@ import {
   StabilityDistributionWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
+  TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -128,6 +128,18 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.FBSUAgePyramid: {
+      const title = chartData.title ?? t("fbsuAgePyramid.title");
+
+      return (
+        <FBSUAgePyramidChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`fbsuAgePyramid.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
@@ -184,9 +196,7 @@ const getChartWidgetByType = (
       );
     }
     default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
+      return null;
     }
   }
 };

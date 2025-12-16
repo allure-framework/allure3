@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "Sabitlik dərəcəsi"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Test bazasının artım dinamikası",
+      "status": {
+        "newpassed": "Yeni $t(statuses:passed)",
+        "newfailed": "Yeni $t(statuses:failed)",
+        "newbroken": "Yeni $t(statuses:broken)",
+        "newskipped": "Yeni $t(statuses:skipped)",
+        "newunknown": "Yeni $t(statuses:unknown)",
+        "removedpassed": "Silinmiş $t(statuses:passed)",
+        "removedfailed": "Silinmiş $t(statuses:failed)",
+        "removedbroken": "Silinmiş $t(statuses:broken)",
+        "removedskipped": "Silinmiş $t(statuses:skipped)",
+        "removedunknown": "Silinmiş $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU yaş piramidası",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

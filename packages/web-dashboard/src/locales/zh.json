@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "稳定性率"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "测试基础增长动态",
+      "status": {
+        "newpassed": "新增 $t(statuses:passed)",
+        "newfailed": "新增 $t(statuses:failed)",
+        "newbroken": "新增 $t(statuses:broken)",
+        "newskipped": "新增 $t(statuses:skipped)",
+        "newunknown": "新增 $t(statuses:unknown)",
+        "removedpassed": "移除 $t(statuses:passed)",
+        "removedfailed": "移除 $t(statuses:failed)",
+        "removedbroken": "移除 $t(statuses:broken)",
+        "removedskipped": "移除 $t(statuses:skipped)",
+        "removedunknown": "移除 $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "报告来自 {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU年龄金字塔",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "报告来自 {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

@@ -4,9 +4,9 @@ import { capitalize, statusesList } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
-  ComingSoonChartWidget,
   CurrentStatusChartWidget,
   DurationsChartWidget,
+  FBSUAgePyramidChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
@@ -133,6 +133,18 @@ const getChartWidgetByType = (
         />
       );
     }
+    case ChartType.FBSUAgePyramid: {
+      const title = chartData.title ?? t("fbsuAgePyramid.title");
+
+      return (
+        <FBSUAgePyramidChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`fbsuAgePyramid.${key}`, props)}
+        />
+      );
+    }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
@@ -155,16 +167,6 @@ const getChartWidgetByType = (
         isDataEmpty = !chartData.data.some(
           (item) => chartData.keys.includes(item.groupId) && statusesList.some((status) => (item[status] ?? 0) > 0),
         );
-      }
-
-      if (chartData.dataType === BarChartType.FbsuAgePyramid) {
-        /*
-         * For FbsuAgePyramid data:
-         * - Each group contains keys such as passed, failed, broken, etc., with numeric values.
-         * - To determine if the chart should be shown, check if any statistic in any group is greater than 0.
-         * - If at least one such statistic exists, display the chart; otherwise, consider the data empty.
-         */
-        isDataEmpty = !chartData.data.some((item) => chartData.keys.some((key) => (item[key] ?? 0) > 0));
       }
 
       return (
@@ -222,9 +224,7 @@ const getChartWidgetByType = (
       );
     }
     default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
+      return null;
     }
   }
 };

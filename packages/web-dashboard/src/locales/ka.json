@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "სტაბილურობის მაჩვენებელი"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "ტესტების ბაზის ზრდის დინამიკა",
+      "status": {
+        "newpassed": "ახალი $t(statuses:passed)",
+        "newfailed": "ახალი $t(statuses:failed)",
+        "newbroken": "ახალი $t(statuses:broken)",
+        "newskipped": "ახალი $t(statuses:skipped)",
+        "newunknown": "ახალი $t(statuses:unknown)",
+        "removedpassed": "წაშლილი $t(statuses:passed)",
+        "removedfailed": "წაშლილი $t(statuses:failed)",
+        "removedbroken": "წაშლილი $t(statuses:broken)",
+        "removedskipped": "წაშლილი $t(statuses:skipped)",
+        "removedunknown": "წაშლილი $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "უახლესი ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "ანგარიში {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "უახლესი",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU ასაკობრივი პირამიდა",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "უახლესი ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "ანგარიში {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "უახლესი",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

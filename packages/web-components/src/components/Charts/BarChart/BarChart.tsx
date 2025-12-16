@@ -50,6 +50,7 @@ type BarChartProps<T extends BarDatum> = {
   groupMode?: "grouped" | "stacked";
   markers?: readonly CartesianMarkerProps<string | number>[];
   colors?: (data: ComputedDatum<T>) => string;
+  layout?: "horizontal" | "vertical";
 };
 
 export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
@@ -64,7 +65,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     formatIndexBy,
     hasValueFn,
     currentLocale = "en-US",
-    formatBottomTick = (value: number) => value,
+    formatBottomTick = (value: number | string) => value,
     formatLeftTick = (value: number | string) => formatNumber(value, currentLocale),
     bottomTickRotation = 0,
     noLegend = false,
@@ -77,6 +78,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     markers = [],
     colors,
     leftAxisTickValues,
+    layout = "vertical",
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
   const keys = useMemo(() => legend.map((item) => item.id), [legend]);
@@ -94,6 +96,8 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     return "l";
   }, [data]);
 
+  const isInverted = layout === "horizontal";
+
   return (
     <div className={styles.container}>
       <div className={styles.barContainer}>
@@ -102,19 +106,23 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             data={data}
             theme={CHART_THEME}
             groupMode={groupMode}
+            layout={layout}
             defaultHeight={275}
             keys={keys}
             indexBy={indexBy}
             margin={{
               top: 10,
-              right: 10,
+              right: 20,
               bottom: bottomTickRotation > 0 ? 60 : 40,
               left: computeVerticalAxisMargin({
                 data,
-                keys: keys,
+                layout,
+                keys,
+                indexBy,
                 stacked: true,
                 position: "left",
-                format: formatLeftTick,
+                formatLeftTick,
+                formatBottomTick,
               }),
             }}
             padding={padding}
@@ -129,6 +137,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   {...layerProps}
                   hasValueFn={hasValueFn}
                   indexBy={indexBy}
+                  layout={layout}
                   tooltip={({ value }) =>
                     (
                       <BarChartTooltip
@@ -182,7 +191,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   },
                 },
               },
-              format: (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!),
+              format: isInverted
+                ? formatLeftTick
+                : (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!),
               tickValues:
                 data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
             }}
@@ -191,14 +202,18 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               tickPadding: 8,
               tickRotation: 0,
               truncateTickAt: 0,
-              format: formatLeftTick,
+              format: isInverted
+                ? formatBottomTick
+                  ? (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!)
+                  : undefined
+                : formatLeftTick,
               tickValues: leftAxisTickValues,
             }}
             animate={!REDUCE_MOTION}
             motionConfig={CHART_MOTION_CONFIG}
             onClick={onBarClick}
             barComponent={(barProps: BarItemProps<T>) => (
-              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} barSize={barSize} />
+              <BarChartItem {...barProps} legend={legend} indexBy={indexBy} barSize={barSize} layout={layout} />
             )}
           />
         </BarChartStateProvider>

@@ -119,6 +119,51 @@
       "legend": {
         "stabilityRate": "Stability rate"
       }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Test base growth dynamics",
+      "status": {
+        "newpassed": "New $t(statuses:passed)",
+        "newfailed": "New $t(statuses:failed)",
+        "newbroken": "New $t(statuses:broken)",
+        "newskipped": "New $t(statuses:skipped)",
+        "newunknown": "New $t(statuses:unknown)",
+        "removedpassed": "Removed $t(statuses:passed)",
+        "removedfailed": "Removed $t(statuses:failed)",
+        "removedbroken": "Removed $t(statuses:broken)",
+        "removedskipped": "Removed $t(statuses:skipped)",
+        "removedunknown": "Removed $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU age pyramid",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

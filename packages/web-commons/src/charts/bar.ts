@@ -7,7 +7,6 @@ import type {
 } from "@allurereport/charts-api";
 import { BarChartType, ChartMode, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import { statusBySeverityBarDataAccessor } from "./accessors/statusBySeverityBarAccessor.js";
-import { generateBarChartFbsuAgePyramid } from "./bar/generateBarChartFbsuAgePyramid.js";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 export const generateBarChartGeneric = <P extends string, T extends string>(
@@ -66,7 +65,5 @@ export const generateBarChart = (
   switch (dataType) {
     case BarChartType.StatusBySeverity:
       return generateBarChartGeneric(newOptions, storeData, statusBySeverityBarDataAccessor);
-    case BarChartType.FbsuAgePyramid:
-      return generateBarChartFbsuAgePyramid(newOptions, storeData);
   }
 };

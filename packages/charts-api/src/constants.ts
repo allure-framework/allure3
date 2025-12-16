@@ -75,8 +75,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Performance dynamics",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.FbsuAgePyramid,
+    type: ChartType.FBSUAgePyramid,
     title: "FBSU age pyramid",
   },
   {

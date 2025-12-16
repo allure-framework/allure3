@@ -15,7 +15,10 @@ export interface BarChartTooltipProps<T extends BarDatum> {
 
 const BORDER_RADIUS = 4;
 const BORDER_WIDTH = 1;
-const MIN_BAR_HEIGHT_FOR_CLIPPING = 4;
+// Slightly larger than horizontal border so that it looks the same as horizontal border
+// Seems like it's an optical illusion
+const VERTICAL_BORDER_WIDTH = 2;
+const MIN_BAR_SIZE_FOR_CLIPPING = 4;
 
 const BAR_SIZE_WIDTH = {
   s: 16,
@@ -27,24 +30,49 @@ export const getBarWidth = (width: number, barSize: "s" | "m" | "l") => {
   return Math.min(width, BAR_SIZE_WIDTH[barSize]);
 };
 
+export const getRadius = (size: number) => {
+  if (size <= BORDER_RADIUS) {
+    return 0;
+  }
+
+  if (size <= BAR_SIZE_WIDTH.s / 3) {
+    return 1;
+  }
+
+  if (size <= BAR_SIZE_WIDTH.s / 2) {
+    return 1.5;
+  }
+
+  if (size < BAR_SIZE_WIDTH.s) {
+    return 2;
+  }
+
+  if (size >= BAR_SIZE_WIDTH.s && size < BAR_SIZE_WIDTH.m) {
+    return 4;
+  }
+
+  if (size >= BAR_SIZE_WIDTH.m) {
+    return 6;
+  }
+
+  return 0;
+};
+
 // Copy https://github.com/plouc/nivo/blob/0f5ac2fec4da359ec2baf8a8daf8a40c0ff0230d/packages/bar/src/BarItem.tsx
 // add border top, border top radius
-export const BarChartItem = <T extends BarDatum>({
-  bar,
-  style,
-  ariaLabel,
-  ariaLabelledBy,
-  ariaDescribedBy,
-  legend,
-  barSize,
-}: Omit<BarItemProps<T>, "tooltip"> & {
-  legend: LegendItemValue<T>[];
-  indexBy: Extract<keyof T, string>;
-  barSize: "s" | "m" | "l";
-}) => {
+export const BarChartItem = <T extends BarDatum>(
+  props: Omit<BarItemProps<T>, "tooltip"> & {
+    legend: LegendItemValue<T>[];
+    indexBy: Extract<keyof T, string>;
+    barSize: "s" | "m" | "l";
+    layout?: "vertical" | "horizontal";
+  },
+) => {
+  const { bar, style, ariaLabel, ariaLabelledBy, ariaDescribedBy, legend, barSize, layout = "horizontal" } = props;
   const { width, height, color, data, key } = bar;
 
   const isBelowZero = data.value < 0;
+  const isInverted = layout === "horizontal";
 
   const orders: LegendItemValue<T>[] = legend.filter((item) => {
     if (!(item.id in data.data)) {
@@ -65,22 +93,17 @@ export const BarChartItem = <T extends BarDatum>({
 
   const isBarredBar = data.id === lastOrderId;
 
-  const isSmallBar = height < BORDER_RADIUS;
-
   const id = useId();
 
-  const computedWidth = to(width, (value) => Math.max(value, 0));
-  const barWidth = to(width, (value) => {
-    if (value < 0) {
-      return 0;
-    }
+  if (height <= 0 || width <= 0) {
+    return null;
+  }
 
-    return getBarWidth(value, barSize);
-  });
-  const diff: number = computedWidth.toJSON() - barWidth.toJSON();
-  const margin = diff < 0 ? 0 : diff / 2;
+  const barWidth = getBarWidth(width, barSize);
+  const barX = Math.max(width - barWidth, 0) / 2;
+  const barY = 0;
 
-  const borderRadius = isSmallBar ? BORDER_RADIUS / 2 : BORDER_RADIUS;
+  const borderRadius = getRadius(barWidth);
 
   const borderWidth = BORDER_WIDTH > height ? height : BORDER_WIDTH;
 
@@ -93,12 +116,69 @@ export const BarChartItem = <T extends BarDatum>({
 
   const heightIsLessThanBorderRadius = height < borderRadius * 2;
   const shouldHalfWidth = heightIsLessThanBorderRadius && hasBorderRadius;
-  const barWidthConsideringBorder = to(barWidth, (v) => (shouldHalfWidth ? v - borderRadius : v));
+  const barWidthConsideringBorder = shouldHalfWidth ? barWidth - borderRadius : barWidth;
 
-  const noClip = height <= MIN_BAR_HEIGHT_FOR_CLIPPING;
+  const noClip = height <= MIN_BAR_SIZE_FOR_CLIPPING;
 
-  if (height === 0) {
-    return null;
+  if (isInverted) {
+    const barHeight = getBarWidth(height, barSize);
+
+    const offsetY = Math.max(height - barHeight, 0) / 2;
+
+    const borderRadiusInverted = getRadius(barHeight);
+    const radiusRectW = borderRadiusInverted * 2;
+    const noClipInverted = width <= VERTICAL_BORDER_WIDTH * 2;
+    const borderWidthInverted = VERTICAL_BORDER_WIDTH > width ? width : VERTICAL_BORDER_WIDTH;
+    const hasLeftBorderRadius = hasBottomBorderRadius;
+    const hasRightBorderRadius = hasTopBorderRadius;
+    const barRectW = width;
+    const borderSize = borderWidthInverted / 2;
+
+    return (
+      <animated.g key={key} transform={style.transform} pointerEvents="none" data-testid="bar-chart-item" data-id={key}>
+        <defs>
+          <clipPath id={`clip-${id}`}>
+            <animated.rect
+              data-testid="gap"
+              x={hasLeftBorderRadius ? borderRadiusInverted : borderSize}
+              y={offsetY}
+              width={hasRightBorderRadius ? barRectW - borderRadiusInverted : barRectW - borderSize}
+              height={barHeight}
+            />
+            {hasRightBorderRadius && (
+              <animated.rect
+                data-testid="right-border-radius"
+                x={barRectW - radiusRectW}
+                y={offsetY}
+                width={radiusRectW}
+                height={barHeight}
+                rx={borderRadiusInverted}
+                ry={borderRadiusInverted}
+              />
+            )}
+            {hasLeftBorderRadius && (
+              <animated.rect
+                data-testid="left-border-radius"
+                x={0}
+                y={offsetY}
+                width={radiusRectW}
+                height={barHeight}
+                rx={borderRadiusInverted}
+                ry={borderRadiusInverted}
+              />
+            )}
+          </clipPath>
+        </defs>
+        <animated.rect
+          clipPath={noClipInverted ? undefined : `url(#clip-${id})`}
+          x={0}
+          y={offsetY}
+          width={barRectW}
+          height={barHeight}
+          fill={color}
+        />
+      </animated.g>
+    );
   }
 
   return (
@@ -110,8 +190,8 @@ export const BarChartItem = <T extends BarDatum>({
             hasTopBorderRadius && !heightIsLessThanBorderRadius && (
               <animated.rect
                 data-testid="adds-top-border-radius"
-                x={margin}
-                y={0}
+                x={barX}
+                y={barY}
                 width={barWidth}
                 height={borderRadius * 2}
                 rx={borderRadius}
@@ -124,7 +204,7 @@ export const BarChartItem = <T extends BarDatum>({
             hasBottomBorderRadius && !heightIsLessThanBorderRadius && (
               <animated.rect
                 data-testid="adds-bottom-border-radius"
-                x={margin}
+                x={barX}
                 y={height - borderRadius * 2}
                 width={barWidth}
                 height={borderRadius * 2} // Rounding height
@@ -138,12 +218,10 @@ export const BarChartItem = <T extends BarDatum>({
             !hasBorderRadius && (
               <animated.rect
                 data-testid="!hasBorderRadius"
-                x={margin}
+                x={barX}
                 y={hasGapTop ? borderWidth / 2 : 0}
                 width={barWidth}
-                height={to(height, (value) =>
-                  Math.max(value - (hasGapTop ? borderWidth / 2 : 0) - (hasGapBottom ? borderWidth / 2 : 0), 0),
-                )}
+                height={Math.max(height - (hasGapTop ? borderWidth / 2 : 0) - (hasGapBottom ? borderWidth / 2 : 0), 0)}
               />
             )
           }
@@ -152,10 +230,10 @@ export const BarChartItem = <T extends BarDatum>({
             hasTopBorderRadius && (
               <animated.rect
                 data-testid="hasTopBorderRadius"
-                x={margin}
+                x={barX}
                 y={borderRadius}
                 width={barWidth}
-                height={to(height - borderRadius - (hasGapBottom ? borderWidth / 2 : 0), (value) => Math.max(value, 0))}
+                height={Math.max(height - borderRadius - (hasGapBottom ? borderWidth / 2 : 0), 0)}
               />
             )
           }
@@ -164,19 +242,20 @@ export const BarChartItem = <T extends BarDatum>({
             hasBottomBorderRadius && (
               <animated.rect
                 data-testid="hasBottomBorderRadius"
-                x={margin}
+                x={barX}
                 y={hasGapTop ? borderWidth / 2 : 0}
                 width={barWidth}
-                height={to(height - borderRadius, (value) => Math.max(value, 0))}
+                height={Math.max(height - borderRadius, 0)}
               />
             )
           }
         </clipPath>
       </defs>
       <animated.rect
-        x={shouldHalfWidth ? margin + borderRadius / 2 : margin}
+        x={shouldHalfWidth ? barX + borderRadius / 2 : barX}
+        y={barY}
         width={barWidthConsideringBorder}
-        height={to(height, (value) => Math.max(value, 0))}
+        height={Math.max(height, 0)}
         fill={color}
         aria-label={ariaLabel ? ariaLabel(data) : undefined}
         aria-labelledby={ariaLabelledBy ? ariaLabelledBy(data) : undefined}
@@ -192,23 +271,27 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     tooltip: (props: BarChartTooltipProps<T>) => any;
     indexBy: Extract<keyof T, string>;
     hasValueFn?: (data: T) => boolean;
+    layout?: "vertical" | "horizontal";
   },
 ): any => {
   const {
     isInteractive,
     isFocusable,
-    xScale,
     innerHeight,
+    innerWidth,
     tooltip,
     indexBy,
+    layout = "vertical",
+    bars: allBars,
     hasValueFn = (item: T) =>
       Object.entries(item)
         .filter(([key]) => key !== props.indexBy)
         .reduce((acc, [, val]) => acc + toNumber(val ?? 0), 0) > 0,
   } = props;
-  const bars = props.bars.slice(0, xScale.domain().length);
-
-  const { handleShowTooltip, isVisible, handleHideTooltip, tooltipRef, data } = useTooltip<T>("left");
+  const isInverted = layout === "horizontal";
+  const { handleShowTooltip, isVisible, handleHideTooltip, tooltipRef, data } = useTooltip<T>(
+    isInverted ? "bottom" : "left",
+  );
   const { animate, config: motionConfig } = useMotionConfig();
 
   const { opacity: tooltipOpacity } = useSpring({
@@ -216,6 +299,18 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
     config: { ...motionConfig, duration: 75 },
     immediate: !animate,
   });
+
+  if (!isInteractive) {
+    return null;
+  }
+
+  const barsCount = Math.max(...allBars.map((bar) => bar.data.index + 1));
+
+  const bars = allBars.slice(0, barsCount);
+
+  if (bars.length <= 0) {
+    return null;
+  }
 
   const [firstBar, secondBar] = bars;
 
@@ -225,15 +320,14 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
 
   const width = secondBar?.x ? secondBar.x - firstBar.x : firstBar.width;
   const diff = width - firstBar.width;
-
-  if (!isInteractive) {
-    return null;
-  }
+  const height = secondBar?.y ? firstBar.y - secondBar.y : firstBar.height;
+  const heightDiff = height - firstBar.height;
 
   return (
     <animated.g data-testid="hover-layer">
       {bars.map((bar, index) => {
         const x = bar.x - diff / 2;
+        const y = bar.y - heightDiff / 2;
 
         const hasValue = hasValueFn(bar.data.data);
 
@@ -244,13 +338,12 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
         return (
           <BarChartItemHoverArea
             key={index}
-            x={x}
-            width={width}
-            height={innerHeight}
+            x={isInverted ? 0 : x}
+            y={isInverted ? y : 0}
+            width={isInverted ? innerWidth : width}
+            height={isInverted ? height : innerHeight}
             value={bar.data.data}
             indexBy={indexBy}
-            absX={bar.absX}
-            absY={bar.absY}
             isInteractive={isInteractive}
             isFocusable={isFocusable}
             onTooltipShow={handleShowTooltip}
@@ -270,6 +363,7 @@ export const BarChartItemHoverLayer = <T extends BarDatum>(
 
 const BarChartItemHoverArea = <T extends BarDatum>({
   x,
+  y,
   width,
   height,
   value,
@@ -279,9 +373,8 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   onTooltipShow,
   onTooltipHide,
 }: {
-  absX: number;
-  absY: number;
   x: number;
+  y: number;
   width: number;
   height: number;
   value: T;
@@ -347,7 +440,7 @@ const BarChartItemHoverArea = <T extends BarDatum>({
   return (
     <animated.rect
       x={x}
-      y={0}
+      y={y}
       data-testid="hover-rect"
       width={width}
       height={height}
