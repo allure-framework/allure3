@@ -85,6 +85,7 @@ export type AwesomeTreeLeaf = Pick<
 > & {
   nodeId: string;
   transitionTooltip?: string;
+  tooltips: Record<string, string>;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
