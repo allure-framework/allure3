@@ -13,6 +13,8 @@ import { normalizeImportPath } from "./utils/path.js";
 export interface ConfigOverride {
   name?: Config["name"];
   output?: Config["output"];
+  open?: Config["open"];
+  port?: Config["port"];
   historyPath?: Config["historyPath"];
   knownIssuesPath?: Config["knownIssuesPath"];
   plugins?: Config["plugins"];
@@ -83,6 +85,8 @@ export const validateConfig = (config: Config) => {
   const supportedFields: (keyof Config)[] = [
     "name",
     "output",
+    "open",
+    "port",
     "historyPath",
     "knownIssuesPath",
     "plugins",
@@ -157,6 +161,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   }
 
   const name = override.name ?? config.name ?? "Allure Report";
+  const open = override.open ?? config.open ?? true;
+  const port = override.port ?? config.port ?? undefined;
   const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");
   const appendHistory = config.appendHistory ?? true;
   const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
@@ -177,6 +183,8 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   return {
     name,
     output,
+    open,
+    port,
     historyPath,
     knownIssuesPath,
     known,

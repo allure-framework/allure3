@@ -17,6 +17,8 @@ export interface PluginInstance {
 export interface FullConfig {
   name: string;
   output: string;
+  open: boolean;
+  port: string | undefined;
   historyPath: string;
   knownIssuesPath: string;
   /**
