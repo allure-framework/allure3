@@ -74,7 +74,6 @@ describe("open command", () => {
     command.cwd = ".";
     command.resultsDir = "./custom-results";
     command.port = "8080";
-    command.live = true;
     command.config = "./custom/allurerc.mjs";
     command.output = "custom-report";
 
@@ -84,7 +83,6 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith({
       port: 8080,
       servePath: "custom-report",
-      live: true,
       open: true,
     });
   });

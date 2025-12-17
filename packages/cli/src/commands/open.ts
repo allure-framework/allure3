@@ -9,14 +9,15 @@ import { red } from "yoctocolors";
 import { logError } from "../utils/logs.js";
 
 export class OpenCommand extends Command {
-  static paths = [["open"]];
+  static paths = [["open"], ["serve"]];
 
   static usage = Command.Usage({
     description: "Serves specified directory",
-    details: "This command serves the specified report directory and opens it in the default browser.",
+    details: "This command generates report with the given test results and opens it in the default browser.",
     examples: [
-      ["open", "Serve the default report directory"],
-      ["open custom-report --port 8080 --live", "Serve the custom-report directory on port 8080 with live reload"],
+      ["open", "Generate and serve the report based on default test results directories"],
+      ["open ./allure-results", "Generate and serve the report based on given test results directory"],
+      ["open --port 8080 ./allure-results", "Serve the report on port 8080"],
     ],
   });
 
@@ -35,10 +36,6 @@ export class OpenCommand extends Command {
 
   port = Option.String("--port", {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
-  });
-
-  live = Option.Boolean("--live", {
-    description: "Reload pages on any file change in the served directory",
   });
 
   cwd = Option.String("--cwd", {
@@ -87,7 +84,6 @@ export class OpenCommand extends Command {
       await serve({
         port: this.port ? parseInt(this.port, 10) : undefined,
         servePath: config.output,
-        live: this.live ?? false,
         open: true,
       });
     } catch (error) {
