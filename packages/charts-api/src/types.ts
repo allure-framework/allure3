@@ -10,6 +10,7 @@ export enum ChartType {
   TestBaseGrowthDynamics = "testBaseGrowthDynamics",
   FBSUAgePyramid = "fbsuAgePyramid",
   Durations = "durations",
+  DurationDynamics = "durationDynamics",
   TrSeverities = "testResultSeverities",
   TreeMap = "treemap",
   HeatMap = "heatmap",
@@ -306,6 +307,18 @@ export type TrSeveritiesChartData = {
   statuses: TestStatus[];
 };
 
+export type DurationDynamicsChartData = {
+  type: ChartType.DurationDynamics;
+  title?: string;
+  data: {
+    id: string;
+    timestamp: number;
+    duration: number;
+    sequentialDuration: number;
+    speedup: number;
+  }[];
+};
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
@@ -319,7 +332,8 @@ export type GeneratedChartData =
   | TreeMapChartData
   | HeatMapChartData
   | FunnelChartData
-  | TrSeveritiesChartData;
+  | TrSeveritiesChartData
+  | DurationDynamicsChartData;
 
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
@@ -517,6 +531,17 @@ export type TrSeveritiesChartOptions = {
   includeUnset?: boolean;
 };
 
+export type DurationDynamicsChartOptions = {
+  type: ChartType.DurationDynamics;
+  title?: string;
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
 export type TreeMapChartOptions = {
   type: ChartType.TreeMap;
   dataType: TreeMapChartType;
@@ -547,7 +572,8 @@ export type ChartOptions =
   | StabilityDistributionChartOptions
   | FBSUAgePyramidChartOptions
   | TestBaseGrowthDynamicsChartOptions
-  | TrSeveritiesChartOptions;
+  | TrSeveritiesChartOptions
+  | DurationDynamicsChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

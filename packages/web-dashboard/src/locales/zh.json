@@ -183,6 +183,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "无严重程度"
       }
+    },
+    "durationDynamics": {
+      "title": "持续时间动态",
+      "durations": {
+        "sequential": "顺序持续时间",
+        "duration": "测试持续时间",
+        "speedup": "加速"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新报告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的报告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

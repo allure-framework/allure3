@@ -9,6 +9,7 @@ import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
 import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
+import { LinesByBarKeysLayer } from "./LinesByBarKeysLayer";
 import { TrendLinesLayer } from "./TrendLinesLayer";
 import { BarChartStateProvider } from "./context";
 import styles from "./styles.scss";
@@ -26,6 +27,7 @@ type BarChartProps<T extends BarDatum> = {
     curveSharpness?: number;
   }[];
   hideEmptyTrendLines?: boolean;
+  formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: (props: AxisTickProps<number | string>) => any;
@@ -73,9 +75,13 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     colors,
     leftAxisTickValues,
     layout = "vertical",
+    formatTrendValue,
   } = props;
   const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
-  const keys = useMemo(() => legend.map((item) => item.id), [legend]);
+  const barKeys = useMemo(
+    () => legend.filter((item) => item.type !== "point" && item.type !== "tree").map((item) => item.id),
+    [legend],
+  );
   const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
 
   const barSize = useMemo(() => {
@@ -102,7 +108,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
             groupMode={groupMode}
             layout={layout}
             defaultHeight={275}
-            keys={keys}
+            keys={barKeys}
             indexBy={indexBy}
             margin={{
               top: 10,
@@ -111,7 +117,7 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               left: computeVerticalAxisMargin({
                 data,
                 layout,
-                keys,
+                keys: barKeys,
                 indexBy,
                 stacked: true,
                 position: "left",
@@ -128,7 +134,14 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
               "axes",
               BottomAxisLine,
               (layerProps: BarCustomLayerProps<T>) => (
-                <BarChartBars<T> {...layerProps} indexBy={indexBy} layout={layout} legend={legend} barSize={barSize} />
+                <BarChartBars<T>
+                  {...layerProps}
+                  indexBy={indexBy}
+                  layout={layout}
+                  legend={legend}
+                  barSize={barSize}
+                  groupMode={groupMode}
+                />
               ),
               "markers",
               (layerProps: BarCustomLayerProps<T>) => (
@@ -151,9 +164,12 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   }
                 />
               ),
+              (layerProps: BarCustomLayerProps<T>) => (
+                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
+              ),
               (layerProps: BarCustomLayerProps<T>) =>
                 lines.length > 0 && (
-                  <TrendLinesLayer
+                  <LinesByBarKeysLayer
                     {...layerProps}
                     legend={legend}
                     lines={lines}

@@ -183,6 +183,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Önem derecesi yok"
       }
+    },
+    "durationDynamics": {
+      "title": "Süre dinamikleri",
+      "durations": {
+        "sequential": "Sıralı süre",
+        "duration": "Test süresi",
+        "speedup": "Hızlanma"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Son rapor ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarihli rapor"
+      },
+      "ticks": {
+        "current": "Son",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

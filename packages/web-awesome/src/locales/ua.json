@@ -283,6 +283,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Немає важливості"
       }
+    },
+    "durationDynamics": {
+      "title": "Динаміка тривалості",
+      "durations": {
+        "sequential": "Послідовна тривалість",
+        "duration": "Тривалість тестів",
+        "speedup": "Прискорення"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Останній звіт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Звіт від {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Останній",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

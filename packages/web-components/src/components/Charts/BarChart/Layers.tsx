@@ -251,11 +251,13 @@ type BarGroup<T extends BarDatum> = {
   height: number;
 };
 
-const splitBarsIntoGroups = <T extends BarDatum>(
-  bars: readonly ComputedBarDatum<T>[],
-  indexBy: Extract<keyof T, string>,
-  layout: "vertical" | "horizontal",
-) => {
+const splitBarsIntoGroups = <T extends BarDatum>(props: {
+  bars: readonly ComputedBarDatum<T>[];
+  indexBy: Extract<keyof T, string>;
+  layout: "vertical" | "horizontal";
+  groupMode: "grouped" | "stacked";
+}) => {
+  const { bars, indexBy, layout, groupMode } = props;
   const groups = new Map<string, BarGroup<T>>();
 
   for (const bar of bars) {
@@ -278,10 +280,28 @@ const splitBarsIntoGroups = <T extends BarDatum>(
 
     group.x = Math.min(group.x, bar.x);
     group.y = Math.min(group.y, bar.y);
-    // In vertical layout the groups width is the max width of the bar it consists of
-    group.width = layout === "vertical" ? Math.max(group.width, bar.width) : group.width + bar.width;
-    // In horizontal layout the groups height is the max height of the bar it consists of
-    group.height = layout === "horizontal" ? Math.max(group.height, bar.height) : group.height + bar.height;
+
+    let groupWidth = group.width + bar.width;
+    let groupHeight = group.height + bar.height;
+
+    if (layout === "vertical") {
+      groupWidth = Math.max(group.width, bar.width);
+
+      if (groupMode === "grouped") {
+        groupHeight = Math.max(group.height, bar.height);
+      }
+    }
+
+    if (layout === "horizontal") {
+      groupHeight = Math.max(group.height, bar.height);
+
+      if (groupMode === "grouped") {
+        groupWidth = Math.max(group.width, bar.width);
+      }
+    }
+
+    group.width = groupWidth;
+    group.height = groupHeight;
   }
 
   return Array.from(groups.values());
@@ -290,6 +310,7 @@ const splitBarsIntoGroups = <T extends BarDatum>(
 const BarGroupsContext = createContext<{
   barSize: "s" | "m" | "l";
   layout: "vertical" | "horizontal";
+  groupMode: "grouped" | "stacked";
 } | null>(null);
 
 const useBarGroupsContext = () => {
@@ -304,20 +325,23 @@ const useBarGroupsContext = () => {
 
 export const BarChartBars = <T extends BarDatum>(
   props: BarCustomLayerProps<T> &
-    Pick<BarSvgProps<T>, "layout"> & {
+    Pick<BarSvgProps<T>, "layout" | "groupMode"> & {
       legend: LegendItemValue<T>[];
       indexBy: Extract<keyof T, string>;
       barSize: "s" | "m" | "l";
     },
 ) => {
-  const { bars, indexBy, layout, barSize } = props;
+  const { bars, indexBy, layout = "vertical", barSize, groupMode = "stacked" } = props;
 
-  const groups = splitBarsIntoGroups<T>(bars, indexBy, layout ?? "vertical");
+  const groups = useMemo(
+    () => splitBarsIntoGroups<T>({ bars, indexBy, layout, groupMode }),
+    [bars, indexBy, layout, groupMode],
+  );
   const offsetY = Math.min(...groups.map((group) => group.y));
   const offsetX = Math.min(...groups.map((group) => group.x));
 
   return (
-    <BarGroupsContext.Provider value={{ barSize, layout: layout ?? "vertical" }}>
+    <BarGroupsContext.Provider value={{ barSize, layout, groupMode }}>
       <animated.g data-testid="bars" pointerEvents="none">
         {groups.map((group) => (
           <Group key={group.id} group={group} offsetY={offsetY} offsetX={offsetX} />

@@ -332,6 +332,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": " Delays delaysdelays"
       }
+    },
+    "durationDynamics": {
+      "title": "Տdelays delays",
+      "durations": {
+        "sequential": "Հdelays delaysdelays delays",
+        "duration": "Թdelays delays",
+        "speedup": "Արdelays"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Վdelays delaysdelays ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Հdelaysdelays {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Վdelays",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

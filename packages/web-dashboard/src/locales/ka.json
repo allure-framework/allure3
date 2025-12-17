@@ -183,6 +183,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "სიმძიმე არ არის"
       }
+    },
+    "durationDynamics": {
+      "title": "ხანგრძლივობის დინამიკა",
+      "durations": {
+        "sequential": "თანმიმდევრული ხანგრძლივობა",
+        "duration": "ტესტის ხანგრძლივობა",
+        "speedup": "აჩქარება"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "უახლესი ანგარიში ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "ანგარიში {{timestamp, timestamp_long_no_seconds}}-დან"
+      },
+      "ticks": {
+        "current": "უახლესი",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

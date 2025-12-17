@@ -183,6 +183,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Ingen allvarlighetsgrad"
       }
+    },
+    "durationDynamics": {
+      "title": "Varaktighetsdynamik",
+      "durations": {
+        "sequential": "Sekventiell varaktighet",
+        "duration": "Testvaraktighet",
+        "speedup": "Snabbhet"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapporten ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senast",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {
