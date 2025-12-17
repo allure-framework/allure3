@@ -49,6 +49,7 @@ export class OpenCommand extends Command {
     const resultsDirectories: string[] = [];
     const config = await readConfig(cwd, this.config, {
       output: this.output,
+      port: this.port,
     });
     const matchedDirs = (
       await glob(resultsDir, {
@@ -82,7 +83,7 @@ export class OpenCommand extends Command {
       await allureReport.done();
 
       await serve({
-        port: this.port ? parseInt(this.port, 10) : undefined,
+        port: config.port ? parseInt(config.port, 10) : undefined,
         servePath: config.output,
         open: true,
       });
