@@ -3,9 +3,9 @@ import { rmSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { platform } from "node:process";
 import { describe, expect, it } from "vitest";
 import { stopProcessTree } from "../src/utils/process.js";
-import { platform } from "node:process";
 
 const spinProcessTreeScript = `
   import { fork } from "node:child_process";
@@ -70,7 +70,9 @@ const spinProcessTreeScript = `
 
 type ChildrenDescriptor = Record<string, object>;
 
-type TargetProcessMessage = ["pids", Record<string, ProcessTreePids>] | ["exitCodes", Record<string, ProcessTreeExitCodes>];
+type TargetProcessMessage =
+  | ["pids", Record<string, ProcessTreePids>]
+  | ["exitCodes", Record<string, ProcessTreeExitCodes>];
 
 type ProcessTreePids = {
   pid: number;
@@ -87,9 +89,7 @@ type ProcessRunInfo = {
   exitCodes: Promise<ProcessTreeExitCodes>;
 };
 
-const spinUpProcessTree = async (
-  childrenDescriptor: ChildrenDescriptor,
-): Promise<ProcessRunInfo> => {
+const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promise<ProcessRunInfo> => {
   const workingDirectory = await mkdtemp(path.join(tmpdir(), "cli-test-terminate-"));
   const scriptPath = path.join(workingDirectory, "spawn.mjs");
   await writeFile(scriptPath, spinProcessTreeScript, { encoding: "utf-8" });
@@ -108,7 +108,7 @@ const spinUpProcessTree = async (
   const childPidsPromise = new Promise<Record<string, ProcessTreePids>>((emitChildPids) => {
     parent.on("message", ([type, data]: TargetProcessMessage) => {
       if (type === "pids") {
-          emitChildPids(data);
+        emitChildPids(data);
       } else if (type === "exitCodes") {
         childExitCodes = data;
       }
@@ -122,7 +122,7 @@ const spinUpProcessTree = async (
   }).finally(() => {
     rmSync(workingDirectory, { recursive: true, force: true });
   });
-  
+
   const childPids = await childPidsPromise;
 
   return {
@@ -153,17 +153,24 @@ describe("stopProcessTree", () => {
 
     it("should stop a tree of a parent and one child", async () => {
       const {
-        pids: { pid: parentPid, children: { 1: { pid: childPid } } },
+        pids: {
+          pid: parentPid,
+          children: {
+            1: { pid: childPid },
+          },
+        },
         exitCodes,
       } = await spinUpProcessTree({ 1: {} });
 
       const terminations = await stopProcessTree(parentPid);
 
-      expect(terminations).toHaveLength(2)
-      expect(terminations).toEqual(expect.arrayContaining([
-        expect.objectContaining({ pid: parentPid }),
-        expect.objectContaining({ pid: childPid }),
-      ]));
+      expect(terminations).toHaveLength(2);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid: parentPid }),
+          expect.objectContaining({ pid: childPid }),
+        ]),
+      );
       await expect(exitCodes).resolves.toEqual({ code: 1, children: undefined });
     });
 
@@ -191,7 +198,7 @@ describe("stopProcessTree", () => {
           expect.objectContaining({ pid: childPid3, parentPid: pid }),
         ]),
       );
-      await expect(exitCodes).resolves.toEqual({code: 1, children: undefined });
+      await expect(exitCodes).resolves.toEqual({ code: 1, children: undefined });
     });
 
     it("should stop a three-level process tree", async () => {
@@ -232,7 +239,7 @@ describe("stopProcessTree", () => {
           expect.objectContaining({ pid: pid22, parentPid: pid2 }),
         ]),
       );
-      await expect(exitCodes).resolves.toEqual({code: 1, children: undefined });
+      await expect(exitCodes).resolves.toEqual({ code: 1, children: undefined });
     });
   });
 

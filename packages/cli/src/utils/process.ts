@@ -58,11 +58,14 @@ export const terminationOf = (testProcess: ChildProcess): Promise<number | null>
 /**
  * On a POSIX-compatible system, sends a signal (`SIGTERM` by default) to a process and all its direct and indirect
  * children. On Windows, calls ProcessTerminate on these processes instead.
- * @param pid The ID of a parent process to stop. 
+ * @param pid The ID of a parent process to stop.
  * @param options Options
  * @returns An array of objects, each describing a process that has been requested to stop.
  */
-export const stopProcessTree = async (pid: number, { signal = "SIGTERM" }: StopProcessTreeOpts = {}): Promise<ProcessBrief[]> => {
+export const stopProcessTree = async (
+  pid: number,
+  { signal = "SIGTERM" }: StopProcessTreeOpts = {},
+): Promise<ProcessBrief[]> => {
   const tree = new Map<number, ProcessBrief[]>();
   const processesToSignal: ProcessBrief[] = [];
   const signaledProcesses: ProcessBrief[] = [];
