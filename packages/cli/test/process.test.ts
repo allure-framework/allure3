@@ -27,7 +27,7 @@ const spinProcessTreeScript = `
   for (const [childKey, childChildren] of Object.entries(childrenDescriptors)) {
     childPids[childKey] = await new Promise((continueInit) => {
       const childProcess = fork(import.meta.filename, [JSON.stringify(childChildren)], {
-        timeout: 3000,
+        timeout: 10000,
         killSignal: "SIGKILL",
       });
 
@@ -65,7 +65,7 @@ const spinProcessTreeScript = `
     }
   };
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 10000));
 `;
 
 type ChildrenDescriptor = Record<string, object>;
@@ -96,7 +96,7 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
 
   const parent = fork(scriptPath, [JSON.stringify(childrenDescriptor)], {
     cwd: workingDirectory,
-    timeout: 3000,
+    timeout: 10000,
     killSignal: "SIGKILL",
     stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
@@ -166,7 +166,8 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
 };
 
 describe("stopProcessTree", () => {
-  describe.skipIf(platform !== "win32")("on Windows", () => {
+  // stopProcessTree on Windows calls powershell.exe so it might need more time to finish
+  describe("on Windows", { skip: platform != "win32", timeout: 10_000 }, () => {
     it("should stop a tree of a single process", async () => {
       const {
         pids: { pid },
@@ -206,6 +207,7 @@ describe("stopProcessTree", () => {
     });
 
     it("should stop a tree of a parent and three children", async () => {
+      const x = await spinUpProcessTree({ 1: {}, 2: {}, 3: {} });
       const {
         pids: {
           pid,
@@ -216,7 +218,7 @@ describe("stopProcessTree", () => {
           },
         },
         exitCodes,
-      } = await spinUpProcessTree({ 1: {}, 2: {}, 3: {} });
+      } = x;
 
       const terminations = await stopProcessTree(pid);
 
@@ -274,7 +276,7 @@ describe("stopProcessTree", () => {
     });
   });
 
-  describe.skipIf(platform === "win32")("on a POSIX-compliant system", () => {
+  describe("on a POSIX-compliant system", { skip: platform === "win32" }, () => {
     it("should stop a tree of a single process", async () => {
       const {
         pids: { pid },
