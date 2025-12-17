@@ -3,7 +3,6 @@ import { ChartType, FunnelChartType } from "@allurereport/charts-api";
 import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
-  BarChartWidget,
   CurrentStatusChartWidget,
   DurationsChartWidget,
   FBSUAgePyramidChartWidget,
@@ -17,6 +16,7 @@ import {
   StatusTransitionsChartWidget,
   TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
+  TrSeveritiesChartWidget,
   TreeMapChartWidget,
   TrendChartWidget,
 } from "@allurereport/web-components";
@@ -140,22 +140,16 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.Bar: {
-      const type = t(`bar.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
+    case ChartType.TrSeverities: {
+      const title = chartData.title ?? t("trSeverities.title");
 
       return (
-        <BarChartWidget
+        <TrSeveritiesChartWidget
           title={title}
-          mode={chartData.mode}
           data={chartData.data}
-          keys={chartData.keys}
-          indexBy={chartData.indexBy}
-          colors={chartData.colors}
-          groupMode={chartData.groupMode}
-          xAxisConfig={chartData.xAxisConfig}
-          yAxisConfig={chartData.yAxisConfig}
-          translations={{ "no-results": empty("no-results") }}
+          levels={chartData.levels}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`trSeverities.${key}`, props)}
         />
       );
     }

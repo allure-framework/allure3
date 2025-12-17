@@ -295,7 +295,7 @@
       }
     },
     "fbsuAgePyramid": {
-      "title": "FBSU delays delaysdelays",
+      "title": "FBSU տdelays delaysdelays",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",
@@ -312,6 +312,25 @@
       "ticks": {
         "current": "Վdelays",
         "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Թdelays delays delays delaysdelays delays",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": " Delays delaysdelays"
       }
     }
   },

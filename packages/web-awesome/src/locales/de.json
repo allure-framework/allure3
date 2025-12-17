@@ -313,6 +313,25 @@
         "current": "Neueste",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "trSeverities": {
+      "title": "Testergebnisse nach Schweregrad",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Kein Schweregrad"
+      }
     }
   },
   "transitions": {

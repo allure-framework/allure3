@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartDataType, ChartType, FunnelChartType } from "@allurereport/charts-api";
-import { capitalize, statusesList } from "@allurereport/core-api";
+import { ChartDataType, ChartType, FunnelChartType } from "@allurereport/charts-api";
+import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
-  BarChartWidget,
   CurrentStatusChartWidget,
   DurationsChartWidget,
   FBSUAgePyramidChartWidget,
@@ -17,6 +16,7 @@ import {
   StatusTransitionsChartWidget,
   TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
+  TrSeveritiesChartWidget,
   TreeMapChartWidget,
   TrendChartWidget,
 } from "@allurereport/web-components";
@@ -145,43 +145,16 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.Bar: {
-      const type = t(`bar.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-      /**
-       * A flag that indicates whether the chart data should be considered empty.
-       * For some chart types, simply checking the `data` array length is not sufficient,
-       * because additional logic may be needed to assess the presence of meaningful data.
-       * This flag ensures that specific conditions for data emptiness are handled per chart type.
-       */
-      let isDataEmpty = false;
-
-      if (chartData.dataType === BarChartType.StatusBySeverity) {
-        /*
-         * Data for this chart type consists of statistics where each group contains
-         * metrics such as passed, failed, broken, etc., represented as numbers.
-         * To determine if the chart should be displayed, we need to check if any of these
-         * metrics in any group is greater than 0. If at least one of the statistics is
-         * greater than 0, we display the chart; otherwise, we consider the data empty.
-         */
-        isDataEmpty = !chartData.data.some(
-          (item) => chartData.keys.includes(item.groupId) && statusesList.some((status) => (item[status] ?? 0) > 0),
-        );
-      }
+    case ChartType.TrSeverities: {
+      const title = chartData.title ?? t("trSeverities.title");
 
       return (
-        <BarChartWidget
+        <TrSeveritiesChartWidget
           title={title}
-          mode={chartData.mode}
-          data={isDataEmpty ? [] : chartData.data}
-          keys={chartData.keys}
-          indexBy={chartData.indexBy}
-          colors={chartData.colors}
-          groupMode={chartData.groupMode}
-          xAxisConfig={chartData.xAxisConfig}
-          yAxisConfig={chartData.yAxisConfig}
-          layout={chartData.layout}
-          translations={{ "no-results": empty("no-results") }}
+          data={chartData.data}
+          levels={chartData.levels}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`trSeverities.${key}`, props)}
         />
       );
     }

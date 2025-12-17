@@ -1,4 +1,4 @@
-import { BarChartType, type ChartOptions, ChartType, FunnelChartType, TreeMapChartType } from "./types.js";
+import { type ChartOptions, ChartType, FunnelChartType, TreeMapChartType } from "./types.js";
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
 
@@ -12,9 +12,11 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Status dynamics",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StatusBySeverity,
-    title: "Test result severities",
+    type: ChartType.TrSeverities,
+    title: "Test results by severities",
+    levels: ["blocker", "critical", "normal", "minor", "trivial"],
+    statuses: ["passed", "failed", "broken", "skipped", "unknown"],
+    includeUnset: true,
   },
   {
     type: ChartType.StatusTransitions,
@@ -68,11 +70,6 @@ export const defaultChartsConfig: ChartOptions[] = [
     type: ChartType.Durations,
     title: "Durations by layer histogram",
     groupBy: "layer",
-  },
-  {
-    type: ChartType.Bar,
-    dataType: "performanceTrend" as any,
-    title: "Performance dynamics",
   },
   {
     type: ChartType.FBSUAgePyramid,

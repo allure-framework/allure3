@@ -2,8 +2,8 @@ import type { TestBaseGrowthDynamicsChartData } from "@allurereport/charts-api";
 import type { TestStatus } from "@allurereport/core-api";
 
 type I18nKeys =
-  | "status.new${TestStatus}"
-  | "status.removed${TestStatus}"
+  | `status.new${TestStatus}`
+  | `status.removed${TestStatus}`
   | "no-history"
   | "no-results"
   | "ticks.current"
