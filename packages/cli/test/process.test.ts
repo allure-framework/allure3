@@ -119,11 +119,42 @@ const spinUpProcessTree = async (childrenDescriptor: ChildrenDescriptor): Promis
     parent.on("exit", (code, signal) => {
       emitParentExitCode(signal ?? code!);
     });
-  }).finally(() => {
+  }).finally(async () => {
+    await syncProcessesStopped();
     rmSync(workingDirectory, { recursive: true, force: true });
   });
 
   const childPids = await childPidsPromise;
+
+  const syncProcessesStopped = async () => {
+    const pidsToCheck = [];
+    const recordsToProcess: Record<string, ProcessTreePids>[] = [];
+    for (let record = childPids; record; record = recordsToProcess.pop()!) {
+      for (const [, { pid, children }] of Object.entries(record)) {
+        pidsToCheck.push(pid);
+        recordsToProcess.push(children);
+      }
+    }
+
+    while (pidsToCheck.length) {
+      await new Promise((r) => setTimeout(r, 500));
+      pidsToCheck.splice(
+        0,
+        pidsToCheck.length,
+        ...pidsToCheck.filter((pid) => {
+          try {
+            process.kill(pid, 0);
+            return true;
+          } catch (e) {
+            if ((e as any).code === "ESRCH") {
+              return false;
+            }
+            throw e;
+          }
+        }),
+      );
+    }
+  };
 
   return {
     pids: {
