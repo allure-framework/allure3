@@ -18,8 +18,8 @@ const spinProcessTreeScript = `
     process.exit(exitCode);
   };
 
-  process.on("SIGTERM", createSignalHandler(-10));
-  process.on("SIGINT", createSignalHandler(-20));
+  process.on("SIGTERM", createSignalHandler(10));
+  process.on("SIGINT", createSignalHandler(20));
 
   const childPromises = {};
   const childPids = {};
@@ -253,7 +253,7 @@ describe("stopProcessTree", () => {
       const terminations = await stopProcessTree(pid);
 
       expect(terminations).toEqual([expect.objectContaining({ pid })]);
-      await expect(exitCodes).resolves.toEqual({ code: "SIGTERM", children: {} });
+      await expect(exitCodes).resolves.toEqual({ code: 10, children: {} });
     });
 
     it("should use a custom signal", async () => {
@@ -265,7 +265,7 @@ describe("stopProcessTree", () => {
       const terminations = await stopProcessTree(pid, { signal: "SIGINT" });
 
       expect(terminations).toEqual([expect.objectContaining({ pid })]);
-      await expect(exitCodes).resolves.toEqual({ reason: "SIGINT", children: {} });
+      await expect(exitCodes).resolves.toEqual({ code: 20, children: {} });
     });
 
     it("should stop a tree of a parent and one child", async () => {
@@ -289,9 +289,9 @@ describe("stopProcessTree", () => {
         ]),
       );
       await expect(exitCodes).resolves.toEqual({
-        code: "SIGTERM",
+        code: 10,
         children: {
-          1: { code: "SIGTERM", children: {} },
+          1: { code: 10, children: {} },
         },
       });
     });
@@ -321,11 +321,11 @@ describe("stopProcessTree", () => {
         ]),
       );
       await expect(exitCodes).resolves.toEqual({
-        code: "SIGTERM",
+        code: 10,
         children: {
-          1: { code: "SIGTERM", children: {} },
-          2: { code: "SIGTERM", children: {} },
-          3: { code: "SIGTERM", children: {} },
+          1: { code: 10, children: {} },
+          2: { code: 10, children: {} },
+          3: { code: 10, children: {} },
         },
       });
     });
@@ -369,20 +369,20 @@ describe("stopProcessTree", () => {
         ]),
       );
       await expect(exitCodes).resolves.toEqual({
-        code: "SIGTERM",
+        code: 10,
         children: {
           1: {
-            code: "SIGTERM",
+            code: 10,
             children: {
-              11: { code: "SIGTERM", children: {} },
-              12: { code: "SIGTERM", children: {} },
+              11: { code: 10, children: {} },
+              12: { code: 10, children: {} },
             },
           },
           2: {
-            code: "SIGTERM",
+            code: 10,
             children: {
-              21: { code: "SIGTERM", children: {} },
-              22: { code: "SIGTERM", children: {} },
+              21: { code: 10, children: {} },
+              22: { code: 10, children: {} },
             },
           },
         },
