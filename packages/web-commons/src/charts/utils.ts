@@ -7,25 +7,24 @@ import type {
   StatusDynamicsChartData,
   StatusTransitionsChartData,
   TestBaseGrowthDynamicsChartData,
+  TrSeveritiesChartData,
 } from "@allurereport/charts-api";
-import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
+import { ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
 import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
 import { severityLevels, statusesList } from "@allurereport/core-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
 import { nanoid } from "nanoid";
-import { resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
+import { resolveCSSVarColor, severityColors, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsDataWithEnvs,
-  ResponseBarChartData,
   ResponseHeatMapChartData,
   ResponseTestingPyramidChartData,
   ResponseTreeMapChartData,
   ResponseTrendChartData,
   TreeMapTooltipAccessor,
   TrendChartItem,
-  UIBarChartData,
   UIChartData,
   UIChartsDataWithEnvs,
   UIHeatMapChartData,
@@ -77,21 +76,6 @@ export const createTrendChartDataGeneric = <T extends TestStatus | SeverityLevel
   } as UITrendChartData;
 };
 
-export const createBarChartDataGeneric = <T extends string>(
-  getChart: () => ResponseBarChartData | undefined,
-  getColors: () => Record<T, string>,
-): UIBarChartData | undefined => {
-  const chart = getChart();
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: getColors(),
-  };
-};
-
 export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
   colors: (value: number, domain?: number[]) => string,
@@ -140,24 +124,6 @@ export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsData):
     () => res[chartId] as ResponseTrendChartData | undefined,
     () => severityLevels,
     (severity) => severityColors[severity],
-  );
-
-export const createStatusBySeverityBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusColors,
-  );
-
-export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusColors,
-  );
-
-export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusChangeColors,
   );
 
 export const createSuccessRateDistributionTreeMapChartData = (
@@ -258,17 +224,6 @@ export const createaTrendChartData = (
   }
 };
 
-export const createBarChartData = (
-  chartId: string,
-  chartData: ResponseBarChartData,
-  res: ChartsData,
-): UIBarChartData | undefined => {
-  switch (chartData.dataType) {
-    case BarChartType.StatusBySeverity:
-      return createStatusBySeverityBarChartData(chartId, res);
-  }
-};
-
 export const createTreeMapChartData = (
   chartId: ChartId,
   chartData: ResponseTreeMapChartData,
@@ -312,13 +267,10 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as TestBaseGrowthDynamicsChartData;
       } else if (chart.type === ChartType.FBSUAgePyramid) {
         acc[chartId] = res[chartId] as FBSUAgePyramidChartData;
+      } else if (chart.type === ChartType.TrSeverities) {
+        acc[chartId] = res[chartId] as TrSeveritiesChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
-        if (chartData) {
-          acc[chartId] = chartData;
-        }
-      } else if (chart.type === ChartType.Bar) {
-        const chartData = createBarChartData(chartId, chart, res);
         if (chartData) {
           acc[chartId] = chartData;
         }
@@ -338,8 +290,6 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if ([ChartType.ComingSoon].includes(chart.type)) {
-        return acc;
       }
 
       return acc;

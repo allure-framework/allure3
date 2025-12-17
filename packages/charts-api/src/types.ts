@@ -10,28 +10,15 @@ export enum ChartType {
   TestBaseGrowthDynamics = "testBaseGrowthDynamics",
   FBSUAgePyramid = "fbsuAgePyramid",
   Durations = "durations",
+  TrSeverities = "testResultSeverities",
   TreeMap = "treemap",
   HeatMap = "heatmap",
-  /**
-   * @deprecated
-   */
-  Bar = "bar",
   Funnel = "funnel",
-  /**
-   * @deprecated
-   */
-  ComingSoon = "coming-soon",
 }
 
 export enum ChartDataType {
   Status = "status",
   Severity = "severity",
-}
-
-// Specifies which Bar chart is being generated
-export enum BarChartType {
-  StatusBySeverity = "statusBySeverity",
-  StatusChangeTrend = "statusChangeTrend",
 }
 
 export enum FunnelChartType {
@@ -93,13 +80,6 @@ export type PieChartValues = {
   percentage: number;
   slices: PieSlice[];
 };
-
-export type BarGroupValues<T extends string = string> = Record<T, number>;
-export type BarGroup<G extends string, T extends string = string> = { groupId: G } & BarGroupValues<T>;
-export enum BarGroupMode {
-  Grouped = "grouped",
-  Stacked = "stacked",
-}
 
 export type NewKey<T extends string> = `new${Capitalize<T>}`;
 export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
@@ -172,35 +152,6 @@ export type SeverityTrendChartData = GenericTrendChartData<SeverityLevel>;
 // Trend chart data types
 export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
-// Bar chart data types
-export interface BarChartData {
-  type: ChartType.Bar;
-  dataType: BarChartType;
-  mode: ChartMode;
-  title?: string;
-  data: BarGroup<string, string>[];
-  keys: readonly string[];
-  indexBy: string;
-  groupMode: BarGroupMode;
-  xAxisConfig?: {
-    legend?: string;
-    enabled?: boolean;
-    format?: string;
-    domain?: number[];
-    tickValues?: number | number[];
-  };
-  yAxisConfig?: {
-    legend?: string;
-    enabled?: boolean;
-    format?: string;
-    tickValues?: number | number[];
-    domain?: number[];
-  };
-  layout?: "horizontal" | "vertical";
-  // Threshold value for the stability rate distribution chart
-  threshold?: number;
-}
-
 // Tree map chart data types
 export interface TreeMapChartData {
   type: ChartType.TreeMap;
@@ -213,12 +164,6 @@ export interface HeatMapChartData<T extends Record<string, any> = {}> {
   type: ChartType.HeatMap;
   title?: string;
   data: HeatMapSerie<T>[];
-}
-
-// Coming soon chart data types
-export interface ComingSoonChartData {
-  type: ChartType.ComingSoon;
-  title?: string;
 }
 
 // Funnel chart data types
@@ -351,10 +296,19 @@ export interface FBSUAgePyramidChartData {
   statuses: Exclude<TestStatus, "passed">[];
 }
 
+export type TrSeveritiesChartData = {
+  type: ChartType.TrSeverities;
+  title?: string;
+  data: ({
+    id: SeverityLevel | "unset";
+  } & Record<TestStatus, number>)[];
+  levels: (SeverityLevel | "unset")[];
+  statuses: TestStatus[];
+};
+
 // Union types for generated chart data
 export type GeneratedChartData =
   | TrendChartData
-  | BarChartData
   | CurrentStatusChartData
   | StatusDynamicsChartData
   | StatusTransitionsChartData
@@ -362,10 +316,10 @@ export type GeneratedChartData =
   | StabilityDistributionChartData
   | TestBaseGrowthDynamicsChartData
   | FBSUAgePyramidChartData
-  | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
-  | FunnelChartData;
+  | FunnelChartData
+  | TrSeveritiesChartData;
 
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
 
@@ -540,13 +494,27 @@ export type FBSUAgePyramidChartOptions = {
   limit?: number;
 };
 
-export type BarChartOptions = {
-  type: ChartType.Bar;
-  dataType: BarChartType;
-  mode?: ChartMode;
+export type TrSeveritiesChartOptions = {
+  type: ChartType.TrSeverities;
   title?: string;
-  limit?: number;
-  threshold?: number;
+  /**
+   * List of severity levels that will be used to create the chart.
+   *
+   * @default ["blocker", "critical", "normal", "minor", "trivial"]
+   */
+  levels?: SeverityLevel[];
+  /**
+   * List of test statuses that will be used to create the chart.
+   *
+   * @default ["passed", "failed", "broken", "skipped", "unknown"]
+   */
+  statuses?: TestStatus[];
+  /**
+   * Whether to include the "unset" severity level from the chart
+   *
+   * @default true
+   */
+  includeUnset?: boolean;
 };
 
 export type TreeMapChartOptions = {
@@ -557,11 +525,6 @@ export type TreeMapChartOptions = {
 
 export type HeatMapChartOptions = {
   type: ChartType.HeatMap;
-  title?: string;
-};
-
-export type ComingSoonChartOptions = {
-  type: ChartType.ComingSoon;
   title?: string;
 };
 
@@ -576,16 +539,15 @@ export type ChartOptions =
   | TrendChartOptions
   | CurrentStatusChartOptions
   | StatusDynamicsChartOptions
-  | BarChartOptions
   | DurationsChartOptions
-  | ComingSoonChartOptions
   | TreeMapChartOptions
   | HeatMapChartOptions
   | FunnelChartOptions
   | StatusTransitionsChartOptions
   | StabilityDistributionChartOptions
   | FBSUAgePyramidChartOptions
-  | TestBaseGrowthDynamicsChartOptions;
+  | TestBaseGrowthDynamicsChartOptions
+  | TrSeveritiesChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];
@@ -600,19 +562,6 @@ export interface TrendDataAccessor<T extends TrendDataType> {
   getHistoricalData: (historyPoint: HistoryDataPoint) => TrendStats<T>;
   // List of all possible values for the type
   getAllValues: () => readonly T[];
-}
-
-export interface BarDataAccessor<G extends string, T extends string> {
-  // Get all needed data for the chart
-  getItems: (
-    storeData: AllureChartsStoreData,
-    limitedHistoryDataPoints: HistoryDataPoint[],
-    isFullHistory: boolean,
-  ) => BarGroup<G, T>[];
-  // List of all possible values for the group
-  getGroupKeys: () => readonly T[];
-  // Get group mode
-  getGroupMode: () => BarGroupMode;
 }
 
 export interface TreeMapDataAccessor<T extends TreeMapNode> {

@@ -1,7 +1,4 @@
 import type {
-  BarChartType,
-  BarGroup,
-  BarGroupMode,
   BaseTrendSliceMetadata,
   ChartDataType,
   ChartId,
@@ -14,6 +11,7 @@ import type {
   StabilityDistributionChartData,
   StatusTransitionsChartData,
   TestBaseGrowthDynamicsChartData,
+  TrSeveritiesChartData,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
@@ -71,22 +69,6 @@ export interface StatusDynamicsChartData {
   statuses?: TestStatus[];
 }
 
-export interface ResponseBarChartData {
-  type: ChartType.Bar;
-  dataType: BarChartType;
-  mode: ChartMode;
-  title?: string;
-  data: BarGroup<string, string>[];
-  keys: readonly string[];
-  indexBy: string;
-  groupMode: BarGroupMode;
-}
-
-export interface ResponseComingSoonChartData {
-  type: ChartType.ComingSoon;
-  title?: string;
-}
-
 export interface ResponseTreeMapChartData {
   type: ChartType.TreeMap;
   dataType: TreeMapChartType;
@@ -108,8 +90,6 @@ export type ChartsResponse<
     ChartId,
     | ResponseTrendChartData<SeriesType, Metadata>
     | CurrentStatusChartData
-    | ResponseBarChartData
-    | ResponseComingSoonChartData
     | ResponseTreeMapChartData
     | ResponseHeatMapChartData
   >;
@@ -118,8 +98,6 @@ export type ChartsResponse<
       ChartId,
       | ResponseTrendChartData<SeriesType, Metadata>
       | CurrentStatusChartData
-      | ResponseBarChartData
-      | ResponseComingSoonChartData
       | ResponseTreeMapChartData
       | ResponseHeatMapChartData
     >;
@@ -141,25 +119,6 @@ export type UICurrentStatusChartData = CurrentStatusChartData;
 export type UIStatusDynamicsChartData = StatusDynamicsChartData;
 export type UIStatusTransitionsChartData = StatusTransitionsChartData;
 export type UIDurationsChartData = DurationsChartData;
-export interface UIBarChartData extends ResponseBarChartData {
-  colors: Record<string, string>;
-  xAxisConfig?: {
-    legend?: string;
-    enabled?: boolean;
-    format?: string;
-  };
-  yAxisConfig?: {
-    legend?: string;
-    enabled?: boolean;
-    format?: string;
-    domain?: number[];
-  };
-  layout?: "horizontal" | "vertical";
-  // Threshold value for the stability rate distribution chart
-  threshold?: number;
-}
-
-export type UIComingSoonChartData = ResponseComingSoonChartData;
 
 export interface UITreeMapChartData extends ResponseTreeMapChartData {
   colors: (value: number, domain?: number[]) => string;
@@ -196,20 +155,17 @@ export type ChartData<
   | StatusTransitionsChartData
   | DurationsChartData
   | StabilityDistributionChartData
-  | ResponseBarChartData
-  | ResponseComingSoonChartData
   | ResponseTreeMapChartData
   | ResponseHeatMapChartData
   | TestBaseGrowthDynamicsChartData
   | FBSUAgePyramidChartData
-  | ResponseTestingPyramidChartData;
+  | ResponseTestingPyramidChartData
+  | TrSeveritiesChartData;
 
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
   | UITrendChartData<Metadata>
   | UICurrentStatusChartData
   | UIStatusDynamicsChartData
-  | UIBarChartData
-  | UIComingSoonChartData
   | UITreeMapChartData
   | UIHeatMapChartData
   | UITestingPyramidChartData
@@ -217,7 +173,8 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UIDurationsChartData
   | TestBaseGrowthDynamicsChartData
   | FBSUAgePyramidChartData
-  | StabilityDistributionChartData;
+  | StabilityDistributionChartData
+  | TrSeveritiesChartData;
 
 export type ChartsData<
   SeriesType extends string = string,

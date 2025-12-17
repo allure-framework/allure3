@@ -2,13 +2,10 @@ import {
   type AllureChartsStoreData,
   type ChartOptions,
   ChartType,
-  type ComingSoonChartOptions,
   type GeneratedChartsData,
 } from "@allurereport/charts-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
-import { generateBarChart } from "./bar.js";
-import { generateComingSoonChart } from "./comingSoon.js";
 import { generateFunnelChart } from "./funnel/index.js";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
@@ -17,6 +14,7 @@ import { generateStabilityDistributionChart } from "./generateStabilityDistribut
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
 import { generateTestBaseGrowthDynamicsChart } from "./generateTestBaseGrowthDynamicsChart.js";
+import { generateTrSeveritiesChart } from "./generateTrSeveritiesChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTrendChart } from "./line.js";
 import { generateTreeMapChart } from "./treeMap.js";
@@ -69,8 +67,8 @@ const generateChartData = async (props: {
       case ChartType.FBSUAgePyramid:
         result[chartId] = generateFBSUAgePyramid({ options: chartOption, storeData })!;
         break;
-      case ChartType.Bar:
-        result[chartId] = generateBarChart(chartOption, storeData)!;
+      case ChartType.TrSeverities:
+        result[chartId] = generateTrSeveritiesChart({ options: chartOption, storeData })!;
         break;
       case ChartType.TreeMap:
         result[chartId] = generateTreeMapChart(chartOption, storeData)!;
@@ -82,12 +80,7 @@ const generateChartData = async (props: {
         result[chartId] = generateFunnelChart(chartOption, storeData)!;
         break;
       default:
-        result[chartId] = generateComingSoonChart(chartOption);
         break;
-    }
-
-    if (!result[chartId]) {
-      result[chartId] = generateComingSoonChart(chartOption as ComingSoonChartOptions);
     }
   }
 
