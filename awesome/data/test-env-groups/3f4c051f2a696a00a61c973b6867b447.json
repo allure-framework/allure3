@@ -1,1 +1,1 @@
-{"id":"3f4c051f2a696a00a61c973b6867b447","fullName":"test/xcresult.test.ts#A MAC machine bug links should ignore ID if URL and name are set","name":"should ignore ID if URL and name are set","status":"passed","testResultsByEnv":{"macos-latest":"fdce41f7720c3a21fe2ea28e789a03f5"}}
+{"id":"3f4c051f2a696a00a61c973b6867b447","fullName":"test/xcresult.test.ts#A MAC machine bug links should ignore ID if URL and name are set","name":"should ignore ID if URL and name are set","status":"passed","testResultsByEnv":{"macos-latest":"bd4af2d2c7a74acf1f1a04be11f2291b"}}
