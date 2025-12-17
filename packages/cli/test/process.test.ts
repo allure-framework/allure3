@@ -1,321 +1,385 @@
 import { fork } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { rmSync } from "node:fs";
+import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { killTree } from "../src/utils/process.js";
+import { stopProcessTree } from "../src/utils/process.js";
+import { platform } from "node:process";
 
-const targetScript = `
+const spinProcessTreeScript = `
   import { fork } from "node:child_process";
   import process from "node:process";
 
-  const [expectedSignal, childrenStr] = process.argv.slice(-2);
+  const childrenDescriptors = JSON.parse(process.argv.at(-1));
 
-  let reporting = false;
+  const createSignalHandler = (exitCode) => async () => {
+    await reportChildrenExitCodes();
+    process.exit(exitCode);
+  };
 
-  process.on(expectedSignal, async () => {
-    await reportChildren();
-    process.removeAllListeners(expectedSignal);
-    process.kill(process.pid, expectedSignal);
-  });
+  process.on("SIGTERM", createSignalHandler(-10));
+  process.on("SIGINT", createSignalHandler(-20));
 
-  const childrenDescriptors = JSON.parse(childrenStr);
+  const childPromises = {};
+  const childPids = {};
 
-  const childrenResultPromises = {};
-  const childrenInitInfo = {};
+  for (const [childKey, childChildren] of Object.entries(childrenDescriptors)) {
+    childPids[childKey] = await new Promise((continueInit) => {
+      const childProcess = fork(import.meta.filename, [JSON.stringify(childChildren)], {
+        timeout: 3000,
+        killSignal: "SIGKILL",
+      });
 
-  for (const [childKey, grandchildren] of Object.entries(childrenDescriptors)) {
-    let continueInit;
-    let failInit;
-    const initFence = new Promise((resolve, reject) => {
-      continueInit = resolve;
-      failInit = reject;
+      let childChildrenExitCodes;
+      childProcess.on("message", ([type, data]) => {
+        switch (type) {
+          case "pids":
+            continueInit({ pid: childProcess.pid, children: data });
+            break;
+          case "exitCodes":
+            childChildrenExitCodes = data;
+            break;
+        }
+      });
+
+      childPromises[childKey] = new Promise((emitChildExitCode) => {
+        childProcess.on("exit", (code, signal) => {
+          emitChildExitCode({ code: signal ?? code, children: childChildrenExitCodes ?? {} });
+        });
+      });
     });
-
-    const childProcess = fork(import.meta.filename, [expectedSignal, JSON.stringify(grandchildren)]);
-
-    let childChildrenResults;
-    childProcess.on("message", ([type, data]) => {
-      switch (type) {
-        case "init":
-          childrenInitInfo[childKey] = { children: data };
-          continueInit();
-          break;
-        case "exit":
-          childChildrenResults = data;
-          break;
-      }
-    });
-
-    let emitChildExitInfo;
-    const childPromise = new Promise((resolve) => {
-      emitChildExitInfo = resolve;
-    });
-    childProcess.on("exit", (code, signal) => {
-      emitChildExitInfo({ reason: code ?? signal, children: childChildrenResults });
-    });
-
-    childrenResultPromises[childKey] = childPromise;
-
-    const timeout = setTimeout(() => failInit(new Error("Unable to init the process tree")), 3000);
-    await initFence;
-    clearTimeout(timeout);
-    childrenInitInfo[childKey].pid = childProcess.pid;
   }
 
   if (process.connected) {
-    process.send(["init", childrenInitInfo]);
+    process.send(["pids", childPids]);
   }
 
-  const reportChildren = async () => {
-    if (reporting) {
-      return;
-    }
-
-    reporting = true;
-
-    const childrenExitInfo = {};
-    for (const [childKey, childPromise] of Object.entries(childrenResultPromises)) {
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error(\`Child process \${childKey} not responding\`)), 3000);
-        childPromise.then(({ reason, children: childChildren }) => {
-          clearTimeout(timeout);
-          childrenExitInfo[childKey] = {
-            reason,
-            children: childChildren,
-          };
-          resolve();
-        }, reject);
-      });
+  const reportChildrenExitCodes = async () => {
+    const childExitCodes = {};
+    for (const [childKey, childPromise] of Object.entries(childPromises)) {
+      childExitCodes[childKey] = await childPromise;
     }
     if (process.connected) {
-      process.send(["exit", childrenExitInfo]);
+      process.send(["exitCodes", childExitCodes]);
     }
   };
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  await reportChildren();
 `;
 
 type ChildrenDescriptor = Record<string, object>;
 
-type TargetProcessMessage = ["init", Record<string, ProcessInitInfo>] | ["exit", Record<string, ProcessExitInfo>];
+type TargetProcessMessage = ["pids", Record<string, ProcessTreePids>] | ["exitCodes", Record<string, ProcessTreeExitCodes>];
 
-type ProcessInitInfo = {
+type ProcessTreePids = {
   pid: number;
-  children: Record<string, ProcessInitInfo>;
+  children: Record<string, ProcessTreePids>;
 };
 
-type ProcessExitInfo = {
-  reason: ExitReason;
-  children: Record<string, ProcessExitInfo>;
+type ProcessTreeExitCodes = {
+  code: number | NodeJS.Signals;
+  children: Record<string, ProcessTreeExitCodes>;
 };
-
-type ExitReason = number | NodeJS.Signals;
 
 type ProcessRunInfo = {
-  initInfo: ProcessInitInfo;
-  exitInfo: Promise<ProcessExitInfo>;
+  pids: ProcessTreePids;
+  exitCodes: Promise<ProcessTreeExitCodes>;
 };
 
 const spinUpProcessTree = async (
-  expectedSignal: NodeJS.Signals,
   childrenDescriptor: ChildrenDescriptor,
 ): Promise<ProcessRunInfo> => {
   const workingDirectory = await mkdtemp(path.join(tmpdir(), "cli-test-terminate-"));
-  try {
-    const scriptPath = path.join(workingDirectory, "spawn.mjs");
-    await writeFile(scriptPath, targetScript, { encoding: "utf-8" });
-    const parent = fork(scriptPath, [expectedSignal, JSON.stringify(childrenDescriptor)], {
-      cwd: workingDirectory,
-      timeout: 3000,
-      killSignal: "SIGKILL",
-    });
+  const scriptPath = path.join(workingDirectory, "spawn.mjs");
+  await writeFile(scriptPath, spinProcessTreeScript, { encoding: "utf-8" });
 
-    let continueInit: () => void;
-    let raiseError: (e: Error) => void;
-    const initFence = new Promise((resolve, reject) => {
-      continueInit = () => resolve(undefined);
-      raiseError = reject;
-    });
+  const parent = fork(scriptPath, [JSON.stringify(childrenDescriptor)], {
+    cwd: workingDirectory,
+    timeout: 3000,
+    killSignal: "SIGKILL",
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
+  });
 
-    let emitExitInfo: (exitInfo: ProcessExitInfo) => void;
-    const exitInfoPromise = new Promise<ProcessExitInfo>((resolve) => (emitExitInfo = resolve));
+  parent.stdout?.setEncoding("utf-8").pipe(process.stdout);
+  parent.stderr?.setEncoding("utf-8").pipe(process.stderr);
 
-    let childrenInitInfo: Record<string, ProcessInitInfo> = {};
-    let childrenExitInfo: Record<string, ProcessExitInfo> = {};
-
-    parent.on("error", (e) => raiseError(e));
+  let childExitCodes: Record<string, ProcessTreeExitCodes>;
+  const childPidsPromise = new Promise<Record<string, ProcessTreePids>>((emitChildPids) => {
     parent.on("message", ([type, data]: TargetProcessMessage) => {
-      switch (type) {
-        case "init":
-          childrenInitInfo = data;
-          continueInit();
-          break;
-        case "exit":
-          childrenExitInfo = data;
-          break;
+      if (type === "pids") {
+          emitChildPids(data);
+      } else if (type === "exitCodes") {
+        childExitCodes = data;
       }
     });
-    parent.on("exit", (code, actualSignal) => {
-      continueInit();
-      emitExitInfo({
-        reason: code ?? actualSignal!,
-        children: childrenExitInfo,
+  });
+
+  const parentExitCodePromise = new Promise<number | NodeJS.Signals>((emitParentExitCode) => {
+    parent.on("exit", (code, signal) => {
+      emitParentExitCode(signal ?? code!);
+    });
+  }).finally(() => {
+    rmSync(workingDirectory, { recursive: true, force: true });
+  });
+  
+  const childPids = await childPidsPromise;
+
+  return {
+    pids: {
+      pid: parent.pid!,
+      children: childPids,
+    },
+    exitCodes: parentExitCodePromise.then((code) => ({ code, children: childExitCodes })),
+  };
+};
+
+describe("stopProcessTree", () => {
+  describe.skipIf(platform !== "win32")("on Windows", () => {
+    it("should stop a tree of a single process", async () => {
+      const {
+        pids: { pid },
+        exitCodes,
+      } = await spinUpProcessTree({});
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toEqual([expect.objectContaining({ pid })]);
+
+      // Since the parent process is stopped via ProcessTerminate, it doesn't have a chance
+      // to report the exit statuses of its children
+      await expect(exitCodes).resolves.toEqual({ code: 1, children: undefined });
+    });
+
+    it("should stop a tree of a parent and one child", async () => {
+      const {
+        pids: { pid: parentPid, children: { 1: { pid: childPid } } },
+        exitCodes,
+      } = await spinUpProcessTree({ 1: {} });
+
+      const terminations = await stopProcessTree(parentPid);
+
+      expect(terminations).toHaveLength(2)
+      expect(terminations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ pid: parentPid }),
+        expect.objectContaining({ pid: childPid }),
+      ]));
+      await expect(exitCodes).resolves.toEqual({ code: 1, children: undefined });
+    });
+
+    it("should stop a tree of a parent and three children", async () => {
+      const {
+        pids: {
+          pid,
+          children: {
+            1: { pid: childPid1 },
+            2: { pid: childPid2 },
+            3: { pid: childPid3 },
+          },
+        },
+        exitCodes,
+      } = await spinUpProcessTree({ 1: {}, 2: {}, 3: {} });
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toHaveLength(4);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid }),
+          expect.objectContaining({ pid: childPid1, parentPid: pid }),
+          expect.objectContaining({ pid: childPid2, parentPid: pid }),
+          expect.objectContaining({ pid: childPid3, parentPid: pid }),
+        ]),
+      );
+      await expect(exitCodes).resolves.toEqual({code: 1, children: undefined });
+    });
+
+    it("should stop a three-level process tree", async () => {
+      const {
+        pids: {
+          pid,
+          children: {
+            1: {
+              pid: pid1,
+              children: {
+                11: { pid: pid11 },
+                12: { pid: pid12 },
+              },
+            },
+            2: {
+              pid: pid2,
+              children: {
+                21: { pid: pid21 },
+                22: { pid: pid22 },
+              },
+            },
+          },
+        },
+        exitCodes,
+      } = await spinUpProcessTree({ 1: { 11: {}, 12: {} }, 2: { 21: {}, 22: {} } });
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toHaveLength(7);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid }),
+          expect.objectContaining({ pid: pid1, parentPid: pid }),
+          expect.objectContaining({ pid: pid2, parentPid: pid }),
+          expect.objectContaining({ pid: pid11, parentPid: pid1 }),
+          expect.objectContaining({ pid: pid12, parentPid: pid1 }),
+          expect.objectContaining({ pid: pid21, parentPid: pid2 }),
+          expect.objectContaining({ pid: pid22, parentPid: pid2 }),
+        ]),
+      );
+      await expect(exitCodes).resolves.toEqual({code: 1, children: undefined });
+    });
+  });
+
+  describe.skipIf(platform === "win32")("on a POSIX-compliant system", () => {
+    it("should stop a tree of a single process", async () => {
+      const {
+        pids: { pid },
+        exitCodes,
+      } = await spinUpProcessTree({});
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toEqual([expect.objectContaining({ pid })]);
+      await expect(exitCodes).resolves.toEqual({ code: "SIGTERM", children: {} });
+    });
+
+    it("should use a custom signal", async () => {
+      const {
+        pids: { pid },
+        exitCodes,
+      } = await spinUpProcessTree({});
+
+      const terminations = await stopProcessTree(pid, { signal: "SIGINT" });
+
+      expect(terminations).toEqual([expect.objectContaining({ pid })]);
+      await expect(exitCodes).resolves.toEqual({ reason: "SIGINT", children: {} });
+    });
+
+    it("should stop a tree of a parent and one child", async () => {
+      const {
+        pids: {
+          pid,
+          children: {
+            1: { pid: childPid },
+          },
+        },
+        exitCodes,
+      } = await spinUpProcessTree({ 1: {} });
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toHaveLength(2);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid }),
+          expect.objectContaining({ pid: childPid, parentPid: pid }),
+        ]),
+      );
+      await expect(exitCodes).resolves.toEqual({
+        code: "SIGTERM",
+        children: {
+          1: { code: "SIGTERM", children: {} },
+        },
       });
     });
 
-    await initFence;
-
-    return { initInfo: { pid: parent.pid!, children: childrenInitInfo }, exitInfo: exitInfoPromise };
-  } finally {
-    await rm(workingDirectory, { recursive: true, force: true });
-  }
-};
-
-describe("terminate", () => {
-  it("should terminate a single process", async () => {
-    const {
-      initInfo: { pid },
-      exitInfo,
-    } = await spinUpProcessTree("SIGTERM", {});
-
-    const terminations = await killTree(pid);
-
-    expect(terminations).toEqual([expect.objectContaining({ pid })]);
-    await expect(exitInfo).resolves.toEqual({ reason: "SIGTERM", children: {} });
-  });
-
-  it("should use a custom signal", async () => {
-    const {
-      initInfo: { pid },
-      exitInfo,
-    } = await spinUpProcessTree("SIGINT", {});
-
-    const terminations = await killTree(pid, "SIGINT");
-
-    expect(terminations).toEqual([expect.objectContaining({ pid })]);
-    await expect(exitInfo).resolves.toEqual({ reason: "SIGINT", children: {} });
-  });
-
-  it("should terminate a child process", async () => {
-    const {
-      initInfo: {
-        pid,
-        children: {
-          1: { pid: childPid },
+    it("should stop a tree of a parent and three children", async () => {
+      const {
+        pids: {
+          pid,
+          children: {
+            1: { pid: childPid1 },
+            2: { pid: childPid2 },
+            3: { pid: childPid3 },
+          },
         },
-      },
-      exitInfo,
-    } = await spinUpProcessTree("SIGTERM", { 1: {} });
+        exitCodes,
+      } = await spinUpProcessTree({ 1: {}, 2: {}, 3: {} });
 
-    const terminations = await killTree(pid);
+      const terminations = await stopProcessTree(pid);
 
-    expect(terminations).toHaveLength(2);
-    expect(terminations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ pid }),
-        expect.objectContaining({ pid: childPid, parentPid: pid }),
-      ]),
-    );
-    await expect(exitInfo).resolves.toEqual({
-      reason: "SIGTERM",
-      children: {
-        1: { reason: "SIGTERM", children: {} },
-      },
-    });
-  });
-
-  it("should terminate multiple child processes", async () => {
-    const {
-      initInfo: {
-        pid,
+      expect(terminations).toHaveLength(4);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid }),
+          expect.objectContaining({ pid: childPid1, parentPid: pid }),
+          expect.objectContaining({ pid: childPid2, parentPid: pid }),
+          expect.objectContaining({ pid: childPid3, parentPid: pid }),
+        ]),
+      );
+      await expect(exitCodes).resolves.toEqual({
+        code: "SIGTERM",
         children: {
-          1: { pid: childPid1 },
-          2: { pid: childPid2 },
-          3: { pid: childPid3 },
+          1: { code: "SIGTERM", children: {} },
+          2: { code: "SIGTERM", children: {} },
+          3: { code: "SIGTERM", children: {} },
         },
-      },
-      exitInfo,
-    } = await spinUpProcessTree("SIGTERM", { 1: {}, 2: {}, 3: {} });
-
-    const terminations = await killTree(pid);
-
-    expect(terminations).toHaveLength(4);
-    expect(terminations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ pid }),
-        expect.objectContaining({ pid: childPid1, parentPid: pid }),
-        expect.objectContaining({ pid: childPid2, parentPid: pid }),
-        expect.objectContaining({ pid: childPid3, parentPid: pid }),
-      ]),
-    );
-    await expect(exitInfo).resolves.toEqual({
-      reason: "SIGTERM",
-      children: {
-        1: { reason: "SIGTERM", children: {} },
-        2: { reason: "SIGTERM", children: {} },
-        3: { reason: "SIGTERM", children: {} },
-      },
+      });
     });
-  });
 
-  it("should terminate multi-level process tree", async () => {
-    const {
-      initInfo: {
-        pid,
+    it("should stop a three-level process tree", async () => {
+      const {
+        pids: {
+          pid,
+          children: {
+            1: {
+              pid: pid1,
+              children: {
+                11: { pid: pid11 },
+                12: { pid: pid12 },
+              },
+            },
+            2: {
+              pid: pid2,
+              children: {
+                21: { pid: pid21 },
+                22: { pid: pid22 },
+              },
+            },
+          },
+        },
+        exitCodes,
+      } = await spinUpProcessTree({ 1: { 11: {}, 12: {} }, 2: { 21: {}, 22: {} } });
+
+      const terminations = await stopProcessTree(pid);
+
+      expect(terminations).toHaveLength(7);
+      expect(terminations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ pid }),
+          expect.objectContaining({ pid: pid1, parentPid: pid }),
+          expect.objectContaining({ pid: pid2, parentPid: pid }),
+          expect.objectContaining({ pid: pid11, parentPid: pid1 }),
+          expect.objectContaining({ pid: pid12, parentPid: pid1 }),
+          expect.objectContaining({ pid: pid21, parentPid: pid2 }),
+          expect.objectContaining({ pid: pid22, parentPid: pid2 }),
+        ]),
+      );
+      await expect(exitCodes).resolves.toEqual({
+        code: "SIGTERM",
         children: {
           1: {
-            pid: pid1,
+            code: "SIGTERM",
             children: {
-              11: { pid: pid11 },
-              12: { pid: pid12 },
+              11: { code: "SIGTERM", children: {} },
+              12: { code: "SIGTERM", children: {} },
             },
           },
           2: {
-            pid: pid2,
+            code: "SIGTERM",
             children: {
-              21: { pid: pid21 },
-              22: { pid: pid22 },
+              21: { code: "SIGTERM", children: {} },
+              22: { code: "SIGTERM", children: {} },
             },
           },
         },
-      },
-      exitInfo,
-    } = await spinUpProcessTree("SIGTERM", { 1: { 11: {}, 12: {} }, 2: { 21: {}, 22: {} } });
-
-    const terminations = await killTree(pid);
-
-    expect(terminations).toHaveLength(7);
-    expect(terminations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ pid }),
-        expect.objectContaining({ pid: pid1, parentPid: pid }),
-        expect.objectContaining({ pid: pid2, parentPid: pid }),
-        expect.objectContaining({ pid: pid11, parentPid: pid1 }),
-        expect.objectContaining({ pid: pid12, parentPid: pid1 }),
-        expect.objectContaining({ pid: pid21, parentPid: pid2 }),
-        expect.objectContaining({ pid: pid22, parentPid: pid2 }),
-      ]),
-    );
-    await expect(exitInfo).resolves.toEqual({
-      reason: "SIGTERM",
-      children: {
-        1: {
-          reason: "SIGTERM",
-          children: {
-            11: { reason: "SIGTERM", children: {} },
-            12: { reason: "SIGTERM", children: {} },
-          },
-        },
-        2: {
-          reason: "SIGTERM",
-          children: {
-            21: { reason: "SIGTERM", children: {} },
-            22: { reason: "SIGTERM", children: {} },
-          },
-        },
-      },
+      });
     });
   });
 });
