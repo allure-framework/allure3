@@ -7,9 +7,13 @@ import type {
   ChartId,
   ChartMode,
   ChartType,
+  DurationsChartData,
+  FBSUAgePyramidChartData,
   FunnelChartType,
   HeatMapSerie,
+  StabilityDistributionChartData,
   StatusTransitionsChartData,
+  TestBaseGrowthDynamicsChartData,
   TreeMapChartType,
   TreeMapNode,
   TrendPointId,
@@ -136,6 +140,7 @@ export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = Base
 export type UICurrentStatusChartData = CurrentStatusChartData;
 export type UIStatusDynamicsChartData = StatusDynamicsChartData;
 export type UIStatusTransitionsChartData = StatusTransitionsChartData;
+export type UIDurationsChartData = DurationsChartData;
 export interface UIBarChartData extends ResponseBarChartData {
   colors: Record<string, string>;
   xAxisConfig?: {
@@ -189,10 +194,14 @@ export type ChartData<
   | CurrentStatusChartData
   | StatusDynamicsChartData
   | StatusTransitionsChartData
+  | DurationsChartData
+  | StabilityDistributionChartData
   | ResponseBarChartData
   | ResponseComingSoonChartData
   | ResponseTreeMapChartData
   | ResponseHeatMapChartData
+  | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
   | ResponseTestingPyramidChartData;
 
 export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
@@ -204,7 +213,11 @@ export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSlice
   | UITreeMapChartData
   | UIHeatMapChartData
   | UITestingPyramidChartData
-  | UIStatusTransitionsChartData;
+  | UIStatusTransitionsChartData
+  | UIDurationsChartData
+  | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
+  | StabilityDistributionChartData;
 
 export type ChartsData<
   SeriesType extends string = string,

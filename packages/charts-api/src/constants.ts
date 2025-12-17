@@ -21,8 +21,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Status transitions",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StatusChangeTrend,
+    type: ChartType.TestBaseGrowthDynamics,
     title: "Test base growth dynamics",
   },
   {
@@ -40,14 +39,35 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Problems distribution by environment",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.StabilityRateDistribution,
-    title: "Stability rate distribution",
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by features",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "feature",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.DurationsByLayer,
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by epics",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "epic",
+  },
+  {
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by stories",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "story",
+  },
+  {
+    type: ChartType.Durations,
+    title: "Durations histogram",
+    groupBy: "none",
+  },
+  {
+    type: ChartType.Durations,
     title: "Durations by layer histogram",
+    groupBy: "layer",
   },
   {
     type: ChartType.Bar,
@@ -55,8 +75,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Performance dynamics",
   },
   {
-    type: ChartType.Bar,
-    dataType: BarChartType.FbsuAgePyramid,
+    type: ChartType.FBSUAgePyramid,
     title: "FBSU age pyramid",
   },
   {

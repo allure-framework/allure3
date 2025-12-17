@@ -1,6 +1,6 @@
-import { Statistic, formatDuration, statusesList } from "@allurereport/core-api";
+import type { Statistic } from "@allurereport/core-api";
+import { statusesList } from "@allurereport/core-api";
 import type { BarDatum } from "@nivo/bar";
-import { Text } from "@nivo/text";
 import type { FunctionalComponent } from "preact";
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
@@ -34,6 +34,8 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
 
   const isChartEmpty = chartData.every((item) => item.total === 0);
   const noChartHistory = chartData.filter((item) => item.id !== "current").every((item) => item.total === 0);
+  const maxTotalValue = chartData.reduce((max, item) => Math.max(max, item.total), 0);
+  const headroomedMaxTotalValue = maxTotalValue * 1.01;
 
   // No data at all
   if (isChartEmpty || !currentData || currentData.statistic.total === 0) {
@@ -73,7 +75,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
             return i18n("ticks.current");
           }
 
-          const item = chartData.find((item) => item.id === id);
+          const item = chartData.find((chartItem) => chartItem.id === id);
 
           if (!item) {
             return "";
@@ -82,6 +84,16 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
+        formatLeftTick={(value) => {
+          const numberedValue = Math.abs(Number(value));
+
+          // Do not show half values on the left axis
+          if (!Number.isInteger(numberedValue)) {
+            return "";
+          }
+
+          return formatNumber(Math.abs(Number(value)));
+        }}
         formatLegendValue={({ value }) => {
           if (!value) {
             return "-";
@@ -90,6 +102,7 @@ export const StatusDynamicsChartWidget: FunctionalComponent<Props> = (props) => 
           return formatNumber(value);
         }}
         noLegend
+        maxValue={headroomedMaxTotalValue}
       />
     </Widget>
   );

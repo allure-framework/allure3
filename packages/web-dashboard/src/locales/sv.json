@@ -93,6 +93,77 @@
         "current": "Senast",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Varaktighetshistogram efter {{groupBy}}",
+      "title_none": "Varaktighetshistogram",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Ingen",
+        "layer": "Lager"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Antal tester"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Stabilitetsfördelning",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabilitetsgrad"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Tillväxtdynamik för testbas",
+      "status": {
+        "newpassed": "Ny $t(statuses:passed)",
+        "newfailed": "Ny $t(statuses:failed)",
+        "newbroken": "Ny $t(statuses:broken)",
+        "newskipped": "Ny $t(statuses:skipped)",
+        "newunknown": "Ny $t(statuses:unknown)",
+        "removedpassed": "Borttagen $t(statuses:passed)",
+        "removedfailed": "Borttagen $t(statuses:failed)",
+        "removedbroken": "Borttagen $t(statuses:broken)",
+        "removedskipped": "Borttagen $t(statuses:skipped)",
+        "removedunknown": "Borttagen $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senaste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU ålderspyramid",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Senaste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport från {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Senaste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
+import { ChartType, FunnelChartType } from "@allurereport/charts-api";
 import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   BarChartWidget,
-  ComingSoonChartWidget,
   CurrentStatusChartWidget,
+  DurationsChartWidget,
+  FBSUAgePyramidChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
   Loadable,
   PageLoader,
-  StabilityRateDistributionWidget,
+  StabilityDistributionWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
+  TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
   TreeMapChartWidget,
   TrendChartWidget,
@@ -79,33 +81,68 @@ const getChartWidgetByType = (
           title={title}
           data={chartData.data}
           lines={chartData.lines}
+          linesSharpness={chartData.linesSharpness}
           hideEmptyLines={chartData.hideEmptyLines}
           i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.Durations: {
+      const title =
+        chartData.title ??
+        (chartData.groupBy === "none"
+          ? t("durations.title_none")
+          : t("durations.title", { groupBy: chartData.groupBy }));
+
+      return (
+        <DurationsChartWidget
+          title={title}
+          data={chartData.data}
+          groupBy={chartData.groupBy}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`durations.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.StabilityDistribution: {
+      const title = chartData.title ?? t("stabilityDistribution.title");
+
+      return (
+        <StabilityDistributionWidget
+          title={title}
+          data={chartData.data}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.TestBaseGrowthDynamics: {
+      const title = chartData.title ?? t("testBaseGrowthDynamics.title");
+
+      return (
+        <TestBaseGrowthDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`testBaseGrowthDynamics.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.FBSUAgePyramid: {
+      const title = chartData.title ?? t("fbsuAgePyramid.title");
+
+      return (
+        <FBSUAgePyramidChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`fbsuAgePyramid.${key}`, props)}
         />
       );
     }
     case ChartType.Bar: {
       const type = t(`bar.type.${chartData.dataType}`);
       const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-
-      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
-        return (
-          <StabilityRateDistributionWidget
-            title={title}
-            mode={chartData.mode}
-            data={chartData.data}
-            keys={chartData.keys}
-            indexBy={chartData.indexBy}
-            colors={chartData.colors}
-            groupMode={chartData.groupMode}
-            xAxisConfig={chartData.xAxisConfig}
-            yAxisConfig={chartData.yAxisConfig}
-            layout={chartData.layout}
-            threshold={chartData.threshold}
-            translations={{ "no-results": empty("no-results") }}
-          />
-        );
-      }
 
       return (
         <BarChartWidget
@@ -159,9 +196,7 @@ const getChartWidgetByType = (
       );
     }
     default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
+      return null;
     }
   }
 };

@@ -1,11 +1,12 @@
 import {
-  AllureChartsStoreData,
+  type AllureChartsStoreData,
   ChartType,
   DEFAULT_CHART_HISTORY_LIMIT,
-  StatusTransitionsChartData,
-  StatusTransitionsChartOptions,
+  type StatusTransitionsChartData,
+  type StatusTransitionsChartOptions,
 } from "@allurereport/charts-api";
-import { TestResult, TestStatusTransition, htrsByTr } from "@allurereport/core-api";
+import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatusTransition } from "@allurereport/core-api";
+import { htrsByTr } from "@allurereport/core-api";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 type TrWithStatusAndTransition = Pick<TestResult, "status" | "transition" | "start">;
@@ -112,7 +113,7 @@ export const generateStatusTransitionsChart = (props: {
     {
       testResults: testResults.reduce(
         (acc, testResult) => {
-          acc[testResult.id] = testResult;
+          acc[testResult.historyId ?? testResult.id] = testResult;
           return acc;
         },
         {} as Record<string, TestResult>,
@@ -120,8 +121,8 @@ export const generateStatusTransitionsChart = (props: {
       uuid: "current",
       timestamp: currentReportTimestamp,
     },
-  ].forEach(({ testResults, uuid, timestamp }, index) => {
-    const hpsPriorToCurrent = index === 0 ? [earliestHdp] : hdps.slice(0, index);
+  ].forEach(({ testResults: trs, uuid, timestamp }, index, dataPoints) => {
+    const hpsPriorToCurrent = index === 0 ? [earliestHdp] : dataPoints.slice(0, index);
     const latestHpPriorToCurrent = hpsPriorToCurrent[hpsPriorToCurrent.length - 1];
 
     const newDataItem: DataItem = {
@@ -135,11 +136,11 @@ export const generateStatusTransitionsChart = (props: {
 
     data.push(newDataItem);
 
-    const cTrs = Object.values(testResults);
+    const cTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
 
     for (const cTr of cTrs) {
       // Compare only to latest history point, as we don't know the previous history
-      const htrs = htrsByTr(hpsPriorToCurrent, cTr);
+      const htrs = htrsByTr(hpsPriorToCurrent as HistoryDataPoint[], cTr);
 
       const transition = getStatusTransition(cTr, htrs);
 

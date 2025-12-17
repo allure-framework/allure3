@@ -3,17 +3,32 @@ import { toNumber } from "lodash";
 
 export const computeVerticalAxisMargin = <T extends BarDatum>({
   data,
+  layout = "vertical",
+  indexBy,
   keys,
   stacked,
   position,
-  format,
+  formatLeftTick,
+  formatBottomTick,
 }: {
   data: T[];
+  indexBy: Extract<keyof T, string>;
+  layout: "horizontal" | "vertical";
   keys: string[];
   stacked: boolean;
   position: "left" | "right";
-  format: (value: number | string) => string | number;
+  formatLeftTick: (value: number | string) => string | number;
+  formatBottomTick: (value: number | string, item: T) => string | number;
 }) => {
+  const digitWidth = 8;
+  const padding = position === "left" ? 8 : -8;
+  if (layout === "horizontal") {
+    const charWidth = 6;
+    const translatedKeys = data.map((item) => formatBottomTick(item[indexBy], item).toString().length);
+    const charCount = Math.max(...translatedKeys);
+    return charCount * charWidth + padding;
+  }
+
   const maxValue = Math.floor(
     Math.max(
       ...data.map((item) => {
@@ -27,10 +42,8 @@ export const computeVerticalAxisMargin = <T extends BarDatum>({
   );
 
   // Add 1 for when axis has max value
-  const digits = format(maxValue).toString().length + 1;
+  const digits = formatLeftTick(maxValue).toString().length + 1;
 
-  const padding = position === "left" ? 8 : -8;
-  const digitWidth = 8;
   const thousands = Math.max(Math.floor((digits - 1) / 3), 0);
   const thousandsWidth = 10;
   const reserved = 1;

@@ -6,6 +6,10 @@ export enum ChartType {
   CurrentStatus = "currentStatus",
   StatusDynamics = "statusDynamics",
   StatusTransitions = "statusTransitions",
+  StabilityDistribution = "stabilityDistribution",
+  TestBaseGrowthDynamics = "testBaseGrowthDynamics",
+  FBSUAgePyramid = "fbsuAgePyramid",
+  Durations = "durations",
   TreeMap = "treemap",
   HeatMap = "heatmap",
   /**
@@ -28,9 +32,6 @@ export enum ChartDataType {
 export enum BarChartType {
   StatusBySeverity = "statusBySeverity",
   StatusChangeTrend = "statusChangeTrend",
-  DurationsByLayer = "durationsByLayer",
-  FbsuAgePyramid = "fbsuAgePyramid",
-  StabilityRateDistribution = "stabilityRateDistribution",
 }
 
 export enum FunnelChartType {
@@ -260,6 +261,94 @@ export interface StatusTransitionsChartData {
   }[];
   hideEmptyLines?: boolean;
   lines?: ("fixed" | "regressed" | "malfunctioned")[];
+  linesSharpness?: number;
+}
+
+export interface DurationsChartData {
+  type: ChartType.Durations;
+  title?: string;
+  /**
+   * Buckets of test results by duration
+   */
+  data: {
+    /**
+     * Start of the duration bucket
+     */
+    from: number;
+    /**
+     * End of the duration bucket
+     */
+    to: number;
+    /**
+     * Number of test results in the bucket
+     * by key from the `keys` map
+     */
+    [key: string]: number;
+  }[];
+  /**
+   * Map of key IDs to key names
+   */
+  keys: { [id: string]: string };
+  groupBy: "layer" | "none";
+}
+
+export interface StabilityDistributionChartData {
+  type: ChartType.StabilityDistribution;
+  title?: string;
+  /**
+   * Buckets of test results by duration
+   */
+  data: {
+    /**
+     * as key ID from the `keys` map
+     */
+    id: string;
+    /**
+     * Stability rate
+     *
+     * as percentage like 0.90
+     */
+    stabilityRate: number;
+  }[];
+  /**
+   * Map of key IDs to key names
+   */
+  keys: { [id: string]: string };
+  /**
+   * Threshold for the stability rate
+   *
+   * if the stability rate is less than the threshold,
+   * the feature will be marked as unstable
+   *
+   * @default 90
+   */
+  threshold?: number;
+}
+
+export interface TestBaseGrowthDynamicsChartData {
+  type: ChartType.TestBaseGrowthDynamics;
+  title?: string;
+  data: ({
+    [key in `new:${TestStatus}` | `removed:${TestStatus}`]: number;
+  } & {
+    id: string;
+    timestamp: number;
+  })[];
+  statuses: TestStatus[];
+}
+
+export interface FBSUAgePyramidChartData {
+  type: ChartType.FBSUAgePyramid;
+  title?: string;
+  data: {
+    id: string;
+    timestamp: number;
+    failed: number;
+    broken: number;
+    skipped: number;
+    unknown: number;
+  }[];
+  statuses: Exclude<TestStatus, "passed">[];
 }
 
 // Union types for generated chart data
@@ -269,6 +358,10 @@ export type GeneratedChartData =
   | CurrentStatusChartData
   | StatusDynamicsChartData
   | StatusTransitionsChartData
+  | DurationsChartData
+  | StabilityDistributionChartData
+  | TestBaseGrowthDynamicsChartData
+  | FBSUAgePyramidChartData
   | ComingSoonChartData
   | TreeMapChartData
   | HeatMapChartData
@@ -340,12 +433,105 @@ export type StatusTransitionsChartOptions = {
    */
   lines?: ("fixed" | "regressed" | "malfunctioned")[];
   /**
+   * Sharpness controls where the curve bends between points
+   * - 0 = sharp transition (curve changes immediately after leaving previous point)
+   * - 0.5 = symmetric curve
+   * - 1 = gradual transition (curve holds previous value longer)
+   *
+   * @default 0.2
+   */
+  linesSharpness?: number;
+  /**
    * Whether to hide lines that have no data in every point of the chart
    * (theses lines always goes through 0 mark)
    *
    * @default true
    */
   hideEmptyLines?: boolean;
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
+export type DurationsChartOptions = {
+  type: ChartType.Durations;
+  title?: string;
+  /**
+   * By what to group the test results
+   * - "layer" - group by layer
+   * - "none" - do not group
+   *
+   * @default "none"
+   */
+  groupBy?: "layer" | "none";
+};
+
+export type StabilityDistributionChartOptions = {
+  type: ChartType.StabilityDistribution;
+  title?: string;
+  /**
+   * Threshold for the stability rate
+   *
+   * if the stability rate is less than the threshold,
+   * the feature will be marked as unstable
+   *
+   * @default 90
+   */
+  threshold?: number;
+  /**
+   * List of test statuses that will be skipped
+   *
+   * @default ["unknown", "skipped"]
+   */
+  skipStatuses?: TestStatus[];
+  /**
+   * By what to group the test results on chart
+   *
+   * - "feature" - group by feature
+   * - "epic" - group by epic
+   * - "story" - group by story
+   * - "suite" - group by suite
+   * - "severity" - group by severity
+   * - "owner" - group by owner
+   * - "label-name:foo" - group by label name "foo"
+   * - "label-name:bar" - group by label name "bar"
+   *
+   * @default "feature"
+   */
+  groupBy?: "feature" | "epic" | "story" | "suite" | "severity" | "owner" | `label-name:${string}`;
+  /**
+   * List of values to group by
+   * Allows to narrow down the list of values to group by
+   * if not provided, all values will be used for grouping
+   *
+   * @default []
+   */
+  groupValues?: string[];
+};
+
+export type TestBaseGrowthDynamicsChartOptions = {
+  type: ChartType.TestBaseGrowthDynamics;
+  title?: string;
+  /**
+   * List of test statuses that will be used to create the chart.
+   *
+   * @default ["passed", "failed", "broken", "skipped", "unknown"]
+   */
+  statuses?: TestStatus[];
+  /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+};
+
+export type FBSUAgePyramidChartOptions = {
+  type: ChartType.FBSUAgePyramid;
+  title?: string;
   /**
    * Limit of history data points to be used for the chart
    *
@@ -391,11 +577,15 @@ export type ChartOptions =
   | CurrentStatusChartOptions
   | StatusDynamicsChartOptions
   | BarChartOptions
+  | DurationsChartOptions
   | ComingSoonChartOptions
   | TreeMapChartOptions
   | HeatMapChartOptions
   | FunnelChartOptions
-  | StatusTransitionsChartOptions;
+  | StatusTransitionsChartOptions
+  | StabilityDistributionChartOptions
+  | FBSUAgePyramidChartOptions
+  | TestBaseGrowthDynamicsChartOptions;
 
 export interface AllureChartsStoreData {
   historyDataPoints: HistoryDataPoint[];

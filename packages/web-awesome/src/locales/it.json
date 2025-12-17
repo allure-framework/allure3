@@ -242,6 +242,77 @@
         "current": "Ultimi",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Istogramma delle durate per {{groupBy}}",
+      "title_none": "Istogramma delle durate",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Nessuno",
+        "layer": "Livello"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Numero di test"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Distribuzione della stabilità",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Tasso di stabilità"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Dinamica di crescita della base di test",
+      "status": {
+        "newpassed": "Nuovo $t(statuses:passed)",
+        "newfailed": "Nuovo $t(statuses:failed)",
+        "newbroken": "Nuovo $t(statuses:broken)",
+        "newskipped": "Nuovo $t(statuses:skipped)",
+        "newunknown": "Nuovo $t(statuses:unknown)",
+        "removedpassed": "Rimosso $t(statuses:passed)",
+        "removedfailed": "Rimosso $t(statuses:failed)",
+        "removedbroken": "Rimosso $t(statuses:broken)",
+        "removedskipped": "Rimosso $t(statuses:skipped)",
+        "removedunknown": "Rimosso $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Ultimo report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report del {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Ultimo",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "Piramide delle età FBSU",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Ultimo report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report del {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Ultimo",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

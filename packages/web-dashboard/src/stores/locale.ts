@@ -1,3 +1,4 @@
+import { formatDuration } from "@allurereport/core-api";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale, getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
@@ -96,6 +97,9 @@ export const waitForI18next = i18next
         hour12: false,
       });
       return formatter.format(value).replace(",", ` ${i18next.t("ui:at")}`);
+    });
+    i18next.services.formatter.add("format_duration", (value: number) => {
+      return formatDuration(value);
     });
   });
 

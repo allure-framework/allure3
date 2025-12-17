@@ -44,4 +44,19 @@ export const CHART_THEME: PartialTheme = {
     fill: CHART_PALETTE.textFillColor,
     fontSize: 12,
   },
+  markers: {
+    lineColor: "var(--on-border-primary)",
+    lineStrokeWidth: 2,
+    text: {
+      fill: CHART_PALETTE.textFillColor,
+      fontSize: 12,
+      fontWeight: 600,
+    },
+  },
+  legends: {
+    text: {
+      fill: CHART_PALETTE.textFillColor,
+      fontSize: 12,
+    },
+  },
 };

@@ -93,6 +93,77 @@
         "current": "Derniers",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Histogramme des durées par {{groupBy}}",
+      "title_none": "Histogramme des durées",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Aucun",
+        "layer": "Couche"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Nombre de tests"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Distribution de stabilité",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Taux de stabilité"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Dynamique de croissance de la base de tests",
+      "status": {
+        "newpassed": "Nouveau $t(statuses:passed)",
+        "newfailed": "Nouveau $t(statuses:failed)",
+        "newbroken": "Nouveau $t(statuses:broken)",
+        "newskipped": "Nouveau $t(statuses:skipped)",
+        "newunknown": "Nouveau $t(statuses:unknown)",
+        "removedpassed": "Supprimé $t(statuses:passed)",
+        "removedfailed": "Supprimé $t(statuses:failed)",
+        "removedbroken": "Supprimé $t(statuses:broken)",
+        "removedskipped": "Supprimé $t(statuses:skipped)",
+        "removedunknown": "Supprimé $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Dernier",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "Pyramide des âges FBSU",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Dernier rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport du {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Dernier",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {

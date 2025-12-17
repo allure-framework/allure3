@@ -242,6 +242,77 @@
         "current": "Վերջինը",
         "history": "{{timestamp, timestamp_date}}"
       }
+    },
+    "durations": {
+      "title": "Տևողության հիստոգրամ ըստ {{groupBy}}",
+      "title_none": "Տևողության հիստոգրամ",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Ոչինչ",
+        "layer": "Շերտ"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Թեստերի քանակ"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Կայունության բաշխում",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Կայունության գործակից"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Թdelays delays delaysdelays delays",
+      "status": {
+        "newpassed": "Նdelays $t(statuses:passed)",
+        "newfailed": "Նdelays $t(statuses:failed)",
+        "newbroken": "Նdelays $t(statuses:broken)",
+        "newskipped": "Նdelays $t(statuses:skipped)",
+        "newunknown": "Նdelays $t(statuses:unknown)",
+        "removedpassed": "Հdelaysdelays $t(statuses:passed)",
+        "removedfailed": "Հdelaysdelays $t(statuses:failed)",
+        "removedbroken": "Հdelaysdelays $t(statuses:broken)",
+        "removedskipped": "Հdelaysdelays $t(statuses:skipped)",
+        "removedunknown": "Հdelaysdelays $t(statuses:unknown)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Վdelays delaysdelays ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Հdelaysdelays {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "ВеLayout",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU delays delaysdelays",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Վdelays delaysdelays ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Հdelaysdelays {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Վdelays",
+        "history": "{{timestamp, timestamp_date}}"
+      }
     }
   },
   "transitions": {
