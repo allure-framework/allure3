@@ -1,7 +1,10 @@
 import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
 import { Command, Option } from "clipanion";
-import console from "node:console";
+import * as console from "node:console";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { exit } from "node:process";
+import { red } from "yoctocolors";
 
 export class KnownIssueCommand extends Command {
   static paths = [["known-issue"]];
@@ -25,6 +28,12 @@ export class KnownIssueCommand extends Command {
   });
 
   async execute() {
+    if (!existsSync(this.resultsDir)) {
+      console.error(red(`Given test results directory doesn't exist: ${this.resultsDir}`));
+      exit(1);
+      return;
+    }
+
     const outputPath = this.output ?? "known-issues.json";
     const config = await resolveConfig({
       plugins: {},

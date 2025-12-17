@@ -157,13 +157,12 @@ describe("quality-gate command", () => {
     expect(exit).toHaveBeenCalledWith(0);
   });
 
-  it("should exit with code 0 and print a message when no results directories found", async () => {
+  it("should exit with code 1 and print a message when no results directories found", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce([]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
     (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
     AllureReportMock.prototype.hasQualityGate = true;
 
-    const errorSpy = vi.spyOn(console, "error");
     const command = new QualityGateCommand();
 
     command.cwd = fixtures.cwd;
@@ -171,8 +170,10 @@ describe("quality-gate command", () => {
 
     await command.execute();
 
-    expect(exit).toHaveBeenCalledWith(0);
-    expect(errorSpy).toHaveBeenCalledWith("No Allure results directories found");
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("No test results directories found matching pattern:"),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should exit with code -1 when quality gate is not configured", async () => {
@@ -196,7 +197,7 @@ describe("quality-gate command", () => {
     expect(exit).toHaveBeenCalledWith(-1);
   });
 
-  it("should exit with code 0 when there is no test results found", async () => {
+  it("should exit with code 1 when there is no test results found", async () => {
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [], qualityGate: fixtures.qualityGateConfig });
     AllureReportMock.prototype.store = {
       allKnownIssues: vi.fn().mockResolvedValue([]),
@@ -212,7 +213,10 @@ describe("quality-gate command", () => {
 
     await command.execute();
 
-    expect(exit).toHaveBeenCalledWith(0);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("No test results directories found matching pattern:"),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("should prefer CLI arguments over config and defaults", async () => {

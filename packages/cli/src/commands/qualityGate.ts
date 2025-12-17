@@ -120,8 +120,8 @@ export class QualityGateCommand extends Command {
 
     if (resultsDirectories.length === 0) {
       // eslint-disable-next-line no-console
-      console.error("No Allure results directories found");
-      exit(0);
+      console.error(red(`No test results directories found matching pattern: ${resultsDir}`));
+      exit(1);
       return;
     }
 

@@ -98,7 +98,8 @@ export class GenerateCommand extends Command {
 
     if (resultsDirectories.length === 0 && stageDumpFiles.length === 0) {
       // eslint-disable-next-line no-console
-      console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
+      console.error(red(`No test results directories found matching pattern: ${resultsDir}`));
+      exit(1);
       return;
     }
 

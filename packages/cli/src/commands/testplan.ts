@@ -1,7 +1,10 @@
 import { AllureReport, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
+import { existsSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
+import { exit } from "node:process";
+import { red } from "yoctocolors";
 
 export class TestPlanCommand extends Command {
   static paths = [["testplan"]];
@@ -25,6 +28,12 @@ export class TestPlanCommand extends Command {
   });
 
   async execute() {
+    if (!existsSync(this.resultsDir)) {
+      console.error(red(`Given test results directory doesn't exist: ${this.resultsDir}`));
+      exit(1);
+      return;
+    }
+
     const before = new Date().getTime();
     const resolved = resolve(this.output ?? "./testplan.json");
     const output = dirname(resolved);
