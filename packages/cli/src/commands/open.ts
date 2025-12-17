@@ -1,6 +1,12 @@
-import { readConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
+import { KnownError } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
+import { glob } from "glob";
+import * as console from "node:console";
+import { exit, cwd as processCwd } from "node:process";
+import { red } from "yoctocolors";
+import { logError } from "../utils/logs.js";
 
 export class OpenCommand extends Command {
   static paths = [["open"]];
@@ -14,7 +20,14 @@ export class OpenCommand extends Command {
     ],
   });
 
-  reportDir = Option.String({ required: false, name: "The directory with Allure results" });
+  resultsDir = Option.String({
+    required: false,
+    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
+
+  output = Option.String("--output,-o", {
+    description: "The output directory name. Absolute paths are accepted as well (default: allure-report)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -33,13 +46,60 @@ export class OpenCommand extends Command {
   });
 
   async execute() {
-    const config = await readConfig(this.cwd, this.config, { output: this.reportDir });
+    const cwd = this.cwd ?? processCwd();
 
-    await serve({
-      port: this.port ? parseInt(this.port, 10) : undefined,
-      servePath: config.output,
-      live: this.live ?? false,
-      open: true,
+    const resultsDir = (this.resultsDir || "./**/allure-results").replace(/[\\/]$/, "");
+    const resultsDirectories: string[] = [];
+    const config = await readConfig(cwd, this.config, {
+      output: this.output,
     });
+    const matchedDirs = (
+      await glob(resultsDir, {
+        mark: true,
+        nodir: false,
+        absolute: true,
+        dot: true,
+        windowsPathsNoEscape: true,
+        cwd,
+      })
+    ).filter((p) => /(\/|\\)$/.test(p));
+
+    resultsDirectories.push(...matchedDirs);
+
+    if (resultsDirectories.length === 0) {
+      // eslint-disable-next-line no-console
+      console.error(red(`No test results directories found matching pattern: ${resultsDir}`));
+      exit(1);
+      return;
+    }
+
+    try {
+      const allureReport = new AllureReport(config);
+
+      await allureReport.start();
+
+      for (const dir of resultsDirectories) {
+        await allureReport.readDirectory(dir);
+      }
+
+      await allureReport.done();
+
+      await serve({
+        port: this.port ? parseInt(this.port, 10) : undefined,
+        servePath: config.output,
+        live: this.live ?? false,
+        open: true,
+      });
+    } catch (error) {
+      if (error instanceof KnownError) {
+        // eslint-disable-next-line no-console
+        console.error(red(error.message));
+        exit(1);
+        return;
+      }
+
+      await logError("Failed to generate report due to unexpected error", error as Error);
+      exit(1);
+    }
   }
 }
