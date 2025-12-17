@@ -4,6 +4,10 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { platform } from "process";
 
+type StopProcessTreeOpts = {
+  signal?: NodeJS.Signals;
+};
+
 type ProcessBrief = {
   parentPid: number;
   pid: number;
@@ -52,12 +56,13 @@ export const terminationOf = (testProcess: ChildProcess): Promise<number | null>
   });
 
 /**
- * Sends a signal (`SIGTERM` by default) to a process and all its direct and indirect children.
- * @param pid A parent process.
- * @param signal A signal.
- * @returns An array of processes that have received the signal.
+ * On a POSIX-compatible system, sends a signal (`SIGTERM` by default) to a process and all its direct and indirect
+ * children. On Windows, calls ProcessTerminate on these processes instead.
+ * @param pid The ID of a parent process to stop. 
+ * @param options Options
+ * @returns An array of objects, each describing a process that has been requested to stop.
  */
-export const killTree = async (pid: number, signal: NodeJS.Signals = "SIGTERM"): Promise<ProcessBrief[]> => {
+export const stopProcessTree = async (pid: number, { signal = "SIGTERM" }: StopProcessTreeOpts = {}): Promise<ProcessBrief[]> => {
   const tree = new Map<number, ProcessBrief[]>();
   const processesToSignal: ProcessBrief[] = [];
   const signaledProcesses: ProcessBrief[] = [];
@@ -70,7 +75,12 @@ export const killTree = async (pid: number, signal: NodeJS.Signals = "SIGTERM"):
           "-NoProfile",
           "-NonInteractive",
           "-Command",
-          '& { [System.Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($False, $False); Get-CimInstance -Class Win32_Process | ForEach-Object { "$($_.ParentProcessId) $($_.ProcessId) $($_.ExecutablePath)" } }',
+          `& {
+            [System.Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($False, $False)
+            Get-CimInstance -Class Win32_Process | ForEach-Object {
+              "$($_.ParentProcessId) $($_.ProcessId) $($_.ExecutablePath)"
+            }
+          }`,
         ],
       ]
     : ["ps", ["-Ao", "ppid,pid,comm"]];

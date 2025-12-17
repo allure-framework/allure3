@@ -25,7 +25,7 @@ import process, { exit } from "node:process";
 import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
-import { killTree } from "../utils/process.js";
+import { stopProcessTree } from "../utils/process.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -139,7 +139,7 @@ const runTests = async (params: {
       qualityGateResults = results;
 
       try {
-        await killTree(testProcess.pid!, "SIGTERM");
+        await stopProcessTree(testProcess.pid!);
       } catch (err) {
         if ((err as Error).message.includes("kill ESRCH")) {
           return;
