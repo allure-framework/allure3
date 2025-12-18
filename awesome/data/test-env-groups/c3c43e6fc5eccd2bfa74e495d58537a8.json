@@ -1,0 +1,1 @@
+{"id":"c3c43e6fc5eccd2bfa74e495d58537a8","fullName":"test/toolRunner.test.ts#collectCliToolStdoutText should iterate over a single line","name":"should iterate over a single line","status":"passed","testResultsByEnv":{"windows-latest":"38e567ec90efd9a3e18e2924d04cfb4b","ubuntu-latest":"8bb0a10f4f15bd6885a12d8979b388b1","macos-latest":"f023a3cf15f9823f7415174877cb958f"}}

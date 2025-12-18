@@ -1,0 +1,1 @@
+{"id":"ec7a5c35daa7537bcfbda0aec9aa8a27","fullName":"test/toolRunner.test.ts#collectCliToolStdoutText should iterate over multiple lines","name":"should iterate over multiple lines","status":"passed","testResultsByEnv":{"windows-latest":"587ae4f8a07063bcfe54788b31f2c09c","ubuntu-latest":"0350193c51dd790e6b87a95c58648563","macos-latest":"38ef65457ecb26370c7447c4936892aa"}}

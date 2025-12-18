@@ -1,0 +1,1 @@
+{"id":"06da29ece737893c0d0efd3793c81336","fullName":"test/process.test.ts#stopProcessTree on a POSIX-compliant system should stop a tree of a parent and one child","name":"should stop a tree of a parent and one child","status":"passed","testResultsByEnv":{"ubuntu-latest":"ae8e26c1fb3beddc13ba4636fa7959a3","macos-latest":"33ba19e07068aefa4834d5ae9c835164"}}
