@@ -51,9 +51,10 @@ describe("generate command", () => {
 
     await command.execute();
 
-    expect(console.log).toHaveBeenCalledWith(
+    expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining("No test results directories found matching pattern: ./notfound"),
     );
+    expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();
   });
 

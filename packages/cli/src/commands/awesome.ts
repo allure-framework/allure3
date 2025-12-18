@@ -2,8 +2,10 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import { default as AwesomePlugin, type AwesomePluginOptions } from "@allurereport/plugin-awesome";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
+import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
-import process from "node:process";
+import process, { exit } from "node:process";
+import { red } from "yoctocolors";
 
 export class AwesomeCommand extends Command {
   static paths = [["awesome"]];
@@ -68,6 +70,12 @@ export class AwesomeCommand extends Command {
   });
 
   async execute() {
+    if (!existsSync(this.resultsDir)) {
+      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+      exit(1);
+      return;
+    }
+
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
     const defaultAwesomeOptions = {
