@@ -1,9 +1,6 @@
 :root:not([data-theme="dark"]) {
   --ad-other-focus: var(--ad-other-focus-day);
   --ad-other-modal-overlay: var(--ad-other-modal-overlay-day);
-  --bg-alpha-capella-heavy: var(--bg-alpha-capella-heavy-day);
-  --bg-alpha-capella: var(--bg-alpha-capella-day);
-  --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-day);
   --bg-base-modal: var(--bg-base-modal-day);
   --bg-base-neutral: var(--bg-base-neutral-day);
   --bg-base-primary: var(--bg-base-primary-day);
@@ -125,6 +122,43 @@
   --on-text-primary: var(--on-text-primary-day);
   --on-text-secondary: var(--on-text-secondary-day);
 
+  --bg-alpha-aldebaran: var(--aldebaran-day-darken-1-8);
+  --bg-alpha-aldebaran-heavy: var(--aldebaran-day-darken-1-24);
+  --bg-alpha-aldebaran-medium: var(--aldebaran-day-darken-1-16);
+  --bg-alpha-antares: var(--antares-day-darken-1-8);
+  --bg-alpha-antares-heavy: var(--antares-day-darken-1-24);
+  --bg-alpha-antares-medium: var(--antares-day-darken-1-16);
+  --bg-alpha-atlas: var(--atlas-day-darken-1-8);
+  --bg-alpha-atlas-heavy: var(--atlas-day-darken-1-24);
+  --bg-alpha-atlas-medium: var(--atlas-day-darken-1-16);
+  --bg-alpha-betelgeuse: var(--betelgeuse-day-darken-1-8);
+  --bg-alpha-betelgeuse-heavy: var(--betelgeuse-day-darken-1-24);
+  --bg-alpha-betelgeuse-medium: var(--betelgeuse-day-darken-1-16);
+  --bg-alpha-capella: var(--capella-day-darken-1-8);
+  --bg-alpha-capella-heavy: var(--capella-day-darken-1-24);
+  --bg-alpha-capella-medium: var(--capella-day-darken-1-16);
+  --bg-alpha-castor: var(--castor-day-darken-1-8);
+  --bg-alpha-castor-heavy: var(--castor-day-darken-1-24);
+  --bg-alpha-castor-medium: var(--castor-day-darken-1-16);
+  --bg-alpha-gliese: var(--gliese-day-darken-1-8);
+  --bg-alpha-gliese-heavy: var(--gliese-day-darken-1-24);
+  --bg-alpha-gliese-medium: var(--gliese-day-darken-1-16);
+  --bg-alpha-mirach: var(--mirach-day-darken-1-8);
+  --bg-alpha-mirach-heavy: var(--mirach-day-darken-1-24);
+  --bg-alpha-mirach-medium: var(--mirach-day-darken-1-16);
+  --bg-alpha-rau: var(--rau-day-darken-1-8);
+  --bg-alpha-rau-heavy: var(--rau-day-darken-1-24);
+  --bg-alpha-rau-medium: var(--rau-day-darken-1-16);
+  --bg-alpha-rigel: var(--rigel-day-darken-1-8);
+  --bg-alpha-rigel-heavy: var(--rigel-day-darken-1-24);
+  --bg-alpha-rigel-medium: var(--rigel-day-darken-1-16);
+  --bg-alpha-sirius: var(--sirius-day-darken-1-8);
+  --bg-alpha-sirius-heavy: var(--sirius-day-darken-1-24);
+  --bg-alpha-sirius-medium: var(--sirius-day-darken-1-16);
+  --bg-alpha-skat: var(--skat-day-darken-1-8);
+  --bg-alpha-skat-heavy: var(--skat-day-darken-1-24);
+  --bg-alpha-skat-medium: var(--skat-day-darken-1-16);
+
   color-scheme: light;
 }
 
@@ -133,10 +167,6 @@
   :root[data-theme="dark"] {
     --ad-other-focus: var(--ad-other-focus-night);
     --ad-other-modal-overlay: var(--ad-other-modal-overlay-night);
-    --bg-alpha-capella-heavy: var(--bg-alpha-capella-heavy-night);
-    --bg-alpha-capella-medium: var(--bg-alpha-capella-medium-night);
-    --bg-alpha-capella: var(--bg-alpha-capella-night);
-    --bg-alpha-castor-heavy: var(--bg-alpha-castor-heavy-night);
     --bg-base-modal: var(--bg-base-modal-night);
     --bg-base-neutral: var(--bg-base-neutral-night);
     --bg-base-primary: var(--bg-base-primary-night);
@@ -253,6 +283,43 @@
     --on-text-hint: var(--on-text-hint-night);
     --on-text-primary: var(--on-text-primary-night);
     --on-text-secondary: var(--on-text-secondary-night);
+
+    --bg-alpha-aldebaran-heavy: var(--aldebaran-night-darken-5-28);
+    --bg-alpha-aldebaran-medium: var(--aldebaran-night-darken-5-20);
+    --bg-alpha-aldebaran: var(--aldebaran-night-darken-5-12);
+    --bg-alpha-antares-heavy: var(--antares-night-darken-4-28);
+    --bg-alpha-antares-medium: var(--antares-night-darken-4-20);
+    --bg-alpha-antares: var(--antares-night-darken-4-12);
+    --bg-alpha-atlas-heavy: var(--atlas-night-darken-4-28);
+    --bg-alpha-atlas-medium: var(--atlas-night-darken-4-20);
+    --bg-alpha-atlas: var(--atlas-night-darken-4-12);
+    --bg-alpha-betelgeuse-heavy: var(--betelgeuse-night-darken-5-28);
+    --bg-alpha-betelgeuse-medium: var(--betelgeuse-night-darken-5-20);
+    --bg-alpha-betelgeuse: var(--betelgeuse-night-darken-5-12);
+    --bg-alpha-capella-heavy: var(--capella-night-darken-4-28);
+    --bg-alpha-capella-medium: var(--capella-night-darken-4-20);
+    --bg-alpha-capella: var(--capella-night-darken-4-12);
+    --bg-alpha-castor-heavy: var(--castor-night-darken-5-28);
+    --bg-alpha-castor-medium: var(--castor-night-darken-5-20);
+    --bg-alpha-castor: var(--castor-night-darken-5-12);
+    --bg-alpha-gliese-heavy: var(--gliese-night-darken-4-28);
+    --bg-alpha-gliese-medium: var(--gliese-night-darken-4-20);
+    --bg-alpha-gliese: var(--gliese-night-darken-4-12);
+    --bg-alpha-mirach-heavy: var(--mirach-night-darken-5-28);
+    --bg-alpha-mirach-medium: var(--mirach-night-darken-5-20);
+    --bg-alpha-mirach: var(--mirach-night-darken-5-12);
+    --bg-alpha-rau-heavy: var(--rau-night-darken-5-28);
+    --bg-alpha-rau-medium: var(--rau-night-darken-5-20);
+    --bg-alpha-rau: var(--rau-night-darken-5-12);
+    --bg-alpha-rigel-heavy: var(--rigel-night-darken-4-28);
+    --bg-alpha-rigel-medium: var(--rigel-night-darken-4-20);
+    --bg-alpha-rigel: var(--rigel-night-darken-4-12);
+    --bg-alpha-sirius-heavy: var(--sirius-night-darken-5-28);
+    --bg-alpha-sirius-medium: var(--sirius-night-darken-5-20);
+    --bg-alpha-sirius: var(--sirius-night-darken-5-12);
+    --bg-alpha-skat-heavy: var(--skat-night-darken-5-28);
+    --bg-alpha-skat-medium: var(--skat-night-darken-5-20);
+    --bg-alpha-skat: var(--skat-night-darken-5-12);
 
     color-scheme: dark;
   }

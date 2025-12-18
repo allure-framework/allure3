@@ -234,6 +234,9 @@
     },
     "statusTransitions": {
       "title": "Przejścia statusu",
+      "legend": {
+        "trend": "Wskaźnik napraw"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -290,6 +293,9 @@
         "removedbroken": "Usunięty $t(statuses:broken)",
         "removedskipped": "Usunięty $t(statuses:skipped)",
         "removedunknown": "Usunięty $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Trend wzrostu"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

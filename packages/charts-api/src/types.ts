@@ -205,9 +205,6 @@ export interface StatusTransitionsChartData {
     regressed: number;
     malfunctioned: number;
   }[];
-  hideEmptyLines?: boolean;
-  lines?: ("fixed" | "regressed" | "malfunctioned")[];
-  linesSharpness?: number;
 }
 
 export interface DurationsChartData {
@@ -393,29 +390,6 @@ export type StatusDynamicsChartOptions = {
 export type StatusTransitionsChartOptions = {
   type: ChartType.StatusTransitions;
   title?: string;
-  /**
-   * List of lines that will be displayed in the chart.
-   * Corresponds to test result transitions.
-   *
-   * @default ["regressed", "malfunctioned"]
-   */
-  lines?: ("fixed" | "regressed" | "malfunctioned")[];
-  /**
-   * Sharpness controls where the curve bends between points
-   * - 0 = sharp transition (curve changes immediately after leaving previous point)
-   * - 0.5 = symmetric curve
-   * - 1 = gradual transition (curve holds previous value longer)
-   *
-   * @default 0.2
-   */
-  linesSharpness?: number;
-  /**
-   * Whether to hide lines that have no data in every point of the chart
-   * (theses lines always goes through 0 mark)
-   *
-   * @default true
-   */
-  hideEmptyLines?: boolean;
   /**
    * Limit of history data points to be used for the chart
    *

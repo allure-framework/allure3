@@ -77,6 +77,9 @@
     },
     "statusTransitions": {
       "title": "Statusövergångar",
+      "legend": {
+        "trend": "Korrigeringsgrad"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -133,6 +136,9 @@
         "removedbroken": "Borttagen $t(statuses:broken)",
         "removedskipped": "Borttagen $t(statuses:skipped)",
         "removedunknown": "Borttagen $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Tillväxttrend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

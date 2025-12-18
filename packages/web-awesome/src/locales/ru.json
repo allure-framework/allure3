@@ -234,6 +234,9 @@
     },
     "statusTransitions": {
       "title": "Переходы статусов",
+      "legend": {
+        "trend": "Коэффициент исправлений"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -290,6 +293,9 @@
         "removedbroken": "Удалённый $t(statuses:broken)",
         "removedskipped": "Удалённый $t(statuses:skipped)",
         "removedunknown": "Удалённый $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Тренд роста"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

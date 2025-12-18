@@ -177,6 +177,9 @@
     },
     "statusTransitions": {
       "title": "Status transitions",
+      "legend": {
+        "trend": "Коефіцієнт виправлень"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -233,6 +236,9 @@
         "removedbroken": "Видалений $t(statuses:broken)",
         "removedskipped": "Видалений $t(statuses:skipped)",
         "removedunknown": "Видалений $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Тренд зростання"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

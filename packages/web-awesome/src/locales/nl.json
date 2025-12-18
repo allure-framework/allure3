@@ -226,6 +226,9 @@
     },
     "statusTransitions": {
       "title": "Statusovergangen",
+      "legend": {
+        "trend": "Correctieratio"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -282,6 +285,9 @@
         "removedbroken": "Verwijderd $t(statuses:broken)",
         "removedskipped": "Verwijderd $t(statuses:skipped)",
         "removedunknown": "Verwijderd $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Groeitrend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",
