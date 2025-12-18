@@ -37,7 +37,7 @@ export class WatchCommand extends Command {
   });
 
   output = Option.String("--output,-o", {
-    description: "The output file name, allure.csv by default. Accepts absolute paths (default: ./allure-report)",
+    description: "The output directory name. Absolute paths are accepted as well (default: allure-report)",
   });
 
   reportName = Option.String("--report-name,--name", {
@@ -112,7 +112,7 @@ export class WatchCommand extends Command {
 
     await allureReport.start();
 
-    const input = resolve(this.resultsDir[0]);
+    const input = resolve(this.resultsDir);
     const { abort } = newFilesInDirectoryWatcher(input, async (path) => {
       await allureReport.readResult(new PathResultFile(path));
     });
