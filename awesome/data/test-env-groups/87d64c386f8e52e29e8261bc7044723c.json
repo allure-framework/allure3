@@ -1,1 +1,1 @@
-{"id":"87d64c386f8e52e29e8261bc7044723c","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse a nameless test attachment","name":"should parse a nameless test attachment","status":"passed","testResultsByEnv":{"macos-latest":"14738cc6a08fcca62441e59ddebafa42"}}
+{"id":"87d64c386f8e52e29e8261bc7044723c","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse a nameless test attachment","name":"should parse a nameless test attachment","status":"broken","testResultsByEnv":{"macos-latest":"5c9d167abc3da2f85e691221c5ac9cd2"}}
