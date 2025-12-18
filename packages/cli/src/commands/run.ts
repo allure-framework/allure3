@@ -22,10 +22,10 @@ import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process, { exit } from "node:process";
-import terminate from "terminate/promise";
 import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
+import { stopProcessTree } from "../utils/process.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -139,8 +139,7 @@ const runTests = async (params: {
       qualityGateResults = results;
 
       try {
-        // @ts-ignore
-        await terminate(testProcess.pid, "SIGTERM");
+        await stopProcessTree(testProcess.pid!);
       } catch (err) {
         if ((err as Error).message.includes("kill ESRCH")) {
           return;

@@ -1,3 +1,4 @@
+import { isDefined, isNumber } from "@allurereport/reader-api";
 import type {
   RawStep,
   RawTestLabel,
@@ -6,10 +7,9 @@ import type {
   RawTestResult,
   RawTestStatus,
   RawTestStepResult,
+  Unknown,
 } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
-import { isDefined, isNumber } from "../validation.js";
-import type { Unknown } from "../validation.js";
 import type {
   AllureApiCall,
   LabelsInputData,
