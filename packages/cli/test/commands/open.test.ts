@@ -1,10 +1,14 @@
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { generate } from "../../src/commands/commons/generate.js";
 import { OpenCommand } from "../../src/commands/open.js";
 
+vi.mock("glob", () => ({
+  glob: vi.fn(),
+}));
 vi.mock("@allurereport/core", async (importOriginal) => {
   return {
     ...(await importOriginal()),
@@ -28,6 +32,7 @@ beforeEach(() => {
 
 describe("open command", () => {
   it("should call generate and serve when results directory is provided", async () => {
+    (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
@@ -52,7 +57,8 @@ describe("open command", () => {
   });
 
   it("should use default results directory when not provided", async () => {
-    (readConfig as Mock).mockResolvedValue({});
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
@@ -65,17 +71,18 @@ describe("open command", () => {
 
     expect(generate).toHaveBeenCalledWith({
       cwd: ".",
-      config: {},
+      config: { output: "allure-report" },
       resultsDir: "./**/allure-results",
     });
     expect(serve).toHaveBeenCalledWith({
       port: undefined,
-      servePath: undefined,
+      servePath: "allure-report",
       open: true,
     });
   });
 
   it("should serve with custom options", async () => {
+    (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "custom-report", port: "8080" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
@@ -108,7 +115,8 @@ describe("open command", () => {
 
   it("should handle errors from generate function", async () => {
     const error = new Error("Generate failed");
-    (readConfig as Mock).mockResolvedValue({});
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
     (generate as Mock).mockRejectedValue(error);
 
     const command = new OpenCommand();
@@ -122,7 +130,8 @@ describe("open command", () => {
 
   it("should handle errors from serve function", async () => {
     const error = new Error("Serve failed");
-    (readConfig as Mock).mockResolvedValue({});
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockRejectedValue(error);
 
@@ -136,7 +145,8 @@ describe("open command", () => {
   });
 
   it("should prefer CLI arguments over config and defaults", async () => {
-    (readConfig as Mock).mockResolvedValue({});
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "foo" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
@@ -149,13 +159,14 @@ describe("open command", () => {
     });
     expect(generate).toHaveBeenCalledWith({
       cwd: expect.any(String),
-      config: {},
+      config: { output: "foo" },
       resultsDir: "./allure-results",
     });
   });
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
-    (readConfig as Mock).mockResolvedValue({});
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
@@ -168,12 +179,13 @@ describe("open command", () => {
     });
     expect(generate).toHaveBeenCalledWith({
       cwd: expect.any(String),
-      config: {},
+      config: { output: "allure-report" },
       resultsDir: "./**/allure-results",
     });
   });
 
   it("should parse port from config and pass as number to serve", async () => {
+    (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: "report", port: "3000" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
@@ -189,6 +201,51 @@ describe("open command", () => {
     expect(serve).toHaveBeenCalledWith({
       port: 3000,
       servePath: "report",
+      open: true,
+    });
+  });
+
+  it("should skip generate when summary.json already exists in output directory", async () => {
+    (glob as unknown as Mock).mockResolvedValue(["allure-report/widgets/summary.json"]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    const command = new OpenCommand();
+
+    command.cwd = ".";
+    command.resultsDir = "./allure-results";
+
+    await command.execute();
+
+    expect(generate).not.toHaveBeenCalled();
+    expect(serve).toHaveBeenCalledWith({
+      port: undefined,
+      servePath: "allure-report",
+      open: true,
+    });
+  });
+
+  it("should call generate when no summary.json files found in output directory", async () => {
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "allure-report" });
+    (generate as Mock).mockResolvedValue(undefined);
+    (serve as Mock).mockResolvedValue(undefined);
+
+    const command = new OpenCommand();
+
+    command.cwd = ".";
+    command.resultsDir = "./allure-results";
+
+    await command.execute();
+
+    expect(generate).toHaveBeenCalledWith({
+      cwd: ".",
+      config: { output: "allure-report" },
+      resultsDir: "./allure-results",
+    });
+    expect(serve).toHaveBeenCalledWith({
+      port: undefined,
+      servePath: "allure-report",
       open: true,
     });
   });

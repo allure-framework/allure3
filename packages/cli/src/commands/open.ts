@@ -1,6 +1,8 @@
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
+import { glob } from "glob";
+import { join } from "node:path";
 import { cwd as processCwd } from "node:process";
 import { generate } from "./commons/generate.js";
 
@@ -44,12 +46,24 @@ export class OpenCommand extends Command {
       output: this.output,
       port: this.port,
     });
-
-    await generate({
-      resultsDir: this.resultsDir ?? "./**/allure-results",
+    // if any summary.json file present in the output directory, we assume that report is already generated
+    const summaryFiles = await glob(join(config.output, "**", "summary.json"), {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
       cwd,
-      config,
     });
+
+    if (summaryFiles.length === 0) {
+      await generate({
+        resultsDir: this.resultsDir ?? "./**/allure-results",
+        cwd,
+        config,
+      });
+    }
+
     await serve({
       port: config.port ? parseInt(config.port, 10) : undefined,
       servePath: config.output,
