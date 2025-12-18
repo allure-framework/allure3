@@ -77,6 +77,9 @@
     },
     "statusTransitions": {
       "title": "Վիճակի անցումներ",
+      "legend": {
+        "trend": "Ուղղման գործակից"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -133,6 +136,9 @@
         "removedbroken": "Հdelays $t(statuses:broken)",
         "removedskipped": "Հdelays $t(statuses:skipped)",
         "removedunknown": "Հdelays $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Աճի միտում"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

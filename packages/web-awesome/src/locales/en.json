@@ -226,6 +226,9 @@
     },
     "statusTransitions": {
       "title": "Status transitions",
+      "legend": {
+        "trend": "Fix rate"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -282,6 +285,9 @@
         "removedbroken": "Removed $t(statuses:broken)",
         "removedskipped": "Removed $t(statuses:skipped)",
         "removedunknown": "Removed $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Growth trend"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

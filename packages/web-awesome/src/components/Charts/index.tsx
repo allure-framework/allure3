@@ -86,9 +86,6 @@ const getChartWidgetByType = (
         <StatusTransitionsChartWidget
           title={title}
           data={chartData.data}
-          lines={chartData.lines}
-          linesSharpness={chartData.linesSharpness}
-          hideEmptyLines={chartData.hideEmptyLines}
           i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
         />
       );

@@ -32,6 +32,7 @@ export const CHART_THEME: PartialTheme = {
     line: {
       stroke: CHART_PALETTE.gridLineColor,
       strokeDasharray: "4",
+      strokeLinecap: "round",
     },
   },
   dots: {

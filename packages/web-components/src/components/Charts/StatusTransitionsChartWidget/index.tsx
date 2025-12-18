@@ -1,12 +1,14 @@
 import type { TestStatusTransition } from "@allurereport/core-api";
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
+import { useMemo } from "preact/hooks";
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
 import { Widget } from "@/components/Widget";
 import { BarChart } from "../BarChart/BarChart.js";
 import { formatNumber } from "../Legend/LegendItem/index.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
+import { getTrendForDivergingChart } from "../utils.js";
 import type { Props } from "./types.js";
 
 const getColorFromTransition = (transition: TestStatusTransition): string => {
@@ -25,38 +27,55 @@ const getColorFromTransition = (transition: TestStatusTransition): string => {
 const transitionsList = ["fixed", "regressed", "malfunctioned"] as const;
 
 export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) => {
-  const {
-    title,
-    data,
-    i18n,
-    lines = ["regressed", "malfunctioned"],
-    hideEmptyLines = true,
-    linesSharpness = 0.2,
-  } = props;
+  const { title, data, i18n } = props;
+
+  const maxValue = Math.ceil(Math.max(...data.map((item) => item.fixed + item.regressed + item.malfunctioned)) * 1.01);
+
+  const chartData = data.map((item) => {
+    const absTotal = maxValue * 2;
+    const broken = item.regressed + item.malfunctioned;
+
+    const trend = getTrendForDivergingChart({
+      positiveValue: item.fixed,
+      negativeValue: broken,
+      absTotal,
+      // This means that the was no transitions at all,
+      // so we do not use it to calculate the trend line direction
+      noValuePercentage: -1,
+    });
+
+    return {
+      id: item.id,
+      timestamp: item.timestamp,
+      prevItemTimestamp: item.prevItemTimestamp,
+      fixed: item.fixed,
+      // Inverted values for regressed and malfunctioned to make them appear
+      // on the bottom side of the chart
+      regressed: item.regressed === 0 ? 0 : -item.regressed,
+      malfunctioned: item.malfunctioned === 0 ? 0 : -item.malfunctioned,
+      trend,
+    };
+  });
 
   const currentData = data.find((item) => item.id === "current");
-  const legend: LegendItemValue<BarDatum>[] = transitionsList.map((transition) => ({
-    id: transition,
-    label: i18n(`transitions.${transition}`),
-    color: getColorFromTransition(transition),
-    value: transition === "fixed" ? 1 : -1,
-  }));
 
-  const chartData = data.map((item) => ({
-    id: item.id,
-    timestamp: item.timestamp,
-    prevItemTimestamp: item.prevItemTimestamp,
-    fixed: item.fixed,
-    // Inverted values for regressed and malfunctioned to make them appear
-    // on the bottom side of the chart
-    regressed: item.regressed === 0 ? 0 : -item.regressed,
-    malfunctioned: item.malfunctioned === 0 ? 0 : -item.malfunctioned,
-  }));
-
-  const linesData = lines.map((line) => ({
-    key: line,
-    curveSharpness: linesSharpness,
-  }));
+  const legend: LegendItemValue<BarDatum>[] = useMemo(
+    () => [
+      ...transitionsList.map((transition) => ({
+        id: transition,
+        label: i18n(`transitions.${transition}`),
+        color: getColorFromTransition(transition),
+        value: transition === "fixed" ? 1 : -1,
+      })),
+      {
+        id: "trend",
+        label: i18n("legend.trend"),
+        color: "var(--bg-support-betelgeuse-medium)",
+        type: "point",
+      },
+    ],
+    [i18n],
+  );
 
   const isChartEmpty = chartData.every((item) => item.fixed === 0 && item.regressed === 0 && item.malfunctioned === 0);
   const noChartHistory = chartData
@@ -81,28 +100,11 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
     );
   }
 
-  const maxStackedValue = Math.max(
-    ...chartData.map((item) => {
-      const negativeSumm = Math.abs(item.malfunctioned) + Math.abs(item.regressed);
-
-      // On one side is fixed, on the other is regressed and malfunctioned
-      // So we need to take the maximum of the two
-      if (negativeSumm > item.fixed) {
-        return negativeSumm;
-      }
-
-      return item.fixed;
-    }),
-  );
-
-  // 1% "headroom" above the actual maximum
-  const domainValue = Math.ceil(maxStackedValue * 1.01);
+  const domainValue = maxValue;
 
   return (
     <Widget title={title}>
       <BarChart
-        lines={linesData}
-        hideEmptyTrendLines={hideEmptyLines}
         groupMode="stacked"
         data={chartData}
         legend={legend}
@@ -129,7 +131,18 @@ export const StatusTransitionsChartWidget: FunctionalComponent<Props> = (props) 
           return i18n("ticks.history", { timestamp: item?.timestamp });
         }}
         bottomTickRotation={45}
-        formatLegendValue={({ value }) => {
+        formatTrendValue={(value) => {
+          if (value === -1) {
+            return undefined;
+          }
+
+          return value;
+        }}
+        formatLegendValue={({ value, id }) => {
+          if (id === "trend") {
+            return "";
+          }
+
           if (!value) {
             return "-";
           }

@@ -226,6 +226,9 @@
     },
     "statusTransitions": {
       "title": "სტატუსის გადასვლები",
+      "legend": {
+        "trend": "გამოსწორების მაჩვენებელი"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -282,6 +285,9 @@
         "removedbroken": "წაშლილი $t(statuses:broken)",
         "removedskipped": "წაშლილი $t(statuses:skipped)",
         "removedunknown": "წაშლილი $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "ზრდის ტენდენция"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

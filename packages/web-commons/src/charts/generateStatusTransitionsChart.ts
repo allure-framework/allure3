@@ -71,11 +71,7 @@ export const generateStatusTransitionsChart = (props: {
   storeData: AllureChartsStoreData;
 }): StatusTransitionsChartData => {
   const { options, storeData } = props;
-  const {
-    limit = DEFAULT_CHART_HISTORY_LIMIT,
-    lines = ["regressed", "malfunctioned"],
-    hideEmptyLines = true,
-  } = options;
+  const { limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const { historyDataPoints, testResults } = storeData;
 
   const limitedHdps = limitHistoryDataPoints(historyDataPoints, limit).sort(
@@ -99,8 +95,6 @@ export const generateStatusTransitionsChart = (props: {
           malfunctioned: 0,
         },
       ],
-      hideEmptyLines,
-      lines,
     };
   }
 
@@ -156,7 +150,5 @@ export const generateStatusTransitionsChart = (props: {
     type: ChartType.StatusTransitions,
     title: options.title,
     data,
-    hideEmptyLines,
-    lines,
   };
 };

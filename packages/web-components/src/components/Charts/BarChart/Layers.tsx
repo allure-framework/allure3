@@ -469,7 +469,7 @@ const Bar = (props: {
     }
   }
 
-  const anumatedProps = useSpring({
+  const animatedProps = useSpring({
     x,
     y,
     width,
@@ -477,5 +477,5 @@ const Bar = (props: {
     config: motionConfig,
     immediate: !animate,
   });
-  return <animated.rect {...anumatedProps} fill={styleProps.fill} data-testid="bar" data-id={id} />;
+  return <animated.rect {...animatedProps} fill={styleProps.fill} data-testid="bar" data-id={id} />;
 };

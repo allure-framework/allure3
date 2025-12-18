@@ -6,6 +6,7 @@ type I18nKeys =
   | "transitions.fixed"
   | "transitions.regressed"
   | "transitions.malfunctioned"
+  | "legend.trend"
   | "no-history"
   | "no-results"
   | "ticks.current"

@@ -9,7 +9,6 @@ import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
 import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
-import { LinesByBarKeysLayer } from "./LinesByBarKeysLayer";
 import { TrendLinesLayer } from "./TrendLinesLayer";
 import { BarChartStateProvider } from "./context";
 import styles from "./styles.scss";
@@ -27,7 +26,7 @@ type BarChartProps<T extends BarDatum> = {
     curveSharpness?: number;
   }[];
   hideEmptyTrendLines?: boolean;
-  formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number;
+  formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
   formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
   formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
   renderBottomTick?: (props: AxisTickProps<number | string>) => any;
@@ -68,8 +67,6 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
     minValue,
     maxValue,
     groupMode = "stacked",
-    lines = [],
-    hideEmptyTrendLines = true,
     bottomTickSize = 12,
     markers = [],
     colors,
@@ -143,6 +140,9 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   groupMode={groupMode}
                 />
               ),
+              (layerProps: BarCustomLayerProps<T>) => (
+                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
+              ),
               "markers",
               (layerProps: BarCustomLayerProps<T>) => (
                 <BarChartItemHoverLayer<T>
@@ -164,21 +164,6 @@ export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
                   }
                 />
               ),
-              (layerProps: BarCustomLayerProps<T>) => (
-                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
-              ),
-              (layerProps: BarCustomLayerProps<T>) =>
-                lines.length > 0 && (
-                  <LinesByBarKeysLayer
-                    {...layerProps}
-                    legend={legend}
-                    lines={lines}
-                    minValue={minValue}
-                    maxValue={maxValue}
-                    hideEmptyTrendLines={hideEmptyTrendLines}
-                    barSize={barSize}
-                  />
-                ),
             ]}
             markers={markers}
             colors={

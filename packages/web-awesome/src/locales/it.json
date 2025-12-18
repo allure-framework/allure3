@@ -226,6 +226,9 @@
     },
     "statusTransitions": {
       "title": "Transizioni di stato",
+      "legend": {
+        "trend": "Tasso di correzione"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -282,6 +285,9 @@
         "removedbroken": "Rimosso $t(statuses:broken)",
         "removedskipped": "Rimosso $t(statuses:skipped)",
         "removedunknown": "Rimosso $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Tendenza di crescita"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

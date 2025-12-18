@@ -226,6 +226,9 @@
     },
     "statusTransitions": {
       "title": "Status keçidləri",
+      "legend": {
+        "trend": "Düzəltmə dərəcəsi"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -282,6 +285,9 @@
         "removedbroken": "Silinmiş $t(statuses:broken)",
         "removedskipped": "Silinmiş $t(statuses:skipped)",
         "removedunknown": "Silinmiş $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Artım trendi"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

@@ -77,6 +77,9 @@
     },
     "statusTransitions": {
       "title": "Durum geçişleri",
+      "legend": {
+        "trend": "Düzeltme oranı"
+      },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
         "fixed": "$t(transitions:fixed, capitalize)",
@@ -133,6 +136,9 @@
         "removedbroken": "Kaldırılan $t(statuses:broken)",
         "removedskipped": "Kaldırılan $t(statuses:skipped)",
         "removedunknown": "Kaldırılan $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Büyüme trendi"
       },
       "no-history": "$t(empty:no-history-results)",
       "no-results": "$t(empty:no-results)",

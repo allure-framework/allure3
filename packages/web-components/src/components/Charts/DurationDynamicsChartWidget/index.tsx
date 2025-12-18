@@ -33,7 +33,7 @@ export const DurationDynamicsChartWidget: FunctionalComponent<Props> = (props) =
       {
         id: "speedup",
         label: i18n("durations.speedup"),
-        color: "var(--bg-support-aldebaran)",
+        color: "var(--bg-support-betelgeuse-medium)",
         type: "point",
       },
     ];
