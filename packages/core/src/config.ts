@@ -161,7 +161,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   }
 
   const name = override.name ?? config.name ?? "Allure Report";
-  const open = override.open ?? config.open ?? true;
+  const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");
   const appendHistory = config.appendHistory ?? true;
