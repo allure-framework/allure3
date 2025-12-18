@@ -332,6 +332,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Sin severidad"
       }
+    },
+    "durationDynamics": {
+      "title": "Dinámica de duración",
+      "durations": {
+        "sequential": "Duración secuencial",
+        "duration": "Duración de pruebas",
+        "speedup": "Aceleración"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Último informe ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Informe del {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Último",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

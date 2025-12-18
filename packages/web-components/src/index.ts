@@ -44,5 +44,6 @@ export * from "./components/Charts/StatusDynamicsChartWidget";
 export * from "./components/Charts/StatusTransitionsChartWidget";
 export * from "./components/Charts/DurationsChartWidget";
 export * from "./components/Charts/TrSeveritiesChartWidget";
+export * from "./components/Charts/DurationDynamicsChartWidget";
 export * from "./components/Timeline";
 export * from "./components/ReportSummaryCard";

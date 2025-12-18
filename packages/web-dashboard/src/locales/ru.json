@@ -189,6 +189,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Нет важности"
       }
+    },
+    "durationDynamics": {
+      "title": "Динамика длительности",
+      "durations": {
+        "sequential": "Последовательная длительность",
+        "duration": "Длительность тестов",
+        "speedup": "Ускорение"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Последний отчёт ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Отчёт от {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Последний",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

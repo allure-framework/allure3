@@ -183,6 +183,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "No severity"
       }
+    },
+    "durationDynamics": {
+      "title": "Duration dynamics",
+      "durations": {
+        "sequential": "Sequential duration",
+        "duration": "Test duration",
+        "speedup": "Speedup"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Latest report ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Report from {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Latest",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

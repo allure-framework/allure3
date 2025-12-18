@@ -1360,6 +1360,7 @@ const RAW_RUNTIME_STATE =
           ["d3-axis", "npm:3.0.0"],\
           ["d3-brush", "npm:3.0.0"],\
           ["d3-format", "npm:3.1.0"],\
+          ["d3-regression", "npm:1.3.10"],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-selection", "npm:3.0.0"],\
           ["d3-shape", "npm:3.2.0"],\
@@ -17777,6 +17778,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/d3-path-npm-3.1.0-8d69e9e4e5-8e97a9ab49.zip/node_modules/d3-path/",\
         "packageDependencies": [\
           ["d3-path", "npm:3.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["d3-regression", [\
+      ["npm:1.3.10", {\
+        "packageLocation": "./.yarn/cache/d3-regression-npm-1.3.10-44bfa2f85d-c052c3a4d8.zip/node_modules/d3-regression/",\
+        "packageDependencies": [\
+          ["d3-regression", "npm:1.3.10"]\
         ],\
         "linkType": "HARD"\
       }]\

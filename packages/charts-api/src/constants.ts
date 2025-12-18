@@ -72,6 +72,10 @@ export const defaultChartsConfig: ChartOptions[] = [
     groupBy: "layer",
   },
   {
+    type: ChartType.DurationDynamics,
+    title: "Durations dynamics",
+  },
+  {
     type: ChartType.FBSUAgePyramid,
     title: "FBSU age pyramid",
   },

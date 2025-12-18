@@ -1,6 +1,7 @@
 import type {
   ChartId,
   CurrentStatusChartData,
+  DurationDynamicsChartData,
   DurationsChartData,
   FBSUAgePyramidChartData,
   StabilityDistributionChartData,
@@ -269,6 +270,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as FBSUAgePyramidChartData;
       } else if (chart.type === ChartType.TrSeverities) {
         acc[chartId] = res[chartId] as TrSeveritiesChartData;
+      } else if (chart.type === ChartType.DurationDynamics) {
+        acc[chartId] = res[chartId] as DurationDynamicsChartData;
       } else if (chart.type === ChartType.Trend) {
         const chartData = createaTrendChartData(chartId, chart, res);
         if (chartData) {

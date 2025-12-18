@@ -4,6 +4,7 @@ import { capitalize } from "@allurereport/core-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   CurrentStatusChartWidget,
+  DurationDynamicsChartWidget,
   DurationsChartWidget,
   FBSUAgePyramidChartWidget,
   Grid,
@@ -150,6 +151,17 @@ const getChartWidgetByType = (
           levels={chartData.levels}
           statuses={chartData.statuses}
           i18n={(key, props = {}) => t(`trSeverities.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.DurationDynamics: {
+      const title = chartData.title ?? t("durationDynamics.title");
+
+      return (
+        <DurationDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          i18n={(key, props = {}) => t(`durationDynamics.${key}`, props)}
         />
       );
     }

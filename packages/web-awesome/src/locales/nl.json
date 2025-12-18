@@ -332,6 +332,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "Geen ernst"
       }
+    },
+    "durationDynamics": {
+      "title": "Duurdynamiek",
+      "durations": {
+        "sequential": "Sequentiële duur",
+        "duration": "Testduur",
+        "speedup": "Versnelling"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

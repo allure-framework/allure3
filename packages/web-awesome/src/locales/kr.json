@@ -332,6 +332,27 @@
         "trivial": "$t(severity:trivial, capitalize)",
         "unset": "심각도 없음"
       }
+    },
+    "durationDynamics": {
+      "title": "지속 시간 동적",
+      "durations": {
+        "sequential": "순차적 지속 시간",
+        "duration": "테스트 지속 시간",
+        "speedup": "가속화"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "최신 보고서 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 보고서"
+      },
+      "ticks": {
+        "current": "최신",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
     }
   },
   "transitions": {

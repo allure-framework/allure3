@@ -8,6 +8,7 @@ import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
 import { generateFunnelChart } from "./funnel/index.js";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
+import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
 import { generateFBSUAgePyramid } from "./generateFBSUAgePyramid.js";
 import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
@@ -57,6 +58,9 @@ const generateChartData = async (props: {
         break;
       case ChartType.Durations:
         result[chartId] = generateDurationsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.DurationDynamics:
+        result[chartId] = generateDurationDynamicsChart({ options: chartOption, storeData })!;
         break;
       case ChartType.StabilityDistribution:
         result[chartId] = generateStabilityDistributionChart({ options: chartOption, storeData })!;
