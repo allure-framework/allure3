@@ -1,1 +1,0 @@
-{"id":"c0c6348be7c4221a158921e8f8f0fa24","fullName":"test/commands/qualityGate.test.ts#quality-gate command should exit with code 0 when there is no test results found","name":"should exit with code 0 when there is no test results found","status":"passed","testResultsByEnv":{"windows-latest":"166688bcadf81b542fc9033335d4d4e7","ubuntu-latest":"39708d399e57fa921a7f87d985785246"}}

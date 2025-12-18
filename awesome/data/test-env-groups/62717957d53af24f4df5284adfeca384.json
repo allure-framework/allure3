@@ -1,0 +1,1 @@
+{"id":"62717957d53af24f4df5284adfeca384","fullName":"test/commands/dashboard.test.ts#dashboard command should exit with code 1 when resultsDir doesn't exist","name":"should exit with code 1 when resultsDir doesn't exist","status":"passed","testResultsByEnv":{"windows-latest":"e21ac3ddfc18ee213bae2a7f7c37a945","ubuntu-latest":"21c4199c65d8f1ce4f1b8f577924380e"}}

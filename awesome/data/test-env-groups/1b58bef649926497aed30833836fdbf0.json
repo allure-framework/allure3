@@ -1,0 +1,1 @@
+{"id":"1b58bef649926497aed30833836fdbf0","fullName":"test/commands/knownIssue.test.ts#known-issue command should exit with code 1 when resultsDir doesn't exist","name":"should exit with code 1 when resultsDir doesn't exist","status":"passed","testResultsByEnv":{"windows-latest":"a9415fc62ee1d88c63fb631df2d497a5","ubuntu-latest":"6cd0cff90bebd0f3b2b93af0c965fadf"}}

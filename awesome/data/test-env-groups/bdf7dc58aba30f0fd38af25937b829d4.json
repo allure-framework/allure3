@@ -1,0 +1,1 @@
+{"id":"bdf7dc58aba30f0fd38af25937b829d4","fullName":"test/commands/log.test.ts#log command should exit with code 1 when resultsDir doesn't exist","name":"should exit with code 1 when resultsDir doesn't exist","status":"passed","testResultsByEnv":{"windows-latest":"a3dc452d8e678325164234987b8bda6b","ubuntu-latest":"453ada434ae5e0cd8dd6fd6223d40739"}}
