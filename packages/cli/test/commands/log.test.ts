@@ -52,7 +52,7 @@ describe("log command", () => {
     await command.execute();
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(`Given test results directory doesn't exist: ${fixtures.resultsDir}`),
+      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();

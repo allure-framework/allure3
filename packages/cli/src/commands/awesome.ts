@@ -71,7 +71,7 @@ export class AwesomeCommand extends Command {
 
   async execute() {
     if (!existsSync(this.resultsDir)) {
-      console.error(red(`Given test results directory doesn't exist: ${this.resultsDir}`));
+      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
       exit(1);
       return;
     }
