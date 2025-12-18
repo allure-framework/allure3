@@ -1,1 +1,1 @@
-{"id":"3da78ebe6569e623933654032d9bf0b0","fullName":"test/history.test.ts#should read empty file","name":"should read empty file","status":"passed","testResultsByEnv":{"windows-latest":"b390f3f03cd35f267e8ad13db37e43ce","ubuntu-latest":"a7df8d0f20d22a2bc01b6c374498df78"}}
+{"id":"3da78ebe6569e623933654032d9bf0b0","fullName":"test/history.test.ts#should read empty file","name":"should read empty file","status":"passed","testResultsByEnv":{"windows-latest":"105873a2792b97448094521a5f22a021","ubuntu-latest":"b1543f858b46f62e891d15930ffc4850"}}
