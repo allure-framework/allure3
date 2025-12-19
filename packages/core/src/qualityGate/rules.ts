@@ -54,4 +54,18 @@ export const successRateRule: QualityGateRule<number> = {
   },
 };
 
-export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule];
+export const maxDurationRule: QualityGateRule<number> = {
+  rule: "maxDuration",
+  message: ({ actual, expected }) =>
+    `Maximum duration of some tests exceed the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
+  validate: async ({ trs, expected }) => {
+    const actual = Math.max(...trs.map((tr) => tr.duration ?? 0));
+
+    return {
+      success: actual <= expected,
+      actual,
+    };
+  },
+};
+
+export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule];
