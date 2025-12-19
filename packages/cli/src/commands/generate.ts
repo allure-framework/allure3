@@ -1,4 +1,5 @@
 import { readConfig } from "@allurereport/core";
+import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import { cwd as processCwd } from "node:process";
 import { generate } from "./commons/generate.js";
@@ -51,11 +52,21 @@ export class GenerateCommand extends Command {
     description: "Stages archives to restore state from (default: empty string)",
   });
 
+  open = Option.Boolean("--open", {
+    description: "Open the report in the default browser after generation (default: false)",
+  });
+
+  port = Option.String("--port", {
+    description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output,
+      open: this.open,
+      port: this.port,
     });
 
     await generate({
@@ -64,5 +75,13 @@ export class GenerateCommand extends Command {
       cwd,
       config,
     });
+
+    if (config.open) {
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: config.output,
+        open: true,
+      });
+    }
   }
 }

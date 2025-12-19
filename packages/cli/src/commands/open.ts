@@ -1,7 +1,10 @@
+import type { FullConfig } from "@allurereport/core";
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
+import { randomUUID } from "node:crypto";
+import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { cwd as processCwd } from "node:process";
 import { generate } from "./commons/generate.js";
@@ -13,19 +16,14 @@ export class OpenCommand extends Command {
     description: "Serves specified directory",
     details: "This command generates report with the given test results and opens it in the default browser.",
     examples: [
-      ["open", "Generate and serve the report based on default test results directories"],
       ["open ./allure-results", "Generate and serve the report based on given test results directory"],
-      ["open --port 8080 ./allure-results", "Serve the report on port 8080"],
+      ["open --port 8080 ./allure-report", "Serve the report on port 8080"],
     ],
   });
 
   resultsDir = Option.String({
-    required: false,
+    required: true,
     name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
-  });
-
-  output = Option.String("--output,-o", {
-    description: "The output directory name. Absolute paths are accepted as well (default: allure-report)",
   });
 
   config = Option.String("--config,-c", {
@@ -42,12 +40,10 @@ export class OpenCommand extends Command {
 
   async execute() {
     const cwd = this.cwd ?? processCwd();
-    const config = await readConfig(cwd, this.config, {
-      output: this.output,
-      port: this.port,
-    });
-    // if any summary.json file present in the output directory, we assume that report is already generated
-    const summaryFiles = await glob(join(config.output, "**", "summary.json"), {
+
+    const isGlobPatternGiven = this.resultsDir.includes("*") || this.resultsDir.includes("?");
+    const summaryFilesGlob = isGlobPatternGiven ? this.resultsDir : join(this.resultsDir, "**", "summary.json");
+    const summaryFiles = await glob(summaryFilesGlob, {
       mark: true,
       nodir: false,
       absolute: true,
@@ -55,12 +51,25 @@ export class OpenCommand extends Command {
       windowsPathsNoEscape: true,
       cwd,
     });
+    let config: FullConfig;
 
-    if (summaryFiles.length === 0) {
+    // there's no generated report to serve, so we generate it first in a temp directory
+    if (!summaryFiles.length) {
+      config = await readConfig(cwd, this.config, {
+        port: this.port,
+        output: join(cwd, ".allure", randomUUID()),
+      });
+
+      await mkdir(config.output, { recursive: true });
       await generate({
-        resultsDir: this.resultsDir ?? "./**/allure-results",
+        resultsDir: this.resultsDir,
         cwd,
         config,
+      });
+    } else {
+      config = await readConfig(cwd, this.config, {
+        port: this.port,
+        output: this.resultsDir,
       });
     }
 
