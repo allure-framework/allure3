@@ -68,8 +68,10 @@ export interface TrendSlice<Metadata extends BaseTrendSliceMetadata = BaseTrendS
 }
 
 // Pie chart types
+export type PieSliceStatus = TestStatus | "__empty__";
+
 export interface BasePieSlice {
-  status: TestStatus;
+  status: PieSliceStatus;
   count: number;
 }
 
