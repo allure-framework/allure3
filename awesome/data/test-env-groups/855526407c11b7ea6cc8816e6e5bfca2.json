@@ -1,1 +1,1 @@
-{"id":"855526407c11b7ea6cc8816e6e5bfca2","fullName":"test/config.test.ts#readConfig should read a .json config","name":"should read a .json config","status":"passed","testResultsByEnv":{"windows-latest":"7271c4533aa4e06e7022b6cb287fb46d","ubuntu-latest":"9f1353fdedc93cb439aaa4eb7cfa620e"}}
+{"id":"855526407c11b7ea6cc8816e6e5bfca2","fullName":"test/config.test.ts#readConfig should read a .json config","name":"should read a .json config","status":"passed","testResultsByEnv":{"windows-latest":"700f1e157a9aeca6ff3d1827adb7d486","ubuntu-latest":"3e95771fbe020c065466fa843e97b51a"}}

@@ -1,1 +1,1 @@
-{"id":"5574719dfcc2056acb48395aa1d91c68","fullName":"allure-awesome/features/globals.test.ts:48:5","name":"should show both exit codes","status":"passed","testResultsByEnv":{"windows-latest":"8919e94f656bc6ed6f30bd62888fef97","ubuntu-latest":"62033773b3736567e252f6fea271584d"}}
+{"id":"5574719dfcc2056acb48395aa1d91c68","fullName":"allure-awesome/features/globals.test.ts:48:5","name":"should show both exit codes","status":"passed","testResultsByEnv":{"windows-latest":"d4155de07b37f46c257e02d3cde1df6b","ubuntu-latest":"d09699ec92f66313ea148bf31171c102"}}
