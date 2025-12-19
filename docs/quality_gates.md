@@ -56,7 +56,7 @@ import { defineConfig } from "allure";
 // import default rules at once
 import { qualityGateDefaultRules } from "allure/rules"
 // or import them separately
-import { maxFailuresRule, minTestsCountRule, successRateRule } from "allure/rules"
+import { maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule } from "allure/rules"
 import { rule1, rule2 } from "custom-rules-package"
 
 export default defineConfig({
