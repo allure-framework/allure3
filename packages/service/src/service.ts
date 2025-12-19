@@ -138,7 +138,7 @@ export class AllureServiceClient {
     }
 
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      `/projects/${this.currentProjectUuid}/${branch}/history`,
+      `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history`,
     );
 
     return history;
