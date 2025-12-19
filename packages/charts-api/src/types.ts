@@ -2,7 +2,6 @@ import type { HistoryDataPoint, SeverityLevel, Statistic, TestResult, TestStatus
 
 // Chart types and enums
 export enum ChartType {
-  Trend = "trend",
   CurrentStatus = "currentStatus",
   StatusDynamics = "statusDynamics",
   StatusTransitions = "statusTransitions",
@@ -12,23 +11,15 @@ export enum ChartType {
   Durations = "durations",
   DurationDynamics = "durationDynamics",
   TrSeverities = "testResultSeverities",
-  TreeMap = "treemap",
-  HeatMap = "heatmap",
-  Funnel = "funnel",
+  TestingPyramid = "testingPyramid",
+  CoverageDiff = "coverageDiff",
+  SuccessRateDistribution = "successRateDistribution",
+  ProblemsDistribution = "problemsDistribution",
 }
 
 export enum ChartDataType {
   Status = "status",
   Severity = "severity",
-}
-
-export enum FunnelChartType {
-  TestingPyramid = "testingPyramid",
-}
-
-export enum TreeMapChartType {
-  SuccessRateDistribution = "successRateDistribution",
-  CoverageDiff = "coverageDiff",
 }
 
 export enum ChartMode {
@@ -84,9 +75,6 @@ export type PieChartValues = {
   slices: PieSlice[];
 };
 
-export type NewKey<T extends string> = `new${Capitalize<T>}`;
-export type RemovedKey<T extends string> = `removed${Capitalize<T>}`;
-
 export type TreeMapNode<T extends Record<string, any> = {}> = T & {
   id: string;
   value?: number;
@@ -129,7 +117,7 @@ export interface GenericTrendChartData<
   Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
 > {
   // Type of the chart
-  type: ChartType.Trend;
+  type: "trend";
   // Data type of the chart
   dataType: ChartDataType;
   // Chart mode to know type of values on Y-axis
@@ -157,24 +145,27 @@ export type TrendChartData = StatusTrendChartData | SeverityTrendChartData;
 
 // Tree map chart data types
 export interface TreeMapChartData {
-  type: ChartType.TreeMap;
-  dataType: TreeMapChartType;
+  type: ChartType.CoverageDiff | ChartType.SuccessRateDistribution;
   title?: string;
   treeMap: TreeMapNode;
 }
 
 export interface HeatMapChartData<T extends Record<string, any> = {}> {
-  type: ChartType.HeatMap;
+  type: ChartType.ProblemsDistribution;
   title?: string;
   data: HeatMapSerie<T>[];
 }
 
 // Funnel chart data types
-export interface FunnelChartData {
-  type: ChartType.Funnel;
-  dataType: FunnelChartType;
+export interface TestingPyramidChartData {
+  type: ChartType.TestingPyramid;
   title?: string;
-  data: Record<string, number | string>[];
+  data: {
+    layer: string;
+    testCount: number;
+    successRate: number;
+    percentage: number;
+  }[];
 }
 
 export interface CurrentStatusChartData {
@@ -330,21 +321,11 @@ export type GeneratedChartData =
   | FBSUAgePyramidChartData
   | TreeMapChartData
   | HeatMapChartData
-  | FunnelChartData
+  | TestingPyramidChartData
   | TrSeveritiesChartData
   | DurationDynamicsChartData;
 
 export type GeneratedChartsData = Record<ChartId, GeneratedChartData>;
-
-// Chart options
-export type TrendChartOptions = {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode?: ChartMode;
-  title?: string;
-  limit?: number;
-  metadata?: TrendMetadataFnOverrides;
-};
 
 export type CurrentStatusChartOptions = {
   type: ChartType.CurrentStatus;
@@ -519,31 +500,29 @@ export type DurationDynamicsChartOptions = {
 };
 
 export type TreeMapChartOptions = {
-  type: ChartType.TreeMap;
-  dataType: TreeMapChartType;
+  type: ChartType.CoverageDiff | ChartType.SuccessRateDistribution;
   title?: string;
 };
 
 export type HeatMapChartOptions = {
-  type: ChartType.HeatMap;
+  type: ChartType.ProblemsDistribution;
+  by: "environment";
   title?: string;
 };
 
-export type FunnelChartOptions = {
-  type: ChartType.Funnel;
-  dataType: FunnelChartType;
+export type TestingPyramidChartOptions = {
+  type: ChartType.TestingPyramid;
   title?: string;
   layers?: string[];
 };
 
 export type ChartOptions =
-  | TrendChartOptions
   | CurrentStatusChartOptions
   | StatusDynamicsChartOptions
   | DurationsChartOptions
   | TreeMapChartOptions
   | HeatMapChartOptions
-  | FunnelChartOptions
+  | TestingPyramidChartOptions
   | StatusTransitionsChartOptions
   | StabilityDistributionChartOptions
   | FBSUAgePyramidChartOptions
