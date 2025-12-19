@@ -1,12 +1,9 @@
-import type { AllureChartsStoreData, FunnelChartData, FunnelChartOptions } from "@allurereport/charts-api";
-import { ChartType, FunnelChartType } from "@allurereport/charts-api";
-
-type TestingPyramidChartData = {
-  layer: string;
-  testCount: number;
-  successRate: number;
-  percentage: number;
-};
+import type {
+  AllureChartsStoreData,
+  TestingPyramidChartData,
+  TestingPyramidChartOptions,
+} from "@allurereport/charts-api";
+import { ChartType } from "@allurereport/charts-api";
 
 const DEFAULT_LAYERS = ["unit", "integration", "e2e"] as const;
 
@@ -19,9 +16,9 @@ const getPercentage = (value: number, total: number) => {
 };
 
 export const generateTestingPyramidChart = (
-  chartOptions: FunnelChartOptions,
+  chartOptions: TestingPyramidChartOptions,
   storeData: AllureChartsStoreData,
-): FunnelChartData => {
+): TestingPyramidChartData => {
   const { layers = DEFAULT_LAYERS, title } = chartOptions;
   const { testResults } = storeData;
 
@@ -70,8 +67,7 @@ export const generateTestingPyramidChart = (
   }
 
   return {
-    type: ChartType.Funnel,
-    dataType: FunnelChartType.TestingPyramid,
+    type: ChartType.TestingPyramid,
     title,
     data: layers.map((layer) => {
       const data = statsByLayers.get(layer)!;
@@ -81,7 +77,7 @@ export const generateTestingPyramidChart = (
         testCount: data.total,
         successRate: getPercentage(data.passed, data.total),
         percentage: getPercentage(data.total, testResults.length),
-      } as TestingPyramidChartData;
+      };
     }),
   };
 };

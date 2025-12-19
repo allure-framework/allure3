@@ -6,7 +6,6 @@ import {
 } from "@allurereport/charts-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
-import { generateFunnelChart } from "./funnel/index.js";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
@@ -15,9 +14,9 @@ import { generateStabilityDistributionChart } from "./generateStabilityDistribut
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
 import { generateTestBaseGrowthDynamicsChart } from "./generateTestBaseGrowthDynamicsChart.js";
+import { generateTestingPyramidChart } from "./generateTestingPyramidChart.js";
 import { generateTrSeveritiesChart } from "./generateTrSeveritiesChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
-import { generateTrendChart } from "./line.js";
 import { generateTreeMapChart } from "./treeMap.js";
 
 const generateChartData = async (props: {
@@ -44,9 +43,6 @@ const generateChartData = async (props: {
     const chartId = generateUuid();
 
     switch (chartOption.type) {
-      case ChartType.Trend:
-        result[chartId] = generateTrendChart(chartOption, storeData, reportName)!;
-        break;
       case ChartType.CurrentStatus:
         result[chartId] = generateCurrentStatusChart(chartOption, storeData)!;
         break;
@@ -74,14 +70,17 @@ const generateChartData = async (props: {
       case ChartType.TrSeverities:
         result[chartId] = generateTrSeveritiesChart({ options: chartOption, storeData })!;
         break;
-      case ChartType.TreeMap:
+      case ChartType.CoverageDiff:
         result[chartId] = generateTreeMapChart(chartOption, storeData)!;
         break;
-      case ChartType.HeatMap:
+      case ChartType.SuccessRateDistribution:
+        result[chartId] = generateTreeMapChart(chartOption, storeData)!;
+        break;
+      case ChartType.ProblemsDistribution:
         result[chartId] = generateHeatMapChart(chartOption, storeData)!;
         break;
-      case ChartType.Funnel:
-        result[chartId] = generateFunnelChart(chartOption, storeData)!;
+      case ChartType.TestingPyramid:
+        result[chartId] = generateTestingPyramidChart(chartOption, storeData)!;
         break;
       default:
         break;

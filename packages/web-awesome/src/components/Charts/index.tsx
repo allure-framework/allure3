@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ChartDataType, ChartType, FunnelChartType } from "@allurereport/charts-api";
-import { capitalize } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/charts-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
   CurrentStatusChartWidget,
@@ -19,7 +18,6 @@ import {
   TestingPyramidWidget,
   TrSeveritiesChartWidget,
   TreeMapChartWidget,
-  TrendChartWidget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
@@ -32,27 +30,6 @@ const getChartWidgetByType = (
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
-    case ChartType.Trend: {
-      const type = t(`trend.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
-      let isDataEmpty = false;
-
-      if (chartData.dataType === ChartDataType.Status) {
-        isDataEmpty = !chartData.slices.some((slice) => slice.min > 0 || slice.max > 0);
-      }
-
-      return (
-        <TrendChartWidget
-          title={title}
-          mode={chartData.mode}
-          items={isDataEmpty ? [] : chartData.items}
-          slices={chartData.slices}
-          min={chartData.min}
-          max={chartData.max}
-          translations={{ "no-results": empty("no-results") }}
-        />
-      );
-    }
     case ChartType.CurrentStatus: {
       const title = chartData.title ?? t("currentStatus.title");
 
@@ -167,7 +144,7 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.TreeMap: {
+    case ChartType.CoverageDiff: {
       return (
         <TreeMapChartWidget
           data={chartData.treeMap}
@@ -180,7 +157,21 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.HeatMap: {
+
+    case ChartType.SuccessRateDistribution: {
+      return (
+        <TreeMapChartWidget
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.ProblemsDistribution: {
       return (
         <HeatMapWidget
           title={chartData.title}
@@ -190,11 +181,7 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.Funnel: {
-      if (chartData.dataType !== FunnelChartType.TestingPyramid) {
-        return null;
-      }
-
+    case ChartType.TestingPyramid: {
       const isDataEmpty = !chartData.data.some((item) => item.testCount > 0);
 
       return (

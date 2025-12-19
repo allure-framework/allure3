@@ -2,19 +2,8 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ChartType } from "@allurereport/charts-api";
-import { capitalize } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
-import {
-  Grid,
-  GridItem,
-  HeatMapWidget,
-  Loadable,
-  PageLoader,
-  SuccessRatePieChart,
-  TreeMapChartWidget,
-  TrendChartWidget,
-  Widget,
-} from "@allurereport/web-components";
+import { Grid, GridItem, HeatMapWidget, Loadable, PageLoader, TreeMapChartWidget } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
@@ -25,36 +14,7 @@ const getChartWidgetByType = (
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
-    case ChartType.Trend: {
-      const type = t(`trend.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
-
-      return (
-        <TrendChartWidget
-          title={title}
-          mode={chartData.mode}
-          items={chartData.items}
-          slices={chartData.slices}
-          min={chartData.min}
-          max={chartData.max}
-          translations={{ "no-results": empty("no-results") }}
-        />
-      );
-    }
-    case ChartType.Pie: {
-      const title = chartData.title ?? t("pie.title");
-
-      return (
-        <Widget title={title}>
-          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
-            </div>
-          </div>
-        </Widget>
-      );
-    }
-    case ChartType.TreeMap: {
+    case ChartType.CoverageDiff: {
       return (
         <TreeMapChartWidget
           data={chartData.treeMap}
@@ -67,7 +27,20 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.HeatMap: {
+    case ChartType.SuccessRateDistribution: {
+      return (
+        <TreeMapChartWidget
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.ProblemsDistribution: {
       return (
         <HeatMapWidget
           title={chartData.title}

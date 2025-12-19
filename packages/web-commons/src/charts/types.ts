@@ -1,23 +1,16 @@
 import type {
-  BaseTrendSliceMetadata,
-  ChartDataType,
   ChartId,
-  ChartMode,
   ChartType,
   DurationDynamicsChartData,
   DurationsChartData,
   FBSUAgePyramidChartData,
-  FunnelChartType,
   HeatMapSerie,
   StabilityDistributionChartData,
   StatusTransitionsChartData,
   TestBaseGrowthDynamicsChartData,
+  TestingPyramidChartData,
   TrSeveritiesChartData,
-  TreeMapChartType,
   TreeMapNode,
-  TrendPointId,
-  TrendSlice,
-  TrendSliceId,
 } from "@allurereport/charts-api";
 import type { Statistic, TestStatus } from "@allurereport/core-api";
 
@@ -32,21 +25,6 @@ export interface TrendChartItem {
   id: string;
   data: Point[];
   color: string;
-}
-
-export interface ResponseTrendChartData<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  title?: string;
-  min: number;
-  max: number;
-  points: Record<TrendPointId, Point>;
-  slices: Record<TrendSliceId, TrendSlice<Metadata>>;
-  series: Record<SeriesType, TrendPointId[]>;
 }
 
 export interface CurrentStatusChartData {
@@ -71,50 +49,23 @@ export interface StatusDynamicsChartData {
 }
 
 export interface ResponseTreeMapChartData {
-  type: ChartType.TreeMap;
-  dataType: TreeMapChartType;
+  type: ChartType.CoverageDiff | ChartType.SuccessRateDistribution;
   title?: string;
   treeMap: TreeMapNode;
 }
 
 export interface ResponseHeatMapChartData {
-  type: ChartType.HeatMap;
+  type: ChartType.ProblemsDistribution;
   title?: string;
   data: HeatMapSerie[];
 }
 
-export type ChartsResponse<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = {
-  general: Record<
-    ChartId,
-    | ResponseTrendChartData<SeriesType, Metadata>
-    | CurrentStatusChartData
-    | ResponseTreeMapChartData
-    | ResponseHeatMapChartData
-  >;
+export type ChartsResponse = {
+  general: Record<ChartId, CurrentStatusChartData | ResponseTreeMapChartData | ResponseHeatMapChartData>;
   byEnv: {
-    [env: string]: Record<
-      ChartId,
-      | ResponseTrendChartData<SeriesType, Metadata>
-      | CurrentStatusChartData
-      | ResponseTreeMapChartData
-      | ResponseHeatMapChartData
-    >;
+    [env: string]: Record<ChartId, CurrentStatusChartData | ResponseTreeMapChartData | ResponseHeatMapChartData>;
   };
 };
-
-export interface UITrendChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> {
-  type: ChartType.Trend;
-  dataType: ChartDataType;
-  mode: ChartMode;
-  min: number;
-  max: number;
-  items: TrendChartItem[];
-  slices: TrendSlice<Metadata>[];
-  title?: string;
-}
 
 export type UICurrentStatusChartData = CurrentStatusChartData;
 export type UIStatusDynamicsChartData = StatusDynamicsChartData;
@@ -132,25 +83,7 @@ export interface UIHeatMapChartData extends ResponseHeatMapChartData {
   colors: (value: number, domain?: number[]) => string;
 }
 
-export interface UITestingPyramidChartData extends ResponseTestingPyramidChartData {}
-
-export interface ResponseTestingPyramidChartData {
-  type: ChartType.Funnel;
-  dataType: FunnelChartType;
-  title?: string;
-  data: {
-    layer: string;
-    testCount: number;
-    successRate: number;
-    percentage: number;
-  }[];
-}
-
-export type ChartData<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> =
-  | ResponseTrendChartData<SeriesType, Metadata>
+export type ChartData =
   | CurrentStatusChartData
   | StatusDynamicsChartData
   | StatusTransitionsChartData
@@ -160,48 +93,38 @@ export type ChartData<
   | ResponseHeatMapChartData
   | TestBaseGrowthDynamicsChartData
   | FBSUAgePyramidChartData
-  | ResponseTestingPyramidChartData
   | TrSeveritiesChartData
-  | DurationDynamicsChartData;
+  | DurationDynamicsChartData
+  | TestingPyramidChartData;
 
-export type UIChartData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> =
-  | UITrendChartData<Metadata>
+export type UIChartData =
   | UICurrentStatusChartData
   | UIStatusDynamicsChartData
   | UITreeMapChartData
   | UIHeatMapChartData
-  | UITestingPyramidChartData
   | UIStatusTransitionsChartData
   | UIDurationsChartData
   | TestBaseGrowthDynamicsChartData
   | FBSUAgePyramidChartData
   | StabilityDistributionChartData
   | TrSeveritiesChartData
-  | DurationDynamicsChartData;
+  | DurationDynamicsChartData
+  | TestingPyramidChartData;
 
-export type ChartsData<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = Record<ChartId, ChartData<SeriesType, Metadata>>;
+export type ChartsData = Record<ChartId, ChartData>;
 
-export type ChartsDataWithEnvs<
-  SeriesType extends string = string,
-  Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata,
-> = {
-  general: Record<ChartId, ChartData<SeriesType, Metadata>>;
+export type ChartsDataWithEnvs = {
+  general: Record<ChartId, ChartData>;
   byEnv: {
-    [env: string]: Record<ChartId, ChartData<SeriesType, Metadata>>;
+    [env: string]: Record<ChartId, ChartData>;
   };
 };
 
-export type UIChartsData<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = Record<
-  ChartId,
-  UIChartData<Metadata>
->;
+export type UIChartsData = Record<ChartId, UIChartData>;
 
-export type UIChartsDataWithEnvs<Metadata extends BaseTrendSliceMetadata = BaseTrendSliceMetadata> = {
-  general: UIChartsData<Metadata>;
+export type UIChartsDataWithEnvs = {
+  general: UIChartsData;
   byEnv: {
-    [env: string]: UIChartsData<Metadata>;
+    [env: string]: UIChartsData;
   };
 };

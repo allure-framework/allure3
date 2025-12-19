@@ -5,7 +5,7 @@ import type {
   TreeMapDataAccessor,
   TreeMapNode,
 } from "@allurereport/charts-api";
-import { TreeMapChartType } from "@allurereport/charts-api";
+import { ChartType } from "@allurereport/charts-api";
 import type { TreeData, TreeGroup, TreeLeaf, WithChildren } from "@allurereport/core-api";
 import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAccessor.js";
 import { successRateDistributionTreeMapAccessor } from "./accessors/successRateDistributionTreeMapAccessor.js";
@@ -116,7 +116,6 @@ export const generateTreeMapChartGeneric = <T extends TreeMapNode>(
   dataAccessor: TreeMapDataAccessor<T>,
 ): TreeMapChartData | undefined => ({
   type: options.type,
-  dataType: options.dataType,
   title: options.title,
   treeMap: dataAccessor.getTreeMap(storeData),
 });
@@ -125,11 +124,11 @@ export const generateTreeMapChart = (
   options: TreeMapChartOptions,
   storeData: AllureChartsStoreData,
 ): TreeMapChartData | undefined => {
-  const { dataType } = options;
+  const { type } = options;
 
-  if (dataType === TreeMapChartType.SuccessRateDistribution) {
+  if (type === ChartType.SuccessRateDistribution) {
     return generateTreeMapChartGeneric(options, storeData, successRateDistributionTreeMapAccessor);
-  } else if (dataType === TreeMapChartType.CoverageDiff) {
+  } else if (type === ChartType.CoverageDiff) {
     return generateTreeMapChartGeneric(options, storeData, coverageDiffTreeMapAccessor);
   }
 };

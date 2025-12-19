@@ -1,4 +1,4 @@
-import { type ChartOptions, ChartType, FunnelChartType, TreeMapChartType } from "./types.js";
+import { type ChartOptions, ChartType } from "./types.js";
 
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
 
@@ -27,17 +27,16 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Test base growth dynamics",
   },
   {
-    type: ChartType.TreeMap,
-    dataType: TreeMapChartType.CoverageDiff,
+    type: ChartType.CoverageDiff,
     title: "Coverage diff map",
   },
   {
-    type: ChartType.TreeMap,
-    dataType: TreeMapChartType.SuccessRateDistribution,
+    type: ChartType.SuccessRateDistribution,
     title: "Success rate distribution",
   },
   {
-    type: ChartType.HeatMap,
+    type: ChartType.ProblemsDistribution,
+    by: "environment",
     title: "Problems distribution by environment",
   },
   {
@@ -80,8 +79,7 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "FBSU age pyramid",
   },
   {
-    type: ChartType.Funnel,
-    dataType: FunnelChartType.TestingPyramid,
+    type: ChartType.TestingPyramid,
     title: "Testing pyramid",
   },
 ];
