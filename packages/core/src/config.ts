@@ -163,7 +163,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
-  const historyPath = resolve(override.historyPath ?? config.historyPath ?? "./.allure/history.jsonl");
+  const historyPath = override.historyPath ?? config.historyPath;
   const appendHistory = config.appendHistory ?? true;
   const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
@@ -185,12 +185,12 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     output,
     open,
     port,
-    historyPath,
     knownIssuesPath,
     known,
     variables,
     environments,
     appendHistory,
+    historyPath: historyPath ? resolve(historyPath) : undefined,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,
     defaultLabels: config.defaultLabels ?? {},

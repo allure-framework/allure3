@@ -144,7 +144,7 @@ export const generateTestResults = async (
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr);
 
-    convertedTr.history = await store.historyByTrId(tr.id);
+    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;

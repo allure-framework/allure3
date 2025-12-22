@@ -136,7 +136,7 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
     });
 
     convertedTr.categories = matchedCategories;
-    convertedTr.history = await store.historyByTrId(tr.id);
+    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");

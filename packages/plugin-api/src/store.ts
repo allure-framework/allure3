@@ -44,7 +44,7 @@ export interface AllureStore {
   attachmentsByTrId: (trId: string) => Promise<AttachmentLink[]>;
   retriesByTr: (tr: TestResult) => Promise<TestResult[]>;
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
-  historyByTrId: (trId: string) => Promise<HistoryTestResult[]>;
+  historyByTrId: (trId: string) => Promise<HistoryTestResult[] | undefined>;
   fixturesByTrId: (trId: string) => Promise<TestFixtureResult[]>;
   // aggregate api
   failedTestResults: () => Promise<TestResult[]>;

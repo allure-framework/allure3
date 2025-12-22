@@ -246,11 +246,11 @@ describe("resolveConfig", () => {
     expect(resolved.name).toEqual("Custom");
   });
 
-  it("should set default history path if it's not provided", async () => {
+  it("shouldn't set default history path if it's not provided", async () => {
     const fixture = {} as Config;
     const resolved = await resolveConfig(fixture);
 
-    expect(resolved.historyPath).toEqual(resolve("./.allure/history.jsonl"));
+    expect(resolved.historyPath).toBeUndefined();
   });
 
   it("should return provided history path", async () => {

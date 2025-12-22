@@ -109,14 +109,13 @@ test.describe("commons", () => {
   test("statistics in metadata renders information about the tests", async () => {
     const stats = await treePage.getMetadataValues();
 
-    expect(stats).toEqual({
+    expect(stats).toMatchObject({
       total: "5",
       passed: "1",
       failed: "1",
       broken: "1",
       skipped: "1",
       unknown: "1",
-      new: "5",
     });
   });
 

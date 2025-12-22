@@ -19,7 +19,7 @@ export interface FullConfig {
   output: string;
   open: boolean;
   port: string | undefined;
-  historyPath: string;
+  historyPath?: string;
   knownIssuesPath: string;
   /**
    * You can specify default labels for tests which don't have them at all
