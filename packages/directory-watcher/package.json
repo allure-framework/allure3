@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/directory-watcher",
-  "version": "3.0.0-beta.27",
+  "version": "3.0.0",
   "description": "File system watcher for directories",
   "keywords": [
     "allure",

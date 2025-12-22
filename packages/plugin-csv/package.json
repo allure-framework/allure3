@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-csv",
-  "version": "3.0.0-beta.27",
+  "version": "3.0.0",
   "description": "Allure CSV report",
   "keywords": [
     "allure",

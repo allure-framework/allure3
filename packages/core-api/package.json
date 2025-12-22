@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core-api",
-  "version": "3.0.0-beta.27",
+  "version": "3.0.0",
   "description": "Allure Core API",
   "keywords": [
     "allure"
