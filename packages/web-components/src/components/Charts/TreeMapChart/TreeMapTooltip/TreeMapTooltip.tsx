@@ -1,9 +1,9 @@
-import type { TreeMapNode } from "@allurereport/core-api";
+import type { TreeMapNode } from "@allurereport/charts-api";
 import type { ComputedNode, DefaultTreeMapDatum } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
 import type { ReactNode } from "preact/compat";
-import { Text } from "@/components/Typography/index.js";
-import styles from "./styles.scss";
+import { ChartTooltip } from "../../ChartTooltip";
+import { LegendItem } from "../../Legend/LegendItem";
 
 export interface TreeMapTooltipProps<T extends DefaultTreeMapDatum = TreeMapNode> {
   node: ComputedNode<T>;
@@ -15,25 +15,16 @@ export const TreeMapTooltip: FunctionalComponent<TreeMapTooltipProps> = ({ node,
   const title = parentLabel ? parentLabel : id;
 
   return (
-    <div className={styles["tree-map-tooltip"]}>
-      <div className={styles["tree-map-tooltip-title"]}>
-        <span className={styles["tree-map-tooltip-title-color"]} style={{ backgroundColor: color }} />
-        <Text size="s" type="ui">
-          {title}:
-        </Text>
-        <Text size="s" type="ui" bold>
-          {formattedValue}
-        </Text>
-      </div>
-      {rows && (
-        <div className={styles["tree-map-tooltip-rows"]}>
-          {rows.map((row) => (
-            <Text size="s" type="ui" className={styles["tree-map-tooltip-row"]} key={row}>
-              {row}
-            </Text>
-          ))}
-        </div>
-      )}
-    </div>
+    <ChartTooltip label={`${title}: ${formattedValue}`} labelColor={color}>
+      {rows &&
+        rows.map((row, index) => (
+          <LegendItem
+            key={index.toString()}
+            mode="default"
+            legend={{ label: row as string, type: "none", id: index.toString(), color: color }}
+            hideOnEmptyValue={false}
+          />
+        ))}
+    </ChartTooltip>
   );
 };

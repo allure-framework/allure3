@@ -1,4 +1,4 @@
-import type { TreeMapNode } from "@allurereport/core-api";
+import type { TreeMapNode } from "@allurereport/charts-api";
 import type { TreeMapTooltipAccessor } from "@allurereport/web-commons";
 import type { DefaultTreeMapDatum, TreeMapSvgProps } from "@nivo/treemap";
 import type { CSSProperties } from "preact/compat";

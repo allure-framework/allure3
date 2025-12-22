@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useMemo } from "preact/hooks";
 import { Text } from "@/components/Typography";
 import { LegendIndicator } from "../LegendIndicator";
 import styles from "./styles.scss";
@@ -43,14 +42,14 @@ const PointIcon = ({ color }: { color: string }) => {
 };
 
 export const LegendItem = <T extends Record<string, number | string>>(props: LegendItemProps<T>) => {
-  const { onClick, legend, mode = "default" } = props;
+  const { onClick, legend, mode = "default", hideOnEmptyValue = true } = props;
   const { color, border, label, link, value } = legend;
 
   const Tag = link ? "a" : "div";
 
   const type = legend.type ?? "default";
 
-  if (value === undefined) {
+  if (hideOnEmptyValue && value === undefined) {
     return null;
   }
 

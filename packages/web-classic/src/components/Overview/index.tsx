@@ -3,9 +3,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ChartType } from "@allurereport/charts-api";
 import type { UIChartData } from "@allurereport/web-commons";
-import { Grid, GridItem, HeatMapWidget, Loadable, PageLoader, TreeMapChartWidget } from "@allurereport/web-components";
+import {
+  Grid,
+  GridItem,
+  HeatMapWidget,
+  Loadable,
+  PageLoader,
+  ThemeProvider,
+  TreeMapChartWidget,
+} from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import { useI18n } from "@/stores";
+import { themeStore, useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
 import * as styles from "./Overview.module.scss";
 
@@ -17,6 +25,7 @@ const getChartWidgetByType = (
     case ChartType.CoverageDiff: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.CoverageDiff}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -30,6 +39,7 @@ const getChartWidgetByType = (
     case ChartType.SuccessRateDistribution: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -45,7 +55,6 @@ const getChartWidgetByType = (
         <HeatMapWidget
           title={chartData.title}
           data={chartData.data}
-          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -65,29 +74,31 @@ const Overview = () => {
   }, []);
 
   return (
-    <Loadable
-      source={chartsStore}
-      renderLoader={() => <PageLoader />}
-      renderData={(data) => {
-        const charts = Object.entries(data).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, { t, empty });
+    <ThemeProvider theme={themeStore.value}>
+      <Loadable
+        source={chartsStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const charts = Object.entries(data).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
+
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              {chartWidget}
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {charts}
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };
 
