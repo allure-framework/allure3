@@ -2,7 +2,6 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { run } from "clipanion";
 import { glob } from "glob";
-import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -11,9 +10,6 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { generate } from "../../src/commands/commons/generate.js";
 import { OpenCommand } from "../../src/commands/open.js";
 
-vi.mock("node:crypto", () => ({
-  randomUUID: vi.fn(),
-}));
 vi.mock("node:fs", async (importOriginal) => {
   return {
     ...(await importOriginal()),
@@ -57,12 +53,10 @@ describe("open command", () => {
   it("should generate report in temp directory and serve when no summary files found", async () => {
     const fixtures = {
       resultsDir: "allure-report",
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
@@ -77,7 +71,7 @@ describe("open command", () => {
 
     await command.execute();
 
-    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", `allure-report-${fixtures.uuid}`));
+    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", "allure-report-"));
     expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
       port: expect.any(Object),
       output: fixtures.tmpDir,
@@ -139,12 +133,10 @@ describe("open command", () => {
   it("should generate report when target directory does not exist", async () => {
     const fixtures = {
       resultsDir: "allure-report",
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(false);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
@@ -205,12 +197,10 @@ describe("open command", () => {
     const fixtures = {
       resultsDir: "allure-report",
       configPath: join(".", "custom", "allurerc.mjs"),
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -236,12 +226,10 @@ describe("open command", () => {
     const fixtures = {
       resultsDir: "allure-report",
       port: "3000",
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -268,12 +256,10 @@ describe("open command", () => {
     const fixtures = {
       cwd: join("/", "custom", "cwd"),
       resultsDir: "allure-report",
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -309,12 +295,10 @@ describe("open command", () => {
   it("should check for summary.json in target directory", async () => {
     const fixtures = {
       resultsDir: "my-results",
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -341,12 +325,10 @@ describe("open command", () => {
 
   it("should use default resultsDir when not provided", async () => {
     const fixtures = {
-      uuid: "0123",
-      tmpDir: "/tmp/allure-report-0123",
+      tmpDir: "/tmp/allure-report-abc123",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -368,15 +350,13 @@ describe("open command", () => {
     );
   });
 
-  it("should create temp directory with unique UUID", async () => {
+  it("should create temp directory with mkdtemp pattern", async () => {
     const fixtures = {
       resultsDir: "allure-report",
-      uuid: "unique-uuid-123",
-      tmpDir: "/tmp/allure-report-unique-uuid-123",
+      tmpDir: "/tmp/allure-report-xyz789",
     };
 
     (existsSync as Mock).mockReturnValue(true);
-    (randomUUID as Mock).mockReturnValue(fixtures.uuid);
     (tmpdir as Mock).mockReturnValue("/tmp");
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
@@ -391,7 +371,7 @@ describe("open command", () => {
 
     await command.execute();
 
-    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", `allure-report-${fixtures.uuid}`));
+    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", "allure-report-"));
     expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
       port: expect.any(Object),
       output: fixtures.tmpDir,
