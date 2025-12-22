@@ -1,1 +1,1 @@
-{"id":"904d4ce7d6981508df3a38027f458e48","fullName":"test/xcresult.test.ts#A MAC machine bug links should add a link from a bug with URL","name":"should add a link from a bug with URL","status":"passed","testResultsByEnv":{"macos-latest":"94345a3559c5ef84f752ccb98891cd82"}}
+{"id":"904d4ce7d6981508df3a38027f458e48","fullName":"test/xcresult.test.ts#A MAC machine bug links should add a link from a bug with URL","name":"should add a link from a bug with URL","status":"passed","testResultsByEnv":{"macos-latest":"18d2de89e5671d840d41eefe9a18bd28"}}
