@@ -78,7 +78,11 @@ If you’ve defined the output directory in your configuration file, specifying 
 npx allure open allure-report/awesome
 ```
 
-If the provided directory doesn't contain previously generated report, it will be treated as a source of results, and a new report will be generated on the fly and opened in the browser.
+You can also open a directory with result files. The report will be generated on the fly and opened in the browser:
+
+```bash
+npx allure open ./allure-results
+```
 
 ### Real-time Report Monitoring
 
