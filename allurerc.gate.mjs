@@ -1,5 +1,4 @@
 import { defineConfig } from "allure";
-import { qualityGateDefaultRules } from "allure/rules";
 
 export default defineConfig({
   name: "Allure Report 3",
@@ -11,14 +10,5 @@ export default defineConfig({
         filter: ({ status }) => status === "failed" || status === "broken",
       },
     },
-  },
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 0,
-        fastFail: true,
-      },
-    ],
-    use: [...qualityGateDefaultRules],
   },
 });

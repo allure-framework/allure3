@@ -1,4 +1,5 @@
 import { defineConfig } from "allure";
+import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
 const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
@@ -55,6 +56,15 @@ const config = {
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
+  },
+  qualityGate: {
+    rules: [
+      {
+        maxFailures: 0,
+        fastFail: true,
+      },
+    ],
+    use: [...qualityGateDefaultRules],
   },
 };
 
