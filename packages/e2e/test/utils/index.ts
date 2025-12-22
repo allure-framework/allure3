@@ -1,6 +1,6 @@
 import { AllureReport, FileSystemReportFiles, type FullConfig } from "@allurereport/core";
-import { type HistoryDataPoint, type TestError } from "@allurereport/core-api";
-import { type ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { HistoryDataPoint, TestError } from "@allurereport/core-api";
+import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin-api";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
@@ -20,7 +20,7 @@ export type GeneratorParams = {
   testResults?: Partial<TestResult>[];
   rawTestResults?: Partial<TestResult>[];
   attachments?: { source: string; content: Buffer }[];
-  reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath">;
+  reportConfig?: Omit<FullConfig, "output" | "reportFiles" | "historyPath" | "port" | "open">;
   globals?: {
     exitCode?: ExitCode;
     errors?: TestError[];

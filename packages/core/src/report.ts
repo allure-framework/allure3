@@ -125,9 +125,12 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-    this.#history = this.#allureServiceClient
-      ? new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch)
-      : new AllureLocalHistory(historyPath);
+
+    if (this.#allureServiceClient) {
+      this.#history = new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch);
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory(historyPath);
+    }
   }
 
   get hasQualityGate() {
