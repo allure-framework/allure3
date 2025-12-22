@@ -2,7 +2,6 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
-import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -23,7 +22,7 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.String({
-    name: "Pattern to match test results directories in the current working directory (default: ./allure-results)",
+    name: "A report to open or a pattern to match test results directories in the current working directory (default: ./allure-results)",
     required: false,
   });
 
@@ -64,7 +63,7 @@ export class OpenCommand extends Command {
         open: true,
       });
     } else {
-      const tmpDir = await mkdtemp(join(tmpdir(), `allure-report-${randomUUID()}`));
+      const tmpDir = await mkdtemp(join(tmpdir(), "allure-report-"));
       const config = await readConfig(cwd, this.config, {
         port: this.port,
         output: tmpDir,
@@ -78,7 +77,9 @@ export class OpenCommand extends Command {
 
       // clean up temp report directory on ctrl-c
       process.on("SIGINT", async () => {
-        await rm(config.output, { recursive: true });
+        try {
+          await rm(config.output, { recursive: true });
+        } catch {}
 
         process.exit(0);
       });
