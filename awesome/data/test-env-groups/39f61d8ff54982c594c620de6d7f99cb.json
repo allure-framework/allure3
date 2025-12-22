@@ -1,0 +1,1 @@
+{"id":"39f61d8ff54982c594c620de6d7f99cb","fullName":"test/commands/open.test.ts#open command should serve existing report when summary.json files are found","name":"should serve existing report when summary.json files are found","status":"passed","testResultsByEnv":{"windows-latest":"41a95ed44b3a99faf17d7e0ee926f3f6","ubuntu-latest":"e975dc79d593155db38b419c421bdb06"}}

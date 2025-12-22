@@ -1,0 +1,1 @@
+{"id":"3443bc6bcc5b10f128bf0395b5dfbefc","fullName":"test/commands/open.test.ts#open command should generate report when target directory does not exist","name":"should generate report when target directory does not exist","status":"passed","testResultsByEnv":{"windows-latest":"e0e84c2ccc320d5f087aa6f4170c1c84","ubuntu-latest":"51dadba3f44c1218bcb3bf5fe8eec015"}}

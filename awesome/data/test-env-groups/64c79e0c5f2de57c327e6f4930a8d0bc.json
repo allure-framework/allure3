@@ -1,0 +1,1 @@
+{"id":"64c79e0c5f2de57c327e6f4930a8d0bc","fullName":"test/commands/open.test.ts#open command should use custom config file when provided","name":"should use custom config file when provided","status":"passed","testResultsByEnv":{"windows-latest":"53364a6be20d1e24c0dea2ac90c1f044","ubuntu-latest":"0f4995fc1fb3b588d578cde5b2d92208"}}

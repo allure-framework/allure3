@@ -1,0 +1,1 @@
+{"id":"a54a44bf5e6b6461e0d68c369c7b1323","fullName":"test/commands/open.test.ts#open command should serve with custom port when specified","name":"should serve with custom port when specified","status":"passed","testResultsByEnv":{"windows-latest":"f1ea5336eb538849011bf62e0b7cebb3","ubuntu-latest":"431fe8525a492621768b65eedf4677a7"}}

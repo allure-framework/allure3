@@ -1,0 +1,1 @@
+{"id":"49417d6d9b1d3e7828e85f5606a2dfdb","fullName":"test/commands/commons/generate.test.ts#generate function should restore state from stage dump files when provided","name":"should restore state from stage dump files when provided","status":"passed","testResultsByEnv":{"windows-latest":"47cdb6591f4975927bf5b05c683acbc3","ubuntu-latest":"dceae4bda9c6194c880d1ba4fedaa7e3"}}
