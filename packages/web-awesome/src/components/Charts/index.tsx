@@ -16,10 +16,12 @@ import {
   StatusTransitionsChartWidget,
   TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
+  ThemeProvider,
   TrSeveritiesChartWidget,
   TreeMapChartWidget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
+import { themeStore } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
@@ -148,6 +150,7 @@ const getChartWidgetByType = (
       return (
         <TreeMapChartWidget
           data={chartData.treeMap}
+          chartType={ChartType.CoverageDiff}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
           colors={chartData.colors}
@@ -161,6 +164,7 @@ const getChartWidgetByType = (
     case ChartType.SuccessRateDistribution: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -176,7 +180,6 @@ const getChartWidgetByType = (
         <HeatMapWidget
           title={chartData.title}
           data={chartData.data}
-          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -207,34 +210,36 @@ export const Charts = () => {
   }, []);
 
   return (
-    <Loadable
-      source={chartsStore}
-      renderLoader={() => <PageLoader />}
-      renderData={(data) => {
-        const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+    <ThemeProvider theme={themeStore.value}>
+      <Loadable
+        source={chartsStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
 
-        if (!currentChartsData) {
-          return null;
-        }
+          if (!currentChartsData) {
+            return null;
+          }
 
-        const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, { t, empty });
+          const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
+
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              {chartWidget}
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {charts}
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };

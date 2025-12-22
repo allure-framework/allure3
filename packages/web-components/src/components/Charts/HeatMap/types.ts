@@ -25,9 +25,6 @@ export interface HeatMapProps<
   rootAriaLabel?: string;
   emptyLabel?: string;
   emptyAriaLabel?: string;
-
-  // Colors
-  colors: (value: number, domain?: number[]) => string;
 }
 
 export type HeatMapLegendConfig = Omit<

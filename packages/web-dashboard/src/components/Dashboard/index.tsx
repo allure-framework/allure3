@@ -16,6 +16,7 @@ import {
   StatusTransitionsChartWidget,
   TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
+  ThemeProvider,
   TrSeveritiesChartWidget,
   TreeMapChartWidget,
 } from "@allurereport/web-components";
@@ -23,6 +24,7 @@ import { useEffect } from "preact/hooks";
 import { dashboardStore, fetchDashboardData } from "@/stores/dashboard";
 import { currentEnvironment, fetchEnvironments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
+import { themeStore } from "@/stores/theme";
 import * as styles from "./styles.scss";
 
 const getChartWidgetByType = (
@@ -147,6 +149,7 @@ const getChartWidgetByType = (
     case ChartType.CoverageDiff: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.CoverageDiff}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -161,6 +164,7 @@ const getChartWidgetByType = (
     case ChartType.SuccessRateDistribution: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -176,7 +180,6 @@ const getChartWidgetByType = (
         <HeatMapWidget
           title={chartData.title}
           data={chartData.data}
-          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
@@ -208,29 +211,31 @@ export const Dashboard = () => {
   }, []);
 
   return (
-    <Loadable
-      source={dashboardStore}
-      renderLoader={() => <PageLoader />}
-      renderData={(data) => {
-        const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+    <ThemeProvider theme={themeStore.value}>
+      <Loadable
+        source={dashboardStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
 
-        const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, { t, empty });
+          const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
+
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              {chartWidget}
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {charts}
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };

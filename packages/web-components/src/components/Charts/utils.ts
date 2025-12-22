@@ -1,4 +1,6 @@
 import type { TestStatus } from "@allurereport/core-api";
+import { interpolateRgb } from "d3-interpolate";
+import { scaleLinear } from "d3-scale";
 
 export const getColorFromStatus = (status: TestStatus) => {
   switch (status) {
@@ -56,4 +58,29 @@ export const getTrendForChart = (props: { value: number; total: number; noValueP
   const trendPercentage = getPercentage(Math.abs(value), total);
 
   return trendPercentage;
+};
+
+export const resolveCSSVarColor = (value: string, el: Element = document.documentElement): string => {
+  if (value.startsWith("var(")) {
+    const match = value.match(/var\((--[^),\s]+)/);
+    if (match) {
+      const cssVarName = match[1];
+      const resolved = getComputedStyle(el).getPropertyValue(cssVarName).trim();
+      return resolved || value;
+    }
+  }
+
+  return value;
+};
+
+export const getColorScale = (domain: [number, number], colors: string[]) => {
+  const [min, max] = domain;
+  // Generate evenly spaced domain values to match colors length
+  const expandedDomain = colors.map((_, i) => min + (max - min) * (i / (colors.length - 1)));
+
+  return scaleLinear<string>()
+    .domain(expandedDomain)
+    .range(colors.map((c) => resolveCSSVarColor(c)))
+    .interpolate(interpolateRgb)
+    .clamp(true);
 };
