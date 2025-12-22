@@ -18,4 +18,3 @@ declare module "d3-regression" {
 
   export function regressionLinear<T = [number, number]>(): RegressionLinear<T>;
 }
-
