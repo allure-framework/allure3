@@ -169,7 +169,7 @@
     "rollup-plugin-svg-sprites": "^1.2.5",
     "sass": "^1.83.1",
     "sass-loader": "^16.0.4",
-    "storybook": "^8.4.7",
+    "storybook": "^8.6.15",
     "style-loader": "^4.0.0",
     "svg-sprite-loader": "^6.0.11",
     "ts-node": "^10.9.2",
