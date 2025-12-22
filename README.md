@@ -2,9 +2,6 @@
 
 **Allure 3** is the next evolution of the Allure reporting framework, rebuilt from the ground up with a new architecture and expanded capabilities. Unlike its predecessor, **Allure 2**, this version is developed in **TypeScript** and introduces a modular plugin system for greater flexibility. A key addition is the **Awesome** plugin, which delivers an enhanced UI for better report visualization.
 
-> 🚧 **Allure 3 is currently in beta and under active development.**  
-> Although not production-ready, we encourage users to install, explore, and share feedback with the development team.
-
 The **Allure 3 CLI** provides a comprehensive suite of commands designed to streamline the generation, serving, and management of test reports.
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
@@ -20,8 +17,6 @@ The **Allure 3 CLI** provides a comprehensive suite of commands designed to stre
 Allure 3 introduces several notable improvements. The framework has been entirely rewritten in **TypeScript**, making it more extensible and easier to maintain. Its **plugin system** allows you to customize and extend reporting functionality to fit your specific needs. Configuration has been simplified with a **single file** managing all report settings, making it more convenient to handle multiple reports.
 
 One of the standout features is **real-time reporting**, which lets you view live updates during test execution using the `watch` command. The report interface itself has been redesigned to enhance usability and clarity. Moreover, Allure 3 maintains **compatibility with the entire Allure ecosystem**, supporting all major test frameworks.
-
-> 🚧 Please note that **official CI/CD integrations and IDE plugins are not yet available** for Allure 3.
 
 ## Installation
 
@@ -82,6 +77,8 @@ If you’ve defined the output directory in your configuration file, specifying 
 ```bash
 npx allure open allure-report/awesome
 ```
+
+If the provided directory doesn't contain previously generated report, it will be treated as a source of results, and a new report will be generated on the fly and opened in the browser.
 
 ### Real-time Report Monitoring
 
@@ -163,11 +160,10 @@ For example, setting `"reportLanguage": "fr"` will render the report interface i
 You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
 
 > [!WARNING]  
-> Declarative formats don't support advanced features like tests filtering or environments.
+> Declarative formats don't support advanced features such as tests filtering or environments.
 > If you need these features, please consider using the `allurerc.mjs` or `allurerc.js` files.
 
-## Final Notes
+## Official CI/CD Integrations
 
-Allure 3 represents a significant step forward in test reporting, offering improved performance, flexibility, and an enhanced user interface. While it remains in beta, the framework is stable enough for exploration and feedback. We encourage you to experiment with the **Awesome** plugin and share your insights to help us refine the experience.
-
-Stay updated with the latest features, and don’t hesitate to contribute or report issues. Together, we can make Allure 3 the best it can be!
+- [GitHub Actions](https://github.com/marketplace/actions/allure-report-official)
+- [Azure DevOps](https://marketplace.visualstudio.com/items?itemName=qameta.allure-azure-pipelines)
