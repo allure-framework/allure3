@@ -1,10 +1,11 @@
-import type { FullConfig } from "@allurereport/core";
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import { randomUUID } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cwd as processCwd } from "node:process";
 import { generate } from "./commons/generate.js";
@@ -22,8 +23,8 @@ export class OpenCommand extends Command {
   });
 
   resultsDir = Option.String({
-    required: true,
-    name: "Pattern to match test results directories in the current working directory (default: ./**/allure-results)",
+    name: "Pattern to match test results directories in the current working directory (default: ./allure-results)",
+    required: false,
   });
 
   config = Option.String("--config,-c", {
@@ -40,43 +41,53 @@ export class OpenCommand extends Command {
 
   async execute() {
     const cwd = this.cwd ?? processCwd();
+    const targetFullPath = join(cwd, this.resultsDir ?? "allure-report");
+    const summaryFiles = existsSync(targetFullPath)
+      ? await glob(join(targetFullPath, "**", "summary.json"), {
+          mark: true,
+          nodir: false,
+          absolute: true,
+          dot: true,
+          windowsPathsNoEscape: true,
+          cwd,
+        })
+      : [];
 
-    const isGlobPatternGiven = this.resultsDir.includes("*") || this.resultsDir.includes("?");
-    const summaryFilesGlob = isGlobPatternGiven ? this.resultsDir : join(this.resultsDir, "**", "summary.json");
-    const summaryFiles = await glob(summaryFilesGlob, {
-      mark: true,
-      nodir: false,
-      absolute: true,
-      dot: true,
-      windowsPathsNoEscape: true,
-      cwd,
-    });
-    let config: FullConfig;
-
-    // there's no generated report to serve, so we generate it first in a temp directory
-    if (!summaryFiles.length) {
-      config = await readConfig(cwd, this.config, {
+    if (summaryFiles.length > 0) {
+      const config = await readConfig(cwd, this.config, {
         port: this.port,
-        output: join(cwd, ".allure", randomUUID()),
       });
 
-      await mkdir(config.output, { recursive: true });
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: targetFullPath,
+        open: true,
+      });
+    } else {
+      const tmpDir = await mkdtemp(join(tmpdir(), `allure-report-${randomUUID()}`));
+      const config = await readConfig(cwd, this.config, {
+        port: this.port,
+        output: tmpDir,
+      });
+
       await generate({
-        resultsDir: this.resultsDir,
+        resultsDir: targetFullPath,
         cwd,
         config,
       });
-    } else {
-      config = await readConfig(cwd, this.config, {
-        port: this.port,
-        output: this.resultsDir,
+
+      // clean up temp report directory on ctrl-c
+      process.on("SIGINT", async () => {
+        await rm(config.output, { recursive: true });
+
+        process.exit(0);
+      });
+
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: config.output,
+        open: true,
       });
     }
-
-    await serve({
-      port: config.port ? parseInt(config.port, 10) : undefined,
-      servePath: config.output,
-      open: true,
-    });
   }
 }
