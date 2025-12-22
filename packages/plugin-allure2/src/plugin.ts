@@ -45,7 +45,7 @@ export class Allure2Plugin implements Plugin {
     for (const value of tests) {
       const fixtures = await store.fixturesByTrId(value.id);
       const retries = await store.retriesByTrId(value.id);
-      const history = await store.historyByTrId(value.id);
+      const history = (await store.historyByTrId(value.id)) ?? [];
       const allure2TestResult = convertTestResult(
         {
           attachmentMap,

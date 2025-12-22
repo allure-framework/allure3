@@ -1,19 +1,24 @@
-import type { TreeMapNode } from "@allurereport/core-api";
+import type { TreeMapNode } from "@allurereport/charts-api";
 import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
 import type { ComputedNode } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
 import type { ReactNode } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
 import { EmptyDataStub } from "../EmptyDataStub/index.js";
+import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config.js";
+import { TreeMapNodeComponent } from "./Node.js";
 import { TreeMapLegend } from "./TreeMapLegend/index.js";
 import { TreeMapTooltip } from "./TreeMapTooltip/TreeMapTooltip.js";
 import { defaultTreeChartConfig } from "./config.js";
 import styles from "./styles.scss";
-import { nivoTheme } from "./theme.js";
 import type { TreeMapChartProps } from "./types.js";
 import { createCustomParentLabelControl } from "./utils.js";
 
-export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
+export const TreeMapChart: FunctionalComponent<
+  TreeMapChartProps & {
+    labelColor?: (node: any) => string;
+  }
+> = ({
   width = "100%",
   height = 400,
   rootAriaLabel,
@@ -28,6 +33,7 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
   legendDomain,
   parentSkipSize,
   tooltipRows,
+  labelColor,
   ...restProps
 }) => {
   const isEmpty = useMemo(() => (data.children ?? []).length === 0, [data]);
@@ -56,8 +62,15 @@ export const TreeMapChart: FunctionalComponent<TreeMapChartProps> = ({
         tooltip={tooltipControl}
         {...defaultTreeChartConfig}
         {...restProps}
-        theme={nivoTheme}
+        theme={CHART_THEME}
+        motionConfig={CHART_MOTION_CONFIG}
+        animate={!REDUCE_MOTION}
         colors={(n) => colors(n.data.colorValue ?? 0)}
+        labelTextColor={labelColor}
+        parentLabelTextColor={labelColor}
+        borderColor={"var(--bg-base-primary)"}
+        borderWidth={1}
+        nodeComponent={TreeMapNodeComponent}
       />
       {showLegend && (
         <TreeMapLegend

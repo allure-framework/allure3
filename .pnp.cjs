@@ -1334,6 +1334,7 @@ const RAW_RUNTIME_STATE =
           ["@types/d3-axis", "npm:3.0.6"],\
           ["@types/d3-brush", "npm:3.0.6"],\
           ["@types/d3-format", "npm:3.0.4"],\
+          ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
           ["@types/d3-selection", "npm:3.0.11"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -1360,6 +1361,7 @@ const RAW_RUNTIME_STATE =
           ["d3-axis", "npm:3.0.0"],\
           ["d3-brush", "npm:3.0.0"],\
           ["d3-format", "npm:3.1.0"],\
+          ["d3-interpolate", "npm:3.0.1"],\
           ["d3-regression", "npm:1.3.10"],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-selection", "npm:3.0.0"],\

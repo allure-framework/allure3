@@ -41,6 +41,12 @@ export const CHART_THEME: PartialTheme = {
       fontSize: 12,
     },
   },
+  labels: {
+    text: {
+      fill: CHART_PALETTE.textFillColor,
+      fontSize: 12,
+    },
+  },
   text: {
     fill: CHART_PALETTE.textFillColor,
     fontSize: 12,
@@ -58,6 +64,12 @@ export const CHART_THEME: PartialTheme = {
     text: {
       fill: CHART_PALETTE.textFillColor,
       fontSize: 12,
+    },
+  },
+  tooltip: {
+    container: {
+      background: "var(--bg-base-modal)",
+      color: "var(--on-text-primary)",
     },
   },
 };

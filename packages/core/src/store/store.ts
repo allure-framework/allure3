@@ -305,8 +305,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
 
-    testResult.transition = getStatusTransition(testResult, trHistory);
-    testResult.flaky = isFlaky(testResult, trHistory);
+    if (trHistory) {
+      testResult.transition = getStatusTransition(testResult, trHistory);
+      testResult.flaky = isFlaky(testResult, trHistory);
+    }
 
     this.#testResults.set(testResult.id, testResult);
 
@@ -545,14 +547,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return tr ? this.retriesByTr(tr) : [];
   }
 
-  async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+    if (!this.#history) {
+      return undefined;
+    }
+
     return htrsByTr(this.#historyPoints, tr);
   }
 
-  async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
+  async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
     const tr = await this.testResultById(trId);
 
-    return tr ? this.historyByTr(tr) : [];
+    if (!tr) {
+      return undefined;
+    }
+
+    return this.historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {

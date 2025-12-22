@@ -16,6 +16,7 @@ import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin
 import Awesome from "@allurereport/plugin-awesome";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
+import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
@@ -228,6 +229,14 @@ export class RunCommand extends Command {
     description: "The output file name, allure.csv by default. Accepts absolute paths (default: ./allure-report)",
   });
 
+  open = Option.Boolean("--open", {
+    description: "Open the report in the default browser after generation (default: false)",
+  });
+
+  port = Option.String("--port", {
+    description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name (default: Allure Report)",
   });
@@ -286,7 +295,12 @@ export class RunCommand extends Command {
     console.log(`${command} ${commandArgs.join(" ")}`);
 
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
-    const config = await readConfig(cwd, this.config, { output: this.output, name: this.reportName });
+    const config = await readConfig(cwd, this.config, {
+      output: this.output,
+      name: this.reportName,
+      open: this.open,
+      port: this.port,
+    });
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;
 
@@ -459,6 +473,14 @@ export class RunCommand extends Command {
 
     await allureReport.done();
 
-    exit(globalExitCode.actual ?? globalExitCode.original);
+    if (config.open) {
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: config.output,
+        open: true,
+      });
+    } else {
+      exit(globalExitCode.actual ?? globalExitCode.original);
+    }
   }
 }
