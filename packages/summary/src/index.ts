@@ -1,4 +1,4 @@
-import type { PluginSummary } from "@allurereport/plugin-api";
+import type { AllureSummary } from "@allurereport/plugin-api";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { generateSummaryStaticFiles } from "./generators.js";
@@ -8,7 +8,7 @@ import { generateSummaryStaticFiles } from "./generators.js";
  * @param output
  * @param summaries
  */
-export const generateSummary = async (output: string, summaries: PluginSummary[]) => {
+export const generateSummary = async (output: string, summaries: AllureSummary[]) => {
   if (!summaries.length) {
     return undefined;
   }
