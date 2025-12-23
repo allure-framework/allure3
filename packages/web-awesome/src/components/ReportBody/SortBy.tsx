@@ -1,12 +1,8 @@
-import { DropdownButton, allureIcons } from "@allurereport/web-components";
-import { Link } from "@allurereport/web-components";
-import { Menu } from "@allurereport/web-components";
-import { SvgIcon } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import { useI18n } from "@/stores/locale";
-import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
+import { setTreeDirection, setTreeSortBy, treeDirection, treeSortBy } from "@/stores/treeFilters";
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {
@@ -17,7 +13,8 @@ export const SortBy = () => {
   const { t: sortByLocale } = useI18n("sort-by");
   const { t: sortByValuesLocale } = useI18n("sort-by.values");
   const { t: sortByDirectionsLocale } = useI18n("sort-by.directions");
-  const { sortBy, direction } = treeFiltersStore.value;
+  const sortBy = treeSortBy.value;
+  const direction = treeDirection.value;
 
   const displayedSortByValue = sortByValuesLocale(sortBy);
   const displayedDirection = sortByDirectionsLocale(`${sortBy}-${direction}-short`);

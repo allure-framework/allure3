@@ -1,8 +1,6 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";

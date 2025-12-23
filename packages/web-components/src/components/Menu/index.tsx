@@ -1,6 +1,6 @@
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import { clsx } from "clsx";
-import { type ComponentChildren, type VNode, createContext } from "preact";
+import { type ComponentChildren, type FunctionalComponent, type VNode, createContext } from "preact";
 import { createPortal } from "preact/compat";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import check from "@/assets/svg/line-general-check.svg";
@@ -14,7 +14,7 @@ type MenuContextT = {
 
 const MenuContext = createContext<MenuContextT | null>(null);
 
-export const useMenuContext = () => {
+const useMenuContext = () => {
   const context = useContext(MenuContext);
 
   if (!context) {
@@ -139,7 +139,7 @@ export const Menu = (props: {
   );
 };
 
-Menu.Section = (props: { children: ComponentChildren }) => {
+const MenuSection: FunctionalComponent = (props) => {
   const { children, ...rest } = props;
 
   return (
@@ -148,6 +148,10 @@ Menu.Section = (props: { children: ComponentChildren }) => {
     </ul>
   );
 };
+
+Menu.Section = MenuSection;
+
+Menu.Section.displayName = "Menu.Section";
 
 type ItemProps = {
   children: ComponentChildren;
@@ -160,7 +164,7 @@ type ItemProps = {
   dataTestId?: string;
 };
 
-Menu.Item = (props: ItemProps) => {
+const MenuItem: FunctionalComponent<ItemProps> = (props) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { setIsOpened } = useMenuContext();
   const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
@@ -196,14 +200,15 @@ Menu.Item = (props: ItemProps) => {
   );
 };
 
-Menu.ItemWithCheckmark = (
-  props: ItemProps & {
-    isChecked: boolean;
-  },
-) => {
-  const { isChecked = false, ...itemProps } = props;
+Menu.Item = MenuItem;
+Menu.Item.displayName = "Menu.Item";
 
+const MenuItemWithCheckmark: FunctionalComponent<ItemProps & { isChecked: boolean }> = (props) => {
+  const { isChecked = false, ...itemProps } = props;
   return (
-    <Menu.Item {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
+    <MenuItem {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
   );
 };
+
+Menu.ItemWithCheckmark = MenuItemWithCheckmark;
+Menu.ItemWithCheckmark.displayName = "Menu.ItemWithCheckmark";

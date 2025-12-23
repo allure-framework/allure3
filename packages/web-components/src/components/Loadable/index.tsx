@@ -1,4 +1,4 @@
-import type { Signal } from "@preact/signals";
+import { type Signal } from "@preact/signals";
 import type { JSX } from "preact";
 
 export interface StoreSignalState<T> {

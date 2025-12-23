@@ -11,11 +11,23 @@ import {
   ordinal,
   reverse,
 } from "@allurereport/core-api";
-import type { TreeFiltersState, TreeSortBy } from "@/stores/tree";
+import type { TreeFiltersState, TreeSortBy } from "@/stores/treeFilters";
 import type { AwesomeRecursiveTree, AwesomeTree, AwesomeTreeGroup, AwesomeTreeLeaf } from "../../types";
 
+const matchesName = (name: string, query: string) => {
+  return name.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+};
+
+const matchesNodeId = (nodeId: string, query: string) => {
+  return nodeId.toLowerCase() === query.toLocaleLowerCase();
+};
+
 export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeFiltersState) => {
-  const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
+  const queryMatched =
+    !filterOptions?.query ||
+    matchesName(leaf.name, filterOptions.query) ||
+    matchesNodeId(leaf.nodeId, filterOptions.query);
+
   const statusMatched =
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
   const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;

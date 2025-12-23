@@ -1086,7 +1086,7 @@ const RAW_RUNTIME_STATE =
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/preset-vite", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@testing-library/jest-dom", "npm:6.6.3"],\
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
@@ -1133,7 +1133,7 @@ const RAW_RUNTIME_STATE =
           ["mini-css-extract-plugin", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["prismjs", "npm:1.30.0"],\
           ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
@@ -1170,7 +1170,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -1214,7 +1214,7 @@ const RAW_RUNTIME_STATE =
           ["mini-css-extract-plugin", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["prismjs", "npm:1.30.0"],\
           ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
@@ -1304,7 +1304,7 @@ const RAW_RUNTIME_STATE =
           ["@nivo/treemap", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/preset-vite", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.10.0"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
           ["@react-spring/web", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.0.3"],\
           ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1"],\
           ["@rollup/plugin-babel", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.4"],\
@@ -1390,7 +1390,7 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
           ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0"],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["prismjs", "npm:1.30.0"],\
           ["react", [\
             "@preact/compat",\
@@ -1439,7 +1439,7 @@ const RAW_RUNTIME_STATE =
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -1476,7 +1476,7 @@ const RAW_RUNTIME_STATE =
           ["mini-css-extract-plugin", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
@@ -1509,7 +1509,7 @@ const RAW_RUNTIME_STATE =
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -1541,7 +1541,7 @@ const RAW_RUNTIME_STATE =
           ["mini-css-extract-plugin", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
@@ -9375,7 +9375,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@types/preact", null],\
-          ["preact", "npm:10.24.0"]\
+          ["preact", "npm:10.28.0"]\
         ],\
         "packagePeers": [\
           "@types/preact",\
@@ -9464,20 +9464,20 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@preact/signals", [\
-      ["npm:1.3.0", {\
-        "packageLocation": "./.yarn/cache/@preact-signals-npm-1.3.0-b5e72809eb-65032401ed.zip/node_modules/@preact/signals/",\
+      ["npm:2.5.1", {\
+        "packageLocation": "./.yarn/cache/@preact-signals-npm-2.5.1-b83086ea68-1bdfb087a6.zip/node_modules/@preact/signals/",\
         "packageDependencies": [\
-          ["@preact/signals", "npm:1.3.0"]\
+          ["@preact/signals", "npm:2.5.1"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0", {\
-        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-89c514f5bc/0/cache/@preact-signals-npm-1.3.0-b5e72809eb-65032401ed.zip/node_modules/@preact/signals/",\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1", {\
+        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-98706ea927/0/cache/@preact-signals-npm-2.5.1-b83086ea68-1bdfb087a6.zip/node_modules/@preact/signals/",\
         "packageDependencies": [\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.3.0"],\
-          ["@preact/signals-core", "npm:1.8.0"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals-core", "npm:1.12.1"],\
           ["@types/preact", null],\
-          ["preact", "npm:10.24.0"]\
+          ["preact", "npm:10.28.0"]\
         ],\
         "packagePeers": [\
           "@types/preact",\
@@ -9487,10 +9487,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@preact/signals-core", [\
-      ["npm:1.8.0", {\
-        "packageLocation": "./.yarn/cache/@preact-signals-core-npm-1.8.0-7759df8689-480c1aaf1b.zip/node_modules/@preact/signals-core/",\
+      ["npm:1.12.1", {\
+        "packageLocation": "./.yarn/cache/@preact-signals-core-npm-1.12.1-a218932129-c77264136f.zip/node_modules/@preact/signals-core/",\
         "packageDependencies": [\
-          ["@preact/signals-core", "npm:1.8.0"]\
+          ["@preact/signals-core", "npm:1.12.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -9517,7 +9517,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@prefresh/core", "virtual:16e337300e358cbae5176bca33ff9cb374fa0b051815d66b5f34b3c2a9b3118f13e052025f9f123a2d49bfb86da9012a5bed8864c541e48c4613ee89fd400611#npm:1.5.3"],\
           ["@types/preact", null],\
-          ["preact", "npm:10.26.9"]\
+          ["preact", "npm:10.28.0"]\
         ],\
         "packagePeers": [\
           "@types/preact"\
@@ -10840,7 +10840,7 @@ const RAW_RUNTIME_STATE =
           ["@storybook/theming", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.4.7"],\
           ["@types/preact", null],\
           ["@types/storybook", null],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.15"],\
           ["ts-dedent", "npm:2.2.0"]\
         ],\
@@ -10871,7 +10871,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:22.10.2"],\
           ["@types/preact", null],\
           ["@types/storybook", null],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.15"]\
         ],\
         "packagePeers": [\
@@ -10899,7 +10899,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:22.10.2"],\
           ["@types/preact", null],\
           ["@types/storybook", null],\
-          ["preact", "npm:10.24.0"],\
+          ["preact", "npm:10.28.0"],\
           ["storybook", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.6.15"]\
         ],\
         "packagePeers": [\
@@ -11718,7 +11718,7 @@ const RAW_RUNTIME_STATE =
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
           ["@testing-library/dom", "npm:8.20.1"],\
           ["@types/preact", null],\
-          ["preact", "npm:10.24.0"]\
+          ["preact", "npm:10.28.0"]\
         ],\
         "packagePeers": [\
           "@types/preact",\
@@ -26424,17 +26424,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["preact", [\
-      ["npm:10.24.0", {\
-        "packageLocation": "./.yarn/cache/preact-npm-10.24.0-1e922a9bf3-855506eedf.zip/node_modules/preact/",\
+      ["npm:10.28.0", {\
+        "packageLocation": "./.yarn/cache/preact-npm-10.28.0-c48c4c4c43-2adf426731.zip/node_modules/preact/",\
         "packageDependencies": [\
-          ["preact", "npm:10.24.0"]\
-        ],\
-        "linkType": "HARD"\
-      }],\
-      ["npm:10.26.9", {\
-        "packageLocation": "./.yarn/cache/preact-npm-10.26.9-90e1df1a58-277da0b5fe.zip/node_modules/preact/",\
-        "packageDependencies": [\
-          ["preact", "npm:10.26.9"]\
+          ["preact", "npm:10.28.0"]\
         ],\
         "linkType": "HARD"\
       }]\

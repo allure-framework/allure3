@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { FunctionalComponent, JSX } from "preact";
+import type { FunctionalComponent, HTMLAttributes, JSX } from "preact";
 
 export type TextProps = (
   | {
@@ -17,7 +17,7 @@ export type TextProps = (
   className?: string;
   bold?: boolean;
   tag?: keyof JSX.IntrinsicElements;
-} & Omit<JSX.HTMLAttributes, "type" | "size" | "className" | "bold" | "tag">;
+} & Omit<HTMLAttributes<HTMLElement>, "type" | "size" | "className" | "bold" | "tag">;
 
 export const Text: FunctionalComponent<TextProps> = ({
   size = "m",
@@ -96,7 +96,7 @@ export type HeadingProps = {
    */
   className?: string;
   tag?: keyof JSX.IntrinsicElements;
-} & Omit<JSX.HTMLAttributes, "size" | "className" | "tag">;
+} & Omit<HTMLAttributes, "size" | "className" | "tag">;
 
 export const Heading: FunctionalComponent<HeadingProps> = ({
   size = "m",
