@@ -319,23 +319,23 @@ test.describe("suites", () => {
 
     await page.goto(bootstrap.url);
 
-    expect(treePage.leafLocator).toHaveCount(1);
-    expect(treePage.sectionsLocator).toHaveCount(1);
-    expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.sectionsLocator).toHaveCount(1);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
     await treePage.toggleNthSection(0);
 
-    expect(treePage.leafLocator).toHaveCount(1);
-    expect(treePage.sectionsLocator).toHaveCount(2);
-    expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
-    expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
     await treePage.toggleNthSection(1);
 
-    expect(treePage.sectionsLocator).toHaveCount(2);
-    expect(treePage.leafLocator).toHaveCount(2);
-    expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
-    expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
-    expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
-    expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
+    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.leafLocator).toHaveCount(2);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+    await expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
+    await expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
+    await expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
   });
 
   test("should assign default labels when test results don't any matched one label", async ({ page }) => {
