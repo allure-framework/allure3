@@ -366,7 +366,9 @@
       "new": "Erstes Auftreten dieses Testergebnisses im Bericht",
       "fixed": "Zuvor \"fehlgeschlagen\" oder \"defekt\" gewesener Test, der jetzt \"erfolgreich\" ist",
       "regressed": "Zuvor \"erfolgreich\" oder \"defekt\" gewesener Test, der jetzt \"fehlgeschlagen\" ist",
-      "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist"
+      "malfunctioned": "Zuvor \"erfolgreich\" oder \"fehlgeschlagen\" gewesener Test, der jetzt \"defekt\" ist",
+      "retries": "{{count}} Wiederholungen",
+      "flaky": "Inkonsistent über mehrere Läufe"
     },
     "new": "Neu",
     "fixed": "Behoben",

@@ -366,7 +366,9 @@
       "new": "Bu test sonucunun rapordaki ilk görünümü",
       "fixed": "Daha önce \"başarısız\" veya \"bozuk\" olan test artık \"başarılı\"",
       "regressed": "Daha önce \"başarılı\" veya \"bozuk\" olan test artık \"başarısız\"",
-      "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\""
+      "malfunctioned": "Daha önce \"başarılı\" veya \"başarısız\" olan test artık \"bozuk\"",
+      "retries": "{{count}} yeniden deneme",
+      "flaky": "Çalıştırmalar arasında tutarsız"
     },
     "new": "Yeni",
     "fixed": "Düzeltildi",

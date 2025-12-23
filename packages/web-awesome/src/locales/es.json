@@ -366,7 +366,9 @@
       "new": "Primera aparición de este resultado de prueba en el informe",
       "fixed": "Prueba que anteriormente \"falló\" o estaba \"rota\" y ahora está \"aprobada\"",
       "regressed": "Prueba que anteriormente estaba \"aprobada\" o \"rota\" y ahora \"falló\"",
-      "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\""
+      "malfunctioned": "Prueba que anteriormente estaba \"aprobada\" o \"falló\" y ahora está \"rota\"",
+      "retries": "{{count}} reintentos",
+      "flaky": "Resultados inconsistentes entre ejecuciones"
     },
     "new": "Nuevo",
     "fixed": "Corregido",

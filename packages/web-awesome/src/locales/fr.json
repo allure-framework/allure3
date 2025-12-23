@@ -366,7 +366,9 @@
       "new": "Première apparition de ce résultat de test dans le rapport",
       "fixed": "Test précédemment \"échoué\" ou \"cassé\" qui est maintenant \"réussi\"",
       "regressed": "Test précédemment \"réussi\" ou \"cassé\" qui est maintenant \"échoué\"",
-      "malfunctioned": "Test précédemment \"réussi\" ou \"échoué\" qui est maintenant \"cassé\""
+      "malfunctioned": "Test précédemment \"réussi\" ou \"échoué\" qui est maintenant \"cassé\"",
+      "retries": "{{count}} tentatives",
+      "flaky": "Incohérent entre les exécutions"
     },
     "new": "Nouveaux",
     "fixed": "Corrigés",
