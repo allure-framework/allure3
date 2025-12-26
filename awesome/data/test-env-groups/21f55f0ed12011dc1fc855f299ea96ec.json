@@ -1,1 +1,1 @@
-{"id":"21f55f0ed12011dc1fc855f299ea96ec","fullName":"test/xcresult.test.ts#A MAC machine activities Allure API expectedResult should set the expected result","name":"should set the expected result","status":"passed","testResultsByEnv":{"macos-latest":"0d078e8312396e6439d7ad4b5a6125df"}}
+{"id":"21f55f0ed12011dc1fc855f299ea96ec","fullName":"test/xcresult.test.ts#A MAC machine activities Allure API expectedResult should set the expected result","name":"should set the expected result","status":"passed","testResultsByEnv":{"macos-latest":"0df926c53ce34f9c89abc60d4b5053bc"}}

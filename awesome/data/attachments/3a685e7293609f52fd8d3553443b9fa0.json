@@ -1,0 +1,55 @@
+{
+  "id": "1e116d329d7c4d2718821cadec6f509c",
+  "name": "Unknown test",
+  "status": "unknown",
+  "error": {},
+  "flaky": false,
+  "muted": false,
+  "known": false,
+  "hidden": false,
+  "labels": [],
+  "steps": [
+    {
+      "stepId": "e21cc36bf0d65014c717a481a3f8a468",
+      "name": "#___unknown_value___#",
+      "status": "unknown",
+      "steps": [
+        {
+          "stepId": "e21cc36bf0d65014c717a481a3f8a468",
+          "name": "#___unknown_value___#",
+          "status": "unknown",
+          "steps": [
+            {
+              "stepId": "e21cc36bf0d65014c717a481a3f8a468",
+              "name": "#___unknown_value___#",
+              "status": "unknown",
+              "steps": [],
+              "parameters": [],
+              "type": "step",
+              "message": "Lorem Ipsum 3",
+              "trace": "baz",
+              "hasSimilarErrorInSubSteps": false
+            }
+          ],
+          "parameters": [],
+          "type": "step",
+          "message": "Lorem Ipsum 2",
+          "trace": "bar",
+          "hasSimilarErrorInSubSteps": false
+        }
+      ],
+      "parameters": [],
+      "type": "step",
+      "message": "Lorem Ipsum 1",
+      "trace": "foo",
+      "hasSimilarErrorInSubSteps": false
+    }
+  ],
+  "parameters": [],
+  "links": [],
+  "sourceMetadata": {
+    "readerId": "convert.test.ts",
+    "metadata": {}
+  },
+  "titlePath": []
+}
