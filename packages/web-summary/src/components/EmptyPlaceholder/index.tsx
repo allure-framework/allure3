@@ -10,13 +10,7 @@ export const EmptyPlaceholder: FunctionalComponent<EmptyPlaceholderProps> = ({ l
   return (
     <div className={styles["empty-placeholder"]}>
       <div className={styles["empty-placeholder-wrapper"]}>
-        <SvgIcon
-          size={"m"}
-          width={"32px"}
-          height={"32px"}
-          id={allureIcons.lineDevCodeSquare}
-          className={styles["empty-placeholder-icon"]}
-        />
+        <SvgIcon size={"xl"} id={allureIcons.lineDevCodeSquare} className={styles["empty-placeholder-icon"]} />
         <Text className={styles["empty-placeholder-text"]}>{label}</Text>
       </div>
     </div>

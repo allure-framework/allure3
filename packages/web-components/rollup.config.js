@@ -28,7 +28,7 @@ export default defineConfig([
         sourcemap: true,
       },
     ],
-    external: ["preact", "preact/hooks", "react", "react-dom"],
+    external: ["preact", "preact/hooks", "@preact/compat", "@preact/signals", "@preact/signals/utils", "react", "react-dom"],
     plugins: [
       json(),
       alias({

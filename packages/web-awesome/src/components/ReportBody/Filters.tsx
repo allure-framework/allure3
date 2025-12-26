@@ -1,6 +1,14 @@
 import { Button, Menu, Toggle, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
+import { For } from "@preact/signals/utils";
 import { useI18n } from "@/stores/locale";
-import { type TreeFilters, setTreeFilter, treeFiltersStore } from "@/stores/tree";
+import {
+  type TreeFilters,
+  setTestTypeFilter,
+  setTransitionFilter,
+  testTypeFilters,
+  transitionFilters,
+} from "@/stores/treeFilters";
 import * as styles from "./styles.scss";
 
 const filterIcons: Record<TreeFilters, string> = {
@@ -12,45 +20,47 @@ const filterIcons: Record<TreeFilters, string> = {
   malfunctioned: allureIcons.lineAlertsMalfunctioned,
 };
 
-const MENU_KEYS = ["flaky", "retry", "new", "fixed", "regressed", "malfunctioned"] as TreeFilters[];
+const FilterItem = (props: { filter: TreeFilters; value: boolean; onChange: (value: boolean) => void }) => {
+  const { filter, value, onChange } = props;
+  const { t: tooltip } = useI18n("filters.description");
+  const { t } = useI18n("filters");
+
+  return (
+    <TooltipWrapper data-testid="filter-tooltip" tooltipText={tooltip(filter)}>
+      <Menu.Item
+        closeMenuOnClick={false}
+        ariaLabel={t("enable-filter", { filter: t(filter) })}
+        onClick={() => onChange(!value)}
+        leadingIcon={filterIcons[filter]}
+        rightSlot={
+          <div className={styles.filterToggle}>
+            <Toggle
+              focusable={false}
+              value={value}
+              label={t("enable-filter", { filter: t(filter) })}
+              data-testid={`${filter}-filter`}
+              onChange={(changeValue) => onChange(changeValue)}
+            />
+          </div>
+        }
+      >
+        {t(filter)}
+      </Menu.Item>
+    </TooltipWrapper>
+  );
+};
+
+const hasFilter = computed(
+  () => transitionFilters.value.some(([, value]) => value) || testTypeFilters.value.some(([, value]) => value),
+);
 
 export const Filters = () => {
   const { t } = useI18n("filters");
-  const { t: tooltip } = useI18n("filters.description");
-  const hasFilter = MENU_KEYS.some((key) => treeFiltersStore.value.filter[key]);
-
-  const renderFilterItem = (filter: TreeFilters, value: boolean) => {
-    return (
-      <TooltipWrapper data-testid="filter-tooltip" tooltipText={tooltip(filter)}>
-        <Menu.Item
-          closeMenuOnClick={false}
-          ariaLabel={t("enable-filter", { filter: t(filter) })}
-          onClick={() => {
-            setTreeFilter(filter, !value);
-          }}
-          leadingIcon={filterIcons[filter]}
-          rightSlot={
-            <div className={styles.filterToggle}>
-              <Toggle
-                focusable={false}
-                value={value}
-                label={t("enable-filter", { filter: t(filter) })}
-                data-testid={`${filter}-filter`}
-                onChange={(changeValue) => setTreeFilter(filter, changeValue)}
-              />
-            </div>
-          }
-        >
-          {t(filter)}
-        </Menu.Item>
-      </TooltipWrapper>
-    );
-  };
 
   return (
     <Menu
       menuTrigger={({ isOpened, onClick }) => (
-        <div className={hasFilter && styles.filtersBtnWithFilters}>
+        <div className={hasFilter.value && styles.filtersBtnWithFilters}>
           <Button
             icon={allureIcons.lineGeneralSettings1}
             text={t("more-filters")}
@@ -63,8 +73,29 @@ export const Filters = () => {
         </div>
       )}
     >
+      <Menu.Section>
+        <For each={testTypeFilters}>
+          {([filter, value]) => (
+            <FilterItem
+              key={filter}
+              filter={filter}
+              value={value}
+              onChange={(newValue) => setTestTypeFilter(filter, newValue)}
+            />
+          )}
+        </For>
+      </Menu.Section>
       <Menu.Section data-testid="filters-menu">
-        {MENU_KEYS.map((key: TreeFilters) => renderFilterItem(key, treeFiltersStore.value.filter[key]))}
+        <For each={transitionFilters}>
+          {([filter, value]) => (
+            <FilterItem
+              key={filter}
+              filter={filter}
+              value={value}
+              onChange={(newValue) => setTransitionFilter(filter, newValue)}
+            />
+          )}
+        </For>
       </Menu.Section>
     </Menu>
   );

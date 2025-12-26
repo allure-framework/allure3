@@ -830,7 +830,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.6.12"
     "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.10.2"
-    "@preact/signals": "npm:^1.3.0"
+    "@preact/signals": "npm:^2.5.1"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@testing-library/jest-dom": "npm:^6.1.5"
     "@testing-library/preact": "npm:^3.2.3"
@@ -5610,21 +5610,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@preact/signals-core@npm:^1.7.0":
-  version: 1.8.0
-  resolution: "@preact/signals-core@npm:1.8.0"
-  checksum: 10/480c1aaf1bce6f8bd5544eec9fd92a70ccdfffa24c23d99aa8e3c13783cc6b06ec0a3d90578c5fd368d06121cbe0f8fbe81368aa45ddba11d8a28af15410a9dc
+"@preact/signals-core@npm:^1.12.0":
+  version: 1.12.1
+  resolution: "@preact/signals-core@npm:1.12.1"
+  checksum: 10/c77264136f99cb57fdd2ebecce8e011cde54ccbb5218e55508b876f9347787c5338bcf271d4f02c75aa1b5bc6c89988ea507440507b189959b8b6702be3e5147
   languageName: node
   linkType: hard
 
-"@preact/signals@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@preact/signals@npm:1.3.0"
+"@preact/signals@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "@preact/signals@npm:2.5.1"
   dependencies:
-    "@preact/signals-core": "npm:^1.7.0"
+    "@preact/signals-core": "npm:^1.12.0"
   peerDependencies:
-    preact: 10.x
-  checksum: 10/65032401ed5c2d3428f27a7f1d00c55aced8fbefb924c3327052d3b0e250929e70703406a743f2082edc9e2ed4006aefb8102001afc1eb010698afc04e945412
+    preact: ">= 10.25.0 || >=11.0.0-0"
+  checksum: 10/1bdfb087a6c68bcc824f4cbdf792da8e5222d2f426260c24420686cccf5239a4a10e4debe5ac7f7a46fffd83aa80343d89014d2abc49914cffdb191aaa80c28e
   languageName: node
   linkType: hard
 
@@ -17631,17 +17631,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:*":
-  version: 10.26.9
-  resolution: "preact@npm:10.26.9"
-  checksum: 10/277da0b5fea5dbf5445244b90cbf5cdca4e80cad85a681910754bb743e6a91db54dc4846d66db8877183a7c31ddf6f184ec53ba6841d2a57edbed32313c95770
-  languageName: node
-  linkType: hard
-
-"preact@npm:^10.24.0":
-  version: 10.24.0
-  resolution: "preact@npm:10.24.0"
-  checksum: 10/855506eedfc6b348059fefc3573b061113f7dc52c6275cb3553835956a180d8f473b5fda1825dd1f1900b1ef08723b5c22f3edd17c4553a6da9e97e27ae84590
+"preact@npm:^10.25.0":
+  version: 10.28.0
+  resolution: "preact@npm:10.28.0"
+  checksum: 10/2adf426731faeb4959fc75734f5dfaedbba44414e4358dd50d8b2f81d4aa18f92b69fd246cd8fbcb3205507ad183af411802ca14277b7b5d10827e4fcc79e32f
   languageName: node
   linkType: hard
 

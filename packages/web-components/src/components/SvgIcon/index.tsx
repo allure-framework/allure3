@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 import amazon from "@/assets/svg/amazon.svg";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import azure from "@/assets/svg/azure.svg";
@@ -167,15 +167,17 @@ export const allureIcons = {
   viewOff: viewOff.id,
 };
 
-export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
+export type SvgIconProps = Omit<SVGAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
   /**
    * "xs" is 12x12
    * "s" is 16x16
    * "m" size is 20x20
+   * "l" size is 24x24
+   * "xl" size is 32x32
    *
    * @default s
    */
-  "size"?: "xs" | "s" | "m";
+  "size"?: "xs" | "s" | "m" | "l" | "xl";
   /**
    * Additional class name
    */

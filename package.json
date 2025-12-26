@@ -33,6 +33,8 @@
     ]
   },
   "resolutions": {
+    "@preact/signals": "^2.5.1",
+    "@preact/compat": "^18.3.1",
     "backbone.marionette@npm:3.5.1/backbone": "^1.6.0",
     "backbone.marionette@npm:3.5.1/underscore": "^1.13.6",
     "braces": "^3.0.3",
@@ -42,6 +44,7 @@
     "nanoid": "^3.3.8",
     "path-to-regexp": "^0.1.12",
     "postcss": "^8.5.6",
+    "preact": "^10.25.0",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
     "semver": "^7.5.2",
