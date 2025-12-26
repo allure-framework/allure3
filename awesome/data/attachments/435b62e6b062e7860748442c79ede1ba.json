@@ -1,0 +1,13 @@
+{
+  "steps": [
+    {
+      "type": "step",
+      "steps": [
+        {
+          "type": "attachment",
+          "originalFileName": "some-file.txt"
+        }
+      ]
+    }
+  ]
+}
