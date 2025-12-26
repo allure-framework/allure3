@@ -366,7 +366,9 @@
       "new": "Primeira ocorrência deste resultado de teste no relatório",
       "fixed": "Teste anteriormente \"falhou\" ou \"quebrado\" que agora está \"aprovado\"",
       "regressed": "Teste anteriormente \"aprovado\" ou \"quebrado\" que agora está \"falhou\"",
-      "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\""
+      "malfunctioned": "Teste anteriormente \"aprovado\" ou \"falhou\" que agora está \"quebrado\"",
+      "retries": "{{count}} tentativas",
+      "flaky": "Inconsistente entre execuções"
     },
     "new": "Novo",
     "fixed": "Corrigido",

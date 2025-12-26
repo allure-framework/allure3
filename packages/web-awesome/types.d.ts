@@ -77,6 +77,7 @@ export type AwesomeTestResult = Omit<
   retry: boolean;
   categories?: AwesomeCategory[];
   environment?: string | "default";
+  tooltips?: Record<string, string>;
 };
 
 export type AwesomeTreeLeaf = Pick<
@@ -85,6 +86,7 @@ export type AwesomeTreeLeaf = Pick<
 > & {
   nodeId: string;
   transitionTooltip?: string;
+  tooltips?: Record<string, string>;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

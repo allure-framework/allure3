@@ -366,7 +366,9 @@
       "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
       "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
       "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
-      "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is"
+      "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
+      "retries": "{{count}} pogingen",
+      "flaky": "Inconsistent tussen runs"
     },
     "new": "Nieuw",
     "fixed": "Opgelost",

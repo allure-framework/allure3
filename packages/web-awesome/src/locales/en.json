@@ -366,7 +366,9 @@
       "new": "The first occurrence of this test result in the report",
       "fixed": "A previously \"failed\" or \"broken\" test that is now \"passed\"",
       "regressed": "A previously \"passed\" or \"broken\" test that is now \"failed\"",
-      "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\""
+      "malfunctioned": "A previously \"passed\" or \"failed\" test that is now \"broken\"",
+      "retries": "{{count}} retries",
+      "flaky": "Inconsistent across runs"
     },
     "new": "new",
     "fixed": "fixed",

@@ -79,6 +79,7 @@ export const Tree: FunctionalComponent<TreeProps> = ({
           retriesCount={leaf.retriesCount}
           transition={leaf.transition}
           transitionTooltip={leaf.transitionTooltip}
+          tooltips={leaf.tooltips}
           flaky={leaf.flaky}
           marked={leaf.nodeId === routeId}
           navigateTo={navigateTo}

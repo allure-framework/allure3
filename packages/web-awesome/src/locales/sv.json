@@ -366,7 +366,9 @@
       "new": "Första förekomsten av detta testresultat i rapporten",
       "fixed": "Tidigare \"misslyckad\" eller \"trasig\" test som nu är \"godkänd\"",
       "regressed": "Tidigare \"godkänd\" eller \"trasig\" test som nu är \"misslyckad\"",
-      "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\""
+      "malfunctioned": "Tidigare \"godkänd\" eller \"misslyckad\" test som nu är \"trasig\"",
+      "retries": "{{count}} omkörningar",
+      "flaky": "Inkonsekvent mellan körningar"
     },
     "new": "Ny",
     "fixed": "Åtgärdad",

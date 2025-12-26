@@ -366,7 +366,9 @@
       "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
       "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
-      "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test"
+      "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
+      "retries": "{{count}} yenidən cəhd",
+      "flaky": "İcra nəticələri qeyri-sabitdir"
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",

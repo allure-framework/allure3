@@ -333,9 +333,10 @@ const leafFactory = ({
   duration,
   flaky,
   start,
-  transition,
   retry,
   retriesCount,
+  transition,
+  tooltips,
 }: AwesomeTestResult): AwesomeTreeLeaf => ({
   nodeId: id,
   name,
@@ -346,6 +347,7 @@ const leafFactory = ({
   retry,
   retriesCount,
   transition,
+  tooltips,
 });
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {

@@ -26,7 +26,7 @@ export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   return (
     <div data-testid={"test-result-step-content"} className={styles["test-result-step-content"]}>
       {Boolean(item?.parameters?.length) && <TrStepParameters parameters={item.parameters} />}
-      {Boolean(item?.message && item?.trace && !item?.hasSimilarErrorInSubSteps) && <TrError {...item} />}
+      {Boolean((item?.message || item?.trace) && !item?.hasSimilarErrorInSubSteps) && <TrError {...item} />}
       {Boolean(item?.steps?.length) && (
         <>
           {item.steps?.map((subItem, key) => {

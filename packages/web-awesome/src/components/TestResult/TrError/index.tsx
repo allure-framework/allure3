@@ -13,7 +13,15 @@ import * as styles from "./styles.scss";
 const TrErrorTrace = ({ trace }: { trace: string }) => {
   const sanitizedTrace = ansiToHTML(trace, {
     fg: "var(--on-text-primary)",
-    colors: {},
+    bg: "none",
+    colors: {
+      0: "none",
+      1: "none",
+      2: "var(--on-support-sirius)",
+      3: "var(--on-support-atlas)",
+      4: "var(--bg-support-skat)",
+      5: "var(--on-support-betelgeuse)",
+    },
   });
 
   return (
@@ -88,7 +96,6 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
       ) : (
         empty("no-message-provided")
       )}
-
       {Boolean(actual && actual !== "undefined" && expected && expected !== "undefined") && (
         <Button
           style={"flat"}
