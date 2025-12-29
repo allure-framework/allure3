@@ -8,6 +8,7 @@ export interface Config {
   open?: boolean;
   port?: string;
   historyPath?: string;
+  historyLimit?: number;
   knownIssuesPath?: string;
   defaultLabels?: DefaultLabelsConfig;
   /**

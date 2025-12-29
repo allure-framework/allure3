@@ -296,6 +296,15 @@ describe("resolveConfig", () => {
     expect(resolved.knownIssuesPath).toEqual(resolve("./custom/known.json"));
   });
 
+  it("should allow to override given history limit", async () => {
+    const fixture = {
+      historyLimit: 10,
+    };
+    const resolved = await resolveConfig(fixture, { historyLimit: 5 });
+
+    expect(resolved.historyLimit).toEqual(5);
+  });
+
   it("should set awesome as a default plugin if no plugins are provided", async () => {
     (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 

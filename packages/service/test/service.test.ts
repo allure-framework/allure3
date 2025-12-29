@@ -166,9 +166,23 @@ describe("AllureServiceClient", () => {
     it("should download history", async () => {
       HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.history] });
 
-      const res = await serviceClient.downloadHistory("main");
+      const res = await serviceClient.downloadHistory({
+        branch: "main",
+      });
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/${fixtures.project}/main/history`);
+      expect(res).toEqual([fixtures.history]);
+    });
+
+    it("should download history with a provided limit", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.history] });
+
+      const res = await serviceClient.downloadHistory({
+        branch: "main",
+        limit: 10,
+      });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/${fixtures.project}/main/history?limit=10`);
       expect(res).toEqual([fixtures.history]);
     });
   });

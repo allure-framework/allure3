@@ -16,6 +16,7 @@ export interface ConfigOverride {
   open?: Config["open"];
   port?: Config["port"];
   historyPath?: Config["historyPath"];
+  historyLimit?: Config["historyLimit"];
   knownIssuesPath?: Config["knownIssuesPath"];
   plugins?: Config["plugins"];
 }
@@ -88,6 +89,7 @@ export const validateConfig = (config: Config) => {
     "open",
     "port",
     "historyPath",
+    "historyLimit",
     "knownIssuesPath",
     "plugins",
     "defaultLabels",
@@ -164,6 +166,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
   const historyPath = override.historyPath ?? config.historyPath;
+  const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
   const knownIssuesPath = resolve(override.knownIssuesPath ?? config.knownIssuesPath ?? "./allure/known.json");
   const output = resolve(override.output ?? config.output ?? "./allure-report");
@@ -190,6 +193,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     variables,
     environments,
     appendHistory,
+    historyLimit,
     historyPath: historyPath ? resolve(historyPath) : undefined,
     reportFiles: new FileSystemReportFiles(output),
     plugins: pluginInstances,

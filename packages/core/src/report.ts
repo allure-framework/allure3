@@ -77,6 +77,7 @@ export class AllureReport {
       reportFiles,
       realTime,
       historyPath,
+      historyLimit,
       defaultLabels = {},
       variables = {},
       environment,
@@ -101,14 +102,21 @@ export class AllureReport {
     this.#realTime = realTime;
     this.#stage = stage;
 
-    if (this.#allureServiceClient) {
-      this.#history = new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch);
-    } else if (historyPath) {
-      this.#history = new AllureLocalHistory(historyPath);
-    }
-
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
+    }
+
+    if (this.#allureServiceClient) {
+      this.#history = new AllureRemoteHistory({
+        allureServiceClient: this.#allureServiceClient,
+        branch: this.#ci?.jobRunBranch,
+        limit: historyLimit,
+      });
+    } else if (historyPath) {
+      this.#history = new AllureLocalHistory({
+        historyPath,
+        limit: historyLimit,
+      });
     }
 
     this.#store = new DefaultAllureStore({
@@ -125,12 +133,6 @@ export class AllureReport {
     this.#plugins = [...plugins];
     this.#reportFiles = reportFiles;
     this.#output = output;
-
-    if (this.#allureServiceClient) {
-      this.#history = new AllureRemoteHistory(this.#allureServiceClient, this.#ci?.jobRunBranch);
-    } else if (historyPath) {
-      this.#history = new AllureLocalHistory(historyPath);
-    }
   }
 
   get hasQualityGate() {

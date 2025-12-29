@@ -26,6 +26,10 @@ export class HistoryCommand extends Command {
     description: "The path to history file",
   });
 
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name",
   });
@@ -38,6 +42,7 @@ export class HistoryCommand extends Command {
 
     const config = await resolveConfig({
       historyPath: this.historyPath ?? "history.jsonl",
+      historyLimit: this.historyLimit ? Number(this.historyLimit) : undefined,
       name: this.reportName ?? "Allure Report",
       // disable all plugins
       plugins: {},
