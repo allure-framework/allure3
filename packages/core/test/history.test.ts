@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 import { AllureLocalHistory, writeHistory } from "../src/history.js";
 
 let tmp: string;
+
 beforeEach(async () => {
   tmp = await mkdtemp(join(tmpdir(), "allure3-core-tests-"));
 });
@@ -19,7 +20,9 @@ afterEach(async () => {
 it("should read empty file", async () => {
   const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-  const history = new AllureLocalHistory(historyPath);
+  const history = new AllureLocalHistory({
+    historyPath,
+  });
 
   await writeFile(historyPath, "", { encoding: "utf8" });
 
@@ -31,7 +34,9 @@ it("should read empty file", async () => {
 it("should process file that doesn't exists", async () => {
   const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-  const history = new AllureLocalHistory(historyPath);
+  const history = new AllureLocalHistory({
+    historyPath,
+  });
   const result = await history.readHistory();
 
   expect(result).toEqual([]);
@@ -40,7 +45,9 @@ it("should process file that doesn't exists", async () => {
 it("should create history file", async () => {
   const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-  const history = new AllureLocalHistory(historyPath);
+  const history = new AllureLocalHistory({
+    historyPath,
+  });
   const data = {
     uuid: randomUUID(),
     timestamp: new Date().getTime(),
@@ -65,7 +72,9 @@ it("should create history file", async () => {
 it("should append data to existing history file", async () => {
   const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-  const history = new AllureLocalHistory(historyPath);
+  const history = new AllureLocalHistory({
+    historyPath,
+  });
 
   await writeFile(historyPath, "", { encoding: "utf8" });
 
@@ -92,7 +101,9 @@ it("should append data to existing history file", async () => {
 it("should read multiple data points from history file", async () => {
   const fileName = `${randomUUID()}.json`;
   const historyPath = join(tmp, fileName);
-  const history = new AllureLocalHistory(historyPath);
+  const history = new AllureLocalHistory({
+    historyPath,
+  });
 
   await writeFile(historyPath, "", { encoding: "utf8" });
 
@@ -105,7 +116,6 @@ it("should read multiple data points from history file", async () => {
     metrics: {},
     url: "",
   };
-
   const data2 = {
     uuid: randomUUID(),
     timestamp: new Date().getTime() - 500,
@@ -115,7 +125,6 @@ it("should read multiple data points from history file", async () => {
     metrics: {},
     url: "",
   };
-
   const data3 = {
     uuid: randomUUID(),
     timestamp: new Date().getTime(),
@@ -141,4 +150,55 @@ it("should read multiple data points from history file", async () => {
     expect.objectContaining(data2),
     expect.objectContaining(data3),
   ]);
+});
+
+it("should limit data points from history file when limit is specified", async () => {
+  const fileName = `${randomUUID()}.json`;
+  const historyPath = join(tmp, fileName);
+  const history = new AllureLocalHistory({
+    historyPath,
+    limit: 1,
+  });
+
+  await writeFile(historyPath, "", { encoding: "utf8" });
+
+  const data1 = {
+    uuid: randomUUID(),
+    timestamp: new Date().getTime() - 1000,
+    name: "Allure Report",
+    testResults: {},
+    knownTestCaseIds: ["a"],
+    metrics: {},
+    url: "",
+  };
+  const data2 = {
+    uuid: randomUUID(),
+    timestamp: new Date().getTime() - 500,
+    name: "Allure Report",
+    testResults: {},
+    knownTestCaseIds: ["a", "b"],
+    metrics: {},
+    url: "",
+  };
+  const data3 = {
+    uuid: randomUUID(),
+    timestamp: new Date().getTime(),
+    name: "Allure Report",
+    testResults: {},
+    knownTestCaseIds: ["a", "c"],
+    metrics: {},
+    url: "",
+  };
+
+  await writeHistory(historyPath, data1);
+  await writeHistory(historyPath, data2);
+  await writeHistory(historyPath, data3);
+
+  const stats = await stat(historyPath);
+
+  expect(stats.isFile()).toBeTruthy();
+
+  const result = await history.readHistory();
+
+  expect(result).toEqual([expect.objectContaining(data3)]);
 });

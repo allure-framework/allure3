@@ -43,7 +43,10 @@ describe("AllureRemoteHistory", () => {
 
   beforeEach(() => {
     serviceClient = new AllureServiceClientClass({ url: fixtures.url, project: fixtures.project });
-    history = new AllureRemoteHistory(serviceClient, fixtures.branch);
+    history = new AllureRemoteHistory({
+      allureServiceClient: serviceClient,
+      branch: fixtures.branch,
+    });
   });
 
   describe("readHistory", () => {
@@ -72,8 +75,41 @@ describe("AllureRemoteHistory", () => {
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
+    it("should return resolved history data with a provided limit", async () => {
+      history = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+        branch: fixtures.branch,
+        limit: 10,
+      });
+
+      HttpClientMock.prototype.get.mockResolvedValue({
+        history: [
+          {
+            uuid: "1",
+            name: "test",
+            timestamp: 0,
+            knownTestCaseIds: [],
+            testResults: {},
+            url: "",
+            metrics: {},
+            status: "passed",
+            stage: "test",
+          },
+        ],
+      });
+
+      const result = await history.readHistory();
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/${fixtures.project}/${fixtures.branch}/history?limit=10`,
+      );
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
     it("should return empty array if branch is not provided", async () => {
-      const historyWithoutBranch = new AllureRemoteHistory(serviceClient);
+      const historyWithoutBranch = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+      });
 
       const result = await historyWithoutBranch.readHistory();
 

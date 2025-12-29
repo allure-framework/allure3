@@ -60,6 +60,10 @@ export class GenerateCommand extends Command {
     description: "The port to serve the reports on. If not set, the server starts on a random port",
   });
 
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
     const config = await readConfig(cwd, this.config, {
@@ -67,6 +71,7 @@ export class GenerateCommand extends Command {
       output: this.output,
       open: this.open,
       port: this.port,
+      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
 
     await generate({

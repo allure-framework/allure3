@@ -132,13 +132,17 @@ export class AllureServiceClient {
    * Downloads history data for a specific branch
    * @param payload
    */
-  async downloadHistory(branch: string) {
+  async downloadHistory(payload: { branch: string; limit?: number }) {
+    const { branch, limit } = payload;
+
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history`,
+      limit
+        ? `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history?limit=${limit}`
+        : `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history`,
     );
 
     return history;

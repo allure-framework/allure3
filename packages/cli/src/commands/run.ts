@@ -263,6 +263,10 @@ export class RunCommand extends Command {
       "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
   });
 
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -300,6 +304,7 @@ export class RunCommand extends Command {
       name: this.reportName,
       open: this.open,
       port: this.port,
+      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;

@@ -4,17 +4,25 @@ import { KnownError } from "./utils/http.js";
 
 export class AllureRemoteHistory implements AllureHistory {
   constructor(
-    readonly allureServiceClient: AllureServiceClient,
-    readonly branch?: string,
+    readonly params: {
+      allureServiceClient: AllureServiceClient;
+      branch?: string;
+      limit?: number;
+    },
   ) {}
 
   async readHistory() {
-    if (!this.branch) {
+    const { allureServiceClient, branch, limit } = this.params;
+
+    if (!branch) {
       return [];
     }
 
     try {
-      const res = await this.allureServiceClient.downloadHistory(this.branch);
+      const res = await allureServiceClient.downloadHistory({
+        branch,
+        limit,
+      });
 
       return res;
     } catch (err) {
