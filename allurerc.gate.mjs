@@ -11,12 +11,4 @@ export default defineConfig({
       },
     },
   },
-  qualityGate: {
-    rules: [
-      {
-        maxFailures: 0,
-        fastFail: true,
-      },
-    ],
-  },
 });

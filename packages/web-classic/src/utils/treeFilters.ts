@@ -12,9 +12,9 @@ import {
   reverse,
 } from "@allurereport/core-api";
 import type { TreeFiltersState, TreeSortBy } from "@/stores/tree";
-import type { AwesomeRecursiveTree, AwesomeTree, AwesomeTreeGroup, AwesomeTreeLeaf } from "../../types";
+import type { ClassicRecursiveTree, ClassicTree, ClassicTreeGroup, ClassicTreeLeaf } from "../../types";
 
-export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeFiltersState) => {
+export const isIncluded = (leaf: TreeLeaf<ClassicTreeLeaf>, filterOptions: TreeFiltersState) => {
   const queryMatched = !filterOptions?.query || leaf.name.toLowerCase().includes(filterOptions.query.toLowerCase());
   const statusMatched =
     !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
@@ -26,8 +26,8 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
   return [queryMatched, statusMatched, flakyMatched, retryMatched].every(Boolean);
 };
 
-const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
-  const typedCompareBy = compareBy<TreeLeaf<AwesomeTreeLeaf>>;
+const leafComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<TreeLeaf<ClassicTreeLeaf>> => {
+  const typedCompareBy = compareBy<TreeLeaf<ClassicTreeLeaf>>;
   switch (sortBy) {
     case "order":
       return typedCompareBy("groupOrder", ordinal());
@@ -52,7 +52,7 @@ const groupComparatorByTreeSortBy = (sortBy: TreeSortBy): Comparator<DefaultTree
   }
 };
 
-export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
+export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<ClassicTreeLeaf>> => {
   const cmp = leafComparatorByTreeSortBy(filterOptions.sortBy);
   const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
   // apply fallback sorting by name
@@ -68,12 +68,12 @@ export const groupComparator = (filterOptions: TreeFiltersState): Comparator<Def
 
 export const filterLeaves = (
   leaves: string[] = [],
-  leavesById: AwesomeTree["leavesById"],
+  leavesById: ClassicTree["leavesById"],
   filterOptions: TreeFiltersState,
 ) => {
   const filteredLeaves = [...leaves]
     .map((leafId) => leavesById[leafId])
-    .filter((leaf: TreeLeaf<AwesomeTreeLeaf>) => isIncluded(leaf, filterOptions));
+    .filter((leaf: TreeLeaf<ClassicTreeLeaf>) => isIncluded(leaf, filterOptions));
 
   const comparator = leafComparator(filterOptions);
   return filteredLeaves.sort(comparator);
@@ -85,11 +85,11 @@ export const filterLeaves = (
  * @param payload
  */
 export const createRecursiveTree = (payload: {
-  group: AwesomeTreeGroup;
-  groupsById: AwesomeTree["groupsById"];
-  leavesById: AwesomeTree["leavesById"];
+  group: ClassicTreeGroup;
+  groupsById: ClassicTree["groupsById"];
+  leavesById: ClassicTree["leavesById"];
   filterOptions?: TreeFiltersState;
-}): AwesomeRecursiveTree => {
+}): ClassicRecursiveTree => {
   const { group, groupsById, leavesById, filterOptions } = payload;
   const groupLeaves: string[] = group.leaves ?? [];
 
@@ -107,7 +107,7 @@ export const createRecursiveTree = (payload: {
       ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
 
   const statistic: Statistic = emptyStatistic();
-  trees.forEach((rt: AwesomeRecursiveTree) => {
+  trees.forEach((rt: ClassicRecursiveTree) => {
     if (rt.statistic) {
       const additional: Statistic = rt.statistic;
       mergeStatistic(statistic, additional);
@@ -126,7 +126,7 @@ export const createRecursiveTree = (payload: {
   };
 };
 
-export const isRecursiveTreeEmpty = (tree: AwesomeRecursiveTree): boolean => {
+export const isRecursiveTreeEmpty = (tree: ClassicRecursiveTree): boolean => {
   if (!tree.trees?.length && !tree.leaves?.length) {
     return true;
   }

@@ -59,6 +59,11 @@ export interface PluginSummary {
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];
   createdAt?: number;
+  /**
+   * May contain useful information provided by plugins (for example it's id, single file mode, etc.)
+   * The field can be used in integrations to make better experience
+   */
+  meta?: Record<string, any>;
 }
 
 export interface ExitCode {
@@ -73,7 +78,7 @@ export interface ExitCode {
 }
 
 export interface PluginGlobals {
-  exitCode: ExitCode;
+  exitCode?: ExitCode;
   errors: TestError[];
   attachments: AttachmentLink[];
 }

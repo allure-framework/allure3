@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 import amazon from "@/assets/svg/amazon.svg";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import azure from "@/assets/svg/azure.svg";
@@ -29,6 +29,7 @@ import lineArrowsSortLineAsc from "@/assets/svg/line-arrows-sort-line-asc.svg";
 import lineArrowsSortLineDesc from "@/assets/svg/line-arrows-sort-line-desc.svg";
 import lineArrowsSwitchVertical1 from "@/assets/svg/line-arrows-switch-vertical-1.svg";
 import lineChartsBarChartSquare from "@/assets/svg/line-charts-bar-chart-square.svg";
+import lineChartsTimeline from "@/assets/svg/line-charts-timeline.svg";
 import lineDevBug2 from "@/assets/svg/line-dev-bug-2.svg";
 import lineDevCodeSquare from "@/assets/svg/line-dev-code-square.svg";
 import lineDevDataflow3 from "@/assets/svg/line-dev-dataflow-3.svg";
@@ -66,6 +67,7 @@ import lineSecurityKey from "@/assets/svg/line-security-key.svg";
 import lineShapesDotCircle from "@/assets/svg/line-shapes-dot-circle.svg";
 import lineShapesMoon from "@/assets/svg/line-shapes-moon.svg";
 import lineShapesSun from "@/assets/svg/line-shapes-sun.svg";
+import lineShapesThemeAuto from "@/assets/svg/line-shapes-theme-auto.svg";
 import lineTimeClockStopwatch from "@/assets/svg/line-time-clock-stopwatch.svg";
 import playwrightLogo from "@/assets/svg/playwright-logo.svg";
 import reportLogo from "@/assets/svg/report-logo.svg";
@@ -82,22 +84,22 @@ import view from "@/assets/svg/view.svg";
 import styles from "./styles.scss";
 
 export const allureIcons = {
-  arrowsChevronDown: arrowsChevronDown.id,
-  environment: environment.id,
   amazon: amazon.id,
+  arrowsChevronDown: arrowsChevronDown.id,
   azure: azure.id,
   bitbucket: bitbucket.id,
   circleci: circleci.id,
-  drone: drone.id,
-  gitlab: gitlab.id,
-  github: github.id,
-  jenkins: jenkins.id,
   draggable: draggable.id,
+  drone: drone.id,
+  environment: environment.id,
+  github: github.id,
+  gitlab: gitlab.id,
+  jenkins: jenkins.id,
   lineAlertsAlertCircle: lineAlertsAlertCircle.id,
-  lineAlertsNotificationBox: lineAlertsNotificationBox.id,
-  lineAlertsNew: lineAlertsNew.id,
-  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
   lineAlertsFixed: lineAlertsFixed.id,
+  lineAlertsMalfunctioned: lineAlertsMalfunctioned.id,
+  lineAlertsNew: lineAlertsNew.id,
+  lineAlertsNotificationBox: lineAlertsNotificationBox.id,
   lineAlertsRegressed: lineAlertsRegressed.id,
   lineArrowsChevronDown: lineArrowsChevronDown.id,
   lineArrowsChevronDownDouble: lineArrowsChevronDownDouble.id,
@@ -111,6 +113,7 @@ export const allureIcons = {
   lineArrowsSortLineDesc: lineArrowsSortLineDesc.id,
   lineArrowsSwitchVertical1: lineArrowsSwitchVertical1.id,
   lineChartsBarChartSquare: lineChartsBarChartSquare.id,
+  lineChartsTimeline: lineChartsTimeline.id,
   lineDevBug2: lineDevBug2.id,
   lineDevCodeSquare: lineDevCodeSquare.id,
   lineDevDataflow3: lineDevDataflow3.id,
@@ -119,16 +122,21 @@ export const allureIcons = {
   lineFilesFileAttachment2: lineFilesFileAttachment2.id,
   lineFilesFolder: lineFilesFolder.id,
   lineGeneralCheck: lineGeneralCheck.id,
+  lineGeneralCheckCircle: lineGeneralCheckCircle.id,
   lineGeneralChecklist3: lineGeneralChecklist3.id,
   lineGeneralCopy3: lineGeneralCopy3.id,
   lineGeneralDownloadCloud: lineGeneralDownloadCloud.id,
   lineGeneralEqual: lineGeneralEqual.id,
   lineGeneralEye: lineGeneralEye.id,
+  lineGeneralHelpCircle: lineGeneralHelpCircle.id,
   lineGeneralHomeLine: lineGeneralHomeLine.id,
+  lineGeneralInfoCircle: lineGeneralInfoCircle.id,
   lineGeneralLink1: lineGeneralLink1.id,
   lineGeneralLinkExternal: lineGeneralLinkExternal.id,
+  lineGeneralMinusCircle: lineGeneralMinusCircle.id,
   lineGeneralSearchMd: lineGeneralSearchMd.id,
   lineGeneralSettings1: lineGeneralSettings1.id,
+  lineGeneralXCircle: lineGeneralXCircle.id,
   lineGeneralXClose: lineGeneralXClose.id,
   lineGeneralZap: lineGeneralZap.id,
   lineHelpersFlag: lineHelpersFlag.id,
@@ -143,6 +151,7 @@ export const allureIcons = {
   lineShapesDotCircle: lineShapesDotCircle.id,
   lineShapesMoon: lineShapesMoon.id,
   lineShapesSun: lineShapesSun.id,
+  lineShapesThemeAuto: lineShapesThemeAuto.id,
   lineTimeClockStopwatch: lineTimeClockStopwatch.id,
   playwrightLogo: playwrightLogo.id,
   reportLogo: reportLogo.id,
@@ -150,28 +159,25 @@ export const allureIcons = {
   solidCheckCircle: solidCheckCircle.id,
   solidHelpCircle: solidHelpCircle.id,
   solidMinusCircle: solidMinusCircle.id,
-  solidXCircle: solidXCircle.id,
   solidPlusCircle: solidPlusCircle.id,
+  solidXCircle: solidXCircle.id,
   spinner: spinner.id,
+  testNew: testNew.id,
   view: view.id,
   viewOff: viewOff.id,
-  lineGeneralCheckCircle: lineGeneralCheckCircle.id,
-  lineGeneralHelpCircle: lineGeneralHelpCircle.id,
-  lineGeneralInfoCircle: lineGeneralInfoCircle.id,
-  lineGeneralMinusCircle: lineGeneralMinusCircle.id,
-  lineGeneralXCircle: lineGeneralXCircle.id,
-  testNew: testNew.id,
 };
 
-export type SvgIconProps = Omit<JSX.HTMLAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
+export type SvgIconProps = Omit<SVGAttributes<SVGElement>, "className" | "id" | "size" | "inline"> & {
   /**
    * "xs" is 12x12
    * "s" is 16x16
    * "m" size is 20x20
+   * "l" size is 24x24
+   * "xl" size is 32x32
    *
    * @default s
    */
-  "size"?: "xs" | "s" | "m";
+  "size"?: "xs" | "s" | "m" | "l" | "xl";
   /**
    * Additional class name
    */
@@ -206,9 +212,11 @@ export const SvgIcon = ({
   inline = false,
   className = "",
   "data-testid": dataTestId,
+  ...restProps
 }: SvgIconProps) => {
   return (
     <svg
+      {...(restProps as any)}
       className={clsx(styles.icon, styles[`size-${size}`], inline && styles.inline, className)}
       data-testid={dataTestId}
     >

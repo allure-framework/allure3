@@ -3,11 +3,26 @@ import type { AllureServiceClient } from "./service.js";
 import { KnownError } from "./utils/http.js";
 
 export class AllureRemoteHistory implements AllureHistory {
-  constructor(readonly allureServiceClient: AllureServiceClient) {}
+  constructor(
+    readonly params: {
+      allureServiceClient: AllureServiceClient;
+      branch?: string;
+      limit?: number;
+    },
+  ) {}
 
-  async readHistory(branch: string) {
+  async readHistory() {
+    const { allureServiceClient, branch, limit } = this.params;
+
+    if (!branch) {
+      return [];
+    }
+
     try {
-      const res = await this.allureServiceClient.downloadHistory(branch);
+      const res = await allureServiceClient.downloadHistory({
+        branch,
+        limit,
+      });
 
       return res;
     } catch (err) {

@@ -7,9 +7,11 @@ import { PathResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
+import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import process from "node:process";
+import process, { exit } from "node:process";
+import { red } from "yoctocolors";
 
 export class WatchCommand extends Command {
   static paths = [["watch"]];
@@ -37,7 +39,7 @@ export class WatchCommand extends Command {
   });
 
   output = Option.String("--output,-o", {
-    description: "The output file name, allure.csv by default. Accepts absolute paths (default: ./allure-report)",
+    description: "The output directory name. Absolute paths are accepted as well (default: allure-report)",
   });
 
   reportName = Option.String("--report-name,--name", {
@@ -49,6 +51,12 @@ export class WatchCommand extends Command {
   });
 
   async execute() {
+    if (!existsSync(this.resultsDir)) {
+      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+      exit(1);
+      return;
+    }
+
     const before = new Date().getTime();
 
     process.on("exit", (code) => {
@@ -112,7 +120,7 @@ export class WatchCommand extends Command {
 
     await allureReport.start();
 
-    const input = resolve(this.resultsDir[0]);
+    const input = resolve(this.resultsDir);
     const { abort } = newFilesInDirectoryWatcher(input, async (path) => {
       await allureReport.readResult(new PathResultFile(path));
     });

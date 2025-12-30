@@ -45,7 +45,7 @@ export class Allure2Plugin implements Plugin {
     for (const value of tests) {
       const fixtures = await store.fixturesByTrId(value.id);
       const retries = await store.retriesByTrId(value.id);
-      const history = await store.historyByTrId(value.id);
+      const history = (await store.historyByTrId(value.id)) ?? [];
       const allure2TestResult = convertTestResult(
         {
           attachmentMap,
@@ -120,6 +120,11 @@ export class Allure2Plugin implements Plugin {
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 

@@ -127,6 +127,11 @@ export class ClassicPlugin implements Plugin {
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 }

@@ -2,17 +2,21 @@ import {
   type AllureChartsStoreData,
   type ChartOptions,
   ChartType,
-  type ComingSoonChartOptions,
   type GeneratedChartsData,
 } from "@allurereport/charts-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
-import { generateBarChart } from "./bar.js";
-import { generateComingSoonChart } from "./comingSoon.js";
-import { generateFunnelChart } from "./funnel/index.js";
+import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
+import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
+import { generateDurationsChart } from "./generateDurationsChart.js";
+import { generateFBSUAgePyramid } from "./generateFBSUAgePyramid.js";
+import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
+import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
+import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
+import { generateTestBaseGrowthDynamicsChart } from "./generateTestBaseGrowthDynamicsChart.js";
+import { generateTestingPyramidChart } from "./generateTestingPyramidChart.js";
+import { generateTrSeveritiesChart } from "./generateTrSeveritiesChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
-import { generateTrendChart } from "./line.js";
-import { generatePieChart } from "./pie.js";
 import { generateTreeMapChart } from "./treeMap.js";
 
 const generateChartData = async (props: {
@@ -26,7 +30,7 @@ const generateChartData = async (props: {
   const result: GeneratedChartsData = {};
 
   const storeData: AllureChartsStoreData = await Promise.all([
-    await store.allHistoryDataPoints(),
+    env ? await store.allHistoryDataPointsByEnvironment(env) : await store.allHistoryDataPoints(),
     env ? await store.testResultsByEnvironment(env) : await store.allTestResults(),
     env ? await store.testsStatistic((tr) => tr.environment === env) : await store.testsStatistic(),
   ]).then(([historyDataPoints, testResults, statistic]) => ({
@@ -39,31 +43,47 @@ const generateChartData = async (props: {
     const chartId = generateUuid();
 
     switch (chartOption.type) {
-      case ChartType.Trend:
-        result[chartId] = generateTrendChart(chartOption, storeData, reportName)!;
+      case ChartType.CurrentStatus:
+        result[chartId] = generateCurrentStatusChart(chartOption, storeData)!;
         break;
-      case ChartType.Pie:
-        result[chartId] = generatePieChart(chartOption, storeData)!;
+      case ChartType.StatusDynamics:
+        result[chartId] = generateStatusDynamicsChart({ options: chartOption, storeData })!;
         break;
-      case ChartType.Bar:
-        result[chartId] = generateBarChart(chartOption, storeData)!;
+      case ChartType.StatusTransitions:
+        result[chartId] = generateStatusTransitionsChart({ options: chartOption, storeData })!;
         break;
-      case ChartType.TreeMap:
+      case ChartType.Durations:
+        result[chartId] = generateDurationsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.DurationDynamics:
+        result[chartId] = generateDurationDynamicsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.StabilityDistribution:
+        result[chartId] = generateStabilityDistributionChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.TestBaseGrowthDynamics:
+        result[chartId] = generateTestBaseGrowthDynamicsChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.FBSUAgePyramid:
+        result[chartId] = generateFBSUAgePyramid({ options: chartOption, storeData })!;
+        break;
+      case ChartType.TrSeverities:
+        result[chartId] = generateTrSeveritiesChart({ options: chartOption, storeData })!;
+        break;
+      case ChartType.CoverageDiff:
         result[chartId] = generateTreeMapChart(chartOption, storeData)!;
         break;
-      case ChartType.HeatMap:
+      case ChartType.SuccessRateDistribution:
+        result[chartId] = generateTreeMapChart(chartOption, storeData)!;
+        break;
+      case ChartType.ProblemsDistribution:
         result[chartId] = generateHeatMapChart(chartOption, storeData)!;
         break;
-      case ChartType.Funnel:
-        result[chartId] = generateFunnelChart(chartOption, storeData)!;
+      case ChartType.TestingPyramid:
+        result[chartId] = generateTestingPyramidChart(chartOption, storeData)!;
         break;
       default:
-        result[chartId] = generateComingSoonChart(chartOption);
         break;
-    }
-
-    if (!result[chartId]) {
-      result[chartId] = generateComingSoonChart(chartOption as ComingSoonChartOptions);
     }
   }
 

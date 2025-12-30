@@ -14,6 +14,9 @@ const baseDir = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
   const devMode = argv?.mode === "development";
+  /**
+   * @type {import("webpack").Configuration}
+   */
   const config = {
     entry: "./src/index.tsx",
     output: {
@@ -21,7 +24,7 @@ export default (env, argv) => {
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
     },
-    devtool: devMode ? "inline-source-map" : false,
+    devtool: devMode ? "eval-source-map" : false,
     optimization: {
       minimize: !devMode,
       minimizer: [
@@ -110,6 +113,14 @@ export default (env, argv) => {
       "node:crypto": "crypto",
     },
   };
+
+  if (devMode) {
+    // Get and use source maps from dependencies
+    config.module.rules.push({
+      test: /\.js$/i,
+      extractSourceMap: true,
+    });
+  }
 
   if (SINGLE_FILE_MODE) {
     config.plugins.push(

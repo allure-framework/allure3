@@ -71,15 +71,6 @@ const fixtures = {
   ],
 };
 
-const selectEnvironment = async (page: Page, environment: string) => {
-  const envPicker = page.getByTestId("environment-picker");
-  const envPickerButton = page.getByTestId("environment-picker-button");
-
-  await envPickerButton.click();
-  await envPicker.getByText(environment).click();
-  await expect(envPickerButton).toHaveText(environment);
-};
-
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
 
@@ -217,7 +208,7 @@ test.describe("environments", () => {
     const envItems = page.getByTestId("test-result-env-item");
     const envTab = page.getByText("Environments");
 
-    await selectEnvironment(page, "bar");
+    await commonPage.selectEnv("bar");
     await treeLeaves.nth(0).click();
     await expect(envTab).toContainText("2");
     await envTab.click();
@@ -249,7 +240,7 @@ test.describe("environments", () => {
     await treeLeaves.nth(0).click();
     await expect(navCounter).toHaveText("1/4");
     await page.goto(bootstrap.url);
-    await selectEnvironment(page, "bar");
+    await commonPage.selectEnv("bar");
     await expect(treeLeaves).toHaveCount(1);
     await treeLeaves.nth(0).click();
     await expect(navCounter).toHaveText("1/1");
@@ -272,7 +263,7 @@ test.describe("environments", () => {
     const reportVariablesButton = page.getByTestId("report-variables-button");
     const reportVariablesItems = page.getByTestId("metadata-item");
 
-    await selectEnvironment(page, "foo");
+    await commonPage.selectEnv("foo");
     await expect(reportVariablesSection).toBeVisible();
     await expect(reportVariablesButton).toContainText("2");
     await expect(reportVariablesItems).toHaveCount(2);

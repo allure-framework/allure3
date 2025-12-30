@@ -27,21 +27,26 @@ export const ReportHeader = () => {
         <Loadable
           source={globalsStore}
           renderData={({ exitCode }) => {
-            const code = exitCode?.actual ?? exitCode.original;
-            const status = code === 0 ? "passed" : "failed";
+            const code = exitCode?.actual ?? exitCode?.original;
 
             return (
-              <div className={styles["report-wrapper-text"]}>
+              <div className={styles["report-wrapper-text"]} data-testid="report-header">
                 <div className={styles["report-header-title"]}>
-                  <TrStatus status={status} />
+                  {code !== undefined && <TrStatus status={code === 0 ? "passed" : "failed"} />}
                   <Heading size={"s"} tag={"h2"} className={styles["wrapper-header"]} data-testid="report-title">
                     {reportName}
                   </Heading>
                 </div>
                 <Text type="paragraph" size="m" className={styles["report-date"]} data-testid="report-data">
-                  {exitCode.actual !== undefined
-                    ? t("finishedAtBoth", { formattedCreatedAt, actual: exitCode.actual, original: exitCode.original })
-                    : t("finishedAtOriginal", { formattedCreatedAt, original: exitCode.original })}
+                  {code === undefined
+                    ? formattedCreatedAt
+                    : exitCode.actual !== undefined
+                      ? t("finishedAtBoth", {
+                          formattedCreatedAt,
+                          actual: exitCode.actual,
+                          original: exitCode.original,
+                        })
+                      : t("finishedAtOriginal", { formattedCreatedAt, original: exitCode.original })}
                 </Text>
               </div>
             );

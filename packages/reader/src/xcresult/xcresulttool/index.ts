@@ -1,14 +1,4 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import type {
-  RawStep,
-  RawTestAttachment,
-  RawTestLabel,
-  RawTestParameter,
-  RawTestResult,
-  RawTestStatus,
-  RawTestStepResult,
-} from "@allurereport/reader-api";
-import { randomUUID } from "node:crypto";
 import {
   ensureArray,
   ensureArrayWithItems,
@@ -21,8 +11,19 @@ import {
   isNumber,
   isObject,
   isString,
-} from "../../validation.js";
-import type { ShallowKnown, Unknown } from "../../validation.js";
+} from "@allurereport/reader-api";
+import type {
+  RawStep,
+  RawTestAttachment,
+  RawTestLabel,
+  RawTestParameter,
+  RawTestResult,
+  RawTestStatus,
+  RawTestStepResult,
+  ShallowKnown,
+  Unknown,
+} from "@allurereport/reader-api";
+import { randomUUID } from "node:crypto";
 import type { TestDetailsRunData, TestRunCoordinates, TestRunSelector } from "../model.js";
 import {
   DEFAULT_BUNDLE_NAME,

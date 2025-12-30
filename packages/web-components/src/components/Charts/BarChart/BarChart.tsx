@@ -1,27 +1,218 @@
-import { ResponsiveBar } from "@nivo/bar";
-import type { BarDatum } from "@nivo/bar";
-import type { FunctionalComponent } from "preact";
-import { EmptyDataStub } from "../EmptyDataStub";
-import { defaultBarChartConfig } from "./config.js";
-import { nivoTheme } from "./theme.js";
-import type { BarChartProps } from "./types.js";
+import type { AxisTickProps } from "@nivo/axes";
+import { type BarCustomLayerProps, type BarDatum, type ComputedDatum, ResponsiveBar } from "@nivo/bar";
+import type { CartesianMarkerProps } from "@nivo/core";
+import { useMemo } from "preact/hooks";
+import { Legends } from "../Legend";
+import { formatNumber } from "../Legend/LegendItem";
+import type { LegendItemValue } from "../Legend/LegendItem/types";
+import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
+import { BarChartTooltip } from "./BarChartTooltip";
+import { BottomAxisLine } from "./BottomAxisLine";
+import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
+import { TrendLinesLayer } from "./TrendLinesLayer";
+import { BarChartStateProvider } from "./context";
+import styles from "./styles.scss";
+import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
 
-export const BarChart: FunctionalComponent<BarChartProps<BarDatum>> = ({
-  width = "100%",
-  height = 400,
-  rootAriaLabel,
-  emptyLabel = "No data available",
-  emptyAriaLabel = "No data available",
-  data,
-  ...restProps
-}) => {
-  if (!data || data.length === 0) {
-    return <EmptyDataStub label={emptyLabel} width={width} height={height} ariaLabel={emptyAriaLabel} />;
-  }
+type BarChartProps<T extends BarDatum> = {
+  data: T[];
+  legend: LegendItemValue<T>[];
+  indexBy: Extract<keyof T, string>;
+  lines?: {
+    /**
+     * Corresponding key of the line in the legend
+     */
+    key: Extract<keyof T, string>;
+    curveSharpness?: number;
+  }[];
+  hideEmptyTrendLines?: boolean;
+  formatTrendValue?: (value: number, trendKey: Extract<keyof T, string>) => number | undefined;
+  formatLegendValue?: (legend: LegendItemValue<T>) => string | number | undefined;
+  formatIndexBy?: (value: T, indexBy: Extract<keyof T, string>) => string;
+  renderBottomTick?: (props: AxisTickProps<number | string>) => any;
+  bottomTickSize?: number;
+  onBarClick?: (value: ComputedDatum<T>) => void;
+  padding?: number;
+  hasValueFn?: (data: T) => boolean;
+  currentLocale?: string;
+  formatBottomTick?: (value: number | string, item: T) => string | number;
+  formatLeftTick?: (value: number | string) => string | number;
+  leftAxisTickValues?: number[];
+  bottomTickRotation?: number;
+  noLegend?: boolean;
+  minValue?: number;
+  maxValue?: number;
+  groupMode?: "grouped" | "stacked";
+  markers?: readonly CartesianMarkerProps<string | number>[];
+  colors?: (data: ComputedDatum<T>) => string;
+  layout?: "horizontal" | "vertical";
+};
+
+export const BarChart = <T extends BarDatum>(props: BarChartProps<T>) => {
+  const {
+    data,
+    legend,
+    indexBy,
+    renderBottomTick,
+    onBarClick,
+    padding = 0.5,
+    formatLegendValue,
+    formatIndexBy,
+    hasValueFn,
+    currentLocale = "en-US",
+    formatBottomTick = (value: number | string) => value,
+    formatLeftTick = (value: number | string) => formatNumber(value, currentLocale),
+    bottomTickRotation = 0,
+    noLegend = false,
+    minValue,
+    maxValue,
+    groupMode = "stacked",
+    bottomTickSize = 12,
+    markers = [],
+    colors,
+    leftAxisTickValues,
+    layout = "vertical",
+    formatTrendValue,
+  } = props;
+  const legendMap = useMemo(() => new Map(legend.map((item) => [item.id, item])), [legend]);
+  const barKeys = useMemo(
+    () => legend.filter((item) => item.type !== "point" && item.type !== "tree").map((item) => item.id),
+    [legend],
+  );
+  const isEmpty = useMemo(() => isEmptyChart(data, indexBy), [data, indexBy]);
+
+  const barSize = useMemo(() => {
+    if (data.length >= 8) {
+      return "s";
+    }
+
+    if (data.length >= 6) {
+      return "m";
+    }
+
+    return "l";
+  }, [data]);
+
+  const isInverted = layout === "horizontal";
 
   return (
-    <div role="img" aria-label={rootAriaLabel} tabIndex={0} style={{ width, height }}>
-      <ResponsiveBar data={data} {...defaultBarChartConfig} {...restProps} theme={nivoTheme} />
+    <div className={styles.container}>
+      <div className={styles.barContainer}>
+        <BarChartStateProvider>
+          <ResponsiveBar
+            data={data}
+            theme={CHART_THEME}
+            groupMode={groupMode}
+            layout={layout}
+            defaultHeight={275}
+            keys={barKeys}
+            indexBy={indexBy}
+            margin={{
+              top: 10,
+              right: 20,
+              bottom: bottomTickRotation > 0 ? 60 : 40,
+              left: computeVerticalAxisMargin({
+                data,
+                layout,
+                keys: barKeys,
+                indexBy,
+                stacked: true,
+                position: "left",
+                formatLeftTick,
+                formatBottomTick,
+              }),
+            }}
+            padding={padding}
+            innerPadding={0}
+            valueScale={{ type: "linear", nice: true, min: minValue, max: maxValue }}
+            indexScale={{ type: "band", round: true }}
+            layers={[
+              "grid",
+              "axes",
+              BottomAxisLine,
+              (layerProps: BarCustomLayerProps<T>) => (
+                <BarChartBars<T>
+                  {...layerProps}
+                  indexBy={indexBy}
+                  layout={layout}
+                  legend={legend}
+                  barSize={barSize}
+                  groupMode={groupMode}
+                />
+              ),
+              (layerProps: BarCustomLayerProps<T>) => (
+                <TrendLinesLayer {...layerProps} legend={legend} indexBy={indexBy} formatValue={formatTrendValue} />
+              ),
+              "markers",
+              (layerProps: BarCustomLayerProps<T>) => (
+                <BarChartItemHoverLayer<T>
+                  {...layerProps}
+                  hasValueFn={hasValueFn}
+                  indexBy={indexBy}
+                  layout={layout}
+                  tooltip={({ value }) =>
+                    (
+                      <BarChartTooltip
+                        allowZeroValues
+                        value={value}
+                        indexBy={indexBy}
+                        legend={legend}
+                        formatLegendValue={formatLegendValue}
+                        formatIndexBy={formatIndexBy}
+                      />
+                    ) as any
+                  }
+                />
+              ),
+            ]}
+            markers={markers}
+            colors={
+              typeof colors === "function"
+                ? colors
+                : (d) => legendMap.get(d.id as Extract<keyof T, string>)?.color ?? "var(--bg-base-secondary)"
+            }
+            enableLabel={false}
+            enableTotals={false}
+            axisTop={null}
+            axisRight={null}
+            axisBottom={{
+              tickSize: 0,
+              tickPadding: 5,
+              tickRotation: bottomTickRotation,
+              truncateTickAt: 0,
+              renderTick: renderBottomTick,
+              style: {
+                ticks: {
+                  text: {
+                    fontSize: bottomTickSize,
+                  },
+                },
+              },
+              format: isInverted
+                ? formatLeftTick
+                : (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!),
+              tickValues:
+                data.length > 30 ? data.filter((_, index) => !(index % 2)).map((item) => item[indexBy]) : undefined,
+            }}
+            axisLeft={{
+              tickSize: 0,
+              tickPadding: 8,
+              tickRotation: 0,
+              truncateTickAt: 0,
+              format: isInverted
+                ? formatBottomTick
+                  ? (id) => formatBottomTick(id, data.find((item) => item[indexBy] === id)!)
+                  : undefined
+                : formatLeftTick,
+              tickValues: leftAxisTickValues,
+            }}
+            animate={!REDUCE_MOTION}
+            motionConfig={CHART_MOTION_CONFIG}
+            onClick={onBarClick}
+          />
+        </BarChartStateProvider>
+      </div>
+      {!isEmpty && !noLegend && <Legends data={legend} />}
     </div>
   );
 };

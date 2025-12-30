@@ -1,86 +1,32 @@
-import type { ChartId } from "@allurereport/charts-api";
-import { BarChartType, ChartDataType, ChartType, FunnelChartType, TreeMapChartType } from "@allurereport/charts-api";
-import type { SeverityLevel, TestStatus } from "@allurereport/core-api";
-import { severityLevels, statusesList } from "@allurereport/core-api";
+import type {
+  ChartId,
+  CurrentStatusChartData,
+  DurationDynamicsChartData,
+  DurationsChartData,
+  FBSUAgePyramidChartData,
+  StabilityDistributionChartData,
+  StatusDynamicsChartData,
+  StatusTransitionsChartData,
+  TestBaseGrowthDynamicsChartData,
+  TestingPyramidChartData,
+  TrSeveritiesChartData,
+} from "@allurereport/charts-api";
+import { ChartType } from "@allurereport/charts-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
-import { generateLayerColors, resolveCSSVarColor, severityColors, statusChangeColors, statusColors } from "./colors.js";
+import { nanoid } from "nanoid";
+import { resolveCSSVarColor, statusColors } from "./colors.js";
 import type {
   ChartsData,
   ChartsDataWithEnvs,
-  ResponseBarChartData,
   ResponseHeatMapChartData,
-  ResponseTestingPyramidChartData,
   ResponseTreeMapChartData,
-  ResponseTrendChartData,
   TreeMapTooltipAccessor,
-  TrendChartItem,
-  UIBarChartData,
   UIChartData,
   UIChartsDataWithEnvs,
   UIHeatMapChartData,
-  UITestingPyramidChartData,
   UITreeMapChartData,
-  UITrendChartData,
 } from "./types.js";
-
-export const createTrendChartDataGeneric = <T extends TestStatus | SeverityLevel>(
-  getChart: () => ResponseTrendChartData | undefined,
-  getGroups: () => readonly T[],
-  getColor: (group: T) => string,
-): UITrendChartData | undefined => {
-  const chart = getChart();
-  if (!chart) {
-    return undefined;
-  }
-
-  const items = getGroups().reduce((acc, group) => {
-    const pointsByGroupBy =
-      chart.series[group]?.map((pointId) => {
-        const point = chart.points[pointId];
-        return {
-          x: point.x,
-          y: point.y,
-        };
-      }) ?? [];
-
-    if (pointsByGroupBy.length) {
-      acc.push({
-        id: group.charAt(0).toUpperCase() + group.slice(1),
-        data: pointsByGroupBy,
-        color: getColor(group),
-      });
-    }
-
-    return acc;
-  }, [] as TrendChartItem[]);
-
-  return {
-    type: chart.type,
-    dataType: chart.dataType,
-    mode: chart.mode,
-    title: chart.title,
-    items,
-    slices: Object.values(chart.slices),
-    min: chart.min,
-    max: chart.max,
-  } as UITrendChartData;
-};
-
-export const createBarChartDataGeneric = <T extends string>(
-  getChart: () => ResponseBarChartData | undefined,
-  getColors: () => Record<T, string>,
-): UIBarChartData | undefined => {
-  const chart = getChart();
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: getColors(),
-  };
-};
 
 export const createTreeMapChartDataGeneric = (
   getChart: () => ResponseTreeMapChartData | undefined,
@@ -115,80 +61,6 @@ export const createHeatMapChartDataGeneric = (
   return {
     ...chart,
     colors,
-  };
-};
-
-export const createStatusTrendChartData = (chartId: ChartId, res: ChartsData): UITrendChartData | undefined =>
-  createTrendChartDataGeneric(
-    () => res[chartId] as ResponseTrendChartData | undefined,
-    () => statusesList,
-    (status) => statusColors[status],
-  );
-
-export const createSeverityTrendChartData = (chartId: ChartId, res: ChartsData): UITrendChartData | undefined =>
-  createTrendChartDataGeneric(
-    () => res[chartId] as ResponseTrendChartData | undefined,
-    () => severityLevels,
-    (severity) => severityColors[severity],
-  );
-
-export const createStatusBySeverityBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusColors,
-  );
-
-export const createStatusTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusColors,
-  );
-
-export const createStatusChangeTrendBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined =>
-  createBarChartDataGeneric(
-    () => res[chartId] as ResponseBarChartData | undefined,
-    () => statusChangeColors,
-  );
-
-export const createDurationsByLayerBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  // Extract layer names from chart data
-  const layerNames = chart.keys as string[];
-
-  return {
-    ...chart,
-    colors: generateLayerColors(layerNames),
-  };
-};
-
-export const createFbsuAgePyramidBarChartData = (chartId: ChartId, res: ChartsData): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: statusColors,
-  };
-};
-
-export const createStabilityRateDistributionBarChartData = (
-  chartId: ChartId,
-  res: ChartsData,
-): UIBarChartData | undefined => {
-  const chart = res[chartId] as ResponseBarChartData | undefined;
-  if (!chart) {
-    return undefined;
-  }
-
-  return {
-    ...chart,
-    colors: {},
   };
 };
 
@@ -278,58 +150,15 @@ export const createProblemsDistributionHeatMapChartData = (
   );
 };
 
-export const createaTrendChartData = (
-  chartId: string,
-  chartData: ResponseTrendChartData,
-  res: ChartsData,
-): UITrendChartData | undefined => {
-  if (chartData.dataType === ChartDataType.Status) {
-    return createStatusTrendChartData(chartId, res);
-  } else if (chartData.dataType === ChartDataType.Severity) {
-    return createSeverityTrendChartData(chartId, res);
-  }
-};
-
-export const createBarChartData = (
-  chartId: string,
-  chartData: ResponseBarChartData,
-  res: ChartsData,
-): UIBarChartData | undefined => {
-  switch (chartData.dataType) {
-    case BarChartType.StatusBySeverity:
-      return createStatusBySeverityBarChartData(chartId, res);
-    case BarChartType.StatusTrend:
-      return createStatusTrendBarChartData(chartId, res);
-    case BarChartType.StatusChangeTrend:
-      return createStatusChangeTrendBarChartData(chartId, res);
-    case BarChartType.DurationsByLayer:
-      return createDurationsByLayerBarChartData(chartId, res);
-    case BarChartType.FbsuAgePyramid:
-      return createFbsuAgePyramidBarChartData(chartId, res);
-    case BarChartType.StabilityRateDistribution:
-      return createStabilityRateDistributionBarChartData(chartId, res);
-  }
-};
-
 export const createTreeMapChartData = (
   chartId: ChartId,
   chartData: ResponseTreeMapChartData,
   res: ChartsData,
 ): UITreeMapChartData | undefined => {
-  if (chartData.dataType === TreeMapChartType.SuccessRateDistribution) {
+  if (chartData.type === ChartType.SuccessRateDistribution) {
     return createSuccessRateDistributionTreeMapChartData(chartId, res);
-  } else if (chartData.dataType === TreeMapChartType.CoverageDiff) {
+  } else if (chartData.type === ChartType.CoverageDiff) {
     return createCoverageDiffTreeMapChartData(chartId, res);
-  }
-};
-
-export const createFunnelChartData = (
-  chartId: string,
-  chartData: ResponseTestingPyramidChartData,
-): UITestingPyramidChartData | undefined => {
-  switch (chartData.dataType) {
-    case FunnelChartType.TestingPyramid:
-      return chartData;
   }
 };
 
@@ -340,34 +169,36 @@ export const createHeatMapChartData = (chartId: ChartId, res: ChartsData): UIHea
 export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
   return Object.entries(res).reduce(
     (acc, [chartId, chart]) => {
-      if (chart.type === ChartType.Trend) {
-        const chartData = createaTrendChartData(chartId, chart, res);
-        if (chartData) {
-          acc[chartId] = chartData;
-        }
-      } else if (chart.type === ChartType.Bar) {
-        const chartData = createBarChartData(chartId, chart, res);
-        if (chartData) {
-          acc[chartId] = chartData;
-        }
-      } else if (chart.type === ChartType.TreeMap) {
+      if (chart.type === ChartType.CurrentStatus) {
+        acc[chartId] = res[chartId] as CurrentStatusChartData;
+      } else if (chart.type === ChartType.StatusDynamics) {
+        acc[chartId] = res[chartId] as StatusDynamicsChartData;
+      } else if (chart.type === ChartType.StatusTransitions) {
+        acc[chartId] = res[chartId] as StatusTransitionsChartData;
+      } else if (chart.type === ChartType.Durations) {
+        acc[chartId] = res[chartId] as DurationsChartData;
+      } else if (chart.type === ChartType.StabilityDistribution) {
+        acc[chartId] = res[chartId] as StabilityDistributionChartData;
+      } else if (chart.type === ChartType.TestBaseGrowthDynamics) {
+        acc[chartId] = res[chartId] as TestBaseGrowthDynamicsChartData;
+      } else if (chart.type === ChartType.FBSUAgePyramid) {
+        acc[chartId] = res[chartId] as FBSUAgePyramidChartData;
+      } else if (chart.type === ChartType.TrSeverities) {
+        acc[chartId] = res[chartId] as TrSeveritiesChartData;
+      } else if (chart.type === ChartType.DurationDynamics) {
+        acc[chartId] = res[chartId] as DurationDynamicsChartData;
+      } else if (chart.type === ChartType.CoverageDiff || chart.type === ChartType.SuccessRateDistribution) {
         const chartData = createTreeMapChartData(chartId, chart, res);
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if (chart.type === ChartType.HeatMap) {
+      } else if (chart.type === ChartType.ProblemsDistribution) {
         const chartData = createHeatMapChartData(chartId, res);
         if (chartData) {
           acc[chartId] = chartData;
         }
-      } else if (chart.type === ChartType.Funnel) {
-        const chartData = createFunnelChartData(chartId, chart);
-
-        if (chartData) {
-          acc[chartId] = chartData;
-        }
-      } else if ([ChartType.Pie, ChartType.ComingSoon].includes(chart.type)) {
-        return acc;
+      } else if (chart.type === ChartType.TestingPyramid) {
+        acc[chartId] = res[chartId] as TestingPyramidChartData;
       }
 
       return acc;
@@ -392,4 +223,50 @@ export const createChartsWithEnvs = (res: ChartsDataWithEnvs): UIChartsDataWithE
   }
 
   return result;
+};
+
+export const createHashStorage = () => {
+  const hashes = new Map<string, string>();
+  return {
+    get: (key: string) => {
+      if (!hashes.has(key)) {
+        hashes.set(key, nanoid());
+      }
+      return hashes.get(key) as string;
+    },
+    set: (key: string, value: string) => hashes.set(key, value),
+  };
+};
+
+export const createMapWithDefault = <K, V>(defaultValue: V) => {
+  const map = new Map<K, V>();
+
+  const createDefaultValue = (): V => {
+    if (Array.isArray(defaultValue)) {
+      return [...defaultValue] as V;
+    }
+
+    if (typeof defaultValue === "object") {
+      return { ...defaultValue } as V;
+    }
+
+    return defaultValue;
+  };
+
+  return {
+    set: (key: K, value: V) => map.set(key, value),
+    get: (key: K) => {
+      if (!map.has(key)) {
+        map.set(key, createDefaultValue());
+      }
+
+      return map.get(key)!;
+    },
+    get values() {
+      return Array.from(map.values());
+    },
+    get entries() {
+      return Array.from(map.entries());
+    },
+  } as const;
 };

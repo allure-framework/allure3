@@ -1,5 +1,8 @@
 import { AllureReport, readConfig } from "@allurereport/core";
 import SlackPlugin from "@allurereport/plugin-slack";
+import * as console from "node:console";
+import { existsSync } from "node:fs";
+import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { SlackCommand } from "../../src/commands/slack.js";
 
@@ -11,6 +14,18 @@ const fixtures = {
   cwd: ".",
 };
 
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  error: vi.fn(),
+}));
+vi.mock("node:process", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exit: vi.fn(),
+}));
+vi.mock("node:fs", async (importOriginal) => ({
+  ...(await importOriginal()),
+  existsSync: vi.fn(),
+}));
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
   return {
@@ -25,7 +40,27 @@ beforeEach(() => {
 });
 
 describe("slack command", () => {
+  it("should exit with code 1 when resultsDir doesn't exist", async () => {
+    (existsSync as Mock).mockReturnValueOnce(false);
+
+    const command = new SlackCommand();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+    command.token = fixtures.token;
+    command.channel = fixtures.channel;
+
+    await command.execute();
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(AllureReport).not.toHaveBeenCalled();
+  });
+
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [],
     });
@@ -50,6 +85,7 @@ describe("slack command", () => {
   });
 
   it("should initialize allure report with provided plugin options when config exists", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {

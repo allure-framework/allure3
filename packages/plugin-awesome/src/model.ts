@@ -5,17 +5,21 @@ export type AwesomeOptions = {
   reportName?: string;
   singleFile?: boolean | string;
   logo?: string;
-  theme?: "light" | "dark";
-  reportLanguage?: "en" | "ru";
+  theme?: "light" | "dark" | "auto";
+  reportLanguage?: "en";
   groupBy?: string[];
   layout?: "base" | "split";
   environments?: Record<string, EnvironmentsConfig>;
   ci?: CiDescriptor;
   filter?: (testResult: TestResult) => boolean;
   charts?: ChartOptions[];
+  timeline?: {
+    minDuration?: number;
+  };
   sections?: string[];
   defaultSection?: string;
   publish?: boolean;
+  appendTitlePath?: boolean;
 };
 
 export type TemplateManifest = Record<string, string>;

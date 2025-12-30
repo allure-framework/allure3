@@ -1,3 +1,4 @@
+import { formatDuration } from "@allurereport/core-api";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale, getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
@@ -25,8 +26,9 @@ const namespaces = [
   "environments",
   "charts",
   "sections",
-  "transitions.description",
-];
+  "timeline",
+  "transitions",
+] as const;
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
 export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
@@ -61,10 +63,56 @@ export const waitForI18next = i18next
     fallbackLng: "en",
     ns: namespaces,
     interpolation: { escapeValue: false },
+  })
+  .then(() => {
+    i18next.services.formatter.add("capitalize", (value) => {
+      return value.charAt(0).toLocaleUpperCase() + value.slice(1);
+    });
+    i18next.services.formatter.add("timestamp_date", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+      });
+      return formatter.format(value);
+    });
+    i18next.services.formatter.add("timestamp_long", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: false,
+      });
+      return formatter.format(value).replace(",", ` ${i18next.t("ui:at")}`);
+    });
+    i18next.services.formatter.add("timestamp_long_no_seconds", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: false,
+      });
+      return formatter.format(value).replace(",", ` ${i18next.t("ui:at")}`);
+    });
+    i18next.services.formatter.add("format_duration", (value: number) => {
+      return formatDuration(value);
+    });
   });
 
-export const useI18n = (namespace?: string) => {
-  const t = computed(() => (key: string, options?: TOptions) => i18next.t(key, { ns: namespace, ...options }));
+export const useI18n = (namespace: (typeof namespaces)[number]) => {
+  const t = computed(
+    () =>
+      (key: string, options: TOptions = {}) =>
+        i18next.t(key, { ns: namespace, ...options }),
+  );
 
   return {
     t: t.value,

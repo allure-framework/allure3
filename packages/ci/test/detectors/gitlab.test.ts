@@ -33,6 +33,28 @@ describe("gitlab", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should return repository name when CI_PROJECT_NAME is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_PROJECT_NAME") {
+          return "myrepo";
+        }
+      });
+
+      expect(gitlab.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when CI_PROJECT_NAME is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "CI_PROJECT_NAME") {
+          return "";
+        }
+      });
+
+      expect(gitlab.repoName).toBe("");
+    });
+  });
+
   describe("jobUID", () => {
     it("should return the correct job UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

@@ -3,8 +3,8 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { setTreeStatus, treeFiltersStore } from "@/stores/tree";
-import { Tab, Tabs, TabsList, useTabsContext } from "../Tabs";
+import { setTreeStatus, treeStatus } from "@/stores/treeFilters";
+import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
@@ -15,13 +15,12 @@ const ALL_TAB = "total";
 
 const Header = () => {
   const { t } = useI18n("statuses");
-  const { currentTab, setCurrentTab } = useTabsContext();
 
   return (
     <header className={styles.header}>
       <HeaderActions />
       <div className={styles.headerRow}>
-        <TabsList>
+        <ReportTabsList>
           <Loadable
             source={statsByEnvStore}
             renderData={(stats) => {
@@ -31,29 +30,28 @@ const Header = () => {
                   return { status, value: currentEnv[status] };
                 })
                 .filter(({ value }) => value);
-              const isStatListHaveCurrentTab = statList.filter(({ status }) => status === currentTab);
-              if (!isStatListHaveCurrentTab.length && currentTab !== "total") {
-                setCurrentTab("total");
+              const isStatListHaveCurrentTab = statList.filter(({ status }) => status === treeStatus.value);
+              if (!isStatListHaveCurrentTab.length && treeStatus.value !== "total") {
                 setTreeStatus("total");
               }
 
               const allStatuses = statList.map(({ status, value }) => (
-                <Tab data-testid={`tab-${status}`} key={status} id={status}>
+                <ReportTab data-testid={`tab-${status}`} key={status} id={status}>
                   {capitalize(t(status) ?? status)} <Counter count={value} size="s" status={status} />
-                </Tab>
+                </ReportTab>
               ));
 
               return (
                 <>
-                  <Tab data-testid="tab-all" id={ALL_TAB}>
+                  <ReportTab data-testid="tab-all" id={ALL_TAB}>
                     {capitalize(t("total"))} <Counter count={currentEnv?.total ?? 0} size="s" />
-                  </Tab>
+                  </ReportTab>
                   {allStatuses}
                 </>
               );
             }}
           />
-        </TabsList>
+        </ReportTabsList>
         <SortBy />
       </div>
     </header>
@@ -69,14 +67,11 @@ const Body = () => {
 };
 
 export const ReportBody = () => {
-  const initialTab = treeFiltersStore.value.status;
   return (
     <ReportContentProvider>
       <section>
-        <Tabs initialTab={initialTab}>
-          <Header />
-          <Body />
-        </Tabs>
+        <Header />
+        <Body />
       </section>
     </ReportContentProvider>
   );

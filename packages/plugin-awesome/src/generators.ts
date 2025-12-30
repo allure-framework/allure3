@@ -1,3 +1,4 @@
+import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -28,6 +29,7 @@ import type {
 } from "@allurereport/plugin-api";
 import {
   createTreeByLabels,
+  createTreeByLabelsAndTitlePath,
   createTreeByTitlePath,
   filterTree,
   preciseTreeLabels,
@@ -142,7 +144,7 @@ export const generateTestResults = async (
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr);
 
-    convertedTr.history = await store.historyByTrId(tr.id);
+    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retriesCount = convertedTr.retries.length;
     convertedTr.retry = convertedTr.retriesCount > 0;
@@ -197,11 +199,21 @@ export const generateTree = async (
   treeFilename: string,
   labels: string[],
   tests: AwesomeTestResult[],
+  options?: {
+    appendTitlePath?: boolean;
+  },
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> = labels.length
-    ? buildTreeByLabels(visibleTests, labels)
-    : buildTreeByTitlePath(visibleTests);
+  const { appendTitlePath } = options || {};
+  let tree: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+
+  if (labels.length === 0) {
+    tree = buildTreeByTitlePath(visibleTests);
+  } else if (appendTitlePath && labels.length) {
+    tree = buildTreeByLabelsAndTitlePathCombined(visibleTests, labels);
+  } else {
+    tree = buildTreeByLabels(visibleTests, labels);
+  }
 
   // @ts-ignore
   filterTree(tree, (leaf) => !leaf.hidden);
@@ -241,25 +253,48 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     leafFactory,
     undefined,
     (group, leaf) => incrementStatistic(group.statistic, leaf.status),
-  );
+  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+
+  if (!testsWithoutTitlePath.length) {
+    return treeByTitlePath;
+  }
 
   const defaultLabels = preciseTreeLabels(["parentSuite", "suite", "subSuite"], testsWithoutTitlePath, ({ labels }) =>
     labels.map(({ name }) => name),
   );
-  // fallback if integrations return empty titlePath
-  const treeByDefaultLabels = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
-    testsWithoutTitlePath,
-    defaultLabels,
-    leafFactory,
-    undefined,
-    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
-  );
 
-  const mergedLeavesById = { ...treeByTitlePath.leavesById, ...treeByDefaultLabels.leavesById } as Record<
-    string,
-    AwesomeTreeLeaf
-  >;
-  const mergedGroupsById = { ...treeByTitlePath.groupsById, ...treeByDefaultLabels.groupsById };
+  let treeByDefaultLabels: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> | null = null;
+
+  if (defaultLabels.length) {
+    treeByDefaultLabels = createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+      testsWithoutTitlePath,
+      defaultLabels,
+      leafFactory,
+      undefined,
+      (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+    );
+  } else {
+    for (const test of testsWithoutTitlePath) {
+      const leaf = leafFactory(test);
+      treeByTitlePath.leavesById[leaf.nodeId] = leaf;
+      if (!treeByTitlePath.root.leaves) {
+        treeByTitlePath.root.leaves = [];
+      }
+      treeByTitlePath.root.leaves.push(leaf.nodeId);
+    }
+
+    return treeByTitlePath;
+  }
+
+  const mergedLeavesById = {
+    ...treeByTitlePath.leavesById,
+    ...treeByDefaultLabels.leavesById,
+  };
+
+  const mergedGroupsById = {
+    ...treeByTitlePath.groupsById,
+    ...treeByDefaultLabels.groupsById,
+  };
 
   const mergedRootLeaves = Array.from(
     new Set([...(treeByTitlePath.root.leaves ?? []), ...(treeByDefaultLabels.root.leaves ?? [])]),
@@ -279,6 +314,18 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
   };
 };
 
+const buildTreeByLabelsAndTitlePathCombined = (
+  tests: AwesomeTestResult[],
+  labels: string[],
+): TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> =>
+  createTreeByLabelsAndTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+    tests,
+    labels,
+    leafFactory,
+    undefined,
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  );
+
 const leafFactory = ({
   id,
   name,
@@ -286,9 +333,10 @@ const leafFactory = ({
   duration,
   flaky,
   start,
-  transition,
   retry,
   retriesCount,
+  transition,
+  tooltips,
 }: AwesomeTestResult): AwesomeTreeLeaf => ({
   nodeId: id,
   name,
@@ -299,6 +347,7 @@ const leafFactory = ({
   retry,
   retriesCount,
   transition,
+  tooltips,
 });
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
@@ -391,12 +440,15 @@ export const generateGlobals = async (
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
   },
 ) => {
-  const { globalExitCode = { original: 0 }, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const { globalExitCode, globalAttachments = [], globalErrors = [], contentFunction } = payload;
   const globals: PluginGlobals = {
-    exitCode: globalExitCode,
     errors: globalErrors,
     attachments: [],
   };
+
+  if (globalExitCode) {
+    globals.exitCode = globalExitCode;
+  }
 
   for (const attachment of globalAttachments) {
     const src = `${attachment.id}${attachment.ext}`;
@@ -437,14 +489,13 @@ export const generateStaticFiles = async (
     reportLanguage = "en",
     singleFile,
     logo = "",
-    theme = "light",
+    theme = "auto",
     groupBy,
     reportFiles,
     reportDataFiles,
     reportUuid,
     allureVersion,
     layout = "base",
-    charts = [],
     defaultSection = "",
     ci,
   } = payload;
@@ -452,11 +503,7 @@ export const generateStaticFiles = async (
   const manifest = await readTemplateManifest(!!payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
-  const sections: string[] = [];
-
-  if (charts.length) {
-    sections.push("charts");
-  }
+  const sections: string[] = ["charts", "timeline"];
 
   if (!payload.singleFile) {
     for (const key in manifest) {
@@ -545,11 +592,7 @@ export const generateAllCharts = async (
   options: AwesomeOptions,
   context: PluginContext,
 ): Promise<void> => {
-  const { charts } = options;
-
-  if (!charts) {
-    return;
-  }
+  const { charts = defaultChartsConfig } = options;
 
   const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID);
 

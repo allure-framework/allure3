@@ -14,8 +14,8 @@ jobs:
     name: Lint
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20.x'
           cache: 'yarn'
@@ -35,7 +35,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-node@v4
       with:
         node-version: '20.x'
@@ -53,7 +53,8 @@ jobs:
     - name: Test Project
       run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
+      if: always()
       with:
         name: allure-results-${{ matrix.os }}
         path: ./allure-results-${{ matrix.os }}.zip
@@ -62,31 +63,36 @@ jobs:
     needs: test
     name: Build report
     runs-on: ubuntu-latest
+    if: always()
     permissions:
       contents: write
       pull-requests: write
+      checks: write
     env:
       ALLURE_SERVICE_URL: ${{ secrets.ALLURE_SERVICE_URL }}
       ALLURE_SERVICE_PROJECT: ${{ secrets.ALLURE_SERVICE_PROJECT }}
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20.x'
           cache: 'yarn'
       - name: Download allure results from Ubuntu
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
+        continue-on-error: true
         with:
           name: allure-results-ubuntu-latest
           path: ./
       - name: Download allure results from macOS
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
+        continue-on-error: true
         with:
           name: allure-results-macos-latest
           path: ./
       - name: Download allure results from Windows
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
+        continue-on-error: true
         with:
           name: allure-results-windows-latest
           path: ./
@@ -103,7 +109,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report

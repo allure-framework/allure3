@@ -357,9 +357,70 @@ export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = D
         statistic: emptyStatistic(),
       }) as unknown as TreeGroup<G>);
 
+  return createTree(
+    data,
+    (item) => ((item as TestResult).titlePath ?? []).map((segment: string) => [segment]),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
+  );
+};
+
+const byLabelsAndTitlePath = (item: TestResult, labelNames: string[]): string[][] => {
+  const leaves: string[][] = [];
+
+  for (const labelName of labelNames) {
+    const values = item.labels.filter((label) => label.name === labelName).map((label) => label.value ?? "");
+
+    if (!values.length) {
+      continue;
+    }
+
+    leaves.push(values);
+  }
+
+  const titlePath = item.titlePath;
+  if (Array.isArray(titlePath) && titlePath.length > 0) {
+    for (const segment of titlePath) {
+      leaves.push([segment]);
+    }
+  }
+
+  return leaves;
+};
+
+export const createTreeByLabelsAndTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  labelNames: string[] = [],
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
   return createTree<T, L, G>(
     data,
-    (item: any) => (item.titlePath ?? []).map((segment: string) => [segment]),
+    (item) => byLabelsAndTitlePath(item as TestResult, labelNames),
     leafFactoryFn,
     groupFactoryFn,
     addLeafToGroup,

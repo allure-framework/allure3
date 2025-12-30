@@ -1,3 +1,4 @@
+import { formatDuration } from "@allurereport/core-api";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale, getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
@@ -22,6 +23,7 @@ const namespaces = [
   "split",
   "modal",
   "charts",
+  "transitions",
 ];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
@@ -57,6 +59,48 @@ export const waitForI18next = i18next
     fallbackLng: "en",
     ns: namespaces,
     interpolation: { escapeValue: false },
+  })
+  .then(() => {
+    i18next.services.formatter.add("capitalize", (value) => {
+      return value.charAt(0).toLocaleUpperCase() + value.slice(1);
+    });
+    i18next.services.formatter.add("timestamp_date", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+      });
+      return formatter.format(value);
+    });
+    i18next.services.formatter.add("timestamp_long", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: false,
+      });
+      return formatter.format(value).replace(",", ` ${i18next.t("ui:at")}`);
+    });
+    i18next.services.formatter.add("timestamp_long_no_seconds", (value: number, lng, options) => {
+      const formatter = new Intl.DateTimeFormat(lng, {
+        ...options,
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: false,
+      });
+      return formatter.format(value).replace(",", ` ${i18next.t("ui:at")}`);
+    });
+    i18next.services.formatter.add("format_duration", (value: number) => {
+      return formatDuration(value);
+    });
   });
 
 export const useI18n = (namespace?: string) => {

@@ -1,6 +1,7 @@
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import { clsx } from "clsx";
-import { type ComponentChildren, type VNode, createContext } from "preact";
+import { type ComponentChildren, type FunctionalComponent, type VNode, createContext } from "preact";
+import { createPortal } from "preact/compat";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import check from "@/assets/svg/line-general-check.svg";
 import { SvgIcon } from "@/components/SvgIcon";
@@ -13,7 +14,7 @@ type MenuContextT = {
 
 const MenuContext = createContext<MenuContextT | null>(null);
 
-export const useMenuContext = () => {
+const useMenuContext = () => {
   const context = useContext(MenuContext);
 
   if (!context) {
@@ -38,12 +39,11 @@ export const Menu = (props: {
     size = "m",
     isInitialOpened = false,
     placement = "bottom-end",
+    ...rest
   } = props;
-
   const [isOpened, setIsOpened] = useState(isInitialOpened);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-
   const handleTriggerClick = () => {
     setIsOpened(!isOpened);
   };
@@ -61,7 +61,6 @@ export const Menu = (props: {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpened]);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!isOpened) {
@@ -85,7 +84,6 @@ export const Menu = (props: {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [isOpened]);
-
   useEffect(() => {
     const updatePosition = () => {
       if (!menuRef.current && !triggerRef.current) {
@@ -96,13 +94,14 @@ export const Menu = (props: {
       computePosition(triggerRef.current, menuRef.current, {
         placement,
         middleware: [offset(6), flip(), shift({ padding: 5 })],
-      }).then(({ x, y }) => {
+        strategy: "fixed",
+      }).then(({ x, y, strategy }) => {
         if (menuRef.current) {
           Object.assign(menuRef.current.style, {
-            "left": `${x}px`,
-            "top": `${y}px`,
-            "position": "absolute",
-            "z-index": 10,
+            left: `${x}px`,
+            top: `${y}px`,
+            position: strategy,
+            zIndex: 1,
           });
         }
       });
@@ -129,15 +128,18 @@ export const Menu = (props: {
             })}
           </MenuTriggerWrapper>
         )}
-        <div ref={menuRef}>
-          {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
-        </div>
+        {createPortal(
+          <div ref={menuRef} {...rest}>
+            {isOpened && <aside className={clsx(styles.menu, styles[`size-${size}`])}>{children}</aside>}
+          </div>,
+          document.body,
+        )}
       </>
     </MenuContext.Provider>
   );
 };
 
-Menu.Section = (props: { children: ComponentChildren }) => {
+const MenuSection: FunctionalComponent = (props) => {
   const { children, ...rest } = props;
 
   return (
@@ -147,6 +149,10 @@ Menu.Section = (props: { children: ComponentChildren }) => {
   );
 };
 
+Menu.Section = MenuSection;
+
+Menu.Section.displayName = "Menu.Section";
+
 type ItemProps = {
   children: ComponentChildren;
   onClick?: () => void;
@@ -155,15 +161,15 @@ type ItemProps = {
   closeMenuOnClick?: boolean;
   ariaLabel?: string;
   setIsOpened?: (isOpened: boolean) => void;
+  dataTestId?: string;
 };
 
-Menu.Item = (props: ItemProps) => {
+const MenuItem: FunctionalComponent<ItemProps> = (props) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { setIsOpened } = useMenuContext();
   const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
   const isInteractive = typeof onClick === "function";
   const hasLeadingIcon = typeof leadingIcon === "string";
-
   const handleItemClick = (e: MouseEvent) => {
     if (isInteractive && closeMenuOnClick) {
       e.stopPropagation();
@@ -194,13 +200,15 @@ Menu.Item = (props: ItemProps) => {
   );
 };
 
-Menu.ItemWithCheckmark = (
-  props: ItemProps & {
-    isChecked: boolean;
-  },
-) => {
+Menu.Item = MenuItem;
+Menu.Item.displayName = "Menu.Item";
+
+const MenuItemWithCheckmark: FunctionalComponent<ItemProps & { isChecked: boolean }> = (props) => {
   const { isChecked = false, ...itemProps } = props;
   return (
-    <Menu.Item {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
+    <MenuItem {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
   );
 };
+
+Menu.ItemWithCheckmark = MenuItemWithCheckmark;
+Menu.ItemWithCheckmark.displayName = "Menu.ItemWithCheckmark";

@@ -16,30 +16,32 @@ export type Allure2ReportOptions = {
   createdAt: number;
 };
 
-export type AwesomeReportOptions = {
+export type ClassicReportOptions = {
   reportName?: string;
   logo?: string;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: "en";
   createdAt: number;
   reportUuid: string;
+  allureVersion?: string;
+  cacheKey?: string;
 };
 
-export type AwesomeFixtureResult = Omit<
+export type ClassicFixtureResult = Omit<
   TestFixtureResult,
   "testResultIds" | "start" | "stop" | "sourceMetadata" | "steps"
 > & {
-  steps: AwesomeTestStepResult[];
+  steps: ClassicTestStepResult[];
 };
 
-export type AwesomeStatus = TestStatus | "total";
+export type ClassicStatus = TestStatus | "total";
 
-export type AwesomeTestStepResult = TestStepResult;
+export type ClassicTestStepResult = TestStepResult;
 
-type AwesomeBreadcrumbItem = string[] | string[][];
+type ClassicBreadcrumbItem = string[] | string[][];
 
-export type AwesomeTestResult = Omit<
+export type ClassicTestResult = Omit<
   TestResult,
   | "runSelector"
   | "sourceMetadata"
@@ -49,14 +51,14 @@ export type AwesomeTestResult = Omit<
   | "preconditionHtml"
   | "steps"
 > & {
-  setup: AwesomeFixtureResult[];
-  teardown: AwesomeFixtureResult[];
-  steps: AwesomeTestStepResult[];
+  setup: ClassicFixtureResult[];
+  teardown: ClassicFixtureResult[];
+  steps: ClassicTestStepResult[];
   history: HistoryTestResult[];
   retries?: TestResult[];
   groupedLabels: Record<string, string[]>;
   attachments?: AttachmentTestStepResult[];
-  breadcrumbs: AwesomeBreadcrumbItem[];
+  breadcrumbs: ClassicBreadcrumbItem[];
   order?: number;
   groupOrder?: number;
   retry: boolean;
@@ -64,22 +66,22 @@ export type AwesomeTestResult = Omit<
   extra?: { severity: string };
 };
 
-export type AwesomeTreeLeaf = Pick<
-  AwesomeTestResult,
+export type ClassicTreeLeaf = Pick<
+  ClassicTestResult,
   "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry"
 > & {
   nodeId: string;
 };
 
-export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
+export type ClassicTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
 
-export type AwesomeTree = TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
+export type ClassicTree = TreeData<ClassicTreeLeaf, ClassicTreeGroup>;
 
 /**
  * Tree which contains tree leaves instead of their IDs and recursive trees structure instead of groups
  */
-export type AwesomeRecursiveTree = DefaultTreeGroup & {
+export type ClassicRecursiveTree = DefaultTreeGroup & {
   nodeId: string;
-  leaves: AwesomeTreeLeaf[];
-  trees: AwesomeRecursiveTree[];
+  leaves: ClassicTreeLeaf[];
+  trees: ClassicRecursiveTree[];
 };

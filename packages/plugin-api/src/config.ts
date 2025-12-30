@@ -5,7 +5,10 @@ import type { QualityGateConfig } from "./qualityGate.js";
 export interface Config {
   name?: string;
   output?: string;
+  open?: boolean;
+  port?: string;
   historyPath?: string;
+  historyLimit?: number;
   knownIssuesPath?: string;
   defaultLabels?: DefaultLabelsConfig;
   /**

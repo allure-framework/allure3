@@ -77,6 +77,28 @@ describe("drone", () => {
     });
   });
 
+  describe("repoName", () => {
+    it("should return repository name when DRONE_REPO_NAME is set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_REPO_NAME") {
+          return "myrepo";
+        }
+      });
+
+      expect(drone.repoName).toBe("myrepo");
+    });
+
+    it("should return empty string when DRONE_REPO_NAME is not set", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "DRONE_REPO_NAME") {
+          return "";
+        }
+      });
+
+      expect(drone.repoName).toBe("");
+    });
+  });
+
   describe("jobUID", () => {
     it("should return the correct job UID", () => {
       (getEnv as Mock).mockImplementation((key: string) => {

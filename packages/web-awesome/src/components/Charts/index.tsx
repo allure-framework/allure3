@@ -1,23 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { BarChartType, ChartType, FunnelChartType } from "@allurereport/charts-api";
-import { capitalize } from "@allurereport/core-api";
+import { ChartType } from "@allurereport/charts-api";
 import { type UIChartData } from "@allurereport/web-commons";
 import {
-  BarChartWidget,
-  ComingSoonChartWidget,
+  CurrentStatusChartWidget,
+  DurationDynamicsChartWidget,
+  DurationsChartWidget,
+  FBSUAgePyramidChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
   Loadable,
   PageLoader,
-  StabilityRateDistributionWidget,
-  SuccessRatePieChart,
+  StabilityDistributionWidget,
+  StatusDynamicsChartWidget,
+  StatusTransitionsChartWidget,
+  TestBaseGrowthDynamicsChartWidget,
   TestingPyramidWidget,
+  ThemeProvider,
+  TrSeveritiesChartWidget,
   TreeMapChartWidget,
-  TrendChartWidget,
-  Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
+import { themeStore } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
@@ -28,77 +32,139 @@ const getChartWidgetByType = (
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
-    case ChartType.Trend: {
-      const type = t(`trend.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
+    case ChartType.CurrentStatus: {
+      const title = chartData.title ?? t("currentStatus.title");
 
       return (
-        <TrendChartWidget
+        <CurrentStatusChartWidget
           title={title}
-          mode={chartData.mode}
-          items={chartData.items}
-          slices={chartData.slices}
-          min={chartData.min}
-          max={chartData.max}
-          translations={{ "no-results": empty("no-results") }}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          metric={chartData.metric}
+          i18n={(key, props = {}) => t(`currentStatus.${key}`, props)}
         />
       );
     }
-    case ChartType.Pie: {
-      const title = chartData.title ?? t("pie.title");
+    case ChartType.StatusDynamics: {
+      const title = chartData.title ?? t("statusDynamics.title");
 
       return (
-        <Widget title={title}>
-          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
-            </div>
-          </div>
-        </Widget>
+        <StatusDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          limit={chartData.limit}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`statusDynamics.${key}`, props)}
+        />
       );
     }
-    case ChartType.Bar: {
-      const type = t(`bar.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-
-      if (chartData.dataType === BarChartType.StabilityRateDistribution) {
-        return (
-          <StabilityRateDistributionWidget
-            title={title}
-            mode={chartData.mode}
-            data={chartData.data}
-            keys={chartData.keys}
-            indexBy={chartData.indexBy}
-            colors={chartData.colors}
-            groupMode={chartData.groupMode}
-            xAxisConfig={chartData.xAxisConfig}
-            yAxisConfig={chartData.yAxisConfig}
-            layout={chartData.layout}
-            threshold={chartData.threshold}
-            translations={{ "no-results": empty("no-results") }}
-          />
-        );
-      }
+    case ChartType.StatusTransitions: {
+      const title = chartData.title ?? t("statusTransitions.title");
 
       return (
-        <BarChartWidget
+        <StatusTransitionsChartWidget
           title={title}
-          mode={chartData.mode}
+          data={chartData.data}
+          i18n={(key, props = {}) => t(`statusTransitions.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.Durations: {
+      const title =
+        chartData.title ??
+        (chartData.groupBy === "none"
+          ? t("durations.title_none")
+          : t("durations.title", { groupBy: chartData.groupBy }));
+
+      return (
+        <DurationsChartWidget
+          title={title}
+          data={chartData.data}
+          groupBy={chartData.groupBy}
+          keys={chartData.keys}
+          i18n={(key, props = {}) => t(`durations.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.StabilityDistribution: {
+      const title = chartData.title ?? t("stabilityDistribution.title");
+
+      return (
+        <StabilityDistributionWidget
+          title={title}
           data={chartData.data}
           keys={chartData.keys}
-          indexBy={chartData.indexBy}
+          i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.TestBaseGrowthDynamics: {
+      const title = chartData.title ?? t("testBaseGrowthDynamics.title");
+
+      return (
+        <TestBaseGrowthDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`testBaseGrowthDynamics.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.FBSUAgePyramid: {
+      const title = chartData.title ?? t("fbsuAgePyramid.title");
+
+      return (
+        <FBSUAgePyramidChartWidget
+          title={title}
+          data={chartData.data}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`fbsuAgePyramid.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.TrSeverities: {
+      const title = chartData.title ?? t("trSeverities.title");
+
+      return (
+        <TrSeveritiesChartWidget
+          title={title}
+          data={chartData.data}
+          levels={chartData.levels}
+          statuses={chartData.statuses}
+          i18n={(key, props = {}) => t(`trSeverities.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.DurationDynamics: {
+      const title = chartData.title ?? t("durationDynamics.title");
+
+      return (
+        <DurationDynamicsChartWidget
+          title={title}
+          data={chartData.data}
+          i18n={(key, props = {}) => t(`durationDynamics.${key}`, props)}
+        />
+      );
+    }
+    case ChartType.CoverageDiff: {
+      return (
+        <TreeMapChartWidget
+          data={chartData.treeMap}
+          chartType={ChartType.CoverageDiff}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
           colors={chartData.colors}
-          groupMode={chartData.groupMode}
-          xAxisConfig={chartData.xAxisConfig}
-          yAxisConfig={chartData.yAxisConfig}
-          layout={chartData.layout}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
           translations={{ "no-results": empty("no-results") }}
         />
       );
     }
-    case ChartType.TreeMap: {
+
+    case ChartType.SuccessRateDistribution: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -109,33 +175,28 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.HeatMap: {
+    case ChartType.ProblemsDistribution: {
       return (
         <HeatMapWidget
           title={chartData.title}
           data={chartData.data}
-          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
     }
-    case ChartType.Funnel: {
-      if (chartData.dataType !== FunnelChartType.TestingPyramid) {
-        return null;
-      }
+    case ChartType.TestingPyramid: {
+      const isDataEmpty = !chartData.data.some((item) => item.testCount > 0);
 
       return (
         <TestingPyramidWidget
           title={chartData.title}
-          data={chartData.data}
+          data={isDataEmpty ? [] : chartData.data}
           translations={{ "no-results": empty("no-results") }}
         />
       );
     }
     default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
+      return null;
     }
   }
 };
@@ -149,30 +210,36 @@ export const Charts = () => {
   }, []);
 
   return (
-    <Loadable
-      source={chartsStore}
-      renderLoader={() => <PageLoader />}
-      renderData={(data) => {
-        const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+    <ThemeProvider theme={themeStore.value}>
+      <Loadable
+        source={chartsStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
 
-        const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, { t, empty });
+          if (!currentChartsData) {
+            return null;
+          }
+
+          const charts = Object.entries(currentChartsData).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
+
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              {chartWidget}
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {charts}
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };

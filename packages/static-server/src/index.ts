@@ -226,6 +226,7 @@ export const serve = async (options?: {
       await openUrl(url);
     },
     stop: async () => {
+      server.closeAllConnections();
       server.unref();
       await unwatch();
     },

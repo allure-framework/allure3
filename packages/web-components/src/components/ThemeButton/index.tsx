@@ -2,7 +2,7 @@ import { useEffect } from "preact/hooks";
 import { IconButton } from "@/components/Button";
 import { allureIcons } from "@/components/SvgIcon";
 
-export type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "auto";
 
 export interface ThemeButtonProps {
   theme: Theme;
@@ -15,12 +15,11 @@ export const ThemeButton = ({ theme, toggleTheme, getTheme }: ThemeButtonProps) 
     getTheme();
   }, [getTheme]);
 
-  return (
-    <IconButton
-      onClick={toggleTheme}
-      style="ghost"
-      icon={theme === "light" ? allureIcons.lineShapesMoon : allureIcons.lineShapesSun}
-      size="s"
-    />
-  );
+  const icons: Record<Theme, string> = {
+    light: allureIcons.lineShapesSun,
+    dark: allureIcons.lineShapesMoon,
+    auto: allureIcons.lineShapesThemeAuto,
+  };
+
+  return <IconButton onClick={toggleTheme} style="ghost" icon={icons[theme]} size="s" />;
 };

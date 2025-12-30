@@ -10,7 +10,6 @@ import {
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
-  type RepoData,
   type ReportVariables,
   type Statistic,
   type TestCase,
@@ -45,7 +44,6 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { isFlaky } from "../utils/flaky.js";
-import { getGitBranch, getGitRepoName } from "../utils/git.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
@@ -140,7 +138,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
   #historyPoints: HistoryDataPoint[] = [];
-  #repoData?: RepoData;
   #environments: string[] = [];
 
   constructor(params?: {
@@ -233,9 +230,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return [];
     }
 
-    const repoData = await this.repoData();
-
-    this.#historyPoints = (repoData && await this.#history.readHistory(repoData!.branch)) ?? [];
+    this.#historyPoints = (await this.#history.readHistory()) ?? [];
     this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
 
     return this.#historyPoints;
@@ -246,30 +241,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return;
     }
 
-    const repoData = await this.repoData();
-
     this.#historyPoints.push(history);
 
-    await this.#history.appendHistory(history, repoData?.branch);
-  }
-
-  // git state
-
-  async repoData() {
-    if (this.#repoData) {
-      return this.#repoData;
-    }
-
-    try {
-      this.#repoData = {
-        name: await getGitRepoName(),
-        branch: await getGitBranch(),
-      };
-
-      return this.#repoData;
-    } catch (err) {
-      return undefined;
-    }
+    await this.#history.appendHistory(history);
   }
 
   // quality gate data
@@ -331,8 +305,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
 
-    testResult.transition = getStatusTransition(testResult, trHistory);
-    testResult.flaky = isFlaky(testResult, trHistory);
+    if (trHistory) {
+      testResult.transition = getStatusTransition(testResult, trHistory);
+      testResult.flaky = isFlaky(testResult, trHistory);
+    }
 
     this.#testResults.set(testResult.id, testResult);
 
@@ -465,6 +441,40 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#historyPoints;
   }
 
+  async allHistoryDataPointsByEnvironment(environment: string): Promise<HistoryDataPoint[]> {
+    return this.#historyPoints.reduce((result, dp) => {
+      const filteredTestResults: HistoryTestResult[] = [];
+
+      for (const tr of Object.values(dp.testResults)) {
+        const hasLabels = tr.labels && tr.labels.length > 0;
+        const trEnvironment =
+          tr.environment ??
+          (hasLabels ? matchEnvironment(this.#environmentsConfig, tr as Pick<TestResult, "labels">) : undefined);
+
+        if (trEnvironment === environment) {
+          filteredTestResults.push(tr);
+        }
+      }
+      const hasNoEnvironmentTestResults = filteredTestResults.length === 0;
+
+      result.push({
+        ...dp,
+        testResults: hasNoEnvironmentTestResults
+          ? {}
+          : filteredTestResults.reduce(
+              (acc, tr) => {
+                acc[tr.historyId!] = tr;
+                return acc;
+              },
+              {} as Record<string, HistoryTestResult>,
+            ),
+        knownTestCaseIds: hasNoEnvironmentTestResults ? [] : filteredTestResults.map((tr) => tr.id),
+      });
+
+      return result;
+    }, [] as HistoryDataPoint[]);
+  }
+
   async allKnownIssues(): Promise<KnownTestFailure[]> {
     return this.#known;
   }
@@ -537,14 +547,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return tr ? this.retriesByTr(tr) : [];
   }
 
-  async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+    if (!this.#history) {
+      return undefined;
+    }
+
     return htrsByTr(this.#historyPoints, tr);
   }
 
-  async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
+  async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
     const tr = await this.testResultById(trId);
 
-    return tr ? this.historyByTr(tr) : [];
+    if (!tr) {
+      return undefined;
+    }
+
+    return this.historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {

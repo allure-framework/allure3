@@ -1,11 +1,8 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import { KnownError } from "@allurereport/service";
+import { readConfig } from "@allurereport/core";
+import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
-import { glob } from "glob";
-import * as console from "node:console";
-import { exit, cwd as processCwd } from "node:process";
-import { red } from "yoctocolors";
-import { logError } from "../utils/logs.js";
+import { cwd as processCwd } from "node:process";
+import { generate } from "./commons/generate.js";
 
 export class GenerateCommand extends Command {
   static paths = [["generate"]];
@@ -55,74 +52,41 @@ export class GenerateCommand extends Command {
     description: "Stages archives to restore state from (default: empty string)",
   });
 
+  open = Option.Boolean("--open", {
+    description: "Open the report in the default browser after generation (default: false)",
+  });
+
+  port = Option.String("--port", {
+    description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
-    const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
-      output: this.output ?? "allure-report",
+      output: this.output,
+      open: this.open,
+      port: this.port,
+      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
-    const stageDumpFiles: string[] = [];
-    const resultsDirectories: string[] = [];
 
-    if (this.stage?.length) {
-      for (const stage of this.stage) {
-        const matchedFiles = await glob(stage, {
-          nodir: true,
-          dot: true,
-          absolute: true,
-          windowsPathsNoEscape: true,
-          cwd,
-        });
+    await generate({
+      stage: this.stage,
+      resultsDir: this.resultsDir ?? "./**/allure-results",
+      cwd,
+      config,
+    });
 
-        stageDumpFiles.push(...matchedFiles);
-      }
-    }
-
-    // don't read allure results directories without the parameter when stage file has been found
-    // or read allure results directory when it is explicitly provided
-    if (!!this.resultsDir || stageDumpFiles.length === 0) {
-      const matchedDirs = (
-        await glob(resultsDir, {
-          mark: true,
-          nodir: false,
-          absolute: true,
-          dot: true,
-          windowsPathsNoEscape: true,
-          cwd,
-        })
-      ).filter((p) => /(\/|\\)$/.test(p));
-
-      resultsDirectories.push(...matchedDirs);
-    }
-
-    if (resultsDirectories.length === 0 && stageDumpFiles.length === 0) {
-      // eslint-disable-next-line no-console
-      console.log(red(`No test results directories found matching pattern: ${resultsDir}`));
-      return;
-    }
-
-    try {
-      const allureReport = new AllureReport(config);
-
-      await allureReport.restoreState(Array.from(stageDumpFiles));
-      await allureReport.start();
-
-      for (const dir of resultsDirectories) {
-        await allureReport.readDirectory(dir);
-      }
-
-      await allureReport.done();
-    } catch (error) {
-      if (error instanceof KnownError) {
-        // eslint-disable-next-line no-console
-        console.error(red(error.message));
-        exit(1);
-        return;
-      }
-
-      await logError("Failed to generate report due to unexpected error", error as Error);
-      exit(1);
+    if (config.open) {
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: config.output,
+        open: true,
+      });
     }
   }
 }

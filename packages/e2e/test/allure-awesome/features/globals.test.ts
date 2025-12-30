@@ -38,6 +38,9 @@ test.describe("globals", () => {
 
       await page.goto(bootstrap.url);
 
+      const reportHeader = page.getByTestId("report-header");
+
+      await expect(reportHeader.getByTestId("test-result-status-failed")).toBeVisible();
       await expect(page.getByTestId("report-data")).toContainText("with exit code 1");
       await globalsPage.attachScreenshot();
     });
@@ -59,7 +62,30 @@ test.describe("globals", () => {
 
       await page.goto(bootstrap.url);
 
+      const reportHeader = page.getByTestId("report-header");
+
+      await expect(reportHeader.getByTestId("test-result-status-passed")).toBeVisible();
       await expect(page.getByTestId("report-data")).toContainText("with exit code 0 (original 1)");
+      await globalsPage.attachScreenshot();
+    });
+
+    test("shouldn't show global status and exit code when exit code isn't available", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+        }),
+        testResults: [],
+        globals: {},
+      });
+
+      await page.goto(bootstrap.url);
+
+      const reportHeader = page.getByTestId("report-header");
+
+      await expect(reportHeader.getByTestId("report-data")).not.toContainText("with exit code");
+      await expect(reportHeader.getByTestId("test-result-status-passed")).not.toBeVisible();
+      await expect(reportHeader.getByTestId("test-result-status-failed")).not.toBeVisible();
       await globalsPage.attachScreenshot();
     });
   });

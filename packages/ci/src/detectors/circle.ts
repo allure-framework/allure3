@@ -23,6 +23,10 @@ export const circle: CiDescriptor = {
     return hasEnv && path !== "";
   },
 
+  get repoName(): string {
+    return getEnv("CIRCLE_PROJECT_REPONAME");
+  },
+
   get jobUid(): string {
     const jobURL = getJobURL();
 

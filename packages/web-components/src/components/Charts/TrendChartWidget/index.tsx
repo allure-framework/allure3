@@ -20,6 +20,7 @@ interface TrendChartWidgetProps<TSlice = { metadata: { executionId: string } }> 
   width?: CSSProperties["width"];
   rootAriaLabel?: string;
   translations: TrendChartWidgetPropsTranslations;
+  dropShadow?: boolean;
 }
 
 export const TrendChartWidget = ({
@@ -67,7 +68,7 @@ export const TrendChartWidget = ({
         emptyLabel={emptyLabel}
         emptyAriaLabel={emptyLabel}
         rootAriaLabel={rootAriaLabel}
-        colors={({ color }) => color}
+        colors={({ color }: { color: string }) => color}
         yScale={yScale}
         yFormat={yFormat}
         onSliceClick={handleSliceClick}

@@ -16,16 +16,17 @@ import type { ExitCode, QualityGateValidationResult } from "@allurereport/plugin
 import Awesome from "@allurereport/plugin-awesome";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
+import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process, { exit } from "node:process";
-import terminate from "terminate/promise";
 import { red } from "yoctocolors";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
+import { stopProcessTree } from "../utils/process.js";
 
 export type TestProcessResult = {
   code: number | null;
@@ -139,8 +140,7 @@ const runTests = async (params: {
       qualityGateResults = results;
 
       try {
-        // @ts-ignore
-        await terminate(testProcess.pid, "SIGTERM");
+        await stopProcessTree(testProcess.pid!);
       } catch (err) {
         if ((err as Error).message.includes("kill ESRCH")) {
           return;
@@ -229,6 +229,14 @@ export class RunCommand extends Command {
     description: "The output file name, allure.csv by default. Accepts absolute paths (default: ./allure-report)",
   });
 
+  open = Option.Boolean("--open", {
+    description: "Open the report in the default browser after generation (default: false)",
+  });
+
+  port = Option.String("--port", {
+    description: "The port to serve the reports on. If not set, the server starts on a random port",
+  });
+
   reportName = Option.String("--report-name,--name", {
     description: "The report name (default: Allure Report)",
   });
@@ -253,6 +261,10 @@ export class RunCommand extends Command {
   environment = Option.String("--environment", {
     description:
       "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
+  });
+
+  historyLimit = Option.String("--history-limit", {
+    description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
   commandToRun = Option.Rest();
@@ -287,7 +299,13 @@ export class RunCommand extends Command {
     console.log(`${command} ${commandArgs.join(" ")}`);
 
     const maxRerun = this.rerun ? parseInt(this.rerun, 10) : 0;
-    const config = await readConfig(cwd, this.config, { output: this.output, name: this.reportName });
+    const config = await readConfig(cwd, this.config, {
+      output: this.output,
+      name: this.reportName,
+      open: this.open,
+      port: this.port,
+      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+    });
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;
 
@@ -460,6 +478,14 @@ export class RunCommand extends Command {
 
     await allureReport.done();
 
-    exit(globalExitCode.actual ?? globalExitCode.original);
+    if (config.open) {
+      await serve({
+        port: config.port ? parseInt(config.port, 10) : undefined,
+        servePath: config.output,
+        open: true,
+      });
+    } else {
+      exit(globalExitCode.actual ?? globalExitCode.original);
+    }
   }
 }

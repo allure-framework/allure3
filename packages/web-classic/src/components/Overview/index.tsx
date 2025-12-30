@@ -2,23 +2,18 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ChartType } from "@allurereport/charts-api";
-import { capitalize } from "@allurereport/core-api";
 import type { UIChartData } from "@allurereport/web-commons";
 import {
-  BarChartWidget,
-  ComingSoonChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
   Loadable,
   PageLoader,
-  SuccessRatePieChart,
+  ThemeProvider,
   TreeMapChartWidget,
-  TrendChartWidget,
-  Widget,
 } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
-import { useI18n } from "@/stores";
+import { themeStore, useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
 import * as styles from "./Overview.module.scss";
 
@@ -27,58 +22,10 @@ const getChartWidgetByType = (
   { t, empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
-    case ChartType.Trend: {
-      const type = t(`trend.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("trend.title", { type: capitalize(type) });
-
-      return (
-        <TrendChartWidget
-          title={title}
-          mode={chartData.mode}
-          items={chartData.items}
-          slices={chartData.slices}
-          min={chartData.min}
-          max={chartData.max}
-          translations={{ "no-results": empty("no-results") }}
-        />
-      );
-    }
-    case ChartType.Pie: {
-      const title = chartData.title ?? t("pie.title");
-
-      return (
-        <Widget title={title}>
-          <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-            <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-              <SuccessRatePieChart slices={chartData.slices} percentage={chartData.percentage} />
-            </div>
-          </div>
-        </Widget>
-      );
-    }
-    case ChartType.Bar: {
-      const type = t(`bar.type.${chartData.dataType}`);
-      const title = chartData.title ?? t("bar.title", { type: capitalize(type) });
-
-      return (
-        <BarChartWidget
-          title={title}
-          mode={chartData.mode}
-          data={chartData.data}
-          keys={chartData.keys}
-          indexBy={chartData.indexBy}
-          colors={chartData.colors}
-          groupMode={chartData.groupMode}
-          xAxisConfig={chartData.xAxisConfig}
-          yAxisConfig={chartData.yAxisConfig}
-          layout={chartData.layout}
-          translations={{ "no-results": empty("no-results") }}
-        />
-      );
-    }
-    case ChartType.TreeMap: {
+    case ChartType.CoverageDiff: {
       return (
         <TreeMapChartWidget
+          chartType={ChartType.CoverageDiff}
           data={chartData.treeMap}
           title={chartData.title}
           formatLegend={chartData.formatLegend}
@@ -89,20 +36,31 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.HeatMap: {
+    case ChartType.SuccessRateDistribution: {
+      return (
+        <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.ProblemsDistribution: {
       return (
         <HeatMapWidget
           title={chartData.title}
           data={chartData.data}
-          colors={chartData.colors}
           translations={{ "no-results": empty("no-results") }}
         />
       );
     }
     default: {
-      const title = chartData.title ?? t(`charts.${chartData.type}.title`, { fallback: `${chartData.type} Chart` });
-
-      return <ComingSoonChartWidget title={title} />;
+      return null;
     }
   }
 };
@@ -116,29 +74,31 @@ const Overview = () => {
   }, []);
 
   return (
-    <Loadable
-      source={chartsStore}
-      renderLoader={() => <PageLoader />}
-      renderData={(data) => {
-        const charts = Object.entries(data).map(([chartId, value]) => {
-          const chartWidget = getChartWidgetByType(value, { t, empty });
+    <ThemeProvider theme={themeStore.value}>
+      <Loadable
+        source={chartsStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const charts = Object.entries(data).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
+
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              {chartWidget}
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {charts}
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };
 

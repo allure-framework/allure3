@@ -11,3 +11,14 @@ export const parseURLPath = (urlString: string): string => {
     return "";
   }
 };
+
+/**
+ * Extract repo name from various Git URL formats
+ * @example
+ * ```js
+ * getReponameFromRepoUrl("https://github.com/owner/repo.git") // repo
+ * getReponameFromRepoUrl("git@github.com:owner/repo.git")     // repo
+ * getReponameFromRepoUrl("https://github.com/owner/repo")     // repo
+ * ```
+ */
+export const getReponameFromRepoUrl = (repoUrl: string): string => repoUrl.match(/\/([^/]+?)(\.git)?$/)?.[1] ?? "";

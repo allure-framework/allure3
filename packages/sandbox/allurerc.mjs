@@ -44,7 +44,6 @@ const chartLayout = [
 export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
-  historyPath: "./history.jsonl",
   qualityGate: {
     rules: [
       {

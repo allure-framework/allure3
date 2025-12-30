@@ -1,67 +1,85 @@
+import { type ChartOptions, ChartType } from "./types.js";
+
 export const DEFAULT_CHART_HISTORY_LIMIT = 10;
 
-export const defaultChartsConfig = [
+export const defaultChartsConfig: ChartOptions[] = [
   {
-    type: "pie",
+    type: ChartType.CurrentStatus,
     title: "Current status",
   },
   {
-    type: "trend",
-    dataType: "status",
+    type: ChartType.StatusDynamics,
     title: "Status dynamics",
   },
   {
-    type: "bar",
-    dataType: "statusBySeverity",
-    title: "Test result severities",
+    type: ChartType.TrSeverities,
+    title: "Test results by severities",
+    levels: ["blocker", "critical", "normal", "minor", "trivial"],
+    statuses: ["passed", "failed", "broken", "skipped", "unknown"],
+    includeUnset: true,
   },
   {
-    type: "bar",
-    dataType: "statusTrend",
-    title: "Status change dynamics",
+    type: ChartType.StatusTransitions,
+    title: "Status transitions",
   },
   {
-    type: "bar",
-    dataType: "statusChangeTrend",
+    type: ChartType.TestBaseGrowthDynamics,
     title: "Test base growth dynamics",
   },
   {
-    type: "treemap",
-    dataType: "coverageDiff",
+    type: ChartType.CoverageDiff,
     title: "Coverage diff map",
   },
   {
-    type: "treemap",
-    dataType: "successRateDistribution",
+    type: ChartType.SuccessRateDistribution,
     title: "Success rate distribution",
   },
   {
-    type: "heatmap",
+    type: ChartType.ProblemsDistribution,
+    by: "environment",
     title: "Problems distribution by environment",
   },
   {
-    type: "bar",
-    dataType: "stabilityRateDistribution",
-    title: "Stability rate distribution",
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by features",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "feature",
   },
   {
-    type: "bar",
-    dataType: "durationsByLayer",
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by epics",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "epic",
+  },
+  {
+    type: ChartType.StabilityDistribution,
+    title: "Stability distribution by stories",
+    skipStatuses: ["skipped", "unknown"],
+    threshold: 90,
+    groupBy: "story",
+  },
+  {
+    type: ChartType.Durations,
+    title: "Durations histogram",
+    groupBy: "none",
+  },
+  {
+    type: ChartType.Durations,
     title: "Durations by layer histogram",
+    groupBy: "layer",
   },
   {
-    type: "bar",
-    dataType: "performanceTrend",
-    title: "Performance dynamics",
+    type: ChartType.DurationDynamics,
+    title: "Durations dynamics",
   },
   {
-    type: "bar",
-    dataType: "fbsuAgePyramid",
+    type: ChartType.FBSUAgePyramid,
     title: "FBSU age pyramid",
   },
   {
-    type: "funnel",
-    dataType: "testingPyramid",
+    type: ChartType.TestingPyramid,
     title: "Testing pyramid",
   },
 ];

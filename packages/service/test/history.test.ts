@@ -43,7 +43,10 @@ describe("AllureRemoteHistory", () => {
 
   beforeEach(() => {
     serviceClient = new AllureServiceClientClass({ url: fixtures.url, project: fixtures.project });
-    history = new AllureRemoteHistory(serviceClient);
+    history = new AllureRemoteHistory({
+      allureServiceClient: serviceClient,
+      branch: fixtures.branch,
+    });
   });
 
   describe("readHistory", () => {
@@ -64,7 +67,7 @@ describe("AllureRemoteHistory", () => {
         ],
       });
 
-      const result = await history.readHistory(fixtures.branch);
+      const result = await history.readHistory();
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
         `/projects/${fixtures.project}/${fixtures.branch}/history`,
@@ -72,10 +75,52 @@ describe("AllureRemoteHistory", () => {
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
+    it("should return resolved history data with a provided limit", async () => {
+      history = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+        branch: fixtures.branch,
+        limit: 10,
+      });
+
+      HttpClientMock.prototype.get.mockResolvedValue({
+        history: [
+          {
+            uuid: "1",
+            name: "test",
+            timestamp: 0,
+            knownTestCaseIds: [],
+            testResults: {},
+            url: "",
+            metrics: {},
+            status: "passed",
+            stage: "test",
+          },
+        ],
+      });
+
+      const result = await history.readHistory();
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/${fixtures.project}/${fixtures.branch}/history?limit=10`,
+      );
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should return empty array if branch is not provided", async () => {
+      const historyWithoutBranch = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+      });
+
+      const result = await historyWithoutBranch.readHistory();
+
+      expect(result).toEqual([]);
+      expect(HttpClientMock.prototype.get).not.toHaveBeenCalled();
+    });
+
     it("should return empty array if history is not found", async () => {
       HttpClientMock.prototype.get.mockRejectedValue(new KnownError("History not found", 404));
 
-      const result = await history.readHistory(fixtures.branch);
+      const result = await history.readHistory();
 
       expect(result).toEqual([]);
     });
@@ -83,7 +128,7 @@ describe("AllureRemoteHistory", () => {
     it("should throw another unexpected errors", async () => {
       HttpClientMock.prototype.get.mockRejectedValue(new Error("Unexpected error"));
 
-      await expect(history.readHistory(fixtures.branch)).rejects.toThrow("Unexpected error");
+      await expect(history.readHistory()).rejects.toThrow("Unexpected error");
     });
   });
 
@@ -92,6 +137,7 @@ describe("AllureRemoteHistory", () => {
       const result = await history.appendHistory();
 
       expect(result).toBeUndefined();
+      expect(HttpClientMock.prototype.get).not.toHaveBeenCalled();
       expect(HttpClientMock.prototype.post).not.toHaveBeenCalled();
     });
   });

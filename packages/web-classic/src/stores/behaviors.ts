@@ -1,6 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
-import type { AwesomeStatus, AwesomeTree, AwesomeTreeGroup } from "types";
+import type { ClassicStatus, ClassicTree, ClassicTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
 
@@ -9,13 +9,13 @@ export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new";
 export type TreeFiltersState = {
   query: string;
-  status: AwesomeStatus;
+  status: ClassicStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;
   direction: TreeDirection;
 };
 
-export const behaviorsStore = signal<StoreSignalState<AwesomeTree>>({
+export const behaviorsStore = signal<StoreSignalState<ClassicTree>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -39,7 +39,7 @@ export const filteredBehaviors = computed(() => {
   const { root, leavesById, groupsById } = behaviorsStore.value.data;
 
   return createRecursiveTree({
-    group: root as AwesomeTreeGroup,
+    group: root as ClassicTreeGroup,
     leavesById,
     groupsById,
     filterOptions: behaviorsFiltersStore.value,
@@ -71,7 +71,7 @@ export const setBehaviorsQuery = (query: string) => {
   };
 };
 
-export const setBehaviorsStatus = (status: AwesomeStatus) => {
+export const setBehaviorsStatus = (status: ClassicStatus) => {
   behaviorsFiltersStore.value = {
     ...behaviorsFiltersStore.value,
     status,
@@ -110,7 +110,7 @@ export const fetchBehaviorsData = async () => {
   };
 
   try {
-    const res = await fetchReportJsonData<AwesomeTree>("widgets/behaviors.json", { bustCache: true });
+    const res = await fetchReportJsonData<ClassicTree>("widgets/behaviors.json", { bustCache: true });
 
     behaviorsStore.value = {
       data: res,

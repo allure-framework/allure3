@@ -9,6 +9,7 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { filterEnv } from "./environments.js";
+import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
   generateAttachmentsFiles,
@@ -35,7 +36,7 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter } = this.options ?? {};
+    const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -60,22 +61,27 @@ export class AwesomePlugin implements Plugin {
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
 
+    await generateTimeline(this.#writer!, store, this.options);
+
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
     const hasGroupBy = groupBy.length > 0;
+
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
       : [];
 
     await generateHistoryDataPoints(this.#writer!, store);
     await generateTestCases(this.#writer!, convertedTrs);
-    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs);
+    await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     for (const reportEnvironment of reportEnvironments) {
       const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
-      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs);
+      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
+        appendTitlePath,
+      });
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
 
@@ -162,6 +168,11 @@ export class AwesomePlugin implements Plugin {
       newTests: newTrs.map(convertToSummaryTestResult),
       flakyTests: flakyTrs.map(convertToSummaryTestResult),
       retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 }

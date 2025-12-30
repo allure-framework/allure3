@@ -132,13 +132,17 @@ export class AllureServiceClient {
    * Downloads history data for a specific branch
    * @param payload
    */
-  async downloadHistory(branch: string) {
+  async downloadHistory(payload: { branch: string; limit?: number }) {
+    const { branch, limit } = payload;
+
     if (!this.currentProjectUuid) {
       throw new Error("Project is not set");
     }
 
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      `/projects/${this.currentProjectUuid}/${branch}/history`,
+      limit
+        ? `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history?limit=${limit}`
+        : `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history`,
     );
 
     return history;
@@ -181,6 +185,25 @@ export class AllureServiceClient {
     return this.#client.post(`/reports/${reportUuid}/complete`, {
       body: {
         historyPoint,
+      },
+    });
+  }
+
+  /**
+   * Entirely deletes a report by its UUID with all the uploaded files
+   * If plugin id is provided, delete report for the plugin only
+   * @param payload
+   */
+  async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
+    const { reportUuid, pluginId = "" } = payload;
+
+    if (!this.currentProjectUuid) {
+      throw new Error("Project is not set");
+    }
+
+    return this.#client.post(`/reports/${reportUuid}/delete`, {
+      body: {
+        pluginId,
       },
     });
   }

@@ -1,0 +1,32 @@
+.tooltip {
+  align-items: center;
+  background-color: var(--constant-bg-base-modal);
+  border: 1px solid var(--on-border-muted);
+  border-radius: 8px;
+  box-shadow: var(--shadow-small);
+  color: var(--constant-on-text-primary);
+  display: flex;
+  padding: 4px;
+  text-wrap: nowrap;
+  transform: translate(0, 4px);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  max-width: 240px;
+  min-width: 140px;
+  overflow: auto;
+  width: 100%;
+}
+
+.label {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6px;
+  padding: 4px 4px 0;
+  text-wrap: auto;
+}

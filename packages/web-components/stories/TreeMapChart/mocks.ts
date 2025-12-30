@@ -133,7 +133,6 @@ export const treeMapColors = {
 
 export const getColor = (node: TreeMapChartNode) => {
   const successRate = node.value;
-  console.log("node", node);
 
   if (successRate >= 100) {
      return treeMapColors.success;

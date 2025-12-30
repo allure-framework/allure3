@@ -1,5 +1,5 @@
 /* eslint no-underscore-dangle: ["error", { "allow": ["_name", "_type", "_value", "_values"] }] */
-import type { ShallowKnown, Unknown } from "../../../validation.js";
+import type { ShallowKnown, Unknown } from "@allurereport/reader-api";
 import {
   ensureArray,
   ensureFloat,
@@ -9,7 +9,7 @@ import {
   ensureString,
   isDefined,
   isObject,
-} from "../../../validation.js";
+} from "@allurereport/reader-api";
 import type {
   XcArray,
   XcBool,

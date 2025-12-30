@@ -6,7 +6,6 @@ import type {
   StatusTrendChartData,
   TrendCalculationResult,
   TrendChartData,
-  TrendChartOptions,
   TrendDataAccessor,
   TrendDataType,
   TrendPoint,
@@ -17,6 +16,8 @@ import type { HistoryDataPoint } from "@allurereport/core-api";
 import { severityTrendDataAccessor } from "./accessors/severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./accessors/statusTrendAccessor.js";
 import { createEmptySeries, normalizeStatistic } from "./chart-utils.js";
+
+type TrendChartOptions = Record<string, any>;
 
 /**
  * Calculates percentage trend data points and series.
@@ -263,7 +264,7 @@ export const generateTrendChart = (
   reportName: string,
 ): TrendChartData | undefined => {
   const newOptions = { limit: DEFAULT_CHART_HISTORY_LIMIT, ...options };
-  const { dataType } = newOptions;
+  const { dataType } = newOptions as { dataType: ChartDataType; limit: number };
 
   if (dataType === ChartDataType.Status) {
     return generateTrendChartGeneric(

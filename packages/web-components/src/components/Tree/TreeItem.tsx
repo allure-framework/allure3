@@ -18,6 +18,7 @@ interface TreeItemProps {
   groupOrder: number;
   marked?: boolean;
   navigateTo: (id: string) => void;
+  tooltips: Record<string, string>;
 }
 
 export const TreeItem: FunctionComponent<TreeItemProps> = ({
@@ -32,6 +33,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
   id,
   marked,
   navigateTo,
+  tooltips,
   ...rest
 }) => {
   return (
@@ -55,6 +57,7 @@ export const TreeItem: FunctionComponent<TreeItemProps> = ({
         retriesCount={retriesCount}
         transition={transition}
         transitionTooltip={transitionTooltip}
+        tooltips={tooltips}
       />
     </div>
   );

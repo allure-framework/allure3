@@ -1,34 +1,26 @@
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
 import { useMemo } from "preact/hooks";
-import type { AwesomeStatus } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
-import { useTabsContext } from "@/components/Tabs";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateTo, route } from "@/stores/router";
-import {
-  clearTreeFilters,
-  collapsedTrees,
-  filteredTree,
-  noTests,
-  noTestsFound,
-  toggleTree,
-  treeStore,
-} from "@/stores/tree";
+import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
+import { clearTreeFilters, treeStatus } from "@/stores/treeFilters";
 import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
-  const { t: tooltip } = useI18n("transitions.description");
-  const { currentTab } = useTabsContext();
+  const { t: tooltip } = useI18n("transitions");
   const routeId = route.value.params?.testResultId;
+
+  const currentTreeStatus = treeStatus.value;
 
   const localizers = useMemo(
     () => ({
-      tooltip,
+      tooltip: (key: string, options: Record<string, string>) => tooltip(`description.${key}`, options),
     }),
     [tooltip],
   );
@@ -82,7 +74,7 @@ export const TreeList = () => {
                 toggleTree={toggleTree}
                 navigateTo={navigateTo}
                 tree={treeLocalizer(filteredTree.value.default)}
-                statusFilter={currentTab as AwesomeStatus}
+                statusFilter={currentTreeStatus}
                 routeId={routeId}
                 root
               />
@@ -102,7 +94,7 @@ export const TreeList = () => {
                 toggleTree={toggleTree}
                 navigateTo={navigateTo}
                 tree={treeLocalizer(currentTree)}
-                statusFilter={currentTab as AwesomeStatus}
+                statusFilter={currentTreeStatus}
                 routeId={routeId}
                 root
               />
@@ -141,7 +133,7 @@ export const TreeList = () => {
                     <TreeStatusBar
                       statistic={stats}
                       reportStatistic={reportStatsStore.value.data}
-                      statusFilter={currentTab}
+                      statusFilter={currentTreeStatus}
                     />
                   </div>
                   {isOpened && (
@@ -151,7 +143,7 @@ export const TreeList = () => {
                         reportStatistic={reportStatsStore.value.data}
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}
-                        statusFilter={currentTab}
+                        statusFilter={currentTreeStatus}
                         navigateTo={navigateTo}
                         tree={treeLocalizer(value)}
                         routeId={routeId}

@@ -1,6 +1,6 @@
 {
   "name": "allure",
-  "version": "3.0.0-beta.22",
+  "version": "3.0.0",
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
@@ -13,6 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
+    "./rules": "./dist/rules.js",
     "./qualityGate": "./dist/qualityGate.js"
   },
   "main": "./dist/index.js",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
+    "@allurereport/ci": "workspace:*",
     "@allurereport/core": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/directory-watcher": "workspace:*",
@@ -51,10 +53,9 @@
     "@allurereport/static-server": "workspace:*",
     "adm-zip": "^0.5.16",
     "clipanion": "^4.0.0-rc.4",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "lodash.omit": "^4.5.0",
     "prompts": "^2.4.2",
-    "terminate": "^2.8.0",
     "typanion": "^3.14.0",
     "yoctocolors": "^2.1.1"
   },

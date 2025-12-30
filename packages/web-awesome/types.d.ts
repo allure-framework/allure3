@@ -1,6 +1,6 @@
 import type {
-  CiDescriptor,
   AttachmentTestStepResult,
+  CiDescriptor,
   DefaultTreeGroup,
   HistoryTestResult,
   TestFixtureResult,
@@ -17,9 +17,9 @@ export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
   logo?: string;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: "en";
   createdAt: number;
   reportUuid: string;
   layout?: Layout;
@@ -77,6 +77,7 @@ export type AwesomeTestResult = Omit<
   retry: boolean;
   categories?: AwesomeCategory[];
   environment?: string | "default";
+  tooltips?: Record<string, string>;
 };
 
 export type AwesomeTreeLeaf = Pick<
@@ -85,6 +86,7 @@ export type AwesomeTreeLeaf = Pick<
 > & {
   nodeId: string;
   transitionTooltip?: string;
+  tooltips?: Record<string, string>;
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };

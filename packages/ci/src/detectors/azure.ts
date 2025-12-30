@@ -16,6 +16,12 @@ export const azure: CiDescriptor = {
     return getEnv("SYSTEM_DEFINITIONID") !== "";
   },
 
+  get repoName(): string {
+    const repoName = getEnv("BUILD_REPOSITORY_NAME");
+
+    return repoName.split("/")?.[1] ?? repoName;
+  },
+
   get jobUid(): string {
     return `${getProjectID()}_${getDefinitionID()}`;
   },

@@ -1,5 +1,4 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { SvgIcon, allureIcons , Text } from "@allurereport/web-components";
 import * as baseStyles from "@/components/BaseLayout/styles.scss";
 import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import * as styles from "./styles.scss";
@@ -9,9 +8,7 @@ const TestResultThumb = () => {
     <div className={styles["test-result-thumb"]}>
       <div className={styles["test-result-thumb-wrapper"]}>
         <SvgIcon
-          size={"m"}
-          width={"32px"}
-          height={"32px"}
+          size={"xl"}
           id={allureIcons.lineDevCodeSquare}
           className={styles["test-result-thumb-icon"]}
         />

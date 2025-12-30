@@ -1,4 +1,6 @@
-import type { HistoryTestResult, TestResult, TestStatusTransition } from "@allurereport/core-api";
+import type { TestResult, TestStatusTransition } from "@allurereport/core-api";
+
+type TrWithStatus = Pick<TestResult, "status">;
 
 const NON_SIGNIFICANT_HISTORY_STATUSES = ["unknown", "skipped"];
 
@@ -7,21 +9,21 @@ const NON_SIGNIFICANT_HISTORY_STATUSES = ["unknown", "skipped"];
  * @param history - The history of test results.
  * @returns `true` if the test result is new, `false` otherwise.
  */
-export const isNew = (history: HistoryTestResult[] = []) => history.length === 0;
+export const isNew = (history: TrWithStatus[] = []) => history.length === 0;
 
 /**
  * @description Checks if the history test result has a significant status.
  * @param htr - The history test result to check.
  * @returns `true` if the history test result has a significant status, `false` otherwise.
  */
-const hasSignificantStatus = (htr: HistoryTestResult) => !NON_SIGNIFICANT_HISTORY_STATUSES.includes(htr.status);
+const hasSignificantStatus = (htr: TrWithStatus) => !NON_SIGNIFICANT_HISTORY_STATUSES.includes(htr.status);
 
 /**
  * @description Gets the most recent significant status from test history.
  * @param history - The history of test results
  * @returns The most recent significant status or undefined if none found
  */
-export const getLastSignificantStatus = (history: HistoryTestResult[] = []): string | undefined => {
+export const getLastSignificantStatus = (history: TrWithStatus[] = []): string | undefined => {
   const significantHtr = history.find(hasSignificantStatus);
 
   return significantHtr?.status;
@@ -34,8 +36,8 @@ export const getLastSignificantStatus = (history: HistoryTestResult[] = []): str
  * @returns The status transition of the test result.
  */
 export const getStatusTransition = (
-  tr: TestResult,
-  history: HistoryTestResult[] = [],
+  tr: TrWithStatus,
+  history: TrWithStatus[] = [],
 ): TestStatusTransition | undefined => {
   if (isNew(history)) {
     return "new";

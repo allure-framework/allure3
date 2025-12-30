@@ -139,6 +139,151 @@ describe("utils > treeFilters", () => {
       expect(result).toEqual([expect.objectContaining({ name: "a1" })]);
     });
 
+    it("filters leaves by name query", () => {
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "Login test",
+          nodeId: "id-001",
+        },
+        b2: {
+          name: "Logout test",
+          nodeId: "id-002",
+        },
+        c3: {
+          name: "Registration test",
+          nodeId: "id-003",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "Login",
+      });
+
+      expect(result).toEqual([expect.objectContaining({ name: "Login test" })]);
+    });
+
+    it("filters leaves by nodeId query", () => {
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "Login test",
+          nodeId: "abc-123",
+        },
+        b2: {
+          name: "Logout test",
+          nodeId: "def-456",
+        },
+        c3: {
+          name: "Registration test",
+          nodeId: "ghi-789",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "def-456",
+      });
+
+      expect(result).toEqual([expect.objectContaining({ name: "Logout test", nodeId: "def-456" })]);
+    });
+
+    it("does not match partial nodeId (exact match only)", () => {
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "Test 1",
+          nodeId: "feature-login-001",
+        },
+        b2: {
+          name: "Test 2",
+          nodeId: "feature-login-002",
+        },
+        c3: {
+          name: "Test 3",
+          nodeId: "feature-logout-001",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "login",
+      });
+
+      // nodeId requires exact match, so no results by nodeId
+      expect(result).toEqual([]);
+    });
+
+    it("matches nodeId with exact query", () => {
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "Test 1",
+          nodeId: "feature-login-001",
+        },
+        b2: {
+          name: "Test 2",
+          nodeId: "feature-login-002",
+        },
+        c3: {
+          name: "Test 3",
+          nodeId: "feature-logout-001",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "feature-login-001",
+      });
+
+      expect(result).toEqual([expect.objectContaining({ nodeId: "feature-login-001" })]);
+    });
+
+    it("filters leaves matching by name (partial) or nodeId (exact)", () => {
+      const leaves = ["a1", "b2", "c3"];
+      const leavesById = {
+        a1: {
+          name: "Search functionality",
+          nodeId: "test-001",
+        },
+        b2: {
+          name: "Login test",
+          nodeId: "search",
+        },
+        c3: {
+          name: "Logout test",
+          nodeId: "test-003",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "search",
+      });
+
+      // Both results match: one by name (partial), one by nodeId (exact)
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Search functionality" }),
+          expect.objectContaining({ nodeId: "search" }),
+        ]),
+      );
+    });
+
+    it("filters leaves case-insensitively by name (partial) and nodeId (exact)", () => {
+      const leaves = ["a1", "b2"];
+      const leavesById = {
+        a1: {
+          name: "LOGIN Test",
+          nodeId: "id-001",
+        },
+        b2: {
+          name: "Other test",
+          nodeId: "login",
+        },
+      };
+      const result = filterLeaves(leaves, leavesById as any, {
+        query: "login",
+      });
+
+      expect(result).toEqual([
+        expect.objectContaining({ name: "LOGIN Test" }),
+        expect.objectContaining({ nodeId: "login" }),
+      ]);
+    });
+
     it("sorts leave by duration in ascending order", () => {
       const leaves = ["a1", "b2", "c3"];
       const leavesById = {

@@ -14,6 +14,7 @@ interface TooltipWrapperProps {
   "autoHideDelay"?: number;
   "isTriggerActive"?: boolean;
   "data-testid"?: string;
+  "showDelay"?: number;
 }
 
 interface TooltipProps {
@@ -36,6 +37,7 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   placement = "top",
   triggerMode = "hover",
   autoHideDelay = 600,
+  showDelay = 200,
   isTriggerActive = true,
   "data-testid": dataTestId,
 }) => {
@@ -44,6 +46,7 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [currentText, setCurrentText] = useState(tooltipText);
   const hideTimer = useRef<number | null>(null);
+  const showTimer = useRef<number | null>(null);
 
   useEffect(() => {
     setCurrentText(tooltipText);
@@ -79,7 +82,9 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
 
   const onMouseEnter = () => {
     if (triggerMode === "hover" && isTriggerActive) {
-      setIsVisible(true);
+      showTimer.current = window.setTimeout(() => {
+        setIsVisible(true);
+      }, showDelay);
     }
 
     if (triggerMode === "click" && hideTimer.current) {
@@ -88,6 +93,9 @@ export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   };
 
   const onMouseLeave = () => {
+    if (showTimer.current) {
+      clearTimeout(showTimer.current);
+    }
     if (triggerMode === "hover") {
       setIsVisible(false);
       setCurrentText(tooltipText);
