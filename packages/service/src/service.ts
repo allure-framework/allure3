@@ -2,96 +2,59 @@ import { type HistoryDataPoint } from "@allurereport/core-api";
 import { type Config } from "@allurereport/plugin-api";
 import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
-import open from "open";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
-import { decryptExchangeToken, deleteAccessToken, writeAccessToken, writeExchangeToken } from "./utils/token.js";
 
 const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
 export class AllureServiceClient {
   readonly #client: HttpClient;
   readonly #url: string;
-  readonly #pollingDelay: number;
-  currentProjectUuid: string | undefined;
 
-  constructor(readonly config: Config["allureService"] & { pollingDelay?: number }) {
-    if (!config.url) {
-      throw new Error("Allure service URL is required!");
+  constructor(readonly config: Config["allureService"]) {
+    if (!config?.accessToken) {
+      throw new Error("Allure service access token is required");
     }
 
-    this.#url = config.url;
-    this.#client = createServiceHttpClient(this.#url, config?.accessToken);
-    this.#pollingDelay = config?.pollingDelay ?? 2500;
-    this.currentProjectUuid = config?.project;
-  }
+    const [prefix, body] = atob(config.accessToken).split(":");
 
-  setProject(project: string) {
-    this.currentProjectUuid = project;
-  }
+    if (prefix !== "allure-service") {
+      throw new Error("Invalid access token");
+    }
 
-  async #getClientUrl() {
-    const { url } = await this.#client.get<{ url: string }>("/info");
+    const { projectId, url: baseUrl } = JSON.parse(atob(body));
 
-    return url;
-  }
+    if (!baseUrl || !projectId) {
+      throw new Error("Invalid access token");
+    }
 
-  /**
-   * Exchanges the exchange token for an access token
-   */
-  async login(): Promise<any> {
-    const clientUrl = await this.#getClientUrl();
-    const exchangeToken = await writeExchangeToken();
-    const connectUrl = new URL("/connect", clientUrl);
-
-    connectUrl.searchParams.set("token", decryptExchangeToken(exchangeToken));
-
-    await open(connectUrl.toString());
-
-    let currentExchangeAttemptTimeout: NodeJS.Timeout | undefined;
-
-    return await new Promise((res) => {
-      const makeExchangeAttempt = (): NodeJS.Timeout => {
-        return globalThis.setTimeout(async () => {
-          const token = decryptExchangeToken(exchangeToken);
-          const { accessToken } = await this.#client.post<{ accessToken: string }>("/auth/exchange", {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: {
-              token,
-            },
-          });
-
-          if (!accessToken) {
-            globalThis.clearTimeout(currentExchangeAttemptTimeout);
-            currentExchangeAttemptTimeout = makeExchangeAttempt();
-            return;
-          }
-
-          await writeAccessToken(accessToken);
-
-          return res(accessToken);
-        }, this.#pollingDelay);
-      };
-
-      currentExchangeAttemptTimeout = makeExchangeAttempt();
-    });
+    this.#url = baseUrl;
+    this.#client = createServiceHttpClient(this.#url, config.accessToken);
   }
 
   /**
-   * Deletes the access token preventing further requests
-   */
-  async logout() {
-    await deleteAccessToken();
-  }
-
-  /**
-   * Returns user profile
+   * Returns user profile and current project
    */
   async profile() {
-    const { user } = await this.#client.get<{ user: { email: string } }>("/user/profile");
+    const { user, project } = await this.#client.get<{ user: { email: string }; project: any }>("/user/profile");
 
-    return user;
+    return {
+      user,
+      project,
+    };
+  }
+
+  /**
+   * Genereates a new access token for the specific project and returns it
+   * @param projectUuid
+   */
+  async generateNewAccessToken(projectUuid: string) {
+    const { accessToken } = await this.#client.post<{ accessToken: string }>("/auth/tokens", {
+      body: {
+        projectId: projectUuid,
+      },
+    });
+
+    return accessToken;
   }
 
   /**
@@ -134,15 +97,8 @@ export class AllureServiceClient {
    */
   async downloadHistory(payload: { branch: string; limit?: number }) {
     const { branch, limit } = payload;
-
-    if (!this.currentProjectUuid) {
-      throw new Error("Project is not set");
-    }
-
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      limit
-        ? `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history?limit=${limit}`
-        : `/projects/${this.currentProjectUuid}/${encodeURIComponent(branch)}/history`,
+      limit ? `/projects/history/${encodeURIComponent(branch)}?limit=${limit}` : `/projects/history/${encodeURIComponent(branch)}`,
     );
 
     return history;
@@ -155,13 +111,8 @@ export class AllureServiceClient {
   async createReport(payload: { reportName: string; reportUuid?: string; branch?: string }) {
     const { reportName, reportUuid, branch } = payload;
 
-    if (!this.currentProjectUuid) {
-      throw new Error("Project is not set");
-    }
-
     return this.#client.post<{ url: string }>("/reports", {
       body: {
-        projectUuid: this.currentProjectUuid,
         reportName,
         reportUuid,
         branch,
@@ -178,10 +129,6 @@ export class AllureServiceClient {
   async completeReport(payload: { reportUuid: string; historyPoint: HistoryDataPoint }) {
     const { reportUuid, historyPoint } = payload;
 
-    if (!this.currentProjectUuid) {
-      throw new Error("Project is not set");
-    }
-
     return this.#client.post(`/reports/${reportUuid}/complete`, {
       body: {
         historyPoint,
@@ -196,10 +143,6 @@ export class AllureServiceClient {
    */
   async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
     const { reportUuid, pluginId = "" } = payload;
-
-    if (!this.currentProjectUuid) {
-      throw new Error("Project is not set");
-    }
 
     return this.#client.post(`/reports/${reportUuid}/delete`, {
       body: {

@@ -56,8 +56,6 @@ export interface FullConfig {
   realTime?: any;
   qualityGate?: QualityGateConfig;
   allureService?: {
-    url?: string;
-    project?: string;
     accessToken?: string;
   };
 }

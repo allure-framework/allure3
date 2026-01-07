@@ -88,7 +88,9 @@ export class AllureReport {
       allureService: allureServiceConfig,
     } = opts;
 
-    this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
+    this.#allureServiceClient = allureServiceConfig?.accessToken
+      ? new AllureServiceClient(allureServiceConfig)
+      : undefined;
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
