@@ -70,10 +70,7 @@ const config = {
 
 if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_PROJECT) {
   config.allureService = {
-    url: ALLURE_SERVICE_URL,
-    project: ALLURE_SERVICE_PROJECT,
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
-    publish: true,
   };
 }
 
