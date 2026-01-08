@@ -15,20 +15,25 @@ export class AllureServiceClient {
       throw new Error("Allure service access token is required");
     }
 
-    const [prefix, body] = atob(config.accessToken).split(":");
+    const { iss, projectId, url: baseUrl } = this.decodeToken(config.accessToken) ?? {};
 
-    if (prefix !== "allure-service") {
-      throw new Error("Invalid access token");
-    }
-
-    const { projectId, url: baseUrl } = JSON.parse(atob(body));
-
-    if (!baseUrl || !projectId) {
+    if (iss !== "allure-service" || !baseUrl || !projectId) {
       throw new Error("Invalid access token");
     }
 
     this.#url = baseUrl;
     this.#client = createServiceHttpClient(this.#url, config.accessToken);
+  }
+
+  decodeToken(token: string) {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+      return JSON.parse(atob(base64));
+    } catch {
+      return undefined;
+    }
   }
 
   /**
@@ -72,33 +77,15 @@ export class AllureServiceClient {
   }
 
   /**
-   * Creates a new project
-   * @param payload
-   */
-  async createProject(payload: { name: string }) {
-    const { project } = await this.#client.post<{ project: { id: string; name: string } }>("/projects", {
-      body: payload,
-    });
-
-    return project;
-  }
-
-  /**
-   * Deletes a project
-   * @param payload
-   */
-  async deleteProject(payload: { id: string }) {
-    return this.#client.delete(`/projects/${payload.id}`);
-  }
-
-  /**
    * Downloads history data for a specific branch
    * @param payload
    */
   async downloadHistory(payload: { branch: string; limit?: number }) {
     const { branch, limit } = payload;
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      limit ? `/projects/history/${encodeURIComponent(branch)}?limit=${limit}` : `/projects/history/${encodeURIComponent(branch)}`,
+      limit
+        ? `/projects/history/${encodeURIComponent(branch)}?limit=${encodeURIComponent(limit.toString())}`
+        : `/projects/history/${encodeURIComponent(branch)}`,
     );
 
     return history;

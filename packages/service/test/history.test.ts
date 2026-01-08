@@ -7,8 +7,14 @@ import { HttpClientMock } from "./utils.js";
 
 const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 
+// Static JWT token fixture
+// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
+const validAccessToken =
+  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
+
 const fixtures = {
-  project: "project",
+  accessToken: validAccessToken,
+  project: "test-project-id",
   url: "https://service.allurereport.org",
   branch: "main",
   historyDataPoint: {
@@ -42,7 +48,7 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ url: fixtures.url, project: fixtures.project });
+    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
       branch: fixtures.branch,
@@ -69,9 +75,7 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/${fixtures.project}/${fixtures.branch}/history`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}`);
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -100,9 +104,7 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/${fixtures.project}/${fixtures.branch}/history?limit=10`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}?limit=10`);
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
