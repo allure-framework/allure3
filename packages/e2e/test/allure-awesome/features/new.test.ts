@@ -64,15 +64,15 @@ test.describe("new tests", () => {
     await label("env", browserName);
 
     treePage = new TreePage(page);
-
-    await page.goto(bootstrap.url);
   });
 
   test.afterAll(async () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter new tests with using new filter", async () => {
+  test("should be able to filter new tests with using new filter", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(3);
 
     // Select filter by new status
@@ -93,7 +93,9 @@ test.describe("new tests", () => {
     await expect(treePage.leafLocator).toHaveCount(3);
   });
 
-  test("should show new icon only for new tests in the tree", async () => {
+  test("should show new icon only for new tests in the tree", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     // Classic new test
     await expect(treePage.getLeafByTitle(passedTestName).getByTestId("tree-leaf-transition-new")).toBeVisible();
     await expect(treePage.getLeafByTitle(failedTestName).getByTestId("tree-leaf-transition-new")).toBeVisible();
@@ -102,7 +104,9 @@ test.describe("new tests", () => {
     await expect(treePage.getLeafByTitle(ordinaryTestName).getByTestId("tree-leaf-transition-new")).not.toBeVisible();
   });
 
-  test("metadata shows correct count of new tests", async () => {
+  test("metadata shows correct count of new tests", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     const total = await treePage.getMetadataValue("total");
     const newCount = await treePage.getMetadataValue("new");
 
@@ -110,12 +114,24 @@ test.describe("new tests", () => {
     expect(newCount).toBe("2");
   });
 
-  test("should show tooltip with new filter description on hover", async () => {
+  test("should show tooltip with new filter description on hover", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await treePage.openFilterMenu();
     await expect(treePage.newFilterLocator).toBeVisible();
     await treePage.newFilterLocator.hover();
     await expect(treePage.filterTooltipLocator).toBeVisible();
     await treePage.closeTooltip();
     await expect(treePage.filterTooltipLocator).toBeHidden();
+  });
+
+  test("should apply new filter to the tree when filter=new query parameter is present", async ({ page }) => {
+    await page.goto(`${bootstrap.url}?filter=new`);
+
+    await expect(treePage.leafLocator).toHaveCount(2);
+
+    await treePage.toggleNewFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(3);
   });
 });

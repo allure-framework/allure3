@@ -36,6 +36,13 @@ export const setTreeDirection = (direction: TreeDirection) => {
   treeDirection.value = direction;
 };
 
+export const setFilters = (filters: Record<string, boolean>) => {
+  treeFilter.value = {
+    ...treeFilter.peek(),
+    ...filters,
+  };
+};
+
 export const setTestTypeFilter = (testType: "flaky" | "retry", value: boolean) => {
   treeFilter.value = {
     ...treeFilter.peek(),

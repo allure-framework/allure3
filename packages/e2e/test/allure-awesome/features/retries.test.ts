@@ -65,15 +65,15 @@ test.describe("retries", () => {
       await label("env", browserName);
 
       treePage = new TreePage(page);
-
-      await page.goto(bootstrap.url);
     });
 
     test.afterAll(async () => {
       await bootstrap?.shutdown?.();
     });
 
-    test("shows only tests with retries", async () => {
+    test("shows only tests with retries", async ({ page }) => {
+      await page.goto(bootstrap.url);
+
       await expect(treePage.leafLocator).toHaveCount(3);
       await treePage.toggleRetryFilter();
       await expect(treePage.leafLocator).toHaveCount(2);
@@ -82,6 +82,8 @@ test.describe("retries", () => {
     });
 
     test("should show retry icon in the tree for tests with retries", async ({ page }) => {
+      await page.goto(bootstrap.url);
+
       const retryIcons = page.getByTestId("tree-leaf-retries");
 
       await expect(retryIcons).toHaveCount(2);
@@ -95,7 +97,9 @@ test.describe("retries", () => {
       await expect(anotherTestWithRetriesIcon).toContainText("1");
     });
 
-    test("metadata shows correct count of retries", async () => {
+    test("metadata shows correct count of retries", async ({ page }) => {
+      await page.goto(bootstrap.url);
+
       const total = await treePage.getMetadataValue("total");
       const retries = await treePage.getMetadataValue("retries");
 
@@ -103,13 +107,27 @@ test.describe("retries", () => {
       expect(retries).toBe("2");
     });
 
-    test("should show tooltip with retries filter description on hover", async () => {
+    test("should show tooltip with retries filter description on hover", async ({ page }) => {
+      await page.goto(bootstrap.url);
+
       await treePage.openFilterMenu();
       await expect(treePage.retryFilterLocator).toBeVisible();
       await treePage.retryFilterLocator.hover();
       await expect(treePage.filterTooltipLocator).toBeVisible();
       await treePage.closeTooltip();
       await expect(treePage.filterTooltipLocator).toBeHidden();
+    });
+
+    test("should apply regressed filter to the tree when filter=regressed query parameter is present", async ({
+      page,
+    }) => {
+      await page.goto(`${bootstrap.url}?filter=retry`);
+
+      await expect(treePage.leafLocator).toHaveCount(2);
+
+      await treePage.toggleRetryFilter();
+
+      await expect(treePage.leafLocator).toHaveCount(3);
     });
   });
 

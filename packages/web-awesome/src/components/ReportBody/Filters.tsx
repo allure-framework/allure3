@@ -1,14 +1,17 @@
 import { Button, Menu, Toggle, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import { For } from "@preact/signals/utils";
+import { useEffect } from "preact/hooks";
 import { useI18n } from "@/stores/locale";
 import {
   type TreeFilters,
+  setFilters,
   setTestTypeFilter,
   setTransitionFilter,
   testTypeFilters,
   transitionFilters,
 } from "@/stores/treeFilters";
+import { filtersList } from "@/stores/treeFilters/constants";
 import * as styles from "./styles.scss";
 
 const filterIcons: Record<TreeFilters, string> = {
@@ -56,6 +59,23 @@ const hasFilter = computed(
 
 export const Filters = () => {
   const { t } = useI18n("filters");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const filtersParams = params.getAll("filter");
+
+    if (filtersParams.length > 0) {
+      const activeFilters = filtersList.reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: filtersParams.includes(key),
+        }),
+        {} as Record<string, boolean>,
+      );
+
+      setFilters(activeFilters);
+    }
+  }, []);
 
   return (
     <Menu
