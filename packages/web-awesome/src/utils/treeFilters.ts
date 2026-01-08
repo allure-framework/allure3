@@ -35,7 +35,7 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
   const newMatched = !filterOptions?.filter?.new || leaf.transition === "new";
   const fixedMatched = !filterOptions?.filter?.fixed || leaf.transition === "fixed";
   const regressedMatched = !filterOptions?.filter?.regressed || leaf.transition === "regressed";
-  const malfuctionedMatched = !filterOptions?.filter?.malfunctioned || leaf.transition === "malfunctioned";
+  const malfunctionedMatched = !filterOptions?.filter?.malfunctioned || leaf.transition === "malfunctioned";
 
   return [
     queryMatched,
@@ -45,7 +45,7 @@ export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeF
     newMatched,
     fixedMatched,
     regressedMatched,
-    malfuctionedMatched,
+    malfunctionedMatched,
   ].every(Boolean);
 };
 

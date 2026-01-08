@@ -35,7 +35,7 @@
     "new": "New",
     "fixed": "Fixed",
     "regressed": "Regressed",
-    "malfunctioned": "Malfuctioned"
+    "malfunctioned": "Malfunctioned"
   },
   "filters.description": {
     "flaky": "Show unstable tests",

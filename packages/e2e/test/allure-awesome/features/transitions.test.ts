@@ -67,7 +67,6 @@ test.describe("status transitions", () => {
         stage: Stage.FINISHED,
       }),
     ];
-
     const history = makeHistory(8, (index) => ({
       name: reportName,
       knownTestCaseIds: [newFailedTestTestCaseId, newPassedTestTestCaseId, newBrokenTestTestCaseId],
@@ -106,15 +105,15 @@ test.describe("status transitions", () => {
     await label("env", browserName);
 
     treePage = new TreePage(page);
-
-    await page.goto(bootstrap.url);
   });
 
   test.afterAll(async () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter fixed tests with using freshely fixed status filter", async () => {
+  test("should be able to filter fixed tests with using freshely fixed status filter", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(4);
 
     // Select freshely fixed filter
@@ -136,7 +135,9 @@ test.describe("status transitions", () => {
     await expect(treePage.leafLocator).toHaveCount(4);
   });
 
-  test("should be able to filter regressed tests with using freshely regressed status filter", async () => {
+  test("should be able to filter regressed tests with using freshely regressed status filter", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(4);
 
     // Select freshely fixed filter
@@ -158,11 +159,15 @@ test.describe("status transitions", () => {
     await expect(treePage.leafLocator).toHaveCount(4);
   });
 
-  test("should be able to filter malfunctioned tests with using freshely malfunctioned status filter", async () => {
+  test("should be able to filter malfunctioned tests with using freshely malfunctioned status filter", async ({
+    page,
+  }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(4);
 
     // Select freshely malfunctioned filter
-    await treePage.toggleMalfuctionedFilter();
+    await treePage.toggleMalfunctionedFilter();
 
     // Verify only tests with freshely malfunctioned status are visible
     await expect(treePage.leafLocator).toHaveCount(1);
@@ -174,13 +179,15 @@ test.describe("status transitions", () => {
     await expect(treePage.getLeafByTitle(newBrokenTestName)).toBeVisible();
 
     // Disable malfunctioned filter
-    await treePage.toggleMalfuctionedFilter();
+    await treePage.toggleMalfunctionedFilter();
 
     // Verify all tests are visible again
     await expect(treePage.leafLocator).toHaveCount(4);
   });
 
-  test("should show only one Tooltip and change its content on hover different transitions", async () => {
+  test("should show only one Tooltip and change its content on hover different transitions", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(4);
 
     // Hover on the test with 'new' transition
@@ -217,5 +224,51 @@ test.describe("status transitions", () => {
     expect(tooltipText3).not.toBe(tooltipText4);
     await treePage.closeTooltip();
     await expect(treePage.leafTransitionTooltipLocator).toBeHidden();
+  });
+
+  test("should apply regressed filter to the tree when filter=regressed query parameter is present", async ({
+    page,
+  }) => {
+    await page.goto(`${bootstrap.url}?filter=regressed`);
+
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).not.toBeVisible();
+
+    await treePage.toggleRegressedFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(4);
+  });
+
+  test("should apply malfunctioned filter to the tree when filter=malfunctioned query parameter is present", async ({
+    page,
+  }) => {
+    await page.goto(`${bootstrap.url}?filter=malfunctioned`);
+
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).toBeVisible();
+
+    await treePage.toggleMalfunctionedFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(4);
+  });
+
+  test("should apply fixed filter to the tree when filter=fixed query parameter is present", async ({ page }) => {
+    await page.goto(`${bootstrap.url}?filter=fixed`);
+
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.getLeafByTitle(newTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newPassedTestName)).toBeVisible();
+    await expect(treePage.getLeafByTitle(newFailedTestName)).not.toBeVisible();
+    await expect(treePage.getLeafByTitle(newBrokenTestName)).not.toBeVisible();
+
+    await treePage.toggleFixedFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(4);
   });
 });

@@ -96,15 +96,15 @@ test.describe("flaky", () => {
     await label("env", browserName);
 
     treePage = new TreePage(page);
-
-    await page.goto(bootstrap.url);
   });
 
   test.afterAll(async () => {
     await bootstrap?.shutdown?.();
   });
 
-  test("should be able to filter flaky tests with flaky status using flaky filter", async () => {
+  test("should be able to filter flaky tests with flaky status using flaky filter", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.leafLocator).toHaveCount(2);
     await treePage.toggleFlakyFilter();
     await expect(treePage.leafLocator).toHaveCount(1);
@@ -114,12 +114,16 @@ test.describe("flaky", () => {
     await expect(treePage.leafLocator).toHaveCount(2);
   });
 
-  test("should show flaky icon only for flaky tests in the tree", async () => {
+  test("should show flaky icon only for flaky tests in the tree", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await expect(treePage.getLeafByTitle(flakyTestName).getByTestId("tree-leaf-flaky")).toBeVisible();
     await expect(treePage.getLeafByTitle(nonFlakyTestName).getByTestId("tree-leaf-flaky")).not.toBeVisible();
   });
 
-  test("metadata shows correct count of flaky tests", async () => {
+  test("metadata shows correct count of flaky tests", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     const total = await treePage.getMetadataValue("total");
     const flaky = await treePage.getMetadataValue("flaky");
 
@@ -127,12 +131,24 @@ test.describe("flaky", () => {
     expect(flaky).toBe("1");
   });
 
-  test("should show tooltip with flaky filter description on hover", async () => {
+  test("should show tooltip with flaky filter description on hover", async ({ page }) => {
+    await page.goto(bootstrap.url);
+
     await treePage.openFilterMenu();
     await expect(treePage.flakyFilterLocator).toBeVisible();
     await treePage.flakyFilterLocator.hover();
     await expect(treePage.filterTooltipLocator).toBeVisible();
     await treePage.closeTooltip();
     await expect(treePage.filterTooltipLocator).toBeHidden();
+  });
+
+  test("should apply flaky filter to the tree when filter=flaky query parameter is present", async ({ page }) => {
+    await page.goto(`${bootstrap.url}?filter=flaky`);
+
+    await expect(treePage.leafLocator).toHaveCount(1);
+
+    await treePage.toggleFlakyFilter();
+
+    await expect(treePage.leafLocator).toHaveCount(2);
   });
 });

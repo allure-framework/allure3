@@ -44,7 +44,7 @@ export class TreePage extends CommonPage {
 
   fixedFilterLocator: Locator;
   regressedFilterLocator: Locator;
-  malfuctionedFilterLocator: Locator;
+  malfunctionedFilterLocator: Locator;
 
   filterTooltipLocator: Locator;
 
@@ -92,7 +92,7 @@ export class TreePage extends CommonPage {
 
     this.fixedFilterLocator = page.getByTestId("fixed-filter");
     this.regressedFilterLocator = page.getByTestId("regressed-filter");
-    this.malfuctionedFilterLocator = page.getByTestId("malfunctioned-filter");
+    this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
 
     this.filterTooltipLocator = page.getByTestId("filter-tooltip");
   }
@@ -279,7 +279,7 @@ export class TreePage extends CommonPage {
     await this.toggleFilter(this.regressedFilterLocator);
   }
 
-  async toggleMalfuctionedFilter() {
-    await this.toggleFilter(this.malfuctionedFilterLocator);
+  async toggleMalfunctionedFilter() {
+    await this.toggleFilter(this.malfunctionedFilterLocator);
   }
 }
