@@ -16782,7 +16782,7 @@ const RAW_RUNTIME_STATE =
           ["compressible", "npm:2.0.18"],\
           ["debug", "virtual:346039c0276096cadc3ddf5732401898eb47a4555b8aab70dcfbb50b65ed5f8f7dec67992d1c8cd77ae2e3d4f742b8756a4b3c5e4b97fb9fd996b93ea1287a07#npm:2.6.9"],\
           ["negotiator", "npm:0.6.4"],\
-          ["on-headers", "npm:1.0.2"],\
+          ["on-headers", "npm:1.1.0"],\
           ["safe-buffer", "npm:5.2.1"],\
           ["vary", "npm:1.1.2"]\
         ],\
@@ -24279,10 +24279,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["on-headers", [\
-      ["npm:1.0.2", {\
-        "packageLocation": "./.yarn/cache/on-headers-npm-1.0.2-e7cd3ea25e-870766c163.zip/node_modules/on-headers/",\
+      ["npm:1.1.0", {\
+        "packageLocation": "./.yarn/cache/on-headers-npm-1.1.0-7d18779060-98aa64629f.zip/node_modules/on-headers/",\
         "packageDependencies": [\
-          ["on-headers", "npm:1.0.2"]\
+          ["on-headers", "npm:1.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\
