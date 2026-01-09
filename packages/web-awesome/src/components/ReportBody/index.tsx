@@ -1,7 +1,7 @@
 import { capitalize, statusesList } from "@allurereport/core-api";
+import { currentEnvironment } from "@allurereport/web-commons";
 import { Counter, Loadable } from "@allurereport/web-components";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters";
 import { ReportTab, ReportTabsList } from "../ReportTabs";

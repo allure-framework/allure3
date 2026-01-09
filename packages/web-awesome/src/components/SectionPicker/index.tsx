@@ -1,4 +1,5 @@
 import { DropdownButton, Menu, SvgIcon, allureIcons } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import { useI18n } from "@/stores";
 import { availableSections, currentSection, setSection } from "@/stores/sections";
 import * as styles from "./styles.scss";
@@ -16,8 +17,9 @@ const sectionMap: Record<string, SectionItem> = {
   timeline: { name: "timeline", logo: allureIcons.lineChartsTimeline },
 };
 
+const selectedSection = computed(() => sectionMap[currentSection.value] || defaultSection);
+
 export const SectionPicker = () => {
-  const selectedSection = sectionMap[currentSection.value] || defaultSection;
   const { t } = useI18n("sections");
 
   return (
@@ -28,8 +30,8 @@ export const SectionPicker = () => {
         <DropdownButton
           style="ghost"
           size="m"
-          text={t(selectedSection.name)}
-          icon={selectedSection.logo}
+          text={t(selectedSection.value.name)}
+          icon={selectedSection.value.logo}
           isExpanded={isOpened}
           onClick={onClick}
           iconSize={"xs"}
@@ -37,9 +39,9 @@ export const SectionPicker = () => {
       )}
     >
       <Menu.Section>
-        {["default", ...availableSections.value].map((value) => (
+        {["default", ...availableSections].map((value) => (
           <Menu.ItemWithCheckmark
-            onClick={() => setSection(value)}
+            onClick={() => setSection(value as any)}
             key={value}
             isChecked={currentSection.value === value}
           >

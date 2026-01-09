@@ -10,7 +10,7 @@ import { TrPrevStatuses } from "@/components/TestResult/TrPrevStatuses";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { TrTab, TrTabsList } from "@/components/TestResult/TrTabs";
-import { testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupsStore } from "@/stores/testEnv";
 import { isSplitMode } from "@/stores/layout";
 import { useI18n } from "@/stores/locale";
 import { timestampToDate } from "@/utils/time";

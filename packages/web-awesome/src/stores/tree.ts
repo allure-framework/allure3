@@ -36,7 +36,7 @@ export const toggleTree = (id: string) => {
 };
 
 export const fetchEnvTreesData = async (envs: string[]) => {
-  const envsToFetch = envs.filter((env) => !treeStore.value.data?.[env]);
+  const envsToFetch = envs.filter((env) => !treeStore.peek().data?.[env]);
 
   // all envs have already been fetched
   if (envsToFetch.length === 0) {
@@ -44,7 +44,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
   }
 
   treeStore.value = {
-    ...treeStore.value,
+    ...treeStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -54,7 +54,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
       envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`, { bustCache: true })),
     );
 
-    const previous = treeStore.value.data;
+    const previous = treeStore.peek().data;
     treeStore.value = {
       data: envsToFetch.reduce(
         (acc, env, index) => {
@@ -70,7 +70,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
     };
   } catch (e) {
     treeStore.value = {
-      ...treeStore.value,
+      ...treeStore.peek(),
       error: e.message,
       loading: false,
     };

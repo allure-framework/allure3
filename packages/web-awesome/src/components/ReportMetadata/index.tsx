@@ -1,12 +1,13 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
+import { currentEnvironment } from "@allurereport/web-commons";
 import { Loadable } from "@allurereport/web-components";
+import { computed, useSignalEffect } from "@preact/signals";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { fetchVariables, variables } from "@/stores/variables";
 import * as styles from "./styles.scss";
@@ -66,14 +67,16 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   );
 };
 
-export const ReportMetadata = () => {
-  const stats = currentEnvironment.value
-    ? statsByEnvStore.value.data[currentEnvironment.value]
-    : reportStatsStore.value.data;
+const statsVariables = computed(() => {
+  return currentEnvironment.value ? statsByEnvStore.value.data[currentEnvironment.value] : reportStatsStore.value.data;
+});
 
-  useEffect(() => {
+export const ReportMetadata = () => {
+  const stats = statsVariables.value;
+
+  useSignalEffect(() => {
     fetchVariables(currentEnvironment.value);
-  }, [currentEnvironment.value]);
+  });
 
   return (
     <div className={styles["report-metadata-wrapper"]}>

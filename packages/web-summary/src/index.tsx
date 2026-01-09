@@ -1,4 +1,4 @@
-import { LANG_LOCALE } from "@allurereport/web-commons";
+import { LANG_LOCALE, initThemeStore } from "@allurereport/web-commons";
 import { ReportSummaryCard } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import { computed } from "@preact/signals";
@@ -8,10 +8,12 @@ import "@/assets/scss/index.scss";
 import { EmptyPlaceholder } from "@/components/EmptyPlaceholder";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { currentLocale, getLocale, getTheme, useI18n, waitForI18next } from "@/stores";
+import { currentLocale, getLocale, useI18n, waitForI18next } from "@/stores";
 import * as styles from "./styles.scss";
 
 export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
+
+initThemeStore();
 
 const App = () => {
   const [loaded, setLoaded] = useState(false);
@@ -21,7 +23,6 @@ const App = () => {
 
   useEffect(() => {
     getLocale();
-    getTheme();
     waitForI18next.then(() => {
       setLoaded(true);
     });

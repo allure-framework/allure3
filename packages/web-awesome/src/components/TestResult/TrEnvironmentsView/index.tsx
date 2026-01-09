@@ -5,7 +5,7 @@ import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
-import { testEnvGroupsStore } from "@/stores/env";
+import { testEnvGroupsStore } from "@/stores/testEnv";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import * as styles from "./styles.scss";
 

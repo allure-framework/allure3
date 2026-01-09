@@ -1,10 +1,9 @@
-import { ensureReportDataReady } from "@allurereport/web-commons";
+import { ensureReportDataReady, initThemeStore } from "@allurereport/web-commons";
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { getLocale, waitForI18next } from "@/stores/locale";
-import { getTheme } from "@/stores/theme";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -16,6 +15,8 @@ const App = () => (
 
 const rootElement = document.getElementById("app");
 
+initThemeStore();
+
 document.addEventListener("DOMContentLoaded", () => {
   if (isMac) {
     document.documentElement.setAttribute("data-os", "mac");
@@ -26,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
   await waitForI18next;
   if (globalThis) {
     await getLocale();
-    getTheme();
   }
   await ensureReportDataReady();
 

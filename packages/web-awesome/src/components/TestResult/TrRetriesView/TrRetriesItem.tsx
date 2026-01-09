@@ -1,4 +1,5 @@
 import { formatDuration } from "@allurereport/core-api";
+import { navigateTo } from "@allurereport/web-commons";
 import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -6,7 +7,6 @@ import type { AwesomeTestResult } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 import { useI18n } from "@/stores/locale";
-import { navigateTo } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export type TrRetriesItemProps = {

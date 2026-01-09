@@ -1,3 +1,4 @@
+import { initThemeStore } from "@allurereport/web-commons";
 import { PageLoader } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
@@ -12,7 +13,7 @@ import Packages from "@/components/Packages";
 import Suites from "@/components/Suites";
 import { TestResultView } from "@/components/TestResultView";
 import Timeline from "@/components/Timeline";
-import { currentLocale, getLocale, getTheme } from "@/stores";
+import { currentLocale, getLocale } from "@/stores";
 import { handleHashChange, route } from "@/stores/router";
 
 const tabComponents = {
@@ -26,9 +27,10 @@ const tabComponents = {
   testresult: TestResultView,
 };
 
+initThemeStore();
+
 const App = () => {
   useEffect(() => {
-    getTheme();
     getLocale();
     handleHashChange();
   }, []);

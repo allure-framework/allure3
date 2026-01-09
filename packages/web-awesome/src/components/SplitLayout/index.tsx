@@ -5,7 +5,7 @@ import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { route } from "@/stores/router";
+import { testResultIdStore } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -29,7 +29,7 @@ const Loader = () => {
 };
 
 export const SplitLayout = () => {
-  const testResultId = route.value.params?.testResultId ?? null;
+  const testResultId = testResultIdStore.value;
   const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
   const { t } = useI18n("controls");
   const leftSide = (

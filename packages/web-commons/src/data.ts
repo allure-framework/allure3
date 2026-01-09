@@ -1,3 +1,5 @@
+import type { WebReportOptions } from "./types/reportOptions.js";
+
 /**
  * Hash which attaches to any report file to prevent caching
  */
@@ -75,6 +77,6 @@ export const fetchReportAttachment = async (path: string, contentType?: string) 
   return globalThis.fetch(url);
 };
 
-export const getReportOptions = <T>() => {
+export const getReportOptions = <T extends WebReportOptions = WebReportOptions>() => {
   return globalThis.allureReportOptions as T;
 };

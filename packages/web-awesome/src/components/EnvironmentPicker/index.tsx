@@ -1,7 +1,12 @@
+import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@allurereport/web-commons";
 import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
+import { For } from "@preact/signals/utils";
 import { useI18n } from "@/stores";
-import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import * as styles from "./styles.scss";
+
+const availableEnvironments = computed(() => environmentsStore.value.data.value);
+const noAvailableEnvironments = computed(() => availableEnvironments.value.length <= 1);
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 export const EnvironmentPicker = () => {
@@ -11,8 +16,7 @@ export const EnvironmentPicker = () => {
     setCurrentEnvironment(selectedOption);
   };
 
-  // TODO: use props instead
-  if (environmentsStore.value.data.length <= 1) {
+  if (noAvailableEnvironments.value) {
     return null;
   }
 
@@ -43,16 +47,18 @@ export const EnvironmentPicker = () => {
           >
             {t("all")}
           </Menu.ItemWithCheckmark>
-          {environmentsStore.value.data.map((env) => (
-            <Menu.ItemWithCheckmark
-              data-testid={"environment-picker-item"}
-              onClick={() => handleSelect(env)}
-              key={env}
-              isChecked={env === environment}
-            >
-              {env}
-            </Menu.ItemWithCheckmark>
-          ))}
+          <For each={availableEnvironments}>
+            {(env) => (
+              <Menu.ItemWithCheckmark
+                data-testid={"environment-picker-item"}
+                onClick={() => handleSelect(env)}
+                key={env}
+                isChecked={env === environment}
+              >
+                {env}
+              </Menu.ItemWithCheckmark>
+            )}
+          </For>
         </Menu.Section>
       </Menu>
     </div>

@@ -1,8 +1,8 @@
+import { currentEnvironment } from "@allurereport/web-commons";
 import { Timeline as AllureTimeline, Grid, GridItem, Loadable, PageLoader, Widget } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import { useEffect, useMemo } from "preact/hooks";
 import { useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
 import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 import * as styles from "./styles.scss";

@@ -13,7 +13,7 @@ export const pieChartStore = signal<StoreSignalState<PieChartValues>>({
 
 export const fetchPieChartData = async (env: string) => {
   pieChartStore.value = {
-    ...pieChartStore.value,
+    ...pieChartStore.peek(),
     loading: true,
     error: undefined,
   };

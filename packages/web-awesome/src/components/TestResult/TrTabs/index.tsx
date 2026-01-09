@@ -1,38 +1,28 @@
+import { navigateTo } from "@allurereport/web-commons";
 import { type ComponentChildren } from "preact";
-import { useEffect } from "preact/hooks";
-import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
-import { activeSubTab, navigateTo, route } from "@/stores/router";
+import { NavTab, NavTabs, NavTabsList } from "@/components/NavTabs";
+import { testResultIdStore, trTabStore } from "@/stores/testResult";
 
 export const TrTabs = NavTabs;
 export const TrTabsList = NavTabsList;
-export const useTestResultTabsContext = useNavTabsContext;
 
 export const TrTab = (props: { id: string; children: ComponentChildren }) => {
-  const { testResultId } = route.value.params;
-  const { currentTab, setCurrentTab } = useNavTabsContext();
+  const testResultId = testResultIdStore.value;
+  const currentTab = trTabStore.value;
+
   const { id, children } = props;
-  const isActiveFromUrl = activeSubTab.value === id;
+
+  const isCurrentTab = currentTab === id;
+
   const handleTabClick = () => {
-    const isCurrentTab = isActiveFromUrl ? isActiveFromUrl : currentTab === id;
     if (isCurrentTab) {
       return;
     }
-    setCurrentTab(id);
+
     navigateTo({
-      ...route.value,
-      params: {
-        testResultId,
-        subTab: id || null,
-      },
+      path: `${testResultId}/${id}`,
     });
   };
-  const isCurrentTab = isActiveFromUrl ? isActiveFromUrl : currentTab === id;
-
-  useEffect(() => {
-    if (isActiveFromUrl) {
-      setCurrentTab(id);
-    }
-  }, [activeSubTab.value, id, setCurrentTab]);
 
   return (
     <NavTab id={id} onClick={handleTabClick} data-testid={`test-result-tab-${id}`} isCurrentTab={isCurrentTab}>

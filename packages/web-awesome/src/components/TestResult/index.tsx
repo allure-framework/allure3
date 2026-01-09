@@ -9,9 +9,10 @@ import TrHistoryView from "@/components/TestResult/TrHistory";
 import { TrInfo } from "@/components/TestResult/TrInfo";
 import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
-import { TrTabs, useTestResultTabsContext } from "@/components/TestResult/TrTabs";
-import { fetchTestEnvGroup } from "@/stores/env";
+import { TrTabs } from "@/components/TestResult/TrTabs";
 import { isSplitMode } from "@/stores/layout";
+import { fetchTestEnvGroup } from "@/stores/testEnv";
+import { trTabStore } from "@/stores/testResult";
 import * as styles from "./styles.scss";
 
 export type TrViewProps = {
@@ -27,7 +28,7 @@ export type TrProps = {
 };
 
 const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
-  const { currentTab } = useTestResultTabsContext();
+  const currentTab = trTabStore.value;
   const viewMap: Record<string, any> = {
     overview: TrOverview,
     history: TrHistoryView,

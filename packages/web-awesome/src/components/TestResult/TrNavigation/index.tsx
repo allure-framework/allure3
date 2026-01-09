@@ -2,7 +2,7 @@ import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allure
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
-import { navigateTo } from "@/stores/router";
+import { navigateTo } from "@allurereport/web-commons";
 import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";

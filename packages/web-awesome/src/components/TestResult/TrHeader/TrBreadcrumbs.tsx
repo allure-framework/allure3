@@ -1,8 +1,8 @@
+import { navigateTo } from "@allurereport/web-commons";
 import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { AwesomeTestResult } from "types";
 import * as styles from "@/components/TestResult/TrHeader/styles.scss";
-import { navigateTo } from "@/stores/router";
 
 interface TrBreadcrumbs {
   testResult?: AwesomeTestResult;
@@ -19,7 +19,7 @@ export const TrBreadcrumbs = ({ testResult }: TrBreadcrumbs) => {
           size={"s"}
           style={"ghost"}
           className={styles["test-result-breadcrumb-link"]}
-          onClick={() => navigateTo("")}
+          onClick={() => navigateTo("/")}
         />
       </div>
       {Boolean(breadcrumbs?.length) &&

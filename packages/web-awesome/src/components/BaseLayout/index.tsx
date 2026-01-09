@@ -1,7 +1,7 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
-import { route } from "@/stores/router";
+import { testResultIdStore } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -11,8 +11,7 @@ export type BaseLayoutProps = {
 };
 
 export const BaseLayout = () => {
-  const testResultId = route.value.params?.testResultId ?? null;
-
+  const testResultId = testResultIdStore.value;
   const content = testResultId ? (
     <Loadable
       source={testResultStore}

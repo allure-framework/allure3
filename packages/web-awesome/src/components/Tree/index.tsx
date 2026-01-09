@@ -1,20 +1,30 @@
+import {
+  collapsedEnvironments,
+  currentEnvironment,
+  environmentsStore,
+  navigateTo,
+  toggleCollapsedEnvironment,
+} from "@allurereport/web-commons";
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import { useMemo } from "preact/hooks";
 import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
-import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { navigateTo, route } from "@/stores/router";
+import { testResultIdStore } from "@/stores/testResult";
 import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
 import { clearTreeFilters, treeStatus } from "@/stores/treeFilters";
 import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
 
+const availableEnvironments = computed(() => environmentsStore.value.data.value);
+const isSingleEnvironment = computed(() => availableEnvironments.value.length === 1);
+
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tooltip } = useI18n("transitions");
-  const routeId = route.value.params?.testResultId;
+  const testResultId = testResultIdStore.value;
 
   const currentTreeStatus = treeStatus.value;
 
@@ -64,7 +74,7 @@ export const TreeList = () => {
         const treeLocalizer = createTreeLocalizer(localizers);
 
         // render single tree for single environment
-        if (environmentsStore.value.data.length === 1) {
+        if (isSingleEnvironment.value) {
           return (
             <div>
               <Tree
@@ -75,7 +85,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={treeLocalizer(filteredTree.value.default)}
                 statusFilter={currentTreeStatus}
-                routeId={routeId}
+                routeId={testResultId}
                 root
               />
             </div>
@@ -95,7 +105,7 @@ export const TreeList = () => {
                 navigateTo={navigateTo}
                 tree={treeLocalizer(currentTree)}
                 statusFilter={currentTreeStatus}
-                routeId={routeId}
+                routeId={testResultId}
                 root
               />
             </div>
@@ -114,9 +124,7 @@ export const TreeList = () => {
 
               const isOpened = !collapsedEnvironments.value.includes(key);
               const toggleEnv = () => {
-                collapsedEnvironments.value = isOpened
-                  ? collapsedEnvironments.value.concat(key)
-                  : collapsedEnvironments.value.filter((env) => env !== key);
+                toggleCollapsedEnvironment(key);
               };
               const stats = statsByEnvStore.value.data[key];
 
@@ -146,7 +154,7 @@ export const TreeList = () => {
                         statusFilter={currentTreeStatus}
                         navigateTo={navigateTo}
                         tree={treeLocalizer(value)}
-                        routeId={routeId}
+                        routeId={testResultId}
                         root
                       />
                     </div>
