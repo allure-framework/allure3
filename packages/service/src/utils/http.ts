@@ -1,6 +1,4 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse, isAxiosError } from "axios";
-import { DEFAULT_HISTORY_SERVICE_URL } from "../model.js";
-import { readAccessToken } from "./token.js";
 
 /**
  * The error that was explicitly thrown by the service. We can print the error's message as is to the user
@@ -29,26 +27,19 @@ export class UnknownError extends Error {
   }
 }
 
-export const createServiceHttpClient = (
-  historyServiceURL: string = DEFAULT_HISTORY_SERVICE_URL,
-  accessToken?: string,
-) => {
+export const createServiceHttpClient = (serviceUrl: string, accessToken: string) => {
   const client = axios.create({
-    baseURL: historyServiceURL,
+    baseURL: serviceUrl,
     withCredentials: true,
     validateStatus: (status) => status < 400,
   });
   const sendRequest =
     (method: "get" | "post" | "put" | "delete") =>
     async <T>(endpoint: string, payload?: AxiosRequestConfig & { params?: Record<string, any>; body?: any }) => {
-      const actualAccessToken = accessToken || (await readAccessToken());
       const headers = {
         ...(payload?.headers ?? {}),
+        Authorization: `Bearer ${accessToken}`,
       };
-
-      if (actualAccessToken) {
-        headers.Authorization = `Bearer ${actualAccessToken}`;
-      }
 
       try {
         let res: AxiosResponse<T>;

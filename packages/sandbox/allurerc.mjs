@@ -115,4 +115,7 @@ export default defineConfig({
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
   },
+  allureService: {
+    accessToken: "eyJhbGciOiJIUzI1NiJ9.eyJwcm9qZWN0SWQiOiIwOTU1NDZlNS05ZmVkLTQ4MmItYTdkZC0yNGEwMDFmYmI4MzciLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0Ojk5OTEiLCJpYXQiOjE3Njc4NjEzNDcsImlzcyI6ImFsbHVyZS1zZXJ2aWNlIn0.xXRc3x3VBzKTnzZCtnW-dy23adWpG0puOROSOKG1wM4"
+  }
 });
