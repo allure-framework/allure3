@@ -2,7 +2,7 @@ import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
+const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 
 /**
  * @type {import("allure").AllureConfig}
@@ -68,7 +68,7 @@ const config = {
   },
 };
 
-if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_PROJECT) {
+if (ALLURE_SERVICE_ACCESS_TOKEN) {
   config.allureService = {
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
   };
