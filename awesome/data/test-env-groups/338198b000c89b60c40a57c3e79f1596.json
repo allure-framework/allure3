@@ -1,1 +1,0 @@
-{"id":"338198b000c89b60c40a57c3e79f1596","fullName":"test/toolRunner.test.ts#collectCliToolStdoutText should emit unterminated line","name":"should emit unterminated line","status":"passed","testResultsByEnv":{"windows-latest":"50528f9b71d31e21d49be61c88889f3e","ubuntu-latest":"ce0a29f987d9a77a95995bc69e17daf7","macos-latest":"ad73a94f00e84a9ec346f7831df34d90"}}

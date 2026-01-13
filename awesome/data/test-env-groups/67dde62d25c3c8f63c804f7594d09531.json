@@ -1,1 +1,0 @@
-{"id":"67dde62d25c3c8f63c804f7594d09531","fullName":"test/allure1.test.ts#allure1 reader steps attachments should ignore a missing title","name":"should ignore a missing title","status":"passed","testResultsByEnv":{"windows-latest":"3176c79eca496ce499f681f1663dd0b4","ubuntu-latest":"9e3b9c639ecbd6e4d15bf067fa839cea","macos-latest":"69f4fdb078e5d1a79d05d432441e4f18"}}

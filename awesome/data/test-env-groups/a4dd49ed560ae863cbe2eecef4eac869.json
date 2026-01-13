@@ -1,1 +1,0 @@
-{"id":"a4dd49ed560ae863cbe2eecef4eac869","fullName":"test/junitxml.test.ts#junit xml reader statuses error should parse an error element","name":"should parse an error element","status":"passed","testResultsByEnv":{"windows-latest":"c55d1e1f199ffc92e42eef06fd40c73b","ubuntu-latest":"5e403d37d8533562cdc3b77ddfa7018b","macos-latest":"ec5082207e4a57e9fb58315e7dd61020"}}

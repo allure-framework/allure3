@@ -1,1 +1,0 @@
-{"id":"5dc0a1171c64efb3d53b635884f7cf3b","fullName":"test/detectors/amazon.test.ts#amazon isBatchBuild should be false for non-batch build","name":"should be false for non-batch build","status":"passed","testResultsByEnv":{"windows-latest":"264327482a5d0bd8db752574a17c813c","ubuntu-latest":"1a7b924eb7cd731d537cc2b45236ac42","macos-latest":"f43577ea897ee539c61021500ab3be36"}}

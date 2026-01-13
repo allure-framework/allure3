@@ -1,1 +1,0 @@
-{"id":"4ba654625fde6fbef701b2757ebcf1ca","fullName":"test/utils.test.ts#utils stringifyStatusBadge returns red badge for failed status","name":"returns red badge for failed status","status":"passed","testResultsByEnv":{"windows-latest":"db8596ba254dad4878e5c5075c3896ee","ubuntu-latest":"a0695c74da5c820d46a1d9a55673979d","macos-latest":"8952dc6fea9ddf5f8081e922b1b4ec84"}}

@@ -1,1 +1,0 @@
-{"id":"f0293b7a96002f7faa55f9dcea79bd81","fullName":"test/allure1.test.ts#allure1 reader failures should handle an ill-formed message","name":"should handle an ill-formed message","status":"passed","testResultsByEnv":{"windows-latest":"c91b8a024e98cd7df16f931a3c986ee3","ubuntu-latest":"07fb6aada7d3f72144b5ff65c587ed80","macos-latest":"9c78cca3213ef2a45fc5f7f6e12393d1"}}

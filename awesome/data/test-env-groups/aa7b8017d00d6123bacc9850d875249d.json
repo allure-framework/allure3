@@ -1,1 +1,0 @@
-{"id":"aa7b8017d00d6123bacc9850d875249d","fullName":"test/utils/comparator.test.ts#comparator alphabetically should sort null last","name":"should sort null last","status":"passed","testResultsByEnv":{"windows-latest":"7acb3b5917b48f73016c00f94b1ea579","ubuntu-latest":"42268bbaa3994dec97660767483addb1","macos-latest":"093c82018da0e84033ae5d62690678c1"}}

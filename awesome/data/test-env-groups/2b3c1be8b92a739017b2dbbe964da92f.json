@@ -1,1 +1,0 @@
-{"id":"2b3c1be8b92a739017b2dbbe964da92f","fullName":"test/utils.test.ts#utils isFailedResult returns false for passed result","name":"returns false for passed result","status":"passed","testResultsByEnv":{"windows-latest":"6e1942b983970fc07fb53862d779d6f0","ubuntu-latest":"6ef7a7bb958da1cfac5854538f99a430","macos-latest":"1c5de7983eeacd69f4a25bcc6db5c0b4"}}

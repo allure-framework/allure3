@@ -1,1 +1,0 @@
-{"id":"53374825fd9be2e850e78860c4c9e6f1","fullName":"test/toolRunner.test.ts#collectCliToolStdoutText ignores stderr if ignoreStderr is set","name":"ignores stderr if ignoreStderr is set","status":"passed","testResultsByEnv":{"windows-latest":"5bc2d7179e6177a36863f41af18b51bb","ubuntu-latest":"c27ce7dd7a187b340f7e8102da4f96ec","macos-latest":"dae2ce1a5dd4001680e7ca4b5cede1fe"}}

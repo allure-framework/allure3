@@ -1,1 +1,0 @@
-{"id":"c9bf24aec88e54011a00127678053dbd","fullName":"test/allure1.test.ts#allure1 reader parameters should ignore arguments of unknown kind","name":"should ignore arguments of unknown kind","status":"passed","testResultsByEnv":{"windows-latest":"ba1fe26d25dfa3ad8e9396e6f1040b49","ubuntu-latest":"024468a740d56661c92755e2d9078d10","macos-latest":"dd05a885d68bc5d0ac40e208ca027458"}}

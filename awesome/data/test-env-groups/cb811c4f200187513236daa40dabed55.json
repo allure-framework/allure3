@@ -1,1 +1,0 @@
-{"id":"cb811c4f200187513236daa40dabed55","fullName":"test/process.test.ts#stopProcessTree on a POSIX-compliant system should stop a three-level process tree","name":"should stop a three-level process tree","status":"passed","testResultsByEnv":{"ubuntu-latest":"e9e6829b5dc9517f75358d2b2cd9dfe0","macos-latest":"5af3440711caed88d5def1b6b0d87f1d"}}

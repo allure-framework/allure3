@@ -1,1 +1,0 @@
-{"id":"9d2be00abca7c354ce0cf31f5d65a094","fullName":"live.test.ts:76:1","name":"reloads the page manually even when live reload is disabled","status":"passed","testResultsByEnv":{"windows-latest":"50f9b5b235d115723f1220bf520e8f72","ubuntu-latest":"b680752995a08627440fa7392a50ac4c","macos-latest":"acebe8c1104e660fc4e9c0d1353211bf"}}

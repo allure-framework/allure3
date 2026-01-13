@@ -1,1 +1,0 @@
-{"id":"f3b6c3178b78916a4b4825d6c27d4c3d","fullName":"test/unit/html.test.ts#returns nested/index.html when an url ends with /","name":"returns nested/index.html when an url ends with /","status":"passed","testResultsByEnv":{"windows-latest":"13d3841264aa028213440dd29b4b8679","ubuntu-latest":"9697c38ba9620f91bb02231c9e82dabf","macos-latest":"f0ce1a1af6928e0efc888364720b6191"}}

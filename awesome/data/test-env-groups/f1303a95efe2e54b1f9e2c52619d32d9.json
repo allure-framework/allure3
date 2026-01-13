@@ -1,1 +1,0 @@
-{"id":"f1303a95efe2e54b1f9e2c52619d32d9","fullName":"test/xcresult.test.ts#A MAC machine outcomes should parse a test with an uncaught exception","name":"should parse a test with an uncaught exception","status":"passed","testResultsByEnv":{"macos-latest":"122cd48a1e5394780276e7d63b11c442"}}

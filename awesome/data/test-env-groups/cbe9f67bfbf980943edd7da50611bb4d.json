@@ -1,1 +1,0 @@
-{"id":"cbe9f67bfbf980943edd7da50611bb4d","fullName":"test/detect.test.ts#detectContentType should detect sample.png as image/png","name":"should detect sample.png as image/png","status":"passed","testResultsByEnv":{"windows-latest":"26067ebb994f40c652ac6f55d84cf1d1","ubuntu-latest":"c85f717bf8f3db6e1ed66f32799cc46c","macos-latest":"ebca431c6eb92e50d743722f41fe2f90"}}

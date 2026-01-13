@@ -1,1 +1,0 @@
-{"id":"2e7a529e75ebd81c40f7a91988c5a2b0","fullName":"test/allure1.test.ts#allure1 reader attachments should ignore an invalid title","name":"should ignore an invalid title","status":"passed","testResultsByEnv":{"windows-latest":"bf080ed1339da36c040f6d1f740f3a30","ubuntu-latest":"abcce3c4113f1681515a013694e049d2","macos-latest":"456d2b0ffb637724d5abab33a0770be7"}}

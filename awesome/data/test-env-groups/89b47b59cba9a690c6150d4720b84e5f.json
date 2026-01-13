@@ -1,1 +1,0 @@
-{"id":"89b47b59cba9a690c6150d4720b84e5f","fullName":"test/allure1.test.ts#allure1 reader steps names should prioritize title if given","name":"should prioritize title if given","status":"passed","testResultsByEnv":{"windows-latest":"db74e649eb336ce20fb78bc4c007ca4b","ubuntu-latest":"1a4ca58a3d203ad381a78087c993cbea","macos-latest":"fb213ad2aa18cd9fdac48ffea0d4f78f"}}

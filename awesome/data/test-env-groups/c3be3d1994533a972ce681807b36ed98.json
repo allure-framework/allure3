@@ -1,1 +1,0 @@
-{"id":"c3be3d1994533a972ce681807b36ed98","fullName":"test/detectors/azure.test.ts#azure jobUID should return the correct job UID","name":"should return the correct job UID","status":"passed","testResultsByEnv":{"windows-latest":"fa9312e19972c9822cf6afe73340179f","ubuntu-latest":"e9e54bc816003602c63969054a3eae32","macos-latest":"4da741c483745193ea7d60d86791f457"}}

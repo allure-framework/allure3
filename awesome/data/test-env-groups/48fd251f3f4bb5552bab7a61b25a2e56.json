@@ -1,1 +1,0 @@
-{"id":"48fd251f3f4bb5552bab7a61b25a2e56","fullName":"test/qualityGate/rules.test.ts#maxDurationRule should not filter out known issues","name":"should not filter out known issues","status":"passed","testResultsByEnv":{"windows-latest":"e0ce33aaa5990876407e3583c22d203a","ubuntu-latest":"be32b457df39918b038dce6ee293dc01","macos-latest":"09e871ad35ff82038994b284b686aa32"}}

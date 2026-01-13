@@ -1,1 +1,0 @@
-{"id":"913e5a557257a2625dadbe6d06c29f75","fullName":"test/utils/time.test.ts#formatDuration should format ms only if less then a second","name":"should format ms only if less then a second","status":"passed","testResultsByEnv":{"windows-latest":"3f3f04e7f02c8105f79bd0d8d36aae7b","ubuntu-latest":"b2840199eeff3557a941b74c0a0ef86f","macos-latest":"c678f170e74e931fd64e755718e8adeb"}}

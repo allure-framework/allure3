@@ -1,1 +1,0 @@
-{"id":"d29258335851f089aadfbec65703ab8d","fullName":"test/config.test.ts#resolveConfig should allow to override given history path","name":"should allow to override given history path","status":"passed","testResultsByEnv":{"windows-latest":"39be8a7105e83b79169e638c8b205aff","ubuntu-latest":"8bf0bcf984ab0f8a62070c13b5acbe8e","macos-latest":"0537cd8822c31c4e0002c155df5e2ccc"}}

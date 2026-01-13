@@ -1,1 +1,0 @@
-{"id":"468f7b34b93e364e7bda6a63f1402adf","fullName":"test/report.test.ts#report should call plugins in specified order on start()","name":"should call plugins in specified order on start()","status":"passed","testResultsByEnv":{"windows-latest":"40466fb677b970a6b6560f576db2da54","ubuntu-latest":"d657d6b2026f38e58cf73068aac86d92","macos-latest":"0dc8f0e60872bc6c91a120e0373895d9"}}

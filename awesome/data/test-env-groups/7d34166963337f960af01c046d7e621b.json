@@ -1,1 +1,0 @@
-{"id":"7d34166963337f960af01c046d7e621b","fullName":"test/utils/time.test.ts#formatDuration should format hours and minutes","name":"should format hours and minutes","status":"passed","testResultsByEnv":{"windows-latest":"6c00b1e0866cfb47d1755603141e6232","ubuntu-latest":"432904cf47915b399dddbc70ff3201f1","macos-latest":"e05d6dbc42af88dc6370fee7ac01c5f9"}}

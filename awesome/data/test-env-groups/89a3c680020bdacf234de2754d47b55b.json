@@ -1,1 +1,0 @@
-{"id":"89a3c680020bdacf234de2754d47b55b","fullName":"test/allure1.test.ts#allure1 reader parameters should parse system properties","name":"should parse system properties","status":"passed","testResultsByEnv":{"windows-latest":"6611c25e0a46ded5ba4e28eedf6e4a5a","ubuntu-latest":"1f3f3a64875e2179b2f96b9ceb32d1a7","macos-latest":"c60099d4870048765105f2b557116083"}}
