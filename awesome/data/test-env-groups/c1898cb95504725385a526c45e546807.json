@@ -1,0 +1,1 @@
+{"id":"c1898cb95504725385a526c45e546807","fullName":"test/qualityGate/qualityGate.test.ts#QualityGate validate should use default rules when no rules are provided in use","name":"should use default rules when no rules are provided in use","status":"passed","testResultsByEnv":{"windows-latest":"a38aed6c755ab0b44a0e08bc33e7a781","ubuntu-latest":"16565d893d383c77b06cc351dcd4551b"}}

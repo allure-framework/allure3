@@ -1,0 +1,1 @@
+{"id":"02d18f217dc9699cac26f8903613f265","fullName":"test/toolRunner.test.ts#invokeStdoutCliTool text mode should iterate over multiple lines","name":"should iterate over multiple lines","status":"passed","testResultsByEnv":{"windows-latest":"54e2a738967a3a48bf3857696b957ab9","ubuntu-latest":"5d3cd196906ece455f10ead1b4308ab1","macos-latest":"e0b49e1b19902f15944a959bd3c65474"}}

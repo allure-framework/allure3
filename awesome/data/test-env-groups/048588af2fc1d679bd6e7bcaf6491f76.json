@@ -1,0 +1,1 @@
+{"id":"048588af2fc1d679bd6e7bcaf6491f76","fullName":"test/allure1.test.ts#allure1 reader should parse empty xml correct xml heading","name":"should parse empty xml correct xml heading","status":"passed","testResultsByEnv":{"windows-latest":"ddb950a07d00bcbd8ca916395ccc0231","ubuntu-latest":"1bc789e39a3fe860926aed250e176621","macos-latest":"ba84de09a475c95989a65c30f8924f19"}}

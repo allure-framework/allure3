@@ -1,0 +1,1 @@
+{"id":"1775f534f0f60ea559cecf41460ccd72","fullName":"allure-awesome/features/retries.test.ts:121:5","name":"should apply regressed filter to the tree when filter=regressed query parameter is present","status":"passed","testResultsByEnv":{"windows-latest":"b534593f1bf828c36e65c3783a760efe","ubuntu-latest":"9bc27e2f5a4f2703d406ddfed62d8996"}}

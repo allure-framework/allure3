@@ -1,0 +1,1 @@
+{"id":"d06d18116c988d3e8f82e386fb0e834b","fullName":"test/commands/slack.test.ts#slack command should exit with code 1 when resultsDir doesn't exist","name":"should exit with code 1 when resultsDir doesn't exist","status":"passed","testResultsByEnv":{"windows-latest":"abbc514c8ed03bfd2a381a1be35e154a","ubuntu-latest":"e2992d5e8b907990b044f4730d65a41b"}}

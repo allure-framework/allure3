@@ -1,0 +1,1 @@
+{"id":"b2097536572b424b4c7ab8798d47ff9f","fullName":"test/config.test.ts#resolveConfig should set awesome as a default plugin if no plugins are provided","name":"should set awesome as a default plugin if no plugins are provided","status":"passed","testResultsByEnv":{"windows-latest":"09364c2ee8cc64d0f217cb7f5c9f6e79","ubuntu-latest":"8e7af9411c349be7d81e06f3dc716785"}}

@@ -1,0 +1,1 @@
+{"id":"6ff7f5ec00aaac26565e4326c68132fd","fullName":"allure-awesome/features/qualityGates.test.ts:24:3","name":"should render empty quality gate tab when there is no quality gate validation results","status":"passed","testResultsByEnv":{"windows-latest":"32455e47a07efaad6552f1301150c942","ubuntu-latest":"7e90a0bae367551f957ae12cf8408a38"}}

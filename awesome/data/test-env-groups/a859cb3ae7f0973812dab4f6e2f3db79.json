@@ -1,0 +1,1 @@
+{"id":"a859cb3ae7f0973812dab4f6e2f3db79","fullName":"test/commands/generate.test.ts#generate command should call generate with stage files when provided","name":"should call generate with stage files when provided","status":"passed","testResultsByEnv":{"windows-latest":"cfb7be8dec3dcbc80a2561c8a2c70340","ubuntu-latest":"af365ba3511cfe0be55cab854e6d8192"}}

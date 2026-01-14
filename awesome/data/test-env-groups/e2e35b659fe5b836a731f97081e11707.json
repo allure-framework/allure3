@@ -1,0 +1,1 @@
+{"id":"e2e35b659fe5b836a731f97081e11707","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a pending test case","name":"should parse a pending test case","status":"passed","testResultsByEnv":{"windows-latest":"2bd5d0df439094dfa7f9c746dd0cbae1","ubuntu-latest":"46975bddf45f4de684374b6df8a52591","macos-latest":"53f12212cbbf3fb85137684be8902260"}}

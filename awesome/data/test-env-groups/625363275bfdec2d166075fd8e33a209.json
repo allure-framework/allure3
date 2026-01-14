@@ -1,0 +1,1 @@
+{"id":"625363275bfdec2d166075fd8e33a209","fullName":"test/junitxml.test.ts#junit xml reader should parse empty root element","name":"should parse empty root element","status":"passed","testResultsByEnv":{"windows-latest":"bb3b6b3068bcc1d68ca400ce0fb3ea49","ubuntu-latest":"9c030c24eb9182f722e920975fe7ab17","macos-latest":"1116fab3200a13829170333044bc6738"}}

@@ -1,0 +1,1 @@
+{"id":"2f9958769e1b8aaaad5879b80a43de29","fullName":"test/toolRunner.test.ts#collectCliToolStdoutText should stop with a timeout","name":"should stop with a timeout","status":"passed","testResultsByEnv":{"windows-latest":"5ac37634899284bfbf831fb7b886033e","ubuntu-latest":"bae3b8f7d66c05dfb2d4ba5fbb089dd5","macos-latest":"0b59933aa5494df0537afff9a82584ea"}}

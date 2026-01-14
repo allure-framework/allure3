@@ -1,0 +1,1 @@
+{"id":"d0d4fbc16d001641edc2971c3e065214","fullName":"test/allure1.test.ts#allure1 reader statuses should parse an unknown status","name":"should parse an unknown status","status":"passed","testResultsByEnv":{"windows-latest":"c000a2c56602f23cee6dbdfa37230227","ubuntu-latest":"50d635354ad0f7bf6c902aa45141a24a","macos-latest":"04492bb35e28ace7233f42f658a92894"}}

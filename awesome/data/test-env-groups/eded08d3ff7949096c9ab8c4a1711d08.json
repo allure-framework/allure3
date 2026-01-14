@@ -1,0 +1,1 @@
+{"id":"eded08d3ff7949096c9ab8c4a1711d08","fullName":"test/config.test.ts#validateConfig should return array of unsupported fields if the config contains them","name":"should return array of unsupported fields if the config contains them","status":"passed","testResultsByEnv":{"windows-latest":"586d707e0260484a1ed638aa56c9e5d6","ubuntu-latest":"f4b1e80eb8b2a4a2ec37fbf4b670f3e3"}}

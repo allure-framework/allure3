@@ -1,0 +1,1 @@
+{"id":"430053acac77f5928a656dc30221f615","fullName":"test/utils/status.test.ts#statusToPriority should return priority of status","name":"should return priority of status","status":"passed","testResultsByEnv":{"windows-latest":"e9a334afd75cef92014b7cd34efb0065","ubuntu-latest":"ffd0b2ef1d7574f10ac9d534742df1c3","macos-latest":"bd8bfaf5d66dc82ea17e110b5c6393bc"}}

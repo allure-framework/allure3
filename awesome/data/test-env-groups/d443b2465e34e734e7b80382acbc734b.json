@@ -1,0 +1,1 @@
+{"id":"d443b2465e34e734e7b80382acbc734b","fullName":"allure-awesome/features/flaky.test.ts:124:3","name":"metadata shows correct count of flaky tests","status":"passed","testResultsByEnv":{"windows-latest":"017cfe94c82df2c13688ce4af1c0bd5f","ubuntu-latest":"8ee3760e92c0d974f100742a0d685587"}}

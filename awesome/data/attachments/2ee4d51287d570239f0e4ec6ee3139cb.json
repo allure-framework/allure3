@@ -1,0 +1,8 @@
+{
+  "name": "Test with actual",
+  "fullName": "Test with actual",
+  "status": "passed",
+  "statusDetails": {
+    "actual": "some actual"
+  }
+}

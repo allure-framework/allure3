@@ -1,0 +1,1 @@
+{"id":"fe0a6cc91b6942465a2bf99a8af07220","fullName":"test/qualityGate/rules.test.ts#maxDurationRule should pass when max duration is less than expected","name":"should pass when max duration is less than expected","status":"passed","testResultsByEnv":{"windows-latest":"72da2b7e85ced897a333ef20c8061d8b","ubuntu-latest":"50639ab94f4a1c61fd17aafc0fc7f322"}}

@@ -1,0 +1,1 @@
+{"id":"0d51dc1fa60f98d30ad8a221c2ee9f96","fullName":"test/config.test.ts#findConfig default config files priority shoild attempt finding allurerc.js before allurerc.mjs","name":"shoild attempt finding allurerc.js before allurerc.mjs","status":"passed","testResultsByEnv":{"windows-latest":"b84f9f4530d0568daf9aed6b5fe51ccf","ubuntu-latest":"86f845a6c6a52991daed1bf7e67396d6"}}

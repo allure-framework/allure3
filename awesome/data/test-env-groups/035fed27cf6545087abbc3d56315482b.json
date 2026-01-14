@@ -1,0 +1,1 @@
+{"id":"035fed27cf6545087abbc3d56315482b","fullName":"test/store/store.test.ts#mapToObject should convert a map with string keys to an object","name":"should convert a map with string keys to an object","status":"passed","testResultsByEnv":{"windows-latest":"bd02eaf896eabcd4ea380a78bf8f7d9f","ubuntu-latest":"287b923d93fa04221b1acfb97d47821d"}}

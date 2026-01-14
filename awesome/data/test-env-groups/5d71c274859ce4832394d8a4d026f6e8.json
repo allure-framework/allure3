@@ -1,0 +1,1 @@
+{"id":"5d71c274859ce4832394d8a4d026f6e8","fullName":"test/allure1.test.ts#allure1 reader name should ignore an invalid name","name":"should ignore an invalid name","status":"passed","testResultsByEnv":{"windows-latest":"aa81ef90d134597d16c710d60662102d","ubuntu-latest":"c743f7b535d664fd3001638919066c82","macos-latest":"82739a285b6ca8cd0f9c9dd20dddb4d1"}}

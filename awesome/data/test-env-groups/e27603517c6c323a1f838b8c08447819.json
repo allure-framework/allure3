@@ -1,0 +1,1 @@
+{"id":"e27603517c6c323a1f838b8c08447819","fullName":"test/commands/open.test.ts#open command should use cwd when provided","name":"should use cwd when provided","status":"passed","testResultsByEnv":{"windows-latest":"36fb9ac3e1b52744fc1c499d294db6c8","ubuntu-latest":"cbde7ff6ef60395e0e36a66d44665274"}}

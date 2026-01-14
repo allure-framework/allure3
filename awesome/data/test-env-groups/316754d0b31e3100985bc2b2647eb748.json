@@ -1,0 +1,1 @@
+{"id":"316754d0b31e3100985bc2b2647eb748","fullName":"test/service.test.ts#AllureServiceClient createReport should create a new report","name":"should create a new report","status":"passed","testResultsByEnv":{"windows-latest":"d158dedfec1cc7257db5d15d75ec59f5","ubuntu-latest":"e886f15e20738c29b27f9c32c9fe012d","macos-latest":"3eb87da8892d8cf66842635a64665c61"}}

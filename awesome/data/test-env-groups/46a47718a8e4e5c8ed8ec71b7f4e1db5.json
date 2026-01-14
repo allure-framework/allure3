@@ -1,0 +1,1 @@
+{"id":"46a47718a8e4e5c8ed8ec71b7f4e1db5","fullName":"test/commands/generate.test.ts#generate command should propagate errors from generate function","name":"should propagate errors from generate function","status":"passed","testResultsByEnv":{"windows-latest":"e35ebda5fa44f1c607f6e85b32b12a33","ubuntu-latest":"9c8dae3159aa03761a0e6dba13264a8b"}}

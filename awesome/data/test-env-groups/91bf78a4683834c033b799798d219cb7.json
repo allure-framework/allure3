@@ -1,0 +1,1 @@
+{"id":"91bf78a4683834c033b799798d219cb7","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"windows-latest":"8a9f5a1bfc886b604646ed7fc7d0e849","ubuntu-latest":"099e7cc0cdbb970fd0b4708b3916e668","macos-latest":"efd93f52e13ede656f7ef3552fe10983"}}

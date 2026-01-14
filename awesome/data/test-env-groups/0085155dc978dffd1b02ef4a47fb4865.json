@@ -1,0 +1,1 @@
+{"id":"0085155dc978dffd1b02ef4a47fb4865","fullName":"test/allure1.test.ts#allure1 reader statuses should parse a passed test case","name":"should parse a passed test case","status":"passed","testResultsByEnv":{"windows-latest":"65a4017fc06fadfc09a9053e73cab8cb","ubuntu-latest":"1cbd37c963afa180b9facbace732ade0","macos-latest":"15d77236f9c3fc031d48c07d497327a1"}}

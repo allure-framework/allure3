@@ -1,0 +1,1 @@
+{"id":"967c1f08149ae7e540ee531d70cb9b61","fullName":"test/stores/treeFilters.test.ts#stores > treeFilters setTreeSortBy should update sortBy to order","name":"should update sortBy to order","status":"passed","testResultsByEnv":{"windows-latest":"a55d4704991b7e65048d1ffd567077ff","ubuntu-latest":"b8a5679948e5251738bf51bf0fedafdd","macos-latest":"40322416069077d01b0f63bec429a97e"}}

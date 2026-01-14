@@ -1,0 +1,1 @@
+{"id":"1a2f591f2ef80fde9e39e49370894748","fullName":"test/store/convert.test.ts#testResultRawToState should exclude excluded parameters from history id","name":"should exclude excluded parameters from history id","status":"passed","testResultsByEnv":{"windows-latest":"fb76047552bc43302aec81142a7508c6","ubuntu-latest":"9d6d75d3bccf5e41ade136dfd488dafa"}}

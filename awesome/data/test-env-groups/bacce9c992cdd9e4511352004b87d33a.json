@@ -1,0 +1,1 @@
+{"id":"bacce9c992cdd9e4511352004b87d33a","fullName":"test/detectors/circle.test.ts#circle detected should be false when path is empty","name":"should be false when path is empty","status":"passed","testResultsByEnv":{"windows-latest":"c1ea80442296479f50058857818286d6","ubuntu-latest":"625cfeece5b3c44c3bd0aaef028ed75a","macos-latest":"61e588683b2a210db6cc79b536574111"}}

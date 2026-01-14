@@ -1,0 +1,1 @@
+{"id":"82640138236833273c413be3b4ae74c8","fullName":"test/commands/qualityGate.test.ts#quality-gate command should exit with code -1 when quality gate is not configured","name":"should exit with code -1 when quality gate is not configured","status":"passed","testResultsByEnv":{"windows-latest":"265534db64e9b5c22eb1e58673470355","ubuntu-latest":"95feb577946581d02bae0fda08d9b188"}}

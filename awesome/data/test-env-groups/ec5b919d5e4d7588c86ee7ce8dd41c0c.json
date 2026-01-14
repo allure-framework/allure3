@@ -1,0 +1,1 @@
+{"id":"ec5b919d5e4d7588c86ee7ce8dd41c0c","fullName":"test/config.test.ts#getPluginInstance should return plugin instance for the given plugin","name":"should return plugin instance for the given plugin","status":"passed","testResultsByEnv":{"windows-latest":"92e55a605854b77fcd3a63eed29a4af6","ubuntu-latest":"956dd4ea24979a22f1c6731e1bb19099"}}

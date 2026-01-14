@@ -1,0 +1,1 @@
+{"id":"92d2b986182bf812d545b4e8e2feb63a","fullName":"test/commands/generate.test.ts#generate command should not call serve when open flag is false","name":"should not call serve when open flag is false","status":"passed","testResultsByEnv":{"windows-latest":"88e2763a2425947189618bd66933603a","ubuntu-latest":"a81e405e6eb125f6a742342a7a130a49"}}

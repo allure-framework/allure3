@@ -1,0 +1,1 @@
+{"id":"01b9fc8c783e3bf7e6523a5d849c607e","fullName":"test/detectors/azure.test.ts#azure jobRunName should return the correct job run name","name":"should return the correct job run name","status":"passed","testResultsByEnv":{"windows-latest":"9dd54dc9288a267727cc18306c5e9ece","ubuntu-latest":"6209da242a4057b04715fdcc6f536c61","macos-latest":"e59db53a376079d53da590b4e250792d"}}

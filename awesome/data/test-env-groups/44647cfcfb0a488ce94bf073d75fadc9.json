@@ -1,0 +1,1 @@
+{"id":"44647cfcfb0a488ce94bf073d75fadc9","fullName":"test/commands/generate.test.ts#generate command should pass config to generate function","name":"should pass config to generate function","status":"passed","testResultsByEnv":{"windows-latest":"eefde35656d52f2bb8461b4bb41b7a2b","ubuntu-latest":"73f8cb9b725bef7c8e50b170af46aef4"}}

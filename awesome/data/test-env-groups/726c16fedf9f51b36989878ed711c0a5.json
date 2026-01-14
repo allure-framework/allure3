@@ -1,0 +1,1 @@
+{"id":"726c16fedf9f51b36989878ed711c0a5","fullName":"test/config.test.ts#resolveConfig should set default known issues path if it's not provided","name":"should set default known issues path if it's not provided","status":"passed","testResultsByEnv":{"windows-latest":"804f2cf6a22ed8978744019491e0de24","ubuntu-latest":"7a4bf726cd1e1f9346ad72754c146ab0"}}

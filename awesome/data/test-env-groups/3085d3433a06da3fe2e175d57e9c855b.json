@@ -1,0 +1,1 @@
+{"id":"3085d3433a06da3fe2e175d57e9c855b","fullName":"test/toolRunner.test.ts#invokeStdoutCliTool binary mode should iterate empty output","name":"should iterate empty output","status":"passed","testResultsByEnv":{"windows-latest":"e6fea41ef66abf494c21b7215fa8fcff","ubuntu-latest":"24e72d9ad7dc1252bef4689b7362f97c","macos-latest":"fbbe14d1d5f10ea3b1ab697e3f075a18"}}

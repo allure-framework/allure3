@@ -1,0 +1,1 @@
+{"id":"07ad91badb308ed28ea8a5dfc4951390","fullName":"test/report.test.ts#report should not allow to readResult() before start()","name":"should not allow to readResult() before start()","status":"passed","testResultsByEnv":{"windows-latest":"3873f959a592ac3dc842f261a77e113b","ubuntu-latest":"64473011e557f5d34674c4eda6187929"}}

@@ -1,0 +1,1 @@
+{"id":"d842073ef330874593c03ad1f3db33ab","fullName":"test/store/store.test.ts#mapToObject should return an empty object for an empty map","name":"should return an empty object for an empty map","status":"passed","testResultsByEnv":{"windows-latest":"eb95f8a794771672e293091899ec8bd2","ubuntu-latest":"8bfaee2e8f0445c43b256301b7b09787"}}

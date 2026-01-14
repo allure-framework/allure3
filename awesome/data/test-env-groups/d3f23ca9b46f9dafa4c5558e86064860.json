@@ -1,0 +1,1 @@
+{"id":"d3f23ca9b46f9dafa4c5558e86064860","fullName":"test/service.test.ts#AllureServiceClient deleteReport should delete a report","name":"should delete a report","status":"passed","testResultsByEnv":{"windows-latest":"43dca75f6cac3754c18f9f36fd78a655","ubuntu-latest":"ce054360b2ed6bf6b713cb354fcc58c9","macos-latest":"a5161a665eb0910b1dbc7085af8e20b6"}}

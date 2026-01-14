@@ -1,0 +1,1 @@
+{"id":"a71c282d8e3dd43f685b9556ed01932a","fullName":"test/config.test.ts#resolveConfig shouldn't set default history path if it's not provided","name":"shouldn't set default history path if it's not provided","status":"passed","testResultsByEnv":{"windows-latest":"1ecabb753ff52437093666f79287365f","ubuntu-latest":"8127e87ea5b3c1637e5aac62298c5102"}}

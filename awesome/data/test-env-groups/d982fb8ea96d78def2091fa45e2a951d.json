@@ -1,0 +1,1 @@
+{"id":"d982fb8ea96d78def2091fa45e2a951d","fullName":"commons/summary.test.ts:140:3","name":"should not render cards for reports without summary","status":"passed","testResultsByEnv":{"windows-latest":"ec8a53350b881679764de404ed1a42e3","ubuntu-latest":"5b8fb691ac9868af3c9a5d07336e3c30"}}

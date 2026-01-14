@@ -1,0 +1,1 @@
+{"id":"c63b1386e6f757fbe33ca99be810278a","fullName":"test/allure2.test.ts#allure2 reader should parse environment.xml","name":"should parse environment.xml","status":"passed","testResultsByEnv":{"windows-latest":"a256f83990904f4b781d8bc46c5313f9","ubuntu-latest":"4b50993793d40a3c0cfd65b506c9f1f9","macos-latest":"9643cb069b77eecb1fb8b973a06446f6"}}

@@ -1,0 +1,1 @@
+{"id":"c2eb7099bc0a739ab91a10dbaf334f14","fullName":"test/allure1.test.ts#allure1 reader attachments should ignore an invalid type","name":"should ignore an invalid type","status":"passed","testResultsByEnv":{"windows-latest":"1d0913585b48394ecdf0b43a9fe93835","ubuntu-latest":"1f6a94afdffd263c67c3fc7e18623bad","macos-latest":"20e49d6359c08e774cd9b87683acc010"}}

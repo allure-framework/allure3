@@ -1,0 +1,1 @@
+{"id":"3de1027321f87c09cadea36e5eaea515","fullName":"test/store/convert.test.ts#testResultRawToState a converted step attachment should match a visited link","name":"should match a visited link","status":"passed","testResultsByEnv":{"windows-latest":"948324965b18b45bb15496928742970a","ubuntu-latest":"059a6fb35caf1df8004ec873ae27756c"}}

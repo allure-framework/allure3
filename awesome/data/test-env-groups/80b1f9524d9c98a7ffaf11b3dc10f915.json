@@ -1,0 +1,1 @@
+{"id":"80b1f9524d9c98a7ffaf11b3dc10f915","fullName":"test/detectors/drone.test.ts#drone getJobRunUID should return the correct job run UID","name":"should return the correct job run UID","status":"passed","testResultsByEnv":{"windows-latest":"ca66e1c15cedb6c13579c3c0cfbcdd41","ubuntu-latest":"c6ba8acca79d32bd14d13ac113a548cf","macos-latest":"8ad098575d4fa0901726ee783b01a34b"}}

@@ -1,0 +1,1 @@
+{"id":"9b71a4c5c78b956994f95a187ebb3590","fullName":"test/commands/open.test.ts#open command should create temp directory with mkdtemp pattern","name":"should create temp directory with mkdtemp pattern","status":"passed","testResultsByEnv":{"windows-latest":"0f5c4a4e7b926837b02016c86867ecf0","ubuntu-latest":"7453c8b694949ce0f143e22a50807c5a"}}

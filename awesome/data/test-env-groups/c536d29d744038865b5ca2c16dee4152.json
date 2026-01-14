@@ -1,0 +1,1 @@
+{"id":"c536d29d744038865b5ca2c16dee4152","fullName":"test/qualityGate/qualityGate.test.ts#QualityGate validate should use ruleset id in rule name when provided","name":"should use ruleset id in rule name when provided","status":"passed","testResultsByEnv":{"windows-latest":"750882b8a35513a1a69ce15ca66b8441","ubuntu-latest":"bb892fdf6ac92b568f4d634554d6cb88"}}

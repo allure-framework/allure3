@@ -1,0 +1,1 @@
+{"id":"8549d9baccc5bbb2be1ca3d7e6c20668","fullName":"test/commands/open.test.ts#open command should check for summary.json in target directory","name":"should check for summary.json in target directory","status":"passed","testResultsByEnv":{"windows-latest":"3a236a8d87a0bb46204b20f1819acdb6","ubuntu-latest":"0c7455ca83eb80d09490e92e9ab2ac7a"}}

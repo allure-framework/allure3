@@ -1,0 +1,1 @@
+{"id":"92acd185f0839a88d5ebb3870e1c5a3e","fullName":"test/allure1.test.ts#allure1 reader name should fall back to the name","name":"should fall back to the name","status":"passed","testResultsByEnv":{"windows-latest":"3a192024778c80bed9a9753a3cc893ee","ubuntu-latest":"b29dccaa07db158834ae880d2d22c0af","macos-latest":"65461af0b09c65d9226c6b2ffd7f91ce"}}

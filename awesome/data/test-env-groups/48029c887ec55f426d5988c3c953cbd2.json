@@ -1,0 +1,1 @@
+{"id":"48029c887ec55f426d5988c3c953cbd2","fullName":"test/commands/open.test.ts#open command should use default resultsDir when not provided","name":"should use default resultsDir when not provided","status":"passed","testResultsByEnv":{"windows-latest":"18160e45e4951bb0d88743c6b2879fa4","ubuntu-latest":"5cd2309e07b7f8fcfa08327864cbc650"}}

@@ -1,0 +1,1 @@
+{"id":"45b25e5194be4737e7d168634e189d88","fullName":"test/detectors/jenkins.test.ts#jenkins jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"windows-latest":"ff0e207b02ff2086958f6b3502780644","ubuntu-latest":"f15977ff4ea6b741e340739d4959d4dc","macos-latest":"c03627dd182072bf75c754662aa4ddce"}}

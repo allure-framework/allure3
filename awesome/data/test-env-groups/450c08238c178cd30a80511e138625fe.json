@@ -1,0 +1,1 @@
+{"id":"450c08238c178cd30a80511e138625fe","fullName":"test/stores/treeFilters.test.ts#stores > treeFilters setTreeStatus should update status to total","name":"should update status to total","status":"passed","testResultsByEnv":{"windows-latest":"804f880f0a05e4ed65f9a5a7f94ec064","ubuntu-latest":"c6a1b11acd2baeedb21d2ef0f5da6478","macos-latest":"0c2deadd9bdb4ac5332cd2faf0aaa91f"}}

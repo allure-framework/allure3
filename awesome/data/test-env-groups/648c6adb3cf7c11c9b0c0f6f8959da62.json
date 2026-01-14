@@ -1,0 +1,1 @@
+{"id":"648c6adb3cf7c11c9b0c0f6f8959da62","fullName":"test/detectors/amazon.test.ts#amazon jobRunURL should return the correct job run URL","name":"should return the correct job run URL","status":"passed","testResultsByEnv":{"windows-latest":"54e8c17155454de56c9475fb1eb3bde8","ubuntu-latest":"8e21e897e9dc6446e630c194e4f6dd61","macos-latest":"6a8da8bf5b2eef8c62add75fbbf5c686"}}

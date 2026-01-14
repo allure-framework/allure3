@@ -1,0 +1,1 @@
+{"id":"b8f4c7e325cf52fa5b6ffe8d31c59d4c","fullName":"test/unit/static.test.ts#serves files with query parameters","name":"serves files with query parameters","status":"passed","testResultsByEnv":{"windows-latest":"cd8a68364b3b0b1d3cd26e25c5023528","ubuntu-latest":"23f99be76cd356b82814aead434fe365","macos-latest":"9099042a00ff9bf66442e87b0b4d346f"}}
