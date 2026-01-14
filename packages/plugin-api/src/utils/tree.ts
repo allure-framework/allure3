@@ -65,7 +65,11 @@ const createTree = <T, L, G>(
             groupsByClassifier[parentId] = {};
           }
 
-          if (groupsByClassifier[parentId][group] === undefined) {
+          // sometimes group name can clash with object prototype properties like 'constructor' 'toString', 'hasOwnProperty'
+          if (
+            groupsByClassifier[parentId][group] === undefined ||
+            typeof groupsByClassifier[parentId][group] === "function"
+          ) {
             const newGroup = groupFactory(parentId, group);
 
             groupsByClassifier[parentId][group] = newGroup;
@@ -82,7 +86,9 @@ const createTree = <T, L, G>(
       });
     }
 
-    parentGroups.forEach((parentGroup) => addLeaf(parentGroup, leaf.nodeId));
+    parentGroups.forEach((parentGroup) => {
+      addLeaf(parentGroup, leaf.nodeId);
+    });
   }
 
   // TODO: iterate over groupsById to sort leaves by start here?
