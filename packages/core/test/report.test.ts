@@ -3,6 +3,9 @@ import { BufferResultFile } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
 import type { Mock, Mocked } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { access, mkdtemp, readdir, realpath, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 import { AllureServiceClientMock } from "./utils.js";
@@ -42,6 +45,19 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     options,
     plugin,
   };
+};
+
+const resolveStoreFilePath = async (reportRoot: string, storeRelativePath: string): Promise<string> => {
+  // Expected layout: `<reportRoot>/data/...`
+  const underData = join(reportRoot, "data", storeRelativePath);
+  try {
+    await access(underData);
+    return underData;
+  } catch {
+    // When report output contains only `data/`, `AllureReport.done()` flattens it to the report root.
+    // In that case `data/attachments/*` becomes `<reportRoot>/attachments/*`, etc.
+    return join(reportRoot, storeRelativePath);
+  }
 };
 
 beforeEach(() => {
@@ -247,5 +263,83 @@ describe("report", () => {
         jobHref: undefined,
       },
     ]);
+  });
+
+  it("should expose a single shared report store for all plugins (no duplicated attachments)", async () => {
+    const output = await realpath(await mkdtemp(join(tmpdir(), "allure3-report-test-")));
+
+    try {
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+
+      // both plugins write the same attachment into the shared store
+      p1.plugin.done.mockImplementation(async (context) => {
+        await context.reportStoreFiles.addFile("data/attachments/shared.txt", Buffer.from("p1", "utf8"));
+      });
+      p2.plugin.done.mockImplementation(async (context) => {
+        await context.reportStoreFiles.addFile("data/attachments/shared.txt", Buffer.from("p2", "utf8"));
+      });
+
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+      });
+      config.plugins = [p1, p2];
+
+      const allureReport = new AllureReport(config);
+      await allureReport.start();
+      await allureReport.done();
+
+      const reportRoot = output;
+
+      // shared store must exist at report root
+      const sharedAttachmentPath = await resolveStoreFilePath(reportRoot, join("attachments", "shared.txt"));
+      await expect(access(sharedAttachmentPath)).resolves.toBeUndefined();
+
+      // and must not be duplicated inside each plugin directory
+      await expect(access(join(reportRoot, "p1", "data", "attachments", "shared.txt"))).rejects.toThrow();
+      await expect(access(join(reportRoot, "p2", "data", "attachments", "shared.txt"))).rejects.toThrow();
+    } finally {
+      await rm(output, { recursive: true, force: true });
+    }
+  });
+
+  it("should expose a single shared report store for all plugins (no duplicated test case json)", async () => {
+    const output = await realpath(await mkdtemp(join(tmpdir(), "allure3-report-test-")));
+
+    try {
+      const p1 = createPlugin("p1");
+      const p2 = createPlugin("p2");
+
+      // both plugins write the same test case into the shared store
+      p1.plugin.done.mockImplementation(async (context) => {
+        await context.reportStoreFiles.addFile("data/test-results/shared.json", Buffer.from("p1", "utf8"));
+      });
+      p2.plugin.done.mockImplementation(async (context) => {
+        await context.reportStoreFiles.addFile("data/test-results/shared.json", Buffer.from("p2", "utf8"));
+      });
+
+      const config = await resolveConfig({
+        name: "Allure Report",
+        output,
+      });
+      config.plugins = [p1, p2];
+
+      const allureReport = new AllureReport(config);
+      await allureReport.start();
+      await allureReport.done();
+
+      const reportRoot = output;
+
+      // shared store must exist at report root
+      const sharedTrPath = await resolveStoreFilePath(reportRoot, join("test-results", "shared.json"));
+      await expect(access(sharedTrPath)).resolves.toBeUndefined();
+
+      // and must not be duplicated inside each plugin directory
+      await expect(access(join(reportRoot, "p1", "data", "test-results", "shared.json"))).rejects.toThrow();
+      await expect(access(join(reportRoot, "p2", "data", "test-results", "shared.json"))).rejects.toThrow();
+    } finally {
+      await rm(output, { recursive: true, force: true });
+    }
   });
 });
