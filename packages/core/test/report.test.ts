@@ -141,6 +141,24 @@ describe("report", () => {
     expect(p2.plugin.start.mock.invocationCallOrder[0]).toBeLessThan(p3.plugin.start.mock.invocationCallOrder[0]);
   });
 
+  it("should pass plugin reportName option into plugin context", async () => {
+    const p1 = createPlugin("p1", true, { reportName: "My Plugin Report" });
+    const config = await resolveConfig({
+      name: "Global Report Name",
+    });
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport(config);
+    await allureReport.start();
+
+    expect(p1.plugin.start).toBeCalledTimes(1);
+    expect(p1.plugin.start).toBeCalledWith(
+      expect.objectContaining({ reportName: "My Plugin Report" }),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
   it("should not call disabled plugins on start()", async () => {
     const p1 = createPlugin("p1");
     const p2 = createPlugin("p2", false);

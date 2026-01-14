@@ -730,12 +730,16 @@ export class AllureReport {
       const reportStoreFiles = new PluginFiles(this.#reportFiles, "", (key, filepath) => {
         this.#storeFiles[key] = filepath;
       });
+
+      // Allow plugins to override the report name used in their generated UI (e.g. HTML <title>, report header).
+      // Fallback to the global report name.
+      const pluginReportName = (options as { reportName?: string } | undefined)?.reportName ?? this.#reportName;
       const pluginContext: PluginContext = {
         id,
         publish: !!options?.publish,
         allureVersion: version,
         reportUuid: this.reportUuid,
-        reportName: this.#reportName,
+        reportName: pluginReportName,
         state: pluginState,
         reportFiles: pluginFiles,
         reportStoreFiles,
