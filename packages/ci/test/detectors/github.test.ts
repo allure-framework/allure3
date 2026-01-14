@@ -204,7 +204,21 @@ describe("github", () => {
         }
       });
 
-      expect(github.jobRunBranch).toBe("refs/heads/main");
+      expect(github.jobRunBranch).toBe("main");
+    });
+
+    it("should strip refs/heads/ prefix from GITHUB_REF variable", () => {
+      (getEnv as Mock).mockImplementation((key: string) => {
+        if (key === "GITHUB_HEAD_REF") {
+          return "";
+        }
+
+        if (key === "GITHUB_REF") {
+          return "refs/heads/feature-branch";
+        }
+      });
+
+      expect(github.jobRunBranch).toBe("feature-branch");
     });
 
     it("should return empty string when neither environment variable is set", () => {

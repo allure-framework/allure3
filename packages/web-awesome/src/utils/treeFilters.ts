@@ -138,14 +138,17 @@ export const createRecursiveTree = (payload: {
       ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
 
   const statistic: Statistic = emptyStatistic();
+
   trees.forEach((rt: AwesomeRecursiveTree) => {
     if (rt.statistic) {
       const additional: Statistic = rt.statistic;
+
       mergeStatistic(statistic, additional);
     }
   });
   leaves.forEach((leaf) => {
     const status: TestStatus = leaf.status;
+
     incrementStatistic(statistic, status);
   });
 
