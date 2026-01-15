@@ -232,7 +232,9 @@ const buildTreeByLabels = (
     labels,
     leafFactory,
     undefined,
-    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+    (group, leaf) => {
+      incrementStatistic(group.statistic, leaf.status);
+    },
   );
 };
 

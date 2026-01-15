@@ -55,7 +55,8 @@ export const github: CiDescriptor = {
   },
 
   get jobRunBranch(): string {
-    return getEnv("GITHUB_HEAD_REF") || getEnv("GITHUB_REF");
+    // cut-off "refs/heads/" prefix
+    return (getEnv("GITHUB_HEAD_REF") || getEnv("GITHUB_REF")).replace("refs/heads/", "");
   },
 
   get pullRequestUrl(): string {
