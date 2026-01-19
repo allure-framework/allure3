@@ -1,114 +1,91 @@
-import type { AttachmentTestStepResult, TestResult, TestStepResult } from "@allurereport/core-api";
+import type { TestStepResult } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext } from "@allurereport/plugin-api";
+import { TestOpsClient } from "./client.js";
 import type { TestopsUploaderPluginOptions } from "./model.js";
-import { createLaunch, createSession, getJwtToken, pushAllureResults, pushAttachments } from "./uploader.js";
-
-// TOKEN HERE
-const EXAMPLE_TOKEN = "iamtokenhere";
-const EXAMPLE_ENDPOINT = "https://testing.testops.cloud";
 
 export class TestopsUploaderPlugin implements Plugin {
-  constructor(readonly options: TestopsUploaderPluginOptions = {}) {}
-  private jwt: string | undefined;
+  constructor(readonly options: TestopsUploaderPluginOptions) {
+    if (!options.accessToken) {
+      throw new Error("Allure3 TestOps plugin: accessToken is required");
+    }
 
-  // start = async (context: PluginContext, store: AllureStore) => {
-  //   // await Promise.resolve();
-  // };
+    if (!options.endpoint) {
+      throw new Error("Allure3 TestOps plugin: endpoint is required");
+    }
 
-  // update = async (context: PluginContext, store: AllureStore) => {
-  //   // throw new Error("call start first");
-  // };
+    if (!options.projectId) {
+      throw new Error("Allure3 TestOps plugin: projectId is required");
+    }
+  }
 
   done = async (context: PluginContext, store: AllureStore) => {
-    this.jwt = await getJwtToken(EXAMPLE_ENDPOINT, EXAMPLE_TOKEN);
-    console.log("start end");
-    console.log("DONE");
-    const allTRs = await store.allTestResults();
-    const attachments = await store.allAttachments();
-    // console.log("allTRs", allTRs);
-
-    if (!this.jwt) {
-      console.log("No jwt");
-      return;
-    }
-    console.log("jwt", this.jwt);
-    // const uploader = await uploadTRs(EXAMPLE_ENDPOINT, this.jwt, allTRs);
-    const launch = await createLaunch(EXAMPLE_ENDPOINT, this.jwt);
-    console.log("LAUNCH", launch);
-    if (!launch) {
-      console.log("No launch id found");
-      return;
-    }
-
-    // const session = await createSession(EXAMPLE_ENDPOINT, this.jwt, launch?.id);
-    const session = await createSession(EXAMPLE_ENDPOINT, this.jwt, launch.id);
-
-    if (!session) {
-      console.log("No id found");
-      return;
-    }
-
-    interface AttachmentWithoutLink extends AttachmentTestStepResult {
-      attachment?: {
-        contentLength?: number;
-        contentType?: string;
-        name: string;
-        originalFileName: string | undefined;
-      };
-    }
-
-    const fixStep = (step: TestStepResult): TestStepResult => {
-      if ("steps" in step && Array.isArray(step.steps)) {
-        step.steps = step.steps.map(fixStep);
-      }
-
-      if (step.type === "attachment" && step.link && typeof step.link === "object") {
-        const { contentType, name, originalFileName } = step.link;
-        (step as AttachmentWithoutLink).attachment = {
-          // contentLength,
-          contentType,
-          name,
-          originalFileName,
-        };
-        // @ts-ignore
-        delete step.link;
-      }
-
-      console.log("step ----------------------------", step);
-      return step;
-    };
-
-    const normalizeResultsPayload = (payload: TestResult[]): TestResult[] => {
-      if (!payload) {
-        return payload;
-      }
-
-      payload = payload.map((test: TestResult) => {
-        if (Array.isArray(test.steps)) {
-          test.steps = test.steps.map(fixStep);
+    const client = new TestOpsClient({
+      baseUrl: this.options.endpoint,
+      accessToken: this.options.accessToken,
+      projectId: this.options.projectId,
+    });
+    const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
+      return steps.map((step) => {
+        if (step.type === "attachment") {
+          return {
+            ...step,
+            attachment: step.link,
+          };
         }
-        return test;
-      });
 
-      return payload;
+        if (step.steps) {
+          return {
+            ...step,
+            steps: unwrapStepsAttachments(step.steps),
+          };
+        }
+
+        return step;
+      });
     };
 
-    const clearedTRs = normalizeResultsPayload(allTRs);
-    const result = await pushAllureResults(
-      EXAMPLE_ENDPOINT,
-      this.jwt,
-      clearedTRs,
-      "./allure-results",
-      launch.id,
-      session.id,
-    );
-    console.log("Sucessfully uploaded Test results \n", result);
-    const pushAttach = await pushAttachments(EXAMPLE_ENDPOINT, this.jwt, attachments, launch.id, store);
-    console.log("pushAttach", pushAttach);
-  };
+    await client.initialize();
 
-  async #getReportDate(store: AllureStore) {
-    const trs = await store.allTestResults();
-    return trs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-  }
+    const allTrs = await store.allTestResults();
+    const allTrsWithAttachments = allTrs.map((tr) => {
+      return {
+        ...tr,
+        steps: unwrapStepsAttachments(tr.steps),
+      };
+    });
+
+    await client.uploadTestResults({
+      trs: allTrsWithAttachments,
+      attachmentsResolver: async (tr) => {
+        const attachments = await store.attachmentsByTrId(tr.id);
+
+        return await Promise.all(
+          attachments.map(async (attachment) => {
+            const content = await store.attachmentContentById(attachment.id);
+
+            return {
+              originalFileName: attachment.originalFileName,
+              contentType: attachment.contentType,
+              // sending attachment content as stream
+              // content: await content?.readContent(async (s) => s),
+              content: await content?.asBuffer(),
+            };
+          }),
+        );
+      },
+      fixturesResolver: async (tr) => {
+        const fxts = await store.fixturesByTrId(tr.id);
+
+        return fxts.map((fxt) => ({
+          ...fxt,
+          // testops accepts AFTER or BEFORE types
+          type: fxt.type.toUpperCase(),
+          steps: unwrapStepsAttachments(fxt.steps),
+        }));
+      },
+    });
+
+    // eslint-disable-next-line no-console
+    console.info(`TestOps launch has been created: ${client.launchUrl}`);
+  };
 }

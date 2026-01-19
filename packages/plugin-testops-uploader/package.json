@@ -34,18 +34,20 @@
   "dependencies": {
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@allurereport/web-awesome": "workspace:*",
-    "d3-shape": "^3.2.0",
-    "handlebars": "^4.7.8"
+    "@allurereport/reader-api": "workspace:*",
+    "axios": "^1.13.2",
+    "lodash.chunk": "^4.2.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
+    "@types/lodash.chunk": "^4",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
+    "@vitest/snapshot": "^2.1.9",
     "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

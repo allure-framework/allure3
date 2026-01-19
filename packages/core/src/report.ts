@@ -707,6 +707,7 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,
+        output: this.#output,
         ci: this.#ci,
       };
 

@@ -17,6 +17,7 @@
   "devDependencies": {
     "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
+    "@allurereport/plugin-testops-uploader": "workspace:*",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
     "@types/node": "^20.17.9",
