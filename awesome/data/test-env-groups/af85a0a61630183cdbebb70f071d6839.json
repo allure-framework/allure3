@@ -1,1 +1,0 @@
-{"id":"af85a0a61630183cdbebb70f071d6839","fullName":"test/xcresult.test.ts#A MAC machine labels a test nested within two suites should join both suites to form a testClass","name":"should join both suites to form a testClass","status":"passed","testResultsByEnv":{"macos-latest":"05a82e048237c3e66a620433969b0bcf"}}

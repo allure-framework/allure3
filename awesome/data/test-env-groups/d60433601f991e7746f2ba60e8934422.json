@@ -1,1 +1,1 @@
-{"id":"d60433601f991e7746f2ba60e8934422","fullName":"test/history.test.ts#should process file that doesn't exists","name":"should process file that doesn't exists","status":"passed","testResultsByEnv":{"windows-latest":"e018a262fbd8cb8411cac7e8acc03e0a","ubuntu-latest":"81a06669337024fff7b09ed9894fd4aa"}}
+{"id":"d60433601f991e7746f2ba60e8934422","fullName":"test/history.test.ts#should process file that doesn't exists","name":"should process file that doesn't exists","status":"passed","testResultsByEnv":{"windows-latest":"35cf8335a91b156312a4988be54fabb5"}}

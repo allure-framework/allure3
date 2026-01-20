@@ -1,1 +1,1 @@
-{"id":"6cfef77eb0b9063a888e0742af3f6fe2","fullName":"test/allure2.test.ts#allure2 reader should parse trace","name":"should parse trace","status":"passed","testResultsByEnv":{"windows-latest":"2430e04a98761240b7e9f7bc4f6c990e","ubuntu-latest":"b98b04c5d7c737422be88edc182d4ef1","macos-latest":"c34d4c6914fa8564d2b52edf97adb50a"}}
+{"id":"6cfef77eb0b9063a888e0742af3f6fe2","fullName":"test/allure2.test.ts#allure2 reader should parse trace","name":"should parse trace","status":"passed","testResultsByEnv":{"windows-latest":"9544d1fe50c9fd53eba305af5b63d09b"}}

@@ -1,1 +1,1 @@
-{"id":"0220d573b16044b345e77e8bb3b8fb30","fullName":"test/qualityGate/rules.test.ts#maxFailuresRule should filter out known issues","name":"should filter out known issues","status":"passed","testResultsByEnv":{"windows-latest":"eea01f29f268f136114b75937d045f79","ubuntu-latest":"3996cfa92d01a2ae6270694b872aca0c"}}
+{"id":"0220d573b16044b345e77e8bb3b8fb30","fullName":"test/qualityGate/rules.test.ts#maxFailuresRule should filter out known issues","name":"should filter out known issues","status":"passed","testResultsByEnv":{"windows-latest":"e2e74d3440f4ee21faafaa199bfafb1b"}}

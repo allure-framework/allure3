@@ -1,1 +1,1 @@
-{"id":"b1cb541429300b7042aa18a23fa523dd","fullName":"test/config.test.ts#readConfig should read a .js config","name":"should read a .js config","status":"passed","testResultsByEnv":{"windows-latest":"a5061e6d9b97fbd95f09e0b22d007de8","ubuntu-latest":"16835a4e70e9f61f6fd9ed79cb89b632"}}
+{"id":"b1cb541429300b7042aa18a23fa523dd","fullName":"test/config.test.ts#readConfig should read a .js config","name":"should read a .js config","status":"passed","testResultsByEnv":{"windows-latest":"8dc07a25cbe06c645e53fb5b0b0a731e"}}

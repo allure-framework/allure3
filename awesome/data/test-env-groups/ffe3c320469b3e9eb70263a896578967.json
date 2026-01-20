@@ -1,1 +1,1 @@
-{"id":"ffe3c320469b3e9eb70263a896578967","fullName":"allure-awesome/features/qualityGates.test.ts:44:3","name":"should render empty quality gate tab","status":"passed","testResultsByEnv":{"windows-latest":"9303b3655346d915bb8dd0b93695c566","ubuntu-latest":"baed931cec968c6337b662c08caaf44b"}}
+{"id":"ffe3c320469b3e9eb70263a896578967","fullName":"allure-awesome/features/qualityGates.test.ts:44:3","name":"should render empty quality gate tab","status":"passed","testResultsByEnv":{"windows-latest":"5635f87ed1ea4114d72d5f99c7ba19df"}}

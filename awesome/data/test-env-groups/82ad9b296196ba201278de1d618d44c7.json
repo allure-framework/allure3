@@ -1,1 +1,1 @@
-{"id":"82ad9b296196ba201278de1d618d44c7","fullName":"allure-awesome/features/retries.test.ts:84:5","name":"should show retry icon in the tree for tests with retries","status":"passed","testResultsByEnv":{"windows-latest":"1cde1934d19ccb97bbb5d9b9924bdb30","ubuntu-latest":"0b45754570e0bb03b2839c5c5fc573cb"}}
+{"id":"82ad9b296196ba201278de1d618d44c7","fullName":"allure-awesome/features/retries.test.ts:84:5","name":"should show retry icon in the tree for tests with retries","status":"passed","testResultsByEnv":{"windows-latest":"4a91b28591ea1eed50eaa7589a716df6"}}

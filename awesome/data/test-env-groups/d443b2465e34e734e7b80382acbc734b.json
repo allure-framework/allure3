@@ -1,1 +1,1 @@
-{"id":"d443b2465e34e734e7b80382acbc734b","fullName":"allure-awesome/features/flaky.test.ts:124:3","name":"metadata shows correct count of flaky tests","status":"passed","testResultsByEnv":{"windows-latest":"a796fd30d6a6dc09698f5f398216bcd5","ubuntu-latest":"8ee3760e92c0d974f100742a0d685587"}}
+{"id":"d443b2465e34e734e7b80382acbc734b","fullName":"allure-awesome/features/flaky.test.ts:124:3","name":"metadata shows correct count of flaky tests","status":"passed","testResultsByEnv":{"windows-latest":"3df22941fde647b3fb2e3d4235e0c74f"}}

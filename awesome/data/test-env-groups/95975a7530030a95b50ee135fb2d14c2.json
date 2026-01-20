@@ -1,1 +1,1 @@
-{"id":"95975a7530030a95b50ee135fb2d14c2","fullName":"test/store/store.test.ts#environments should return all environments","name":"should return all environments","status":"passed","testResultsByEnv":{"windows-latest":"e8960db0c99577b7a9ea92643c704e5d","ubuntu-latest":"cea36aaf4b689a98dff69406dbdaaba3"}}
+{"id":"95975a7530030a95b50ee135fb2d14c2","fullName":"test/store/store.test.ts#environments should return all environments","name":"should return all environments","status":"passed","testResultsByEnv":{"windows-latest":"f32252117a35365cbce09ca6a2a93214"}}

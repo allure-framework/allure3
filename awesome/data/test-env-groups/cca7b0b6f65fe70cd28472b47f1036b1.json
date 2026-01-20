@@ -1,1 +1,0 @@
-{"id":"cca7b0b6f65fe70cd28472b47f1036b1","fullName":"test/process.test.ts#stopProcessTree on a POSIX-compliant system should stop a tree of a single process","name":"should stop a tree of a single process","status":"passed","testResultsByEnv":{"ubuntu-latest":"10bbcc814a748fda864e98d546502b14"}}

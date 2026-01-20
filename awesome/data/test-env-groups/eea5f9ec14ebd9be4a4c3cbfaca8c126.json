@@ -1,1 +1,1 @@
-{"id":"eea5f9ec14ebd9be4a4c3cbfaca8c126","fullName":"test/store/store.test.ts#variables should return all report variables","name":"should return all report variables","status":"passed","testResultsByEnv":{"windows-latest":"99cd3f44064dafda77af38742e0796f2","ubuntu-latest":"ba5a7fca3d3888c5ed3df6cba8938d7d"}}
+{"id":"eea5f9ec14ebd9be4a4c3cbfaca8c126","fullName":"test/store/store.test.ts#variables should return all report variables","name":"should return all report variables","status":"passed","testResultsByEnv":{"windows-latest":"f33025cc4be7d6cf12c555daa5708068"}}

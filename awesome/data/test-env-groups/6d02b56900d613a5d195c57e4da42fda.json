@@ -1,1 +1,1 @@
-{"id":"6d02b56900d613a5d195c57e4da42fda","fullName":"test/config.test.ts#findConfig should find allurerc.yml in cwd","name":"should find allurerc.yml in cwd","status":"passed","testResultsByEnv":{"windows-latest":"56183d651db8c71311ebabbd0f411dbc","ubuntu-latest":"5ee0cdbfe0edf9134cc58f44a0724e84"}}
+{"id":"6d02b56900d613a5d195c57e4da42fda","fullName":"test/config.test.ts#findConfig should find allurerc.yml in cwd","name":"should find allurerc.yml in cwd","status":"passed","testResultsByEnv":{"windows-latest":"e7d6876259c56e7fd17db1f9dcd9562e"}}

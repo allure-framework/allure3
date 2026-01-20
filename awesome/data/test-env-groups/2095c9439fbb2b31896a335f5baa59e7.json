@@ -1,1 +1,1 @@
-{"id":"2095c9439fbb2b31896a335f5baa59e7","fullName":"test/config.test.ts#resolveConfig should return provided report name","name":"should return provided report name","status":"passed","testResultsByEnv":{"windows-latest":"d9c8c42c876b42a08a92a6ad71bc1e1a","ubuntu-latest":"b0d8bf0e7b33e88a808ad4e754633d6d"}}
+{"id":"2095c9439fbb2b31896a335f5baa59e7","fullName":"test/config.test.ts#resolveConfig should return provided report name","name":"should return provided report name","status":"passed","testResultsByEnv":{"windows-latest":"a1aa3b7d28929d7362d49d32f0a96311"}}

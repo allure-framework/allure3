@@ -1,1 +1,1 @@
-{"id":"c532ec8d999025e6c2cc570ce9f3b37b","fullName":"allure-awesome/test/reportOptions.test.ts:114:7","name":"should toggle from base layout to splitted one and back","status":"passed","testResultsByEnv":{"windows-latest":"3173f9e2e22fdd4820ae1d371b3d2d26","ubuntu-latest":"616a0cea00c9f57606786263210e83b1"}}
+{"id":"c532ec8d999025e6c2cc570ce9f3b37b","fullName":"allure-awesome/test/reportOptions.test.ts:114:7","name":"should toggle from base layout to splitted one and back","status":"passed","testResultsByEnv":{"windows-latest":"26cf683c7e35b84cf52fac0cdb1755bd"}}

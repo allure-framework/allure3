@@ -1,1 +1,1 @@
-{"id":"ff6cf098ca92824e55450d2cf3d6dc88","fullName":"allure-awesome/features/globals.test.ts:158:5","name":"should show empty state when no global errors","status":"passed","testResultsByEnv":{"windows-latest":"520e9a3c6d40cfb4e7aa40d48b0839f5","ubuntu-latest":"bd71a91a188c3db25924260c94c6bad4"}}
+{"id":"ff6cf098ca92824e55450d2cf3d6dc88","fullName":"allure-awesome/features/globals.test.ts:158:5","name":"should show empty state when no global errors","status":"passed","testResultsByEnv":{"windows-latest":"8fc072cc90585cba06cf06e3da00b717"}}

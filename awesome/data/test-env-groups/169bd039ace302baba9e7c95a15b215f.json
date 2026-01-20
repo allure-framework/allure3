@@ -1,1 +1,1 @@
-{"id":"169bd039ace302baba9e7c95a15b215f","fullName":"test/allure2.test.ts#allure2 reader should parse uuid","name":"should parse uuid","status":"passed","testResultsByEnv":{"windows-latest":"c691171bbf5adc8815b45aa4aef158ec","ubuntu-latest":"8a6e998c7b384164c8d3567378249719","macos-latest":"38a88ceca640439246bc23e66d7fa4e2"}}
+{"id":"169bd039ace302baba9e7c95a15b215f","fullName":"test/allure2.test.ts#allure2 reader should parse uuid","name":"should parse uuid","status":"passed","testResultsByEnv":{"windows-latest":"86d724816ce4a69d4e186091b92fe3e5"}}

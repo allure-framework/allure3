@@ -1,1 +1,1 @@
-{"id":"572938b42b8fcb56af9985a499de909c","fullName":"allure-awesome/features/new.test.ts:96:3","name":"should show new icon only for new tests in the tree","status":"passed","testResultsByEnv":{"windows-latest":"95827d7903239c18f74fe6c29681dcaf","ubuntu-latest":"d53d0dbef981829a8b27d923aba9909f"}}
+{"id":"572938b42b8fcb56af9985a499de909c","fullName":"allure-awesome/features/new.test.ts:96:3","name":"should show new icon only for new tests in the tree","status":"passed","testResultsByEnv":{"windows-latest":"963bb12a7aff5d9db31ff04a737c0abf"}}

@@ -1,1 +1,1 @@
-{"id":"b4a03455ecb89f579ae91e1a795a3185","fullName":"test/categories.test.ts#categories should match by message","name":"should match by message","status":"passed","testResultsByEnv":{"windows-latest":"3267d29fa62e7cd661569e1d1e619bdb","ubuntu-latest":"61f17e2497ed8a03e1f5d6105676adde","macos-latest":"40daedb11a2efdd33a792f9a2c9f7675"}}
+{"id":"b4a03455ecb89f579ae91e1a795a3185","fullName":"test/categories.test.ts#categories should match by message","name":"should match by message","status":"passed","testResultsByEnv":{"windows-latest":"5c1a971103412c4fda6d4ec7c1e3c617"}}
