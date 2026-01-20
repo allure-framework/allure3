@@ -1,8 +1,8 @@
 import type { TestResult } from "@allurereport/core-api";
 import type { AxiosInstance } from "axios";
 import axios from "axios";
-import chunk from "lodash.chunk";
 import FormData from "form-data";
+import chunk from "lodash.chunk";
 import type { TestOpsLaunch, TestOpsSession } from "./model.js";
 
 export class TestOpsClient {
@@ -148,20 +148,12 @@ export class TestOpsClient {
                 attachmentsChunks.map(async (attachmentsChunk) => {
                   const formData = new FormData();
 
-                  // attachmentsChunk.forEach((attachment: any) => {
-                  //   formData.append(
-                  //     "file",
-                  //     new File([attachment.content], attachment.originalFileName, { type: attachment.contentType }),
-                  //   );
-                  // });
-
                   attachmentsChunk.forEach((attachment: any) => {
                     formData.append("file", attachment.content, {
                       filename: attachment.originalFileName,
                       contentType: attachment.contentType,
                     });
                   });
-
                   await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
                     headers: {
                       Authorization: `Bearer ${this.#oauthToken}`,
