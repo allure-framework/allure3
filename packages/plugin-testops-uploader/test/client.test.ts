@@ -1,7 +1,9 @@
+import type { AttachmentLink, TestResult, TestStepResult } from "@allurereport/core-api";
+import FormData from "form-data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch } from "../src/model.js";
-import { AxiosMock, BASE_URL } from "./utils.js";
+import { AxiosMock } from "./utils.js";
 
 const fixtures = {
   accessToken: "test",
@@ -12,6 +14,46 @@ const fixtures = {
     id: 123,
   } as TestOpsLaunch,
   launchName: "Test Launch",
+  testResults: [
+    {
+      id: "0-0-0-0",
+    } as TestResult,
+    {
+      id: "1-1-1-1",
+    } as TestResult,
+    {
+      id: "2-2-2-2",
+    } as TestResult,
+  ],
+  testOpsResults: [
+    {
+      id: 1,
+      uuid: "0-0-0-0",
+    },
+    {
+      id: 2,
+      uuid: "1-1-1-1",
+    },
+    {
+      id: 3,
+      uuid: "2-2-2-2",
+    },
+  ],
+  attachments: [
+    {
+      originalFileName: "test.txt",
+      contentType: "text/plain",
+    } as AttachmentLink,
+  ],
+  // TODO:
+  fixtures: [
+    {
+      name: "before hook",
+    } as TestStepResult,
+    {
+      name: "after hook",
+    } as TestStepResult,
+  ],
 };
 
 vi.mock("axios", async () => {
@@ -190,6 +232,110 @@ describe("testops http client", () => {
           }),
       ).rejects.toThrow();
       expect(AxiosMock.post).toHaveBeenCalledTimes(0);
+    });
+
+    it("should resolve attachments and upload them", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({
+            data: {
+              results: fixtures.testOpsResults,
+            },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const attachmentsResolver = vi.fn().mockImplementation(async (tr) => {
+        if (tr.id === fixtures.testResults[0].id) {
+          return fixtures.attachments;
+        }
+
+        return [];
+      });
+
+      await client.initialize(fixtures.launchName);
+      await client.uploadTestResults({
+        trs: fixtures.testResults,
+        attachmentsResolver,
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(attachmentsResolver).toHaveBeenCalledTimes(fixtures.testResults.length);
+      expect(attachmentsResolver).toHaveBeenNthCalledWith(1, fixtures.testResults[0]);
+      expect(attachmentsResolver).toHaveBeenNthCalledWith(2, fixtures.testResults[1]);
+      expect(attachmentsResolver).toHaveBeenNthCalledWith(3, fixtures.testResults[2]);
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/upload/test-result/${fixtures.testOpsResults[0].id}/attachment`,
+        expect.any(FormData),
+        expect.anything(),
+      );
+    });
+
+    it("should resolve fixtures and upload them", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({
+            data: {
+              results: fixtures.testOpsResults,
+            },
+          });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const fixturesResolver = vi.fn().mockImplementation(async (tr) => {
+        if (tr.id === fixtures.testResults[0].id) {
+          return fixtures.fixtures;
+        }
+
+        return [];
+      });
+
+      await client.initialize(fixtures.launchName);
+      await client.uploadTestResults({
+        trs: fixtures.testResults,
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver,
+      });
+
+      expect(fixturesResolver).toHaveBeenCalledTimes(fixtures.testResults.length);
+      expect(fixturesResolver).toHaveBeenNthCalledWith(1, fixtures.testResults[0]);
+      expect(fixturesResolver).toHaveBeenNthCalledWith(2, fixtures.testResults[1]);
+      expect(fixturesResolver).toHaveBeenNthCalledWith(3, fixtures.testResults[2]);
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/upload/test-result/${fixtures.testOpsResults[0].id}/test-fixture-result`,
+        { fixtures: fixtures.fixtures },
+        expect.anything(),
+      );
     });
   });
 });
