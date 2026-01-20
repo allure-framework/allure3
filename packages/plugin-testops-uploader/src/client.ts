@@ -14,6 +14,18 @@ export class TestOpsClient {
   #session?: TestOpsSession;
 
   constructor(params: { baseUrl: string; projectId: string; accessToken: string }) {
+    if (!params.accessToken) {
+      throw new Error("accessToken is required");
+    }
+
+    if (!params.projectId) {
+      throw new Error("projectId is required");
+    }
+
+    if (!params.baseUrl) {
+      throw new Error("baseUrl is required");
+    }
+
     this.#accessToken = params.accessToken;
     this.#projectId = params.projectId;
     this.#client = axios.create({
@@ -31,9 +43,6 @@ export class TestOpsClient {
   }
 
   async issueOauthToken() {
-    if (!this.#oauthToken) {
-    }
-
     const formData = new FormData();
 
     formData.append("grant_type", "apitoken");
@@ -45,15 +54,11 @@ export class TestOpsClient {
     this.#oauthToken = data.access_token as string;
   }
 
-  async createLaunch() {
-    if (!this.#oauthToken) {
-      await this.issueOauthToken();
-    }
-
+  async createLaunch(launchName: string) {
     const { data } = await this.#client.post<TestOpsLaunch>(
       "/api/launch",
       {
-        name: "local test",
+        name: launchName,
         projectId: this.#projectId,
         autoclose: true,
         external: true,
@@ -69,10 +74,6 @@ export class TestOpsClient {
   }
 
   async createSession() {
-    if (!this.#oauthToken) {
-      await this.issueOauthToken();
-    }
-
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
@@ -92,9 +93,9 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  async initialize() {
+  async initialize(launchName: string) {
     await this.issueOauthToken();
-    await this.createLaunch();
+    await this.createLaunch(launchName);
     await this.createSession();
   }
 
@@ -103,10 +104,6 @@ export class TestOpsClient {
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
   }) {
-    if (!this.#oauthToken) {
-      await this.issueOauthToken();
-    }
-
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }

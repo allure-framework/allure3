@@ -1,9 +1,11 @@
-import type { TestStepResult } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext } from "@allurereport/plugin-api";
 import { TestOpsClient } from "./client.js";
 import type { TestopsUploaderPluginOptions } from "./model.js";
+import { unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
+  #client: TestOpsClient;
+
   constructor(readonly options: TestopsUploaderPluginOptions) {
     if (!options.accessToken) {
       throw new Error("Allure3 TestOps plugin: accessToken is required");
@@ -16,35 +18,16 @@ export class TestopsUploaderPlugin implements Plugin {
     if (!options.projectId) {
       throw new Error("Allure3 TestOps plugin: projectId is required");
     }
-  }
 
-  done = async (context: PluginContext, store: AllureStore) => {
-    const client = new TestOpsClient({
+    this.#client = new TestOpsClient({
       baseUrl: this.options.endpoint,
       accessToken: this.options.accessToken,
       projectId: this.options.projectId,
     });
-    const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
-      return steps.map((step) => {
-        if (step.type === "attachment") {
-          return {
-            ...step,
-            attachment: step.link,
-          };
-        }
+  }
 
-        if (step.steps) {
-          return {
-            ...step,
-            steps: unwrapStepsAttachments(step.steps),
-          };
-        }
-
-        return step;
-      });
-    };
-
-    await client.initialize();
+  done = async (context: PluginContext, store: AllureStore) => {
+    await this.#client.initialize(`Allure Report run: "${context.reportName}"`);
 
     const allTrs = await store.allTestResults();
     const allTrsWithAttachments = allTrs.map((tr) => {
@@ -54,7 +37,7 @@ export class TestopsUploaderPlugin implements Plugin {
       };
     });
 
-    await client.uploadTestResults({
+    await this.#client.uploadTestResults({
       trs: allTrsWithAttachments,
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
@@ -86,6 +69,6 @@ export class TestopsUploaderPlugin implements Plugin {
     });
 
     // eslint-disable-next-line no-console
-    console.info(`TestOps launch has been created: ${client.launchUrl}`);
+    console.info(`TestOps launch has been created: ${this.#client.launchUrl}`);
   };
 }
