@@ -1,0 +1,689 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Snapshot Tests > Accessors > accessor with number index 1`] = `
+{
+  "left": {
+    "identifier": "items",
+    "param": {
+      "type": "number",
+      "value": 0,
+    },
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "test",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Accessors > accessor with string key 1`] = `
+{
+  "left": {
+    "identifier": "cf",
+    "param": {
+      "type": "string",
+      "value": "Custom Field",
+    },
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "value",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Array conditions > IN with empty array 1`] = `
+{
+  "left": {
+    "identifier": "status",
+  },
+  "operator": "IN",
+  "right": [],
+  "type": "arrayCondition",
+}
+`;
+
+exports[`Snapshot Tests > Array conditions > IN with mixed types 1`] = `
+{
+  "left": {
+    "identifier": "value",
+  },
+  "operator": "IN",
+  "right": [
+    {
+      "type": "STRING",
+      "value": "string",
+    },
+    {
+      "type": "NUMBER",
+      "value": "123",
+    },
+    {
+      "type": "BOOLEAN",
+      "value": "true",
+    },
+    {
+      "type": "NULL",
+      "value": "null",
+    },
+  ],
+  "type": "arrayCondition",
+}
+`;
+
+exports[`Snapshot Tests > Array conditions > IN with string array 1`] = `
+{
+  "left": {
+    "identifier": "status",
+  },
+  "operator": "IN",
+  "right": [
+    {
+      "type": "STRING",
+      "value": "passed",
+    },
+    {
+      "type": "STRING",
+      "value": "failed",
+    },
+    {
+      "type": "STRING",
+      "value": "broken",
+    },
+  ],
+  "type": "arrayCondition",
+}
+`;
+
+exports[`Snapshot Tests > Boolean expressions > standalone false 1`] = `
+{
+  "type": "boolean",
+  "value": false,
+}
+`;
+
+exports[`Snapshot Tests > Boolean expressions > standalone true 1`] = `
+{
+  "type": "boolean",
+  "value": true,
+}
+`;
+
+exports[`Snapshot Tests > Complex expressions > expression with all operators 1`] = `
+{
+  "left": {
+    "left": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "identifier": "status",
+            },
+            "operator": "EQ",
+            "right": {
+              "type": "STRING",
+              "value": "passed",
+            },
+            "type": "condition",
+          },
+          "operator": "AND",
+          "right": {
+            "left": {
+              "identifier": "age",
+            },
+            "operator": "GT",
+            "right": {
+              "type": "NUMBER",
+              "value": "25",
+            },
+            "type": "condition",
+          },
+          "type": "binary",
+        },
+        "operator": "AND",
+        "right": {
+          "left": {
+            "identifier": "duration",
+          },
+          "operator": "GE",
+          "right": {
+            "type": "NUMBER",
+            "value": "100",
+          },
+          "type": "condition",
+        },
+        "type": "binary",
+      },
+      "operator": "AND",
+      "right": {
+        "left": {
+          "identifier": "count",
+        },
+        "operator": "LE",
+        "right": {
+          "type": "NUMBER",
+          "value": "10",
+        },
+        "type": "condition",
+      },
+      "type": "binary",
+    },
+    "operator": "AND",
+    "right": {
+      "left": {
+        "identifier": "name",
+      },
+      "operator": "NEQ",
+      "right": {
+        "type": "STRING",
+        "value": "test",
+      },
+      "type": "condition",
+    },
+    "type": "binary",
+  },
+  "operator": "AND",
+  "right": {
+    "left": {
+      "identifier": "description",
+    },
+    "operator": "CONTAINS",
+    "right": {
+      "type": "STRING",
+      "value": "search",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Complex expressions > expression with functions 1`] = `
+{
+  "left": {
+    "left": {
+      "identifier": "createdDate",
+    },
+    "operator": "GE",
+    "right": {
+      "type": "NUMBER",
+      "value": "1234567890",
+    },
+    "type": "condition",
+  },
+  "operator": "AND",
+  "right": {
+    "left": {
+      "identifier": "createdBy",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "admin",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Complex expressions > very complex expression 1`] = `
+{
+  "left": {
+    "left": {
+      "left": {
+        "expression": {
+          "left": {
+            "left": {
+              "identifier": "status",
+            },
+            "operator": "EQ",
+            "right": {
+              "type": "STRING",
+              "value": "passed",
+            },
+            "type": "condition",
+          },
+          "operator": "OR",
+          "right": {
+            "left": {
+              "identifier": "status",
+            },
+            "operator": "EQ",
+            "right": {
+              "type": "STRING",
+              "value": "failed",
+            },
+            "type": "condition",
+          },
+          "type": "binary",
+        },
+        "type": "paren",
+      },
+      "operator": "AND",
+      "right": {
+        "expression": {
+          "left": {
+            "left": {
+              "identifier": "age",
+            },
+            "operator": "GT",
+            "right": {
+              "type": "NUMBER",
+              "value": "25",
+            },
+            "type": "condition",
+          },
+          "operator": "AND",
+          "right": {
+            "left": {
+              "identifier": "age",
+            },
+            "operator": "LT",
+            "right": {
+              "type": "NUMBER",
+              "value": "50",
+            },
+            "type": "condition",
+          },
+          "type": "binary",
+        },
+        "type": "paren",
+      },
+      "type": "binary",
+    },
+    "operator": "AND",
+    "right": {
+      "left": {
+        "identifier": "name",
+      },
+      "operator": "CONTAINS",
+      "right": {
+        "type": "STRING",
+        "value": "test",
+      },
+      "type": "condition",
+    },
+    "type": "binary",
+  },
+  "operator": "AND",
+  "right": {
+    "left": {
+      "identifier": "duration",
+    },
+    "operator": "LT",
+    "right": {
+      "type": "NUMBER",
+      "value": "500",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Edge cases > string with Unicode characters 1`] = `
+{
+  "left": {
+    "identifier": "name",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "测试中文",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Edge cases > string with escape sequences 1`] = `
+{
+  "left": {
+    "identifier": "name",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "test"quote
+newline",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Edge cases > very long identifier 1`] = `
+{
+  "left": {
+    "identifier": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "value",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Logical operators > AND expression 1`] = `
+{
+  "left": {
+    "left": {
+      "identifier": "status",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "passed",
+    },
+    "type": "condition",
+  },
+  "operator": "AND",
+  "right": {
+    "left": {
+      "identifier": "age",
+    },
+    "operator": "GT",
+    "right": {
+      "type": "NUMBER",
+      "value": "25",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Logical operators > NOT expression 1`] = `
+{
+  "expression": {
+    "left": {
+      "identifier": "status",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "passed",
+    },
+    "type": "condition",
+  },
+  "type": "not",
+}
+`;
+
+exports[`Snapshot Tests > Logical operators > OR expression 1`] = `
+{
+  "left": {
+    "left": {
+      "identifier": "status",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "passed",
+    },
+    "type": "condition",
+  },
+  "operator": "OR",
+  "right": {
+    "left": {
+      "identifier": "status",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "failed",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Logical operators > multiple NOT operators 1`] = `
+{
+  "expression": {
+    "expression": {
+      "left": {
+        "identifier": "status",
+      },
+      "operator": "EQ",
+      "right": {
+        "type": "STRING",
+        "value": "passed",
+      },
+      "type": "condition",
+    },
+    "type": "not",
+  },
+  "type": "not",
+}
+`;
+
+exports[`Snapshot Tests > Parentheses > complex parentheses expression 1`] = `
+{
+  "left": {
+    "expression": {
+      "left": {
+        "left": {
+          "identifier": "status",
+        },
+        "operator": "EQ",
+        "right": {
+          "type": "STRING",
+          "value": "passed",
+        },
+        "type": "condition",
+      },
+      "operator": "OR",
+      "right": {
+        "left": {
+          "identifier": "status",
+        },
+        "operator": "EQ",
+        "right": {
+          "type": "STRING",
+          "value": "failed",
+        },
+        "type": "condition",
+      },
+      "type": "binary",
+    },
+    "type": "paren",
+  },
+  "operator": "AND",
+  "right": {
+    "left": {
+      "identifier": "name",
+    },
+    "operator": "CONTAINS",
+    "right": {
+      "type": "STRING",
+      "value": "test",
+    },
+    "type": "condition",
+  },
+  "type": "binary",
+}
+`;
+
+exports[`Snapshot Tests > Parentheses > nested parentheses 1`] = `
+{
+  "expression": {
+    "expression": {
+      "left": {
+        "identifier": "status",
+      },
+      "operator": "EQ",
+      "right": {
+        "type": "STRING",
+        "value": "passed",
+      },
+      "type": "condition",
+    },
+    "type": "paren",
+  },
+  "type": "paren",
+}
+`;
+
+exports[`Snapshot Tests > Parentheses > single parentheses 1`] = `
+{
+  "expression": {
+    "left": {
+      "identifier": "status",
+    },
+    "operator": "EQ",
+    "right": {
+      "type": "STRING",
+      "value": "passed",
+    },
+    "type": "condition",
+  },
+  "type": "paren",
+}
+`;
+
+exports[`Snapshot Tests > Simple expressions > contains condition 1`] = `
+{
+  "left": {
+    "identifier": "name",
+  },
+  "operator": "CONTAINS",
+  "right": {
+    "type": "STRING",
+    "value": "test",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Simple expressions > simple comparison condition 1`] = `
+{
+  "left": {
+    "identifier": "age",
+  },
+  "operator": "GT",
+  "right": {
+    "type": "NUMBER",
+    "value": "25",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Simple expressions > simple equality condition 1`] = `
+{
+  "left": {
+    "identifier": "status",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "passed",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > boolean value 1`] = `
+{
+  "left": {
+    "identifier": "active",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "BOOLEAN",
+    "value": "true",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > decimal number 1`] = `
+{
+  "left": {
+    "identifier": "value",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "NUMBER",
+    "value": "3.14",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > empty keyword 1`] = `
+{
+  "left": {
+    "identifier": "status",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "NULL",
+    "value": "null",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > negative number 1`] = `
+{
+  "left": {
+    "identifier": "value",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "NUMBER",
+    "value": "-10",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > null value 1`] = `
+{
+  "left": {
+    "identifier": "status",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "NULL",
+    "value": "null",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > number value 1`] = `
+{
+  "left": {
+    "identifier": "age",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "NUMBER",
+    "value": "25",
+  },
+  "type": "condition",
+}
+`;
+
+exports[`Snapshot Tests > Value types > string value 1`] = `
+{
+  "left": {
+    "identifier": "name",
+  },
+  "operator": "EQ",
+  "right": {
+    "type": "STRING",
+    "value": "test string",
+  },
+  "type": "condition",
+}
+`;
