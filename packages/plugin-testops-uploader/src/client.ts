@@ -167,8 +167,8 @@ export class TestOpsClient {
 
                   await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
                     headers: {
-                      "Authorization": `Bearer ${this.#oauthToken}`,
-                      "Content-Type": "multipart/form-data",
+                      Authorization: `Bearer ${this.#oauthToken}`,
+                      ...formData.getHeaders(),
                     },
                   });
                 }),
