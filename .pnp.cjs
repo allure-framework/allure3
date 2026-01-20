@@ -849,6 +849,7 @@ const RAW_RUNTIME_STATE =
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-shape", "npm:3.1.6"],\
           ["@types/eslint", "npm:8.56.12"],\
+          ["@types/form-data", "npm:2.5.2"],\
           ["@types/lodash.chunk", "npm:4.2.9"],\
           ["@types/node", "npm:20.17.9"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
@@ -864,6 +865,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-plugin-n", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:17.14.0"],\
           ["eslint-plugin-no-null", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.0.2"],\
           ["eslint-plugin-prefer-arrow", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:1.2.3"],\
+          ["form-data", "npm:4.0.5"],\
           ["lodash.chunk", "npm:4.2.0"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
@@ -12642,6 +12644,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/form-data", [\
+      ["npm:2.5.2", {\
+        "packageLocation": "./.yarn/cache/@types-form-data-npm-2.5.2-07d87d171c-fb38ae90b6.zip/node_modules/@types/form-data/",\
+        "packageDependencies": [\
+          ["@types/form-data", "npm:2.5.2"],\
+          ["form-data", "npm:4.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/fs-extra", [\
       ["npm:8.1.5", {\
         "packageLocation": "./.yarn/cache/@types-fs-extra-npm-8.1.5-77d3a95112-565d9e55cd.zip/node_modules/@types/fs-extra/",\
@@ -21733,6 +21745,18 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/form-data-npm-4.0.4-10eb4ef9c3-a4b62e2193.zip/node_modules/form-data/",\
         "packageDependencies": [\
           ["form-data", "npm:4.0.4"],\
+          ["asynckit", "npm:0.4.0"],\
+          ["combined-stream", "npm:1.0.8"],\
+          ["es-set-tostringtag", "npm:2.1.0"],\
+          ["hasown", "npm:2.0.2"],\
+          ["mime-types", "npm:2.1.35"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.0.5", {\
+        "packageLocation": "./.yarn/cache/form-data-npm-4.0.5-c35fce815a-52ecd6e927.zip/node_modules/form-data/",\
+        "packageDependencies": [\
+          ["form-data", "npm:4.0.5"],\
           ["asynckit", "npm:0.4.0"],\
           ["combined-stream", "npm:1.0.8"],\
           ["es-set-tostringtag", "npm:2.1.0"],\

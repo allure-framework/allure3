@@ -595,6 +595,7 @@ __metadata:
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-shape": "npm:^3.1.6"
     "@types/eslint": "npm:^8.56.11"
+    "@types/form-data": "npm:^2.5.2"
     "@types/lodash.chunk": "npm:^4"
     "@types/node": "npm:^20.17.9"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
@@ -610,6 +611,7 @@ __metadata:
     eslint-plugin-n: "npm:^17.10.1"
     eslint-plugin-no-null: "npm:^1.0.2"
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
+    form-data: "npm:^4.0.5"
     lodash.chunk: "npm:^4.2.0"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
@@ -7624,6 +7626,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/form-data@npm:^2.5.2":
+  version: 2.5.2
+  resolution: "@types/form-data@npm:2.5.2"
+  dependencies:
+    form-data: "npm:*"
+  checksum: 10/fb38ae90b671dc912152a01143d7342aac273650c0efa6c866d490913fc83d32e8b96e87bd2d6a737e2c8975cc3d63322d702f77935f68fb838c32662dc616fb
+  languageName: node
+  linkType: hard
+
 "@types/fs-extra@npm:^8.0.1":
   version: 8.1.5
   resolution: "@types/fs-extra@npm:8.1.5"
@@ -13932,6 +13943,19 @@ __metadata:
     typescript: ">3.6.0"
     webpack: ^5.11.0
   checksum: 10/3399ea114d9397da5e51baaa1cf2ca704f4616c8255df672889cafc2a823f77e8bf9913133852d29d676657b1d40e4a2fba8eb9fafee09e00faeda924289220e
+  languageName: node
+  linkType: hard
+
+"form-data@npm:*, form-data@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "form-data@npm:4.0.5"
+  dependencies:
+    asynckit: "npm:^0.4.0"
+    combined-stream: "npm:^1.0.8"
+    es-set-tostringtag: "npm:^2.1.0"
+    hasown: "npm:^2.0.2"
+    mime-types: "npm:^2.1.12"
+  checksum: 10/52ecd6e927c8c4e215e68a7ad5e0f7c1031397439672fd9741654b4a94722c4182e74cc815b225dcb5be3f4180f36428f67c6dd39eaa98af0dcfdd26c00c19cd
   languageName: node
   linkType: hard
 

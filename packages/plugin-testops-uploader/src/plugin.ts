@@ -67,8 +67,8 @@ export class TestopsUploaderPlugin implements Plugin {
               originalFileName: attachment.originalFileName,
               contentType: attachment.contentType,
               // sending attachment content as stream
-              // content: await content?.readContent(async (s) => s),
-              content: await content?.asBuffer(),
+              content: await content?.readContent(async (s) => s),
+              // content: await content?.asBuffer(),
             };
           }),
         );
