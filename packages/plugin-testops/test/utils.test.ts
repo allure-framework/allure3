@@ -97,31 +97,31 @@ describe("resolvePluginOptions", () => {
   });
 
   describe("validation", () => {
-    it("should throw an error if accessToken is not provided", () => {
-      expect(() =>
-        resolvePluginOptions({
-          endpoint: "http://example.com",
-          projectId: "12345",
-        } as any),
-      ).toThrow("Allure3 TestOps plugin: accessToken is required");
+    it("should return empty string for accessToken when not provided", () => {
+      const result = resolvePluginOptions({
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.accessToken).toBe("");
     });
 
-    it("should throw an error if endpoint is not provided", () => {
-      expect(() =>
-        resolvePluginOptions({
-          accessToken: "token",
-          projectId: "12345",
-        } as any),
-      ).toThrow("Allure3 TestOps plugin: endpoint is required");
+    it("should return empty string for endpoint when not provided", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        projectId: "12345",
+      } as any);
+
+      expect(result.endpoint).toBe("");
     });
 
-    it("should throw an error if projectId is not provided", () => {
-      expect(() =>
-        resolvePluginOptions({
-          accessToken: "token",
-          endpoint: "http://example.com",
-        } as any),
-      ).toThrow("Allure3 TestOps plugin: projectId is required");
+    it("should return empty string for projectId when not provided", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+      } as any);
+
+      expect(result.projectId).toBe("");
     });
   });
 

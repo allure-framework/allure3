@@ -70,6 +70,10 @@ jobs:
       checks: write
     env:
       ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+      ALLURE_ENDPOINT: ${{ secrets.ALLURE_ENDPOINT }}
+      ALLURE_LAUNCH_TAGS: ${{ secrets.ALLURE_LAUNCH_TAGS }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

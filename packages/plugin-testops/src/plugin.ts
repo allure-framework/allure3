@@ -4,24 +4,47 @@ import type { TestopsUploaderPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
-  #client: TestOpsClient;
-  #launchName: string;
+  #client?: TestOpsClient;
+  #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
 
   constructor(readonly options: TestopsUploaderPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
-    this.#client = new TestOpsClient({
-      baseUrl: endpoint,
-      accessToken,
-      projectId,
-    });
-    this.#launchName = launchName;
-    this.#launchTags = launchTags;
+    // don't initialize the client when some options are missing
+    // we can' throw an error here because it would break the report execution flow
+    if ([accessToken, endpoint, projectId].every(Boolean)) {
+      this.#client = new TestOpsClient({
+        baseUrl: endpoint,
+        accessToken,
+        projectId,
+      });
+      this.#launchName = launchName;
+      this.#launchTags = launchTags;
+    }
+
+    if (!accessToken) {
+      // eslint-disable-next-line no-console
+      console.warn("TestOps access token is missing. Please provide a valid access token in the plugin options.");
+    }
+
+    if (!endpoint) {
+      // eslint-disable-next-line no-console
+      console.warn("TestOps endpoint is missing. Please provide a valid endpoint in the plugin options.");
+    }
+
+    if (!projectId) {
+      // eslint-disable-next-line no-console
+      console.warn("TestOps project ID is missing. Please provide a valid project ID in the plugin options.");
+    }
   }
 
   async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
+    if (!this.#client) {
+      return;
+    }
+
     const { issueNewToken = true } = options ?? {};
     const allTrs = await store.allTestResults();
     const trsToUpload = allTrs.filter((tr) => !this.#uploadedTestResultsIds.includes(tr.id));
@@ -76,6 +99,10 @@ export class TestopsUploaderPlugin implements Plugin {
   }
 
   async start(context: PluginContext, store: AllureStore) {
+    if (!this.#client) {
+      return;
+    }
+
     await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
     await this.#upload(store, { issueNewToken: false });

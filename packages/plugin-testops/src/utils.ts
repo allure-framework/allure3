@@ -37,23 +37,11 @@ export const resolvePluginOptions = (options: TestopsUploaderPluginOptions): Tes
       ? launchTags
       : launchTags.split(",").map((tag) => tag.trim());
 
-  if (!accessToken) {
-    throw new Error("Allure3 TestOps plugin: accessToken is required");
-  }
-
-  if (!endpoint) {
-    throw new Error("Allure3 TestOps plugin: endpoint is required");
-  }
-
-  if (!projectId) {
-    throw new Error("Allure3 TestOps plugin: projectId is required");
-  }
-
   return {
     launchName: launchName || "Allure Report",
     launchTags: tags,
-    accessToken,
-    endpoint,
-    projectId,
+    accessToken: accessToken || "",
+    endpoint: endpoint || "",
+    projectId: projectId || "",
   };
 };

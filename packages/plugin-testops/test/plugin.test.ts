@@ -82,12 +82,49 @@ describe("testops plugin", () => {
       expect(resolvePluginOptions).toHaveBeenCalledWith(options);
     });
 
-    it("shouldn't create the class when options can't be resolved without errors", () => {
-      (resolvePluginOptions as Mock).mockImplementation(() => {
-        throw new Error("test");
+    it("should not initialize client when accessToken is missing", () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: "",
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
       });
 
-      expect(() => new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions)).toThrow("test");
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+
+      expect(plugin).toBeInstanceOf(TestopsUploaderPlugin);
+      expect(TestOpsClientMock).not.toHaveBeenCalled();
+    });
+
+    it("should not initialize client when endpoint is missing", () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: "",
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+
+      expect(plugin).toBeInstanceOf(TestopsUploaderPlugin);
+      expect(TestOpsClientMock).not.toHaveBeenCalled();
+    });
+
+    it("should not initialize client when projectId is missing", () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: "",
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+
+      expect(plugin).toBeInstanceOf(TestopsUploaderPlugin);
+      expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
     it("should create a new instance and initialize testops client with the resolved options", () => {
@@ -254,6 +291,73 @@ describe("testops plugin", () => {
       await uploadCall.fixturesResolver(fixtures.testResults[0]);
 
       expect(AllureStoreMock.prototype.fixturesByTrId).toHaveBeenCalledWith(fixtures.testResults[0].id);
+    });
+  });
+
+  describe("when client is not initialized", () => {
+    it("should return early from start when client is not initialized", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: "",
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      const store = new AllureStoreMock() as unknown as AllureStore;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.createLaunch).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.createSession).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+    });
+
+    it("should return early from update when client is not initialized", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: "",
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      const store = new AllureStoreMock() as unknown as AllureStore;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
+    });
+
+    it("should return early from done when client is not initialized", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: "",
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      const store = new AllureStoreMock() as unknown as AllureStore;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+
+      await plugin.done({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.issueOauthToken).not.toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadTestResults).not.toHaveBeenCalled();
     });
   });
 
