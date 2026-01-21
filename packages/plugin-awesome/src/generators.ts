@@ -502,7 +502,7 @@ export const generateStaticFiles = async (
     ci,
   } = payload;
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest(payload.singleFile);
+  const manifest = await readTemplateManifest(!!payload.singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
   const sections: string[] = ["charts", "timeline"];
@@ -535,6 +535,8 @@ export const generateStaticFiles = async (
 
       await reportFiles.addFile(basename(filePath), fileContent);
     }
+  } else if (typeof singleFile === 'string') {
+    bodyTags.push(createScriptTag(singleFile));
   } else {
     const mainJs = manifest["main.js"];
     const mainJsSource = require.resolve(`@allurereport/web-awesome/dist/single/${mainJs}`);
@@ -571,7 +573,7 @@ export const generateStaticFiles = async (
       allureVersion,
       reportUuid,
       reportName,
-      singleFile: payload.singleFile,
+      singleFile: !!payload.singleFile,
     });
 
     await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
