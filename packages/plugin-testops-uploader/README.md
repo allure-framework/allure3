@@ -12,16 +12,16 @@
 
 ## Overview
 
-The plugin generates brand new Allure Report with modern design and new features.
+The plugin creates a new launch in Allure TestOps with all the tests data from the current report.
 
 ## Install
 
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/plugin-awesome
-yarn add @allurereport/plugin-awesome
-pnpm add @allurereport/plugin-awesome
+npm add @allurereport/plugin-testops-uploader
+yarn add @allurereport/plugin-testops-uploader
+pnpm add @allurereport/plugin-testops-uploader
 ```
 
 Then, add the plugin to the Allure configuration file:
@@ -34,9 +34,12 @@ export default defineConfig({
   output: "./allure-report",
   historyPath: "./history.jsonl",
   plugins: {
-+    awesome: {
++    testops: {
 +      options: {
-+        reportName: "HelloWorld",
++        reportName: "Hello, TestOps!",
++        accessToken: "your_testops_access_token",
++        endpoint: "https://your-testops-instance.com",
++        projectId: "your_testops_project_id",
 +      },
 +    },
   },
@@ -49,10 +52,17 @@ The plugin accepts the following options:
 
 | Option           | Description                                     | Type    | Default                 |
 |------------------|-------------------------------------------------|---------|-------------------------|
-| `reportName`     | Name of the report                              | `string` | `Allure Report`         |
-| `singleFile`     | Writes the report as a single `index.html` file | `boolean` | `false`                 |
-| `logo`           | Path to the logo image                          | `string` | `null`                  |
-| `theme`          | Default color theme of the report               | `light \| dark` | OS theme                |
-| `reportLanguage` | Default language of the report                  | `string` | OS language             |
-| `ci`             | CI data which will be rendered in the report    | `{ type: "github" \| "jenkins", url: string, name: string }` | `undefined`             |
-| `groupBy`        | By default, tests are grouped using the `titlePath` provided by the test framework.    | `string`| Grouping by `titlepath` |
+| `reportName`     | Name of the report which will be assigned to the new launch                              | `string` | `Allure Report`         |
+| `accessToken`    | Access token for TestOps API                    | `string` | `undefined`             |
+| `endpoint`       | TestOps API endpoint                            | `string` | `undefined` |
+| `projectId`      | TestOps project ID                              | `string` | `undefined`             |
+
+### Using options from environment variables
+
+The plugin automatically reads the following environment variables and uses them if not provided in the configuration (the configuration has a higher priority):
+
+| Environment Variable | Configuration option |
+|----------------------|----------------------|
+| `ALLURE_TESTOPS_ACCESS_TOKEN` | `accessToken` |
+| `ALLURE_TESTOPS_PROJECT_ID` | `projectId` |
+| `ALLURE_TESTOPS_ENDPOINT` | `endpoint` |

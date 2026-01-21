@@ -1,33 +1,23 @@
 import { type AllureStore, type Plugin, type PluginContext } from "@allurereport/plugin-api";
 import { TestOpsClient } from "./client.js";
 import type { TestopsUploaderPluginOptions } from "./model.js";
-import { unwrapStepsAttachments } from "./utils.js";
+import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
   #client: TestOpsClient;
 
   constructor(readonly options: TestopsUploaderPluginOptions) {
-    if (!options.accessToken) {
-      throw new Error("Allure3 TestOps plugin: accessToken is required");
-    }
-
-    if (!options.endpoint) {
-      throw new Error("Allure3 TestOps plugin: endpoint is required");
-    }
-
-    if (!options.projectId) {
-      throw new Error("Allure3 TestOps plugin: projectId is required");
-    }
+    const { accessToken, endpoint, projectId } = resolvePluginOptions(options);
 
     this.#client = new TestOpsClient({
-      baseUrl: this.options.endpoint,
-      accessToken: this.options.accessToken,
-      projectId: this.options.projectId,
+      baseUrl: endpoint,
+      accessToken,
+      projectId,
     });
   }
 
   done = async (context: PluginContext, store: AllureStore) => {
-    await this.#client.initialize(`Allure Report run: "${context.reportName}"`);
+    await this.#client.initialize(this.options.reportName || context.reportName || "Allure Report");
 
     const allTrs = await store.allTestResults();
     const allTrsWithAttachments = allTrs.map((tr) => {

@@ -1,8 +1,10 @@
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TestopsUploaderPluginOptions } from "../src/model.js";
 import { TestopsUploaderPlugin } from "../src/plugin.js";
+import { resolvePluginOptions } from "../src/utils.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("../src/client.js", async () => {
@@ -10,6 +12,12 @@ vi.mock("../src/client.js", async () => {
 
   return {
     TestOpsClient: utils.TestOpsClientMock,
+  };
+});
+vi.mock("../src/utils.js", async (importOriginal) => {
+  return {
+    ...(await importOriginal()),
+    resolvePluginOptions: vi.fn(),
   };
 });
 
@@ -59,37 +67,43 @@ beforeEach(() => {
 
 describe("testops plugin", () => {
   describe("constructor", () => {
-    it("should throw an error if options don't contain accessToken", () => {
-      expect(() => new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions)).toThrow();
-    });
+    it("should call resolvePluginOptions with provided options", () => {
+      (resolvePluginOptions as Mock).mockReturnValue({});
 
-    it("should throw an error if options don't contain endpoint", () => {
-      expect(
-        () =>
-          new TestopsUploaderPlugin({
-            accessToken: fixtures.accessToken,
-          } as TestopsUploaderPluginOptions),
-      ).toThrow();
-    });
-
-    it("should throw an error if options don't contain projectId", () => {
-      expect(
-        () =>
-          new TestopsUploaderPlugin({
-            accessToken: fixtures.accessToken,
-            endpoint: fixtures.endpoint,
-          } as TestopsUploaderPluginOptions),
-      ).toThrow();
-    });
-
-    it("should create a new instance when all options are provided", () => {
-      const plugin = new TestopsUploaderPlugin({
+      const options = {
         accessToken: fixtures.accessToken,
         endpoint: fixtures.endpoint,
         projectId: fixtures.projectId,
-      } as TestopsUploaderPluginOptions);
+      } as TestopsUploaderPluginOptions;
+
+      new TestopsUploaderPlugin(options);
+
+      expect(resolvePluginOptions).toHaveBeenCalledWith(options);
+    });
+
+    it("shouldn't create the class when options can't be resolved without errors", () => {
+      (resolvePluginOptions as Mock).mockImplementation(() => {
+        throw new Error("test");
+      });
+
+      expect(() => new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions)).toThrow("test");
+    });
+
+    it("should create a new instance and initialize testops client with the resolved options", () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+      });
+
+      const plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
 
       expect(plugin).toBeInstanceOf(TestopsUploaderPlugin);
+      expect(TestOpsClientMock).toHaveBeenCalledWith({
+        baseUrl: fixtures.endpoint,
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+      });
     });
   });
 
@@ -98,11 +112,13 @@ describe("testops plugin", () => {
     let store: AllureStore;
 
     beforeEach(() => {
-      plugin = new TestopsUploaderPlugin({
+      (resolvePluginOptions as Mock).mockReturnValue({
         accessToken: fixtures.accessToken,
         endpoint: fixtures.endpoint,
         projectId: fixtures.projectId,
-      } as TestopsUploaderPluginOptions);
+      });
+
+      plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
