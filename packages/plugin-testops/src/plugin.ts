@@ -5,16 +5,20 @@ import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
   #client: TestOpsClient;
+  #launchName: string;
+  #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
 
   constructor(readonly options: TestopsUploaderPluginOptions) {
-    const { accessToken, endpoint, projectId } = resolvePluginOptions(options);
+    const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
     this.#client = new TestOpsClient({
       baseUrl: endpoint,
       accessToken,
       projectId,
     });
+    this.#launchName = launchName;
+    this.#launchTags = launchTags;
   }
 
   async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
@@ -73,7 +77,7 @@ export class TestopsUploaderPlugin implements Plugin {
 
   async start(context: PluginContext, store: AllureStore) {
     await this.#client.issueOauthToken();
-    await this.#client.createLaunch(this.options.reportName || context.reportName || "Allure Report");
+    await this.#client.createLaunch(this.#launchName, this.#launchTags);
     await this.#upload(store, { issueNewToken: false });
 
     // eslint-disable-next-line no-console

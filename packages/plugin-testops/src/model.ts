@@ -1,10 +1,11 @@
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 
 export type TestopsUploaderOptions = {
-  reportName?: string;
   endpoint: string;
   accessToken: string;
   projectId: string;
+  launchName: string;
+  launchTags: string[];
 };
 
 export type TemplateManifest = Record<string, string>;
@@ -26,7 +27,7 @@ export type TestOpsLaunch = {
   external: boolean;
   autoclose: boolean;
   projectId: number;
-  tags: [];
+  tags: string[];
   links: [];
   issues: [];
   createdDate: number;

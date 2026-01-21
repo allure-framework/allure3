@@ -23,12 +23,19 @@ export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[
 };
 
 export const resolvePluginOptions = (options: TestopsUploaderPluginOptions): TestopsUploaderPluginOptions => {
-  const { ALLURE_TESTOPS_ACCESS_TOKEN, ALLURE_TESTOPS_ENDPOINT, ALLURE_TESTOPS_PROJECT_ID } = env;
+  const { ALLURE_TOKEN, ALLURE_ENDPOINT, ALLURE_PROJECT_ID, ALLURE_LAUNCH_TAGS, ALLURE_LAUNCH_NAME } = env;
   const {
-    accessToken = ALLURE_TESTOPS_ACCESS_TOKEN,
-    endpoint = ALLURE_TESTOPS_ENDPOINT,
-    projectId = ALLURE_TESTOPS_PROJECT_ID,
+    accessToken = ALLURE_TOKEN,
+    endpoint = ALLURE_ENDPOINT,
+    projectId = ALLURE_PROJECT_ID,
+    launchTags = ALLURE_LAUNCH_TAGS,
+    launchName = ALLURE_LAUNCH_NAME,
   } = options;
+  const tags = !launchTags
+    ? []
+    : Array.isArray(launchTags)
+      ? launchTags
+      : launchTags.split(",").map((tag) => tag.trim());
 
   if (!accessToken) {
     throw new Error("Allure3 TestOps plugin: accessToken is required");
@@ -43,6 +50,8 @@ export const resolvePluginOptions = (options: TestopsUploaderPluginOptions): Tes
   }
 
   return {
+    launchName: launchName || "Allure Report",
+    launchTags: tags,
     accessToken,
     endpoint,
     projectId,

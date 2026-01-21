@@ -54,7 +54,7 @@ export class TestOpsClient {
     this.#oauthToken = data.access_token as string;
   }
 
-  async createLaunch(launchName: string) {
+  async createLaunch(launchName: string, launchTags: string[]) {
     const { data } = await this.#client.post<TestOpsLaunch>(
       "/api/launch",
       {
@@ -62,6 +62,7 @@ export class TestOpsClient {
         projectId: this.#projectId,
         autoclose: true,
         external: true,
+        tags: launchTags.map((tag) => ({ name: tag })),
       },
       {
         headers: {

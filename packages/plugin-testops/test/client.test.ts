@@ -122,7 +122,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName);
+      await client.createLaunch(fixtures.launchName, []);
 
       expect(client.launchUrl).toBe(`${BASE_URL}/launch/${fixtures.launch.id}`);
     });
@@ -145,7 +145,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName);
+      await client.createLaunch(fixtures.launchName, []);
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(2);
       expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
@@ -157,6 +157,7 @@ describe("testops http client", () => {
           projectId: fixtures.projectId,
           autoclose: true,
           external: true,
+          tags: [],
         },
         {
           headers: {
@@ -199,7 +200,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName);
+      await client.createLaunch(fixtures.launchName, []);
       await client.createSession();
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(3);
@@ -274,7 +275,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName);
+      await client.createLaunch(fixtures.launchName, []);
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
@@ -328,7 +329,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName);
+      await client.createLaunch(fixtures.launchName, []);
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,

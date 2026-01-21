@@ -36,7 +36,8 @@ export default defineConfig({
   plugins: {
 +    testops: {
 +      options: {
-+        reportName: "Hello, TestOps!",
++        launchName: "Hello, TestOps!",
++        launchTags: ["tag1", "tag2"],
 +        accessToken: "your_testops_access_token",
 +        endpoint: "https://your-testops-instance.com",
 +        projectId: "your_testops_project_id",
@@ -52,7 +53,8 @@ The plugin accepts the following options:
 
 | Option           | Description                                     | Type    | Default                 |
 |------------------|-------------------------------------------------|---------|-------------------------|
-| `reportName`     | Name of the report which will be assigned to the new launch                              | `string` | `Allure Report`         |
+| `launchName`     | Name of the report which will be assigned to the new launch                              | `string` | `Allure Report`         |
+| `launchTags`     | Tags to be assigned to the new launch                              | `string[]` | `[]`         |
 | `accessToken`    | Access token for TestOps API                    | `string` | `undefined`             |
 | `endpoint`       | TestOps API endpoint                            | `string` | `undefined` |
 | `projectId`      | TestOps project ID                              | `string` | `undefined`             |
@@ -63,6 +65,8 @@ The plugin automatically reads the following environment variables and uses them
 
 | Environment Variable | Configuration option |
 |----------------------|----------------------|
-| `ALLURE_TESTOPS_ACCESS_TOKEN` | `accessToken` |
-| `ALLURE_TESTOPS_PROJECT_ID` | `projectId` |
-| `ALLURE_TESTOPS_ENDPOINT` | `endpoint` |
+| `ALLURE_TOKEN` | `accessToken` |
+| `ALLURE_PROJECT_ID` | `projectId` |
+| `ALLURE_ENDPOINT` | `endpoint` |
+| `ALLURE_LAUNCH_NAME` | `launchName` |
+| `ALLURE_LAUNCH_TAGS` | `launchTags` |

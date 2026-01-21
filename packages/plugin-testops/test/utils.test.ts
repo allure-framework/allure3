@@ -89,9 +89,11 @@ describe("unwrapStepsAttachments", () => {
 
 describe("resolvePluginOptions", () => {
   beforeEach(() => {
-    delete process.env.ALLURE_TESTOPS_ACCESS_TOKEN;
-    delete process.env.ALLURE_TESTOPS_ENDPOINT;
-    delete process.env.ALLURE_TESTOPS_PROJECT_ID;
+    delete process.env.ALLURE_TOKEN;
+    delete process.env.ALLURE_ENDPOINT;
+    delete process.env.ALLURE_PROJECT_ID;
+    delete process.env.ALLURE_LAUNCH_TAGS;
+    delete process.env.ALLURE_LAUNCH_NAME;
   });
 
   describe("validation", () => {
@@ -129,19 +131,22 @@ describe("resolvePluginOptions", () => {
         accessToken: "token",
         endpoint: "http://example.com",
         projectId: "12345",
+        launchName: "",
+        launchTags: [],
       };
-
       const result = resolvePluginOptions(options);
 
       expect(result).toEqual({
         accessToken: "token",
         endpoint: "http://example.com",
         projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should use environment variable as fallback for accessToken", () => {
-      process.env.ALLURE_TESTOPS_ACCESS_TOKEN = "env-token";
+      process.env.ALLURE_TOKEN = "env-token";
 
       const result = resolvePluginOptions({
         endpoint: "http://example.com",
@@ -152,11 +157,13 @@ describe("resolvePluginOptions", () => {
         accessToken: "env-token",
         endpoint: "http://example.com",
         projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should use environment variable as fallback for endpoint", () => {
-      process.env.ALLURE_TESTOPS_ENDPOINT = "http://env.example.com";
+      process.env.ALLURE_ENDPOINT = "http://env.example.com";
 
       const result = resolvePluginOptions({
         accessToken: "token",
@@ -167,11 +174,13 @@ describe("resolvePluginOptions", () => {
         accessToken: "token",
         endpoint: "http://env.example.com",
         projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should use environment variable as fallback for projectId", () => {
-      process.env.ALLURE_TESTOPS_PROJECT_ID = "env-project";
+      process.env.ALLURE_PROJECT_ID = "env-project";
 
       const result = resolvePluginOptions({
         accessToken: "token",
@@ -182,13 +191,15 @@ describe("resolvePluginOptions", () => {
         accessToken: "token",
         endpoint: "http://example.com",
         projectId: "env-project",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should use all environment variables when no options are provided", () => {
-      process.env.ALLURE_TESTOPS_ACCESS_TOKEN = "env-token";
-      process.env.ALLURE_TESTOPS_ENDPOINT = "http://env.example.com";
-      process.env.ALLURE_TESTOPS_PROJECT_ID = "env-project";
+      process.env.ALLURE_TOKEN = "env-token";
+      process.env.ALLURE_ENDPOINT = "http://env.example.com";
+      process.env.ALLURE_PROJECT_ID = "env-project";
 
       const result = resolvePluginOptions({} as any);
 
@@ -196,30 +207,36 @@ describe("resolvePluginOptions", () => {
         accessToken: "env-token",
         endpoint: "http://env.example.com",
         projectId: "env-project",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should prefer options over environment variables", () => {
-      process.env.ALLURE_TESTOPS_ACCESS_TOKEN = "env-token";
-      process.env.ALLURE_TESTOPS_ENDPOINT = "http://env.example.com";
-      process.env.ALLURE_TESTOPS_PROJECT_ID = "env-project";
+      process.env.ALLURE_TOKEN = "env-token";
+      process.env.ALLURE_ENDPOINT = "http://env.example.com";
+      process.env.ALLURE_PROJECT_ID = "env-project";
 
       const result = resolvePluginOptions({
         accessToken: "option-token",
         endpoint: "http://option.example.com",
         projectId: "option-project",
+        launchName: "",
+        launchTags: [],
       });
 
       expect(result).toEqual({
         accessToken: "option-token",
         endpoint: "http://option.example.com",
         projectId: "option-project",
+        launchName: "Allure Report",
+        launchTags: [],
       });
     });
 
     it("should merge options and environment variables", () => {
-      process.env.ALLURE_TESTOPS_ACCESS_TOKEN = "env-token";
-      process.env.ALLURE_TESTOPS_PROJECT_ID = "env-project";
+      process.env.ALLURE_TOKEN = "env-token";
+      process.env.ALLURE_PROJECT_ID = "env-project";
 
       const result = resolvePluginOptions({
         endpoint: "http://option.example.com",
@@ -229,7 +246,132 @@ describe("resolvePluginOptions", () => {
         accessToken: "env-token",
         endpoint: "http://option.example.com",
         projectId: "env-project",
+        launchName: "Allure Report",
+        launchTags: [],
       });
+    });
+
+    it("should use environment variable as fallback for launchName", () => {
+      process.env.ALLURE_LAUNCH_NAME = "Environment Launch";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result).toEqual({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Environment Launch",
+        launchTags: [],
+      });
+    });
+
+    it("should use environment variable as fallback for launchTags", () => {
+      process.env.ALLURE_LAUNCH_TAGS = "tag1,tag2,tag3";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result).toEqual({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: ["tag1", "tag2", "tag3"],
+      });
+    });
+
+    it("should trim whitespace from tags when parsing comma-separated string", () => {
+      process.env.ALLURE_LAUNCH_TAGS = "tag1 , tag2 ,  tag3";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.launchTags).toEqual(["tag1", "tag2", "tag3"]);
+    });
+
+    it("should accept launchTags as array in options", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchTags: ["tag1", "tag2"],
+      } as any);
+
+      expect(result).toEqual({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: ["tag1", "tag2"],
+      });
+    });
+
+    it("should accept launchTags as comma-separated string in options", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchTags: "tag1,tag2,tag3",
+      } as any);
+
+      expect(result).toEqual({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Allure Report",
+        launchTags: ["tag1", "tag2", "tag3"],
+      });
+    });
+
+    it("should prefer options over environment variables for launchName and launchTags", () => {
+      process.env.ALLURE_LAUNCH_NAME = "Environment Launch";
+      process.env.ALLURE_LAUNCH_TAGS = "env-tag1,env-tag2";
+
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Option Launch",
+        launchTags: ["option-tag1", "option-tag2"],
+      } as any);
+
+      expect(result).toEqual({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+        launchName: "Option Launch",
+        launchTags: ["option-tag1", "option-tag2"],
+      });
+    });
+
+    it("should return default launchName when not provided", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.launchName).toBe("Allure Report");
+    });
+
+    it("should return empty array for launchTags when not provided", () => {
+      const result = resolvePluginOptions({
+        accessToken: "token",
+        endpoint: "http://example.com",
+        projectId: "12345",
+      } as any);
+
+      expect(result.launchTags).toEqual([]);
     });
   });
 });
