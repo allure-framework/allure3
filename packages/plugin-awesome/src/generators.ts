@@ -339,18 +339,29 @@ const leafFactory = ({
   retriesCount,
   transition,
   tooltips,
-}: AwesomeTestResult): AwesomeTreeLeaf => ({
-  nodeId: id,
-  name,
-  status,
-  duration,
-  flaky,
-  start,
-  retry,
-  retriesCount,
-  transition,
-  tooltips,
-});
+  historyId,
+  groupedLabels
+}: AwesomeTestResult): AwesomeTreeLeaf => {
+  const leaf: AwesomeTreeLeaf = {
+    nodeId: id,
+    id: historyId ?? id,
+    name,
+    status,
+    duration,
+    flaky,
+    start,
+    retry,
+    retriesCount,
+    transition,
+    tooltips,
+  };
+
+  if (groupedLabels.tag && groupedLabels.tag.length > 0) {
+    leaf.tags = groupedLabels.tag;
+  }
+
+  return leaf;
+};
 
 export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);

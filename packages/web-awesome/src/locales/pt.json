@@ -28,22 +28,28 @@
     "search-placeholder": "Nome ou ID"
   },
   "filters": {
-    "more-filters": "Mais filtros",
-    "enable-filter": "Habilitar filtro para \"{{filter}}\"",
     "flaky": "Instável",
     "retry": "Repetir",
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
-    "malfunctioned": "Defeituoso"
-  },
-  "filters.description": {
-    "flaky": "Mostrar testes instáveis",
-    "retry": "Mostra resultados de testes que foram executados novamente",
-    "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
-    "fixed": "Mostra testes que agora estão aprovados mas que anteriormente \"falharam\" ou \"quebraram\"",
-    "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"quebrado\" para \"falhou\"",
-    "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"falhou\" para \"quebrado\""
+    "malfunctioned": "Defeituoso",
+    "transition": "Transição",
+    "tags": "Tags",
+    "goto_filter": "Ir para o filtro",
+    "errors": {
+      "max_values_one": "Apenas o primeiro {{count}} valor é usado para filtragem.\nValores adicionais são ignorados",
+      "max_values_other": "Apenas os primeiros {{count}} valores são usados para filtragem.\nValores adicionais são ignorados"
+    },
+    "description": {
+      "flaky": "Mostrar testes instáveis",
+      "retry": "Mostra resultados de testes que foram executados novamente",
+      "new": "Mostra resultados de testes que aparecem pela primeira vez neste relatório",
+      "fixed": "Mostra testes que agora estão aprovados mas que anteriormente \"falharam\" ou \"quebraram\"",
+      "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"quebrado\" para \"falhou\"",
+      "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"falhou\" para \"quebrado\"",
+      "tags": "Mostra resultados de testes que têm as tags especificadas"
+    }
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",

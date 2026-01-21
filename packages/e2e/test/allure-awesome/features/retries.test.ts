@@ -107,17 +107,6 @@ test.describe("retries", () => {
       expect(retries).toBe("2");
     });
 
-    test("should show tooltip with retries filter description on hover", async ({ page }) => {
-      await page.goto(bootstrap.url);
-
-      await treePage.openFilterMenu();
-      await expect(treePage.retryFilterLocator).toBeVisible();
-      await treePage.retryFilterLocator.hover();
-      await expect(treePage.filterTooltipLocator).toBeVisible();
-      await treePage.closeTooltip();
-      await expect(treePage.filterTooltipLocator).toBeHidden();
-    });
-
     test("should apply regressed filter to the tree when filter=regressed query parameter is present", async ({
       page,
     }) => {

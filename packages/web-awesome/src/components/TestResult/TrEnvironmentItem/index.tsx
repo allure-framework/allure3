@@ -5,7 +5,7 @@ import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
-import { navigateTo, openInNewTab } from "@/stores/router";
+import { navigateToTestResult, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 import type { AwesomeTestResult } from "../../../../types";
 import * as styles from "./styles.scss";
@@ -42,7 +42,7 @@ export const TrEnvironmentItem: FunctionalComponent<{
             }
 
             e.stopPropagation();
-            navigateTo(navigateUrl);
+            navigateToTestResult({ testResultId: id });
           }}
         >
           <TreeItemIcon status={status} className={styles["test-result-environment-item-status"]} />

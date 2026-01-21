@@ -28,22 +28,28 @@
     "search-placeholder": "Nombre o ID"
   },
   "filters": {
-    "more-filters": "Más filtros",
-    "enable-filter": "Habilitar filtro para \"{{filter}}\"",
     "flaky": "Inestable",
     "retry": "Reintento",
     "new": "Nuevo",
     "fixed": "Corregido",
     "regressed": "Regresado",
-    "malfunctioned": "Defectuoso"
-  },
-  "filters.description": {
-    "flaky": "Mostrar pruebas inestables",
-    "retry": "Mostrar resultados de pruebas que se volvieron a ejecutar",
-    "new": "Mostrar resultados de pruebas que aparecen por primera vez en este informe",
-    "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
-    "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
-    "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\""
+    "malfunctioned": "Defectuoso",
+    "transition": "Transición",
+    "tags": "Etiquetas",
+    "goto_filter": "Ir al filtro",
+    "errors": {
+      "max_values_one": "Solo se usa el primer {{count}} valor para el filtrado.\nLos valores adicionales se ignoran",
+      "max_values_other": "Solo se usan los primeros {{count}} valores para el filtrado.\nLos valores adicionales se ignoran"
+    },
+    "description": {
+      "flaky": "Mostrar pruebas inestables",
+      "retry": "Mostrar resultados de pruebas que se volvieron a ejecutar",
+      "new": "Mostrar resultados de pruebas que aparecen por primera vez en este informe",
+      "fixed": "Mostrar pruebas que ahora están aprobadas pero anteriormente fueron \"fallidas\" o \"rotas\"",
+      "regressed": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"roto\" a \"fallido\"",
+      "malfunctioned": "Mostrar resultados de pruebas que cambiaron de estado \"aprobado\" o \"fallido\" a \"roto\"",
+      "tags": "Mostrar resultados de pruebas que tienen las etiquetas especificadas"
+    }
   },
   "sort-by": {
     "sort-by-text": "Ordenar por:",

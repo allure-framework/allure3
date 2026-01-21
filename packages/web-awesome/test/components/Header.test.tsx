@@ -1,9 +1,10 @@
 import { getReportOptions } from "@allurereport/web-commons";
+import { computed, signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
-import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/Header";
 import { CiInfo } from "@/components/Header/CiInfo";
-import { route } from "@/stores/router";
 import { availableSections } from "@/stores/sections";
 
 const fixtures = {
@@ -12,14 +13,24 @@ const fixtures = {
   },
 };
 
+const route = signal({});
+
 vi.mock("@allurereport/web-commons", () => ({
   getReportOptions: vi.fn().mockReturnValue({}),
 }));
 vi.mock("@/stores/router", async () => {
-  const { signal } = await import("@preact/signals");
+  const testResultRoute = computed(() => {
+    const routeValue = route.value as { params?: { testResultId?: string; tab?: string } };
+    const hasTestResultId = routeValue.params?.testResultId !== undefined;
+    return {
+      matches: hasTestResultId,
+      params: routeValue.params || {},
+    };
+  });
 
   return {
-    route: signal({}),
+    route,
+    testResultRoute,
   };
 });
 vi.mock("@/stores/sections", async () => {
@@ -30,18 +41,37 @@ vi.mock("@/stores/sections", async () => {
   };
 });
 vi.mock("@/components/HeaderControls", () => ({
-  HeaderControls: () => <div data-testid="header-controls"></div>,
+  HeaderControls: () => <div data-testid="header-controls" />,
 }));
 vi.mock("@/components/SectionPicker", () => ({
-  SectionPicker: () => <div data-testid="section-picker"></div>,
+  SectionPicker: () => <div data-testid="section-picker" />,
 }));
 vi.mock("@/components/TestResult/TrHeader/TrBreadcrumbs", () => ({
-  TrBreadcrumbs: () => <div data-testid="breadcrumbs"></div>,
+  TrBreadcrumbs: () => <div data-testid="breadcrumbs" />,
 }));
 vi.mock("@/components/Header/CiInfo", () => ({
   // CiInfo: vi.fn().mockReturnValue(<div data-testid="ci-info"></div>),
-  CiInfo: vi.fn().mockImplementation(() => <div data-testid="ci-info"></div>),
+  CiInfo: vi.fn().mockImplementation(() => <div data-testid="ci-info" />),
 }));
+vi.mock("@/stores/testResult", async () => {
+  const { computed } = await import("@preact/signals");
+  const { testResultRoute } = await import("@/stores/router");
+
+  return {
+    currentTrId: computed(() => testResultRoute.value.params.testResultId),
+  };
+});
+vi.mock("@/stores/testResults", async () => {
+  const { signal } = await import("@preact/signals");
+
+  return {
+    testResultStore: signal({
+      loading: false,
+      error: undefined,
+      data: undefined,
+    }),
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

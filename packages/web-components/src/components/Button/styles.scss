@@ -5,15 +5,16 @@
   --allure-btn-radius: 0px;
   --allure-btn-border: 0px;
   --allure-btn-leading-icon-margin-right: 0px;
-  --allure-btn-dropdown-icon-margin-left: 0px;
   --allure-btn-focus-ring-offset: 1px;
   --allure-btn-bg-color: transparent;
   --allure-btn-text-color: transparent;
   --allure-btn-icon-color: transparent;
+  --allure-btn-trailing-icon-color: transparent;
   --allure-btn-border-color: transparent;
   --allure-btn-icon-base-size: 16px;
   --allure-btn-icon-size: var(--allure-btn-icon-base-size);
   --allure-btn-pressed-scale: 0.96;
+  --allure-btn-gap: 2px;
 
   background-color: var(--allure-btn-bg-color);
   border: var(--allure-btn-border) solid transparent;
@@ -101,8 +102,8 @@
     --allure-btn-padding-vertical: 10px;
     --allure-btn-pressed-scale: 0.96;
     --allure-btn-radius: 6px;
-    --allure-btn-leading-icon-margin-right: 8px;
-    --allure-btn-dropdown-icon-margin-left: 4px;
+    --allure-btn-leading-icon-margin-right: 4px;
+    --allure-btn-gap: 4px;
     --allure-btn-icon-size: 20px;
 
     &.buttonIcon {
@@ -117,13 +118,29 @@
     --allure-btn-padding-vertical: 6px;
     --allure-btn-pressed-scale: 0.94;
     --allure-btn-radius: 6px;
-    --allure-btn-leading-icon-margin-right: 6px;
-    --allure-btn-dropdown-icon-margin-left: 4px;
+    --allure-btn-leading-icon-margin-right: 2px;
+    --allure-btn-gap: 4px;
     --allure-btn-icon-size: 20px;
 
     &.buttonIcon {
       --allure-btn-padding-horizontal: 6px;
       --allure-btn-padding-vertical: 6px;
+    }
+  }
+
+  &.size_xs {
+    --allure-btn-height: 22px;
+    --allure-btn-padding-horizontal: 2px;
+    --allure-btn-padding-vertical: 2px;
+    --allure-btn-pressed-scale: 0.94;
+    --allure-btn-radius: 2px;
+    --allure-btn-leading-icon-margin-right: 2px;
+    --allure-btn-gap: 2px;
+    --allure-btn-icon-size: 14px;
+
+    &.buttonIcon {
+      --allure-btn-padding-horizontal: 2px;
+      --allure-btn-padding-vertical: 2px;
     }
   }
 
@@ -133,8 +150,8 @@
     --allure-btn-padding-vertical: 4px;
     --allure-btn-pressed-scale: 0.94;
     --allure-btn-radius: 4px;
-    --allure-btn-leading-icon-margin-right: 4px;
-    --allure-btn-dropdown-icon-margin-left: 2px;
+    --allure-btn-leading-icon-margin-right: 2px;
+    --allure-btn-gap: 2px;
     --allure-btn-icon-size: 16px;
 
     &.buttonIcon {
@@ -157,12 +174,17 @@
     }
   }
 
+  &.buttonIcon[data-rounded] {
+    --allure-btn-radius: 999px;
+  }
+
   &.style_primary {
     --allure-btn-border: 0px;
     --allure-btn-border-color: transparent;
     --allure-btn-bg-color: var(--bg-support-aldebaran);
     --allure-btn-text-color: var(--constant-on-text-primary);
     --allure-btn-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
 
     &:hover {
       --allure-btn-bg-color: var(--bg-support-aldebaran-medium);
@@ -176,6 +198,7 @@
       --allure-btn-bg-color: var(--bg-control-secondary);
       --allure-btn-text-color: var(--on-text-hint);
       --allure-btn-icon-color: var(--on-icon-hint);
+      --allure-btn-trailing-icon-color: var(--on-icon-hint);
     }
 
     &:active,
@@ -189,6 +212,7 @@
     --allure-btn-bg-color: var(--bg-support-capella);
     --allure-btn-text-color: var(--constant-on-text-primary);
     --allure-btn-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
 
     &:hover {
       --allure-btn-bg-color: var(--bg-support-capella-medium);
@@ -209,6 +233,7 @@
     --allure-btn-bg-color: var(--bg-support-castor);
     --allure-btn-text-color: var(--constant-on-text-primary);
     --allure-btn-icon-color: var(--constant-on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--constant-on-icon-primary);
 
     &:hover {
       --allure-btn-bg-color: var(--bg-support-castor-medium);
@@ -230,6 +255,12 @@
     --allure-btn-bg-color: var(--bg-control-flat);
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-aldebaran);
+      --allure-btn-icon-color: var(--on-support-aldebaran);
+    }
 
     &:hover {
       --allure-btn-bg-color: var(--bg-control-flat-medium);
@@ -250,6 +281,7 @@
       --allure-btn-bg-color: var(--bg-control-secondary);
       --allure-btn-text-color: var(--on-text-hint);
       --allure-btn-icon-color: var(--on-icon-hint);
+      --allure-btn-trailing-icon-color: var(--on-icon-hint);
     }
   }
 
@@ -258,18 +290,24 @@
     --allure-btn-bg-color: var(--bg-control-flat);
     --allure-btn-text-color: var(--on-support-capella);
     --allure-btn-icon-color: var(--on-support-capella);
+    --allure-btn-trailing-icon-color: var(--on-support-capella);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-capella);
+      --allure-btn-icon-color: var(--on-support-capella);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
     }
   }
 
@@ -278,18 +316,24 @@
     --allure-btn-bg-color: var(--bg-control-flat);
     --allure-btn-text-color: var(--on-support-castor);
     --allure-btn-icon-color: var(--on-support-castor);
+    --allure-btn-trailing-icon-color: var(--on-support-castor);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-castor);
+      --allure-btn-icon-color: var(--on-support-castor);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
     }
   }
 
@@ -299,15 +343,15 @@
     --allure-btn-bg-color: var(--bg-control-flat);
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-aldebaran);
+      --allure-btn-icon-color: var(--on-support-aldebaran);
+    }
 
     &:hover {
       --allure-btn-bg-color: var(--bg-control-flat-medium);
-
-      .contentIcon,
-      .leadingIcon,
-      .dropdownIcon {
-        color: var(--allure-btn-icon-color);
-      }
     }
 
     &:active,
@@ -319,6 +363,7 @@
       --allure-btn-bg-color: transparent;
       --allure-btn-text-color: var(--on-text-hint);
       --allure-btn-icon-color: var(--on-icon-hint);
+      --allure-btn-trailing-icon-color: var(--on-icon-hint);
     }
   }
 
@@ -328,18 +373,24 @@
     --allure-btn-bg-color: transparent;
     --allure-btn-text-color: var(--on-support-capella);
     --allure-btn-icon-color: var(--on-support-capella);
+    --allure-btn-trailing-icon-color: var(--on-support-capella);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-capella);
+      --allure-btn-icon-color: var(--on-support-capella);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
     }
   }
 
@@ -349,18 +400,24 @@
     --allure-btn-bg-color: transparent;
     --allure-btn-text-color: var(--on-support-castor);
     --allure-btn-icon-color: var(--on-support-castor);
+    --allure-btn-trailing-icon-color: var(--on-support-castor);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-castor);
+      --allure-btn-icon-color: var(--on-support-castor);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
     }
   }
 
@@ -370,6 +427,11 @@
     --allure-btn-bg-color: var(--bg-control-secondary);
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-aldebaran);
+      --allure-btn-icon-color: var(--on-support-aldebaran);
+    }
 
     &:hover {
       --allure-btn-bg-color: var(--bg-control-secondary-medium);
@@ -388,21 +450,28 @@
       --allure-btn-bg-color: var(--bg-control-secondary);
       --allure-btn-text-color: var(--on-text-hint);
       --allure-btn-icon-color: var(--on-icon-hint);
+      --allure-btn-trailing-icon-color: var(--on-icon-hint);
     }
   }
 
   &.style_flat.danger {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-support-capella);
+    --allure-btn-bg-color: var(--bg-alpha-capella);
     --allure-btn-text-color: var(--on-support-capella);
     --allure-btn-icon-color: var(--on-support-capella);
+    --allure-btn-trailing-icon-color: var(--on-support-capella);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-capella);
+      --allure-btn-icon-color: var(--on-support-capella);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
     }
 
     &:active,
@@ -413,16 +482,22 @@
 
   &.style_flat.positive {
     --allure-btn-border-color: transparent;
-    --allure-btn-bg-color: var(--bg-support-castor);
+    --allure-btn-bg-color: var(--bg-alpha-castor);
     --allure-btn-text-color: var(--on-support-castor);
     --allure-btn-icon-color: var(--on-support-castor);
+    --allure-btn-trailing-icon-color: var(--on-support-castor);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-castor);
+      --allure-btn-icon-color: var(--on-support-castor);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
     }
 
     &:active,
@@ -437,8 +512,35 @@
     --allure-btn-bg-color: var(--bg-base-modal);
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
+    --allure-btn-trailing-icon-color: var(--on-icon-primary);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-aldebaran);
+      --allure-btn-icon-color: var(--on-support-aldebaran);
+    }
 
     box-shadow: var(--shadow-raised);
+    background-color: var(--bg-base-modal);
+    /* Dropping border on button, cause it will be on before */
+    border: var(--allure-btn-border) solid transparent;
+    border-color: transparent;
+    position: relative;
+
+    /* Using before as a layer, to add overlay alpha colors over bg color */
+
+    &::before {
+      position: absolute;
+      content: "";
+      inset: calc(var(--allure-btn-border) * -1);
+      transition: background-color var(--color-change-transition-duration);
+      background-color: var(--allure-btn-bg-color);
+
+      /* should not capture clicks */
+      pointer-events: none;
+      border-radius: var(--allure-btn-radius);
+      border: var(--allure-btn-border) solid transparent;
+      border-color: var(--allure-btn-border-color);
+    }
 
     &:hover {
       --allure-btn-bg-color: var(--bg-control-flat-medium);
@@ -459,7 +561,7 @@
       --allure-btn-bg-color: var(--bg-control-secondary);
       --allure-btn-text-color: var(--on-text-hint);
       --allure-btn-icon-color: var(--on-icon-hint);
-
+      --allure-btn-trailing-icon-color: var(--on-icon-hint);
       box-shadow: none;
     }
   }
@@ -467,38 +569,59 @@
   &.style_raised.danger {
     --allure-btn-text-color: var(--on-support-capella);
     --allure-btn-icon-color: var(--on-support-capella);
+    --allure-btn-trailing-icon-color: var(--on-support-capella);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-capella);
+      --allure-btn-icon-color: var(--on-support-capella);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-capella);
+      --allure-btn-bg-color: var(--bg-alpha-capella);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-capella-medium);
+      --allure-btn-bg-color: var(--bg-alpha-capella-medium);
     }
   }
 
   &.style_raised.positive {
     --allure-btn-text-color: var(--on-support-castor);
     --allure-btn-icon-color: var(--on-support-castor);
+    --allure-btn-trailing-icon-color: var(--on-support-castor);
+
+    &[data-link] {
+      --allure-btn-text-color: var(--on-support-castor);
+      --allure-btn-icon-color: var(--on-support-castor);
+    }
 
     &:hover {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:focus-visible {
-      --allure-btn-bg-color: var(--bg-support-castor);
+      --allure-btn-bg-color: var(--bg-alpha-castor);
     }
 
     &:active,
     &.active {
-      --allure-btn-bg-color: var(--bg-support-castor-medium);
+      --allure-btn-bg-color: var(--bg-alpha-castor-medium);
     }
   }
+}
+
+.contentIcon,
+.leadingIcon {
+  color: var(--allure-btn-icon-color);
+}
+
+.dropdownIcon {
+  color: var(--allure-btn-trailing-icon-color);
 }
 
 .text {
@@ -523,6 +646,25 @@
   justify-content: center;
   position: relative;
   user-select: none;
+  gap: var(--allure-btn-gap);
+}
+
+.leadingSlot {
+  margin-right: var(--allure-btn-leading-icon-margin-right);
+}
+
+.leadingSlot,
+.trailingSlot {
+  min-width: var(--allure-btn-icon-size) !important;
+  height: var(--allure-btn-icon-size) !important;
+  max-height: var(--allure-btn-icon-size) !important;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 0;
+  pointer-events: none;
+  user-select: none;
 }
 
 .leadingIcon {
@@ -534,7 +676,6 @@
 .dropdownIcon {
   width: var(--allure-btn-icon-size) !important;
   height: var(--allure-btn-icon-size) !important;
-  color: var(--on-icon-secondary);
   transition: color var(--color-change-transition-duration);
   user-select: none;
 
@@ -548,7 +689,6 @@
 }
 
 .dropdownIcon {
-  margin-left: var(--allure-btn-dropdown-icon-margin-left);
   transition:
     transform var(--interaction-transition-duration) ease-in,
     color var(--color-change-transition-duration);

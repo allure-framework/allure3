@@ -28,22 +28,28 @@
     "search-placeholder": "Ad və ya ID"
   },
   "filters": {
-    "more-filters": "Daha çox filtr",
-    "enable-filter": "\"{{filter}}\" filtrlərini aktiv edin",
     "flaky": "Etibarsız",
     "retry": "Təkrar",
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
-    "malfunctioned": "Sınıq"
-  },
-  "filters.description": {
-    "flaky": "Qeyri-sabit testləri göstərir",
-    "retry": "Yenidən işə salınan test nəticələrini göstərir",
-    "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
-    "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
-    "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
-    "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir"
+    "malfunctioned": "Sınıq",
+    "transition": "Keçid",
+    "tags": "Teqlər",
+    "goto_filter": "Filtre keç",
+    "errors": {
+      "max_values_one": "Filtrasiya üçün yalnız ilk {{count}} dəyər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır",
+      "max_values_other": "Filtrasiya üçün yalnız ilk {{count}} dəyərlər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır"
+    },
+    "description": {
+      "flaky": "Qeyri-sabit testləri göstərir",
+      "retry": "Yenidən işə salınan test nəticələrini göstərir",
+      "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
+      "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
+      "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
+      "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir",
+      "tags": "Müəyyən edilmiş teqləri olan test nəticələrini göstərir"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sıralamaq üzrə:",

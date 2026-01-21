@@ -11,103 +11,80 @@ import {
   ordinal,
   reverse,
 } from "@allurereport/core-api";
-import type { TreeFiltersState, TreeSortBy } from "@/stores/treeFilters";
+import type { SortBy } from "@allurereport/web-commons";
 import type { AwesomeRecursiveTree, AwesomeTree, AwesomeTreeGroup, AwesomeTreeLeaf } from "../../types";
 
-const matchesName = (name: string, query: string) => {
-  return name.toLocaleLowerCase().includes(query.toLocaleLowerCase());
-};
 
-const matchesNodeId = (nodeId: string, query: string) => {
-  return nodeId.toLowerCase() === query.toLocaleLowerCase();
-};
-
-export const isIncluded = (leaf: TreeLeaf<AwesomeTreeLeaf>, filterOptions: TreeFiltersState) => {
-  const queryMatched =
-    !filterOptions?.query ||
-    matchesName(leaf.name, filterOptions.query) ||
-    matchesNodeId(leaf.nodeId, filterOptions.query);
-
-  const statusMatched =
-    !filterOptions?.status || filterOptions?.status === "total" || leaf.status === filterOptions.status;
-  const flakyMatched = !filterOptions?.filter?.flaky || leaf.flaky;
-  const retryMatched = !filterOptions?.filter?.retry || leaf.retry;
-  const newMatched = !filterOptions?.filter?.new || leaf.transition === "new";
-  const fixedMatched = !filterOptions?.filter?.fixed || leaf.transition === "fixed";
-  const regressedMatched = !filterOptions?.filter?.regressed || leaf.transition === "regressed";
-  const malfunctionedMatched = !filterOptions?.filter?.malfunctioned || leaf.transition === "malfunctioned";
-
-  return [
-    queryMatched,
-    statusMatched,
-    flakyMatched,
-    retryMatched,
-    newMatched,
-    fixedMatched,
-    regressedMatched,
-    malfunctionedMatched,
-  ].every(Boolean);
-};
-
-const leafComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
+const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
   const typedCompareBy = compareBy<TreeLeaf<AwesomeTreeLeaf>>;
   switch (sortBy) {
-    case "order":
+    case "order,asc":
+    case "order,desc":
       return typedCompareBy("groupOrder", ordinal());
-    case "duration":
+    case "duration,asc":
+    case "duration,desc":
       return typedCompareBy("duration", ordinal());
-    case "alphabet":
+    case "name,asc":
+    case "name,desc":
       return typedCompareBy("name", alphabetically());
-    case "status":
+    case "status,asc":
+    case "status,desc":
       return typedCompareBy("status", byStatus());
     default:
       // eslint-disable-next-line no-console
-      console.error(`unsupported comparator ${sortBy}`);
+      console.warn(`unsupported comparator ${sortBy as string}`);
       return () => 0;
   }
 };
 
-const groupComparatorByTreeSortBy = (sortBy: TreeSortBy = "status"): Comparator<DefaultTreeGroup> => {
+const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<DefaultTreeGroup> => {
   const typedCompareBy = compareBy<DefaultTreeGroup>;
   switch (sortBy) {
-    case "alphabet":
+    case "name,desc":
+    case "name,asc":
       return typedCompareBy("name", alphabetically());
-    case "order":
-    case "duration":
-    case "status":
+    case "order,desc":
+    case "order,asc":
+    case "duration,desc":
+    case "duration,asc":
+    case "status,desc":
+    case "status,asc":
       return typedCompareBy("statistic", byStatistic());
     default:
       // eslint-disable-next-line no-console
-      console.error(`unsupported comparator ${sortBy}`);
+      console.warn(`unsupported comparator ${sortBy as string}`);
       return () => 0;
   }
 };
 
-export const leafComparator = (filterOptions: TreeFiltersState): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
-  const cmp = leafComparatorByTreeSortBy(filterOptions.sortBy);
-  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
+export const leafComparator = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {
+  const cmp = leafComparatorByTreeSortBy(sortBy);
+  const directional = sortBy.split(",")[1] === "asc" ? cmp : reverse(cmp);
   // apply fallback sorting by name
   return andThen([directional, compareBy("name", alphabetically())]);
 };
 
-export const groupComparator = (filterOptions: TreeFiltersState): Comparator<DefaultTreeGroup> => {
-  const cmp = groupComparatorByTreeSortBy(filterOptions.sortBy);
-  const directional = filterOptions.direction === "asc" ? cmp : reverse(cmp);
+export const groupComparator = (sortBy: SortBy = "status,asc"): Comparator<DefaultTreeGroup> => {
+  const cmp = groupComparatorByTreeSortBy(sortBy);
+  const directional = sortBy.split(",")[1] === "asc" ? cmp : reverse(cmp);
   // apply fallback sorting by name
   return andThen([directional, compareBy("name", alphabetically())]);
 };
 
 export const filterLeaves = (
-  leaves: string[] = [],
+  leafIds: string[] = [],
   leavesById: AwesomeTree["leavesById"],
-  filterOptions: TreeFiltersState,
+  filterPredicate: (item: AwesomeTreeLeaf) => boolean,
+  sortBy: SortBy = "status,asc",
 ) => {
-  const filteredLeaves = [...leaves]
-    .map((leafId) => leavesById[leafId])
-    .filter((leaf: TreeLeaf<AwesomeTreeLeaf>) => isIncluded(leaf, filterOptions));
+  let leaves = [...leafIds].map((leafId) => leavesById[leafId]);
 
-  const comparator = leafComparator(filterOptions);
-  return filteredLeaves.sort(comparator);
+  if (filterPredicate) {
+    leaves = leaves.filter(filterPredicate);
+  }
+
+  const comparator = leafComparator(sortBy);
+  return leaves.sort(comparator);
 };
 
 /**
@@ -119,12 +96,14 @@ export const createRecursiveTree = (payload: {
   group: AwesomeTreeGroup;
   groupsById: AwesomeTree["groupsById"];
   leavesById: AwesomeTree["leavesById"];
-  filterOptions?: TreeFiltersState;
+  filterPredicate: (item: AwesomeTreeLeaf) => boolean;
+  sortBy: SortBy;
 }): AwesomeRecursiveTree => {
-  const { group, groupsById, leavesById, filterOptions } = payload;
+  const { group, groupsById, leavesById, filterPredicate, sortBy } = payload;
   const groupLeaves: string[] = group.leaves ?? [];
 
-  const leaves = filterLeaves(groupLeaves, leavesById, filterOptions);
+  const leaves = filterLeaves(groupLeaves, leavesById, filterPredicate, sortBy);
+
   const trees =
     group.groups
       ?.map((groupId) =>
@@ -132,7 +111,8 @@ export const createRecursiveTree = (payload: {
           group: groupsById[groupId],
           groupsById,
           leavesById,
-          filterOptions,
+          filterPredicate,
+          sortBy,
         }),
       )
       ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
@@ -156,7 +136,7 @@ export const createRecursiveTree = (payload: {
     ...group,
     statistic,
     leaves,
-    trees: trees.sort(groupComparator(filterOptions)),
+    trees: trees.sort(groupComparator(sortBy)),
   };
 };
 

@@ -5,6 +5,7 @@ export type TreeDirection = "asc" | "desc";
 export type TreeFilters = "flaky" | "retry" | "new" | "fixed" | "regressed" | "malfunctioned";
 export type TreeFiltersState = {
   query: string;
+  aqlQuery: string;
   status: AwesomeStatus;
   filter: Record<TreeFilters, boolean>;
   sortBy: TreeSortBy;

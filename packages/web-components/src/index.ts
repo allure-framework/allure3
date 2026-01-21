@@ -2,11 +2,11 @@ import "@/assets/scss/index.scss";
 
 export { allureIcons } from "./components/SvgIcon";
 
-export { DropdownButton, Button, IconButton } from "./components/Button";
+export { DropdownButton, Button, IconButton, ButtonLink } from "./components/Button";
 export { Spinner } from "./components/Spinner";
 export { SvgIcon } from "./components/SvgIcon";
 export { Text, Code, Heading } from "./components/Typography";
-export { TooltipWrapper } from "./components/Tooltip";
+export { TooltipWrapper, Tooltip, useTooltip } from "./components/Tooltip";
 export { Loadable } from "./components/Loadable";
 export { PageLoader } from "./components/PageLoader";
 export { SearchBox } from "./components/SearchBox";

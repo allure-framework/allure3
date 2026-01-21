@@ -1,108 +1,42 @@
-import { computed, signal } from "@preact/signals";
+import { createRoute, navigateTo as routerNavigateTo } from "@allurereport/web-commons";
+import { computed } from "@preact/signals";
 
-type NavigateToObject = {
-  category?: string;
-  params?: {
-    testResultId?: string | null;
-    subTab?: string | null;
-  };
+export const navigateToTestResult = (params: { testResultId: string; tab?: string }) => {
+  routerNavigateTo({ path: "/:testResultId/:tab?", params, keepSearchParams: true });
 };
 
-type Route = {
-  category?: string;
-  params?: {
-    testResultId?: string | null;
-    subTab?: string | null;
-  };
+export const navigateToTestResultTab = (params: { testResultId: string; tab: string }) => {
+  routerNavigateTo({ path: "/:testResultId/:tab?", params, keepSearchParams: true, replace: true });
 };
 
-export const parseHash = (): Route => {
-  const hash = globalThis.location.hash.replace(/^#/, "").trim();
-  const parts = hash.split("/").filter(Boolean);
-  const [first, second] = parts;
-
-  if (parts.length === 0) {
-    return {};
-  }
-
-  if (parts.length === 1) {
-    if (/^[a-f0-9]{32,}$/.test(first)) {
-      return { params: { testResultId: first } };
-    }
-    return { category: first || "", params: { testResultId: second } };
-  }
-
-  if (parts.length === 2) {
-    if (/^[a-f0-9]{32,}$/.test(first)) {
-      return {
-        params: {
-          testResultId: first,
-          subTab: second,
-        },
-      };
-    }
-
-    return {
-      category: first,
-      params: {
-        testResultId: second,
-      },
-    };
-  }
-
-  if (parts.length === 3) {
-    const [category, testResultId, subTab] = parts;
-    return { category, params: { testResultId, subTab } };
-  }
-
-  return {};
+export const navigateToRoot = () => {
+  routerNavigateTo({ path: "/", keepSearchParams: true });
 };
 
-export const route = signal<Route>(parseHash());
-
-export const handleHashChange = () => {
-  const newRoute = parseHash();
-
-  if (
-    newRoute.category !== route.value?.category ||
-    newRoute.params?.testResultId !== route.value.params?.testResultId ||
-    newRoute.params?.subTab !== route.value.params?.subTab
-  ) {
-    route.value = { ...newRoute };
-  }
+export const navigateToSection = (params: { section: "timeline" | "charts" }) => {
+  routerNavigateTo({ path: "/:section", params, keepSearchParams: true });
 };
 
-export const navigateTo = (path: NavigateToObject | string) => {
-  let newHash = "";
+const sections = ["charts", "timeline"];
 
-  if (typeof path === "string") {
-    newHash = path.startsWith("#") ? path.slice(1) : path;
-  } else {
-    const { category, params = {} } = path;
-    const parts: string[] = [];
+export const testResultRoute = computed(() =>
+  createRoute<{ testResultId: string; tab?: string }>("/:testResultId/:tab?", ({ params }) => {
+    return params.testResultId && !sections.includes(params.testResultId);
+  }),
+);
 
-    if (category) {
-      parts.push(category);
-    }
+export const rootRoute = computed(() => createRoute<{}>("/"));
 
-    if (params.testResultId) {
-      parts.push(params.testResultId);
-    }
-
-    if (params.subTab) {
-      parts.push(params.subTab);
-    }
-
-    newHash = parts.join("/");
-  }
-
-  history.pushState(null, "", `#${newHash}`);
-  handleHashChange();
-};
+export const sectionRoute = computed(() =>
+  createRoute<{ section: "timeline" | "charts" }>("/:section", ({ params }) => {
+    return sections.includes(params.section);
+  }),
+);
 
 export const openInNewTab = (path: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   window.open(`#${path}`, "_blank");
 };
-
-export const activeTab = computed(() => route.value.category || "");
-export const activeSubTab = computed(() => route.value.params?.subTab || "overview");

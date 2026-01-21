@@ -28,22 +28,28 @@
     "search-placeholder": "名称或ID"
   },
   "filters": {
-    "more-filters": "更多过滤器",
-    "enable-filter": "启用 \"{{filter}}\" 过滤器",
     "flaky": "不稳定",
     "retry": "重试",
     "new": "新的",
     "fixed": "已修复",
     "regressed": "已回归",
-    "malfunctioned": "已损坏"
-  },
-  "filters.description": {
-    "flaky": "显示不稳定的测试",
-    "retry": "显示重新运行的测试结果",
-    "new": "显示在此报告中首次出现的测试结果",
-    "fixed": "显示现在通过但之前\"失败\"或\"损坏\"的测试",
-    "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
-    "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果"
+    "malfunctioned": "已损坏",
+    "transition": "过渡",
+    "tags": "标签",
+    "goto_filter": "转到过滤器",
+    "errors": {
+      "max_values_one": "仅使用第一个 {{count}} 值进行过滤。\n忽略其他值",
+      "max_values_other": "仅使用前 {{count}} 个值进行过滤。\n忽略其他值"
+    },
+    "description": {
+      "flaky": "显示不稳定的测试",
+      "retry": "显示重新运行的测试结果",
+      "new": "显示在此报告中首次出现的测试结果",
+      "fixed": "显示现在通过但之前\"失败\"或\"损坏\"的测试",
+      "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
+      "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果",
+      "tags": "显示具有指定标签的测试结果"
+    }
   },
   "sort-by": {
     "sort-by-text": "排序依据:",

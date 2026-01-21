@@ -3,7 +3,7 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { setTreeStatus, treeStatus } from "@/stores/treeFilters";
+import { setTreeAwesomeStatus, treeAwesomeStatus } from "@/stores/treeFilters";
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";
@@ -30,9 +30,9 @@ const Header = () => {
                   return { status, value: currentEnv[status] };
                 })
                 .filter(({ value }) => value);
-              const isStatListHaveCurrentTab = statList.filter(({ status }) => status === treeStatus.value);
-              if (!isStatListHaveCurrentTab.length && treeStatus.value !== "total") {
-                setTreeStatus("total");
+              const isStatListHaveCurrentTab = statList.filter(({ status }) => status === treeAwesomeStatus.value);
+              if (!isStatListHaveCurrentTab.length && treeAwesomeStatus.value !== "total") {
+                setTreeAwesomeStatus("total");
               }
 
               const allStatuses = statList.map(({ status, value }) => (

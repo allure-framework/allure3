@@ -167,7 +167,7 @@ type ItemProps = {
 const MenuItem: FunctionalComponent<ItemProps> = (props) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { setIsOpened } = useMenuContext();
-  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, ...rest } = props;
+  const { children, onClick, leadingIcon, rightSlot, ariaLabel, closeMenuOnClick = true, dataTestId, ...rest } = props;
   const isInteractive = typeof onClick === "function";
   const hasLeadingIcon = typeof leadingIcon === "string";
   const handleItemClick = (e: MouseEvent) => {
@@ -191,6 +191,7 @@ const MenuItem: FunctionalComponent<ItemProps> = (props) => {
         className={clsx(styles.menuItem, isInteractive && styles.interactive)}
         onClick={handleItemClick}
         data-interactive-menu-item={isInteractive ? true : undefined}
+        data-testid={dataTestId}
       >
         {hasLeadingIcon && <SvgIcon id={leadingIcon} className={styles.leadingIcon} size="m" />}
         <div className={styles.content}>{children}</div>
@@ -203,7 +204,7 @@ const MenuItem: FunctionalComponent<ItemProps> = (props) => {
 Menu.Item = MenuItem;
 Menu.Item.displayName = "Menu.Item";
 
-const MenuItemWithCheckmark: FunctionalComponent<ItemProps & { isChecked: boolean }> = (props) => {
+const MenuItemWithCheckmark: FunctionalComponent<Omit<ItemProps, "rightSlot"> & { isChecked: boolean }> = (props) => {
   const { isChecked = false, ...itemProps } = props;
   return (
     <MenuItem {...itemProps} rightSlot={isChecked && <SvgIcon className={styles.checkmarkIcon} id={check.id} />} />
