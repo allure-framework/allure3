@@ -93,12 +93,6 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  async initialize(launchName: string) {
-    await this.issueOauthToken();
-    await this.createLaunch(launchName);
-    await this.createSession();
-  }
-
   async uploadTestResults(params: {
     trs: TestResult[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;

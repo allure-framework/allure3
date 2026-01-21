@@ -5,6 +5,7 @@ import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
   #client: TestOpsClient;
+  #uploadedTestResultsIds: string[] = [];
 
   constructor(readonly options: TestopsUploaderPluginOptions) {
     const { accessToken, endpoint, projectId } = resolvePluginOptions(options);
@@ -16,17 +17,27 @@ export class TestopsUploaderPlugin implements Plugin {
     });
   }
 
-  done = async (context: PluginContext, store: AllureStore) => {
-    await this.#client.initialize(this.options.reportName || context.reportName || "Allure Report");
-
+  async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
+    const { issueNewToken = true } = options ?? {};
     const allTrs = await store.allTestResults();
-    const allTrsWithAttachments = allTrs.map((tr) => {
+    const trsToUpload = allTrs.filter((tr) => !this.#uploadedTestResultsIds.includes(tr.id));
+
+    if (trsToUpload.length === 0) {
+      return;
+    }
+
+    const allTrsWithAttachments = trsToUpload.map((tr) => {
       return {
         ...tr,
         steps: unwrapStepsAttachments(tr.steps),
       };
     });
 
+    if (issueNewToken) {
+      await this.#client.issueOauthToken();
+    }
+
+    await this.#client.createSession();
     await this.#client.uploadTestResults({
       trs: allTrsWithAttachments,
       attachmentsResolver: async (tr) => {
@@ -56,7 +67,24 @@ export class TestopsUploaderPlugin implements Plugin {
       },
     });
 
+    // prevent duplicated test results upload
+    this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
+  }
+
+  async start(context: PluginContext, store: AllureStore) {
+    await this.#client.issueOauthToken();
+    await this.#client.createLaunch(this.options.reportName || context.reportName || "Allure Report");
+    await this.#upload(store, { issueNewToken: false });
+
     // eslint-disable-next-line no-console
     console.info(`TestOps launch has been created: ${this.#client.launchUrl}`);
-  };
+  }
+
+  async update(_context: PluginContext, store: AllureStore) {
+    await this.#upload(store);
+  }
+
+  async done(_context: PluginContext, store: AllureStore) {
+    await this.#upload(store);
+  }
 }

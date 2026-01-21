@@ -104,6 +104,10 @@ describe("testops http client", () => {
 
     it("should return launch url when launch is created", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
         if (url === "/api/launch") {
           return Promise.resolve({ data: fixtures.launch });
         }
@@ -117,7 +121,8 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await client.initialize(fixtures.launchName);
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName);
 
       expect(client.launchUrl).toBe(`${BASE_URL}/launch/${fixtures.launch.id}`);
     });
@@ -170,7 +175,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      expect(async () => await client.createSession()).rejects.toThrow();
+      await expect(async () => await client.createSession()).rejects.toThrow();
       expect(AxiosMock.post).toHaveBeenCalledTimes(0);
     });
 
@@ -223,7 +228,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      expect(
+      await expect(
         async () =>
           await client.uploadTestResults({
             trs: [],
@@ -268,7 +273,9 @@ describe("testops http client", () => {
         return [];
       });
 
-      await client.initialize(fixtures.launchName);
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName);
+      await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
         attachmentsResolver,
@@ -320,7 +327,9 @@ describe("testops http client", () => {
         return [];
       });
 
-      await client.initialize(fixtures.launchName);
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName);
+      await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
         attachmentsResolver: () => Promise.resolve([]),

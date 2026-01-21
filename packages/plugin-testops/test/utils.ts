@@ -10,8 +10,8 @@ TestOpsClientMock.prototype = {
   issueOauthToken: vi.fn(),
   createLaunch: vi.fn(),
   createSession: vi.fn(),
-  initialize: vi.fn(),
   uploadTestResults: vi.fn(),
+  launchUrl: undefined,
 };
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions

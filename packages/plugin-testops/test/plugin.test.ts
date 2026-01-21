@@ -107,6 +107,119 @@ describe("testops plugin", () => {
     });
   });
 
+  describe("start", () => {
+    let plugin: TestopsUploaderPlugin;
+    let store: AllureStore;
+
+    beforeEach(() => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+      });
+
+      plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      store = new AllureStoreMock() as unknown as AllureStore;
+    });
+
+    it("should issue oauth token, create launch and session", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({ reportName: "Test Launch" } as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Test Launch");
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
+    });
+
+    it("should upload all test results from the store", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: fixtures.testResults.slice(0, 1),
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
+
+    it("should map linked steps attachments before upload test results", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(1, 2));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: [
+          {
+            ...fixtures.testResults[1],
+            steps: [
+              {
+                ...fixtures.testResults[1].steps[0],
+                // @ts-expect-error
+                attachment: fixtures.testResults[1].steps[0].link,
+              },
+            ],
+          },
+        ],
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
+  });
+
+  describe("update", () => {
+    let plugin: TestopsUploaderPlugin;
+    let store: AllureStore;
+
+    beforeEach(() => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+      });
+
+      plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      store = new AllureStoreMock() as unknown as AllureStore;
+    });
+
+    it("should issue new oauth token and create new session", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
+    });
+
+    it("should upload test results", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: fixtures.testResults.slice(0, 1),
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
+  });
+
   describe("done", () => {
     let plugin: TestopsUploaderPlugin;
     let store: AllureStore;
@@ -122,18 +235,19 @@ describe("testops plugin", () => {
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
-    it("should initialize the testops client", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue([]);
+    it("should issue new oauth token and create new session", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.initialize).toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
     });
 
-    it("should upload all test results from the store", async () => {
+    it("should upload test results", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -143,32 +257,6 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
-    });
-
-    it("should map linked steps attachments before upload test results", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(1, 2));
-      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
-      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
-      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
-
-      await plugin.done({} as PluginContext, store);
-
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [
-          {
-            ...fixtures.testResults[1],
-            steps: [
-              {
-                ...fixtures.testResults[1].steps[0],
-                // @ts-expect-error
-                attachment: fixtures.testResults[1].steps[0].link,
-              },
-            ],
-          },
-        ],
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
