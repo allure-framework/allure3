@@ -1,7 +1,7 @@
 {
-  "name": "@allurereport/plugin-testops-uploader",
+  "name": "@allurereport/plugin-testops",
   "version": "3.0.0-beta.20",
-  "description": "Allure Plugin TestOps uploader",
+  "description": "Allure Plugin TestOps",
   "keywords": [
     "allure",
     "testing",

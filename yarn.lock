@@ -137,7 +137,7 @@ __metadata:
     "@allurereport/plugin-log": "workspace:*"
     "@allurereport/plugin-progress": "workspace:*"
     "@allurereport/plugin-slack": "workspace:*"
-    "@allurereport/plugin-testops-uploader": "workspace:*"
+    "@allurereport/plugin-testops": "workspace:*"
     "@allurereport/plugin-testplan": "workspace:*"
     "@allurereport/reader": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
@@ -585,9 +585,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allurereport/plugin-testops-uploader@workspace:*, @allurereport/plugin-testops-uploader@workspace:packages/plugin-testops-uploader":
+"@allurereport/plugin-testops@workspace:*, @allurereport/plugin-testops@workspace:packages/plugin-testops":
   version: 0.0.0-use.local
-  resolution: "@allurereport/plugin-testops-uploader@workspace:packages/plugin-testops-uploader"
+  resolution: "@allurereport/plugin-testops@workspace:packages/plugin-testops"
   dependencies:
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
@@ -19681,7 +19681,7 @@ __metadata:
   dependencies:
     "@allurereport/plugin-awesome": "workspace:*"
     "@allurereport/plugin-csv": "workspace:*"
-    "@allurereport/plugin-testops-uploader": "workspace:*"
+    "@allurereport/plugin-testops": "workspace:*"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/eslint": "npm:^8.56.11"
     "@types/node": "npm:^20.17.9"

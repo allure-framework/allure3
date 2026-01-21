@@ -1,4 +1,4 @@
-# Awesome Plugin
+# Allure TestOps Plugin
 
 [<img src="https://allurereport.org/public/img/allure-report.svg" height="85px" alt="Allure Report logo" align="right" />](https://allurereport.org "Allure Report")
 
@@ -19,9 +19,9 @@ The plugin creates a new launch in Allure TestOps with all the tests data from t
 Use your favorite package manager to install the package:
 
 ```shell
-npm add @allurereport/plugin-testops-uploader
-yarn add @allurereport/plugin-testops-uploader
-pnpm add @allurereport/plugin-testops-uploader
+npm add @allurereport/plugin-testops
+yarn add @allurereport/plugin-testops
+pnpm add @allurereport/plugin-testops
 ```
 
 Then, add the plugin to the Allure configuration file:

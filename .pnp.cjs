@@ -91,8 +91,8 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/plugin-slack"\
     },\
     {\
-      "name": "@allurereport/plugin-testops-uploader",\
-      "reference": "workspace:packages/plugin-testops-uploader"\
+      "name": "@allurereport/plugin-testops",\
+      "reference": "workspace:packages/plugin-testops"\
     },\
     {\
       "name": "@allurereport/plugin-testplan",\
@@ -173,7 +173,7 @@ const RAW_RUNTIME_STATE =
     ["@allurereport/plugin-progress", ["workspace:packages/plugin-progress"]],\
     ["@allurereport/plugin-server-reload", ["workspace:packages/plugin-server-reload"]],\
     ["@allurereport/plugin-slack", ["workspace:packages/plugin-slack"]],\
-    ["@allurereport/plugin-testops-uploader", ["workspace:packages/plugin-testops-uploader"]],\
+    ["@allurereport/plugin-testops", ["workspace:packages/plugin-testops"]],\
     ["@allurereport/plugin-testplan", ["workspace:packages/plugin-testplan"]],\
     ["@allurereport/reader", ["workspace:packages/reader"]],\
     ["@allurereport/reader-api", ["workspace:packages/reader-api"]],\
@@ -337,7 +337,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-log", "workspace:packages/plugin-log"],\
           ["@allurereport/plugin-progress", "workspace:packages/plugin-progress"],\
           ["@allurereport/plugin-slack", "workspace:packages/plugin-slack"],\
-          ["@allurereport/plugin-testops-uploader", "workspace:packages/plugin-testops-uploader"],\
+          ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/plugin-testplan", "workspace:packages/plugin-testplan"],\
           ["@allurereport/reader", "workspace:packages/reader"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
@@ -838,11 +838,11 @@ const RAW_RUNTIME_STATE =
         "linkType": "SOFT"\
       }]\
     ]],\
-    ["@allurereport/plugin-testops-uploader", [\
-      ["workspace:packages/plugin-testops-uploader", {\
-        "packageLocation": "./packages/plugin-testops-uploader/",\
+    ["@allurereport/plugin-testops", [\
+      ["workspace:packages/plugin-testops", {\
+        "packageLocation": "./packages/plugin-testops/",\
         "packageDependencies": [\
-          ["@allurereport/plugin-testops-uploader", "workspace:packages/plugin-testops-uploader"],\
+          ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
@@ -28852,7 +28852,7 @@ const RAW_RUNTIME_STATE =
           ["sandbox", "workspace:packages/sandbox"],\
           ["@allurereport/plugin-awesome", "workspace:packages/plugin-awesome"],\
           ["@allurereport/plugin-csv", "workspace:packages/plugin-csv"],\
-          ["@allurereport/plugin-testops-uploader", "workspace:packages/plugin-testops-uploader"],\
+          ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/eslint", "npm:8.56.12"],\
           ["@types/node", "npm:20.17.9"],\
