@@ -19,9 +19,11 @@ export const AllureStoreMock = vi.fn(function () {});
 
 AllureStoreMock.prototype = {
   allTestResults: vi.fn(),
+  allNewTestResults: vi.fn(),
   attachmentsByTrId: vi.fn(),
   attachmentContentById: vi.fn(),
   fixturesByTrId: vi.fn(),
+  testsStatistic: vi.fn(),
 };
 
 export const AxiosMock = {

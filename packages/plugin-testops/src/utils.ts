@@ -22,7 +22,9 @@ export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[
   });
 };
 
-export const resolvePluginOptions = (options: TestopsUploaderPluginOptions): TestopsUploaderPluginOptions => {
+export const resolvePluginOptions = (
+  options: TestopsUploaderPluginOptions,
+): Omit<TestopsUploaderPluginOptions, "filter"> => {
   const { ALLURE_TOKEN, ALLURE_ENDPOINT, ALLURE_PROJECT_ID, ALLURE_LAUNCH_TAGS, ALLURE_LAUNCH_NAME } = env;
   const {
     accessToken = ALLURE_TOKEN,

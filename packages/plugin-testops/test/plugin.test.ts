@@ -1,3 +1,4 @@
+/* eslint max-lines: off */
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { Mock } from "vitest";
@@ -60,6 +61,20 @@ const fixtures = {
     },
   ] as AttachmentLink[],
   launchTags: ["tag1", "tag2", "tag3"],
+  launchUrl: "http://allurereport.org/launch/123",
+  pluginSummary: {
+    name: "Allure Report",
+    remoteHref: "http://allurereport.org/launch/123",
+    stats: { total: 2, passed: 1, failed: 1 },
+    status: "failed",
+    duration: 2000,
+    createdAt: 1000,
+    plugin: "Awesome",
+    newTests: [],
+    flakyTests: [],
+    retryTests: [],
+    meta: { reportUuid: "test-uuid" },
+  },
 };
 
 beforeEach(() => {
@@ -292,6 +307,34 @@ describe("testops plugin", () => {
 
       expect(AllureStoreMock.prototype.fixturesByTrId).toHaveBeenCalledWith(fixtures.testResults[0].id);
     });
+
+    it("should apply filter when uploading test results", async () => {
+      const filter = (tr: any) => tr.id === "0-0-0-0";
+
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        filter,
+      });
+
+      const pluginWithFilter = new TestopsUploaderPlugin({ filter } as TestopsUploaderPluginOptions);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await pluginWithFilter.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: [fixtures.testResults[0]],
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
   });
 
   describe("when client is not initialized", () => {
@@ -462,6 +505,45 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
     });
+
+    it("should apply filter when uploading test results", async () => {
+      const filter = (tr: any) => tr.id === "0-0-0-1";
+
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        filter,
+      });
+
+      const pluginWithFilter = new TestopsUploaderPlugin({ filter } as TestopsUploaderPluginOptions);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await pluginWithFilter.update({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [
+            {
+              ...fixtures.testResults[1],
+              steps: [
+                {
+                  ...fixtures.testResults[1].steps[0],
+                  // @ts-expect-error
+                  attachment: fixtures.testResults[1].steps[0].link,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    });
   });
 
   describe("done", () => {
@@ -517,6 +599,112 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
+    });
+
+    it("should apply filter when uploading test results", async () => {
+      const filter = (tr: any) => tr.id === "0-0-0-0";
+
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        filter,
+      });
+
+      const pluginWithFilter = new TestopsUploaderPlugin({ filter } as TestopsUploaderPluginOptions);
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await pluginWithFilter.done({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: [fixtures.testResults[0]],
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
+  });
+
+  describe("info", () => {
+    let plugin: TestopsUploaderPlugin;
+    let store: AllureStore;
+
+    beforeEach(() => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      plugin = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+      store = new AllureStoreMock() as unknown as AllureStore;
+    });
+
+    it("should return undefined when client is not initialized", async () => {
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: "",
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
+
+      const pluginWithoutClient = new TestopsUploaderPlugin({} as TestopsUploaderPluginOptions);
+
+      const result = await pluginWithoutClient.info({} as PluginContext, store);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined when launchUrl is not available", async () => {
+      TestOpsClientMock.prototype.launchUrl = undefined;
+
+      const result = await plugin.info({} as PluginContext, store);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return plugin summary with correct remoteHref", async () => {
+      TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 2, passed: 1, failed: 1 });
+
+      const result = await plugin.info({} as PluginContext, store);
+
+      expect(result).toBeDefined();
+      expect(result?.remoteHref).toBe(fixtures.launchUrl);
+    });
+
+    it("should apply filter when provided in options", async () => {
+      const filter = (tr: any) => tr.id === "0-0-0-0";
+
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+        filter,
+      });
+
+      const pluginWithFilter = new TestopsUploaderPlugin({ filter } as TestopsUploaderPluginOptions);
+
+      TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 1, passed: 1, failed: 0 });
+
+      await pluginWithFilter.info({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.testsStatistic).toHaveBeenCalledWith(filter);
     });
   });
 });

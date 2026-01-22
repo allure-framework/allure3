@@ -6,6 +6,7 @@ export type TestopsUploaderOptions = {
   projectId: string;
   launchName: string;
   launchTags: string[];
+  filter?: (testResult: TestResult) => boolean;
 };
 
 export type TemplateManifest = Record<string, string>;

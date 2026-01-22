@@ -1,4 +1,11 @@
-import { type AllureStore, type Plugin, type PluginContext } from "@allurereport/plugin-api";
+import { getWorstStatus } from "@allurereport/core-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
+  convertToSummaryTestResult,
+} from "@allurereport/plugin-api";
 import { TestOpsClient } from "./client.js";
 import type { TestopsUploaderPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
@@ -47,7 +54,15 @@ export class TestopsUploaderPlugin implements Plugin {
 
     const { issueNewToken = true } = options ?? {};
     const allTrs = await store.allTestResults();
-    const trsToUpload = allTrs.filter((tr) => !this.#uploadedTestResultsIds.includes(tr.id));
+    const trsToUpload = allTrs.filter((tr) => {
+      const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
+
+      if (this.options.filter) {
+        return this.options.filter(tr) && !uploaded;
+      }
+
+      return !uploaded;
+    });
 
     if (trsToUpload.length === 0) {
       return;
@@ -117,5 +132,37 @@ export class TestopsUploaderPlugin implements Plugin {
 
   async done(_context: PluginContext, store: AllureStore) {
     await this.#upload(store);
+  }
+
+  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined> {
+    if (!this.#client?.launchUrl) {
+      return undefined;
+    }
+
+    const allTrs = (await store.allTestResults()).filter((tr) =>
+      this.options.filter ? this.options.filter(tr) : true,
+    );
+    const newTrs = await store.allNewTestResults();
+    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
+    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
+    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
+    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
+
+    return {
+      name: this.#launchName,
+      remoteHref: this.#client.launchUrl,
+      stats: await store.testsStatistic(this.options.filter),
+      status: worstStatus ?? "passed",
+      duration,
+      createdAt,
+      plugin: "Awesome",
+      newTests: newTrs.map(convertToSummaryTestResult),
+      flakyTests: flakyTrs.map(convertToSummaryTestResult),
+      retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+      },
+    };
   }
 }
