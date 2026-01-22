@@ -15,6 +15,7 @@ import {
 } from "@allurereport/web-commons";
 import { computed } from "@preact/signals";
 import type { AwesomeArrayFieldFilter, AwesomeBooleanFieldFilter, AwesomeFilter, AwesomeFilterGroupSimple, AwesomeStringFieldFilter } from "./model";
+import type { AwesomeStatus } from "types";
 
 const statusAwesomeFilter = computed<AwesomeStringFieldFilter>(() => ({
   type: "field",
@@ -188,6 +189,11 @@ export const setAwesomeFilter = (filter: AwesomeFilter) => {
   }
 };
 
+export const treeAwesomeStatus = computed<AwesomeStatus>(() => statusFilter.value ?? "total");
+
+export const setTreeAwesomeStatus = (status: AwesomeStatus) => {
+  setStatusFilter(status === "total" ? undefined : status);
+};
 
 export const clearAwesomeFilters = () => {
   setQueryFilter("");

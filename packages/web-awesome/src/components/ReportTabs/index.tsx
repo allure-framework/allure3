@@ -2,7 +2,7 @@ import { Text } from "@allurereport/web-components";
 import { useComputed } from "@preact/signals";
 import { type ComponentChildren } from "preact";
 import { useCallback } from "preact/hooks";
-import { setTreeAwesomeStatus, treeAwesomeStatus } from "@/stores/treeFilters";
+import { setTreeAwesomeStatus, treeAwesomeStatus } from "@/stores/reportFilters/store";
 import type { AwesomeStatus } from "../../../types.js";
 import * as styles from "./styles.scss";
 
