@@ -16,6 +16,9 @@ export default defineConfig({
       threads: {
         execArgv: ["--expose-gc"],
       },
+      forks: {
+        execArgv: ["--expose-gc"],
+      }
     },
     reporters: [
       "default",

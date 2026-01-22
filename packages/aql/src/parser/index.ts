@@ -32,7 +32,7 @@ import { AqlTokenizer } from "../tokenizer/index.js";
 export class AqlParser {
   private tokens: AqlToken[] = [];
   private position: number = 0;
-  private context: Map<string, any>;
+  private context: Map<string, any> | undefined;
   private config: AqlParserConfig;
 
   /**
@@ -43,16 +43,18 @@ export class AqlParser {
    * @param config - Optional parser configuration to restrict available features
    * @throws {AqlParserError} If input is not a non-empty string
    */
-  constructor(input: string, context: Map<string, any> = new Map(), config: AqlParserConfig = {}) {
+  constructor(input: string, context: Map<string, any> | undefined = undefined, config: AqlParserConfig = {}) {
     if (!input || typeof input !== "string") {
       throw AqlErrors.invalidInput("Input must be a non-empty string");
     }
 
     const tokenizer = new AqlTokenizer(input);
     this.tokens = tokenizer.tokenize();
+    // Use provided context or create empty Map only when needed
     this.context = context;
     this.config = config;
   }
+
 
   /**
    * Parses the AQL string into an abstract syntax tree.
@@ -294,6 +296,11 @@ export class AqlParser {
       const key = this.previous.value!; // FUNCTION always has value
       const valueType: AqlValueKind = "FUNCTION";
       this.validateValueType(valueType, position);
+
+      if (!this.context || this.context.size === 0) {
+        return { value: "null", type: "NULL" };
+      }
+
       const contextValue = this.context.get(key);
 
       if (contextValue === null || contextValue === undefined) {
@@ -359,9 +366,13 @@ export class AqlParser {
 
     const start = Math.max(0, position - 2);
     const end = Math.min(this.tokens.length, position + 3);
-    const contextTokens = this.tokens.slice(start, end).map((t) => t.value ?? t.type);
-
-    return contextTokens.join(" ");
+    // Build context string directly without creating intermediate arrays
+    const parts: string[] = [];
+    for (let i = start; i < end; i++) {
+      const token = this.tokens[i];
+      parts.push(token.value ?? token.type);
+    }
+    return parts.join(" ");
   }
 
   private advance(): void {
@@ -387,16 +398,45 @@ export class AqlParser {
       return quoted;
     }
 
-    const unquoted = quoted.slice(1, -1);
-    /**
-     * Simple escape sequence handling
-     */
-    return unquoted
-      .replace(/\\n/g, "\n")
-      .replace(/\\t/g, "\t")
-      .replace(/\\r/g, "\r")
-      .replace(/\\"/g, '"')
-      .replace(/\\\\/g, "\\");
+    // Optimize: process escape sequences in a single pass instead of multiple replace() calls
+    const chars: string[] = [];
+    for (let i = 1; i < quoted.length - 1; i++) {
+      const char = quoted[i];
+      if (char === "\\" && i + 1 < quoted.length - 1) {
+        const next = quoted[i + 1];
+        switch (next) {
+          case "n":
+            chars.push("\n");
+            i++; // Skip next character as it's part of escape sequence
+            continue;
+          case "t":
+            chars.push("\t");
+            i++;
+            continue;
+          case "r":
+            chars.push("\r");
+            i++;
+            continue;
+          case '"':
+            chars.push('"');
+            i++;
+            continue;
+          case "\\":
+            chars.push("\\");
+            i++;
+            continue;
+          default:
+            // Unknown escape sequence - add both backslash and next char as-is
+            chars.push(char);
+            chars.push(next);
+            i++;
+            continue;
+        }
+      } else {
+        chars.push(char);
+      }
+    }
+    return chars.join("");
   }
 
   /**
@@ -523,7 +563,16 @@ export function parseAql(
     return { expression: null };
   }
 
-  const contextMap = context instanceof Map ? context : new Map(Object.entries(context || {}));
+  let contextMap: Map<string, any> | undefined;
+
+  if (context instanceof Map) {
+    contextMap = context;
+  } else if (context && typeof context === "object") {
+    // Convert plain object to Map, but avoid creating Map for Map instances (handled above)
+    contextMap = new Map(Object.entries(context));
+  }
+
   const parser = new AqlParser(aql, contextMap, config);
+
   return parser.parse();
 }
