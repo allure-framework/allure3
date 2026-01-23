@@ -20,7 +20,7 @@ export const fetchGlobals = async () => {
     };
   } catch (err) {
     globalsStore.value = {
-      ...globalsStore.value,
+      ...globalsStore.peek(),
       error: err.message,
       loading: false,
     };

@@ -10,7 +10,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModalComponent } from "@/components/Modal";
 import { SectionSwitcher } from "@/components/SectionSwitcher";
-import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } from "@/stores";
+import { fetchEnvStats, fetchReportStats, getLocale, waitForI18next } from "@/stores";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
@@ -54,7 +54,7 @@ const App = () => {
     ];
 
     if (globalThis) {
-      fns.unshift(getLocale, getTheme as () => Promise<void>);
+      fns.unshift(getLocale);
     }
 
     await waitForI18next;

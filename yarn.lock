@@ -5714,6 +5714,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@preact/signals-core@npm:^1.12.1":
+  version: 1.12.2
+  resolution: "@preact/signals-core@npm:1.12.2"
+  checksum: 10/8537ae00aa314f5231b126b4f42a648521d2feaa36c1477eb47c491bbc87a117b54caa0f2bad66d3fb3d7c8cc118646c8d1036fafbbf5853a66f0e49ed5c237d
+  languageName: node
+  linkType: hard
+
 "@preact/signals@npm:^2.5.1":
   version: 2.5.1
   resolution: "@preact/signals@npm:2.5.1"

@@ -12,7 +12,7 @@ export const variables = signal<StoreSignalState<Record<string, Variables>>>({
 
 export const fetchVariables = async (env: string = "default") => {
   variables.value = {
-    ...variables.value,
+    ...variables.peek(),
     loading: true,
     error: undefined,
   };
@@ -24,7 +24,7 @@ export const fetchVariables = async (env: string = "default") => {
 
     variables.value = {
       data: {
-        ...variables.value.data,
+        ...variables.peek().data,
         [env]: res,
       },
       error: undefined,
@@ -32,7 +32,7 @@ export const fetchVariables = async (env: string = "default") => {
     };
   } catch (e) {
     variables.value = {
-      ...variables.value,
+      ...variables.peek(),
       error: e.message,
       loading: false,
     };

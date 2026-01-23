@@ -1,4 +1,4 @@
-import { QualityGateValidationResult } from "@allurereport/plugin-api";
+import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { type StoreSignalState } from "./types";
@@ -20,7 +20,7 @@ export const fetchQualityGateResults = async () => {
     };
   } catch (err) {
     qualityGateStore.value = {
-      ...qualityGateStore.value,
+      ...qualityGateStore.peek(),
       error: err.message,
       loading: false,
     };
