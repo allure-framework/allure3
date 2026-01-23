@@ -1,1 +1,1 @@
-{"id":"825ce099b39aa47d117daf6ed5ffd487","fullName":"test/allure2.test.ts#allure2 reader should parse start","name":"should parse start","status":"passed","testResultsByEnv":{"windows-latest":"20f32f1e2fdd3b3dd17c6d64074c6acf"}}
+{"id":"825ce099b39aa47d117daf6ed5ffd487","fullName":"test/allure2.test.ts#allure2 reader should parse start","name":"should parse start","status":"passed","testResultsByEnv":{"windows-latest":"67187585c10875d07e0035e9e96ed72c","ubuntu-latest":"37a44796fa9894302a73adc9b5ad6056","macos-latest":"b86368070df5301391cdf5e719f668b8"}}

@@ -1,1 +1,1 @@
-{"id":"c68bcf3c87a0f4e440e945509064274b","fullName":"test/allure2.test.ts#allure2 reader should parse expected","name":"should parse expected","status":"passed","testResultsByEnv":{"windows-latest":"8ab095282655369d614cfb2e3a31453b"}}
+{"id":"c68bcf3c87a0f4e440e945509064274b","fullName":"test/allure2.test.ts#allure2 reader should parse expected","name":"should parse expected","status":"passed","testResultsByEnv":{"windows-latest":"869adc0ff636c4124893ea2fb596b0a3","ubuntu-latest":"8986bc203ff6b521c9c50dac22f5f0bd","macos-latest":"589a8e5ccfe9533ab25ebe78099fbb1c"}}

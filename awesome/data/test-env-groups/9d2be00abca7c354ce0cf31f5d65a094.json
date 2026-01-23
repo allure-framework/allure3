@@ -1,1 +1,1 @@
-{"id":"9d2be00abca7c354ce0cf31f5d65a094","fullName":"live.test.ts:76:1","name":"reloads the page manually even when live reload is disabled","status":"passed","testResultsByEnv":{"windows-latest":"c845d7f57435c844218f77a6c4414813"}}
+{"id":"9d2be00abca7c354ce0cf31f5d65a094","fullName":"live.test.ts:76:1","name":"reloads the page manually even when live reload is disabled","status":"passed","testResultsByEnv":{"windows-latest":"08e20daa61fa4dc29d59e5792a5efba2","ubuntu-latest":"b198fd4c14f4c5c10940bb22e2faa818","macos-latest":"7ae01b0826a1b7c07d8d562c1c50e3ca"}}

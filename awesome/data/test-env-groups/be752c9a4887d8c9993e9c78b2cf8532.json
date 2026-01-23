@@ -1,1 +1,1 @@
-{"id":"be752c9a4887d8c9993e9c78b2cf8532","fullName":"test/config.test.ts#readConfig should read a .yaml config","name":"should read a .yaml config","status":"passed","testResultsByEnv":{"windows-latest":"f543c7c4b2f9aa8d493e1648af60e89c"}}
+{"id":"be752c9a4887d8c9993e9c78b2cf8532","fullName":"test/config.test.ts#readConfig should read a .yaml config","name":"should read a .yaml config","status":"passed","testResultsByEnv":{"windows-latest":"10cf1b8f391aa2a0de554589ea1aee36","ubuntu-latest":"f01b0ebf897067186f74368b7e3bc85e","macos-latest":"e6dbde7d2e82ab8f292d4958b4949b3a"}}

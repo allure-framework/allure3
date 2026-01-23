@@ -1,1 +1,1 @@
-{"id":"48630370498ffc168a979e93f811a143","fullName":"test/allure2.test.ts#allure2 reader should parse labels","name":"should parse labels","status":"passed","testResultsByEnv":{"windows-latest":"2d699a0a5810da9e2187c2fe50fd6eda"}}
+{"id":"48630370498ffc168a979e93f811a143","fullName":"test/allure2.test.ts#allure2 reader should parse labels","name":"should parse labels","status":"passed","testResultsByEnv":{"windows-latest":"9309abd22c333073c04c27685db600cb","ubuntu-latest":"bd62f21cc1f0959de4d553718695dec5","macos-latest":"6698268063ca8f8e4e9b86bc786f5b19"}}

@@ -1,1 +1,1 @@
-{"id":"f35e46e8de59a0eb67dc9b4a94a52f14","fullName":"test/history.test.ts#should create history file","name":"should create history file","status":"passed","testResultsByEnv":{"windows-latest":"f1e58e7c72f49a93fe4863a33f89982d"}}
+{"id":"f35e46e8de59a0eb67dc9b4a94a52f14","fullName":"test/history.test.ts#should create history file","name":"should create history file","status":"passed","testResultsByEnv":{"windows-latest":"d9fb1f728f81bb000542a7addec11dc3","ubuntu-latest":"6cbe07fd5db91d637a4f3036a4afdf8d","macos-latest":"d3507d026645ba5d4dc27a90a44fc03e"}}
