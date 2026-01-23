@@ -1,4 +1,4 @@
-import type { AttachmentLink, TestResult, TestStepResult } from "@allurereport/core-api";
+import type { AttachmentLink, CiDescriptor, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
 import FormData from "form-data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestOpsClient } from "../src/client.js";
@@ -14,30 +14,20 @@ const fixtures = {
     id: 123,
   } as TestOpsLaunch,
   launchName: "Test Launch",
-  testResults: [
-    {
-      id: "0-0-0-0",
-    } as TestResult,
-    {
-      id: "1-1-1-1",
-    } as TestResult,
-    {
-      id: "2-2-2-2",
-    } as TestResult,
-  ],
+  launchTags: [] as string[],
+  ci: {
+    type: "github",
+    jobName: "job",
+    jobRunName: "run",
+    jobUid: "job-uid",
+    jobRunUid: "job-run-uid",
+  } as unknown as CiDescriptor,
+  uploadStatus: "passed" as TestStatus,
+  testResults: [{ id: "0-0-0-0" } as TestResult, { id: "1-1-1-1" } as TestResult, { id: "2-2-2-2" } as TestResult],
   testOpsResults: [
-    {
-      id: 1,
-      uuid: "0-0-0-0",
-    },
-    {
-      id: 2,
-      uuid: "1-1-1-1",
-    },
-    {
-      id: 3,
-      uuid: "2-2-2-2",
-    },
+    { id: 1, uuid: "0-0-0-0" },
+    { id: 2, uuid: "1-1-1-1" },
+    { id: 3, uuid: "2-2-2-2" },
   ],
   attachments: [
     {
@@ -45,15 +35,7 @@ const fixtures = {
       contentType: "text/plain",
     } as AttachmentLink,
   ],
-  // TODO:
-  fixtures: [
-    {
-      name: "before hook",
-    } as TestStepResult,
-    {
-      name: "after hook",
-    } as TestStepResult,
-  ],
+  fixtures: [{ name: "before hook" } as TestStepResult, { name: "after hook" } as TestStepResult],
 };
 
 vi.mock("axios", async () => {
@@ -122,9 +104,146 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName, []);
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
       expect(client.launchUrl).toBe(`${BASE_URL}/launch/${fixtures.launch.id}`);
+    });
+  });
+
+  describe("startUpload", () => {
+    it("should throw an error when launch hasn't been created before", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+
+      await expect(async () => await client.startUpload(fixtures.ci)).rejects.toThrow();
+      expect(AxiosMock.post).toHaveBeenCalledTimes(1);
+      expect(AxiosMock.post).toHaveBeenLastCalledWith("/api/uaa/oauth/token", expect.anything());
+    });
+
+    it("should call /api/upload/start with ci metadata", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: {} });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/start",
+        {
+          projectId: fixtures.projectId,
+          ci: { name: fixtures.ci.type },
+          job: { name: fixtures.ci.jobName },
+          jobRun: { id: fixtures.ci.jobRunName },
+          launch: { id: fixtures.launch.id },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${fixtures.ouathToken}`,
+          },
+        },
+      );
+    });
+  });
+
+  describe("stopUpload", () => {
+    it("should throw an error when upload hasn't been started before", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+
+      await expect(async () => await client.stopUpload(fixtures.ci, fixtures.uploadStatus)).rejects.toThrow();
+    });
+
+    it("should call /api/upload/stop after startUpload", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/start") {
+          return Promise.resolve({ data: {} });
+        }
+
+        if (url === "/api/upload/stop") {
+          return Promise.resolve({ data: {} });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.startUpload(fixtures.ci);
+      await client.stopUpload(fixtures.ci, fixtures.uploadStatus);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/stop",
+        {
+          jobRunUid: fixtures.ci.jobRunUid,
+          jobUid: fixtures.ci.jobUid,
+          projectId: fixtures.projectId,
+          status: fixtures.uploadStatus,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${fixtures.ouathToken}`,
+          },
+        },
+      );
     });
   });
 
@@ -145,7 +264,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName, []);
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(2);
       expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
@@ -157,7 +276,7 @@ describe("testops http client", () => {
           projectId: fixtures.projectId,
           autoclose: true,
           external: true,
-          tags: [],
+          tags: fixtures.launchTags.map((tag) => ({ name: tag })),
         },
         {
           headers: {
@@ -200,7 +319,7 @@ describe("testops http client", () => {
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName, []);
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(3);
@@ -266,16 +385,16 @@ describe("testops http client", () => {
         projectId: fixtures.projectId,
         baseUrl: fixtures.endpoint,
       });
+
       const attachmentsResolver = vi.fn().mockImplementation(async (tr) => {
         if (tr.id === fixtures.testResults[0].id) {
           return fixtures.attachments;
         }
-
         return [];
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName, []);
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
@@ -320,16 +439,16 @@ describe("testops http client", () => {
         projectId: fixtures.projectId,
         baseUrl: fixtures.endpoint,
       });
+
       const fixturesResolver = vi.fn().mockImplementation(async (tr) => {
         if (tr.id === fixtures.testResults[0].id) {
           return fixtures.fixtures;
         }
-
         return [];
       });
 
       await client.issueOauthToken();
-      await client.createLaunch(fixtures.launchName, []);
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,

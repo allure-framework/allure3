@@ -138,7 +138,7 @@ export class TestopsUploaderPlugin implements Plugin {
       return;
     }
 
-    await this.#client.stopUpload(status);
+    await this.#client.stopUpload(this.#ci!, status);
   }
 
   async start(_context: PluginContext, store: AllureStore) {

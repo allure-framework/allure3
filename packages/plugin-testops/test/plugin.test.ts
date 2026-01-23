@@ -84,7 +84,13 @@ beforeEach(() => {
 describe("testops plugin", () => {
   describe("constructor", () => {
     it("should call resolvePluginOptions with provided options", () => {
-      (resolvePluginOptions as Mock).mockReturnValue({});
+      (resolvePluginOptions as Mock).mockReturnValue({
+        accessToken: fixtures.accessToken,
+        endpoint: fixtures.endpoint,
+        projectId: fixtures.projectId,
+        launchName: "Allure Report",
+        launchTags: [],
+      });
 
       const options = {
         accessToken: fixtures.accessToken,
