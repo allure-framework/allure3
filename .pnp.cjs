@@ -843,6 +843,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/plugin-testops/",\
         "packageDependencies": [\
           ["@allurereport/plugin-testops", "workspace:packages/plugin-testops"],\
+          ["@allurereport/ci", "workspace:packages/ci"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\

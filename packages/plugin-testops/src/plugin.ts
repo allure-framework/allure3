@@ -1,3 +1,5 @@
+import { detect } from "@allurereport/ci";
+import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
@@ -11,6 +13,7 @@ import type { TestopsUploaderPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 export class TestopsUploaderPlugin implements Plugin {
+  #ci?: CiDescriptor;
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
@@ -18,6 +21,8 @@ export class TestopsUploaderPlugin implements Plugin {
 
   constructor(readonly options: TestopsUploaderPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
+
+    this.#ci = detect();
 
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
@@ -47,11 +52,11 @@ export class TestopsUploaderPlugin implements Plugin {
     }
   }
 
-  async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
-    if (!this.#client) {
-      return;
-    }
+  get ciMode() {
+    return this.#ci && this.#ci.type !== "local";
+  }
 
+  async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
     const { issueNewToken = true } = options ?? {};
     const allTrs = await store.allTestResults();
     const trsToUpload = allTrs.filter((tr) => {
@@ -76,11 +81,11 @@ export class TestopsUploaderPlugin implements Plugin {
     });
 
     if (issueNewToken) {
-      await this.#client.issueOauthToken();
+      await this.#client!.issueOauthToken();
     }
 
-    await this.#client.createSession();
-    await this.#client.uploadTestResults({
+    await this.#client!.createSession();
+    await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
@@ -113,13 +118,35 @@ export class TestopsUploaderPlugin implements Plugin {
     this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
   }
 
-  async start(context: PluginContext, store: AllureStore) {
+  async #startUpload() {
     if (!this.#client) {
       return;
     }
 
     await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
+
+    if (!this.ciMode) {
+      return;
+    }
+
+    await this.#client.startUpload(this.#ci!);
+  }
+
+  async #stopUpload(status: TestStatus) {
+    if (!this.ciMode || !this.#client) {
+      return;
+    }
+
+    await this.#client.stopUpload(status);
+  }
+
+  async start(_context: PluginContext, store: AllureStore) {
+    if (!this.#client) {
+      return;
+    }
+
+    await this.#startUpload();
     await this.#upload(store, { issueNewToken: false });
 
     // eslint-disable-next-line no-console
@@ -127,11 +154,25 @@ export class TestopsUploaderPlugin implements Plugin {
   }
 
   async update(_context: PluginContext, store: AllureStore) {
+    if (!this.#client) {
+      return;
+    }
+
     await this.#upload(store);
   }
 
   async done(_context: PluginContext, store: AllureStore) {
+    if (!this.#client) {
+      return;
+    }
+
+    const allTrs = (await store.allTestResults()).filter((tr) =>
+      this.options.filter ? this.options.filter(tr) : true,
+    );
+    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+
     await this.#upload(store);
+    await this.#stopUpload(worstStatus || "unknown");
   }
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined> {

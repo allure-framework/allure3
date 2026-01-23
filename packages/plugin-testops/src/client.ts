@@ -1,4 +1,4 @@
-import type { TestResult } from "@allurereport/core-api";
+import type { CiDescriptor, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import FormData from "form-data";
@@ -12,6 +12,7 @@ export class TestOpsClient {
   #client: AxiosInstance;
   #launch?: TestOpsLaunch;
   #session?: TestOpsSession;
+  #uploadInProgress: boolean = false;
 
   constructor(params: { baseUrl: string; projectId: string; accessToken: string }) {
     if (!params.accessToken) {
@@ -52,6 +53,61 @@ export class TestOpsClient {
     const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
 
     this.#oauthToken = data.access_token as string;
+  }
+
+  async startUpload(ci: CiDescriptor) {
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    await this.#client.post<any>(
+      "/api/upload/start",
+      {
+        projectId: this.#projectId,
+        ci: {
+          name: ci.type,
+        },
+        job: {
+          name: ci.jobName,
+        },
+        jobRun: {
+          id: ci.jobRunName,
+        },
+        launch: {
+          id: this.#launch.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.#oauthToken}`,
+        },
+      },
+    );
+
+    this.#uploadInProgress = true;
+  }
+
+  async stopUpload(ci: CiDescriptor, status: TestStatus) {
+    if (!this.#uploadInProgress) {
+      throw new Error("Upload isn't started! Call startUpload first");
+    }
+
+    await this.#client.post(
+      "/api/upload/stop",
+      {
+        jobRunUid: ci.jobRunUid,
+        jobUid: ci.jobUid,
+        projectId: this.#projectId,
+        status,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.#oauthToken}`,
+        },
+      },
+    );
+
+    this.#uploadInProgress = false;
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {

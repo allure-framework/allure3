@@ -589,6 +589,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allurereport/plugin-testops@workspace:packages/plugin-testops"
   dependencies:
+    "@allurereport/ci": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
