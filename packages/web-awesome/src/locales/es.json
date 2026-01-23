@@ -374,5 +374,8 @@
     "fixed": "Corregido",
     "regressed": "Regresado",
     "malfunctioned": "Defectuoso"
+  },
+  "trHistory": {
+    "unknown-date": "Fecha desconocida"
   }
 }

@@ -382,5 +382,8 @@
     "fixed": "Naprawione",
     "regressed": "Zaregresowane",
     "malfunctioned": "Uszkodzone"
+  },
+  "trHistory": {
+    "unknown-date": "Nieznana data"
   }
 }

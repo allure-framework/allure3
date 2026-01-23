@@ -382,5 +382,8 @@
     "fixed": "Исправленные",
     "regressed": "Регрессированные",
     "malfunctioned": "Сломанные"
+  },
+  "trHistory": {
+    "unknown-date": "Неизвестная дата"
   }
 }

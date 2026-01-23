@@ -48,3 +48,4 @@ export * from "./components/Charts/DurationDynamicsChartWidget";
 export * from "./components/Timeline";
 export * from "./components/ReportSummaryCard";
 export * from "./components/ThemeProvider";
+export * from "./components/EmptyView";

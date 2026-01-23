@@ -374,5 +374,8 @@
     "fixed": "מתוקן",
     "regressed": "נסוג",
     "malfunctioned": "פגום"
+  },
+  "trHistory": {
+    "unknown-date": "תאריך לא ידוע"
   }
 }

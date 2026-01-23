@@ -374,5 +374,8 @@
     "fixed": "გასწორებული",
     "regressed": "რეგრესია",
     "malfunctioned": "დაზიანებული"
+  },
+  "trHistory": {
+    "unknown-date": "უცნობი თარიღი"
   }
 }

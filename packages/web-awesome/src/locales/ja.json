@@ -374,5 +374,8 @@
     "fixed": "修正済み",
     "regressed": "退行",
     "malfunctioned": "破損"
+  },
+  "trHistory": {
+    "unknown-date": "不明な日付"
   }
 }

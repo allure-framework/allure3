@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ComponentChildren, FunctionalComponent, VNode } from "preact";
+import type { ComponentChildren, FunctionalComponent } from "preact";
 import { SvgIcon, type SvgIconProps } from "../SvgIcon";
 import { Text } from "../Typography";
 import styles from "./styles.scss";
@@ -7,7 +7,6 @@ import styles from "./styles.scss";
 type Size = "s" | "m" | "xs";
 
 type Props = {
-  children?: ComponentChildren;
   title?: ComponentChildren;
   description?: ComponentChildren;
   icon?: string;
@@ -37,9 +36,7 @@ const iconSizes: Record<Size, SvgIconProps["size"]> = {
   xs: "xs",
 } as const;
 
-export const EmptyView: FunctionalComponent<RequireAtLeastOne<Props, "children" | "icon" | "description" | "title">> = (
-  props,
-) => {
+export const EmptyView: FunctionalComponent<Props> = (props) => {
   const {
     children,
     description,

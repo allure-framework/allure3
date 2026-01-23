@@ -374,5 +374,8 @@
     "fixed": "已修复",
     "regressed": "已回归",
     "malfunctioned": "已损坏"
+  },
+  "trHistory": {
+    "unknown-date": "未知日期"
   }
 }

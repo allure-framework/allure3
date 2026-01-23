@@ -325,5 +325,8 @@
     "fixed": "Виправлені",
     "regressed": "Регресовані",
     "malfunctioned": "Зламані"
+  },
+  "trHistory": {
+    "unknown-date": "Невідома дата"
   }
 }

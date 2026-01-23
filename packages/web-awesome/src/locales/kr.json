@@ -374,5 +374,8 @@
     "fixed": "수정됨",
     "regressed": "퇴행",
     "malfunctioned": "고장"
+  },
+  "trHistory": {
+    "unknown-date": "알 수 없는 날짜"
   }
 }
