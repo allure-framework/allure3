@@ -24,6 +24,9 @@ export class TestopsUploaderPlugin implements Plugin {
 
     this.#ci = detect();
 
+    // eslint-disable-next-line no-console
+    console.log("detected", JSON.stringify(this.#ci?.type));
+
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {

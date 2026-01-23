@@ -165,8 +165,8 @@ describe("testops http client", () => {
         {
           projectId: fixtures.projectId,
           ci: { name: fixtures.ci.type },
-          job: { name: fixtures.ci.jobName },
-          jobRun: { id: fixtures.ci.jobRunName },
+          job: { name: fixtures.ci.jobUid },
+          jobRun: { uid: fixtures.ci.jobRunUid },
           launch: { id: fixtures.launch.id },
         },
         {

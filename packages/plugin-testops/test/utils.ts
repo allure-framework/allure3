@@ -12,6 +12,8 @@ TestOpsClientMock.prototype = {
   createSession: vi.fn(),
   uploadTestResults: vi.fn(),
   launchUrl: undefined,
+  startUpload: vi.fn(),
+  stopUpload: vi.fn(),
 };
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
