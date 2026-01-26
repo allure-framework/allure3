@@ -1,9 +1,8 @@
-import type { Direction, SortByField, SortBy as TSortBy } from "@allurereport/web-commons";
-import { setSortBy, sortBy } from "@allurereport/web-commons";
 import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import { useI18n } from "@/stores/locale";
+import { type SortByField, type SortByDirection, type SortBy as TSortBy, setSortBy, sortBy } from "@/stores/treeSort";
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {
@@ -15,7 +14,7 @@ const setSortByField = (value: SortByField) => {
   setSortBy(`${value},${direction}` as TSortBy);
 };
 
-const setDirection = (value: Direction) => {
+const setDirection = (value: SortByDirection) => {
   setSortBy(`${sortBy.peek().split(",")[0]},${value}` as TSortBy);
 };
 
@@ -24,7 +23,7 @@ export const SortBy = () => {
   const { t: sortByValuesLocale } = useI18n("sort-by.values");
   const { t: sortByDirectionsLocale } = useI18n("sort-by.directions");
   const sortByValue = sortBy.value.split(",")[0] as SortByField;
-  const direction = sortBy.value.split(",")[1] as Direction;
+  const direction = sortBy.value.split(",")[1] as SortByDirection;
 
   const displayedSortByValue = sortByValuesLocale(sortByValue === "name" ? "alphabet" : sortByValue);
   const displayedDirection = sortByDirectionsLocale(

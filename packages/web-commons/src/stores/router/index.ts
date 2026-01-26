@@ -1,5 +1,6 @@
 import { computed } from "@preact/signals-core";
 import { currentUrl, goTo } from "../url/index.js";
+import { paramsToSearchParams } from "../url/helpers.js";
 
 export const router = computed(() => {
   const hash = currentUrl.value.hash.startsWith("#") ? currentUrl.value.hash.slice(1) : currentUrl.value.hash;
@@ -7,8 +8,7 @@ export const router = computed(() => {
   return {
     path: hash,
     pathParts: hash.split("/").filter(Boolean),
-    searchParams: new URLSearchParams(currentUrl.value.search),
-  };
+  } as const;
 });
 
 type NavigateTo = {
@@ -55,9 +55,7 @@ export const navigateTo = (to: NavigateTo) => {
   newUrl.hash = routeUrl === "" || routeUrl === "/" ? "" : `#${routeUrl}`;
 
   if (keepSearchParams) {
-    currentUrl.value.searchParams.forEach((value, key) => {
-      newUrl.searchParams.set(key, value);
-    });
+    paramsToSearchParams(currentUrl.value.params, newUrl.searchParams);
   }
 
   Object.entries(searchParams).forEach(([key, value]) => {
@@ -86,6 +84,10 @@ export const createRoute = <Params extends Record<string, string | undefined>>(
   path: string,
   validate: (route: Route<Params>) => boolean = () => true,
 ): Route<Params> => {
+  if (path === "/" && router.value.pathParts.length === 0) {
+    return { matches: true, params: {} as Params };
+  }
+
   const routeParts = path.split("/").filter(Boolean);
   const currentParts = router.value.pathParts;
   const params: Params = {} as Params;

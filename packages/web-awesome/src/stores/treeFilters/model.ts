@@ -1,14 +1,31 @@
-import type { BooleanField, Field, FieldFilter, FieldFilterGroup, ArrayField, StringField } from "@allurereport/web-commons";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import type {
+  ArrayField,
+  BooleanField,
+  Field,
+  FieldFilter,
+  FieldFilterGroup,
+  StringField,
+} from "@allurereport/web-commons";
 import type { AwesomeTreeLeaf } from "types";
+
+export type Filters = {
+  query?: string;
+  status?: TestStatus;
+  flaky?: boolean;
+  retry?: boolean;
+  transition?: TestStatusTransition[];
+  tags?: string[];
+};
 
 export type AwesomeFieldFilter = FieldFilter<keyof AwesomeTreeLeaf>;
 
 export type AwesomeFieldFilterGroup = FieldFilterGroup<keyof AwesomeTreeLeaf> & {
-    fieldKey?: keyof AwesomeTreeLeaf;
+  fieldKey?: keyof AwesomeTreeLeaf;
 };
 
 export type AwesomeFilterGroupSimple = AwesomeFieldFilterGroup & {
-    value: AwesomeFieldFilter[];
+  value: AwesomeFieldFilter[];
 };
 
 export type AwesomeFilter = AwesomeFieldFilter | AwesomeFilterGroupSimple;
@@ -27,4 +44,8 @@ export type AwesomeArrayFieldFilter = AwesomeFieldFilter & {
 
 export type AwesomeBooleanFieldFilter = AwesomeFieldFilter & {
   value: AwesomeBooleanField;
+};
+
+export type TreeFiltersData = {
+  tags: string[];
 };

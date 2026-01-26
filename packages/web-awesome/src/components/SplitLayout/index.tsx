@@ -40,8 +40,6 @@ export const SplitLayout = () => {
     <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
   );
 
-  console.log(isTestResultRoute.value);
-
   const TrView = () => {
     return isTestResultRoute.value ? (
       <Loadable

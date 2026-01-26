@@ -12,7 +12,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["./test/**/*.test.ts", "./src/**/*.test.ts"],
+    include: ["./test/**/*.test.ts"],
     setupFiles: [require.resolve("allure-vitest/setup")],
     reporters: ["default", ["allure-vitest/reporter", { resultsDir: "./out/allure-results" }]],
   },

@@ -1,14 +1,14 @@
 import { SearchBox } from "@allurereport/web-components";
 import { useI18n } from "@/stores/locale";
-import { queryAwesomeFilterValue, setQueryAwesomeFilter } from "@/stores/reportFilters/store";
+import { treeQueryFilterValue, setTreeQueryFilter } from "@/stores/treeFilters/store";
 
 const handleQuerySearch = (value: string) => {
   if (!value) {
-    setQueryAwesomeFilter(undefined);
+    setTreeQueryFilter(undefined);
     return;
   }
 
-  setQueryAwesomeFilter(value);
+  setTreeQueryFilter(value);
 };
 
 const QuerySearch = () => {
@@ -17,7 +17,7 @@ const QuerySearch = () => {
   return (
     <SearchBox
       placeholder={t("search-placeholder")}
-      value={queryAwesomeFilterValue.value}
+      value={treeQueryFilterValue.value}
       onChange={handleQuerySearch}
       changeDebounce={150}
     />

@@ -92,7 +92,7 @@
     cursor: not-allowed;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(var(--allure-btn-pressed-scale));
   }
 

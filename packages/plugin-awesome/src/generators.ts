@@ -340,7 +340,7 @@ const leafFactory = ({
   transition,
   tooltips,
   historyId,
-  groupedLabels
+  groupedLabels,
 }: AwesomeTestResult): AwesomeTreeLeaf => {
   const leaf: AwesomeTreeLeaf = {
     nodeId: id,
@@ -610,4 +610,30 @@ export const generateAllCharts = async (
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);
   }
+};
+
+export const generateTreeFilters = async (writer: AwesomeDataWriter, store: AllureStore) => {
+  const trTags = new Set<string>();
+  const trs = await store.allTestResults({ includeHidden: false });
+
+  for (const tr of trs) {
+    if (tr.labels.length === 0) {
+      continue;
+    }
+
+    tr.labels.forEach((label) => {
+      if (label.name === "tag" && !!label.value) {
+        trTags.add(label.value);
+      }
+    });
+  }
+
+  // No need to generate a json file if it will be empty
+  if (trTags.size === 0) {
+    return Promise.resolve();
+  }
+
+  const tags = Array.from(trTags).sort((a, b) => a.localeCompare(b));
+
+  await writer.writeWidget("tree-filters.json", { tags });
 };

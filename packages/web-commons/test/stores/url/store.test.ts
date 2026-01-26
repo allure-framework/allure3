@@ -1,7 +1,7 @@
 import { label } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import * as helpers from "./helpers.js";
-import { getParamValue, getParamValues, hasParam } from "./store.js";
+import * as helpers from "../../../src/stores/url/helpers.js";
+import { getParamValue, getParamValues, hasParam } from "../../../src/stores/url/store.js";
 
 describe("stores > url > store", () => {
   beforeEach(async () => {

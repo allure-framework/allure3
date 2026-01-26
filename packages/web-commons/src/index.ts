@@ -4,8 +4,6 @@ export * from "./i18n.js";
 export * from "./charts/index.js";
 export * from "./strings.js";
 export * from "./sanitize.js";
-export * from "./stores/filters/index.js";
 export * from "./stores/url/index.js";
-export * from "./stores/storage/index.js";
 export * from "./stores/router/index.js";
 export * from "./filters/index.js";

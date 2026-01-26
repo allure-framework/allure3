@@ -2,7 +2,7 @@ import { Text } from "@allurereport/web-components";
 import { useComputed } from "@preact/signals";
 import { type ComponentChildren } from "preact";
 import { useCallback } from "preact/hooks";
-import { setTreeAwesomeStatus, treeAwesomeStatus } from "@/stores/reportFilters/store";
+import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
 import type { AwesomeStatus } from "../../../types.js";
 import * as styles from "./styles.scss";
 
@@ -12,14 +12,14 @@ export const ReportTabsList = (props: { children: ComponentChildren }) => {
 
 export const ReportTab = (props: { id: AwesomeStatus; children: ComponentChildren }) => {
   const { id, children, ...rest } = props;
-  const isCurrentTab = useComputed(() => treeAwesomeStatus.value === id);
+  const isCurrentTab = useComputed(() => treeStatus.value === id);
 
   const handleCurrentTabClick = useCallback(() => {
-    setTreeAwesomeStatus("total");
+    setTreeStatus("total");
   }, []);
 
   const handleTabClick = useCallback(() => {
-    setTreeAwesomeStatus(id);
+    setTreeStatus(id);
   }, [id]);
 
   return (

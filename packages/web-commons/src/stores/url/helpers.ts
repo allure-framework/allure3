@@ -63,3 +63,35 @@ export const getCurrentUrl = () => {
 
   return window.location.href;
 };
+
+export const paramsToSearchParams = (params: Record<string, string | string[]>, searchParams: URLSearchParams = new URLSearchParams()) => {
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        searchParams.append(key, v);
+      }
+    } else {
+      searchParams.set(key, value);
+    }
+  });
+
+  return searchParams;
+};
+
+export const searchParamsToParams = (searchParams: URLSearchParams) => {
+  const params: Record<string, string | string[]> = {};
+
+  searchParams.forEach((value, key) => {
+    if (key in params) {
+      if (Array.isArray(params[key])) {
+        params[key].push(value);
+      } else {
+        params[key] = [params[key], value];
+      }
+    } else {
+      params[key] = value;
+    }
+  });
+
+  return params;
+};

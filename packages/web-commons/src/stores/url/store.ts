@@ -1,5 +1,5 @@
 import { computed, signal } from "@preact/signals-core";
-import { getCurrentUrl, goTo, subscribeToUrlChange } from "./helpers.js";
+import { getCurrentUrl, goTo, searchParamsToParams, subscribeToUrlChange } from "./helpers.js";
 
 const currentUrlSignal = signal<string>(getCurrentUrl());
 
@@ -12,7 +12,7 @@ subscribeToUrlChange(() => {
 });
 
 const urlSignal = computed(() => new URL(currentUrlSignal.value));
-const urlParamsSignal = computed(() => urlSignal.value.searchParams);
+export const urlSearchParams = computed(() => urlSignal.value.searchParams);
 
 export type Param = {
   /**
@@ -54,37 +54,15 @@ export const setParams = (...params: Param[]) => {
 export const currentUrl = computed(() => {
   return {
     hash: urlSignal.value.hash,
-    host: urlSignal.value.host,
-    hostname: urlSignal.value.hostname,
-    href: urlSignal.value.href,
-    origin: urlSignal.value.origin,
     pathname: urlSignal.value.pathname,
-    port: urlSignal.value.port,
-    protocol: urlSignal.value.protocol,
-    search: urlSignal.value.search,
-    searchParams: new URLSearchParams(urlSignal.value.searchParams),
-    params: Array.from(urlSignal.value.searchParams.entries()).reduce(
-      (acc, [key, value]) => {
-        if (key in acc) {
-          if (Array.isArray(acc[key])) {
-            acc[key].push(value);
-          } else {
-            acc[key] = [acc[key], value];
-          }
-        } else {
-          acc[key] = value;
-        }
-
-        return acc;
-      },
-      {} as Record<string, string | string[]>,
-    ),
+    origin: urlSignal.value.origin,
+    params: searchParamsToParams(urlSearchParams.value),
   } as const;
 });
 
-export const getParamValue = (key: string) => urlParamsSignal.value.get(key);
-export const getParamValues = (key: string) => urlParamsSignal.value.getAll(key);
-export const hasParam = (key: string) => urlParamsSignal.value.has(key);
+export const getParamValue = (key: string) => urlSearchParams.value.get(key);
+export const getParamValues = (key: string) => urlSearchParams.value.getAll(key);
+export const hasParam = (key: string) => urlSearchParams.value.has(key);
 
 export const getParamValueComputed = (key: string) => computed(() => getParamValue(key));
 export const getParamValuesComputed = (key: string) => computed(() => getParamValues(key));

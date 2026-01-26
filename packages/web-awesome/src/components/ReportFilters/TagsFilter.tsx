@@ -1,11 +1,11 @@
 import { computed } from "@preact/signals";
 import { useI18n } from "@/stores";
-import { allTreeTags } from "@/stores/tree";
-import type { AwesomeArrayFieldFilter } from "../../stores/reportFilters/model";
+import { treeTags } from "@/stores/treeFilters/store";
+import type { AwesomeArrayFieldFilter } from "../../stores/treeFilters/model";
 import { ArrayFieldFilter } from "./BaseFilters";
 
 const options = computed(() => {
-  return allTreeTags.value.map((tag) => ({ key: tag, label: tag }));
+  return treeTags.value.map((tag) => ({ key: tag, label: tag }));
 });
 
 export const TagsFilter = (props: {
@@ -14,6 +14,10 @@ export const TagsFilter = (props: {
 }) => {
   const { filter, onChange } = props;
   const { t } = useI18n("filters");
+
+  if (options.value.length === 0) {
+    return null;
+  }
 
   return (
     <ArrayFieldFilter

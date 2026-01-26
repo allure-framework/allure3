@@ -77,7 +77,7 @@ export const SearchBox = (props: Props) => {
         </div>
       )}
       {showClear && (
-        <div className={styles.clearButton} onClick={stopPropagation}>
+        <div className={styles.clearButton}>
           {<IconButton size="s" icon={closeIcon.id} onClick={handleClear} style="ghost" data-testid="clear-button" />}
         </div>
       )}

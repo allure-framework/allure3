@@ -1,7 +1,7 @@
 import { allureIcons } from "@allurereport/web-components";
 import { useMemo } from "preact/hooks";
 import { useI18n } from "@/stores";
-import type { AwesomeFilterGroupSimple } from "../../stores/reportFilters/model";
+import type { AwesomeFilterGroupSimple } from "../../stores/treeFilters/model";
 import { MultipleChoiceFieldFilter } from "./BaseFilters";
 
 const transitionOptions = [

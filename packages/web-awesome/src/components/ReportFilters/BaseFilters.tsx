@@ -34,8 +34,22 @@ const FilterBtn = (props: {
   error?: string;
   testId?: string;
   description?: string;
+  disabled?: boolean;
 }) => {
-  const { icon, text, isActive, counter, onClick, onClear, isDropdown, isExpanded, error, testId, description } = props;
+  const {
+    icon,
+    text,
+    isActive,
+    counter,
+    onClick,
+    onClear,
+    isDropdown,
+    isExpanded,
+    error,
+    testId,
+    description,
+    disabled,
+  } = props;
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +83,7 @@ const FilterBtn = (props: {
     action: hasError ? "danger" : "default",
     onClick,
     trailingSlot: counter !== undefined ? <Counter count={counter} size="s" truncateCount /> : null,
+    isDisabled: disabled,
   } as const;
 
   const clearButton =
@@ -147,6 +162,7 @@ export const MultipleChoiceFieldFilter = (props: {
   icon?: string;
   label?: string;
   testId?: string;
+  disabled?: boolean;
 }) => {
   const {
     group,
@@ -160,6 +176,7 @@ export const MultipleChoiceFieldFilter = (props: {
     counter = true,
     onClear,
     testId,
+    disabled,
   } = props;
   const { value } = group;
 
@@ -196,6 +213,19 @@ export const MultipleChoiceFieldFilter = (props: {
 
   const checkedValuesCount = options.map(({ key }) => key).filter(isOptionChecked).length;
   const hasCheckedValues = checkedValuesCount > 0;
+
+  if (disabled) {
+    return (
+      <FilterBtn
+        icon={icon}
+        text={label ?? fieldKey}
+        isActive={hasCheckedValues}
+        onClick={() => {}}
+        disabled
+        testId={testId}
+      />
+    );
+  }
 
   return (
     <Menu
@@ -249,8 +279,9 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
   icon?: string;
   label?: string;
   description?: string;
+  disabled?: boolean;
 }) => {
-  const { filter, onChange, icon, label, options, counter = true, onClear, description } = props;
+  const { filter, onChange, icon, label, options, counter = true, onClear, description, disabled } = props;
   const { value, key } = filter.value;
   const { t } = useI18n("filters");
 
@@ -292,6 +323,7 @@ export const ArrayFieldFilter = <T extends ArrayField = ArrayField>(props: {
           isDropdown
           error={hasError ? errorText : undefined}
           description={description}
+          disabled={disabled}
         />
       )}
     >

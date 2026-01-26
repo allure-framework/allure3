@@ -56,12 +56,18 @@ export const reportDataUrl = async (
   return url.toString();
 };
 
+export class ReportFetchError extends Error {
+  constructor(message: string, public readonly response: Response) {
+    super(message);
+  }
+}
+
 export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
   const url = await reportDataUrl(path, undefined, params);
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}, response status: ${res.status}`);
+    throw new ReportFetchError(`Failed to fetch ${url}, response status: ${res.status}`, res);
   }
 
   const data = res.json();

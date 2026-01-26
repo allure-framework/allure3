@@ -1,8 +1,8 @@
 /* eslint-disable max-lines */
 import { label } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
-import { buildFieldFilters, buildFilterPredicate } from "./builders.js";
-import type { Filter } from "./model.js";
+import { buildFieldFilters, buildFilterPredicate } from "../../src/filters/builders.js";
+import type { Filter } from "../../src/filters/model.js";
 
 describe("filters > builders", () => {
   beforeEach(async () => {

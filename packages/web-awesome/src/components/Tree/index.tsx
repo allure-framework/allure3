@@ -4,7 +4,7 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { clearAwesomeFilters, treeAwesomeStatus } from "@/stores/reportFilters/store";
+import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
@@ -21,7 +21,7 @@ export const TreeList = () => {
   const { t: tooltip } = useI18n("transitions");
   const trId = currentTrId.value;
 
-  const currentTreeStatus = treeAwesomeStatus.value;
+  const currentTreeStatus = treeStatus.value;
 
   const localizers = useMemo(
     () => ({
@@ -59,7 +59,7 @@ export const TreeList = () => {
                   text={t("clear-filters")}
                   size={"s"}
                   style={"outline"}
-                  onClick={() => clearAwesomeFilters()}
+                  onClick={() => clearTreeFilters()}
                 />
               </div>
             </div>

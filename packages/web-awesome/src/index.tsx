@@ -1,4 +1,4 @@
-import { ensureReportDataReady, migrateFilterParam } from "@allurereport/web-commons";
+import { ensureReportDataReady } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
 import { computed, useSignalEffect } from "@preact/signals";
@@ -23,6 +23,8 @@ import { fetchQualityGateResults } from "./stores/qualityGate";
 import { testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
+import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
+import { migrateFilterParam } from "./stores/treeFilters/utils";
 import * as styles from "./styles.scss";
 
 const Loader = () => {
@@ -80,6 +82,10 @@ const App = () => {
       fetchTestResultNav(currentEnvironment.value);
     }
   });
+
+  useEffect(() => {
+    fetchTreeFiltersData();
+  }, []);
 
   return (
     <>

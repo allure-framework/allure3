@@ -1,7 +1,6 @@
 import {
   buildFilterPredicate,
   fetchReportJsonData,
-  sortBy,
 } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
@@ -9,7 +8,8 @@ import type { AwesomeTree, AwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
-import { awesomeFilters } from "./reportFilters/store";
+import { treeFilters } from "./treeFilters/store";
+import { sortBy } from "./treeSort";
 
 export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
   loading: true,
@@ -86,11 +86,11 @@ const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeSt
 const alwaysTruePredicate = () => true;
 
 const filterPredicate = computed(() => {
-  if (awesomeFilters.value.length === 0) {
+  if (treeFilters.value.length === 0) {
     return alwaysTruePredicate;
   }
 
-  return buildFilterPredicate(awesomeFilters.value);
+  return buildFilterPredicate(treeFilters.value);
 });
 
 export const filteredTree = computed(() => {
@@ -121,22 +121,3 @@ export const filteredTree = computed(() => {
 export const noTestsFound = computed(
   () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
 );
-
-
-export const allTreeTags = computed(() => {
-  const entries = treeStore.value.data ? Object.values(treeStore.value.data) : [];
-  if (!entries) {
-    return [];
-  }
-
-  const tags = new Set<string>();
-  const leaves = entries.map((tree) => Object.values(tree.leavesById ?? {})).flat();
-
-  for (const leaf of leaves) {
-    if (!leaf.tags) {
-      continue;
-    }
-    leaf.tags.forEach((tag) => tags.add(tag));
-  }
-  return Array.from(tags);
-});
