@@ -13,8 +13,6 @@ type Props = {
   historyTr: HistoryTestResult;
 };
 
-const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
-
 const getDate = (historyTr: HistoryTestResult) => {
   const { stop, duration, start } = historyTr;
 
@@ -41,6 +39,7 @@ const HistoryDate = (props: { date: string | undefined }) => {
 };
 
 export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
+  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
   const { historyTr } = props;
   const { status, error, duration, id, url } = historyTr;
   const [isOpened, setIsOpen] = useState(false);
