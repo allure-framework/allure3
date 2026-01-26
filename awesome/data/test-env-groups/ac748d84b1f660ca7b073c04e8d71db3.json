@@ -1,0 +1,1 @@
+{"id":"ac748d84b1f660ca7b073c04e8d71db3","fullName":"test/plugin.test.ts#testops plugin done should not call createLaunch on done","name":"should not call createLaunch on done","status":"passed","testResultsByEnv":{"windows-latest":"04eb7344bfaa911a2342c641951ed6b6","ubuntu-latest":"3c856c5935ea3cbe1ff0178ca1f6532f","macos-latest":"52d249b4b5b9c9725156067baec6495c"}}

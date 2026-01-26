@@ -1,1 +1,1 @@
-{"id":"1a52aabb72d80552952b92d7e532a8e8","fullName":"test/properties.test.ts#envInfo should parse","name":"should parse","status":"passed","testResultsByEnv":{"ubuntu-latest":"7a33331c24f32aa5e9dd481d1f90b76e","macos-latest":"d132665b595da7c2fc56460c8c44e45e"}}
+{"id":"1a52aabb72d80552952b92d7e532a8e8","fullName":"test/properties.test.ts#envInfo should parse","name":"should parse","status":"passed","testResultsByEnv":{"windows-latest":"6177c3e3ad2ceef52794309d9d20d3ed","ubuntu-latest":"e5bffd0a9bd342163aeec6f12ea1e1a0","macos-latest":"63a2df96e24e75624d73c14b02e4cafe"}}

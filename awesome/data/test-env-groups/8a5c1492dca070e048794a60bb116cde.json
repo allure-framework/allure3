@@ -1,0 +1,1 @@
+{"id":"8a5c1492dca070e048794a60bb116cde","fullName":"test/plugin.test.ts#testops plugin update should upload test results","name":"should upload test results","status":"passed","testResultsByEnv":{"windows-latest":"1f02028a75037d06126381e6a83b81d3","ubuntu-latest":"ee6df812d1a1a1b6a96c451c4fff312a","macos-latest":"1f00d9b5d74297a073a59ea9bd072465"}}

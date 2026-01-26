@@ -1,0 +1,1 @@
+{"id":"140f53527202a58dc6192d24bceb3fe5","fullName":"test/plugin.test.ts#testops plugin update should not call createLaunch on update","name":"should not call createLaunch on update","status":"passed","testResultsByEnv":{"windows-latest":"dd415c707833530ec7382f38ce6387f0","ubuntu-latest":"8f010a0d527a7c46f343b56c6d33cc8d","macos-latest":"0ce824684e6f0b8f8dec9e465a8087a5"}}

@@ -1,1 +1,1 @@
-{"id":"ac9f18c756dff32098ec1ffd19b084ce","fullName":"live.test.ts:54:1","name":"reloads the page when a file changes","status":"passed","testResultsByEnv":{"ubuntu-latest":"05db114b89767094e1e34f0a583daedd","macos-latest":"f707a023a5a7715f7d8252500b7fddb8"}}
+{"id":"ac9f18c756dff32098ec1ffd19b084ce","fullName":"live.test.ts:54:1","name":"reloads the page when a file changes","status":"passed","testResultsByEnv":{"windows-latest":"1ecf2027e6cf952ab08c53c8849de639","ubuntu-latest":"be2d430c1ee10eed015c7cf39d1ed23d","macos-latest":"4988c7cb2b0f5adc0023695b722fe850"}}
