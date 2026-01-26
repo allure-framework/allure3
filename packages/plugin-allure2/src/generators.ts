@@ -36,6 +36,9 @@ const template = `<!DOCTYPE html>
     <meta charset="utf-8">
     <title>{{reportName}}</title>
     {{{ headTags }}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}};
+    </script>
 </head>
 <body>
     <svg id="__SVG_SPRITE_NODE__" aria-hidden="true" style="position: absolute; width: 0; height: 0"></svg>
@@ -62,9 +65,6 @@ const template = `<!DOCTYPE html>
         });
     </script>
     {{/if}}
-    <script>
-      window.allureReportOptions = {{{ reportOptions }}};
-    </script>
     {{{ reportFilesScript }}}
 </body>
 </html>
@@ -193,7 +193,6 @@ export const generateStaticFiles = async (payload: {
       // eslint-disable-next-line no-console
       console.error("The report is too large to be generated in the single file mode!");
       process.exit(1);
-      return;
     }
 
     throw err;
