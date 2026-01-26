@@ -33,7 +33,7 @@ describe("theme store", () => {
 
     mockMatchMedia = getMockMatchMedia();
 
-    vi.spyOn(dataModule, "getReportOptions").mockReturnValue(undefined);
+    vi.spyOn(dataModule, "getReportOptions").mockReturnValue({});
 
     mockGetPrefersColorSchemeMQ = getMockGetPrefersColorSchemeMQ();
 
