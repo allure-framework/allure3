@@ -26,11 +26,11 @@ export default defineConfig({
           },
           categories: [
             {
-              name: "kek",
+              name: "Failed tests",
               matchedStatuses: [Status.FAILED],
             },
             {
-              name: "kek-lol",
+              name: "Passed",
               matchedStatuses: [Status.PASSED],
             },
           ],
