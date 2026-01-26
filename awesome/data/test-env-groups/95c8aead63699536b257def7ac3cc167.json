@@ -1,1 +1,1 @@
-{"id":"95c8aead63699536b257def7ac3cc167","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse two unnamed test attachments","name":"should parse two unnamed test attachments","status":"passed","testResultsByEnv":{"macos-latest":"9819facf94dc9534048e001ac7f1fe8f"}}
+{"id":"95c8aead63699536b257def7ac3cc167","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse two unnamed test attachments","name":"should parse two unnamed test attachments","status":"passed","testResultsByEnv":{"macos-latest":"534b660df11e680d01848e8ae188a55a"}}
