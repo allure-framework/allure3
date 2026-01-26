@@ -69,6 +69,7 @@ export class TestOpsClient {
         },
         job: {
           name: ci.jobUid,
+          uid: ci.jobUid,
         },
         jobRun: {
           uid: ci.jobRunUid,
