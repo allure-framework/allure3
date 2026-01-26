@@ -8,12 +8,12 @@ export interface ThemeButtonProps {
   toggleTheme: () => void;
 }
 
-export const ThemeButton = ({ theme, toggleTheme }: ThemeButtonProps) => {
-  const icons: Record<Theme, string> = {
-    light: allureIcons.lineShapesSun,
-    dark: allureIcons.lineShapesMoon,
-    auto: allureIcons.lineShapesThemeAuto,
-  };
-
-  return <IconButton onClick={toggleTheme} style="ghost" icon={icons[theme]} size="s" />;
+const icons: Record<Theme, string> = {
+  light: allureIcons.lineShapesSun,
+  dark: allureIcons.lineShapesMoon,
+  auto: allureIcons.lineShapesThemeAuto,
 };
+
+export const ThemeButton = ({ theme, toggleTheme }: ThemeButtonProps) => (
+  <IconButton onClick={toggleTheme} style="ghost" icon={icons[theme]} size="s" />
+);
