@@ -29,6 +29,10 @@
 
 .test-result-history-item-text {
   padding-top: 2px;
+
+  &[data-unknown] {
+    color: var(--on-text-hint);
+  }
 }
 
 .test-result-history-item-info {
@@ -54,11 +58,4 @@
 
 .test-result-history-item-status {
   padding-top: 4px;
-}
-
-.test-result-empty {
-  display: flex;
-  padding: 48px 0;
-  width: 100%;
-  justify-content: center;
 }

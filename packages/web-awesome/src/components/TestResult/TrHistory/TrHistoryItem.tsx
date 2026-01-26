@@ -9,15 +9,46 @@ import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
 
-export const TrHistoryItem: FunctionalComponent<{
-  testResultItem: HistoryTestResult;
-}> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
-  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
-  const { status, error, stop, duration, id, url } = testResultItem;
+type Props = {
+  historyTr: HistoryTestResult;
+};
+
+const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
+
+const getDate = (historyTr: HistoryTestResult) => {
+  const { stop, duration, start } = historyTr;
+
+  if (stop) {
+    return timestampToDate(stop);
+  }
+
+  if (start && duration) {
+    return timestampToDate(start + duration);
+  }
+
+  return undefined;
+};
+
+const HistoryDate = (props: { date: string | undefined }) => {
+  const { t } = useI18n("trHistory");
+  const { date } = props;
+
+  return (
+    <Text data-unknown={!date || undefined} className={styles["test-result-history-item-text"]}>
+      {date ?? t("unknown-date")}
+    </Text>
+  );
+};
+
+export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
+  const { historyTr } = props;
+  const { status, error, duration, id, url } = historyTr;
   const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = stop ? timestampToDate(stop) : undefined;
+  const historyDate = getDate(historyTr);
   const formattedDuration = duration ? formatDuration(duration) : undefined;
+
   const { t } = useI18n("controls");
+
   const navigateUrl = useMemo(() => {
     if (!url) {
       return undefined;
@@ -29,7 +60,8 @@ export const TrHistoryItem: FunctionalComponent<{
     navUrl.hash = id;
 
     return navUrl.toString();
-  }, [reportOptions, id, url]);
+  }, [id, url]);
+
   const renderExternalLink = () => {
     if (!navigateUrl) {
       return null;
@@ -55,7 +87,7 @@ export const TrHistoryItem: FunctionalComponent<{
     return (
       <>
         <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-        {convertedStop && <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>}
+        <HistoryDate date={historyDate} />
         <div className={styles["test-result-history-item-info"]}>
           {formattedDuration && (
             <Text type="ui" size={"s"} className={styles["item-time"]}>

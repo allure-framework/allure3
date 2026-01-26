@@ -374,5 +374,8 @@
     "fixed": "fixed",
     "regressed": "regressed",
     "malfunctioned": "malfunctioned"
+  },
+  "trHistory": {
+    "unknown-date": "Unknown date"
   }
 }

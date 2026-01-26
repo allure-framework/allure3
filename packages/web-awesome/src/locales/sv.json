@@ -374,5 +374,8 @@
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
     "malfunctioned": "Felaktig"
+  },
+  "trHistory": {
+    "unknown-date": "Okänt datum"
   }
 }

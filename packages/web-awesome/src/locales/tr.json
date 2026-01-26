@@ -374,5 +374,8 @@
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
     "malfunctioned": "Bozuk"
+  },
+  "trHistory": {
+    "unknown-date": "Bilinmeyen tarih"
   }
 }

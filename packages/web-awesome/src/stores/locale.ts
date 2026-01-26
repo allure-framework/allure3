@@ -28,6 +28,7 @@ const namespaces = [
   "sections",
   "timeline",
   "transitions",
+  "trHistory",
 ] as const;
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);

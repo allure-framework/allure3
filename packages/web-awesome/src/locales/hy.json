@@ -374,5 +374,8 @@
     "fixed": "Ուղղված",
     "regressed": "Ռեգրեսիա",
     "malfunctioned": "Կոտրված"
+  },
+  "trHistory": {
+    "unknown-date": "Անհայտ ամսաթիվ"
   }
 }

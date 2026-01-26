@@ -374,5 +374,8 @@
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect"
+  },
+  "trHistory": {
+    "unknown-date": "Onbekende datum"
   }
 }
