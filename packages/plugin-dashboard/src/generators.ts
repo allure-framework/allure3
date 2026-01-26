@@ -26,6 +26,9 @@ const template = `<!DOCTYPE html>
     <title> {{ reportName }} </title>
     <link rel="icon" href="favicon.ico">
     {{{ headTags }}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
 </head>
 <body>
     <div id="app"></div>
@@ -48,9 +51,6 @@ const template = `<!DOCTYPE html>
         });
     </script>
     {{/if}}
-    <script>
-      window.allureReportOptions = {{{ reportOptions }}}
-    </script>
     {{{ reportFilesScript }}}
 </body>
 </html>

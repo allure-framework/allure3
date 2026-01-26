@@ -103,7 +103,7 @@ test.describe("history", () => {
             url: fixtures.url,
             testResults: {
               [historyId]: {
-                ...fixtures.history[0].testResults[0],
+                ...fixtures.history[0].testResults[historyId],
                 url: fixtures.url,
               },
             },
@@ -113,11 +113,9 @@ test.describe("history", () => {
       });
     });
 
-    test("should show history for the test result", async ({ page }) => {
+    test("should show history for the test result", async () => {
       await treePage.clickNthLeaf(0);
       await testResultPage.historyTabLocator.click();
-
-      await page.pause();
 
       await expect(testResultPage.historyItemLocator).toHaveCount(1);
       await expect(testResultPage.prevStatusLocator).toHaveCount(1);

@@ -43,7 +43,7 @@ export const reportDataUrl = async (
   const baseEl = globalThis.document.head.querySelector("base")?.href ?? "https://localhost";
   const url = new URL(path, baseEl);
   const liveReloadHash = globalThis.localStorage.getItem(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);
-  const cacheKey = globalThis.allureReportOptions?.cacheKey;
+  const cacheKey = getReportOptions<{ cacheKey?: string }>()?.cacheKey;
 
   if (liveReloadHash) {
     url.searchParams.set("live_reload_hash", liveReloadHash);
@@ -76,5 +76,5 @@ export const fetchReportAttachment = async (path: string, contentType?: string) 
 };
 
 export const getReportOptions = <T>() => {
-  return globalThis.allureReportOptions as T;
+  return globalThis.allureReportOptions as Readonly<T>;
 };
