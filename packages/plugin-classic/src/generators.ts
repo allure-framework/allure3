@@ -324,6 +324,9 @@ export const generateStaticFiles = async (
     createdAt: now,
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
+    // UI is served from `<report>/<pluginId>/`, while shared store assets are placed at report root
+    // (e.g. `<report>/data/attachments/*`).
+    storeBaseUrl: "../",
     allureVersion,
     cacheKey: now.toString(),
   };

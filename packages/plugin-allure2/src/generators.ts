@@ -171,6 +171,9 @@ export const generateStaticFiles = async (payload: {
     reportName: reportName ?? "Allure Report",
     reportLanguage: reportLanguage ?? "en",
     createdAt: Date.now(),
+    // UI is served from `<report>/<pluginId>/`, while shared store assets are placed at report root
+    // (e.g. `<report>/data/attachments/*`).
+    storeBaseUrl: "../",
   };
 
   try {

@@ -36,6 +36,13 @@ export interface PluginContext {
   reportUuid: string;
   reportName: string;
   reportFiles: ReportFiles;
+  /**
+   * Root-level (non-namespaced) report files.
+   *
+   * Use this for shared artifacts that must be generated once for the whole report
+   * (e.g. shared `data/attachments/*`) to avoid duplicating large files per plugin.
+   */
+  reportStoreFiles: ReportFiles;
   reportUrl?: string;
   output: string;
   ci?: CiDescriptor;

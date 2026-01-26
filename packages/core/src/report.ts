@@ -63,6 +63,7 @@ export class AllureReport {
 
   #stageTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
+  #storeFiles: Record<string, string> = {};
   #executionStage: "init" | "running" | "done" = "init";
 
   readonly reportUuid: string;
@@ -574,6 +575,33 @@ export class AllureReport {
       await context.reportFiles.addFile("summary.json", Buffer.from(JSON.stringify(summary)));
     });
 
+    // publish shared store files (non-namespaced) once per report
+    if (this.#allureServiceClient && this.#publish) {
+      const storeFilesEntries = Object.entries(this.#storeFiles);
+      const progressBar =
+        storeFilesEntries?.length > 0
+          ? new ProgressBar(`Publishing shared report store [:bar] :current/:total`, {
+              total: storeFilesEntries.length,
+              width: 20,
+            })
+          : undefined;
+      const limitFn = pLimit(50);
+      const fns = storeFilesEntries.map(([filename, filepath]) =>
+        limitFn(async () => {
+          // shared store files are global assets (not tied to a particular plugin)
+          await this.#allureServiceClient!.addReportAsset({
+            filename,
+            filepath,
+          });
+
+          progressBar?.tick?.();
+        }),
+      );
+
+      progressBar?.render?.();
+      await Promise.all(fns);
+    }
+
     if (summaries.length > 1) {
       const summaryPath = await generateSummary(this.#output, summaries);
       const publishedReports = this.#plugins
@@ -670,6 +698,7 @@ export class AllureReport {
     if (initState) {
       // reset state on start;
       this.#state = {};
+      this.#storeFiles = {};
     }
 
     for (const { enabled, id, plugin, options } of this.#plugins) {
@@ -698,14 +727,22 @@ export class AllureReport {
 
         files[key] = filepath;
       });
+      const reportStoreFiles = new PluginFiles(this.#reportFiles, "", (key, filepath) => {
+        this.#storeFiles[key] = filepath;
+      });
+
+      // Allow plugins to override the report name used in their generated UI (e.g. HTML <title>, report header).
+      // Fallback to the global report name.
+      const pluginReportName = (options as { reportName?: string } | undefined)?.reportName ?? this.#reportName;
       const pluginContext: PluginContext = {
         id,
         publish: !!options?.publish,
         allureVersion: version,
         reportUuid: this.reportUuid,
-        reportName: this.#reportName,
+        reportName: pluginReportName,
         state: pluginState,
         reportFiles: pluginFiles,
+        reportStoreFiles,
         reportUrl: this.reportUrl,
         output: this.#output,
         ci: this.#ci,

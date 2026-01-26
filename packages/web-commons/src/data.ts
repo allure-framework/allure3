@@ -40,6 +40,14 @@ export const reportDataUrl = async (
     return `data:${contentType};base64,${value}`;
   }
 
+  // When a report is generated into a plugin subdirectory (e.g. `awesome/`), we may want
+  // to fetch shared store files (e.g. `data/attachments/*`) from the report root.
+  // `storeBaseUrl` is expected to be a relative URL such as `../`.
+  if (path.startsWith("data/") && globalThis.allureReportOptions?.storeBaseUrl) {
+    const base = globalThis.allureReportOptions.storeBaseUrl as string;
+    path = `${base.replace(/\/+$/, "")}/${path}`;
+  }
+
   const baseEl = globalThis.document.head.querySelector("base")?.href ?? "https://localhost";
   const url = new URL(path, baseEl);
   const liveReloadHash = globalThis.localStorage.getItem(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);

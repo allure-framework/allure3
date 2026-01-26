@@ -86,10 +86,22 @@ export class InMemoryReportDataWriter implements AwesomeDataWriter {
 }
 
 export class ReportFileDataWriter implements AwesomeDataWriter {
-  constructor(readonly reportFiles: ReportFiles) {}
+  constructor(
+    readonly reportFiles: ReportFiles,
+    /**
+     * Root-level store files shared across all plugins.
+     * Attachments should go here to avoid duplicating them per plugin.
+     */
+    readonly reportStoreFiles: ReportFiles = reportFiles,
+  ) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
-    await this.reportFiles.addFile(joinPosix("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+    // Some data files are store-derived and can be shared across all plugins.
+    // Currently, this includes:
+    // - `data/test-env-groups/*` (generated from store environments/groups)
+    const target = fileName.startsWith("test-env-groups/") ? this.reportStoreFiles : this.reportFiles;
+
+    await target.addFile(joinPosix("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
@@ -104,11 +116,12 @@ export class ReportFileDataWriter implements AwesomeDataWriter {
       return;
     }
 
-    await this.reportFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
+    await this.reportStoreFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
   }
 
   async writeTestCase(test: AwesomeTestResult): Promise<void> {
-    await this.reportFiles.addFile(
+    // Store-derived test cases are shared across plugins; write them once at report root.
+    await this.reportStoreFiles.addFile(
       joinPosix("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),
     );

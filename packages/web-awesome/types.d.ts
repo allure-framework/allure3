@@ -22,6 +22,11 @@ export type AwesomeReportOptions = {
   reportLanguage?: "en";
   createdAt: number;
   reportUuid: string;
+  /**
+   * Base URL for shared report store assets (e.g. `data/attachments/*`).
+   * Useful when the UI is served from a plugin subdirectory.
+   */
+  storeBaseUrl?: string;
   layout?: Layout;
   defaultSection?: string;
   sections?: string[];
