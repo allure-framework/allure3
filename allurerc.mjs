@@ -37,6 +37,11 @@ const config = {
         publish: true,
       },
     },
+    testops: {
+      options: {
+        launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+      },
+    },
   },
   variables: {
     env_variable: "unknown",

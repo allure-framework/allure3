@@ -37,6 +37,7 @@
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
+    "@allurereport/plugin-testops": "workspace:*",
     "@allurereport/plugin-testplan": "workspace:*",
     "@allurereport/reader": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
