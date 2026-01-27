@@ -5707,18 +5707,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@preact/signals-core@npm:^1.12.1":
-  version: 1.12.1
-  resolution: "@preact/signals-core@npm:1.12.1"
-  checksum: 10/c77264136f99cb57fdd2ebecce8e011cde54ccbb5218e55508b876f9347787c5338bcf271d4f02c75aa1b5bc6c89988ea507440507b189959b8b6702be3e5147
-  languageName: node
-  linkType: hard
-
-"@preact/signals-core@npm:^1.12.1":
-=======
 "@preact/signals-core@npm:^1.12.2":
->>>>>>> 5bda55716b (chore: fix reactivity of preact signals across packages)
   version: 1.12.2
   resolution: "@preact/signals-core@npm:1.12.2"
   checksum: 10/8537ae00aa314f5231b126b4f42a648521d2feaa36c1477eb47c491bbc87a117b54caa0f2bad66d3fb3d7c8cc118646c8d1036fafbbf5853a66f0e49ed5c237d
