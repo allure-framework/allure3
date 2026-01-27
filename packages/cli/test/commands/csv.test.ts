@@ -3,17 +3,20 @@ import CsvPlugin from "@allurereport/plugin-csv";
 import { run } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
+import { realpath } from "node:fs/promises";
+import { join } from "node:path";
 import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { CsvCommand } from "../../src/commands/csv.js";
 
 const fixtures = {
   resultsDir: "foo/bar/allure-results",
-  output: "./custom/output/path.csv",
+  output: "custom-output.csv",
   knownIssues: "./custom/known/issues/path",
   separator: ";",
   disableHeaders: true,
   config: "./custom/allurerc.mjs",
+  cwd: "/foo/bar",
 };
 
 vi.mock("node:console", async (importOriginal) => ({
@@ -28,6 +31,10 @@ vi.mock("node:fs", async (importOriginal) => ({
   ...(await importOriginal()),
   existsSync: vi.fn(),
 }));
+vi.mock("node:fs/promises", async (importOriginal) => ({
+  ...(await importOriginal()),
+  realpath: vi.fn(),
+}));
 vi.mock("@allurereport/core", async (importOriginal) => {
   const { AllureReportMock } = await import("../utils.js");
 
@@ -40,18 +47,14 @@ vi.mock("@allurereport/core", async (importOriginal) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  (realpath as Mock).mockResolvedValue(fixtures.cwd);
 });
 
 describe("csv command", () => {
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
     (existsSync as Mock).mockReturnValueOnce(false);
 
-    const command = new CsvCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
@@ -66,12 +69,7 @@ describe("csv command", () => {
       plugins: [],
     });
 
-    const command = new CsvCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
@@ -79,7 +77,11 @@ describe("csv command", () => {
         expect.objectContaining({
           id: "csv",
           enabled: true,
-          options: expect.objectContaining({}),
+          options: expect.objectContaining({
+            separator: ",",
+            disableHeaders: false,
+            fileName: undefined,
+          }),
           plugin: expect.any(CsvPlugin),
         }),
       ]),
@@ -105,12 +107,7 @@ describe("csv command", () => {
       ],
     });
 
-    const command = new CsvCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -129,25 +126,61 @@ describe("csv command", () => {
     (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await run(CsvCommand, ["csv", "--output", "foo", "--known-issues", "bar", "./allure-results"]);
+    await run(CsvCommand, [
+      "csv",
+      "--output",
+      fixtures.output,
+      "--known-issues",
+      fixtures.knownIssues,
+      "--separator",
+      fixtures.separator,
+      "--disable-headers",
+      fixtures.resultsDir,
+    ]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      output: "foo",
-      knownIssuesPath: "bar",
+      knownIssuesPath: fixtures.knownIssues,
     });
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "csv",
+            options: expect.objectContaining({
+              separator: fixtures.separator,
+              disableHeaders: true,
+              fileName: join(fixtures.cwd, fixtures.output),
+            }),
+          }),
+        ]),
+      }),
+    );
   });
 
   it("should set output to default and take other props from readConfig if no CLI arguments provided", async () => {
     (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
 
-    await run(CsvCommand, ["csv", "./allure-results"]);
+    await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      output: "allure.csv",
       knownIssuesPath: undefined,
     });
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "csv",
+            options: expect.objectContaining({
+              separator: ",",
+              disableHeaders: false,
+              fileName: undefined,
+            }),
+          }),
+        ]),
+      }),
+    );
   });
 });
