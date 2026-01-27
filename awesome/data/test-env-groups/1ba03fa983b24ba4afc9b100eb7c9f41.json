@@ -1,0 +1,1 @@
+{"id":"1ba03fa983b24ba4afc9b100eb7c9f41","fullName":"test/theme/actions.test.ts#theme actions setUserTheme should set userTheme to auto","name":"should set userTheme to auto","status":"passed","testResultsByEnv":{"windows-latest":"6cf6c0dd73cce4b579d2851dd2fc5ce4","ubuntu-latest":"9b69a767824aeb569e1bd24a2008e6d6","macos-latest":"2715ba879177949bdbbf980989a7b214"}}
