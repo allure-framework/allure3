@@ -5,7 +5,6 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { SectionPicker } from "@/components/SectionPicker";
 import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
 import { testResultRoute } from "@/stores/router";
-import { availableSections } from "@/stores/sections";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { CiInfo } from "./CiInfo";
@@ -21,7 +20,7 @@ const testResult = computed(() => testResultStore.value?.data?.[currentTrId.valu
 export const Header = ({ className }: HeaderProps) => {
   return (
     <div className={clsx(styles.above, className)}>
-      {Boolean(availableSections.value?.length) && <SectionPicker />}
+      <SectionPicker />
       {!isTestResultRoute.value && <CiInfo />}
       {isTestResultRoute.value && <TrBreadcrumbs testResult={testResult.value} />}
       <HeaderControls className={styles.right} />

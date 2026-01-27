@@ -1,27 +1,30 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { computed, effect, signal } from "@preact/signals";
+import { computed, effect } from "@preact/signals";
 import type { AwesomeReportOptions } from "../../types.js";
-import { navigateToRoot, navigateToSection, rootRoute, sectionRoute } from "./router";
+import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
 
 const DEFAULT_SECTION = "default";
 
 type Section = "timeline" | "charts" | "default";
 
-const defaultSectionFromReportOptions = getReportOptions<AwesomeReportOptions>()?.defaultSection ?? "default";
+const reportOptions = getReportOptions<AwesomeReportOptions>();
+const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
+
+export const availableSections = (reportOptions?.sections ?? []) as Section[];
 
 const onInit = () => {
-  if (rootRoute.peek().matches && defaultSectionFromReportOptions !== DEFAULT_SECTION) {
-    navigateToSection({ section: defaultSectionFromReportOptions as "timeline" | "charts" });
+  const isSectionRoute = sectionRoute.peek().matches;
+  const isDefaultSection = defaultSectionFromReportOptions === DEFAULT_SECTION;
+  const isValidSection = availableSections.includes(defaultSectionFromReportOptions);
+
+  if (!isSectionRoute && !isDefaultSection && isValidSection) {
+    navigateToSection({ section: defaultSectionFromReportOptions });
   }
 };
 
 onInit();
 
 export const currentSection = computed(() => sectionRoute.value.params.section ?? "default");
-
-export const availableSections = signal<Section[]>(
-  (getReportOptions<AwesomeReportOptions>()?.sections ?? []) as Section[],
-);
 
 effect(() => {
   const section = currentSection.value;
@@ -33,7 +36,7 @@ effect(() => {
 
 export const setSection = (chosenSection: Section | string): void => {
   const isDefaultSection = chosenSection === DEFAULT_SECTION;
-  const isValidSection = availableSections.peek().includes(chosenSection as Section);
+  const isValidSection = availableSections.includes(chosenSection as Section);
   const isSectionChanged = currentSection.peek() !== chosenSection;
 
   if (isDefaultSection) {

@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/Header";
 import { CiInfo } from "@/components/Header/CiInfo";
 import type * as routerModule from "@/stores/router";
-import { availableSections } from "@/stores/sections";
 import { testResultStore } from "@/stores/testResults";
 
 const fixtures = {
@@ -55,7 +54,6 @@ vi.mock("@/stores/router", async (importOriginal) => {
 beforeEach(() => {
   vi.clearAllMocks();
   cleanup();
-  availableSections.value = [];
   mockRouteParams.value = {};
   testResultStore.value = {
     loading: false,
@@ -66,20 +64,6 @@ beforeEach(() => {
 });
 
 describe("components > Header", () => {
-  it("should render sections picker when there are sections available", () => {
-    availableSections.value = ["timeline", "charts"];
-
-    render(<Header />);
-
-    expect(screen.getByTestId("section-picker")).toBeInTheDocument();
-  });
-
-  it("shouldn't render sections picker when there are no sections available", () => {
-    render(<Header />);
-
-    expect(screen.queryByTestId("section-picker")).not.toBeInTheDocument();
-  });
-
   it("should render ci info only when testResultId route parameter doesn't exists and ci report option is available", () => {
     mockRouteParams.value = {};
     vi.spyOn(webCommons, "getReportOptions").mockReturnValue({

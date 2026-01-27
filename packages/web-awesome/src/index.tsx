@@ -15,7 +15,7 @@ import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchGlobals } from "@/stores/globals";
-import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
+import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
@@ -54,7 +54,7 @@ const App = () => {
     ];
 
     if (globalThis) {
-      fns.unshift(getLocale, getLayout as () => Promise<void>, getTheme as () => Promise<void>);
+      fns.unshift(getLocale, getTheme as () => Promise<void>);
     }
 
     await waitForI18next;

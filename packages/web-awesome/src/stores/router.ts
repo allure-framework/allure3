@@ -14,7 +14,7 @@ export const navigateToRoot = () => {
 };
 
 export const navigateToSection = (params: { section: "timeline" | "charts" }) => {
-  routerNavigateTo({ path: "/:section", params, keepSearchParams: true });
+  routerNavigateTo({ path: "/:section", params, keepSearchParams: true, replace: false });
 };
 
 const sections = ["charts", "timeline"];
