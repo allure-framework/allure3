@@ -892,7 +892,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.6.12"
     "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.10.2"
-    "@preact/signals": "npm:^2.5.1"
+    "@preact/signals": "npm:^2.6.1"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@testing-library/jest-dom": "npm:^6.1.5"
     "@testing-library/preact": "npm:^3.2.3"
@@ -974,7 +974,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.27.1"
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.12"
-    "@preact/signals": "npm:^1.3.0"
+    "@preact/signals": "npm:^2.6.1"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.6"
@@ -1046,8 +1046,8 @@ __metadata:
     "@allurereport/charts-api": "workspace:*"
     "@allurereport/core-api": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
-    "@preact/signals": "npm:^2.5.1"
-    "@preact/signals-core": "npm:^1.12.1"
+    "@preact/signals": "npm:^2.6.1"
+    "@preact/signals-core": "npm:^1.12.2"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/d3-interpolate": "npm:^3.0.4"
     "@types/d3-scale": "npm:^4.0.9"
@@ -1108,7 +1108,7 @@ __metadata:
     "@nivo/treemap": "npm:^0.99.0"
     "@preact/compat": "npm:^18.3.1"
     "@preact/preset-vite": "npm:^2.9.4"
-    "@preact/signals": "npm:^1.3.0"
+    "@preact/signals": "npm:^2.6.1"
     "@react-spring/web": "npm:^10.0.3"
     "@rollup/plugin-alias": "npm:^5.1.1"
     "@rollup/plugin-babel": "npm:^6.0.4"
@@ -1235,7 +1235,7 @@ __metadata:
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.12"
     "@preact/compat": "npm:^18.3.1"
-    "@preact/signals": "npm:^1.3.0"
+    "@preact/signals": "npm:^2.6.1"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/d3-shape": "npm:^3.1.6"
@@ -1303,7 +1303,7 @@ __metadata:
     "@eslint/js": "npm:^9.10.0"
     "@floating-ui/dom": "npm:^1.6.12"
     "@preact/compat": "npm:^18.3.1"
-    "@preact/signals": "npm:^1.3.0"
+    "@preact/signals": "npm:^2.6.1"
     "@stylistic/eslint-plugin": "npm:^2.6.1"
     "@types/babel__core": "npm:^7.20.5"
     "@types/eslint": "npm:^8.56.11"
@@ -5707,21 +5707,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@preact/signals-core@npm:^1.12.1":
-  version: 1.12.1
-  resolution: "@preact/signals-core@npm:1.12.1"
-  checksum: 10/c77264136f99cb57fdd2ebecce8e011cde54ccbb5218e55508b876f9347787c5338bcf271d4f02c75aa1b5bc6c89988ea507440507b189959b8b6702be3e5147
+"@preact/signals-core@npm:^1.12.2":
+  version: 1.12.2
+  resolution: "@preact/signals-core@npm:1.12.2"
+  checksum: 10/8537ae00aa314f5231b126b4f42a648521d2feaa36c1477eb47c491bbc87a117b54caa0f2bad66d3fb3d7c8cc118646c8d1036fafbbf5853a66f0e49ed5c237d
   languageName: node
   linkType: hard
 
-"@preact/signals@npm:^2.5.1":
-  version: 2.5.1
-  resolution: "@preact/signals@npm:2.5.1"
+"@preact/signals@npm:^2.6.1":
+  version: 2.6.1
+  resolution: "@preact/signals@npm:2.6.1"
   dependencies:
-    "@preact/signals-core": "npm:^1.12.0"
+    "@preact/signals-core": "npm:^1.12.2"
   peerDependencies:
     preact: ">= 10.25.0 || >=11.0.0-0"
-  checksum: 10/1bdfb087a6c68bcc824f4cbdf792da8e5222d2f426260c24420686cccf5239a4a10e4debe5ac7f7a46fffd83aa80343d89014d2abc49914cffdb191aaa80c28e
+  checksum: 10/18f6b8c8ede3b9b64e41ad95e1a20e7233a8a4d42662bf5e8d73726e19c8290a53cf310d87c49e9ea49c747bc4803810e584e3b8ff94fcc830ac07bd16397594
   languageName: node
   linkType: hard
 

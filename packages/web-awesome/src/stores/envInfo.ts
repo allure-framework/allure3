@@ -11,7 +11,7 @@ export const envInfoStore = signal<StoreSignalState<EnvironmentItem[]>>({
 
 export const fetchEnvInfo = async () => {
   envInfoStore.value = {
-    ...envInfoStore.value,
+    ...envInfoStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -26,7 +26,7 @@ export const fetchEnvInfo = async () => {
     };
   } catch (e) {
     envInfoStore.value = {
-      ...envInfoStore.value,
+      ...envInfoStore.peek(),
       error: e.message,
       loading: false,
     };

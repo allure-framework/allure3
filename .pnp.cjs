@@ -1162,7 +1162,7 @@ const RAW_RUNTIME_STATE =
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/preset-vite", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:2.10.2"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@testing-library/jest-dom", "npm:6.6.3"],\
           ["@testing-library/preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:3.2.4"],\
@@ -1246,7 +1246,7 @@ const RAW_RUNTIME_STATE =
           ["@babel/preset-typescript", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:7.27.1"],\
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -1320,8 +1320,8 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/charts-api", "workspace:packages/charts-api"],\
           ["@allurereport/core-api", "workspace:packages/core-api"],\
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
-          ["@preact/signals", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.5.1"],\
-          ["@preact/signals-core", "npm:1.12.1"],\
+          ["@preact/signals", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.6.1"],\
+          ["@preact/signals-core", "npm:1.12.2"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/d3-interpolate", "npm:3.0.4"],\
           ["@types/d3-scale", "npm:4.0.9"],\
@@ -1384,7 +1384,7 @@ const RAW_RUNTIME_STATE =
           ["@nivo/treemap", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:0.99.0"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
           ["@preact/preset-vite", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.10.0"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@react-spring/web", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:10.0.3"],\
           ["@rollup/plugin-alias", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.1.1"],\
           ["@rollup/plugin-babel", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:6.0.4"],\
@@ -1519,7 +1519,7 @@ const RAW_RUNTIME_STATE =
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/d3-shape", "npm:3.1.6"],\
@@ -1589,7 +1589,7 @@ const RAW_RUNTIME_STATE =
           ["@eslint/js", "npm:9.10.0"],\
           ["@floating-ui/dom", "npm:1.6.12"],\
           ["@preact/compat", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"],\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
           ["@stylistic/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.11.0"],\
           ["@types/babel__core", "npm:7.20.5"],\
           ["@types/eslint", "npm:8.56.12"],\
@@ -9598,18 +9598,18 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@preact/signals", [\
-      ["npm:2.5.1", {\
-        "packageLocation": "./.yarn/cache/@preact-signals-npm-2.5.1-b83086ea68-1bdfb087a6.zip/node_modules/@preact/signals/",\
+      ["npm:2.6.1", {\
+        "packageLocation": "./.yarn/cache/@preact-signals-npm-2.6.1-1db65fa51a-18f6b8c8ed.zip/node_modules/@preact/signals/",\
         "packageDependencies": [\
-          ["@preact/signals", "npm:2.5.1"]\
+          ["@preact/signals", "npm:2.6.1"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1", {\
-        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-98706ea927/0/cache/@preact-signals-npm-2.5.1-b83086ea68-1bdfb087a6.zip/node_modules/@preact/signals/",\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1", {\
+        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-c6097aca19/0/cache/@preact-signals-npm-2.6.1-1db65fa51a-18f6b8c8ed.zip/node_modules/@preact/signals/",\
         "packageDependencies": [\
-          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.5.1"],\
-          ["@preact/signals-core", "npm:1.12.1"],\
+          ["@preact/signals", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.6.1"],\
+          ["@preact/signals-core", "npm:1.12.2"],\
           ["@types/preact", null],\
           ["preact", "npm:10.28.2"]\
         ],\
@@ -9619,11 +9619,11 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.5.1", {\
-        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-8bda794835/0/cache/@preact-signals-npm-2.5.1-b83086ea68-1bdfb087a6.zip/node_modules/@preact/signals/",\
+      ["virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.6.1", {\
+        "packageLocation": "./.yarn/__virtual__/@preact-signals-virtual-4aa73858f5/0/cache/@preact-signals-npm-2.6.1-1db65fa51a-18f6b8c8ed.zip/node_modules/@preact/signals/",\
         "packageDependencies": [\
-          ["@preact/signals", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.5.1"],\
-          ["@preact/signals-core", "npm:1.12.1"],\
+          ["@preact/signals", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:2.6.1"],\
+          ["@preact/signals-core", "npm:1.12.2"],\
           ["@types/preact", null],\
           ["preact", null]\
         ],\
@@ -9635,10 +9635,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@preact/signals-core", [\
-      ["npm:1.12.1", {\
-        "packageLocation": "./.yarn/cache/@preact-signals-core-npm-1.12.1-a218932129-c77264136f.zip/node_modules/@preact/signals-core/",\
+      ["npm:1.12.2", {\
+        "packageLocation": "./.yarn/cache/@preact-signals-core-npm-1.12.2-c8f9e00062-8537ae00aa.zip/node_modules/@preact/signals-core/",\
         "packageDependencies": [\
-          ["@preact/signals-core", "npm:1.12.1"]\
+          ["@preact/signals-core", "npm:1.12.2"]\
         ],\
         "linkType": "HARD"\
       }]\

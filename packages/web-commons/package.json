@@ -20,15 +20,16 @@
   ],
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+    "test": "vitest run"
   },
   "dependencies": {
     "@allurereport/aql": "workspace:*",
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
-    "@preact/signals": "^2.5.1",
-    "@preact/signals-core": "^1.12.1",
+    "@preact/signals": "^2.6.1",
+    "@preact/signals-core": "^1.12.2",
     "ansi-to-html": "^0.7.2",
     "d3-interpolate": "^3.0.1",
     "d3-scale": "^4.0.2",
