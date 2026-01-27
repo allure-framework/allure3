@@ -61,9 +61,9 @@ export class CsvCommand extends Command {
     const defaultCsvOptions = {
       separator: this.separator ?? ",",
       disableHeaders: this.disableHeaders ?? false,
+      fileName: this.output ?? "allure-report.csv",
     } as CsvPluginOptions;
     const config = await readConfig(cwd, this.config, {
-      output: this.output ?? "allure.csv",
       knownIssuesPath: this.knownIssues,
     });
 

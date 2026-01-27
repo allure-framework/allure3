@@ -38,7 +38,7 @@ export class CsvPlugin implements Plugin {
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
     const { reportFiles } = context;
     const testResults = await store.allTestResults();
-    const { fields = defaultFields, sort = defaultSort, filter, fileName = "report.csv" } = this.options;
+    const { fields = defaultFields, sort = defaultSort, filter, fileName = "allure-report.csv" } = this.options;
     const content = await generateCsv(testResults, fields, sort, filter, this.options);
     const result = Buffer.from(content, "utf-8");
 
