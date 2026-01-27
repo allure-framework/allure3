@@ -28,22 +28,28 @@
     "search-placeholder": "Nom ou ID"
   },
   "filters": {
-    "more-filters": "Plus de filtres",
-    "enable-filter": "Activer le filtre \"{{filter}}\"",
     "flaky": "Instables",
     "retry": "Réessais",
     "new": "Nouveaux",
     "fixed": "Corrigés",
     "regressed": "Régression",
-    "malfunctioned": "Défectueux"
-  },
-  "filters.description": {
-    "flaky": "Afficher les tests instables",
-    "retry": "Afficher les résultats des tests qui ont été réexécutés",
-    "new": "Afficher les résultats des tests qui apparaissent pour la première fois dans ce rapport",
-    "fixed": "Afficher les tests qui sont maintenant réussis mais qui étaient précédemment \"échoués\" ou \"cassés\"",
-    "regressed": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"cassé\" à \"échoué\"",
-    "malfunctioned": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"échoué\" à \"cassé\""
+    "malfunctioned": "Défectueux",
+    "transition": "Transition",
+    "tags": "Tags",
+    "goto_filter": "Aller au filtre",
+    "errors": {
+      "max_values_one": "Seule la première {{count}} valeur est utilisée pour le filtrage.\nLes valeurs supplémentaires sont ignorées",
+      "max_values_other": "Seules les premières {{count}} valeurs sont utilisées pour le filtrage.\nLes valeurs supplémentaires sont ignorées"
+    },
+    "description": {
+      "flaky": "Afficher les tests instables",
+      "retry": "Afficher les résultats des tests qui ont été réexécutés",
+      "new": "Afficher les résultats des tests qui apparaissent pour la première fois dans ce rapport",
+      "fixed": "Afficher les tests qui sont maintenant réussis mais qui étaient précédemment \"échoués\" ou \"cassés\"",
+      "regressed": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"cassé\" à \"échoué\"",
+      "malfunctioned": "Afficher les résultats des tests qui sont passés du statut \"réussi\" ou \"échoué\" à \"cassé\"",
+      "tags": "Afficher les résultats des tests qui ont les tags spécifiés"
+    }
   },
   "sort-by": {
     "sort-by-text": "Trier par :",

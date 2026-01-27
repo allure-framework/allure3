@@ -8,7 +8,6 @@ const namespaces = [
   "empty",
   "execution",
   "filters",
-  "filters.description",
   "search",
   "severity",
   "sort-by",

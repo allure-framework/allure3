@@ -1,67 +1,63 @@
-import type { TestStatusTransition } from "@allurereport/core-api";
-import { batch } from "@preact/signals";
-import type { AwesomeStatus } from "types";
-import { treeDirection, treeFilter, treeQuery, treeSortBy, treeStatus } from ".";
-import { transitionFiltersList } from "./constants";
-import type { TreeDirection, TreeSortBy } from "./types";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import { ReportFetchError, fetchReportJsonData, setParams } from "@allurereport/web-commons";
+import { PARAMS } from "./constants";
+import type { TreeFiltersData } from "./model";
+import { treeTags } from "./store";
 
-export const clearTreeFilters = () => {
-  batch(() => {
-    treeQuery.value = "";
-    treeStatus.value = "total";
-    treeFilter.value = {
-      flaky: false,
-      retry: false,
-      new: false,
-      fixed: false,
-      regressed: false,
-      malfunctioned: false,
-    };
+export const setQueryFilter = (query?: string) => {
+  setParams({
+    key: PARAMS.QUERY,
+    value: query?.trim() === "" ? undefined : query,
   });
 };
 
-export const setTreeQuery = (query: string) => {
-  treeQuery.value = query;
+export const setStatusFilter = (status?: TestStatus) => {
+  setParams({
+    key: PARAMS.STATUS,
+    value: status,
+  });
 };
 
-export const setTreeStatus = (status: AwesomeStatus) => {
-  treeStatus.value = status;
+export const setFlakyFilter = (flaky?: boolean) => {
+  setParams({
+    key: PARAMS.FLAKY,
+    value: flaky ? "true" : undefined,
+  });
 };
 
-export const setTreeSortBy = (sortBy: TreeSortBy) => {
-  treeSortBy.value = sortBy;
+export const setRetryFilter = (retry?: boolean) => {
+  setParams({
+    key: PARAMS.RETRY,
+    value: retry ? "true" : undefined,
+  });
 };
 
-export const setTreeDirection = (direction: TreeDirection) => {
-  treeDirection.value = direction;
+export const setTransitionFilter = (transitions: TestStatusTransition[]) => {
+  setParams({
+    key: PARAMS.TRANSITION,
+    value: transitions,
+  });
 };
 
-export const setFilters = (filters: Record<string, boolean>) => {
-  treeFilter.value = {
-    ...treeFilter.peek(),
-    ...filters,
-  };
+export const setTagsFilter = (tags: string[]) => {
+  setParams({
+    key: PARAMS.TAGS,
+    value: tags,
+  });
 };
 
-export const setTestTypeFilter = (testType: "flaky" | "retry", value: boolean) => {
-  treeFilter.value = {
-    ...treeFilter.peek(),
-    [testType]: value,
-  };
-};
+export const fetchTreeFiltersData = async () => {
+  try {
+    const response = await fetchReportJsonData<TreeFiltersData>("widgets/tree-filters.json", { bustCache: true });
 
-export const setTransitionFilter = (transition: TestStatusTransition, value: boolean) => {
-  treeFilter.value = {
-    ...treeFilter.peek(),
-    ...transitionFiltersList.reduce(
-      (acc, t) => {
-        acc[t] = false;
-        if (t === transition) {
-          acc[t] = value;
-        }
-        return acc;
-      },
-      {} as Record<TestStatusTransition, boolean>,
-    ),
-  };
+    treeTags.value = response.tags;
+  } catch (error) {
+    if (error instanceof ReportFetchError && error.response.status === 404) {
+      treeTags.value = [];
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.error("Failed to fetch tree filters data:\n\n", error);
+  }
 };

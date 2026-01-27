@@ -28,22 +28,28 @@
     "search-placeholder": "Nome o ID"
   },
   "filters": {
-    "more-filters": "Filtri",
-    "enable-filter": "Attiva filtro \"{{filter}}\"",
     "flaky": "Instabili",
     "retry": "Ripetuti",
     "new": "Nuovi",
     "fixed": "Corretti",
     "regressed": "Regrediti",
-    "malfunctioned": "Danneggiati"
-  },
-  "filters.description": {
-    "flaky": "Mostra test instabili",
-    "retry": "Mostra i risultati dei test che sono stati rieseguiti",
-    "new": "Mostra i risultati dei test che appaiono per la prima volta in questo report",
-    "fixed": "Mostra test che ora sono superati ma che erano precedentemente \"falliti\" o \"danneggiati\"",
-    "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"danneggiato\" a \"fallito\"",
-    "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"fallito\" a \"danneggiato\""
+    "malfunctioned": "Danneggiati",
+    "transition": "Transizione",
+    "tags": "Tag",
+    "goto_filter": "Vai al filtro",
+    "errors": {
+      "max_values_one": "Solo il primo {{count}} valore viene utilizzato per il filtraggio.\nI valori aggiuntivi vengono ignorati",
+      "max_values_other": "Solo i primi {{count}} valori vengono utilizzati per il filtraggio.\nI valori aggiuntivi vengono ignorati"
+    },
+    "description": {
+      "flaky": "Mostra test instabili",
+      "retry": "Mostra i risultati dei test che sono stati rieseguiti",
+      "new": "Mostra i risultati dei test che appaiono per la prima volta in questo report",
+      "fixed": "Mostra test che ora sono superati ma che erano precedentemente \"falliti\" o \"danneggiati\"",
+      "regressed": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"danneggiato\" a \"fallito\"",
+      "malfunctioned": "Mostra i risultati dei test che sono passati dallo stato \"superato\" o \"fallito\" a \"danneggiato\"",
+      "tags": "Mostra i risultati dei test che hanno i tag specificati"
+    }
   },
   "sort-by": {
     "sort-by-text": "Ordina per:",

@@ -28,22 +28,28 @@
     "search-placeholder": "Nazwa albo ID"
   },
   "filters": {
-    "more-filters": "Filtry",
-    "enable-filter": "Filtruj po \"{{filter}}\"",
     "flaky": "Niestabilne",
     "retry": "Powtórne",
     "new": "Nowe",
     "fixed": "Naprawione",
     "regressed": "Zaregresowane",
-    "malfunctioned": "Uszkodzone"
-  },
-  "filters.description": {
-    "flaky": "Pokaż niestabilne testy",
-    "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie",
-    "new": "Pokaż wyniki testów, które po raz pierwszy pojawiają się w tym raporcie",
-    "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
-    "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"uszkodzony\" na \"nieudany\"",
-    "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"nieudany\" na \"uszkodzony\""
+    "malfunctioned": "Uszkodzone",
+    "transition": "Przejście",
+    "tags": "Tagi",
+    "goto_filter": "Przejdź do filtra",
+    "errors": {
+      "max_values_one": "Tylko pierwsza {{count}} wartość jest używana do filtrowania.\nDodatkowe wartości są ignorowane",
+      "max_values_other": "Tylko pierwsze {{count}} wartości są używane do filtrowania.\nDodatkowe wartości są ignorowane"
+    },
+    "description": {
+      "flaky": "Pokaż niestabilne testy",
+      "retry": "Pokaż wyniki testów, które zostały uruchomione ponownie",
+      "new": "Pokaż wyniki testów, które po raz pierwszy pojawiają się w tym raporcie",
+      "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
+      "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"uszkodzony\" na \"nieudany\"",
+      "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"nieudany\" na \"uszkodzony\"",
+      "tags": "Pokaż wyniki testów, które mają określone tagi"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sortuj po:",

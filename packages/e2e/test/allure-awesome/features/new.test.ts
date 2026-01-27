@@ -114,16 +114,6 @@ test.describe("new tests", () => {
     expect(newCount).toBe("2");
   });
 
-  test("should show tooltip with new filter description on hover", async ({ page }) => {
-    await page.goto(bootstrap.url);
-
-    await treePage.openFilterMenu();
-    await expect(treePage.newFilterLocator).toBeVisible();
-    await treePage.newFilterLocator.hover();
-    await expect(treePage.filterTooltipLocator).toBeVisible();
-    await treePage.closeTooltip();
-    await expect(treePage.filterTooltipLocator).toBeHidden();
-  });
 
   test("should apply new filter to the tree when filter=new query parameter is present", async ({ page }) => {
     await page.goto(`${bootstrap.url}?filter=new`);

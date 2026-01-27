@@ -28,22 +28,28 @@
     "search-placeholder": "Name or ID"
   },
   "filters": {
-    "more-filters": "More filters",
-    "enable-filter": "Enable \"{{filter}}\" filter",
     "flaky": "Flaky",
     "retry": "Retry",
     "new": "New",
     "fixed": "Fixed",
     "regressed": "Regressed",
-    "malfunctioned": "Malfunctioned"
-  },
-  "filters.description": {
-    "flaky": "Show unstable tests",
-    "retry": "Show test results that were rerun",
-    "new": "Show test results that appear for the first time in this report",
-    "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
-    "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
-    "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status"
+    "malfunctioned": "Malfunctioned",
+    "transition": "Transition",
+    "tags": "Tags",
+    "goto_filter": "Go to filter",
+    "errors": {
+      "max_values_one": "Only the first {{count}} value is used for filtering.\nAdditional values are ignored",
+      "max_values_other": "Only the first {{count}} values are used for filtering.\nAdditional values are ignored"
+    },
+    "description": {
+      "flaky": "Show unstable tests",
+      "retry": "Show test results that were rerun",
+      "new": "Show test results that appear for the first time in this report",
+      "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
+      "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
+      "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status",
+      "tags": "Show test results that have the specified tags"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sort by:",

@@ -28,22 +28,28 @@
     "search-placeholder": "Name oder ID"
   },
   "filters": {
-    "more-filters": "Filter",
-    "enable-filter": "Filter nach \"{{filter}}\" aktivieren",
     "flaky": "Instabil",
     "retry": "Wiederholt",
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
-    "malfunctioned": "Defekt"
-  },
-  "filters.description": {
-    "flaky": "Instabile Tests anzeigen",
-    "retry": "Testergebnisse anzeigen, die wiederholt wurden",
-    "new": "Testergebnisse anzeigen, die zum ersten Mal in diesem Bericht erscheinen",
-    "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
-    "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
-    "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben"
+    "malfunctioned": "Defekt",
+    "transition": "Übergang",
+    "tags": "Tags",
+    "goto_filter": "Zum Filter gehen",
+    "errors": {
+      "max_values_one": "Nur der erste {{count}} Wert wird für die Filterung verwendet.\nZusätzliche Werte werden ignoriert",
+      "max_values_other": "Nur die ersten {{count}} Werte werden für die Filterung verwendet.\nZusätzliche Werte werden ignoriert"
+    },
+    "description": {
+      "flaky": "Instabile Tests anzeigen",
+      "retry": "Testergebnisse anzeigen, die wiederholt wurden",
+      "new": "Testergebnisse anzeigen, die zum ersten Mal in diesem Bericht erscheinen",
+      "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
+      "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
+      "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben",
+      "tags": "Testergebnisse anzeigen, die die angegebenen Tags haben"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sortieren nach:",

@@ -1,63 +1,50 @@
 import { getReportOptions } from "@allurereport/web-commons";
-import { effect, signal } from "@preact/signals";
-import { navigateTo, parseHash, route } from "@/stores/router";
+import { computed, effect } from "@preact/signals";
 import type { AwesomeReportOptions } from "../../types.js";
+import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
 
 const DEFAULT_SECTION = "default";
-type Section = string;
 
-export const currentSection = signal<Section>("");
-export const availableSections = signal<Section[]>([]);
+type Section = "timeline" | "charts" | "default";
 
-const updateSectionState = (section: Section): void => {
-  currentSection.value = section;
-  document.documentElement.setAttribute("data-section", section);
-  globalThis.localStorage.setItem("chosenSection", section);
+const reportOptions = getReportOptions<AwesomeReportOptions>();
+const defaultSectionFromReportOptions: Section = (reportOptions?.defaultSection as Section) ?? "default";
+
+export const availableSections = (reportOptions?.sections ?? []) as Section[];
+
+const onInit = () => {
+  const isSectionRoute = sectionRoute.peek().matches;
+  const isDefaultSection = defaultSectionFromReportOptions === DEFAULT_SECTION;
+  const isValidSection = availableSections.includes(defaultSectionFromReportOptions);
+
+  if (!isSectionRoute && !isDefaultSection && isValidSection) {
+    navigateToSection({ section: defaultSectionFromReportOptions });
+  }
 };
 
-export const setSection = (chosenSection: Section): void => {
-  const isDefaultSection = chosenSection === DEFAULT_SECTION;
-  const isValidSection = availableSections.value?.includes(chosenSection);
-  const isSectionChanged = currentSection.value !== chosenSection;
+onInit();
 
-  updateSectionState(chosenSection);
+export const currentSection = computed(() => sectionRoute.value.params.section ?? "default");
+
+effect(() => {
+  const section = currentSection.value;
+
+  if (section) {
+    document.documentElement.setAttribute("data-section", section);
+  }
+});
+
+export const setSection = (chosenSection: Section | string): void => {
+  const isDefaultSection = chosenSection === DEFAULT_SECTION;
+  const isValidSection = availableSections.includes(chosenSection as Section);
+  const isSectionChanged = currentSection.peek() !== chosenSection;
 
   if (isDefaultSection) {
-    navigateTo({ category: "" });
+    navigateToRoot();
     return;
   }
 
   if (isSectionChanged && isValidSection) {
-    navigateTo({ category: chosenSection });
+    navigateToSection({ section: chosenSection as "timeline" | "charts" });
   }
 };
-
-export const getSection = () => {
-  const { category } = parseHash();
-  availableSections.value = getReportOptions<AwesomeReportOptions>()?.sections ?? [];
-  const defaultSectionFromReportOptions = getReportOptions<AwesomeReportOptions>()?.defaultSection ?? "";
-  const sectionFromUrl = parseHash().category;
-  const sectionFromLS =
-    globalThis.localStorage.getItem("chosenSection") === ""
-      ? ""
-      : globalThis.localStorage.getItem("chosenSection") || defaultSectionFromReportOptions;
-  currentSection.value = sectionFromUrl || sectionFromLS;
-
-  if (category) {
-    setSection(category);
-    return;
-  }
-
-  if (sectionFromLS) {
-    setSection(sectionFromLS);
-    return;
-  }
-
-  setSection("");
-};
-
-effect(() => {
-  const category = route.value.category;
-
-  setSection(category || "");
-});

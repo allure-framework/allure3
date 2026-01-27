@@ -28,22 +28,28 @@
     "search-placeholder": "Naam of ID"
   },
   "filters": {
-    "more-filters": "Meer filters",
-    "enable-filter": "Filter \"{{filter}}\" inschakelen",
     "flaky": "Onstabiel",
     "retry": "Opnieuw proberen",
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
-    "malfunctioned": "Defect"
-  },
-  "filters.description": {
-    "flaky": "Onstabiele tests weergeven",
-    "retry": "Testresultaten weergeven die opnieuw zijn uitgevoerd",
-    "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
-    "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
-    "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
-    "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status"
+    "malfunctioned": "Defect",
+    "transition": "Overgang",
+    "tags": "Tags",
+    "goto_filter": "Ga naar filter",
+    "errors": {
+      "max_values_one": "Alleen de eerste {{count}} waarde wordt gebruikt voor filtering.\nAanvullende waarden worden genegeerd",
+      "max_values_other": "Alleen de eerste {{count}} waarden worden gebruikt voor filtering.\nAanvullende waarden worden genegeerd"
+    },
+    "description": {
+      "flaky": "Onstabiele tests weergeven",
+      "retry": "Testresultaten weergeven die opnieuw zijn uitgevoerd",
+      "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
+      "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
+      "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
+      "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status",
+      "tags": "Toont testresultaten die de opgegeven tags hebben"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",

@@ -1,7 +1,13 @@
-import type { TestStatusTransition } from "@allurereport/core-api";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 
-export const testTypeFiltersList = ["flaky", "retry"];
+export const TRANSITIONS: TestStatusTransition[] = ["new", "fixed", "regressed", "malfunctioned"];
+export const STATUSES: TestStatus[] = ["passed", "failed", "skipped", "broken", "unknown"];
 
-export const transitionFiltersList = ["new", "fixed", "regressed", "malfunctioned"] as TestStatusTransition[];
-
-export const filtersList = [...testTypeFiltersList, ...transitionFiltersList] as const;
+export const PARAMS = {
+  QUERY: "query",
+  STATUS: "status",
+  FLAKY: "flaky",
+  RETRY: "retry",
+  TRANSITION: "transition",
+  TAGS: "tags",
+} as const;

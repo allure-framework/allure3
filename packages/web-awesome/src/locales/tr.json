@@ -28,22 +28,28 @@
     "search-placeholder": "Ad veya ID"
   },
   "filters": {
-    "more-filters": "Daha fazla filtre",
-    "enable-filter": "\"{{filter}}\" filtresini etkinleştir",
     "flaky": "İstikrarsız",
     "retry": "Tekrar",
     "new": "Yeni",
     "fixed": "Düzeltildi",
     "regressed": "Geri Döndü",
-    "malfunctioned": "Bozuk"
-  },
-  "filters.description": {
-    "flaky": "İstikrarsız testleri göster",
-    "retry": "Yeniden çalıştırılan test sonuçlarını göster",
-    "new": "Bu raporda ilk kez görünen test sonuçlarını göster",
-    "fixed": "Şimdi başarılı olan ancak daha önce \"başarısız\" veya \"bozuk\" olan testleri göster",
-    "regressed": "\"başarılı\" veya \"bozuk\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
-    "malfunctioned": "\"başarılı\" veya \"başarısız\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster"
+    "malfunctioned": "Bozuk",
+    "transition": "Geçiş",
+    "tags": "Etiketler",
+    "goto_filter": "Filtreye git",
+    "errors": {
+      "max_values_one": "Filtreleme için yalnızca ilk {{count}} değer kullanılır.\nEk değerler yok sayılır",
+      "max_values_other": "Filtreleme için yalnızca ilk {{count}} değer kullanılır.\nEk değerler yok sayılır"
+    },
+    "description": {
+      "flaky": "İstikrarsız testleri göster",
+      "retry": "Yeniden çalıştırılan test sonuçlarını göster",
+      "new": "Bu raporda ilk kez görünen test sonuçlarını göster",
+      "fixed": "Şimdi başarılı olan ancak daha önce \"başarısız\" veya \"bozuk\" olan testleri göster",
+      "regressed": "\"başarılı\" veya \"bozuk\" durumundan \"başarısız\" durumuna değişen test sonuçlarını göster",
+      "malfunctioned": "\"başarılı\" veya \"başarısız\" durumundan \"bozuk\" durumuna değişen test sonuçlarını göster",
+      "tags": "Belirtilen etiketlere sahip test sonuçlarını göster"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sıralama ölçütü:",

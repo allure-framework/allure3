@@ -4,17 +4,22 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { navigateTo, route } from "@/stores/router";
+import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
+import { navigateToTestResult } from "@/stores/router";
+import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
-import { clearTreeFilters, treeStatus } from "@/stores/treeFilters";
 import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
+
+const treeNavigateTo = (id: string) => {
+  navigateToTestResult({ testResultId: id });
+};
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
   const { t: tooltip } = useI18n("transitions");
-  const routeId = route.value.params?.testResultId;
+  const trId = currentTrId.value;
 
   const currentTreeStatus = treeStatus.value;
 
@@ -72,10 +77,10 @@ export const TreeList = () => {
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                navigateTo={navigateTo}
+                navigateTo={treeNavigateTo}
                 tree={treeLocalizer(filteredTree.value.default)}
                 statusFilter={currentTreeStatus}
-                routeId={routeId}
+                routeId={trId}
                 root
               />
             </div>
@@ -92,10 +97,10 @@ export const TreeList = () => {
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                navigateTo={navigateTo}
+                navigateTo={treeNavigateTo}
                 tree={treeLocalizer(currentTree)}
                 statusFilter={currentTreeStatus}
-                routeId={routeId}
+                routeId={trId}
                 root
               />
             </div>
@@ -144,9 +149,9 @@ export const TreeList = () => {
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}
                         statusFilter={currentTreeStatus}
-                        navigateTo={navigateTo}
+                        navigateTo={treeNavigateTo}
                         tree={treeLocalizer(value)}
-                        routeId={routeId}
+                        routeId={trId}
                         root
                       />
                     </div>

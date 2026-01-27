@@ -1,11 +1,15 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import {
+  buildFilterPredicate,
+  fetchReportJsonData,
+} from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
-import { treeDirection, treeFilter, treeQuery, treeSortBy, treeStatus } from "./treeFilters";
+import { treeFilters } from "./treeFilters/store";
+import { sortBy } from "./treeSort";
 
 export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
   loading: true,
@@ -79,6 +83,16 @@ export const fetchEnvTreesData = async (envs: string[]) => {
 
 const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeStore.value.data) : []));
 
+const alwaysTruePredicate = () => true;
+
+const filterPredicate = computed(() => {
+  if (treeFilters.value.length === 0) {
+    return alwaysTruePredicate;
+  }
+
+  return buildFilterPredicate(treeFilters.value);
+});
+
 export const filteredTree = computed(() => {
   return treeEntries.value.reduce(
     (acc, [key, value]) => {
@@ -87,17 +101,13 @@ export const filteredTree = computed(() => {
       }
 
       const { root, leavesById, groupsById } = value;
+
       const tree = createRecursiveTree({
         group: root as AwesomeTreeGroup,
         leavesById,
         groupsById,
-        filterOptions: {
-          query: treeQuery.value,
-          status: treeStatus.value,
-          filter: treeFilter.value,
-          sortBy: treeSortBy.value,
-          direction: treeDirection.value,
-        },
+        filterPredicate: filterPredicate.value,
+        sortBy: sortBy.value,
       });
 
       return Object.assign(acc, {

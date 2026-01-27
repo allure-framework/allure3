@@ -1,6 +1,7 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
 import "@allurereport/web-components/index.css";
+import { computed, useSignalEffect } from "@preact/signals";
 import clsx from "clsx";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
@@ -14,13 +15,16 @@ import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchGlobals } from "@/stores/globals";
-import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
-import { handleHashChange, route } from "@/stores/router";
-import { currentSection, getSection } from "@/stores/sections";
+import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import { fetchQualityGateResults } from "./stores/qualityGate";
+import { testResultRoute } from "./stores/router";
+import { currentSection } from "./stores/sections";
+import { currentTrId } from "./stores/testResult";
+import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
+import { migrateFilterParam } from "./stores/treeFilters/utils";
 import * as styles from "./styles.scss";
 
 const Loader = () => {
@@ -32,10 +36,12 @@ const Loader = () => {
   );
 };
 
+const isTestResultRoute = computed(() => testResultRoute.value.matches);
+
 const App = () => {
-  const className = styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`];
+  const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
-  const testResultId = route.value.params?.testResultId ?? null;
+
   const prefetchData = async () => {
     const fns = [
       ensureReportDataReady,
@@ -48,12 +54,7 @@ const App = () => {
     ];
 
     if (globalThis) {
-      fns.unshift(
-        getSection as () => Promise<void>,
-        getLocale,
-        getLayout as () => Promise<void>,
-        getTheme as () => Promise<void>,
-      );
+      fns.unshift(getLocale, getTheme as () => Promise<void>);
     }
 
     await waitForI18next;
@@ -74,22 +75,16 @@ const App = () => {
     prefetchData();
   }, [currentEnvironment.value]);
 
-  useEffect(() => {
-    if (testResultId) {
+  useSignalEffect(() => {
+    const testResultId = currentTrId.value;
+    if (isTestResultRoute.value && testResultId) {
       fetchTestResult(testResultId);
       fetchTestResultNav(currentEnvironment.value);
     }
-  }, [testResultId, currentEnvironment]);
+  });
 
   useEffect(() => {
-    const onHashChange = () => handleHashChange();
-
-    handleHashChange();
-    globalThis.addEventListener("hashchange", onHashChange);
-
-    return () => {
-      globalThis.removeEventListener("hashchange", onHashChange);
-    };
+    fetchTreeFiltersData();
   }, []);
 
   return (
@@ -107,10 +102,6 @@ const App = () => {
   );
 };
 
-export const openInNewTab = (path: string) => {
-  window.open(`#${path}`, "_blank");
-};
-
 const rootElement = document.getElementById("app");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -118,5 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.documentElement.setAttribute("data-os", "mac");
   }
 });
+
+migrateFilterParam();
 
 render(<App />, rootElement);

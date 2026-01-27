@@ -3,7 +3,7 @@ import { Counter, Loadable } from "@allurereport/web-components";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { setTreeStatus, treeStatus } from "@/stores/treeFilters";
+import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
 import { HeaderActions } from "./HeaderActions";

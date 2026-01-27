@@ -1,10 +1,11 @@
-import { Button, Menu, Text, allureIcons } from "@allurereport/web-components";
+import { Button, ButtonLink, Menu, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
+import { getTagsFilterUrl } from "@/stores/treeFilters/utils";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
 
@@ -50,8 +51,22 @@ export const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo }) => {
   );
 };
 
-const MetadataTooltip = (props: { value: string }) => {
-  const { value } = props;
+const OpenFilterUrlButton: FunctionalComponent<{ url: string }> = ({ url }) => {
+  const { t } = useI18n("filters");
+
+  return (
+    <ButtonLink
+      href={url}
+      target="_blank"
+      style="ghost"
+      icon={allureIcons.lineGeneralLinkExternal}
+      text={t("goto_filter")}
+    />
+  );
+};
+
+const MetadataTooltip = (props: { value: string; name: string }) => {
+  const { value, name } = props;
   const { t } = useI18n("ui");
 
   return (
@@ -59,6 +74,7 @@ const MetadataTooltip = (props: { value: string }) => {
       <div className={styles["metadata-tooltip-value"]}>
         <Text>{value}</Text>
       </div>
+      {name === "tag" && <OpenFilterUrlButton url={getTagsFilterUrl([value])} />}
       <Button
         style={"outline"}
         icon={allureIcons.lineGeneralCopy3}
@@ -70,9 +86,10 @@ const MetadataTooltip = (props: { value: string }) => {
 };
 
 const MetaDataKeyLabel: FunctionalComponent<{
+  name: string;
   size?: "s" | "m";
   value: string;
-}> = ({ size = "s", value }) => {
+}> = ({ name, size = "s", value }) => {
   return (
     <Menu
       size="xl"
@@ -85,7 +102,7 @@ const MetaDataKeyLabel: FunctionalComponent<{
       )}
     >
       <Menu.Section>
-        <MetadataTooltip value={value} />
+        <MetadataTooltip value={value} name={name} />
       </Menu.Section>
     </Menu>
   );
@@ -110,12 +127,12 @@ const MetadataKeyValue: FunctionalComponent<{
       {values?.length ? (
         <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
           {values.map((item) => (
-            <MetaDataKeyLabel key={item} value={item} />
+            <MetaDataKeyLabel key={item} value={item} name={title} />
           ))}
         </div>
       ) : (
         <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
-          <MetaDataKeyLabel value={value} />
+          <MetaDataKeyLabel value={value} name={title} />
         </div>
       )}
     </div>

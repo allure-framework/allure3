@@ -131,17 +131,6 @@ test.describe("flaky", () => {
     expect(flaky).toBe("1");
   });
 
-  test("should show tooltip with flaky filter description on hover", async ({ page }) => {
-    await page.goto(bootstrap.url);
-
-    await treePage.openFilterMenu();
-    await expect(treePage.flakyFilterLocator).toBeVisible();
-    await treePage.flakyFilterLocator.hover();
-    await expect(treePage.filterTooltipLocator).toBeVisible();
-    await treePage.closeTooltip();
-    await expect(treePage.filterTooltipLocator).toBeHidden();
-  });
-
   test("should apply flaky filter to the tree when filter=flaky query parameter is present", async ({ page }) => {
     await page.goto(`${bootstrap.url}?filter=flaky`);
 

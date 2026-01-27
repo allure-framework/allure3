@@ -28,22 +28,28 @@
     "search-placeholder": "Namn eller ID"
   },
   "filters": {
-    "more-filters": "Fler filter",
-    "enable-filter": "Aktivera filtret \"{{filter}}\"",
     "flaky": "Ostadig",
     "retry": "Försök igen",
     "new": "Ny",
     "fixed": "Åtgärdad",
     "regressed": "Regresserad",
-    "malfunctioned": "Felaktig"
-  },
-  "filters.description": {
-    "flaky": "Visa ostadiga tester",
-    "retry": "Visa testresultat som kördes om",
-    "new": "Visa testresultat som visas för första gången i denna rapport",
-    "fixed": "Visa tester som nu är godkända men som tidigare var \"misslyckade\" eller \"trasiga\"",
-    "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
-    "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status"
+    "malfunctioned": "Felaktig",
+    "transition": "Övergång",
+    "tags": "Taggar",
+    "goto_filter": "Gå till filter",
+    "errors": {
+      "max_values_one": "Endast det första {{count}} värdet används för filtrering.\nYtterligare värden ignoreras",
+      "max_values_other": "Endast de första {{count}} värdena används för filtrering.\nYtterligare värden ignoreras"
+    },
+    "description": {
+      "flaky": "Visa ostadiga tester",
+      "retry": "Visa testresultat som kördes om",
+      "new": "Visa testresultat som visas för första gången i denna rapport",
+      "fixed": "Visa tester som nu är godkända men som tidigare var \"misslyckade\" eller \"trasiga\"",
+      "regressed": "Visa testresultat som ändrades från \"godkänd\" eller \"trasig\" till \"misslyckad\" status",
+      "malfunctioned": "Visa testresultat som ändrades från \"godkänd\" eller \"misslyckad\" till \"trasig\" status",
+      "tags": "Visa testresultat som har de angivna taggarna"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sortera efter:",
