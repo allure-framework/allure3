@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { THEME_AUTO, THEME_DARK, THEME_LIGHT, SELECTED_THEMES } from "./constants.js";
+import { THEME_AUTO, THEME_DARK, THEME_LIGHT, SELECTED_THEMES } from "../../src/stores/theme/constants.js";
 
 const mockMediaQuery = {
   matches: false,
@@ -42,8 +42,8 @@ describe("theme actions", () => {
 
   describe("setUserTheme", () => {
     it("should set userTheme to the provided theme", async () => {
-      const { userTheme } = await import("./store.js");
-      const { setUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { setUserTheme } = await import("../../src/stores/theme/actions.js");
 
       setUserTheme(THEME_LIGHT);
 
@@ -51,8 +51,8 @@ describe("theme actions", () => {
     });
 
     it("should set userTheme to dark", async () => {
-      const { userTheme } = await import("./store.js");
-      const { setUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { setUserTheme } = await import("../../src/stores/theme/actions.js");
 
       setUserTheme(THEME_DARK);
 
@@ -60,8 +60,8 @@ describe("theme actions", () => {
     });
 
     it("should set userTheme to auto", async () => {
-      const { userTheme } = await import("./store.js");
-      const { setUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { setUserTheme } = await import("../../src/stores/theme/actions.js");
       userTheme.value = THEME_LIGHT;
 
       setUserTheme(THEME_AUTO);
@@ -72,8 +72,8 @@ describe("theme actions", () => {
 
   describe("toggleUserTheme", () => {
     it("should toggle from light to dark", async () => {
-      const { userTheme } = await import("./store.js");
-      const { toggleUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { toggleUserTheme } = await import("../../src/stores/theme/actions.js");
       userTheme.value = THEME_LIGHT;
 
       toggleUserTheme();
@@ -82,8 +82,8 @@ describe("theme actions", () => {
     });
 
     it("should toggle from dark to auto", async () => {
-      const { userTheme } = await import("./store.js");
-      const { toggleUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { toggleUserTheme } = await import("../../src/stores/theme/actions.js");
       userTheme.value = THEME_DARK;
 
       toggleUserTheme();
@@ -92,8 +92,8 @@ describe("theme actions", () => {
     });
 
     it("should toggle from auto to light", async () => {
-      const { userTheme } = await import("./store.js");
-      const { toggleUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { toggleUserTheme } = await import("../../src/stores/theme/actions.js");
       userTheme.value = THEME_AUTO;
 
       toggleUserTheme();
@@ -102,8 +102,8 @@ describe("theme actions", () => {
     });
 
     it("should cycle through all themes", async () => {
-      const { userTheme } = await import("./store.js");
-      const { toggleUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { toggleUserTheme } = await import("../../src/stores/theme/actions.js");
 
       // Start from light
       userTheme.value = THEME_LIGHT;
@@ -117,8 +117,8 @@ describe("theme actions", () => {
     });
 
     it("should handle multiple toggles correctly", async () => {
-      const { userTheme } = await import("./store.js");
-      const { toggleUserTheme } = await import("./actions.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      const { toggleUserTheme } = await import("../../src/stores/theme/actions.js");
       userTheme.value = THEME_LIGHT;
 
       toggleUserTheme();
@@ -134,8 +134,8 @@ describe("theme actions", () => {
 
   describe("initThemeStore", () => {
     it("should set data-theme attribute on document.documentElement", async () => {
-      const { userTheme } = await import("./store.js");
-      await import("./actions.js"); // Trigger initialization
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
       userTheme.value = THEME_LIGHT;
 
       // Wait for effect to run
@@ -145,8 +145,8 @@ describe("theme actions", () => {
     });
 
     it("should update data-theme when currentTheme changes", async () => {
-      const { userTheme } = await import("./store.js");
-      await import("./actions.js"); // Trigger initialization
+      const { userTheme } = await import("../../src/stores/theme/store.js");
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
       userTheme.value = THEME_LIGHT;
 
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -161,8 +161,8 @@ describe("theme actions", () => {
     });
 
     it("should update data-theme when userTheme is auto and preferredTheme changes", async () => {
-      const { userTheme, preferredTheme } = await import("./store.js");
-      await import("./actions.js"); // Trigger initialization
+      const { userTheme, preferredTheme } = await import("../../src/stores/theme/store.js");
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
       userTheme.value = THEME_AUTO;
       preferredTheme.value = THEME_LIGHT;
 
@@ -178,15 +178,15 @@ describe("theme actions", () => {
     });
 
     it("should add event listener to media query", async () => {
-      await import("./actions.js"); // Trigger initialization
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockMediaQuery.addEventListener).toHaveBeenCalledWith("change", expect.any(Function));
     });
 
     it("should update preferredTheme when media query changes to dark", async () => {
-      const { preferredTheme } = await import("./store.js");
-      await import("./actions.js"); // Trigger initialization
+      const { preferredTheme } = await import("../../src/stores/theme/store.js");
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
       preferredTheme.value = THEME_LIGHT;
 
       // Get the event listener callback
@@ -208,8 +208,8 @@ describe("theme actions", () => {
     });
 
     it("should update preferredTheme when media query changes to light", async () => {
-      const { preferredTheme } = await import("./store.js");
-      await import("./actions.js"); // Trigger initialization
+      const { preferredTheme } = await import("../../src/stores/theme/store.js");
+      await import("../../src/stores/theme/actions.js"); // Trigger initialization
       preferredTheme.value = THEME_DARK;
 
       // Get the event listener callback

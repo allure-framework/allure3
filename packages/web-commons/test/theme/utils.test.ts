@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { getPrefersColorSchemeMQ } from "./utils.js";
+import { getPrefersColorSchemeMQ } from "../../src/stores/theme/utils.js";
 
 const mockMediaQueryDark = {
   matches: true,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { THEME_AUTO, THEME_DARK, THEME_LIGHT, STORAGE_KEY } from "./constants.js";
-import * as dataModule from "../../data.js";
-import * as utilsModule from "./utils.js";
+import { THEME_AUTO, THEME_DARK, THEME_LIGHT, STORAGE_KEY } from "../../src/stores/theme/constants.js";
+import * as dataModule from "../../src/data.js";
+import * as utilsModule from "../../src/stores/theme/utils.js";
 
 const mockMediaQuery = {
   matches: false,
@@ -48,7 +48,7 @@ describe("theme store", () => {
 
   describe("userTheme signal", () => {
     it("should initialize with THEME_AUTO", async () => {
-      const { userTheme } = await import("./store.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
       expect(userTheme.value).toBe(THEME_AUTO);
     });
 
@@ -59,7 +59,7 @@ describe("theme store", () => {
       vi.resetModules();
 
       // Re-import after localStorage was set and modules were reset
-      const { userTheme } = await import("./store.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
       expect(userTheme.value).toBe(THEME_DARK);
     });
 
@@ -67,7 +67,7 @@ describe("theme store", () => {
       localStorage.setItem(STORAGE_KEY, "invalid");
       vi.resetModules();
 
-      const { userTheme } = await import("./store.js");
+      const { userTheme } = await import("../../src/stores/theme/store.js");
       // When invalid value, onRestore returns reportConfigTheme ?? THEME_AUTO
       // Since reportConfigTheme is undefined by default, it should be THEME_AUTO
       expect(userTheme.value).toBe(THEME_AUTO);
@@ -90,7 +90,7 @@ describe("theme store", () => {
       mockMatchMedia.mockReturnValue(anotherMockMediaQuery);
       mockGetPrefersColorSchemeMQ.mockReturnValue(anotherMockMediaQuery);
 
-      const { preferredTheme } = await import("./store.js");
+      const { preferredTheme } = await import("../../src/stores/theme/store.js");
       expect(preferredTheme.value).toBe(THEME_LIGHT);
     });
 
@@ -109,7 +109,7 @@ describe("theme store", () => {
       mockMatchMedia.mockReturnValue(anotherMockMediaQuery);
       mockGetPrefersColorSchemeMQ.mockReturnValue(anotherMockMediaQuery);
 
-      const { preferredTheme } = await import("./store.js");
+      const { preferredTheme } = await import("../../src/stores/theme/store.js");
       expect(preferredTheme.value).toBe(THEME_DARK);
     });
 
@@ -118,7 +118,7 @@ describe("theme store", () => {
       // @ts-expect-error - intentionally removing window for test
       delete globalThis.window;
 
-      const { preferredTheme } = await import("./store.js");
+      const { preferredTheme } = await import("../../src/stores/theme/store.js");
       expect(preferredTheme.value).toBe(THEME_LIGHT);
 
       globalThis.window = originalWindow;
@@ -127,14 +127,14 @@ describe("theme store", () => {
 
   describe("currentTheme computed", () => {
     it("should return userTheme when userTheme is not auto", async () => {
-      const { userTheme, currentTheme } = await import("./store.js");
+      const { userTheme, currentTheme } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_DARK;
 
       expect(currentTheme.value).toBe(THEME_DARK);
     });
 
     it("should return preferredTheme when userTheme is auto", async () => {
-      const { userTheme, preferredTheme, currentTheme } = await import("./store.js");
+      const { userTheme, preferredTheme, currentTheme } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_AUTO;
       preferredTheme.value = THEME_DARK;
 
@@ -142,7 +142,7 @@ describe("theme store", () => {
     });
 
     it("should update when preferredTheme changes and userTheme is auto", async () => {
-      const { userTheme, preferredTheme, currentTheme } = await import("./store.js");
+      const { userTheme, preferredTheme, currentTheme } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_AUTO;
       preferredTheme.value = THEME_LIGHT;
 
@@ -156,7 +156,7 @@ describe("theme store", () => {
 
   describe("themeStore computed", () => {
     it("should return current and selected theme", async () => {
-      const { userTheme, themeStore } = await import("./store.js");
+      const { userTheme, themeStore } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_LIGHT;
 
       expect(themeStore.value.current).toBe(THEME_LIGHT);
@@ -164,7 +164,7 @@ describe("theme store", () => {
     });
 
     it("should return auto as selected and preferred as current when userTheme is auto", async () => {
-      const { userTheme, preferredTheme, themeStore } = await import("./store.js");
+      const { userTheme, preferredTheme, themeStore } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_AUTO;
       preferredTheme.value = THEME_DARK;
 
@@ -173,7 +173,7 @@ describe("theme store", () => {
     });
 
     it("should update when userTheme changes", async () => {
-      const { userTheme, themeStore } = await import("./store.js");
+      const { userTheme, themeStore } = await import("../../src/stores/theme/store.js");
       userTheme.value = THEME_LIGHT;
 
       expect(themeStore.value.selected).toBe(THEME_LIGHT);

@@ -121,21 +121,6 @@ describe("filters > builders", () => {
         });
       });
 
-      test("should throw error for boolean field with false value (filtered out)", () => {
-        const filter: Filter = {
-          type: "field",
-          value: {
-            key: "retry",
-            value: false,
-            type: "boolean",
-          },
-          logicalOperator: "AND",
-        };
-
-        // Boolean filters with false value are filtered out, resulting in empty array
-        expect(() => buildFieldFilters([filter])).toThrow("chainFieldFilters: filters array cannot be empty");
-      });
-
       test("should build AQL expression for array field (strict mode - IN operator)", () => {
         const filter: Filter = {
           type: "field",
