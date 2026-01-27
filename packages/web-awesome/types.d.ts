@@ -27,6 +27,7 @@ export type AwesomeReportOptions = {
   sections?: string[];
   cacheKey: string;
   ci?: CiDescriptor;
+  reportHistory: string[];
 };
 
 export type AwesomeFixtureResult = Omit<

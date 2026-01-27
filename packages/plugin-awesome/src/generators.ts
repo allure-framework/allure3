@@ -483,6 +483,7 @@ export const generateStaticFiles = async (
     reportDataFiles: ReportFile[];
     reportUuid: string;
     reportName: string;
+    reportHistory: { uuid: string }[];
   },
 ) => {
   const {
@@ -500,6 +501,7 @@ export const generateStaticFiles = async (
     layout = "base",
     defaultSection = "",
     ci,
+    reportHistory,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -552,6 +554,7 @@ export const generateStaticFiles = async (
     reportLanguage,
     createdAt: now,
     reportUuid,
+    reportHistory: reportHistory.map(({ uuid }) => uuid),
     groupBy: groupBy?.length ? groupBy : [],
     cacheKey: now.toString(),
     ci,

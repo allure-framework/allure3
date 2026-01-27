@@ -49,6 +49,7 @@ export class AwesomePlugin implements Plugin {
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
     const qualityGateResults = await store.qualityGateResults();
+    const reportHistory = (await store.allHistoryDataPoints()).map(({ uuid }) => ({ uuid }));
 
     for (const env of environments) {
       envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
@@ -115,6 +116,7 @@ export class AwesomePlugin implements Plugin {
       reportName: context.reportName,
       ci: context.ci,
       reportDataFiles,
+      reportHistory
     });
   };
 
