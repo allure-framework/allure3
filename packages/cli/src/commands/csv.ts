@@ -4,7 +4,7 @@ import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import process, { exit } from "node:process";
 import { red } from "yoctocolors";
 
@@ -63,7 +63,7 @@ export class CsvCommand extends Command {
       separator: this.separator ?? ",",
       disableHeaders: this.disableHeaders ?? false,
       // it's a UX improvement: use absolute path to write file directly, avoiding report's output directory
-      fileName: this.output ? join(cwd, this.output) : undefined,
+      fileName: this.output && isAbsolute(this.output) ? this.output : this.output ? join(cwd, this.output) : undefined,
     } as CsvPluginOptions;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath: this.knownIssues,

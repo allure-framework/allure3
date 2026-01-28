@@ -12,6 +12,7 @@ import { CsvCommand } from "../../src/commands/csv.js";
 const fixtures = {
   resultsDir: "foo/bar/allure-results",
   output: "custom-output.csv",
+  absoluteOutput: "/absolute/path/custom-output.csv",
   knownIssues: "./custom/known/issues/path",
   separator: ";",
   disableHeaders: true,
@@ -71,6 +72,9 @@ describe("csv command", () => {
 
     await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
+      knownIssuesPath: undefined,
+    });
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
       plugins: expect.arrayContaining([
@@ -139,7 +143,7 @@ describe("csv command", () => {
     ]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
       knownIssuesPath: fixtures.knownIssues,
     });
     expect(AllureReport).toHaveBeenCalledWith(
@@ -165,7 +169,7 @@ describe("csv command", () => {
     await run(CsvCommand, ["csv", fixtures.resultsDir]);
 
     expect(readConfig).toHaveBeenCalledTimes(1);
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, undefined, {
       knownIssuesPath: undefined,
     });
     expect(AllureReport).toHaveBeenCalledWith(
@@ -177,6 +181,86 @@ describe("csv command", () => {
               separator: ",",
               disableHeaders: false,
               fileName: undefined,
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("should use absolute path directly when output is absolute", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, ["csv", "--output", fixtures.absoluteOutput, fixtures.resultsDir]);
+
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "csv",
+            options: expect.objectContaining({
+              fileName: fixtures.absoluteOutput,
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it("should pass custom config path to readConfig", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, ["csv", "--config", fixtures.config, fixtures.resultsDir]);
+
+    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, fixtures.config, {
+      knownIssuesPath: undefined,
+    });
+  });
+
+  it("should use custom cwd when provided", async () => {
+    const customCwd = "/custom/working/directory";
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (realpath as Mock).mockResolvedValueOnce(customCwd);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, ["csv", "--cwd", customCwd, fixtures.resultsDir]);
+
+    expect(realpath).toHaveBeenCalledWith(customCwd);
+    expect(readConfig).toHaveBeenCalledWith(customCwd, undefined, {
+      knownIssuesPath: undefined,
+    });
+  });
+
+  it("should combine config, cwd, and output options correctly", async () => {
+    const customCwd = "/custom/working/directory";
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (realpath as Mock).mockResolvedValueOnce(customCwd);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(CsvCommand, [
+      "csv",
+      "--config",
+      fixtures.config,
+      "--cwd",
+      customCwd,
+      "--output",
+      fixtures.output,
+      fixtures.resultsDir,
+    ]);
+
+    expect(realpath).toHaveBeenCalledWith(customCwd);
+    expect(readConfig).toHaveBeenCalledWith(customCwd, fixtures.config, {
+      knownIssuesPath: undefined,
+    });
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "csv",
+            options: expect.objectContaining({
+              fileName: join(customCwd, fixtures.output),
             }),
           }),
         ]),
