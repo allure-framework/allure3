@@ -1,4 +1,5 @@
 import { computed, signal } from "@preact/signals";
+import { ReportRootTab } from "@/components/MainReport";
 
 type NavigateToObject = {
   category?: string;
@@ -13,6 +14,7 @@ type Route = {
   params?: {
     testResultId?: string | null;
     subTab?: string | null;
+    nodeId?: string | null;
   };
 };
 
@@ -104,5 +106,5 @@ export const openInNewTab = (path: string) => {
   window.open(`#${path}`, "_blank");
 };
 
-export const activeTab = computed(() => route.value.category || "");
+export const activeTab = computed(() => route.value.category || ReportRootTab.Results);
 export const activeSubTab = computed(() => route.value.params?.subTab || "overview");

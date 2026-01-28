@@ -9,6 +9,8 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { filterEnv } from "./environments.js";
+import { generateCategories } from "./errorCategories/categories.js";
+import { normalizeErrorCategoriesConfig } from "./errorCategories/normalize.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
@@ -36,7 +38,7 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const { singleFile, groupBy = [], filter, appendTitlePath, categories } = this.options ?? {};
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -64,6 +66,10 @@ export class AwesomePlugin implements Plugin {
     await generateTimeline(this.#writer!, store, this.options);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
+
+    const { mode, categories: normalizedCats } = normalizeErrorCategoriesConfig(categories);
+    await generateCategories(this.#writer!, convertedTrs, normalizedCats, mode);
+
     const hasGroupBy = groupBy.length > 0;
 
     const treeLabels = hasGroupBy
@@ -82,7 +88,16 @@ export class AwesomePlugin implements Plugin {
       await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
+
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
+
+      await generateCategories(
+        this.#writer!,
+        envConvertedTrs,
+        normalizedCats,
+        mode,
+        join(reportEnvironment, "categories.json"),
+      );
     }
 
     await generateEnvirontmentsList(this.#writer!, store);

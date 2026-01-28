@@ -13,6 +13,7 @@ import { fetchEnvStats, fetchReportStats, getLocale, getTheme, waitForI18next } 
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
+import { fetchCategoriesData } from "@/stores/errorCategories";
 import { fetchGlobals } from "@/stores/globals";
 import { getLayout, isLayoutLoading, layoutStore } from "@/stores/layout";
 import { handleHashChange, route } from "@/stores/router";
@@ -33,7 +34,7 @@ const Loader = () => {
 };
 
 const App = () => {
-  const className = styles[`layout-${currentSection.value !== "" ? currentSection.value : layoutStore.value}`];
+  const className = styles[`layout-${layoutStore.value}`];
   const [prefetched, setPrefetched] = useState(false);
   const testResultId = route.value.params?.testResultId ?? null;
   const prefetchData = async () => {
@@ -45,6 +46,7 @@ const App = () => {
       fetchEnvInfo,
       fetchGlobals,
       fetchQualityGateResults,
+      fetchCategoriesData,
     ];
 
     if (globalThis) {
