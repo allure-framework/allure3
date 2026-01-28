@@ -1,6 +1,5 @@
-import { allureIcons } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
-import type { FC } from "preact/compat";
+import { allureIcons } from "@/components/SvgIcon";
+import { Text } from "@/components/Typography";
 
 type IconDisplayProps = {
   name: string;
@@ -9,7 +8,7 @@ type IconDisplayProps = {
 
 const getAllureIcons = () => Object.entries(allureIcons).map(([name, id]) => ({ name, id }));
 
-const IconDisplay: FC<IconDisplayProps> = ({ name, id }) => {
+const IconDisplay = ({ name, id }: IconDisplayProps) => {
   return (
     <div style={{ textAlign: "center", margin: "16px", color: "var(--on-text-secondary)" }}>
       <svg width={24} height={24}>

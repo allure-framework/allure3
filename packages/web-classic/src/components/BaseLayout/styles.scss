@@ -1,6 +1,5 @@
 .layout {
   margin: auto;
-  //padding: 12px 32px;
   background: var(--bg-base-primary);
   color: var(--on-text-primary);
   font-size: 14px;
@@ -11,10 +10,8 @@
 }
 
 .wrapper {
-  //max-width: 920px;
   width: 100%;
   flex-direction: column;
-  //margin: auto;
 }
 
 .content {

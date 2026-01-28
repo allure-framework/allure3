@@ -1,4 +1,4 @@
-import { TreeMapChartWidget } from "@allurereport/web-components";
+import { TreeMapChartWidget } from "@/components/Charts/TreeMapChartWidget";
 import type { TreeMapChartWidgetProps } from "@allurereport/web-components";
 import type { Meta, StoryObj } from "@storybook/react";
 import { createTreeMapData, getColor, getColorWithDomain } from "./TreeMapChart/mocks";

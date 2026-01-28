@@ -1,4 +1,5 @@
-import { Button, DropdownButton, IconButton, allureIcons } from "@allurereport/web-components";
+import { Button, DropdownButton, IconButton } from "@/components/Button";
+import { allureIcons } from "@/components/SvgIcon";
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof Button> = {

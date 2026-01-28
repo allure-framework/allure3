@@ -1,4 +1,4 @@
-import { Loadable } from "@allurereport/web-components";
+import { Loadable } from "@/components/Loadable";
 import { signal } from "@preact/signals";
 import type { Meta, StoryObj } from "@storybook/react";
 

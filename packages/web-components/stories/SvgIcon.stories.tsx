@@ -1,4 +1,4 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
+import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import type { Meta, StoryObj } from "@storybook/react";
 
 // Mock icons

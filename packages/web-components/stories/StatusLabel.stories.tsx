@@ -1,4 +1,4 @@
-import { StatusLabel } from "@allurereport/web-components";
+import { StatusLabel } from "@/components/StatusLabel";
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof StatusLabel> = {
