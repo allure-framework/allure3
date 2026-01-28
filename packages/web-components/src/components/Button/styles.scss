@@ -257,6 +257,10 @@
     --allure-btn-icon-color: var(--on-icon-primary);
     --allure-btn-trailing-icon-color: var(--on-icon-primary);
 
+    &[data-icon-color="secondary"] {
+      --allure-btn-icon-color: var(--on-icon-secondary);
+    }
+
     &[data-link] {
       --allure-btn-text-color: var(--on-support-aldebaran);
       --allure-btn-icon-color: var(--on-support-aldebaran);
@@ -345,6 +349,10 @@
     --allure-btn-icon-color: var(--on-icon-primary);
     --allure-btn-trailing-icon-color: var(--on-icon-primary);
 
+    &[data-icon-color="secondary"] {
+      --allure-btn-icon-color: var(--on-icon-secondary);
+    }
+
     &[data-link] {
       --allure-btn-text-color: var(--on-support-aldebaran);
       --allure-btn-icon-color: var(--on-support-aldebaran);
@@ -427,6 +435,10 @@
     --allure-btn-bg-color: var(--bg-control-secondary);
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
+
+    &[data-icon-color="secondary"] {
+      --allure-btn-icon-color: var(--on-icon-secondary);
+    }
 
     &[data-link] {
       --allure-btn-text-color: var(--on-support-aldebaran);
@@ -513,6 +525,10 @@
     --allure-btn-text-color: var(--on-text-primary);
     --allure-btn-icon-color: var(--on-icon-primary);
     --allure-btn-trailing-icon-color: var(--on-icon-primary);
+
+    &[data-icon-color="secondary"] {
+      --allure-btn-icon-color: var(--on-icon-secondary);
+    }
 
     &[data-link] {
       --allure-btn-text-color: var(--on-support-aldebaran);

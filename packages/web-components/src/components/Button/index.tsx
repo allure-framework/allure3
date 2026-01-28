@@ -54,6 +54,12 @@ type BaseBtnProps = {
    */
   iconSize?: "xs" | "s" | "m";
   /**
+   * Color of the icon
+   * applied only when style is not primary
+   * and action is default
+   */
+  iconColor?: "primary" | "secondary";
+  /**
    * Indicates if the button should take the full width of its container
    */
   fullWidth?: boolean;
@@ -130,6 +136,7 @@ const BaseBtn = (props: BaseBtnProps) => {
     trailingSlot,
     rounded,
     isLink = false,
+    iconColor = "primary",
     ...rest
   } = props;
   const isButtonDisabled = isDisabled || isPending;
@@ -154,6 +161,7 @@ const BaseBtn = (props: BaseBtnProps) => {
     onClick,
     "data-rounded": rounded || undefined,
     "data-link": isLink || undefined,
+    "data-icon-color": (action === "default" && iconColor) || undefined,
   };
 
   // Common content for both button and anchor
