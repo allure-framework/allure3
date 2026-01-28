@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Menu, Text } from "@allurereport/web-components";
+import { Menu } from "@/components/Menu";
+import { Text } from "@/components/Typography";
 
 const meta: Meta<typeof Menu> = {
   title: "Commons/Menu",

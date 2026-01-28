@@ -1,6 +1,8 @@
 import type { StorybookConfig } from "@storybook/preact-webpack5";
+import autoprefixer from "autoprefixer";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "path";
+import postcssImport from "postcss-import";
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -26,17 +28,43 @@ const config: StorybookConfig = {
     options: {},
   },
   webpackFinal: async (config) => {
-    config.module!.rules = config.module!.rules!.filter(
-      // @ts-ignore
-      (rule) => !rule?.test?.toString()?.includes?.("scss"),
-    );
     config!.resolve!.alias = {
       ...config.resolve!.alias,
-      "@": join(baseDir, "./src"),
+      "@": join(baseDir, "../src"),
     };
-    config.module!.rules.push({
+
+    config.module!.rules!.push({
       test: /\.scss$/,
-      use: ["style-loader", "css-loader", "sass-loader"],
+      use: [
+        "style-loader",
+        {
+          loader: "css-loader",
+          options: {
+            importLoaders: 2, // postcss-loader and sass-loader
+            esModule: false,
+            modules: {
+              exportLocalsConvention: "asIs", // Keep class names as-is, don't convert to camelCase
+            },
+          },
+        },
+        {
+          loader: "postcss-loader",
+          options: {
+            postcssOptions: {
+              plugins: [postcssImport(), autoprefixer()],
+            },
+          },
+        },
+        {
+          loader: "sass-loader",
+          options: {
+            api: "modern-compiler",
+            sassOptions: {
+              silenceDeprecations: ["legacy-js-api"],
+            },
+          },
+        },
+      ],
     });
 
     config.externals = {
@@ -45,6 +73,11 @@ const config: StorybookConfig = {
       // Some packages use crypto from node:crypto, but webpack doesn't support it
       // I think this does not end up in a bundle, so it is safe to do this
       "node:crypto": "crypto",
+    };
+
+    config.resolve!.extensionAlias = {
+      ...(config.resolve?.extensionAlias ?? {}),
+      ".js": [".ts", ".tsx", ".js", ".jsx"],
     };
 
     return config;

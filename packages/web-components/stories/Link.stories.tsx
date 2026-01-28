@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Link } from "@allurereport/web-components";
+import { Link } from "@/components/Link";
 
 const meta: Meta<typeof Link> = {
   title: "Commons/Link",

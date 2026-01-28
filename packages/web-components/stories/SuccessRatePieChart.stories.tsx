@@ -1,4 +1,4 @@
-import { SuccessRatePieChart } from "@allurereport/web-components";
+import { SuccessRatePieChart } from "@/components/Charts/SuccessRatePieChart";
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<typeof SuccessRatePieChart> = {

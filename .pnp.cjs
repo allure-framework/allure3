@@ -1470,6 +1470,7 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
           ["postcss-import", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:16.1.0"],\
+          ["postcss-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.2.0"],\
           ["preact", "npm:10.28.2"],\
           ["prismjs", "npm:1.30.0"],\
           ["react", [\
@@ -23907,6 +23908,13 @@ const RAW_RUNTIME_STATE =
           ["jiti", "npm:1.21.7"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:2.6.1", {\
+        "packageLocation": "./.yarn/cache/jiti-npm-2.6.1-597ab7fb84-8cd72c5fd0.zip/node_modules/jiti/",\
+        "packageDependencies": [\
+          ["jiti", "npm:2.6.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["jquery", [\
@@ -26532,6 +26540,13 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
+      ["npm:8.2.0", {\
+        "packageLocation": "./.yarn/cache/postcss-loader-npm-8.2.0-5ef532d469-eda6790673.zip/node_modules/postcss-loader/",\
+        "packageDependencies": [\
+          ["postcss-loader", "npm:8.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
       ["virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:8.1.1", {\
         "packageLocation": "./.yarn/__virtual__/postcss-loader-virtual-fa3f3eaa58/0/cache/postcss-loader-npm-8.1.1-20cf547c92-7ae38e6351.zip/node_modules/postcss-loader/",\
         "packageDependencies": [\
@@ -26545,6 +26560,30 @@ const RAW_RUNTIME_STATE =
           ["postcss", "npm:8.5.6"],\
           ["semver", "npm:7.7.2"],\
           ["webpack", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:5.103.0"]\
+        ],\
+        "packagePeers": [\
+          "@rspack/core",\
+          "@types/postcss",\
+          "@types/rspack__core",\
+          "@types/webpack",\
+          "postcss",\
+          "webpack"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.2.0", {\
+        "packageLocation": "./.yarn/__virtual__/postcss-loader-virtual-cb80f0d6a9/0/cache/postcss-loader-npm-8.2.0-5ef532d469-eda6790673.zip/node_modules/postcss-loader/",\
+        "packageDependencies": [\
+          ["postcss-loader", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:8.2.0"],\
+          ["@rspack/core", null],\
+          ["@types/postcss", null],\
+          ["@types/rspack__core", null],\
+          ["@types/webpack", null],\
+          ["cosmiconfig", "virtual:fa3f3eaa58e2efd107e24dc6683a1159198489c45ff4db9b5d98626d02079746532ffe169618ff0b04e2521c7ec5015da53684bda2b3d93f1f255ec00b264d54#npm:9.0.0"],\
+          ["jiti", "npm:2.6.1"],\
+          ["postcss", "npm:8.5.6"],\
+          ["semver", "npm:7.7.2"],\
+          ["webpack", null]\
         ],\
         "packagePeers": [\
           "@rspack/core",\
