@@ -1,0 +1,1 @@
+{"id":"cecdeaa9000fcf6d03116da208102e18","fullName":"test/index.test.ts#CsvPlugin should generate csv with default options","name":"should generate csv with default options","status":"passed","testResultsByEnv":{"windows-latest":"3de3793a4e5e720031ca9e59b171fc57","ubuntu-latest":"c1247a44a08021633536da8798cd40fd","macos-latest":"962b8b64e8da894661308d3a5b486d3e"}}

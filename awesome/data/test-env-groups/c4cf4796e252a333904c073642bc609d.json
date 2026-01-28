@@ -1,0 +1,1 @@
+{"id":"c4cf4796e252a333904c073642bc609d","fullName":"test/index.test.ts#CsvPlugin should write to absolute path","name":"should write to absolute path","status":"passed","testResultsByEnv":{"windows-latest":"9e118beb4556ce7e1db7a200b354b031","ubuntu-latest":"3456dbff276299fee0cdc6ad87c3cf63","macos-latest":"d4c03a46d95cca19811ac889921101aa"}}
