@@ -1,28 +1,50 @@
 import { fetchReportAttachment } from "./data.js";
 
-export interface Attachments {
+type AttachmentImageData = {
+  img: string;
   id?: string;
-  ext?: string;
-  contentType?: string;
-  text?: string;
-  src?: string;
-  img?: string;
-}
+};
 
-export const fetchFromUrl = async ({ id, ext, contentType }: Attachments) => {
+type AttachmentTextData = {
+  text: string;
+};
+
+type AttachmentVideoData = {
+  src: string;
+  id?: string;
+  contentType?: string;
+};
+
+type AttachmentImageDiffData = {
+  diff: {
+    actual?: string;
+    expected?: string;
+    diff?: string;
+  };
+};
+
+export type AttachmentData = AttachmentImageData | AttachmentTextData | AttachmentVideoData | AttachmentImageDiffData;
+
+type AttachmentPayload = { id?: string; ext?: string; contentType?: string };
+
+export const fetchFromUrl = async ({ id, ext, contentType }: AttachmentPayload) => {
   const fileName = `${id || "-"}${ext || ""}`;
 
   return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
 };
 
-export const fetchAttachment = async (id: string, ext: string, contentType?: string): Promise<Attachments | null> => {
+export const fetchAttachment = async (id: string, ext: string, contentType?: string): Promise<AttachmentData | null> => {
   if (!id && !ext) {
     return null;
   }
   const response = await fetchFromUrl({ id, ext, contentType });
   const fileType = attachmentType(contentType);
 
-  switch (fileType.type) {
+  if (!response.ok) {
+    throw new Error("Failed to fetch");
+  }
+
+  switch (fileType) {
     case "svg":
     case "image": {
       const blob = await response.blob();
@@ -41,6 +63,10 @@ export const fetchAttachment = async (id: string, ext: string, contentType?: str
       const blob = await response.blob();
       const src = URL.createObjectURL(blob);
       return { src, id, contentType };
+    }
+    case "image-diff": {
+      const json = await response.json();
+      return { diff: json };
     }
     default:
       return null;
@@ -76,7 +102,21 @@ export const openAttachmentInNewTab = async (id: string, ext: string, contentTyp
   globalThis.open(linkUrl, "_blank");
 };
 
-export const attachmentType = (type?: string) => {
+export type AttachmentType =
+  | "css"
+  | "json"
+  | "image"
+  | "svg"
+  | "code"
+  | "text"
+  | "html"
+  | "table"
+  | "video"
+  | "uri"
+  | "archive"
+  | "image-diff";
+
+export const attachmentType = (type?: string): AttachmentType | null => {
   switch (type) {
     case "image/bmp":
     case "image/gif":
@@ -85,10 +125,7 @@ export const attachmentType = (type?: string) => {
     case "image/jpg":
     case "image/png":
     case "image/*":
-      return {
-        type: "image",
-        icon: "file",
-      };
+      return "image";
     case "text/xml":
     case "text/json":
     case "text/yaml":
@@ -118,63 +155,34 @@ export const attachmentType = (type?: string) => {
     case "application/x-yaml":
     case "application/xml":
     case "application/json":
-      return {
-        type: "code",
-        icon: "file",
-      };
+      return "code";
     case "text/plain":
     case "text/markdown":
     case "text/*":
-      return {
-        type: "text",
-        icon: "txt",
-      };
+      return "text";
     case "text/html":
-      return {
-        type: "html",
-        icon: "file",
-      };
+      return "html";
     case "text/csv":
-      return {
-        type: "table",
-        icon: "csv",
-      };
     case "text/tab-separated-values":
-      return {
-        type: "table",
-        icon: "table",
-      };
+      return "table";
     case "image/svg+xml":
-      return {
-        type: "svg",
-        icon: "file",
-      };
+      return "svg";
     case "video/mp4":
     case "video/ogg":
     case "video/webm":
-      return {
-        type: "video",
-        icon: "file",
-      };
+      return "video";
     case "text/uri-list":
-      return {
-        type: "uri",
-        icon: "list",
-      };
+      return "uri";
     case "application/x-tar":
     case "application/x-gtar":
     case "application/x-bzip2":
     case "application/gzip":
     case "application/zip":
-      return {
-        type: "archive",
-        icon: "file",
-      };
+      return "archive";
+    case "application/vnd.allure.image.diff":
+      return "image-diff";
     default:
-      return {
-        type: null,
-        icon: "file",
-      };
+      return null;
   }
 };
 export const restrictedContentTypes = ["application/gzip"];

@@ -8,9 +8,9 @@ import styles from "./styles.scss";
 
 const Gallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) => {
   const filteredAttachments = attachments?.filter(({ link: { contentType } }: AttachmentTestStepResult) => {
-    const type = attachmentType(contentType as string).type;
+    const type = attachmentType(contentType);
 
-    return !["archive", null].includes(type as string);
+    return !["archive", null].includes(type);
   });
 
   return (

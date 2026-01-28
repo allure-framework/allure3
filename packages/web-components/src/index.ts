@@ -49,3 +49,5 @@ export * from "./components/Timeline";
 export * from "./components/ReportSummaryCard";
 export * from "./components/ThemeProvider";
 export * from "./components/EmptyView";
+export * from "./components/ImageDiff";
+export { ImageDiff } from "./components/ImageDiff";

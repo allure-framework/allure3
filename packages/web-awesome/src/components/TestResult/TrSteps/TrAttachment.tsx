@@ -59,11 +59,11 @@ export const TrAttachment: FunctionComponent<{
   const { link } = item;
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
-  const isValidComponentType = !["archive", null].includes(componentType.type as string);
+  const isValidComponentType = !["archive", null].includes(componentType);
 
   const expandAttachment = (event: Event) => {
     event.stopPropagation();
-    if (componentType.type !== "image") {
+    if (componentType !== "image") {
       return;
     }
     openModal({

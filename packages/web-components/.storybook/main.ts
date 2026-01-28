@@ -1,7 +1,7 @@
 import type { StorybookConfig } from "@storybook/preact-webpack5";
 import autoprefixer from "autoprefixer";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "path";
 import postcssImport from "postcss-import";
 
 /**
@@ -33,6 +33,7 @@ const config: StorybookConfig = {
       "@": join(baseDir, "../src"),
     };
 
+    // SCSS support (CSS modules, PostCSS, Sass)
     config.module!.rules!.push({
       test: /\.scss$/,
       use: [
@@ -62,6 +63,43 @@ const config: StorybookConfig = {
             sassOptions: {
               silenceDeprecations: ["legacy-js-api"],
             },
+          },
+        },
+      ],
+    });
+
+    // Use SVG sprite for icons from src/assets/svg (similar to rollup-plugin-svg-sprites)
+    const svgIconsDir = join(baseDir, "../src/assets/svg");
+
+    // Exclude our icons directory from the default Storybook SVG rule (if it exists)
+    const svgRule = config.module!.rules!.find(
+      (rule) =>
+        typeof rule === "object" &&
+        !!(rule as any).test &&
+        (rule as any).test.toString().includes("svg"),
+    ) as any;
+
+    if (svgRule) {
+      const existingExclude = svgRule.exclude;
+      if (Array.isArray(existingExclude)) {
+        svgRule.exclude = [...existingExclude, svgIconsDir];
+      } else if (existingExclude) {
+        svgRule.exclude = [existingExclude, svgIconsDir];
+      } else {
+        svgRule.exclude = [svgIconsDir];
+      }
+    }
+
+    // Add svg-sprite-loader for icons used by SvgIcon component
+    config.module!.rules!.push({
+      test: /\.svg$/,
+      include: [svgIconsDir],
+      use: [
+        {
+          loader: require.resolve("svg-sprite-loader"),
+          options: {
+            // icon.id will be used inside <use xlinkHref={`#${id}`} />
+            symbolId: "[name]",
           },
         },
       ],

@@ -1,17 +1,19 @@
-import { type AttachmentTestStepResult } from "@allurereport/core-api";
 import { ansiToHTML, isAnsi } from "@allurereport/web-commons";
-import { type FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import "./code.scss";
+import type { AttachmentProps } from "./model";
 
-export const AttachmentCode: FunctionalComponent<{
-  item: AttachmentTestStepResult;
-  attachment: { text?: string };
-}> = ({ attachment, item }) => {
+export const AttachmentCode = (props: AttachmentProps) => {
+  const { attachment, item } = props;
+
   useEffect(() => {
     Prism.highlightAll();
   }, [attachment]);
+
+  if (!attachment || !("text" in attachment)) {
+    return null;
+  }
 
   const ext = item?.link?.ext?.replace(".", "") ?? "plaintext";
   const rawText = attachment.text ?? "";
@@ -35,6 +37,7 @@ export const AttachmentCode: FunctionalComponent<{
         data-testid="code-attachment-content"
         key={item?.link?.id}
         className={`language-${ext} line-numbers`}
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: sanitizedText }}
       />
     );
