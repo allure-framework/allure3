@@ -12,6 +12,7 @@ export const Toggle = (props: Props) => {
   const { value, label, onChange, focusable = true, size = "m", ...rest } = props;
 
   const handleChange = (e: Event) => {
+    console.log("handleChange", e);
     const newValue = !(e.target as HTMLInputElement).checked;
     onChange(newValue);
   };
@@ -25,7 +26,7 @@ export const Toggle = (props: Props) => {
       type="checkbox"
       checked={value}
       aria-label={label}
-      onToggle={handleChange}
+      onClick={handleChange}
       data-size={size}
     />
   );
