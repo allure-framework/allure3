@@ -57,12 +57,12 @@ export const Tab = (props: {
   const { tabId, children, onClick, testId, isCurrentTab = isContextCurrentTab.value } = props;
 
   const handleTabClick = () => {
-    if (onClick) {
-      return onClick();
-    }
-
     if (isCurrentTab) {
       return;
+    }
+
+    if (onClick) {
+      return onClick();
     }
 
     setCurrentTab(tabId);
@@ -75,7 +75,7 @@ export const Tab = (props: {
       data-testid={testId || `tab-${tabId}`}
       aria-current={isCurrentTab || undefined}
     >
-      <Text type="paragraph" size="m">
+      <Text type="paragraph" size="m" bold={isCurrentTab}>
         {children}
       </Text>
     </button>

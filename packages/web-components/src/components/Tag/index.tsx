@@ -11,13 +11,14 @@ export type TagSkin =
   | "successful-light"
   | "failed-light"
   | "warning-light"
-  | "neutral-light";
+  | "neutral-light"
+  | "secondary";
 
 export interface TagProps {
   "className"?: string;
   "skin"?: TagSkin;
   "data-testid"?: string;
-  children: ComponentChildren;
+  "children": ComponentChildren;
 }
 
 export const Tag = ({ className, skin, children, "data-testid": dataTestId }: TagProps) => (

@@ -11,6 +11,11 @@
     background-color: var(--bg-support-sirius);
   }
 
+  &.secondary {
+    background-color: var(--bg-base-secondary);
+    color: var(--on-text-primary);
+  }
+
   &.successful {
     color: var(--on-text-universal-primary);
     background-color: var(--bg-support-castor);

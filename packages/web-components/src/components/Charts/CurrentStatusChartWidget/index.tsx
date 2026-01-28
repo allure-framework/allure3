@@ -7,7 +7,7 @@ import { useMemo } from "preact/hooks";
 import { Widget } from "@/components/Widget";
 import { ChartTooltip } from "../ChartTooltip";
 import { LegendItem } from "../Legend/LegendItem";
-import { WidthProvider } from "../WidthProvider";
+import { DimensionsProvider } from "../../DimensionsProvider";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { AdditionalStats } from "./AdditionalStats";
 import { ADD_STATS_KEYS, EMPTY_ARC, GAP, MAX_ADDITIONAL_STATS_WIDTH, MAX_PIE_WIDTH, PIE_PADDING } from "./constants";
@@ -46,7 +46,7 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
 
   return (
     <Widget title={title ?? ""} centerContent>
-      <WidthProvider>
+      <DimensionsProvider>
         {(width) => (
           <div className={styles.wrapper} data-layout={width > shiftWidth ? "vertical" : "horizontal"}>
             <div className={styles.pie}>
@@ -91,7 +91,7 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
             )}
           </div>
         )}
-      </WidthProvider>
+      </DimensionsProvider>
     </Widget>
   );
 };
