@@ -612,19 +612,16 @@ export const generateAllCharts = async (
   }
 };
 
-export const generateTreeFilters = async (writer: AwesomeDataWriter, store: AllureStore) => {
+export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: AwesomeTestResult[]) => {
   const trTags = new Set<string>();
-  const trs = await store.allTestResults({ includeHidden: false });
 
-  for (const tr of trs) {
+  for (const tr of testResults) {
     if (tr.labels.length === 0) {
       continue;
     }
 
-    tr.labels.forEach((label) => {
-      if (label.name === "tag" && !!label.value) {
-        trTags.add(label.value);
-      }
+    Object.values(tr.groupedLabels.tag ?? []).forEach((tag) => {
+      trTags.add(tag);
     });
   }
 

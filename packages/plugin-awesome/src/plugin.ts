@@ -86,7 +86,7 @@ export class AwesomePlugin implements Plugin {
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
 
-    await generateTreeFilters(this.#writer!, store);
+    await generateTreeFilters(this.#writer!, convertedTrs);
 
     await generateEnvirontmentsList(this.#writer!, store);
     await generateVariables(this.#writer!, store);
