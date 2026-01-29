@@ -1,1 +1,1 @@
-{"id":"2a6727b9c58cecf0eafef92f0c196cea","fullName":"test/xcresult.test.ts#A MAC machine activities should parse nested activities","name":"should parse nested activities","status":"passed","testResultsByEnv":{"macos-latest":"b42a8bc08d3e27269bcb78cbacebf080"}}
+{"id":"2a6727b9c58cecf0eafef92f0c196cea","fullName":"test/xcresult.test.ts#A MAC machine activities should parse nested activities","name":"should parse nested activities","status":"passed","testResultsByEnv":{"macos-latest":"c6c620008a8de3bb808850d1f227a9ea"}}
