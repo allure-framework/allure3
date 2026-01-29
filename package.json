@@ -19,6 +19,7 @@
     "format": "yarn eslint:format && yarn prettier:format",
     "lint-staged": "lint-staged",
     "prepare": "husky",
+    "prettier:check": "prettier --check './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' '!./packages/*/src/assets/data/test-results/**/*' package.json ./packages/*/package.json",
     "prettier:format": "prettier --write './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' '!./packages/*/src/assets/data/test-results/**/*' package.json ./packages/*/package.json",
     "report": "yarn allure generate --config=./allurerc.mjs",
     "test": "yarn workspaces foreach -Avvp --topological-dev --exclude sandbox run test"
