@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import type { FunctionalComponent, HTMLAttributes, JSX } from "preact";
 
-export type TextProps = (
+export type TextProps<Tag extends keyof JSX.IntrinsicElements = "span"> = (
   | {
       type?: "paragraph";
       size?: "s" | "m" | "l";
@@ -16,33 +16,33 @@ export type TextProps = (
    */
   className?: string;
   bold?: boolean;
-  tag?: keyof JSX.IntrinsicElements;
-} & Omit<HTMLAttributes<HTMLElement>, "type" | "size" | "className" | "bold" | "tag">;
+  tag?: Tag;
+} & Omit<JSX.IntrinsicElements[Tag], "type" | "size" | "className" | "bold" | "tag">;
 
-export const Text: FunctionalComponent<TextProps> = ({
+export const Text = <Tag extends keyof JSX.IntrinsicElements = "span">({
   size = "m",
-  tag: Tag = "span",
+  tag: ElementTag = "span" as any,
   type = "paragraph",
   bold = false,
   className,
   children,
   ...rest
-}) => {
+}: TextProps<Tag>) => {
   if (type === "paragraph") {
     return (
       // @ts-expect-error this is fine
-      <Tag {...rest} className={clsx(`paragraphs-text-${size}${bold ? "-bold" : ""}`, className)}>
+      <ElementTag {...rest} className={clsx(`paragraphs-text-${size}${bold ? "-bold" : ""}`, className)}>
         {children}
-      </Tag>
+      </ElementTag>
     );
   }
 
   if (type === "ui") {
     return (
       // @ts-expect-error this is fine
-      <Tag {...rest} className={clsx(`ui-text-${size}-ui${bold ? "-bold" : ""}`, className)}>
+      <ElementTag {...rest} className={clsx(`ui-text-${size}-ui${bold ? "-bold" : ""}`, className)}>
         {children}
-      </Tag>
+      </ElementTag>
     );
   }
 

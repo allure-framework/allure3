@@ -128,6 +128,7 @@
     "showLess": "הצג פחות",
     "showMore": "הצג עוד",
     "copy": "העתק",
+    "copy-email": "העתק אימייל",
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
     "variables": "משתנים",

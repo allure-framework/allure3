@@ -128,6 +128,7 @@
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
     "copy": "Kopiera",
+    "copy-email": "Kopiera e-post",
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
     "variables": "Variabler",

@@ -128,6 +128,7 @@
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
+    "copy-email": "E-mail kopiëren",
     "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om",
     "variables": "Variabelen",

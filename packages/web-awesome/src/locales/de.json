@@ -128,6 +128,7 @@
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
+    "copy-email": "E-Mail kopieren",
     "attempt": "Versuch {{attempt}} von {{total}}",
     "at": "bei",
     "variables": "Variablen",

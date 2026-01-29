@@ -128,6 +128,7 @@
     "showLess": "Daha az göster",
     "showMore": "Daha fazla göster",
     "copy": "Kopyala",
+    "copy-email": "E-postayı kopyala",
     "attempt": "Deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
     "variables": "Değişkenler",

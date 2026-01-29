@@ -128,6 +128,7 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "copy": "Copy",
+    "copy-email": "Copy email",
     "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at",
     "variables": "Variables",

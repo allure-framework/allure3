@@ -128,6 +128,7 @@
     "showLess": "Показати менше",
     "showMore": "Показати більше",
     "copy": "Скопіювати",
+    "copy-email": "Скопіювати email",
     "attempt": "Спроба {{attempt}} з {{total}}",
     "at": "в",
     "variables": "Змінні",
