@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "不明な日付"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値",
+        "side-by-side": "並列",
+        "overlay": "オーバーレイ"
+      },
+      "empty": {
+        "failed-to-load": "画像比較の読み込みに失敗しました"
+      },
+      "image": {
+        "diff": "差分",
+        "actual": "実際",
+        "expected": "期待値"
+      }
+    }
   }
 }

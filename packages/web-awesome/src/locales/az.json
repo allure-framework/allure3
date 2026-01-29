@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Naməlum tarix"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Fərq",
+        "actual": "Faktiki",
+        "expected": "Gözlənilən",
+        "side-by-side": "Yan-yana",
+        "overlay": "Üst-üstə"
+      },
+      "empty": {
+        "failed-to-load": "Şəkil müqayisəsi yüklənə bilmədi"
+      },
+      "image": {
+        "diff": "Fərq",
+        "actual": "Faktiki",
+        "expected": "Gözlənilən"
+      }
+    }
   }
 }

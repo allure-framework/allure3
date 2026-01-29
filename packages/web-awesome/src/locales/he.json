@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "תאריך לא ידוע"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "הבדל",
+        "actual": "ממשי",
+        "expected": "צפוי",
+        "side-by-side": "צד אל צד",
+        "overlay": "שכבה"
+      },
+      "empty": {
+        "failed-to-load": "טעינת השוואת תמונות נכשלה"
+      },
+      "image": {
+        "diff": "הבדל",
+        "actual": "ממשי",
+        "expected": "צפוי"
+      }
+    }
   }
 }

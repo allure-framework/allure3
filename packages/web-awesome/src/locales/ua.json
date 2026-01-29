@@ -334,5 +334,24 @@
   },
   "trHistory": {
     "unknown-date": "Невідома дата"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Різниця",
+        "actual": "Фактичний",
+        "expected": "Очікуваний",
+        "side-by-side": "Поруч",
+        "overlay": "Наложення"
+      },
+      "empty": {
+        "failed-to-load": "Не вдалося завантажити порівняння зображень"
+      },
+      "image": {
+        "diff": "Різниця",
+        "actual": "Фактичний",
+        "expected": "Очікуваний"
+      }
+    }
   }
 }

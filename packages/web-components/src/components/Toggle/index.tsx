@@ -12,7 +12,6 @@ export const Toggle = (props: Props) => {
   const { value, label, onChange, focusable = true, size = "m", ...rest } = props;
 
   const handleChange = (e: Event) => {
-    console.log("handleChange", e);
     const newValue = !(e.target as HTMLInputElement).checked;
     onChange(newValue);
   };

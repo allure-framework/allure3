@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Okänt datum"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Faktisk",
+        "expected": "Förväntad",
+        "side-by-side": "Sida vid sida",
+        "overlay": "Överlägg"
+      },
+      "empty": {
+        "failed-to-load": "Kunde inte ladda bildjämförelse"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Faktisk",
+        "expected": "Förväntad"
+      }
+    }
   }
 }

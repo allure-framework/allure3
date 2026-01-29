@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Անհայտ ամսաթիվ"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Տարբերություն",
+        "actual": "Իրական",
+        "expected": "Ակնկալվող",
+        "side-by-side": "Կողք կողքի",
+        "overlay": "Ծածկույթ"
+      },
+      "empty": {
+        "failed-to-load": "Չհաջողվեց բեռնել պատկերների համեմատությունը"
+      },
+      "image": {
+        "diff": "Տարբերություն",
+        "actual": "Իրական",
+        "expected": "Ակնկալվող"
+      }
+    }
   }
 }

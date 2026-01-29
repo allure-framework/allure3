@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "უცნობი თარიღი"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი",
+        "side-by-side": "გვერდიგვერდ",
+        "overlay": "ფენა"
+      },
+      "empty": {
+        "failed-to-load": "სურათების შედარების ჩატვირთვა ვერ მოხერხდა"
+      },
+      "image": {
+        "diff": "სხვაობა",
+        "actual": "ფაქტობრივი",
+        "expected": "მოსალოდნელი"
+      }
+    }
   }
 }

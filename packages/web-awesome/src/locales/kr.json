@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "알 수 없는 날짜"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "차이",
+        "actual": "실제",
+        "expected": "예상",
+        "side-by-side": "나란히",
+        "overlay": "오버레이"
+      },
+      "empty": {
+        "failed-to-load": "이미지 비교를 불러올 수 없습니다"
+      },
+      "image": {
+        "diff": "차이",
+        "actual": "실제",
+        "expected": "예상"
+      }
+    }
   }
 }

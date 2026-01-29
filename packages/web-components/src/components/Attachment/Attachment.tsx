@@ -13,7 +13,7 @@ import { AttachmentImage } from "./AttachmentImage";
 import { AttachmentImageDiff } from "./AttachmentImageDiff";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
-import type { AttachmentProps } from "./model";
+import type { AttachmentProps, I18nProp } from "./model";
 import styles from "./styles.scss";
 
 const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProps) => ComponentChildren) | null> = {
@@ -38,10 +38,11 @@ const previewComponentsByAttachmentType: Record<string, any> = {
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
   previewable?: boolean;
+  i18n?: I18nProp;
 }
 
 export const Attachment = (props: AttachmentTestStepResultProps) => {
-  const { item, previewable } = props;
+  const { item, previewable, i18n } = props;
   const {
     link: { contentType, id, ext },
   } = item;
@@ -97,9 +98,12 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
 
   const CurrentPreviewComponent = previewComponentsByAttachmentType[componentType];
 
+  // @ts-expect-error TODO: add all translations for attachment types
+  const i18nProp = i18n?.[componentType === "image-diff" ? "imageDiff" : componentType];
+
   // temp solution before modal component refactoring
   if (previewable && CurrentPreviewComponent) {
-    return <CurrentPreviewComponent attachment={attachment.value} item={item} />;
+    return <CurrentPreviewComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
   }
 
   const CurrentComponent = componentsByAttachmentType[componentType];
@@ -108,5 +112,5 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     return null;
   }
 
-  return <CurrentComponent attachment={attachment.value} item={item} />;
+  return <CurrentComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
 };

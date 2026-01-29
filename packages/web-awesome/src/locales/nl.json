@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Onbekende datum"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Werkelijk",
+        "expected": "Verwacht",
+        "side-by-side": "Naast elkaar",
+        "overlay": "Overlay"
+      },
+      "empty": {
+        "failed-to-load": "Kan afbeeldingsvergelijking niet laden"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Werkelijk",
+        "expected": "Verwacht"
+      }
+    }
   }
 }

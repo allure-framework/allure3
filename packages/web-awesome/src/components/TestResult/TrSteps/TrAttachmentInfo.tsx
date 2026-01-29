@@ -16,6 +16,7 @@ interface TrAttachmentInfo {
 
 export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, shouldExpand }) => {
   const { t: tooltip } = useI18n("controls");
+  const { t: tAttachments } = useI18n("attachments");
   const { id, ext, contentType } = item.link;
   const isPwTrace = contentType === "application/vnd.allure.playwright-trace";
   const contentLength = item.link.missed === false ? item.link.contentLength : undefined;
@@ -30,7 +31,13 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, 
     event.stopPropagation();
     openModal({
       data: item,
-      component: <Attachment item={item} previewable={true} />,
+      component: (
+        <Attachment
+          item={item}
+          previewable={true}
+          i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+        />
+      ),
     });
   };
 
@@ -39,10 +46,10 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, 
       openModal({
         isModalOpen: true,
         data: item,
-        component: <Attachment item={item} />,
+        component: <Attachment item={item} i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }} />,
       });
     }
-  }, [item]);
+  }, [item, tAttachments]);
 
   const downloadData = async (e: MouseEvent) => {
     e.stopPropagation();

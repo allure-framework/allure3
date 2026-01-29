@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Bilinmeyen tarih"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Fark",
+        "actual": "Gerçek",
+        "expected": "Beklenen",
+        "side-by-side": "Yan yana",
+        "overlay": "Üst üste"
+      },
+      "empty": {
+        "failed-to-load": "Görüntü karşılaştırması yüklenemedi"
+      },
+      "image": {
+        "diff": "Fark",
+        "actual": "Gerçek",
+        "expected": "Beklenen"
+      }
+    }
   }
 }

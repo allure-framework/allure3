@@ -5,11 +5,13 @@ import { DiffModeSelector } from "./src/DiffModeSelector";
 import { DiffModeView } from "./src/DiffModeView";
 import { Wrapper } from "./src/Wrapper";
 import { ImageDiffProvider, useImageDiffContext } from "./src/hooks";
-import { useI18n } from "./src/i18n";
+import type { I18nProp } from "./src/i18n";
+import { I18nProvider, useI18n } from "./src/i18n";
 import type { ImageDiff as TImageDiff } from "./src/model";
 
 type Props = {
   diff: TImageDiff;
+  i18n?: I18nProp;
 };
 
 const ImageDiffContent = () => {
@@ -33,11 +35,15 @@ const ImageDiffContent = () => {
 };
 
 export const ImageDiff = (props: Props) => {
+  const { i18n, diff } = props;
+
   return (
-    <Wrapper>
-      <ImageDiffProvider diff={props.diff}>
-        <ImageDiffContent />
-      </ImageDiffProvider>
-    </Wrapper>
+    <I18nProvider i18n={i18n}>
+      <Wrapper>
+        <ImageDiffProvider diff={diff}>
+          <ImageDiffContent />
+        </ImageDiffProvider>
+      </Wrapper>
+    </I18nProvider>
   );
 };

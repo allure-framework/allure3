@@ -391,5 +391,24 @@
   },
   "trHistory": {
     "unknown-date": "Неизвестная дата"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Разница",
+        "actual": "Фактический",
+        "expected": "Ожидаемый",
+        "side-by-side": "Рядом",
+        "overlay": "Наложение"
+      },
+      "empty": {
+        "failed-to-load": "Не удалось загрузить сравнение изображений"
+      },
+      "image": {
+        "diff": "Разница",
+        "actual": "Фактический",
+        "expected": "Ожидаемый"
+      }
+    }
   }
 }

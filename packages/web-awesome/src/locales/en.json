@@ -383,5 +383,24 @@
   },
   "trHistory": {
     "unknown-date": "Unknown date"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Actual",
+        "expected": "Expected",
+        "side-by-side": "Side by side",
+        "overlay": "Overlay"
+      },
+      "empty": {
+        "failed-to-load": "Failed to load image diff"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Actual",
+        "expected": "Expected"
+      }
+    }
   }
 }

@@ -391,5 +391,24 @@
   },
   "trHistory": {
     "unknown-date": "Nieznana data"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany",
+        "side-by-side": "Obok siebie",
+        "overlay": "Nakładka"
+      },
+      "empty": {
+        "failed-to-load": "Nie udało się załadować porównania obrazów"
+      },
+      "image": {
+        "diff": "Różnica",
+        "actual": "Aktualny",
+        "expected": "Oczekiwany"
+      }
+    }
   }
 }
