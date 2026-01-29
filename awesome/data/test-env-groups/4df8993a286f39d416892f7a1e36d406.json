@@ -1,1 +1,1 @@
-{"id":"4df8993a286f39d416892f7a1e36d406","fullName":"test/xcresult.test.ts#A MAC machine labels a test with a suite should have a suite","name":"should have a suite","status":"passed","testResultsByEnv":{"macos-latest":"7795c49a096f82686cc6a8e9d3893694"}}
+{"id":"4df8993a286f39d416892f7a1e36d406","fullName":"test/xcresult.test.ts#A MAC machine labels a test with a suite should have a suite","name":"should have a suite","status":"passed","testResultsByEnv":{"macos-latest":"5efb37488a12e575158ea00c42df62e4"}}
