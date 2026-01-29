@@ -4,11 +4,11 @@ import type { ComponentProps } from "preact";
 import type { ImageDiff } from "../ImageDiff";
 
 export type AttachmentProps = {
-    attachment: AttachmentData | null;
-    item: AttachmentTestStepResult;
-    i18n?: (key: any) => string;
+  attachment: AttachmentData | null;
+  item: AttachmentTestStepResult;
+  i18n?: (key: any) => string;
 };
 
 export type I18nProp = {
-    imageDiff: ComponentProps<typeof ImageDiff>["i18n"];
+  imageDiff: ComponentProps<typeof ImageDiff>["i18n"];
 };

@@ -64,7 +64,10 @@ export const getCurrentUrl = () => {
   return window.location.href;
 };
 
-export const paramsToSearchParams = (params: Record<string, string | string[]>, searchParams: URLSearchParams = new URLSearchParams()) => {
+export const paramsToSearchParams = (
+  params: Record<string, string | string[]>,
+  searchParams: URLSearchParams = new URLSearchParams(),
+) => {
   Object.entries(params).forEach(([key, value]) => {
     if (Array.isArray(value)) {
       for (const v of value) {

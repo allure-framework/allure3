@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { THEME_AUTO, THEME_DARK, THEME_LIGHT, SELECTED_THEMES } from "../../src/stores/theme/constants.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SELECTED_THEMES, THEME_AUTO, THEME_DARK, THEME_LIGHT } from "../../src/stores/theme/constants.js";
 
 const mockMediaQuery = {
   matches: false,

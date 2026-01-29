@@ -57,7 +57,10 @@ export const reportDataUrl = async (
 };
 
 export class ReportFetchError extends Error {
-  constructor(message: string, public readonly response: Response) {
+  constructor(
+    message: string,
+    public readonly response: Response,
+  ) {
     super(message);
   }
 }

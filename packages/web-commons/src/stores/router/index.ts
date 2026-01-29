@@ -1,6 +1,6 @@
 import { computed } from "@preact/signals-core";
-import { currentUrl, goTo } from "../url/index.js";
 import { paramsToSearchParams } from "../url/helpers.js";
+import { currentUrl, goTo } from "../url/index.js";
 
 export const router = computed(() => {
   const hash = currentUrl.value.hash.startsWith("#") ? currentUrl.value.hash.slice(1) : currentUrl.value.hash;

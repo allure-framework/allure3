@@ -33,7 +33,11 @@ export const fetchFromUrl = async ({ id, ext, contentType }: AttachmentPayload) 
   return fetchReportAttachment(`data/attachments/${fileName}?attachment`, contentType);
 };
 
-export const fetchAttachment = async (id: string, ext: string, contentType?: string): Promise<AttachmentData | null> => {
+export const fetchAttachment = async (
+  id: string,
+  ext: string,
+  contentType?: string,
+): Promise<AttachmentData | null> => {
   if (!id && !ext) {
     return null;
   }

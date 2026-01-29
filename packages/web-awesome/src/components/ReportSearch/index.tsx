@@ -1,6 +1,6 @@
 import { SearchBox } from "@allurereport/web-components";
 import { useI18n } from "@/stores/locale";
-import { treeQueryFilterValue, setTreeQueryFilter } from "@/stores/treeFilters/store";
+import { setTreeQueryFilter, treeQueryFilterValue } from "@/stores/treeFilters/store";
 
 const handleQuerySearch = (value: string) => {
   if (!value) {

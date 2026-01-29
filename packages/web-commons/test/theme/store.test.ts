@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { THEME_AUTO, THEME_DARK, THEME_LIGHT, STORAGE_KEY } from "../../src/stores/theme/constants.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as dataModule from "../../src/data.js";
+import { STORAGE_KEY, THEME_AUTO, THEME_DARK, THEME_LIGHT } from "../../src/stores/theme/constants.js";
 import * as utilsModule from "../../src/stores/theme/utils.js";
 
 const mockMediaQuery = {
@@ -18,7 +18,7 @@ const getMockMatchMedia = () => {
   return vi.spyOn(window, "matchMedia").mockReturnValue(mockMediaQuery);
 };
 
-const getMockGetPrefersColorSchemeMQ = () =>  {
+const getMockGetPrefersColorSchemeMQ = () => {
   return vi.spyOn(utilsModule, "getPrefersColorSchemeMQ").mockReturnValue(mockMediaQuery);
 };
 
@@ -30,7 +30,6 @@ describe("theme store", () => {
     vi.clearAllMocks();
     localStorage.clear();
 
-
     mockMatchMedia = getMockMatchMedia();
 
     vi.spyOn(dataModule, "getReportOptions").mockReturnValue({});
@@ -39,7 +38,7 @@ describe("theme store", () => {
 
     // Reset modules to get fresh state
     vi.resetModules();
-});
+  });
 
   afterEach(() => {
     vi.restoreAllMocks();

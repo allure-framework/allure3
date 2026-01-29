@@ -4,10 +4,10 @@ import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
+import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
 

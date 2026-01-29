@@ -55,7 +55,6 @@ export class AqlParser {
     this.config = config;
   }
 
-
   /**
    * Parses the AQL string into an abstract syntax tree.
    *

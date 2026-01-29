@@ -11,7 +11,13 @@ import {
   aqlParenExpression,
   createAqlPredicate,
 } from "@allurereport/aql";
-import { MAX_ARRAY_FIELD_VALUES, type AqlValueType, type FieldFilter, type FieldFilterGroup, type Filter } from "./model.js";
+import {
+  type AqlValueType,
+  type FieldFilter,
+  type FieldFilterGroup,
+  type Filter,
+  MAX_ARRAY_FIELD_VALUES,
+} from "./model.js";
 
 const buildAqlFromFieldFilter = (
   field: FieldFilter,

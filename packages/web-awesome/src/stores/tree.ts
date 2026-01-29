@@ -1,7 +1,4 @@
-import {
-  buildFilterPredicate,
-  fetchReportJsonData,
-} from "@allurereport/web-commons";
+import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";

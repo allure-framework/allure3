@@ -19,7 +19,6 @@ const getInitialPreferredTheme = (): UITheme => {
   return THEME_LIGHT;
 };
 
-
 export const currentTheme = computed(() => {
   if (isAutoTheme(userTheme.value)) {
     return preferredTheme.value;

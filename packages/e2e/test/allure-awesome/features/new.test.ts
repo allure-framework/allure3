@@ -114,7 +114,6 @@ test.describe("new tests", () => {
     expect(newCount).toBe("2");
   });
 
-
   test("should apply new filter to the tree when filter=new query parameter is present", async ({ page }) => {
     await page.goto(`${bootstrap.url}?filter=new`);
 
