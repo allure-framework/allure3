@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "preact/hooks";
-import { Toggle } from "@allurereport/web-components";
+import { Toggle } from "@/components/Toggle";
 
 const meta: Meta<typeof Toggle> = {
   title: "Commons/Toggle",

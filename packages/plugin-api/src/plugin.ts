@@ -37,6 +37,7 @@ export interface PluginContext {
   reportName: string;
   reportFiles: ReportFiles;
   reportUrl?: string;
+  output: string;
   ci?: CiDescriptor;
 }
 
@@ -126,5 +127,5 @@ export interface Plugin {
 
   done?(context: PluginContext, store: AllureStore): Promise<void>;
 
-  info?(context: PluginContext, store: AllureStore): Promise<PluginSummary>;
+  info?(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined>;
 }

@@ -1,10 +1,11 @@
-import { getReportOptions } from "@allurereport/web-commons";
+import * as webCommons from "@allurereport/web-commons";
+import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
-import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/Header";
 import { CiInfo } from "@/components/Header/CiInfo";
-import { route } from "@/stores/router";
-import { availableSections } from "@/stores/sections";
+import type * as routerModule from "@/stores/router";
+import { testResultStore } from "@/stores/testResults";
 
 const fixtures = {
   ci: {
@@ -12,64 +13,60 @@ const fixtures = {
   },
 };
 
-vi.mock("@allurereport/web-commons", () => ({
-  getReportOptions: vi.fn().mockReturnValue({}),
-}));
-vi.mock("@/stores/router", async () => {
-  const { signal } = await import("@preact/signals");
+// Create a controllable route signal
+const mockRouteParams = signal<{ testResultId?: string; tab?: string }>({});
 
-  return {
-    route: signal({}),
-  };
-});
-vi.mock("@/stores/sections", async () => {
-  const { signal } = await import("@preact/signals");
-
-  return {
-    availableSections: signal([]),
-  };
-});
+// Mock UI components to simplify tests
 vi.mock("@/components/HeaderControls", () => ({
-  HeaderControls: () => <div data-testid="header-controls"></div>,
+  HeaderControls: () => <div data-testid="header-controls" />,
 }));
+
 vi.mock("@/components/SectionPicker", () => ({
-  SectionPicker: () => <div data-testid="section-picker"></div>,
+  SectionPicker: () => <div data-testid="section-picker" />,
 }));
+
 vi.mock("@/components/TestResult/TrHeader/TrBreadcrumbs", () => ({
-  TrBreadcrumbs: () => <div data-testid="breadcrumbs"></div>,
+  TrBreadcrumbs: () => <div data-testid="breadcrumbs" />,
 }));
+
 vi.mock("@/components/Header/CiInfo", () => ({
-  // CiInfo: vi.fn().mockReturnValue(<div data-testid="ci-info"></div>),
-  CiInfo: vi.fn().mockImplementation(() => <div data-testid="ci-info"></div>),
+  CiInfo: vi.fn().mockImplementation(() => <div data-testid="ci-info" />),
 }));
+
+// Mock router module with controllable testResultRoute
+vi.mock("@/stores/router", async (importOriginal) => {
+  const actual = await importOriginal<typeof routerModule>();
+  const { computed: computedFn } = await import("@preact/signals");
+
+  return {
+    ...actual,
+    testResultRoute: computedFn(() => {
+      const params = mockRouteParams.value;
+      const hasTestResultId = params.testResultId !== undefined;
+      return {
+        matches: hasTestResultId,
+        params: params || {},
+      };
+    }),
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
   cleanup();
-  route.value = {};
-  availableSections.value = [];
+  mockRouteParams.value = {};
+  testResultStore.value = {
+    loading: false,
+    error: undefined,
+    data: undefined,
+  };
+  vi.spyOn(webCommons, "getReportOptions").mockReturnValue({});
 });
 
 describe("components > Header", () => {
-  it("should render sections picker when there are sections available", () => {
-    availableSections.value = ["section1", "section2"];
-
-    render(<Header />);
-
-    expect(screen.getByTestId("section-picker")).toBeInTheDocument();
-  });
-
-  it("shouldn't render sections picker when there are no sections available", () => {
-    render(<Header />);
-
-    expect(screen.queryByTestId("section-picker")).not.toBeInTheDocument();
-  });
-
   it("should render ci info only when testResultId route parameter doesn't exists and ci report option is available", () => {
-    route.value = {
-      params: {},
-    };
-    (getReportOptions as Mock).mockReturnValue({
+    mockRouteParams.value = {};
+    vi.spyOn(webCommons, "getReportOptions").mockReturnValue({
       ci: fixtures.ci,
     });
 
@@ -80,12 +77,10 @@ describe("components > Header", () => {
   });
 
   it("shouldn't render ci info when testResultId route parameter exists", () => {
-    route.value = {
-      params: {
-        testResultId: "1",
-      },
+    mockRouteParams.value = {
+      testResultId: "1",
     };
-    (getReportOptions as Mock).mockReturnValue({
+    vi.spyOn(webCommons, "getReportOptions").mockReturnValue({
       ci: fixtures.ci,
     });
 
@@ -96,12 +91,10 @@ describe("components > Header", () => {
   });
 
   it("should render breadcrumbs when testResultId route parameter exists", () => {
-    route.value = {
-      params: {
-        testResultId: "1",
-      },
+    mockRouteParams.value = {
+      testResultId: "1",
     };
-    (getReportOptions as Mock).mockReturnValue({
+    vi.spyOn(webCommons, "getReportOptions").mockReturnValue({
       ci: fixtures.ci,
     });
 
@@ -111,9 +104,7 @@ describe("components > Header", () => {
   });
 
   it("shouldn't render breadcrumbs when testResultId route parameter doesn't exists", () => {
-    route.value = {
-      params: {},
-    };
+    mockRouteParams.value = {};
 
     render(<Header />);
 

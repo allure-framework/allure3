@@ -37,7 +37,7 @@ export const SectionPicker = () => {
       )}
     >
       <Menu.Section>
-        {["default", ...availableSections.value].map((value) => (
+        {["default", ...availableSections].map((value) => (
           <Menu.ItemWithCheckmark
             onClick={() => setSection(value)}
             key={value}

@@ -6,7 +6,7 @@ import type { AwesomeTestResult } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 import { useI18n } from "@/stores/locale";
-import { navigateTo } from "@/stores/router";
+import { navigateToTestResult } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
 export type TrRetriesItemProps = {
@@ -26,7 +26,6 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
   const retryTitle = convertedStop ? `${retryTitlePrefix} – ${convertedStop}` : retryTitlePrefix;
 
   const formattedDuration = typeof duration === "number" ? formatDuration(duration) : undefined;
-  const navigateUrl = id;
 
   return (
     <div data-testid="test-result-retries-item">
@@ -55,7 +54,7 @@ export const TrRetriesItem: FunctionalComponent<TrRetriesItemProps> = ({ testRes
               size={"s"}
               className={styles["test-result-retries-item-link"]}
               data-testid="test-result-retries-item-open-button"
-              onClick={() => navigateTo(navigateUrl)}
+              onClick={() => navigateToTestResult({ testResultId: id })}
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-classic",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The static files for Allure Classic Report",
   "keywords": [
     "allure",
@@ -35,12 +35,12 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-components": "workspace:*",
-    "@preact/signals": "^1.3.0",
+    "@preact/signals": "^2.6.1",
     "clsx": "^2.1.1",
     "d3-shape": "^3.2.0",
     "i18next": "^24.0.2",
     "md5": "^2.3.0",
-    "preact": "^10.24.0",
+    "preact": "^10.28.2",
     "prismjs": "^1.30.0",
     "reset.css": "^2.0.2",
     "split.js": "^1.6.5"

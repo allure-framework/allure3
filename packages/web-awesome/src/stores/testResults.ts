@@ -32,7 +32,7 @@ export const fetchTestResultNav = async (env?: string) => {
     };
   } catch (err) {
     testResultNavStore.value = {
-      ...testResultNavStore.value,
+      ...testResultNavStore.peek(),
       error: err.message,
       loading: false,
     };
@@ -40,12 +40,14 @@ export const fetchTestResultNav = async (env?: string) => {
 };
 
 export const fetchTestResult = async (testResultId: string) => {
-  if (!testResultId || (testResultStore.value.data && testResultId in testResultStore.value.data)) {
+  const trData = testResultStore.peek().data;
+
+  if (!testResultId || (trData && testResultId in trData)) {
     return;
   }
 
   testResultStore.value = {
-    ...testResultStore.value,
+    ...testResultStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -56,13 +58,13 @@ export const fetchTestResult = async (testResultId: string) => {
     });
 
     testResultStore.value = {
-      data: { ...testResultStore.value.data, [testResultId]: data },
+      data: { ...testResultStore.peek().data, [testResultId]: data },
       error: undefined,
       loading: false,
     };
   } catch (err) {
     testResultStore.value = {
-      ...testResultStore.value,
+      ...testResultStore.peek(),
       error: err.message,
       loading: false,
     };

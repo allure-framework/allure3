@@ -46,6 +46,10 @@ export class WatchCommand extends Command {
     description: "The report name (default: Allure Report)",
   });
 
+  open = Option.Boolean("--open", {
+    description: "Open the report in the default browser after generation (default: false)",
+  });
+
   port = Option.String("--port", {
     description: "The port to serve the reports on (default: random port)",
   });
@@ -68,6 +72,8 @@ export class WatchCommand extends Command {
     const config = await readConfig(this.cwd, this.config, {
       output: this.output,
       name: this.reportName,
+      open: this.open,
+      port: this.port,
     });
 
     try {
@@ -78,13 +84,13 @@ export class WatchCommand extends Command {
       }
     }
 
+    // FIXME: do we need to start the server when there's no servable reports in the config?
     const server = await serve({
       servePath: config.output,
       port: this.port ? parseInt(this.port, 10) : undefined,
       live: false,
       open: false,
     });
-
     const allureReport = new AllureReport({
       ...config,
       realTime: true,
@@ -95,7 +101,9 @@ export class WatchCommand extends Command {
               {
                 id: "awesome",
                 enabled: true,
-                options: {},
+                options: {
+                  open: config.open,
+                },
                 plugin: new Awesome({
                   reportName: config.name,
                 }),
@@ -124,12 +132,10 @@ export class WatchCommand extends Command {
     const { abort } = newFilesInDirectoryWatcher(input, async (path) => {
       await allureReport.readResult(new PathResultFile(path));
     });
-
     const pluginIdToOpen = config.plugins?.find((plugin) => !!plugin.options.open)?.id;
+
     if (pluginIdToOpen) {
       await server.open(join(server.url, pluginIdToOpen));
-    } else {
-      await server.open(server.url);
     }
 
     console.info("Press Ctrl+C to exit");

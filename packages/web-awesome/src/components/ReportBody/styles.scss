@@ -28,7 +28,10 @@
 
 .headerActions {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  flex-direction: row;
+  column-gap: 8px;
+  row-gap: 12px;
 }
 
 /* This is a hack because button do not have this state */

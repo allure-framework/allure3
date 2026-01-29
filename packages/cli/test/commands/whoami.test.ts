@@ -10,6 +10,9 @@ import { AllureServiceClientMock } from "../utils.js";
 const fixtures = {
   config: "./custom/allurerc.mjs",
   cwd: ".",
+  // JWT payload: { "iss": "allure-service", "url": "https://allure.example.com", "projectId": "test-project-id" }
+  accessToken:
+    "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vYWxsdXJlLmV4YW1wbGUuY29tIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature",
 };
 
 vi.mock("@allurereport/service", async (importOriginal) => {
@@ -23,11 +26,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
 vi.mock("@allurereport/core", async (importOriginal) => {
   return {
     ...(await importOriginal()),
-    readConfig: vi.fn().mockResolvedValue({
-      allureService: {
-        url: "https://allure.example.com",
-      },
-    }),
+    readConfig: vi.fn(),
   };
 });
 vi.mock("../../src/utils/logs.js", async (importOriginal) => ({
@@ -49,7 +48,7 @@ beforeEach(() => {
 });
 
 describe("whoami command", () => {
-  it("should throw an error if there is not allure service url in the config", async () => {
+  it("should throw an error if there is no allure service access token in the config", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
 
     const command = new WhoamiCommand();
@@ -60,7 +59,7 @@ describe("whoami command", () => {
     await command.execute();
 
     expect(console.error).toHaveBeenCalledTimes(1);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("No Allure Service URL is provided"));
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("No Allure Service access token is provided"));
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureServiceClientMock.prototype.profile).not.toHaveBeenCalled();
   });
@@ -68,7 +67,7 @@ describe("whoami command", () => {
   it("should print known service-error without logs writing", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       allureService: {
-        url: "https://allure.example.com",
+        accessToken: fixtures.accessToken,
       },
     });
     (AllureServiceClientMock.prototype.profile as Mock).mockRejectedValueOnce(
@@ -91,7 +90,7 @@ describe("whoami command", () => {
   it("should print unknown service-error with logs writing", async () => {
     (readConfig as Mock).mockResolvedValueOnce({
       allureService: {
-        url: "https://allure.example.com",
+        accessToken: fixtures.accessToken,
       },
     });
     (logError as Mock).mockResolvedValueOnce("logs.txt");
@@ -110,8 +109,14 @@ describe("whoami command", () => {
   });
 
   it("should initialize allure service and call profile method", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      allureService: {
+        accessToken: fixtures.accessToken,
+      },
+    });
     AllureServiceClientMock.prototype.profile.mockResolvedValueOnce({
-      email: "example@allurereport.org",
+      user: { email: "example@allurereport.org" },
+      project: { name: "Test Project" },
     });
 
     const command = new WhoamiCommand();
@@ -122,7 +127,7 @@ describe("whoami command", () => {
     await command.execute();
 
     expect(AllureServiceClient).toHaveBeenCalledTimes(1);
-    expect(AllureServiceClient).toHaveBeenCalledWith({ url: "https://allure.example.com" });
+    expect(AllureServiceClient).toHaveBeenCalledWith({ accessToken: fixtures.accessToken });
     expect(AllureServiceClientMock.prototype.profile).toHaveBeenCalledTimes(1);
   });
 });

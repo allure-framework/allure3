@@ -26,7 +26,7 @@ export const setCurrentEnvironment = (env: string) => {
 
 export const fetchEnvironments = async () => {
   environmentsStore.value = {
-    ...environmentsStore.value,
+    ...environmentsStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -41,7 +41,7 @@ export const fetchEnvironments = async () => {
     };
   } catch (e) {
     environmentsStore.value = {
-      ...environmentsStore.value,
+      ...environmentsStore.peek(),
       error: e.message,
       loading: false,
     };
@@ -49,12 +49,12 @@ export const fetchEnvironments = async () => {
 };
 
 export const fetchTestEnvGroup = async (id: string) => {
-  if (testEnvGroupsStore.value.data[id]) {
+  if (testEnvGroupsStore.peek().data[id]) {
     return;
   }
 
   testEnvGroupsStore.value = {
-    ...testEnvGroupsStore.value,
+    ...testEnvGroupsStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -64,7 +64,7 @@ export const fetchTestEnvGroup = async (id: string) => {
 
     testEnvGroupsStore.value = {
       data: {
-        ...testEnvGroupsStore.value.data,
+        ...testEnvGroupsStore.peek().data,
         [id]: res,
       },
       error: undefined,
@@ -72,7 +72,7 @@ export const fetchTestEnvGroup = async (id: string) => {
     };
   } catch (e) {
     testEnvGroupsStore.value = {
-      ...testEnvGroupsStore.value,
+      ...testEnvGroupsStore.peek(),
       error: e.message,
       loading: false,
     };

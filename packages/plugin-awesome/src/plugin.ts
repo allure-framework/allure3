@@ -25,6 +25,7 @@ import {
   generateTestEnvGroups,
   generateTestResults,
   generateTree,
+  generateTreeFilters,
   generateVariables,
 } from "./generators.js";
 import type { AwesomePluginOptions } from "./model.js";
@@ -84,6 +85,8 @@ export class AwesomePlugin implements Plugin {
       });
       await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
     }
+
+    await generateTreeFilters(this.#writer!, store);
 
     await generateEnvirontmentsList(this.#writer!, store);
     await generateVariables(this.#writer!, store);

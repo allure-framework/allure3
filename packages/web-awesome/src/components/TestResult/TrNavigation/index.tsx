@@ -2,7 +2,8 @@ import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allure
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
-import { navigateTo } from "@/stores/router";
+import { navigateToTestResult } from "@/stores/router";
+import { trCurrentTab } from "@/stores/testResult";
 import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import * as styles from "./styles.scss";
@@ -52,7 +53,7 @@ export const TrNavigation: FunctionalComponent<TrNavigationProps> = ({ testResul
                     isDisabled={currentIndex === data.length}
                     data-testid="test-result-nav-prev"
                     className={styles["test-result-nav-prev"]}
-                    onClick={() => navigateTo(data[currentIndex])}
+                    onClick={() => navigateToTestResult({ testResultId: data[currentIndex], tab: trCurrentTab.value })}
                   />
                 </TooltipWrapper>
                 <Code
@@ -68,7 +69,9 @@ export const TrNavigation: FunctionalComponent<TrNavigationProps> = ({ testResul
                     style={"ghost"}
                     isDisabled={currentIndex <= 1}
                     data-testid="test-result-nav-next"
-                    onClick={() => navigateTo(data[currentIndex - 2])}
+                    onClick={() =>
+                      navigateToTestResult({ testResultId: data[currentIndex - 2], tab: trCurrentTab.value })
+                    }
                   />
                 </TooltipWrapper>
               </div>

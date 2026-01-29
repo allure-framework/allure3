@@ -1,11 +1,13 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { route } from "@/stores/router";
+import { testResultRoute } from "@/stores/router";
+import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -28,8 +30,10 @@ const Loader = () => {
   );
 };
 
+const isTestResultRoute = computed(() => testResultRoute.value.matches);
+
 export const SplitLayout = () => {
-  const testResultId = route.value.params?.testResultId ?? null;
+  const testResultId = currentTrId.value;
   const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
   const { t } = useI18n("controls");
   const leftSide = (
@@ -37,7 +41,7 @@ export const SplitLayout = () => {
   );
 
   const TrView = () => {
-    return testResultId ? (
+    return isTestResultRoute.value ? (
       <Loadable
         source={testResultStore}
         renderLoader={() => <Loader />}

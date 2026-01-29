@@ -110,6 +110,7 @@ export const createRecursiveTree = (payload: {
   trees.forEach((rt: ClassicRecursiveTree) => {
     if (rt.statistic) {
       const additional: Statistic = rt.statistic;
+
       mergeStatistic(statistic, additional);
     }
   });

@@ -1,7 +1,32 @@
 .inputWrap {
   display: flex;
   flex-grow: 1;
-  position: relative;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  padding: 7px;
+  background-color: var(--bg-control-flat);
+  border: 1px solid var(--on-border-control);
+  border-radius: 6px;
+  height: 32px;
+  max-height: 32px;
+
+  &:hover:not(:focus-within) {
+    background-color: var(--bg-control-flat-medium);
+  }
+
+  &:focus-within {
+    outline: none;
+    border-color: var(--on-border-heavy);
+  }
+
+  &[data-invalid] {
+    border-color: var(--on-support-capella) !important;
+  }
+
+  transition:
+    background-color var(--color-change-transition-duration),
+    border-color var(--color-change-transition-duration);
 }
 
 .input {
@@ -12,47 +37,44 @@
   letter-spacing: inherit;
   font-family: inherit;
   flex-grow: 1;
-  background-color: var(--bg-control-flat);
-  border: 1px solid var(--on-border-control);
-  padding: 7px;
-  padding-left: calc(7px + 16px + 7px);
-  border-radius: 6px;
-  transition:
-    background-color var(--color-change-transition-duration),
-    border-color var(--color-change-transition-duration);
-
-  &:hover:not(:focus) {
-    background-color: var(--bg-control-flat-medium);
-  }
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border: none;
+  width: 100%;
 
   &:focus {
     outline: none;
-    border-color: var(--on-border-heavy);
+    border: none;
+    background-color: transparent;
   }
 
   &::placeholder {
     color: var(--on-text-secondary);
   }
-
-  &.inputClear {
-    padding-right: calc(7px + 16px + 7px);
-  }
 }
 
 .leadingIcon {
   display: block;
-  top: 8px;
-  left: 8px;
-  position: absolute;
   user-select: none;
   pointer-events: none;
+  cursor: text;
   color: var(--on-icon-primary);
-  z-index: 0;
+}
+
+.slot {
+  margin-top: -7px;
+  margin-bottom: -7px;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .clearButton {
-  top: 4px;
-  right: 4px;
-  position: absolute;
-  z-index: 0;
+  /* Compensate for the padding of the inputWrap */
+  margin-top: -4px;
+  margin-bottom: -4px;
+  margin-right: -4px;
+  user-select: none;
 }

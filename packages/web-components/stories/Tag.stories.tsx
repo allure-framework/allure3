@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/preact";
-import { Tag } from "@allurereport/web-components";
+import { Tag } from "@/components/Tag";
 
 const meta: Meta<typeof Tag> = {
   title: "Components/Tag",

@@ -1,0 +1,55 @@
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  row-gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.btnWrapper {
+  position: relative;
+
+  &:hover,
+  &:focus-within {
+    & .clear {
+      opacity: 1;
+    }
+  }
+}
+
+.clear {
+  transition: opacity var(--color-change-transition-duration) ease-out;
+  opacity: 0;
+  position: absolute;
+  top: -9.5px;
+  right: -9.5px;
+}
+
+.tooltip {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.2s ease-in-out;
+  & > div {
+    max-width: 300px;
+    min-width: 0;
+    text-align: center;
+  }
+
+  &[data-visible="true"] {
+    opacity: 1;
+  }
+}
+
+.description {
+  color: var(--on-text-secondary);
+}
+
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

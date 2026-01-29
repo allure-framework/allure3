@@ -11,15 +11,10 @@ export class WhoamiCommand extends Command {
 
   static usage = Command.Usage({
     category: "Allure Service",
-    description: "Prints information about current user",
-    details: "This command prints information about the current user logged in to the Allure Service.",
-    examples: [
-      ["whoami", "Print information about the current user using the default configuration"],
-      [
-        "whoami --config custom-config.js",
-        "Print information about the current user using a custom configuration file",
-      ],
-    ],
+    description: "Prints information about current project",
+    details:
+      "This command prints information about the current project based on the Allure Service provided access token.",
+    examples: [["whoami", "Print information about the current project using the default configuration"]],
   });
 
   config = Option.String("--config,-c", {
@@ -33,11 +28,11 @@ export class WhoamiCommand extends Command {
   async execute() {
     const config = await readConfig(this.cwd, this.config);
 
-    if (!config?.allureService?.url) {
+    if (!config?.allureService?.accessToken) {
       // eslint-disable-next-line no-console
       console.error(
         red(
-          "No Allure Service URL is provided. Please provide it in the `allureService.url` field in the `allure.config.js` file",
+          "No Allure Service access token is provided. Please provide it in the `allureService.accessToken` field in the `allure.config.js` file",
         ),
       );
       exit(1);
@@ -48,9 +43,11 @@ export class WhoamiCommand extends Command {
     const outputLines: string[] = [];
 
     try {
-      const profile = await serviceClient.profile();
+      const { user, project } = await serviceClient.profile();
 
-      outputLines.push(`You are logged in as "${profile.email}"`);
+      // TODO: do we need to show user-related info at all?
+      outputLines.push(`You are logged in as "${user.email}"`);
+      outputLines.push(`Current project is "${project.name}"`);
     } catch (error) {
       if (error instanceof KnownError) {
         // eslint-disable-next-line no-console
@@ -61,16 +58,6 @@ export class WhoamiCommand extends Command {
 
       await logError("Failed to get profile due to unexpected error", error as Error);
       exit(1);
-    }
-
-    if (config.allureService.project) {
-      try {
-        const { project } = await serviceClient.project(config.allureService.project);
-
-        outputLines.push(`Current project is "${project.name}" (id: ${project.id})`);
-      } catch (err) {
-        outputLines.push(`Configured project can't be resolved (id: ${config.allureService.project})`);
-      }
     }
 
     console.info(green(outputLines.join("\n")));

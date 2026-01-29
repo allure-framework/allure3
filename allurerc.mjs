@@ -2,7 +2,7 @@ import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_URL, ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_PROJECT } = env;
+const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
 
 /**
  * @type {import("allure").AllureConfig}
@@ -37,6 +37,11 @@ const config = {
         publish: true,
       },
     },
+    testops: {
+      options: {
+        launchName: `Allure 3 GitHub actions run (${new Date().toISOString()})`,
+      },
+    },
   },
   variables: {
     env_variable: "unknown",
@@ -68,12 +73,9 @@ const config = {
   },
 };
 
-if (ALLURE_SERVICE_URL && ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_PROJECT) {
+if (ALLURE_SERVICE_ACCESS_TOKEN) {
   config.allureService = {
-    url: ALLURE_SERVICE_URL,
-    project: ALLURE_SERVICE_PROJECT,
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
-    publish: true,
   };
 }
 

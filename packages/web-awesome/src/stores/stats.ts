@@ -20,7 +20,7 @@ export const statsByEnvStore = signal<StoreSignalState<Record<string, Statistic>
 
 export const fetchReportStats = async () => {
   reportStatsStore.value = {
-    ...reportStatsStore.value,
+    ...reportStatsStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -43,7 +43,7 @@ export const fetchReportStats = async () => {
 };
 
 export const fetchEnvStats = async (envs: string[]) => {
-  const envsToFetch = envs.filter((env) => !statsByEnvStore.value.data?.[env]);
+  const envsToFetch = envs.filter((env) => !statsByEnvStore.peek().data?.[env]);
 
   // all envs have already been fetched
   if (envsToFetch.length === 0) {
@@ -51,7 +51,7 @@ export const fetchEnvStats = async (envs: string[]) => {
   }
 
   statsByEnvStore.value = {
-    ...statsByEnvStore.value,
+    ...statsByEnvStore.peek(),
     loading: true,
     error: undefined,
   };
@@ -73,7 +73,7 @@ export const fetchEnvStats = async (envs: string[]) => {
     };
   } catch (err) {
     statsByEnvStore.value = {
-      ...statsByEnvStore.value,
+      ...statsByEnvStore.peek(),
       error: err.message,
       loading: false,
     };

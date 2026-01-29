@@ -44,7 +44,7 @@ export class TreePage extends CommonPage {
 
   fixedFilterLocator: Locator;
   regressedFilterLocator: Locator;
-  malfuctionedFilterLocator: Locator;
+  malfunctionedFilterLocator: Locator;
 
   filterTooltipLocator: Locator;
 
@@ -92,9 +92,9 @@ export class TreePage extends CommonPage {
 
     this.fixedFilterLocator = page.getByTestId("fixed-filter");
     this.regressedFilterLocator = page.getByTestId("regressed-filter");
-    this.malfuctionedFilterLocator = page.getByTestId("malfunctioned-filter");
+    this.malfunctionedFilterLocator = page.getByTestId("malfunctioned-filter");
 
-    this.filterTooltipLocator = page.getByTestId("filter-tooltip");
+    this.filterTooltipLocator = page.locator('[data-testid="filter-tooltip"][data-visible="true"]');
   }
 
   getNthLeafLocator(n: number) {
@@ -238,48 +238,52 @@ export class TreePage extends CommonPage {
     await this.searchClearLocator.click();
   }
 
-  async openFilterMenu() {
-    await this.filtersButtonLocator.click();
-    await this.filtersMenuLocator.waitFor({ state: "visible" });
-  }
-
   async closeTooltip() {
     await this.resetHover();
   }
 
-  async closeFilterMenu() {
-    await this.closeTooltip();
-    await this.filtersButtonLocator.click();
-    await this.filtersMenuLocator.waitFor({ state: "hidden" });
-  }
-
-  async toggleFilter(filter: Locator) {
-    await this.openFilterMenu();
-    await filter.click();
-    await this.closeFilterMenu();
+  async closeMenu() {
+    await this.page.click("body", { force: true, position: { x: 0, y: 0 } });
   }
 
   async toggleRetryFilter() {
-    await this.toggleFilter(this.retryFilterLocator);
+    await this.retryFilterLocator.click();
   }
 
   async toggleFlakyFilter() {
-    await this.toggleFilter(this.flakyFilterLocator);
+    // Flaky filter is now a direct button, click it
+    await this.flakyFilterLocator.click();
   }
 
   async toggleNewFilter() {
-    await this.toggleFilter(this.newFilterLocator);
+    await this.page.getByRole("button", { name: "Transition" }).click();
+
+    await this.newFilterLocator.click();
+
+    await this.closeMenu();
   }
 
   async toggleFixedFilter() {
-    await this.toggleFilter(this.fixedFilterLocator);
+    await this.page.getByRole("button", { name: "Transition" }).click();
+
+    await this.fixedFilterLocator.click();
+
+    await this.closeMenu();
   }
 
   async toggleRegressedFilter() {
-    await this.toggleFilter(this.regressedFilterLocator);
+    await this.page.getByRole("button", { name: "Transition" }).click();
+
+    await this.regressedFilterLocator.click();
+
+    await this.closeMenu();
   }
 
-  async toggleMalfuctionedFilter() {
-    await this.toggleFilter(this.malfuctionedFilterLocator);
+  async toggleMalfunctionedFilter() {
+    await this.page.getByRole("button", { name: "Transition" }).click();
+
+    await this.malfunctionedFilterLocator.click();
+
+    await this.closeMenu();
   }
 }

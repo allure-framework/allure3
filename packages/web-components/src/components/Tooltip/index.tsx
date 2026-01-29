@@ -1,5 +1,7 @@
+import type { Placement } from "@floating-ui/dom";
 import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/dom";
 import type { FunctionalComponent, VNode } from "preact";
+import type { MutableRefObject } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Text } from "@/components/Typography";
 import styles from "./styles.scss";
@@ -21,13 +23,64 @@ interface TooltipProps {
   "data-testid"?: string;
 }
 
-const Tooltip: FunctionalComponent<TooltipProps> = ({ children, "data-testid": dataTestId }) => (
+export const Tooltip: FunctionalComponent<TooltipProps> = ({ children, "data-testid": dataTestId }) => (
   <div className={styles["custom-tooltip"]} data-testid={dataTestId}>
     <Text className="tooltip-content" size={"s"} bold>
       {children}
     </Text>
   </div>
 );
+
+export const useTooltip = <
+  TriggerRef extends HTMLElement = HTMLElement,
+  TooltipRef extends HTMLElement = HTMLElement,
+>(props: {
+  placement?: Placement;
+  isVisible: boolean;
+  triggerRef: MutableRefObject<TriggerRef>;
+  tooltipRef: MutableRefObject<TooltipRef>;
+}) => {
+  const { placement = "top", triggerRef: triggerRefProp, tooltipRef: tooltipRefProp, isVisible } = props;
+  const triggerRef = useRef<HTMLElement>(null);
+  const tooltipRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    triggerRef.current = triggerRefProp.current;
+    tooltipRef.current = tooltipRefProp.current;
+  }, [triggerRefProp, tooltipRefProp]);
+
+  useEffect(() => {
+    const updatePosition = () => {
+      if (triggerRef.current && tooltipRef.current) {
+        computePosition(triggerRef.current, tooltipRef.current, {
+          placement,
+          middleware: [offset(6), flip(), shift({ padding: 5 })],
+        }).then(({ x, y }) => {
+          if (tooltipRef.current) {
+            Object.assign(tooltipRef.current.style, {
+              "left": `${x}px`,
+              "top": `${y}px`,
+              "position": "absolute",
+              "z-index": 100,
+            });
+          }
+        });
+      }
+    };
+
+    const cleanup = () => {
+      if (triggerRef.current && tooltipRef.current) {
+        autoUpdate(triggerRef.current, tooltipRef.current, updatePosition);
+      }
+    };
+
+    if (isVisible) {
+      updatePosition();
+    }
+
+    return cleanup();
+  }, [isVisible, placement]);
+};
 
 export const TooltipWrapper: FunctionalComponent<TooltipWrapperProps> = ({
   tooltipText,

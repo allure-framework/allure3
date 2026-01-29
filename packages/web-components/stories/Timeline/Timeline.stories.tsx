@@ -1,4 +1,4 @@
-import { Timeline } from "@allurereport/web-components";
+import { Timeline } from "@/components/Timeline";
 import type { Meta, StoryObj } from "@storybook/react";
 // @ts-ignore this is fine
 import mockData from "./data.mock.json";

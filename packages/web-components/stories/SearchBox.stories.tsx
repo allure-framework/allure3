@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "preact/hooks";
-import { SearchBox } from "@allurereport/web-components";
+import { SearchBox } from "@/components/SearchBox";
 
 const meta: Meta<typeof SearchBox> = {
   title: "Commons/SearchBox",
@@ -29,6 +29,7 @@ type Story = StoryObj<typeof SearchBox>;
 
 export const Default: Story = {
   render: (args) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [value, setValue] = useState("");
 
     return (

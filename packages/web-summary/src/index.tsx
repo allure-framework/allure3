@@ -8,7 +8,7 @@ import "@/assets/scss/index.scss";
 import { EmptyPlaceholder } from "@/components/EmptyPlaceholder";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { currentLocale, getLocale, getTheme, useI18n, waitForI18next } from "@/stores";
+import { currentLocale, getLocale, useI18n, waitForI18next } from "@/stores";
 import * as styles from "./styles.scss";
 
 export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
@@ -21,7 +21,6 @@ const App = () => {
 
   useEffect(() => {
     getLocale();
-    getTheme();
     waitForI18next.then(() => {
       setLoaded(true);
     });

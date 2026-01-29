@@ -1,73 +1,273 @@
-import { batch, computed, effect, signal } from "@preact/signals";
+import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
+import { getParamValue, getParamValues } from "@allurereport/web-commons";
+import { computed, signal } from "@preact/signals";
 import type { AwesomeStatus } from "types";
-import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
-import { persist } from "@/utils/persist";
-import { transitionFiltersList } from "./constants";
-import type { TreeDirection, TreeFilters, TreeFiltersState, TreeSortBy } from "./types";
+import {
+  setFlakyFilter,
+  setQueryFilter,
+  setRetryFilter,
+  setStatusFilter,
+  setTagsFilter,
+  setTransitionFilter,
+} from "./actions";
+import { PARAMS } from "./constants";
+import type {
+  AwesomeArrayFieldFilter,
+  AwesomeBooleanFieldFilter,
+  AwesomeFilter,
+  AwesomeFilterGroupSimple,
+  AwesomeStringFieldFilter,
+} from "./model";
+import {
+  isFlakyFilter,
+  isRetryFilter,
+  isTagFilter,
+  isTransitionFilter,
+  validateStatus,
+  validateTransition,
+} from "./utils";
 
-export const treeQuery = signal<string>("");
-export const treeStatus = signal<AwesomeStatus>("total");
-export const treeSortBy = signal<TreeSortBy>("order");
-export const treeDirection = signal<TreeDirection>("asc");
-export const treeFilter = signal<Record<TreeFilters, boolean>>({
-  flaky: false,
-  retry: false,
-  new: false,
-  fixed: false,
-  regressed: false,
-  malfunctioned: false,
-});
+export const treeTags = signal<string[]>([]);
 
-const initialized = signal(false);
+const hasTreeTags = computed(() => treeTags.value.length > 0);
 
-const init = () => {
-  const initialState = loadFromLocalStorage<TreeFiltersState>("treeFilters", {
-    query: "",
-    status: "total",
-    filter: {
-      flaky: false,
-      retry: false,
-      new: false,
-      fixed: false,
-      regressed: false,
-      malfunctioned: false,
-    },
-    sortBy: "order",
-    direction: "asc",
-  });
+const urlQueryFilter = computed<string | undefined>(() => {
+  const queryValue = getParamValue(PARAMS.QUERY) ?? "";
 
-  batch(() => {
-    treeQuery.value = initialState.query;
-    treeStatus.value = initialState.status;
-    treeSortBy.value = initialState.sortBy;
-    treeDirection.value = initialState.direction;
-    treeFilter.value = initialState.filter;
-    initialized.value = true;
-  });
-};
-
-init();
-
-const treeFiltersState = computed(() => ({
-  query: treeQuery.value,
-  status: treeStatus.value,
-  sortBy: treeSortBy.value,
-  direction: treeDirection.value,
-  filter: treeFilter.value,
-}));
-
-effect(() => {
-  if (!initialized.value) {
-    return;
+  if (queryValue.trim() === "") {
+    return undefined;
   }
 
-  persist(["treeFilters", treeFiltersState.value]);
+  return queryValue;
 });
 
-export const transitionFilters = computed(() =>
-  transitionFiltersList.map((transition) => [transition, treeFilter.value[transition]] as const),
-);
+const urlStatusFilter = computed<TestStatus | undefined>(() => {
+  const status = getParamValue(PARAMS.STATUS) ?? undefined;
 
-export const testTypeFilters = computed(() =>
-  (["flaky", "retry"] as const).map((testType) => [testType, treeFilter.value[testType]] as const),
-);
+  if (status && validateStatus(status)) {
+    return status;
+  }
+
+  return undefined;
+});
+
+const urlFlakyFilter = computed(() => getParamValue(PARAMS.FLAKY) === "true");
+const urlRetryFilter = computed(() => getParamValue(PARAMS.RETRY) === "true");
+
+const EMPTY_TRANSITIONS: TestStatusTransition[] = [];
+
+const urlTransitionFilter = computed(() => {
+  const transitions = getParamValues(PARAMS.TRANSITION) ?? EMPTY_TRANSITIONS;
+
+  if (transitions.length === 0) {
+    return EMPTY_TRANSITIONS;
+  }
+
+  return transitions.filter((transition) => validateTransition(transition));
+});
+
+const EMPTY_TAGS: string[] = [];
+
+const urlTagsFilter = computed<string[]>(() => {
+  const tags = getParamValues(PARAMS.TAGS) ?? EMPTY_TAGS;
+
+  if (tags.length === 0) {
+    return EMPTY_TAGS;
+  }
+
+  if (treeTags.value.length === 0) {
+    return tags;
+  }
+
+  return tags.filter((tag) => treeTags.value.includes(tag));
+});
+
+const treeStatusFilter = computed<AwesomeStringFieldFilter>(() => ({
+  type: "field",
+  logicalOperator: "AND",
+  value: {
+    key: "status",
+    value: urlStatusFilter.value,
+    type: "string",
+    strict: false,
+  },
+}));
+
+export const treeQueryFilter = computed<AwesomeFilterGroupSimple>(() => {
+  return {
+    type: "group",
+    logicalOperator: "AND",
+    value: [
+      {
+        type: "field",
+        logicalOperator: "OR",
+        value: {
+          key: "name",
+          value: urlQueryFilter.value,
+          type: "string",
+          strict: false,
+        },
+      },
+      {
+        type: "field",
+        logicalOperator: "OR",
+        value: {
+          key: "id",
+          value: urlQueryFilter.value,
+          type: "string",
+          strict: false,
+        },
+      },
+    ],
+  };
+});
+
+export const treeQueryFilterValue = computed(() => treeQueryFilter.value.value[0].value.value as string);
+
+export const setTreeQueryFilter = (query: string) => {
+  setQueryFilter(query);
+};
+
+const treeRetryFilter = computed<AwesomeBooleanFieldFilter>(() => {
+  return {
+    type: "field",
+    logicalOperator: "OR",
+    value: {
+      key: "retry",
+      value: !!urlRetryFilter.value,
+      type: "boolean",
+    },
+  };
+});
+
+const treeFlakyFilter = computed<AwesomeBooleanFieldFilter>(() => ({
+  type: "field",
+  logicalOperator: "OR",
+  value: {
+    key: "flaky",
+    value: !!urlFlakyFilter.value,
+    type: "boolean",
+  },
+}));
+
+const treeTransitionFilter = computed<AwesomeFilterGroupSimple>(() => ({
+  type: "group",
+  logicalOperator: "AND",
+  fieldKey: "transition",
+  value: urlTransitionFilter.value.map((transition) => ({
+    type: "field",
+    value: {
+      key: "transition",
+      value: transition,
+      type: "string",
+      logicalOperator: "OR",
+      strict: true,
+    },
+  })),
+}));
+
+const treeTagsFilter = computed<AwesomeArrayFieldFilter>(() => ({
+  type: "field",
+  logicalOperator: "AND",
+  value: {
+    key: "tags",
+    value: urlTagsFilter.value,
+    type: "array",
+    strict: false,
+  },
+}));
+
+export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
+  treeRetryFilter.value,
+  treeFlakyFilter.value,
+  treeTransitionFilter.value,
+  treeTagsFilter.value,
+]);
+
+export const treeFilters = computed(() => {
+  const filters: AwesomeFilter[] = [];
+
+  if (treeQueryFilterValue.value) {
+    filters.push(treeQueryFilter.value);
+  }
+
+  const hasBothRetryAndFlaky = urlRetryFilter.value && urlFlakyFilter.value;
+
+  if (hasBothRetryAndFlaky) {
+    filters.push({
+      type: "group",
+      logicalOperator: "AND",
+      value: [
+        { ...treeRetryFilter.value, logicalOperator: "OR" },
+        { ...treeFlakyFilter.value, logicalOperator: "OR" },
+      ],
+    });
+  }
+
+  if (!hasBothRetryAndFlaky && urlRetryFilter.value) {
+    filters.push({ ...treeRetryFilter.value, logicalOperator: "AND" });
+  }
+
+  if (!hasBothRetryAndFlaky && urlFlakyFilter.value) {
+    filters.push({ ...treeFlakyFilter.value, logicalOperator: "AND" });
+  }
+
+  if (urlTransitionFilter.value.length > 0) {
+    filters.push(treeTransitionFilter.value);
+  }
+
+  if (urlTagsFilter.value.length > 0) {
+    filters.push(treeTagsFilter.value);
+  }
+
+  if (urlStatusFilter.value) {
+    filters.push(treeStatusFilter.value);
+  }
+
+  return filters;
+});
+
+export const setTreeFilter = (filter: AwesomeFilter) => {
+  if (isTransitionFilter(filter)) {
+    const transitions: TestStatusTransition[] = [];
+
+    for (const v of filter.value) {
+      if (v.type === "field" && v.value.type === "string" && v.value.key === "transition") {
+        transitions.push(v.value.value as TestStatusTransition);
+      }
+    }
+
+    setTransitionFilter(transitions);
+  }
+
+  if (isRetryFilter(filter)) {
+    setRetryFilter(filter.value.value);
+  }
+
+  if (isFlakyFilter(filter)) {
+    setFlakyFilter(filter.value.value);
+  }
+
+  if (
+    isTagFilter(filter) &&
+    // Apply tags filter only if there are tags to filter by
+    hasTreeTags.peek()
+  ) {
+    setTagsFilter(filter.value.value);
+  }
+};
+
+export const treeStatus = computed<AwesomeStatus>(() => urlStatusFilter.value ?? "total");
+
+export const setTreeStatus = (status: AwesomeStatus) => {
+  setStatusFilter(status === "total" ? undefined : status);
+};
+
+export const clearTreeFilters = () => {
+  setQueryFilter("");
+  setRetryFilter(false);
+  setFlakyFilter(false);
+  setTransitionFilter([]);
+  setTagsFilter([]);
+  setStatusFilter();
+};

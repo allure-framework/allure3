@@ -24,16 +24,16 @@ export const filterUnsuccessful = filterByStatus(unsuccessfulStatuses);
 
 export const filterIncludedInSuccessRate = filterByStatus(includedInSuccessRate);
 
-export const emptyStatistic: () => Statistic = () => ({ total: 0 });
+export const emptyStatistic = (): Statistic => ({ total: 0 });
 
 export const incrementStatistic = (statistic: Statistic, status: TestStatus, count: number = 1) => {
-  statistic[status] = (statistic[status] ?? 0) + count;
+  statistic[status] = (statistic?.[status] ?? 0) + count;
   statistic.total += count;
 };
 
 export const mergeStatistic = (statistic: Statistic, additional: Statistic) => {
   statusesList.forEach((status) => {
-    if (additional[status]) {
+    if (additional?.[status]) {
       incrementStatistic(statistic, status, additional[status]);
     }
   });

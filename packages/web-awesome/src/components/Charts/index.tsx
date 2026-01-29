@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ChartType } from "@allurereport/charts-api";
 import { type UIChartData } from "@allurereport/web-commons";
+import { themeStore } from "@allurereport/web-commons";
 import {
   CurrentStatusChartWidget,
   DurationDynamicsChartWidget,
@@ -20,12 +21,14 @@ import {
   TrSeveritiesChartWidget,
   TreeMapChartWidget,
 } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { themeStore } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/chart";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
+
+const currentTheme = computed(() => themeStore.value.current);
 
 const getChartWidgetByType = (
   chartData: UIChartData,
@@ -210,7 +213,7 @@ export const Charts = () => {
   }, []);
 
   return (
-    <ThemeProvider theme={themeStore.value}>
+    <ThemeProvider theme={currentTheme.value}>
       <Loadable
         source={chartsStore}
         renderLoader={() => <PageLoader />}

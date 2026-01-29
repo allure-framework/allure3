@@ -43,7 +43,7 @@ export const reportDataUrl = async (
   const baseEl = globalThis.document.head.querySelector("base")?.href ?? "https://localhost";
   const url = new URL(path, baseEl);
   const liveReloadHash = globalThis.localStorage.getItem(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);
-  const cacheKey = globalThis.allureReportOptions?.cacheKey;
+  const cacheKey = getReportOptions<{ cacheKey?: string }>()?.cacheKey;
 
   if (liveReloadHash) {
     url.searchParams.set("live_reload_hash", liveReloadHash);
@@ -56,12 +56,18 @@ export const reportDataUrl = async (
   return url.toString();
 };
 
+export class ReportFetchError extends Error {
+  constructor(message: string, public readonly response: Response) {
+    super(message);
+  }
+}
+
 export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
   const url = await reportDataUrl(path, undefined, params);
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}, response status: ${res.status}`);
+    throw new ReportFetchError(`Failed to fetch ${url}, response status: ${res.status}`, res);
   }
 
   const data = res.json();
@@ -76,5 +82,5 @@ export const fetchReportAttachment = async (path: string, contentType?: string) 
 };
 
 export const getReportOptions = <T>() => {
-  return globalThis.allureReportOptions as T;
+  return globalThis.allureReportOptions as Readonly<T>;
 };

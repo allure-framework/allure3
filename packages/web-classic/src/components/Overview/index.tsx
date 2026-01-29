@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ChartType } from "@allurereport/charts-api";
 import type { UIChartData } from "@allurereport/web-commons";
+import { themeStore } from "@allurereport/web-commons";
 import {
   Grid,
   GridItem,
@@ -12,14 +13,15 @@ import {
   ThemeProvider,
   TreeMapChartWidget,
 } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { themeStore, useI18n } from "@/stores";
+import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
 import * as styles from "./Overview.module.scss";
 
 const getChartWidgetByType = (
   chartData: UIChartData,
-  { t, empty }: Record<string, (key: string, options?: any) => string>,
+  { empty }: Record<string, (key: string, options?: any) => string>,
 ) => {
   switch (chartData.type) {
     case ChartType.CoverageDiff: {
@@ -65,6 +67,8 @@ const getChartWidgetByType = (
   }
 };
 
+const currentTheme = computed(() => themeStore.value.current);
+
 const Overview = () => {
   const { t } = useI18n("charts");
   const { t: empty } = useI18n("empty");
@@ -74,7 +78,7 @@ const Overview = () => {
   }, []);
 
   return (
-    <ThemeProvider theme={themeStore.value}>
+    <ThemeProvider theme={currentTheme.value}>
       <Loadable
         source={chartsStore}
         renderLoader={() => <PageLoader />}

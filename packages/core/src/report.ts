@@ -88,7 +88,9 @@ export class AllureReport {
       allureService: allureServiceConfig,
     } = opts;
 
-    this.#allureServiceClient = allureServiceConfig?.url ? new AllureServiceClient(allureServiceConfig) : undefined;
+    this.#allureServiceClient = allureServiceConfig?.accessToken
+      ? new AllureServiceClient(allureServiceConfig)
+      : undefined;
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
@@ -200,7 +202,7 @@ export class AllureReport {
         if (processed) {
           return;
         }
-      } catch (ignored) {}
+      } catch {}
     }
   };
 
@@ -600,7 +602,7 @@ export class AllureReport {
     try {
       // recursive flag is not applicable, it can provoke the process freeze
       outputDirFiles = await readdir(this.#output);
-    } catch (ignored) {}
+    } catch {}
 
     // just do nothing if there is no reports in the output directory
     if (outputDirFiles.length === 0) {
@@ -608,11 +610,12 @@ export class AllureReport {
     }
 
     const reportPath = join(this.#output, outputDirFiles[0]);
+    const reportStats = await lstat(reportPath);
     const outputEntriesStats = await Promise.all(outputDirFiles.map((file) => lstat(join(this.#output, file))));
     const outputDirectoryEntries = outputEntriesStats.filter((entry) => entry.isDirectory());
 
     // if there is a single report directory in the output directory, move it to the root and prevent summary generation
-    if (outputDirectoryEntries.length === 1) {
+    if (reportStats.isDirectory() && outputDirectoryEntries.length === 1) {
       const reportContent = await readdir(reportPath);
 
       for (const entry of reportContent) {
@@ -629,7 +632,7 @@ export class AllureReport {
     for (const dir of this.#stageTempDirs) {
       try {
         await rm(dir, { recursive: true });
-      } catch (ignored) {}
+      } catch {}
     }
 
     if (this.#history) {
@@ -705,6 +708,7 @@ export class AllureReport {
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,
+        output: this.#output,
         ci: this.#ci,
       };
 

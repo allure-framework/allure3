@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Counter } from "@allurereport/web-components";
+import { Counter } from "@/components/Counter";
 
 const meta: Meta<typeof Counter> = {
   title: "Commons/Counter",

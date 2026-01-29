@@ -1,5 +1,5 @@
-import { TrendChart, defaultTrendChartLegendConfig, defaultTrendChartAxisBottomConfig, defaultTrendChartAxisLeftConfig, makeSymlogScaleBySeries, TrendChartKind } from "@allurereport/web-components";
-import type { TrendChartProps, Datum, Serie } from "@allurereport/web-components";
+import { TrendChart, defaultTrendChartLegendConfig, defaultTrendChartAxisBottomConfig, defaultTrendChartAxisLeftConfig, makeSymlogScaleBySeries, TrendChartKind } from "@/components/Charts/TrendChart";
+import type { TrendChartProps, Datum, Serie } from "@/components/Charts/TrendChart";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
@@ -41,7 +41,7 @@ const leftAxisConfig = {
   legend: "Tests executed",
   legendOffset: -40,
   legendPosition: "middle",
-}
+};
 
 const bottomAxisConfig = {
   ...defaultTrendChartAxisBottomConfig,
