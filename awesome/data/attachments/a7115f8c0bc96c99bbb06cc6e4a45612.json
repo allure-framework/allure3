@@ -1,0 +1,23 @@
+{
+  "steps": [
+    {
+      "type": "step",
+      "message": "Lorem Ipsum 1",
+      "trace": "foo",
+      "steps": [
+        {
+          "type": "step",
+          "message": "Lorem Ipsum 2",
+          "trace": "bar",
+          "steps": [
+            {
+              "type": "step",
+              "message": "Lorem Ipsum 3",
+              "trace": "baz"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
