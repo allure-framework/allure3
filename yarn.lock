@@ -941,7 +941,6 @@ __metadata:
     postcss: "npm:^8.5.6"
     preact: "npm:^10.28.2"
     prismjs: "npm:^1.30.0"
-    reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.79.1"
     sass-loader: "npm:^16.0.1"
@@ -1020,7 +1019,6 @@ __metadata:
     postcss: "npm:^8.5.6"
     preact: "npm:^10.28.2"
     prismjs: "npm:^1.30.0"
-    reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.79.1"
     sass-loader: "npm:^16.0.1"
@@ -1199,7 +1197,6 @@ __metadata:
     prismjs: "npm:^1.30.0"
     react: "npm:@preact/compat@*"
     react-dom: "npm:@preact/compat@*"
-    reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.43.0"
     rollup-plugin-copy: "npm:^3.5.0"
@@ -1274,7 +1271,6 @@ __metadata:
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.6"
     preact: "npm:^10.28.2"
-    reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.79.1"
     sass-loader: "npm:^16.0.1"
@@ -1337,7 +1333,6 @@ __metadata:
     npm-run-all2: "npm:^7.0.1"
     postcss: "npm:^8.5.6"
     preact: "npm:^10.28.2"
-    reset.css: "npm:^2.0.2"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.79.1"
     sass-loader: "npm:^16.0.1"
@@ -19234,13 +19229,6 @@ __metadata:
   version: 1.0.0
   resolution: "requires-port@npm:1.0.0"
   checksum: 10/878880ee78ccdce372784f62f52a272048e2d0827c29ae31e7f99da18b62a2b9463ea03a75f277352f4697c100183debb0532371ad515a2d49d4bfe596dd4c20
-  languageName: node
-  linkType: hard
-
-"reset.css@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "reset.css@npm:2.0.2"
-  checksum: 10/a6e0206cf0f6b16c7ccd2670fee730ebae6b36b4390bc9ea508a9de3220224ce4087cc760dd466996d6d360b7aa4738fad795a443a85817c8ccd75ee0ff3276a
   languageName: node
   linkType: hard
 

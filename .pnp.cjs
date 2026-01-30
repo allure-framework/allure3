@@ -1211,7 +1211,6 @@ const RAW_RUNTIME_STATE =
           ["postcss", "npm:8.5.6"],\
           ["preact", "npm:10.28.2"],\
           ["prismjs", "npm:1.30.0"],\
-          ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
           ["sass-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:16.0.1"],\
@@ -1292,7 +1291,6 @@ const RAW_RUNTIME_STATE =
           ["postcss", "npm:8.5.6"],\
           ["preact", "npm:10.28.2"],\
           ["prismjs", "npm:1.30.0"],\
-          ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
           ["sass-loader", "virtual:24e0b849dfb6c9034992217368f7c7994d5eed61245606aebf649c30ac09a93fedc2a6b35eca5fc98c9ff108db7646895ee940e0375055ff3a6531a474d48905#npm:16.0.1"],\
@@ -1481,7 +1479,6 @@ const RAW_RUNTIME_STATE =
             "@preact/compat",\
             "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:18.3.1"\
           ]],\
-          ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["rollup", "npm:4.43.0"],\
           ["rollup-plugin-copy", "npm:3.5.0"],\
@@ -1558,7 +1555,6 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
           ["preact", "npm:10.28.2"],\
-          ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
           ["sass-loader", "virtual:4d93ab35a1ad5c97dfb9d513244ed4ab5ca7b5ad2eeb7287d92a3be8626215d6395b3f06dbce8c27d984a95d65e37983159a77b5112d59acf6399e3b68dfbf33#npm:16.0.1"],\
@@ -1623,7 +1619,6 @@ const RAW_RUNTIME_STATE =
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
           ["preact", "npm:10.28.2"],\
-          ["reset.css", "npm:2.0.2"],\
           ["rimraf", "npm:6.0.1"],\
           ["sass", "npm:1.79.1"],\
           ["sass-loader", "virtual:1b8eca1873e83aeff31218f2077ee4cd4696d18a324e697f226fe249d690df1e0f131eacd819df86c73d99d0693164c077816fe2676ad3388726c3d6c4587775#npm:16.0.1"],\
@@ -28456,15 +28451,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/requires-port-npm-1.0.0-fd036b488a-878880ee78.zip/node_modules/requires-port/",\
         "packageDependencies": [\
           ["requires-port", "npm:1.0.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["reset.css", [\
-      ["npm:2.0.2", {\
-        "packageLocation": "./.yarn/cache/reset.css-npm-2.0.2-9cf4dcf0de-a6e0206cf0.zip/node_modules/reset.css/",\
-        "packageDependencies": [\
-          ["reset.css", "npm:2.0.2"]\
         ],\
         "linkType": "HARD"\
       }]\

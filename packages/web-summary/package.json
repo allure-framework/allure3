@@ -33,8 +33,7 @@
     "@preact/signals": "^2.6.1",
     "clsx": "^2.1.1",
     "i18next": "^24.0.2",
-    "preact": "^10.28.2",
-    "reset.css": "^2.0.2"
+    "preact": "^10.28.2"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

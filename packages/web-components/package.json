@@ -73,7 +73,6 @@
     "prismjs": "^1.30.0",
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
-    "reset.css": "^2.0.2",
     "sortablejs": "^1.15.6",
     "use-debounce": "^10.0.6"
   },

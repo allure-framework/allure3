@@ -42,8 +42,7 @@
     "i18next": "^24.0.2",
     "md5": "^2.3.0",
     "preact": "^10.28.2",
-    "prismjs": "^1.30.0",
-    "reset.css": "^2.0.2"
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
