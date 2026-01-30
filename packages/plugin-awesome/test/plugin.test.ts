@@ -1,6 +1,6 @@
 import type { Statistic, TestResult } from "@allurereport/core-api";
-import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { describe, expect, it } from "vitest";
+import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
+import { describe, expect, it, vi } from "vitest";
 import AwesomePlugin from "../src/index.js";
 
 // duplicated the code from core to avoid circular dependency
@@ -136,6 +136,92 @@ describe("plugin", () => {
       const info = await plugin.info(fixtures.context, fixtures.store);
 
       expect(info?.meta?.singleFile).toBe(true);
+    });
+  });
+
+  describe("tree filters", () => {
+    it("should write only tags from filtered tests to tree-filters.json when filter is passed in config", async () => {
+      const testResultsWithTags: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          labels: [{ name: "tag", value: "smoke" }],
+        },
+        {
+          id: "tr-2",
+          name: "failed test",
+          status: "failed",
+          labels: [{ name: "tag", value: "regression" }],
+        },
+        {
+          id: "tr-3",
+          name: "another passed test",
+          status: "passed",
+          labels: [{ name: "tag", value: "critical" }],
+        },
+      ] as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue([]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn().mockResolvedValue(testResultsWithTags),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) =>
+          getTestResultsStats(testResultsWithTags, filter),
+        ),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        filter: (tr) => tr.status === "passed",
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      const treeFiltersPath = "widgets/tree-filters.json";
+      expect(addedFiles.has(treeFiltersPath)).toBe(true);
+
+      const treeFiltersBuffer = addedFiles.get(treeFiltersPath);
+      const treeFilters = JSON.parse(treeFiltersBuffer!.toString("utf-8")) as { tags: string[] };
+
+      // Only tags from filtered (passed) tests: "smoke" and "critical", sorted
+      expect(treeFilters.tags).toEqual(["critical", "smoke"]);
+      // Tag from excluded (failed) test must not be present
+      expect(treeFilters.tags).not.toContain("regression");
     });
   });
 });
