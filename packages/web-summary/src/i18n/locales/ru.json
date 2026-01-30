@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "успешный",
-    "failed": "неуспешный",
-    "broken": "сломанный",
-    "skipped": "пропущенный",
-    "unknown": "неизвестный",
+    "status": {
+      "passed": "успешный",
+      "failed": "неуспешный",
+      "broken": "сломанный",
+      "skipped": "пропущенный",
+      "unknown": "неизвестный"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "все",
     "in": "за",
-    "new": "новые тесты",
-    "flaky": "нестабильные тесты",
-    "retry": "повторные тесты"
+    "metadata": {
+      "new_zero": "Нет новых тестов",
+      "new_one": "{{count}} новый тест",
+      "new_other": "{{count}} новых тестов",
+      "flaky_zero": "Нет нестабильных тестов",
+      "flaky_one": "{{count}} нестабильный тест",
+      "flaky_other": "{{count}} нестабильных тестов",
+      "retry_zero": "Нет повторных тестов",
+      "retry_one": "{{count}} повторный тест",
+      "retry_other": "{{count}} повторных тестов"
+    }
+  },
+  "ui": {
+    "at": "в"
   },
   "empty": {
     "no-reports": "Отчеты не найдены"

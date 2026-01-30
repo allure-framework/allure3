@@ -1,64 +1,102 @@
-.report-card {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 0 16px;
-  padding: 16px;
-  height: 100%;
-  text-decoration: none;
-  background: var(--bg-base-primary);
-  border: 1px solid var(--bg-base-secondary);
-  border-radius: 12px;
-  cursor: pointer;
+.wrapper {
+  --card-pie-size: 90px;
 
-  &:hover {
-    transition: box-shadow 0.2s;
-    box-shadow: var(--shadow-small);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+
+  width: 100%;
+  min-height: 200px;
+
+  padding: 16px;
+
+  background: var(--bg-base-primary);
+  border: 1px solid var(--on-border-muted);
+  border-radius: 8px;
+  box-shadow: var(--shadow-small);
+
+  &:is(a) {
+    --offset-y: 0;
+
+    color: var(--on-text-primary);
+    text-decoration: none;
+
+    cursor: pointer;
+    transform: translateY(var(--offset-y));
+    transition:
+      box-shadow 0.2s ease-out,
+      transform 0.2s ease-in,
+      border-color 0.2s ease-out;
+
+    &:hover {
+      --offset-y: -2px;
+      border-color: var(--on-border-primary);
+      box-shadow: var(--shadow-raised);
+    }
   }
 }
 
-.report-card-plugin {
-  color: var(--on-text-secondary);
-}
-
-.report-card-created-at {
-  margin-bottom: 8px;
-  color: var(--on-text-secondary);
-}
-
-.report-card-chart {
-  top: 0;
-  left: 0;
-  width: 100%;
-  max-width: 88px;
-  max-height: 88px;
-}
-
-.report-card-chart-wrapper {
+.row {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-grow: 1;
 }
 
-.report-card-title {
+.pie {
+  padding-top: 8px;
+  flex-shrink: 0;
+  width: var(--card-pie-size);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding-right: 16px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
   color: var(--on-text-primary);
 }
 
-.report-card-status {
-  display: flex;
-  align-items: center;
-  gap: 0 4px;
-  margin-bottom: 16px;
+.createdAt {
   color: var(--on-text-secondary);
 }
 
-.report-card-metadata {
+.reportStatus {
   display: flex;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+
+  color: var(--on-text-secondary);
 }
 
-.report-card-metadata-icons {
+.metadata {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 16px;
+
+  margin-top: auto;
+}
+
+.statistics {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 8px;
+
+  margin-top: auto;
 }

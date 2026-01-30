@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "godkänd",
-    "failed": "misslyckad",
-    "broken": "trasig",
-    "skipped": "hoppad över",
-    "unknown": "okänd",
+    "status": {
+      "passed": "godkänd",
+      "failed": "misslyckad",
+      "broken": "trasig",
+      "skipped": "hoppad över",
+      "unknown": "okänd"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "totalt",
     "in": "i",
-    "new": "nya tester",
-    "flaky": "instabila tester",
-    "retry": "upprepade tester"
+    "metadata": {
+      "new_zero": "Inga nya tester",
+      "new_one": "{{count}} nytt test",
+      "new_other": "{{count}} nya tester",
+      "flaky_zero": "Inga instabila tester",
+      "flaky_one": "{{count}} instabilt test",
+      "flaky_other": "{{count}} instabila tester",
+      "retry_zero": "Inga upprepade tester",
+      "retry_one": "{{count}} upprepat test",
+      "retry_other": "{{count}} upprepade tester"
+    }
+  },
+  "ui": {
+    "at": "kl"
   },
   "empty": {
     "no-reports": "Inga rapporter"

@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "keçdi",
-    "failed": "uğursuz",
-    "broken": "sınıq",
-    "skipped": "keçildi",
-    "unknown": "naməlum",
+    "status": {
+      "passed": "keçdi",
+      "failed": "uğursuz",
+      "broken": "sınıq",
+      "skipped": "keçildi",
+      "unknown": "naməlum"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "cəmi",
     "in": "içində",
-    "new": "yeni testlər",
-    "flaky": "qeyri-sabit testlər",
-    "retry": "təkrar testlər"
+    "metadata": {
+      "new_zero": "Yeni test yoxdur",
+      "new_one": "{{count}} yeni test",
+      "new_other": "{{count}} yeni test",
+      "flaky_zero": "Qeyri-sabit test yoxdur",
+      "flaky_one": "{{count}} qeyri-sabit test",
+      "flaky_other": "{{count}} qeyri-sabit test",
+      "retry_zero": "Təkrar test yoxdur",
+      "retry_one": "{{count}} təkrar test",
+      "retry_other": "{{count}} təkrar test"
+    }
+  },
+  "ui": {
+    "at": "saat"
   },
   "empty": {
     "no-reports": "Hesabat tapılmadı"

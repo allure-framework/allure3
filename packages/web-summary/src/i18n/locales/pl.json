@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "zdany",
-    "failed": "niezdany",
-    "broken": "zepsuty",
-    "skipped": "pominięty",
-    "unknown": "nieznany",
+    "status": {
+      "passed": "zdany",
+      "failed": "niezdany",
+      "broken": "zepsuty",
+      "skipped": "pominięty",
+      "unknown": "nieznany"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "wszystkie",
     "in": "za",
-    "new": "nowe testy",
-    "flaky": "niestabilne testy",
-    "retry": "powtórzone testy"
+    "metadata": {
+      "new_zero": "Brak nowych testów",
+      "new_one": "{{count}} nowy test",
+      "new_other": "{{count}} nowych testów",
+      "flaky_zero": "Brak niestabilnych testów",
+      "flaky_one": "{{count}} niestabilny test",
+      "flaky_other": "{{count}} niestabilnych testów",
+      "retry_zero": "Brak powtórzonych testów",
+      "retry_one": "{{count}} powtórzony test",
+      "retry_other": "{{count}} powtórzonych testów"
+    }
+  },
+  "ui": {
+    "at": "o"
   },
   "empty": {
     "no-reports": "Brak raportów"

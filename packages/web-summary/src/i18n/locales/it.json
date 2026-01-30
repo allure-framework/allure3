@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "superato",
-    "failed": "fallito",
-    "broken": "rotto",
-    "skipped": "saltato",
-    "unknown": "sconosciuto",
+    "status": {
+      "passed": "superato",
+      "failed": "fallito",
+      "broken": "rotto",
+      "skipped": "saltato",
+      "unknown": "sconosciuto"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "totale",
     "in": "in",
-    "new": "nuovi test",
-    "flaky": "test instabili",
-    "retry": "test ripetuti"
+    "metadata": {
+      "new_zero": "Nessun nuovo test",
+      "new_one": "{{count}} nuovo test",
+      "new_other": "{{count}} nuovi test",
+      "flaky_zero": "Nessun test instabile",
+      "flaky_one": "{{count}} test instabile",
+      "flaky_other": "{{count}} test instabili",
+      "retry_zero": "Nessun test ripetuto",
+      "retry_one": "{{count}} test ripetuto",
+      "retry_other": "{{count}} test ripetuti"
+    }
+  },
+  "ui": {
+    "at": "alle"
   },
   "empty": {
     "no-reports": "Nessun report trovato"

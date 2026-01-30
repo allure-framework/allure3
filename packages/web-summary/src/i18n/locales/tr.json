@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "başarılı",
-    "failed": "başarısız",
-    "broken": "bozuk",
-    "skipped": "atlandı",
-    "unknown": "bilinmeyen",
+    "status": {
+      "passed": "başarılı",
+      "failed": "başarısız",
+      "broken": "bozuk",
+      "skipped": "atlandı",
+      "unknown": "bilinmeyen"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "toplam",
     "in": "içinde",
-    "new": "yeni testler",
-    "flaky": "kararsız testler",
-    "retry": "tekrar testleri"
+    "metadata": {
+      "new_zero": "Yeni test yok",
+      "new_one": "{{count}} yeni test",
+      "new_other": "{{count}} yeni test",
+      "flaky_zero": "Kararsız test yok",
+      "flaky_one": "{{count}} kararsız test",
+      "flaky_other": "{{count}} kararsız test",
+      "retry_zero": "Tekrar testi yok",
+      "retry_one": "{{count}} tekrar testi",
+      "retry_other": "{{count}} tekrar testi"
+    }
+  },
+  "ui": {
+    "at": "saat"
   },
   "empty": {
     "no-reports": "Rapor bulunamadı"

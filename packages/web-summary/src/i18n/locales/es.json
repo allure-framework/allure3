@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "aprobado",
-    "failed": "fallido",
-    "broken": "roto",
-    "skipped": "omitido",
-    "unknown": "desconocido",
+    "status": {
+      "passed": "aprobado",
+      "failed": "fallido",
+      "broken": "roto",
+      "skipped": "omitido",
+      "unknown": "desconocido"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "total",
     "in": "en",
-    "new": "nuevos tests",
-    "flaky": "tests inestables",
-    "retry": "tests repetidos"
+    "metadata": {
+      "new_zero": "No hay tests nuevos",
+      "new_one": "{{count}} test nuevo",
+      "new_other": "{{count}} tests nuevos",
+      "flaky_zero": "No hay tests inestables",
+      "flaky_one": "{{count}} test inestable",
+      "flaky_other": "{{count}} tests inestables",
+      "retry_zero": "No hay tests repetidos",
+      "retry_one": "{{count}} test repetido",
+      "retry_other": "{{count}} tests repetidos"
+    }
+  },
+  "ui": {
+    "at": "a las"
   },
   "empty": {
     "no-reports": "No se encontraron informes"

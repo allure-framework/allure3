@@ -19,21 +19,6 @@
   margin-bottom: 40px;
 }
 
-.summary-card {
-  display: block;
-  padding: 16px;
-  height: 100%;
-  text-decoration: none;
-  box-shadow: var(--shadow-small);
-  background: var(--bg-base-primary);
-  border-radius: 12px;
-
-  &:hover {
-    box-shadow: none;
-    transition: box-shadow 0.2s;
-  }
-}
-
 .summary-card-title {
   display: flex;
   align-items: flex-start;

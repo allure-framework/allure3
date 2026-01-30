@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "geslaagd",
-    "failed": "mislukt",
-    "broken": "gebroken",
-    "skipped": "overgeslagen",
-    "unknown": "onbekend",
+    "status": {
+      "passed": "geslaagd",
+      "failed": "mislukt",
+      "broken": "gebroken",
+      "skipped": "overgeslagen",
+      "unknown": "onbekend"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "totaal",
     "in": "in",
-    "new": "nieuwe tests",
-    "flaky": "onstabiele tests",
-    "retry": "herhaalde tests"
+    "metadata": {
+      "new_zero": "Geen nieuwe tests",
+      "new_one": "{{count}} nieuwe test",
+      "new_other": "{{count}} nieuwe tests",
+      "flaky_zero": "Geen onstabiele tests",
+      "flaky_one": "{{count}} onstabiele test",
+      "flaky_other": "{{count}} onstabiele tests",
+      "retry_zero": "Geen herhaalde tests",
+      "retry_one": "{{count}} herhaalde test",
+      "retry_other": "{{count}} herhaalde tests"
+    }
+  },
+  "ui": {
+    "at": "om"
   },
   "empty": {
     "no-reports": "Geen rapporten gevonden"

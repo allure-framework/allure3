@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "անցած",
-    "failed": "ձախողված",
-    "broken": "կոտրված",
-    "skipped": "բաց թողնված",
-    "unknown": "անհայտ",
+    "status": {
+      "passed": "անցած",
+      "failed": "ձախողված",
+      "broken": "կոտրված",
+      "skipped": "բաց թողնված",
+      "unknown": "անհայտ"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "ընդհանուր",
     "in": "մեջ",
-    "new": "նոր թեստեր",
-    "flaky": "անկայուն թեստեր",
-    "retry": "կրկնվող թեստեր"
+    "metadata": {
+      "new_zero": "Նոր թեստեր չկան",
+      "new_one": "{{count}} նոր թեստ",
+      "new_other": "{{count}} նոր թեստ",
+      "flaky_zero": "Անկայուն թեստեր չկան",
+      "flaky_one": "{{count}} անկայուն թեստ",
+      "flaky_other": "{{count}} անկայուն թեստ",
+      "retry_zero": "Կրկնվող թեստեր չկան",
+      "retry_one": "{{count}} կրկնվող թեստ",
+      "retry_other": "{{count}} կրկնվող թեստ"
+    }
+  },
+  "ui": {
+    "at": "ժամը"
   },
   "empty": {
     "no-reports": "Ոչ մի հաշվետվություն չի գտնվել"

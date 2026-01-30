@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "通过",
-    "failed": "失败",
-    "broken": "损坏",
-    "skipped": "跳过",
-    "unknown": "未知",
+    "status": {
+      "passed": "通过",
+      "failed": "失败",
+      "broken": "损坏",
+      "skipped": "跳过",
+      "unknown": "未知"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "总计",
     "in": "在",
-    "new": "新测试",
-    "flaky": "不稳定测试",
-    "retry": "重试测试"
+    "metadata": {
+      "new_zero": "无新测试",
+      "new_one": "{{count}} 个新测试",
+      "new_other": "{{count}} 个新测试",
+      "flaky_zero": "无不稳定测试",
+      "flaky_one": "{{count}} 个不稳定测试",
+      "flaky_other": "{{count}} 个不稳定测试",
+      "retry_zero": "无重试测试",
+      "retry_one": "{{count}} 个重试测试",
+      "retry_other": "{{count}} 个重试测试"
+    }
+  },
+  "ui": {
+    "at": "于"
   },
   "empty": {
     "no-reports": "未找到报告"

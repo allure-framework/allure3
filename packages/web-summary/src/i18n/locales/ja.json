@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "成功",
-    "failed": "失敗",
-    "broken": "壊れた",
-    "skipped": "スキップ",
-    "unknown": "不明",
+    "status": {
+      "passed": "成功",
+      "failed": "失敗",
+      "broken": "壊れた",
+      "skipped": "スキップ",
+      "unknown": "不明"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "合計",
     "in": "中",
-    "new": "新規テスト",
-    "flaky": "不安定テスト",
-    "retry": "再試行テスト"
+    "metadata": {
+      "new_zero": "新規テストなし",
+      "new_one": "{{count}}件の新規テスト",
+      "new_other": "{{count}}件の新規テスト",
+      "flaky_zero": "不安定テストなし",
+      "flaky_one": "{{count}}件の不安定テスト",
+      "flaky_other": "{{count}}件の不安定テスト",
+      "retry_zero": "再試行テストなし",
+      "retry_one": "{{count}}件の再試行テスト",
+      "retry_other": "{{count}}件の再試行テスト"
+    }
+  },
+  "ui": {
+    "at": "に"
   },
   "empty": {
     "no-reports": "レポートが見つかりません"

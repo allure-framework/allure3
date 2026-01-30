@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "წარმატებული",
-    "failed": "წარუმატებელი",
-    "broken": "დამტვრეული",
-    "skipped": "გამოტოვებული",
-    "unknown": "უცნობი",
+    "status": {
+      "passed": "წარმატებული",
+      "failed": "წარუმატებელი",
+      "broken": "დამტვრეული",
+      "skipped": "გამოტოვებული",
+      "unknown": "უცნობი"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "ჯამი",
     "in": "ში",
-    "new": "ახალი ტესტები",
-    "flaky": "არასტაბილური ტესტები",
-    "retry": "განმეორებითი ტესტები"
+    "metadata": {
+      "new_zero": "ახალი ტესტები არ არის",
+      "new_one": "{{count}} ახალი ტესტი",
+      "new_other": "{{count}} ახალი ტესტი",
+      "flaky_zero": "არასტაბილური ტესტები არ არის",
+      "flaky_one": "{{count}} არასტაბილური ტესტი",
+      "flaky_other": "{{count}} არასტაბილური ტესტი",
+      "retry_zero": "განმეორებითი ტესტები არ არის",
+      "retry_one": "{{count}} განმეორებითი ტესტი",
+      "retry_other": "{{count}} განმეორებითი ტესტი"
+    }
+  },
+  "ui": {
+    "at": "ზე"
   },
   "empty": {
     "no-reports": "არ მოიძებნა არცერთი ანგარიში"

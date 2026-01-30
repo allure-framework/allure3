@@ -1,15 +1,29 @@
 {
   "summary": {
-    "passed": "עבר",
-    "failed": "נכשל",
-    "broken": "שבור",
-    "skipped": "דלג",
-    "unknown": "לא ידוע",
+    "status": {
+      "passed": "עבר",
+      "failed": "נכשל",
+      "broken": "שבור",
+      "skipped": "דלג",
+      "unknown": "לא ידוע"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
     "total": "סה\"כ",
     "in": "ב-",
-    "new": "בדיקות חדשות",
-    "flaky": "בדיקות לא יציבות",
-    "retry": "בדיקות חוזרות"
+    "metadata": {
+      "new_zero": "אין בדיקות חדשות",
+      "new_one": "{{count}} בדיקה חדשה",
+      "new_other": "{{count}} בדיקות חדשות",
+      "flaky_zero": "אין בדיקות לא יציבות",
+      "flaky_one": "{{count}} בדיקה לא יציבה",
+      "flaky_other": "{{count}} בדיקות לא יציבות",
+      "retry_zero": "אין בדיקות חוזרות",
+      "retry_one": "{{count}} בדיקה חוזרת",
+      "retry_other": "{{count}} בדיקות חוזרות"
+    }
+  },
+  "ui": {
+    "at": "ב-"
   },
   "empty": {
     "no-reports": "לא נמצאו דוחות"
