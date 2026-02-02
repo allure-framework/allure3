@@ -22,6 +22,7 @@ const defaultPluginContext = {
   reportUrl: "http://example.com/report",
   reportUuid: "test-uuid",
   reportName: "Test Report",
+  reportStoreFiles: undefined,
   ci: {
     jobUrl: "http://ci.example.com/job/123",
     jobName: "Test Job",

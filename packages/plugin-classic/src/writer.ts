@@ -86,7 +86,14 @@ export class InMemoryReportDataWriter implements ClassicDataWriter {
 }
 
 export class ReportFileDataWriter implements ClassicDataWriter {
-  constructor(readonly reportFiles: ReportFiles) {}
+  constructor(
+    readonly reportFiles: ReportFiles,
+    /**
+     * Root-level store files shared across all plugins.
+     * Attachments should go here to avoid duplicating them per plugin.
+     */
+    readonly reportStoreFiles: ReportFiles = reportFiles,
+  ) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
     await this.reportFiles.addFile(joinPosix("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
@@ -104,11 +111,12 @@ export class ReportFileDataWriter implements ClassicDataWriter {
       return;
     }
 
-    await this.reportFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
+    await this.reportStoreFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
   }
 
   async writeTestCase(test: AwesomeTestResult): Promise<void> {
-    await this.reportFiles.addFile(
+    // Store-derived test cases are shared across plugins; write them once at report root.
+    await this.reportStoreFiles.addFile(
       joinPosix("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),
     );

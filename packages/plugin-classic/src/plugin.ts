@@ -87,7 +87,7 @@ export class ClassicPlugin implements Plugin {
       return;
     }
 
-    this.#writer = new ReportFileDataWriter(context.reportFiles);
+    this.#writer = new ReportFileDataWriter(context.reportFiles, context.reportStoreFiles);
 
     await Promise.resolve();
   };

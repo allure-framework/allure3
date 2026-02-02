@@ -21,7 +21,6 @@ import {
   generateQualityGateResults,
   generateStaticFiles,
   generateStatistic,
-  generateTestCases,
   generateTestEnvGroups,
   generateTestResults,
   generateTree,
@@ -72,7 +71,6 @@ export class AwesomePlugin implements Plugin {
       : [];
 
     await generateHistoryDataPoints(this.#writer!, store);
-    await generateTestCases(this.#writer!, convertedTrs);
     await generateTree(this.#writer!, "tree.json", treeLabels, convertedTrs, { appendTitlePath });
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
@@ -129,7 +127,7 @@ export class AwesomePlugin implements Plugin {
       return;
     }
 
-    this.#writer = new ReportFileDataWriter(context.reportFiles);
+    this.#writer = new ReportFileDataWriter(context.reportFiles, context.reportStoreFiles);
 
     await Promise.resolve();
   };

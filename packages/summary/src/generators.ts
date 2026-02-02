@@ -8,6 +8,12 @@ const require = createRequire(import.meta.url);
 
 export type TemplateManifest = Record<string, string>;
 
+const escapeJsonForInlineScript = (value: unknown): string => {
+  // Prevent breaking out of a <script> tag when JSON contains "</script>".
+  // See https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+  return JSON.stringify(value).replaceAll("</script>", "<\\/script>");
+};
+
 const template = `<!DOCTYPE html>
 <html dir="ltr" lang="en">
 <head>
@@ -21,10 +27,10 @@ const template = `<!DOCTYPE html>
     <script>
       window.allure = window.allure || {};
     </script>
-    {{{ bodyTags }}}
     <script>
       window.reportSummaries = {{{ reportSummaries }}}
     </script>
+    {{{ bodyTags }}}
     {{{ reportFilesScript }}}
 </body>
 </html>
@@ -51,6 +57,6 @@ export const generateSummaryStaticFiles = async (payload: { summaries: PluginSum
   return compile({
     bodyTags: bodyTags.join("\n"),
     analyticsEnable: true,
-    reportSummaries: JSON.stringify(payload.summaries),
+    reportSummaries: escapeJsonForInlineScript(payload.summaries),
   });
 };
