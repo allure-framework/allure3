@@ -41,6 +41,7 @@
     "backbone.marionette@npm:3.5.1/underscore": "^1.13.6",
     "braces": "^3.0.3",
     "esbuild": "^0.25.0",
+    "fast-xml-parser": "^5.3.4",
     "http-proxy-middleware": "^2.0.9",
     "micromatch": "^4.0.8",
     "nanoid": "^3.3.8",
@@ -52,7 +53,7 @@
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
     "semver": "^7.5.2",
-    "tar": "^6.2.1",
+    "tar": "^7.5.7",
     "vite": "^5.4.17",
     "webpack": "^5.103.0"
   },
