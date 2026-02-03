@@ -1185,7 +1185,7 @@ const RAW_RUNTIME_STATE =
           ["clsx", "npm:2.1.1"],\
           ["css-loader", "virtual:c66117924d74d8c8383240e41a734c2dff366c7d2dad6ebb4c4773d406855c169bc14100c6748dbcf0914889503173bd2df7fadd09b71fe9c0a978616d948a39#npm:7.1.2"],\
           ["d3-shape", "npm:3.2.0"],\
-          ["diff", "npm:7.0.0"],\
+          ["diff", "npm:8.0.3"],\
           ["eslint", "npm:8.57.1"],\
           ["eslint-config-preact", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:1.5.0"],\
           ["eslint-config-prettier", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:9.1.0"],\
@@ -19077,10 +19077,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
-      ["npm:7.0.0", {\
-        "packageLocation": "./.yarn/cache/diff-npm-7.0.0-dcfd888f89-e9b8e48d05.zip/node_modules/diff/",\
+      ["npm:8.0.3", {\
+        "packageLocation": "./.yarn/cache/diff-npm-8.0.3-6f5c127138-52f957e1fa.zip/node_modules/diff/",\
         "packageDependencies": [\
-          ["diff", "npm:7.0.0"]\
+          ["diff", "npm:8.0.3"]\
         ],\
         "linkType": "HARD"\
       }]\
