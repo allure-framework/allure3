@@ -7,7 +7,7 @@ import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
 import { IconLabel } from "../IconLabel";
 import { StatusLabel } from "../StatusLabel";
 import { allureIcons } from "../SvgIcon";
-import { Heading, Text } from "../Typography";
+import { Code, Heading, Text } from "../Typography";
 import { MetadataItem, MetadataTestType } from "./components/MetadataItem";
 import type { I18nProp, ReportSummary } from "./model";
 import styles from "./styles.scss";
@@ -145,6 +145,7 @@ export const ReportSummaryCard = (props: ReportSummaryCardProps) => {
     newTests,
     flakyTests,
     retryTests,
+    plugin: pluginName,
   } = summary;
 
   const link = remoteHref || href;
@@ -180,6 +181,11 @@ export const ReportSummaryCard = (props: ReportSummaryCardProps) => {
       <div className={styles.row}>
         <div className={styles.content}>
           <div className={styles.header}>
+            {pluginName && (
+              <Code type="ui" tag="small" size="s" className={styles.pluginName}>
+                {pluginName}
+              </Code>
+            )}
             <Heading tag="h2" size="s" className={styles.title}>
               {name}
             </Heading>

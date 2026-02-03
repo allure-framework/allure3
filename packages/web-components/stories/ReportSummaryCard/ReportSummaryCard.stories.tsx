@@ -190,3 +190,16 @@ export const SeveralCardsInAGrid: Story = {
     </div>
   ),
 };
+
+export const WithPluginNames: Story = {
+  args: {
+    i18n: enI18n,
+    summary: defaultSummary,
+  },
+  render: (args) => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+      <ReportSummaryCard {...args} summary={{ ...defaultSummary, plugin: "Awesome" }} />
+      <ReportSummaryCard {...args} summary={{ ...defaultSummary, plugin: "Dashboard" }} />
+    </div>
+  ),
+};

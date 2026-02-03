@@ -61,11 +61,13 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  --gap: 6px;
+  gap: var(--gap);
 }
 
 .title {
   color: var(--on-text-primary);
+  margin-bottom: calc(var(--gap) / 2 * -1);
 }
 
 .createdAt {
@@ -99,4 +101,9 @@
   row-gap: 8px;
 
   margin-top: auto;
+}
+
+.pluginName {
+  color: var(--on-text-hint);
+  margin-bottom: calc(var(--gap) * -1);
 }
