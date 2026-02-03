@@ -1,0 +1,1 @@
+{"id":"28b2c233f229a6f365c6a2ebc6fad69b","fullName":"allure-awesome/features/owner.test.ts:50:3","name":"should display owner label in metadata with RFC 2822 display names and plain text","status":"passed","testResultsByEnv":{"windows-latest":"1cecf129e7e40c108833c7f88b2751ad","ubuntu-latest":"7d90ed3153d989e2c20f96f71005feac"}}

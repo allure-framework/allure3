@@ -1,0 +1,1 @@
+{"id":"12c34c26a842bfa7af9c315f74792c3a","fullName":"test/utils/ownerAddress.test.ts#utils > ownerAddress parseOwnerAddress returns only displayName (type none) for invalid URL","name":"returns only displayName (type none) for invalid URL","status":"passed","testResultsByEnv":{"windows-latest":"479a05986e5f6f20de9dbe7b38a20a83","ubuntu-latest":"ef6c30d92118817627f2aa2890209e49"}}

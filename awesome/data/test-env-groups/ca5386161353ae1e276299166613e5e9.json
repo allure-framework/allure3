@@ -1,0 +1,1 @@
+{"id":"ca5386161353ae1e276299166613e5e9","fullName":"test/utils/ownerAddress.test.ts#utils > ownerAddress parseOwnerAddress parses RFC 2822 string with email","name":"parses RFC 2822 string with email","status":"passed","testResultsByEnv":{"windows-latest":"dee388e33ab5526bab2bdbf0d44ac02e","ubuntu-latest":"5ac71808bb5df494cb0a9cce2567df02"}}
