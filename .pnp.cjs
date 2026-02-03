@@ -1463,7 +1463,7 @@ const RAW_RUNTIME_STATE =
           ["globals", "npm:15.9.0"],\
           ["html-webpack-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:5.6.3"],\
           ["jsdom", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:26.0.0"],\
-          ["lodash", "npm:4.17.21"],\
+          ["lodash", "npm:4.17.23"],\
           ["mini-css-extract-plugin", "virtual:2a41e375ad1745f4c69d568329bd8e93efd510482b591608adf07903c1c7c5da80f70ebacb4333f4d323a30d1e56bc854b865daa7bb0df195591c42c3c3dc214#npm:2.9.1"],\
           ["npm-run-all2", "npm:7.0.1"],\
           ["postcss", "npm:8.5.6"],\
@@ -24403,6 +24403,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/lodash-npm-4.17.21-6382451519-c08619c038.zip/node_modules/lodash/",\
         "packageDependencies": [\
           ["lodash", "npm:4.17.21"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.17.23", {\
+        "packageLocation": "./.yarn/cache/lodash-npm-4.17.23-50bdb1c01a-82504c8825.zip/node_modules/lodash/",\
+        "packageDependencies": [\
+          ["lodash", "npm:4.17.23"]\
         ],\
         "linkType": "HARD"\
       }]\
