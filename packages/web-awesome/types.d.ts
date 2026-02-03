@@ -19,7 +19,7 @@ export type AwesomeReportOptions = {
   logo?: string;
   theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en";
+  reportLanguage?: string;
   createdAt: number;
   reportUuid: string;
   layout?: Layout;

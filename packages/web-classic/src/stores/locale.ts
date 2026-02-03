@@ -52,7 +52,8 @@ i18next
       callback: (errorValue: unknown, translations: Record<string, string> | null) => void,
     ) => {
       try {
-        const resources = await import(`@/translations/${language}.json`);
+        const loadLocale = language === "en-iso" ? "en" : language;
+        const resources = await import(`@/translations/${loadLocale}.json`);
         callback(null, (resources[namespace] as Record<string, string>) || null);
       } catch (error) {
         callback(error, null);

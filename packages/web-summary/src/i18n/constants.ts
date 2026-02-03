@@ -1,5 +1,6 @@
 export const AVAILABLE_LOCALES = [
   "en",
+  "en-iso",
   "ru",
   "pl",
   "es",
@@ -31,92 +32,97 @@ export const LANG_LOCALE: Record<
     iso: string;
   }
 > = {
-  en: {
+  "en": {
     short: "Eng",
     full: "English",
     iso: "en-US",
   },
-  ru: {
+  "en-iso": {
+    short: "En ISO",
+    full: "English (ISO-8601)",
+    iso: "en-CA",
+  },
+  "ru": {
     short: "Ру",
     full: "Русский",
     iso: "ru-RU",
   },
-  pl: {
+  "pl": {
     short: "Pl",
     full: "Polski",
     iso: "pl-PL",
   },
-  es: {
+  "es": {
     short: "Es",
     full: "Español",
     iso: "es-ES",
   },
-  pt: {
+  "pt": {
     short: "Pt",
     full: "Português",
     iso: "pt-PT",
   },
-  de: {
+  "de": {
     short: "De",
     full: "Deutsch",
     iso: "de-DE",
   },
-  hy: {
+  "hy": {
     short: "Hy",
     full: "Հայերեն",
     iso: "hy-AM",
   },
-  az: {
+  "az": {
     short: "Az",
     full: "Azərbaycan",
     iso: "az-AZ",
   },
-  fr: {
+  "fr": {
     short: "Fr",
     full: "Français",
     iso: "fr-FR",
   },
-  it: {
+  "it": {
     short: "It",
     full: "Italiano",
     iso: "it-IT",
   },
-  ja: {
+  "ja": {
     short: "Ja",
     full: "日本語",
     iso: "ja-JP",
   },
-  he: {
+  "he": {
     short: "He",
     full: "עברית",
     iso: "he-IL",
   },
-  ka: {
+  "ka": {
     short: "Ka",
     full: "ქართული",
     iso: "ka-GE",
   },
-  kr: {
+  "kr": {
     short: "Kr",
     full: "한국어",
     iso: "kr-KR",
   },
-  nl: {
+  "nl": {
     short: "Nl",
     full: "Nederlands",
     iso: "nl-NL",
   },
-  sv: {
+  "sv": {
     short: "Sv",
     full: "Svenska",
     iso: "sv-SE",
   },
-  tr: {
+  "tr": {
     short: "Tr",
     full: "Türkçe",
     iso: "tr-TR",
   },
-  zh: {
+  "zh": {
     short: "Zh",
     full: "中文",
     iso: "zh-CN",

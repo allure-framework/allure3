@@ -21,7 +21,7 @@ export type ClassicReportOptions = {
   logo?: string;
   theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en";
+  reportLanguage?: string;
   createdAt: number;
   reportUuid: string;
   allureVersion?: string;

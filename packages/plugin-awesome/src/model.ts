@@ -6,7 +6,7 @@ export type AwesomeOptions = {
   singleFile?: boolean;
   logo?: string;
   theme?: "light" | "dark" | "auto";
-  reportLanguage?: "en";
+  reportLanguage?: string;
   groupBy?: string[];
   layout?: "base" | "split";
   environments?: Record<string, EnvironmentsConfig>;

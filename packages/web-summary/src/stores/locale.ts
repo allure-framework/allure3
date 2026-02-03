@@ -6,7 +6,7 @@ const namespaces = ["empty", "summary"];
 
 export const currentLocale = signal<LangLocale>("en" as LangLocale);
 export const currentLocaleIso = computed(() => LANG_LOCALE[currentLocale.value]?.iso ?? LANG_LOCALE.en.iso);
-export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value));
+export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(currentLocale.value as string));
 
 export const getLocale = async () => {
   const locale = localStorage.getItem("currentLocale") || DEFAULT_LOCALE;
@@ -22,7 +22,8 @@ export const waitForI18next = i18next
       namespace: string,
       callback: (errorValue: unknown, translations: null) => void,
     ) => {
-      await import(`@/i18n/locales/${language}.json`)
+      const loadLocale = language === "en-iso" ? "en" : language;
+      await import(`@/i18n/locales/${loadLocale}.json`)
         .then((resources: Record<string, null>) => {
           callback(null, resources[namespace]);
         })

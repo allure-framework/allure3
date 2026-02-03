@@ -6,7 +6,7 @@ export type DashboardOptions = {
   singleFile?: boolean;
   logo?: string;
   theme?: "light" | "dark";
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: string;
   layout?: ChartOptions[];
   filter?: (testResult: TestResult) => boolean;
 };

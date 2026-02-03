@@ -1,7 +1,8 @@
 export const AVAILABLE_LOCALES = [
   "en",
+  "en-iso",
   "ru",
-  "ua",
+  "uk",
   "pl",
   "es",
   "pt",
@@ -24,6 +25,60 @@ export const DEFAULT_LOCALE = "en";
 
 export type LangLocale = (typeof AVAILABLE_LOCALES)[number];
 
+export type DateTimeFormatKind = "date" | "dateTime" | "dateTimeNoSeconds";
+
+export type DateTimeFormatOverride = {
+  locale?: string;
+  options?: Intl.DateTimeFormatOptions;
+  includeAtSeparator?: boolean;
+  stripComma?: boolean;
+};
+
+export const LOCALE_DATE_TIME_OVERRIDES: Record<string, Partial<Record<DateTimeFormatKind, DateTimeFormatOverride>>> = {
+  "en-iso": {
+    date: {
+      locale: "en-CA",
+      options: {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      },
+      stripComma: true,
+    },
+    dateTime: {
+      locale: "en-CA",
+      options: {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      },
+      includeAtSeparator: false,
+      stripComma: true,
+    },
+    dateTimeNoSeconds: {
+      locale: "en-CA",
+      options: {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      },
+      includeAtSeparator: false,
+      stripComma: true,
+    },
+  },
+};
+
+export const getLocaleDateTimeOverride = (locale: string, kind: DateTimeFormatKind) => {
+  return LOCALE_DATE_TIME_OVERRIDES[locale]?.[kind];
+};
+
 export const LANG_LOCALE: Record<
   LangLocale,
   {
@@ -32,97 +87,102 @@ export const LANG_LOCALE: Record<
     iso: string;
   }
 > = {
-  en: {
+  "en": {
     short: "Eng",
     full: "English",
     iso: "en-US",
   },
-  ru: {
+  "en-iso": {
+    short: "En ISO",
+    full: "English (ISO-8601)",
+    iso: "en-CA",
+  },
+  "ru": {
     short: "Ру",
     full: "Русский",
     iso: "ru-RU",
   },
-  ua: {
+  "uk": {
     short: "Ук",
     full: "Українська",
     iso: "uk-UA",
   },
-  pl: {
+  "pl": {
     short: "Pl",
     full: "Polski",
     iso: "pl-PL",
   },
-  es: {
+  "es": {
     short: "Es",
     full: "Español",
     iso: "es-ES",
   },
-  pt: {
+  "pt": {
     short: "Pt",
     full: "Português",
     iso: "pt-PT",
   },
-  de: {
+  "de": {
     short: "De",
     full: "Deutsch",
     iso: "de-DE",
   },
-  hy: {
+  "hy": {
     short: "Hy",
     full: "Հայերեն",
     iso: "hy-AM",
   },
-  az: {
+  "az": {
     short: "Az",
     full: "Azərbaycan",
     iso: "az-AZ",
   },
-  fr: {
+  "fr": {
     short: "Fr",
     full: "Français",
     iso: "fr-FR",
   },
-  it: {
+  "it": {
     short: "It",
     full: "Italiano",
     iso: "it-IT",
   },
-  ja: {
+  "ja": {
     short: "Ja",
     full: "日本語",
     iso: "ja-JP",
   },
-  he: {
+  "he": {
     short: "He",
     full: "עברית",
     iso: "he-IL",
   },
-  ka: {
+  "ka": {
     short: "Ka",
     full: "ქართული",
     iso: "ka-GE",
   },
-  kr: {
+  "kr": {
     short: "Kr",
     full: "한국어",
     iso: "kr-KR",
   },
-  nl: {
+  "nl": {
     short: "Nl",
     full: "Nederlands",
     iso: "nl-NL",
   },
-  sv: {
+  "sv": {
     short: "Sv",
     full: "Svenska",
     iso: "sv-SE",
   },
-  tr: {
+  "tr": {
     short: "Tr",
     full: "Türkçe",
     iso: "tr-TR",
   },
-  zh: {
+  "zh": {
     short: "Zh",
     full: "中文",
     iso: "zh-CN",

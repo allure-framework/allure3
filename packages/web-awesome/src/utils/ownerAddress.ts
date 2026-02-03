@@ -17,10 +17,13 @@ type EmailOwnerAddress = {
   type: "email";
 };
 
-export type OwnerAddress = UrlOwnerAddress | EmailOwnerAddress | {
-  displayName: string;
-  type: "none";
-};
+export type OwnerAddress =
+  | UrlOwnerAddress
+  | EmailOwnerAddress
+  | {
+      displayName: string;
+      type: "none";
+    };
 
 const isValidUrl = (value: string): boolean => {
   try {

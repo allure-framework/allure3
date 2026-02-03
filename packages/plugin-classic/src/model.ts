@@ -5,7 +5,7 @@ export type ClassicOptions = {
   singleFile?: boolean;
   logo?: string;
   theme?: "light" | "dark" | "auto";
-  reportLanguage?: "en";
+  reportLanguage?: string;
   groupBy?: string[];
   ci?: {
     type: "github" | "jenkins";
