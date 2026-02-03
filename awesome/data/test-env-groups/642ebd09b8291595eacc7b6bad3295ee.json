@@ -1,1 +1,1 @@
-{"id":"642ebd09b8291595eacc7b6bad3295ee","fullName":"test/process.test.ts#stopProcessTree on a POSIX-compliant system should use a custom signal","name":"should use a custom signal","status":"passed","testResultsByEnv":{"ubuntu-latest":"0437dbb2540af4b73cb96772143a3c15"}}
+{"id":"642ebd09b8291595eacc7b6bad3295ee","fullName":"test/process.test.ts#stopProcessTree on a POSIX-compliant system should use a custom signal","name":"should use a custom signal","status":"passed","testResultsByEnv":{"ubuntu-latest":"8b2bde7c03ef324a953f23a749b0cd89"}}
