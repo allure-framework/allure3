@@ -1,0 +1,18 @@
+{
+  "testId": "a test id",
+  "parameters": [
+    {
+      "name": "c",
+      "value": "1"
+    },
+    {
+      "name": "a",
+      "value": "2"
+    },
+    {
+      "name": "b",
+      "value": "3",
+      "excluded": true
+    }
+  ]
+}
