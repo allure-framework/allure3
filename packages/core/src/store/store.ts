@@ -305,7 +305,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
 
-    if (trHistory) {
+    if (trHistory !== undefined) {
       testResult.transition = getStatusTransition(testResult, trHistory);
       testResult.flaky = isFlaky(testResult, trHistory);
     }
@@ -387,13 +387,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async allTestResults(
     options: {
       includeHidden?: boolean;
+      filter?: TestResultFilter;
     } = { includeHidden: false },
   ): Promise<TestResult[]> {
-    const { includeHidden } = options;
+    const { includeHidden = false, filter } = options;
     const result: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
       if (!includeHidden && tr.hidden) {
+        continue;
+      }
+
+      if (typeof filter === "function" && !filter(tr)) {
         continue;
       }
 
@@ -479,12 +484,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#known;
   }
 
-  async allNewTestResults(): Promise<TestResult[]> {
+  async allNewTestResults(filter?: TestResultFilter): Promise<TestResult[]> {
     const newTrs: TestResult[] = [];
     const allHistoryDps = await this.allHistoryDataPoints();
 
     for (const [, tr] of this.#testResults) {
       if (tr.hidden) {
+        continue;
+      }
+
+      if (typeof filter === "function" && !filter(tr)) {
         continue;
       }
 

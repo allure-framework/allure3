@@ -25,7 +25,6 @@ import type {
   QualityGateValidationResult,
   ReportFiles,
   ResultFile,
-  TestResultFilter,
 } from "@allurereport/plugin-api";
 import {
   createTreeByLabels,
@@ -130,16 +129,10 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (
-  writer: AwesomeDataWriter,
-  store: AllureStore,
-  trs: TestResult[],
-  filter?: TestResultFilter,
-) => {
-  const allTr = trs.filter((tr) => (filter ? filter(tr) : true));
+export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore, trs: TestResult[]) => {
   let convertedTrs: AwesomeTestResult[] = [];
 
-  for (const tr of allTr) {
+  for (const tr of trs) {
     const trFixtures = await store.fixturesByTrId(tr.id);
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
     const convertedTr: AwesomeTestResult = convertTestResult(tr);
@@ -603,9 +596,9 @@ export const generateAllCharts = async (
   options: AwesomeOptions,
   context: PluginContext,
 ): Promise<void> => {
-  const { charts = defaultChartsConfig } = options;
+  const { charts = defaultChartsConfig, filter } = options;
 
-  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID);
+  const generatedChartsData = await generateCharts(charts, store, context.reportName, randomUUID, filter);
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);

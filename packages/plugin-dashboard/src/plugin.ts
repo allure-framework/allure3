@@ -16,7 +16,7 @@ export class DashboardPlugin implements Plugin {
   constructor(readonly options: DashboardPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    await generateAllCharts(this.#writer!, store, this.options, context);
+    await generateAllCharts(this.#writer!, store, this.options, context, this.options.filter);
     await generateEnvirontmentsList(this.#writer!, store);
 
     const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles() : [];
@@ -56,8 +56,9 @@ export class DashboardPlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
-    const newTrs = await store.allNewTestResults();
+    const allTrs = await store.allTestResults({ filter: this.options.filter });
+    const newTrs = await store.allNewTestResults(this.options.filter);
+
     const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
     const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);

@@ -20,14 +20,14 @@ export type TestResultFilter = (testResult: TestResult) => boolean;
 export interface AllureStore {
   // base state
   allTestCases: () => Promise<TestCase[]>;
-  allTestResults: (options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
+  allTestResults: (options?: { includeHidden?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
   allAttachments: () => Promise<AttachmentLink[]>;
   allMetadata: () => Promise<Record<string, any>>;
   allFixtures: () => Promise<TestFixtureResult[]>;
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
-  allNewTestResults: () => Promise<TestResult[]>;
+  allNewTestResults: (filter?: TestResultFilter) => Promise<TestResult[]>;
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   // global data

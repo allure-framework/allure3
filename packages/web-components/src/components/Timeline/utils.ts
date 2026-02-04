@@ -142,44 +142,29 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
   const groups: TimelineData = [];
 
   for (const test of timelineData) {
-    const [host, thread] = test.labels.reduce<[string | undefined, string | undefined]>(
-      (acc, label) => {
-        if (label.name === "host") {
-          return [label.value, acc[1]] as const;
-        }
-        if (label.name === "thread") {
-          return [acc[0], label.value] as const;
-        }
-
-        return acc;
-      },
-      [undefined, undefined],
-    );
-
-    if (!host || !thread) {
-      continue;
-    }
+    const { host, thread, historyId, id: testId, start, duration, status, hidden, name } = test;
+    const stop = start! + duration!;
 
     const hostId = stringToNanoIdWithSalt(host, dataId);
     const groupId = stringToNanoIdWithSalt(thread, hostId);
     const group = groups.find(({ id }) => id === groupId);
     const newSegments = group?.segments ?? [];
 
-    const segmentId = test.historyId ?? test.id;
+    const segmentId = historyId ?? testId;
     const hasSegment = newSegments.findIndex(({ id }) => id === segmentId) !== -1;
     const segmentWithSameTimeRange = newSegments.find(
-      ({ timeRange }) => timeRange[0].getTime() === test.start && timeRange[1].getTime() === test.stop,
+      ({ timeRange }) => timeRange[0].getTime() === start && timeRange[1].getTime() === stop,
     );
 
     if (!hasSegment && !segmentWithSameTimeRange) {
       newSegments.push({
-        label: test.name,
-        labelGroup: [test.name],
-        timeRange: [new Date(test.start as number), new Date(test.stop as number)],
-        val: test.duration!,
-        status: test.status,
-        id: test.historyId ?? test.id,
-        hidden: test.hidden,
+        label: name,
+        labelGroup: [name],
+        timeRange: [new Date(start as number), new Date(stop as number)],
+        val: duration!,
+        status: status,
+        id: segmentId,
+        hidden: hidden,
       });
     }
 

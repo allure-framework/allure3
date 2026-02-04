@@ -2,8 +2,11 @@ import type { TestResult } from "@allurereport/core-api";
 
 export type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "flaky" | "hidden" | "labels" | "environment" | "start" | "stop" | "duration" | "historyId"
->;
+  "id" | "name" | "status" | "flaky" | "hidden" | "environment" | "start" | "duration" | "historyId"
+> & {
+  host: string;
+  thread: string;
+};
 
 export type TimelineSegment = {
   timeRange: [Date, Date];

@@ -1,6 +1,5 @@
 import type { TestResult } from "@allurereport/core-api";
-import type { AllureStore } from "@allurereport/plugin-api";
-import { hasLabels } from "@allurereport/web-commons";
+import type { AwesomeTestResult } from "@allurereport/web-awesome";
 import type { AwesomeOptions } from "./model.js";
 
 type Writer = {
@@ -8,27 +7,26 @@ type Writer = {
 };
 
 const DEFAULT_MIN_DURATION = 1;
-const HOST_LABEL = "host";
-const THREAD_LABEL = "thread";
 
 type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "hidden" | "labels" | "environment" | "start" | "stop" | "duration" | "historyId"
->;
+  "id" | "name" | "status" | "hidden" | "environment" | "start" | "stop" | "duration" | "historyId"
+> & {
+  host: string;
+  thread: string;
+};
 
 const DEFAULT_TIMELINE_OPTIONS = {
   minDuration: DEFAULT_MIN_DURATION,
 } as const;
 
-export const generateTimeline = async (writer: Writer, store: AllureStore, options: AwesomeOptions) => {
+export const generateTimeline = async (writer: Writer, trs: AwesomeTestResult[], options: AwesomeOptions) => {
   const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
   const { minDuration = DEFAULT_MIN_DURATION } = timeline;
 
-  const testResults = await store.allTestResults({ includeHidden: true });
-
   const result: TimlineTr[] = [];
 
-  for (const test of testResults) {
+  for (const test of trs) {
     const hasStart = Number.isInteger(test.start);
     const hasStop = Number.isInteger(test.stop);
 
@@ -42,7 +40,9 @@ export const generateTimeline = async (writer: Writer, store: AllureStore, optio
       continue;
     }
 
-    if (!hasLabels(test, [HOST_LABEL, THREAD_LABEL])) {
+    const { host, thread } = test.groupedLabels;
+
+    if (!host?.length || !thread?.length) {
       continue;
     }
 
@@ -52,10 +52,10 @@ export const generateTimeline = async (writer: Writer, store: AllureStore, optio
       name: test.name,
       status: test.status,
       hidden: test.hidden,
-      labels: test.labels,
+      host: host[0],
+      thread: thread[0],
       environment: test.environment,
       start: test.start,
-      stop: test.stop,
       duration,
     });
   }

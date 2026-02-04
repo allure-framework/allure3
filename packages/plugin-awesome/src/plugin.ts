@@ -41,7 +41,7 @@ export class AwesomePlugin implements Plugin {
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
-    const allTrs = await store.allTestResults({ includeHidden: true });
+    const allTrs = await store.allTestResults({ includeHidden: true, filter });
     const statistics = await store.testsStatistic(filter);
     const environments = await store.allEnvironments();
     const envStatistics = new Map<string, Statistic>();
@@ -62,10 +62,10 @@ export class AwesomePlugin implements Plugin {
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
 
-    await generateTimeline(this.#writer!, store, this.options);
-
-    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, this.options.filter);
+    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs);
     const hasGroupBy = groupBy.length > 0;
+
+    await generateTimeline(this.#writer!, convertedTrs, this.options);
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
@@ -151,10 +151,9 @@ export class AwesomePlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = (await store.allTestResults()).filter((tr) =>
-      this.options.filter ? this.options.filter(tr) : true,
-    );
-    const newTrs = await store.allNewTestResults();
+    const allTrs = await store.allTestResults({ filter: this.options.filter });
+
+    const newTrs = await store.allNewTestResults(this.options.filter);
     const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
     const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);

@@ -1,4 +1,5 @@
 import { defaultChartsConfig } from "@allurereport/charts-api";
+import type { TestResult } from "@allurereport/core-api";
 import {
   createBaseUrlScript,
   createFontLinkTag,
@@ -70,10 +71,11 @@ export const generateAllCharts = async (
   store: AllureStore,
   options: DashboardPluginOptions,
   context: PluginContext,
+  filter?: (testResult: TestResult) => boolean,
 ): Promise<void> => {
   const { layout = defaultChartsConfig } = options;
 
-  const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID);
+  const generatedChartsData = await generateCharts(layout, store, context.reportName, randomUUID, filter);
 
   if (Object.keys(generatedChartsData.general).length > 0) {
     await writer.writeWidget("charts.json", generatedChartsData);

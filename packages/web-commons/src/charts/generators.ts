@@ -4,6 +4,7 @@ import {
   ChartType,
   type GeneratedChartsData,
 } from "@allurereport/charts-api";
+import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
@@ -25,14 +26,74 @@ const generateChartData = async (props: {
   store: AllureStore;
   reportName: string;
   generateUuid: () => string;
+  filter?: (testResult: TestResult) => boolean;
 }) => {
-  const { env, chartsOptions, store, reportName, generateUuid } = props;
+  const { env, chartsOptions, store, generateUuid, filter } = props;
   const result: GeneratedChartsData = {};
 
+  const getTrs = async (): Promise<TestResult[]> => {
+    let trs: TestResult[] = [];
+
+    if (env) {
+      trs = await store.testResultsByEnvironment(env);
+    } else {
+      trs = await store.allTestResults();
+    }
+
+    if (filter) {
+      trs = trs.filter(filter);
+    }
+
+    return trs;
+  };
+
+  const getHistoryDataPoints = async (): Promise<HistoryDataPoint[]> => {
+    let historyDataPoints: HistoryDataPoint[] = [];
+    if (env) {
+      historyDataPoints = await store.allHistoryDataPointsByEnvironment(env);
+    }
+    historyDataPoints = await store.allHistoryDataPoints();
+
+    if (typeof filter === "function") {
+      historyDataPoints = historyDataPoints.map((hdp) => {
+        const trsEntries = Object.entries(hdp.testResults);
+        const filteredTrsEntries = trsEntries.filter(([, tr]) => {
+          try {
+            // Just in case filter accesses some property
+            // that is not present in the history test result
+            return filter(tr as unknown as TestResult);
+          } catch (error) {
+            return false;
+          }
+        });
+
+        return {
+          ...hdp,
+          testResults: Object.fromEntries(filteredTrsEntries),
+        };
+      });
+    }
+
+    return historyDataPoints;
+  };
+
+  const getStatistic = (): Promise<Statistic> => {
+    return store.testsStatistic((tr) => {
+      if (env && tr.environment !== env) {
+        return false;
+      }
+      if (typeof filter === "function" && !filter(tr)) {
+        return false;
+      }
+
+      return true;
+    });
+  };
+
   const storeData: AllureChartsStoreData = await Promise.all([
-    env ? await store.allHistoryDataPointsByEnvironment(env) : await store.allHistoryDataPoints(),
-    env ? await store.testResultsByEnvironment(env) : await store.allTestResults(),
-    env ? await store.testsStatistic((tr) => tr.environment === env) : await store.testsStatistic(),
+    await getHistoryDataPoints(),
+    await getTrs(),
+    await getStatistic(),
   ]).then(([historyDataPoints, testResults, statistic]) => ({
     historyDataPoints,
     testResults,
@@ -112,11 +173,12 @@ export const generateCharts = async (
   store: AllureStore,
   reportName: string,
   generateUuid: () => string,
+  filter?: (testResult: TestResult) => boolean,
 ): Promise<ChartsWidgetData> => {
   const environments = await store.allEnvironments();
 
   const chartsData: ChartsWidgetData = {
-    general: await generateChartData({ chartsOptions, store, reportName, generateUuid }),
+    general: await generateChartData({ chartsOptions, store, reportName, generateUuid, filter }),
     byEnv: {},
   };
 
@@ -132,6 +194,7 @@ export const generateCharts = async (
       reportName,
       env: environment,
       generateUuid,
+      filter,
     });
   }
 
