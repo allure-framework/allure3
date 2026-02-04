@@ -485,6 +485,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allNewTestResults(filter?: TestResultFilter): Promise<TestResult[]> {
+    if (!this.#history) {
+      return [];
+    }
+
     const newTrs: TestResult[] = [];
     const allHistoryDps = await this.allHistoryDataPoints();
 

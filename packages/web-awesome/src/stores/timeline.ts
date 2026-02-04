@@ -5,8 +5,11 @@ import type { StoreSignalState } from "@/stores/types";
 
 export type TimlineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "flaky" | "hidden" | "labels" | "environment" | "start" | "stop" | "duration"
->;
+  "id" | "name" | "status" | "flaky" | "hidden" | "environment" | "start" | "duration"
+> & {
+  host: string;
+  thread: string;
+};
 
 export const timelineStore = signal<StoreSignalState<TimlineTr[]>>({
   loading: true,

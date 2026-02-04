@@ -52,14 +52,18 @@ const fixtures: any = {
     reportUuid: "report-uuid",
   } as PluginContext,
   store: {
-    allTestResults: () =>
-      Promise.resolve([
+    allTestResults: async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+      const all = [
         fixtures.testResults.passed,
         fixtures.testResults.failed,
         fixtures.testResults.broken,
         fixtures.testResults.skipped,
         fixtures.testResults.unknown,
-      ]),
+      ];
+      const trs = options?.filter ? all.filter(options.filter) : all;
+
+      return trs;
+    },
     allNewTestResults: () => Promise.resolve([]),
     testsStatistic: async (filter: (tr: TestResult) => boolean) => {
       const all = await fixtures.store.allTestResults();
@@ -174,7 +178,10 @@ describe("plugin", () => {
         metadataByKey: vi.fn().mockResolvedValue(undefined),
         allEnvironments: vi.fn().mockResolvedValue([]),
         allAttachments: vi.fn().mockResolvedValue([]),
-        allTestResults: vi.fn().mockResolvedValue(testResultsWithTags),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResultsWithTags.filter(options.filter) : testResultsWithTags;
+          return trs;
+        }),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) =>
           getTestResultsStats(testResultsWithTags, filter),
         ),

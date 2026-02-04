@@ -7,12 +7,9 @@ import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 import * as styles from "./styles.scss";
 
-const getHosts = (tests: TimlineTr[]) => [
-  ...new Set(tests.map((test) => test.labels.find((label) => label.name === "host")?.value).filter(Boolean)),
-];
+const getHosts = (tests: TimlineTr[]) => [...new Set(tests.map((test) => test.host))];
 
-const filterTestsByHost = (tests: TimlineTr[], host: string) =>
-  tests.filter((test) => test.labels.find((label) => label.name === "host")?.value === host);
+const filterTestsByHost = (tests: TimlineTr[], host: string) => tests.filter((test) => test.host === host);
 
 const currentTimelineData = computed(() => {
   const tests = timelineStore.value.data ?? [];
