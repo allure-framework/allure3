@@ -1,3 +1,4 @@
+import { getLocaleDateTimeOverride } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
@@ -40,7 +41,8 @@ export const waitForI18next = i18next
   })
   .then(() => {
     i18next.services.formatter!.add("timestamp_long_no_seconds", (value: number, lng) => {
-      const resolvedLocale = LANG_LOCALE[lng as LangLocale]?.iso ?? LANG_LOCALE.en.iso;
+      const override = getLocaleDateTimeOverride(lng as string, "dateTime");
+      const resolvedLocale = override?.locale ?? lng;
       const dateFormatter = new Intl.DateTimeFormat(resolvedLocale, {
         month: "numeric",
         day: "numeric",
