@@ -21,6 +21,7 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 import type {
   Attachment,
   FixtureResult,
+  Globals,
   Label,
   Link,
   Parameter,
@@ -46,28 +47,31 @@ const readerId = "allure2";
 
 export const allure2: ResultsReader = {
   read: async (visitor, data) => {
+    const originalFileName = data.getOriginalFileName();
+
     // this is essential in case we need to attach valid result files
     // e.g. like in allure2.test.ts
-    if (data.getOriginalFileName().match(/-attachment(?:\..+)?/)) {
+    if (originalFileName.match(/-attachment(?:\..+)?/)) {
       await visitor.visitAttachmentFile(data, { readerId });
       return true;
     }
-    if (data.getOriginalFileName().endsWith("-result.json")) {
+
+    if (originalFileName.endsWith("-result.json")) {
       try {
         const parsed = await data.asJson<unknown>();
 
         if (parsed && isStringAnyRecord(parsed)) {
-          await processTestResult(visitor, parsed, data.getOriginalFileName());
+          await processTestResult(visitor, parsed, originalFileName);
         }
 
         return true;
       } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+        console.error("error parsing", originalFileName, e);
         return false;
       }
     }
 
-    if (data.getOriginalFileName().endsWith("-container.json")) {
+    if (originalFileName.endsWith("-container.json")) {
       const parsed = await data.asJson<Partial<TestResultContainer>>();
 
       if (parsed) {
@@ -77,7 +81,17 @@ export const allure2: ResultsReader = {
       return true;
     }
 
-    if (data.getOriginalFileName() === "executor.json") {
+    if (originalFileName.endsWith("-globals.json")) {
+      const parsed = await data.asJson<Globals>();
+
+      if (parsed) {
+        await processGlobals(visitor, parsed);
+      }
+
+      return true;
+    }
+
+    if (originalFileName === "executor.json") {
       try {
         const parsed = await data.asJson<unknown>();
         if (parsed && isStringAnyRecord(parsed)) {
@@ -85,12 +99,12 @@ export const allure2: ResultsReader = {
         }
         return true;
       } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+        console.error("error parsing", originalFileName, e);
         return false;
       }
     }
 
-    if (data.getOriginalFileName() === "categories.json") {
+    if (originalFileName === "categories.json") {
       try {
         const parsed = await data.asJson<unknown>();
         if (parsed && isStringAnyRecordArray(parsed)) {
@@ -98,12 +112,12 @@ export const allure2: ResultsReader = {
         }
         return true;
       } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+        console.error("error parsing", originalFileName, e);
         return false;
       }
     }
 
-    if (data.getOriginalFileName() === "environment.properties") {
+    if (originalFileName === "environment.properties") {
       try {
         const raw = await data.asUtf8String();
         if (raw) {
@@ -114,12 +128,12 @@ export const allure2: ResultsReader = {
         }
         return true;
       } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+        console.error("error parsing", originalFileName, e);
         return false;
       }
     }
 
-    if (data.getOriginalFileName() === "environment.xml") {
+    if (originalFileName === "environment.xml") {
       try {
         const asBuffer = await data.asBuffer();
         if (!asBuffer) {
@@ -132,7 +146,7 @@ export const allure2: ResultsReader = {
         }
         return true;
       } catch (e) {
-        console.error("error parsing", data.getOriginalFileName(), e);
+        console.error("error parsing", originalFileName, e);
         return false;
       }
     }
@@ -286,6 +300,18 @@ const processTestResultContainer = async (visitor: ResultsVisitor, result: Parti
     await processFixtures(visitor, result.befores, "before", result.children);
     await processFixtures(visitor, result.afters, "after", result.children);
   }
+};
+
+const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
+  const { attachments = [], errors = [] } = globals;
+
+  await visitor.visitGlobals(
+    {
+      attachments: attachments.map((attachment) => convertAttachment(attachment)),
+      errors,
+    },
+    { readerId },
+  );
 };
 
 const convertStatus = (status: Status | string | null | undefined): RawTestStatus => {

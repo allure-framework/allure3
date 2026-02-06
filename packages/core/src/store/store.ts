@@ -2,6 +2,7 @@
 import {
   type AllureHistory,
   type AttachmentLink,
+  type AttachmentLinkExpected,
   type AttachmentLinkFile,
   type AttachmentLinkLinked,
   DEFAULT_ENVIRONMENT,
@@ -38,11 +39,13 @@ import {
 } from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
+  RawGlobals,
   RawMetadata,
   RawTestResult,
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
+import { extname } from "node:path";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
@@ -133,7 +136,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
-  #globalAttachments: AttachmentLink[] = [];
+  #globalAttachmentsIds: string[] = [];
   #globalErrors: TestError[] = [];
   #globalExitCode: ExitCode | undefined;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
@@ -194,18 +197,20 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#globalErrors.push(error);
     });
     this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
+      const originalFileName = attachment.getOriginalFileName();
       const attachmentLink: AttachmentLinkFile = {
-        id: md5(attachment.getOriginalFileName()),
+        id: md5(originalFileName),
         missed: false,
         used: false,
         ext: attachment.getExtension(),
-        originalFileName: attachment.getOriginalFileName(),
         contentType: attachment.getContentType(),
         contentLength: attachment.getContentLength(),
+        originalFileName,
       };
 
+      this.#attachments.set(attachmentLink.id, attachmentLink);
       this.#attachmentContents.set(attachmentLink.id, attachment);
-      this.#globalAttachments.push(attachmentLink);
+      this.#globalAttachmentsIds.push(attachmentLink.id);
     });
   }
 
@@ -263,7 +268,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allGlobalAttachments(): Promise<AttachmentLink[]> {
-    return this.#globalAttachments;
+    return this.#globalAttachmentsIds.reduce((acc, id) => {
+      const attachment = this.#attachments.get(id);
+
+      if (!attachment) {
+        return acc;
+      }
+
+      return acc.concat(attachment);
+    }, [] as AttachmentLink[]);
   }
 
   // test methods
@@ -341,8 +354,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async visitAttachmentFile(resultFile: ResultFile, context: ReaderContext): Promise<void> {
+  async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
     const originalFileName = resultFile.getOriginalFileName();
     const id = md5(originalFileName);
 
@@ -375,7 +387,35 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {
-    Object.keys(metadata).forEach((key) => this.#metadata.set(key, metadata[key]));
+    Object.keys(metadata).forEach((key) => {
+      this.#metadata.set(key, metadata[key]);
+    });
+  }
+
+  async visitGlobals(globals: RawGlobals): Promise<void> {
+    const { errors, attachments } = globals;
+
+    errors.forEach((error) => {
+      this.#globalErrors.push(error);
+    });
+    attachments.forEach((attachment) => {
+      const originalFileName = attachment.originalFileName!;
+      const id = md5(originalFileName);
+      const attachmentLink: AttachmentLinkExpected = {
+        id,
+        name: attachment?.name || originalFileName,
+        originalFileName,
+        ext: extname(originalFileName),
+        used: true,
+        // remove rendering missed label
+        // @ts-expect-error
+        missed: false,
+        contentType: attachment?.contentType,
+      };
+
+      this.#attachments.set(id, attachmentLink);
+      this.#globalAttachmentsIds.push(id);
+    });
   }
 
   // state access API
@@ -771,7 +811,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures: mapToObject(this.#fixtures),
       environments: this.#environments,
       reportVariables: this.#reportVariables,
-      globalAttachments: this.#globalAttachments,
+      globalAttachmentsIds: this.#globalAttachmentsIds,
       globalErrors: this.#globalErrors,
       indexLatestEnvTestResultByHistoryId: {},
       indexAttachmentByTestResult: {},
@@ -818,7 +858,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures,
       reportVariables,
       environments,
-      globalAttachments = [],
+      globalAttachmentsIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
@@ -837,7 +877,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachmentContents, attachmentsContents);
 
     this.#addEnvironments(environments);
-    this.#globalAttachments.push(...globalAttachments);
+    this.#globalAttachmentsIds.push(...globalAttachmentsIds);
     this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);

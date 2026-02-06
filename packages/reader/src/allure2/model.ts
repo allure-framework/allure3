@@ -89,3 +89,8 @@ export interface TestResultContainer {
   befores?: FixtureResult[];
   afters?: FixtureResult[];
 }
+
+export interface Globals {
+  attachments: Attachment[];
+  errors: StatusDetails[];
+}

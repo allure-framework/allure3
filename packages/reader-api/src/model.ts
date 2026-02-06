@@ -2,6 +2,13 @@ export type RawTestStatus = "failed" | "broken" | "passed" | "skipped" | "unknow
 
 export type RawMetadata = { [key: string]: any };
 
+export type RawTestError = {
+  message?: string;
+  trace?: string;
+  expected?: string;
+  actual?: string;
+};
+
 export interface RawFixtureResult {
   uuid?: string;
   testResults?: string[];
@@ -23,7 +30,7 @@ export interface RawFixtureResult {
   titlePath?: string[];
 }
 
-export interface RawTestResult {
+export interface RawTestResult extends RawTestError {
   uuid?: string;
   name?: string;
   status?: RawTestStatus;
@@ -43,11 +50,6 @@ export interface RawTestResult {
   start?: number;
   stop?: number;
   duration?: number;
-
-  message?: string;
-  trace?: string;
-  expected?: string;
-  actual?: string;
 
   flaky?: boolean;
   muted?: boolean;
@@ -116,4 +118,9 @@ export interface RawTestAttachment {
   stop?: number;
   duration?: number;
   type: "attachment";
+}
+
+export interface RawGlobals {
+  attachments: RawTestAttachment[];
+  errors: RawTestError[];
 }
