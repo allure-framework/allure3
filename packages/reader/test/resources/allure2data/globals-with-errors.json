@@ -1,0 +1,12 @@
+{
+  "attachments": [],
+  "errors": [
+    {
+      "message": "Global setup failed",
+      "trace": "Error: Global setup failed\n    at setup.js:10:5"
+    },
+    {
+      "message": "Teardown error"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
+const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
 describe("allure2 reader", () => {
   it("should parse simple result", async () => {
@@ -821,5 +822,100 @@ describe("allure2 reader", () => {
         },
       ]),
     });
+  });
+
+  it("should parse globals with errors", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-with-errors.json": generateGlobalsName(),
+    });
+
+    expect(visitor.visitGlobals).toHaveBeenCalledTimes(1);
+
+    const [globals] = visitor.visitGlobals.mock.calls[0];
+
+    expect(globals.errors).toHaveLength(2);
+    expect(globals.errors).toEqual([
+      {
+        message: "Global setup failed",
+        trace: "Error: Global setup failed\n    at setup.js:10:5",
+      },
+      {
+        message: "Teardown error",
+      },
+    ]);
+    expect(globals.attachments).toHaveLength(0);
+  });
+
+  it("should parse globals with attachments", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-with-attachments.json": generateGlobalsName(),
+    });
+
+    expect(visitor.visitGlobals).toHaveBeenCalledTimes(1);
+
+    const [globals] = visitor.visitGlobals.mock.calls[0];
+
+    expect(globals.attachments).toHaveLength(2);
+    expect(globals.attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "Global log",
+          contentType: "text/plain",
+          originalFileName: "global-log.txt",
+          type: "attachment",
+        }),
+        expect.objectContaining({
+          name: "Global screenshot",
+          contentType: "image/png",
+          originalFileName: "global-screenshot.png",
+          type: "attachment",
+        }),
+      ]),
+    );
+    expect(globals.errors).toHaveLength(0);
+  });
+
+  it("should parse globals with both errors and attachments", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-full.json": generateGlobalsName(),
+    });
+
+    expect(visitor.visitGlobals).toHaveBeenCalledTimes(1);
+
+    const [globals] = visitor.visitGlobals.mock.calls[0];
+
+    expect(globals.attachments).toHaveLength(1);
+    expect(globals.attachments[0]).toMatchObject({
+      name: "Setup log",
+      contentType: "text/plain",
+      originalFileName: "setup-log.txt",
+      type: "attachment",
+    });
+    expect(globals.errors).toHaveLength(1);
+    expect(globals.errors[0]).toEqual({
+      message: "Configuration warning",
+      trace: "Warning at config.js:42",
+    });
+  });
+
+  it("should parse empty globals", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-empty.json": generateGlobalsName(),
+    });
+
+    expect(visitor.visitGlobals).toHaveBeenCalledTimes(1);
+
+    const [globals] = visitor.visitGlobals.mock.calls[0];
+
+    expect(globals.attachments).toHaveLength(0);
+    expect(globals.errors).toHaveLength(0);
+  });
+
+  it("should not call visitGlobals for non-globals json files", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/simple.json": generateTestResultName(),
+    });
+
+    expect(visitor.visitGlobals).not.toHaveBeenCalled();
   });
 });

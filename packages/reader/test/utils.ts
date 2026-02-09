@@ -31,6 +31,7 @@ export const mockVisitor: () => Mocked<ResultsVisitor> = () => ({
   visitAttachmentFile: vi.fn<ResultsVisitor["visitAttachmentFile"]>(),
   visitMetadata: vi.fn<ResultsVisitor["visitMetadata"]>(),
   visitTestFixtureResult: vi.fn<ResultsVisitor["visitTestFixtureResult"]>(),
+  visitGlobals: vi.fn<ResultsVisitor["visitGlobals"]>(),
 });
 
 export const readResults = async (

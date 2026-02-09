@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
-import type { RawTestResult } from "@allurereport/reader-api";
+import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it, vi } from "vitest";
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
@@ -397,8 +397,8 @@ describe("attachments", () => {
     const buffer2 = Buffer.from('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + "<test/>\n", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     const rf2 = new BufferResultFile(buffer2, "tr1-source2.xml");
-    await store.visitAttachmentFile(rf1, { readerId });
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf1);
+    await store.visitAttachmentFile(rf2);
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -463,8 +463,8 @@ describe("attachments", () => {
     const buffer2 = Buffer.from('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + "<test/>\n", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     const rf2 = new BufferResultFile(buffer2, "tr1-invalid.xml");
-    await store.visitAttachmentFile(rf1, { readerId });
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf1);
+    await store.visitAttachmentFile(rf2);
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -529,8 +529,8 @@ describe("attachments", () => {
     const buffer2 = Buffer.from('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + "<test/>\n", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     const rf2 = new BufferResultFile(buffer2, "tr1-invalid.xml");
-    await store.visitAttachmentFile(rf1, { readerId });
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf1);
+    await store.visitAttachmentFile(rf2);
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -605,7 +605,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [a1] = await store.allAttachments({ includeUnused: true, includeMissed: true });
     expect(a1).toEqual(
@@ -667,7 +667,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [a1] = await store.allAttachments({ includeUnused: true, includeMissed: true });
     expect(a1).toEqual(
@@ -689,7 +689,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const tr1: RawTestResult = {
       name: "test result 1",
@@ -738,8 +738,8 @@ describe("attachments", () => {
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     const rf2 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf1);
+    await store.visitAttachmentFile(rf2);
 
     const [a1] = await store.allAttachments({ includeUnused: true, includeMissed: true });
     expect(a1).toEqual(
@@ -775,7 +775,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const tr2: RawTestResult = {
       name: "test result 2",
@@ -849,10 +849,10 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const rf2 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf2);
 
     const [a1] = await store.allAttachments();
     expect(a1).toEqual(
@@ -893,10 +893,10 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const rf2 = new BufferResultFile(buffer1, "other.xml");
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf2);
 
     const attachments = await store.allAttachments({ includeUnused: true });
     expect(attachments).toEqual(
@@ -952,10 +952,10 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const rf2 = new BufferResultFile(buffer1, "other.xml");
-    await store.visitAttachmentFile(rf2, { readerId });
+    await store.visitAttachmentFile(rf2);
 
     const attachments = await store.allAttachments({ includeMissed: true });
     expect(attachments).toEqual(
@@ -999,7 +999,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1027,7 +1027,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1055,7 +1055,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from("some content", "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1085,7 +1085,7 @@ describe("attachments", () => {
     await store.visitTestResult(tr1, { readerId });
 
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [tr] = await store.allTestResults();
     const [step] = tr.steps;
@@ -1121,7 +1121,7 @@ describe("attachments", () => {
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
     await store.visitTestResult(tr1, { readerId });
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [attachment] = await store.allAttachments();
 
@@ -1147,7 +1147,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1.txt");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1176,7 +1176,7 @@ describe("attachments", () => {
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitTestResult(tr1, { readerId });
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [attachment] = await store.allAttachments();
 
@@ -1203,7 +1203,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1231,7 +1231,7 @@ describe("attachments", () => {
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
     await store.visitTestResult(tr1, { readerId });
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
 
     const [attachment] = await store.allAttachments();
 
@@ -1258,7 +1258,7 @@ describe("attachments", () => {
 
     const buffer1 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>', "utf-8");
     const rf1 = new BufferResultFile(buffer1, "tr1-source1");
-    await store.visitAttachmentFile(rf1, { readerId });
+    await store.visitAttachmentFile(rf1);
     await store.visitTestResult(tr1, { readerId });
 
     const [attachment] = await store.allAttachments();
@@ -1783,6 +1783,191 @@ describe("environments", () => {
   });
 });
 
+describe("visitGlobals", () => {
+  it("should add global errors", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [
+        { message: "Setup failed", trace: "Error at setup.js:10" },
+        { message: "Teardown failed", trace: "Error at teardown.js:5" },
+      ],
+      attachments: [],
+    };
+
+    await store.visitGlobals(globals);
+
+    const errors = await store.allGlobalErrors();
+
+    expect(errors).toHaveLength(2);
+    expect(errors).toEqual([
+      { message: "Setup failed", trace: "Error at setup.js:10" },
+      { message: "Teardown failed", trace: "Error at teardown.js:5" },
+    ]);
+  });
+
+  it("should add global attachments", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [],
+      attachments: [
+        { name: "log file", originalFileName: "global-log.txt", contentType: "text/plain" } as RawTestAttachment,
+        { name: "screenshot", originalFileName: "global-screen.png", contentType: "image/png" } as RawTestAttachment,
+      ],
+    };
+
+    await store.visitGlobals(globals);
+
+    const attachments = await store.allGlobalAttachments();
+
+    expect(attachments).toHaveLength(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: md5("global-log.txt"),
+          name: "log file",
+          originalFileName: "global-log.txt",
+          ext: ".txt",
+          contentType: "text/plain",
+          used: true,
+          missed: false,
+        }),
+        expect.objectContaining({
+          id: md5("global-screen.png"),
+          name: "screenshot",
+          originalFileName: "global-screen.png",
+          ext: ".png",
+          contentType: "image/png",
+          used: true,
+          missed: false,
+        }),
+      ]),
+    );
+  });
+
+  it("should use originalFileName as name when name is not provided", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [],
+      attachments: [{ originalFileName: "output.log" } as RawTestAttachment],
+    };
+
+    await store.visitGlobals(globals);
+
+    const [attachment] = await store.allGlobalAttachments();
+
+    expect(attachment).toMatchObject({
+      name: "output.log",
+      originalFileName: "output.log",
+    });
+  });
+
+  it("should add both errors and attachments at the same time", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [{ message: "Something went wrong" }],
+      attachments: [
+        { name: "debug log", originalFileName: "debug.txt", contentType: "text/plain" } as RawTestAttachment,
+      ],
+    };
+
+    await store.visitGlobals(globals);
+
+    const errors = await store.allGlobalErrors();
+    const attachments = await store.allGlobalAttachments();
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toEqual({ message: "Something went wrong" });
+    expect(attachments).toHaveLength(1);
+    expect(attachments[0]).toMatchObject({
+      name: "debug log",
+      originalFileName: "debug.txt",
+    });
+  });
+
+  it("should accumulate globals across multiple calls", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitGlobals({
+      errors: [{ message: "Error 1" }],
+      attachments: [{ originalFileName: "file1.txt" } as RawTestAttachment],
+    });
+    await store.visitGlobals({
+      errors: [{ message: "Error 2" }],
+      attachments: [{ originalFileName: "file2.txt" } as RawTestAttachment],
+    });
+
+    const errors = await store.allGlobalErrors();
+    const attachments = await store.allGlobalAttachments();
+
+    expect(errors).toHaveLength(2);
+    expect(errors[0]).toEqual({ message: "Error 1" });
+    expect(errors[1]).toEqual({ message: "Error 2" });
+    expect(attachments).toHaveLength(2);
+  });
+
+  it("should handle empty globals", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [],
+      attachments: [],
+    };
+
+    await store.visitGlobals(globals);
+
+    const errors = await store.allGlobalErrors();
+    const attachments = await store.allGlobalAttachments();
+
+    expect(errors).toHaveLength(0);
+    expect(attachments).toHaveLength(0);
+  });
+
+  it("should make global attachments available in allAttachments", async () => {
+    const store = new DefaultAllureStore();
+    const globals: RawGlobals = {
+      errors: [],
+      attachments: [
+        { name: "global log", originalFileName: "global.txt", contentType: "text/plain" } as RawTestAttachment,
+      ],
+    };
+
+    await store.visitGlobals(globals);
+
+    const allAttachments = await store.allAttachments({ includeUnused: true, includeMissed: true });
+
+    expect(allAttachments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "global log",
+          originalFileName: "global.txt",
+          used: true,
+        }),
+      ]),
+    );
+  });
+
+  it("should include global attachments and errors in dump state", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitGlobals({
+      errors: [{ message: "Global error" }],
+      attachments: [{ name: "log", originalFileName: "global.log", contentType: "text/plain" } as RawTestAttachment],
+    });
+
+    const dump = store.dumpState();
+
+    expect(dump.globalAttachmentsIds).toHaveLength(1);
+    expect(dump.globalErrors).toHaveLength(1);
+    expect(dump.globalErrors[0]).toEqual({ message: "Global error" });
+
+    const attachmentId = dump.globalAttachmentsIds[0];
+
+    expect(dump.attachments[attachmentId]).toMatchObject({
+      name: "log",
+      originalFileName: "global.log",
+    });
+  });
+});
+
 describe("variables", () => {
   it("should return all report variables", async () => {
     const fixture = {
@@ -1946,9 +2131,9 @@ describe("dump state", () => {
 
     const dump = store.dumpState();
 
-    expect(dump.globalAttachments).toHaveLength(2);
-    expect(dump.globalAttachments[0].originalFileName).toBe("global-log.txt");
-    expect(dump.globalAttachments[1].originalFileName).toBe("global-screenshot.png");
+    expect(dump.globalAttachmentsIds).toHaveLength(2);
+    expect(dump.attachments[dump.globalAttachmentsIds[0]].originalFileName).toBe("global-log.txt");
+    expect(dump.attachments[dump.globalAttachmentsIds[1]].originalFileName).toBe("global-screenshot.png");
     expect(dump.globalErrors).toHaveLength(2);
     expect(dump.globalErrors).toEqual([globalError1, globalError2]);
   });
@@ -1964,7 +2149,7 @@ describe("dump state", () => {
 
     const dump = store.dumpState();
 
-    expect(dump.globalAttachments).toEqual([]);
+    expect(dump.globalAttachmentsIds).toEqual([]);
     expect(dump.globalErrors).toEqual([]);
     expect(dump.indexAttachmentByTestResult).toBeDefined();
     expect(dump.indexTestResultByHistoryId).toBeDefined();
@@ -2012,12 +2197,15 @@ describe("dump state", () => {
       testResults: {
         "test-result-id": testResult,
       },
-      attachments: {},
+      attachments: {
+        [globalAttachment1.id]: globalAttachment1,
+        [globalAttachment2.id]: globalAttachment2,
+      },
       testCases: {},
       fixtures: {},
       environments: ["default"],
       reportVariables: {},
-      globalAttachments: [globalAttachment1, globalAttachment2],
+      globalAttachmentsIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -2084,12 +2272,14 @@ describe("dump state", () => {
     };
     const dump = {
       testResults: {},
-      attachments: {},
+      attachments: {
+        [dumpAttachment.id]: dumpAttachment,
+      },
       testCases: {},
       fixtures: {},
       environments: ["default"],
       reportVariables: {},
-      globalAttachments: [dumpAttachment],
+      globalAttachmentsIds: [dumpAttachment.id],
       globalErrors: [dumpError],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
