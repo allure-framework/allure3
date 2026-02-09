@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
+import type { AllureHistory, AttachmentLinkLinked, HistoryDataPoint } from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
@@ -2049,7 +2049,7 @@ describe("dump state", () => {
     const attachmentFile = new BufferResultFile(Buffer.from("test content"), "attachment.txt");
     const attachmentId = md5(attachmentFile.getOriginalFileName());
 
-    await store.visitAttachmentFile(attachmentFile, { readerId });
+    await store.visitAttachmentFile(attachmentFile);
 
     const testResults = await store.allTestResults();
     const attachments = await store.allAttachments({
@@ -2132,8 +2132,8 @@ describe("dump state", () => {
     const dump = store.dumpState();
 
     expect(dump.globalAttachmentsIds).toHaveLength(2);
-    expect(dump.attachments[dump.globalAttachmentsIds[0]].originalFileName).toBe("global-log.txt");
-    expect(dump.attachments[dump.globalAttachmentsIds[1]].originalFileName).toBe("global-screenshot.png");
+    expect((dump.attachments[dump.globalAttachmentsIds[0]] as AttachmentLinkLinked).name).toBe("global-log.txt");
+    expect((dump.attachments[dump.globalAttachmentsIds[1]] as AttachmentLinkLinked).name).toBe("global-screenshot.png");
     expect(dump.globalErrors).toHaveLength(2);
     expect(dump.globalErrors).toEqual([globalError1, globalError2]);
   });
@@ -2296,7 +2296,7 @@ describe("dump state", () => {
     const allGlobalErrors = await store.allGlobalErrors();
 
     expect(allGlobalAttachments).toHaveLength(2);
-    expect(allGlobalAttachments.some((att) => att.originalFileName === "initial.log")).toBe(true);
+    expect(allGlobalAttachments.some((att) => att.name === "initial.log")).toBe(true);
     expect(allGlobalAttachments.some((att) => att.originalFileName === "dump.log")).toBe(true);
     expect(allGlobalErrors).toHaveLength(2);
     expect(allGlobalErrors).toContain(initialError);

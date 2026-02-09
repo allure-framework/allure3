@@ -258,7 +258,7 @@ export class RunCommand extends Command {
       "Runs tests in stage mode to collect results to a stage archive with the provided name (default: empty string)",
   });
 
-  environment = Option.String("--environment", {
+  environment = Option.String("--environment,--env", {
     description:
       "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
   });

@@ -395,7 +395,6 @@ export class AllureReport {
       const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
       const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
       const qualityGateResultsByRulesEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResultsByRules);
-
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -439,7 +438,6 @@ export class AllureReport {
         indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
         qualityGateResultsByRules: JSON.parse(qualityGateResultsByRulesEntry.toString("utf8")),
       };
-
       const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};
 

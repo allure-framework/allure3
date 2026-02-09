@@ -3,7 +3,6 @@ import {
   type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkExpected,
-  type AttachmentLinkFile,
   type AttachmentLinkLinked,
   DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
@@ -45,6 +44,7 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
+import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
@@ -197,15 +197,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       this.#globalErrors.push(error);
     });
     this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
-      const originalFileName = attachment.getOriginalFileName();
-      const attachmentLink: AttachmentLinkFile = {
-        id: md5(originalFileName),
+      const ext = attachment.getExtension();
+      // need to generate a unique filename to avoid override of the global files with the same name (such as stdout.txt or stderr.txt)
+      const sourceFileName = `${randomUUID()}.${ext}`;
+      const actualFileName = attachment.getOriginalFileName();
+      const attachmentLink: AttachmentLinkLinked = {
+        id: md5(sourceFileName),
+        name: actualFileName,
         missed: false,
-        used: false,
-        ext: attachment.getExtension(),
+        used: true,
+        ext,
         contentType: attachment.getContentType(),
         contentLength: attachment.getContentLength(),
-        originalFileName,
+        originalFileName: sourceFileName,
       };
 
       this.#attachments.set(attachmentLink.id, attachmentLink);
@@ -267,7 +271,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#globalErrors;
   }
 
-  async allGlobalAttachments(): Promise<AttachmentLink[]> {
+  async allGlobalAttachments(): Promise<AttachmentLinkLinked[]> {
     return this.#globalAttachmentsIds.reduce((acc, id) => {
       const attachment = this.#attachments.get(id);
 
@@ -275,8 +279,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         return acc;
       }
 
-      return acc.concat(attachment);
-    }, [] as AttachmentLink[]);
+      return acc.concat(attachment as AttachmentLinkLinked);
+    }, [] as AttachmentLinkLinked[]);
   }
 
   // test methods
