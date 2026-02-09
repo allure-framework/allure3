@@ -2,7 +2,6 @@
 import {
   type AllureHistory,
   type AttachmentLink,
-  type AttachmentLinkExpected,
   type AttachmentLinkLinked,
   DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
@@ -405,14 +404,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     attachments.forEach((attachment) => {
       const originalFileName = attachment.originalFileName!;
       const id = md5(originalFileName);
-      const attachmentLink: AttachmentLinkExpected = {
+      const attachmentLink: AttachmentLinkLinked = {
         id,
         name: attachment?.name || originalFileName,
         originalFileName,
         ext: extname(originalFileName),
         used: true,
-        // remove rendering missed label
-        // @ts-expect-error
         missed: false,
         contentType: attachment?.contentType,
       };
