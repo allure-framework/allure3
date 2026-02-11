@@ -307,8 +307,8 @@ const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
 
   await visitor.visitGlobals(
     {
-      attachments: attachments.map((attachment) => convertAttachment(attachment)),
-      errors,
+      attachments: Array.isArray(attachments) ? attachments.map((attachment) => convertAttachment(attachment)) : [],
+      errors: isStringAnyRecordArray(errors) ? errors : [],
     },
     { readerId },
   );

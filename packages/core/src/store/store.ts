@@ -43,7 +43,6 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
@@ -135,7 +134,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
-  #globalAttachmentsIds: string[] = [];
+  #globalAttachmentIds: string[] = [];
   #globalErrors: TestError[] = [];
   #globalExitCode: ExitCode | undefined;
   #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
@@ -195,25 +194,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
       this.#globalErrors.push(error);
     });
-    this.#realtimeSubscriber?.onGlobalAttachment(async (attachment: ResultFile) => {
-      const ext = attachment.getExtension();
-      // need to generate a unique filename to avoid override of the global files with the same name (such as stdout.txt or stderr.txt)
-      const sourceFileName = `${randomUUID()}.${ext}`;
-      const actualFileName = attachment.getOriginalFileName();
+    this.#realtimeSubscriber?.onGlobalAttachment(async ({ attachment, fileName }) => {
+      const originalFileName = attachment.getOriginalFileName();
       const attachmentLink: AttachmentLinkLinked = {
-        id: md5(sourceFileName),
-        name: actualFileName,
+        id: md5(originalFileName),
+        name: fileName || originalFileName,
         missed: false,
         used: true,
-        ext,
+        ext: attachment.getExtension(),
         contentType: attachment.getContentType(),
         contentLength: attachment.getContentLength(),
-        originalFileName: sourceFileName,
+        originalFileName,
       };
 
       this.#attachments.set(attachmentLink.id, attachmentLink);
       this.#attachmentContents.set(attachmentLink.id, attachment);
-      this.#globalAttachmentsIds.push(attachmentLink.id);
+      this.#globalAttachmentIds.push(attachmentLink.id);
     });
   }
 
@@ -271,14 +267,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allGlobalAttachments(): Promise<AttachmentLinkLinked[]> {
-    return this.#globalAttachmentsIds.reduce((acc, id) => {
+    return this.#globalAttachmentIds.reduce((acc, id) => {
       const attachment = this.#attachments.get(id);
 
       if (!attachment) {
         return acc;
       }
 
-      return acc.concat(attachment as AttachmentLinkLinked);
+      acc.push(attachment as AttachmentLinkLinked);
+
+      return acc;
     }, [] as AttachmentLinkLinked[]);
   }
 
@@ -398,9 +396,8 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async visitGlobals(globals: RawGlobals): Promise<void> {
     const { errors, attachments } = globals;
 
-    errors.forEach((error) => {
-      this.#globalErrors.push(error);
-    });
+    this.#globalErrors.push(...errors);
+
     attachments.forEach((attachment) => {
       const originalFileName = attachment.originalFileName!;
       const id = md5(originalFileName);
@@ -415,7 +412,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       this.#attachments.set(id, attachmentLink);
-      this.#globalAttachmentsIds.push(id);
+      this.#globalAttachmentIds.push(id);
     });
   }
 
@@ -812,7 +809,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures: mapToObject(this.#fixtures),
       environments: this.#environments,
       reportVariables: this.#reportVariables,
-      globalAttachmentsIds: this.#globalAttachmentsIds,
+      globalAttachmentIds: this.#globalAttachmentIds,
       globalErrors: this.#globalErrors,
       indexLatestEnvTestResultByHistoryId: {},
       indexAttachmentByTestResult: {},
@@ -859,7 +856,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       fixtures,
       reportVariables,
       environments,
-      globalAttachmentsIds = [],
+      globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
@@ -878,7 +875,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachmentContents, attachmentsContents);
 
     this.#addEnvironments(environments);
-    this.#globalAttachmentsIds.push(...globalAttachmentsIds);
+    this.#globalAttachmentIds.push(...globalAttachmentIds);
     this.#globalErrors.push(...globalErrors);
 
     Object.assign(this.#reportVariables, reportVariables);

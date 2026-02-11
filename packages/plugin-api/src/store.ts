@@ -66,7 +66,7 @@ export interface AllureStore {
 export interface AllureStoreDump {
   testResults: Record<string, TestResult>;
   attachments: Record<string, AttachmentLink>;
-  globalAttachmentsIds: string[];
+  globalAttachmentIds: string[];
   globalErrors: TestError[];
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;

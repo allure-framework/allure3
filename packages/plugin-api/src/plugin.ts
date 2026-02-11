@@ -89,7 +89,7 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
-  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>): () => void;
+  onGlobalAttachment(listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>): () => void;
 
   onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
 
@@ -105,7 +105,7 @@ export interface RealtimeSubscriber {
 }
 
 export interface RealtimeEventsDispatcher {
-  sendGlobalAttachment(attachment: ResultFile): void;
+  sendGlobalAttachment(attachment: ResultFile, fileName?: string): void;
 
   sendGlobalExitCode(payload: ExitCode): void;
 

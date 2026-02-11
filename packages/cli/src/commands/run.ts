@@ -19,6 +19,7 @@ import { KnownError } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 import * as console from "node:console";
+import { randomUUID } from "node:crypto";
 import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -452,19 +453,21 @@ export class RunCommand extends Command {
     const processFailed = Math.abs(globalExitCode.actual ?? globalExitCode.original) !== 0;
 
     if (!this.ignoreLogs && testProcessResult?.stdout) {
-      const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), "stdout.txt");
+      const fileName = randomUUID();
+      const stdoutResultFile = new BufferResultFile(Buffer.from(testProcessResult.stdout, "utf8"), `${fileName}`);
 
       stdoutResultFile.contentType = "text/plain";
 
-      allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile);
+      allureReport.realtimeDispatcher.sendGlobalAttachment(stdoutResultFile, "stdout.txt");
     }
 
     if (!this.ignoreLogs && testProcessResult?.stderr) {
-      const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), "stderr.txt");
+      const fileName = randomUUID();
+      const stderrResultFile = new BufferResultFile(Buffer.from(testProcessResult.stderr, "utf8"), fileName);
 
       stderrResultFile.contentType = "text/plain";
 
-      allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile);
+      allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
 
       if (processFailed) {
         allureReport.realtimeDispatcher.sendGlobalError({

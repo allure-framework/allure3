@@ -1955,11 +1955,11 @@ describe("visitGlobals", () => {
 
     const dump = store.dumpState();
 
-    expect(dump.globalAttachmentsIds).toHaveLength(1);
+    expect(dump.globalAttachmentIds).toHaveLength(1);
     expect(dump.globalErrors).toHaveLength(1);
     expect(dump.globalErrors[0]).toEqual({ message: "Global error" });
 
-    const attachmentId = dump.globalAttachmentsIds[0];
+    const attachmentId = dump.globalAttachmentIds[0];
 
     expect(dump.attachments[attachmentId]).toMatchObject({
       name: "log",
@@ -2126,14 +2126,14 @@ describe("dump state", () => {
     };
     const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
 
-    await onGlobalAttachmentCallback(mockGlobalAttachmentFile1);
-    await onGlobalAttachmentCallback(mockGlobalAttachmentFile2);
+    await onGlobalAttachmentCallback({ attachment: mockGlobalAttachmentFile1 });
+    await onGlobalAttachmentCallback({ attachment: mockGlobalAttachmentFile2 });
 
     const dump = store.dumpState();
 
-    expect(dump.globalAttachmentsIds).toHaveLength(2);
-    expect((dump.attachments[dump.globalAttachmentsIds[0]] as AttachmentLinkLinked).name).toBe("global-log.txt");
-    expect((dump.attachments[dump.globalAttachmentsIds[1]] as AttachmentLinkLinked).name).toBe("global-screenshot.png");
+    expect(dump.globalAttachmentIds).toHaveLength(2);
+    expect((dump.attachments[dump.globalAttachmentIds[0]] as AttachmentLinkLinked).name).toBe("global-log.txt");
+    expect((dump.attachments[dump.globalAttachmentIds[1]] as AttachmentLinkLinked).name).toBe("global-screenshot.png");
     expect(dump.globalErrors).toHaveLength(2);
     expect(dump.globalErrors).toEqual([globalError1, globalError2]);
   });
@@ -2149,7 +2149,7 @@ describe("dump state", () => {
 
     const dump = store.dumpState();
 
-    expect(dump.globalAttachmentsIds).toEqual([]);
+    expect(dump.globalAttachmentIds).toEqual([]);
     expect(dump.globalErrors).toEqual([]);
     expect(dump.indexAttachmentByTestResult).toBeDefined();
     expect(dump.indexTestResultByHistoryId).toBeDefined();
@@ -2205,7 +2205,7 @@ describe("dump state", () => {
       fixtures: {},
       environments: ["default"],
       reportVariables: {},
-      globalAttachmentsIds: [globalAttachment1.id, globalAttachment2.id],
+      globalAttachmentIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -2255,7 +2255,7 @@ describe("dump state", () => {
     const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
 
     await onGlobalErrorCallback(initialError);
-    await onGlobalAttachmentCallback(mockInitialAttachmentFile);
+    await onGlobalAttachmentCallback({ attachment: mockInitialAttachmentFile });
 
     const dumpAttachment = {
       id: "dump-attachment",
@@ -2279,7 +2279,7 @@ describe("dump state", () => {
       fixtures: {},
       environments: ["default"],
       reportVariables: {},
-      globalAttachmentsIds: [dumpAttachment.id],
+      globalAttachmentIds: [dumpAttachment.id],
       globalErrors: [dumpError],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},

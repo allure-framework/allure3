@@ -271,7 +271,7 @@ export class AllureReport {
       fixtures,
       attachments: attachmentsLinks,
       environments,
-      globalAttachmentsIds = [],
+      globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
@@ -314,7 +314,7 @@ export class AllureReport {
     await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
       name: AllureStoreDumpFiles.ReportVariables,
     });
-    await addEntry(Buffer.from(JSON.stringify(globalAttachmentsIds)), {
+    await addEntry(Buffer.from(JSON.stringify(globalAttachmentIds)), {
       name: AllureStoreDumpFiles.GlobalAttachments,
     });
     await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
@@ -427,7 +427,7 @@ export class AllureReport {
         attachments: JSON.parse(attachmentsEntry.toString("utf8")),
         environments: JSON.parse(environmentsEntry.toString("utf8")),
         reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
-        globalAttachmentsIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
+        globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
         globalErrors: JSON.parse(globalErrorsEntry.toString("utf8")),
         indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
         indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),

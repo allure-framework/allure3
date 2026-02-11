@@ -2,7 +2,7 @@ export type RawTestStatus = "failed" | "broken" | "passed" | "skipped" | "unknow
 
 export type RawMetadata = { [key: string]: any };
 
-export type RawTestError = {
+export type RawError = {
   message?: string;
   trace?: string;
   expected?: string;
@@ -30,7 +30,7 @@ export interface RawFixtureResult {
   titlePath?: string[];
 }
 
-export interface RawTestResult extends RawTestError {
+export interface RawTestResult extends RawError {
   uuid?: string;
   name?: string;
   status?: RawTestStatus;
@@ -122,5 +122,5 @@ export interface RawTestAttachment {
 
 export interface RawGlobals {
   attachments: RawTestAttachment[];
-  errors: RawTestError[];
+  errors: RawError[];
 }

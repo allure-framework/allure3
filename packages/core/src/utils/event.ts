@@ -26,7 +26,7 @@ export interface AllureStoreEvents {
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
-  [RealtimeEvents.GlobalAttachment]: [ResultFile];
+  [RealtimeEvents.GlobalAttachment]: [{ attachment: ResultFile; fileName?: string }];
   [RealtimeEvents.GlobalExitCode]: [ExitCode];
   [RealtimeEvents.GlobalError]: [TestError];
 }
@@ -44,8 +44,8 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter = emitter;
   }
 
-  sendGlobalAttachment(attachment: ResultFile) {
-    this.#emitter.emit(RealtimeEvents.GlobalAttachment, attachment);
+  sendGlobalAttachment(attachment: ResultFile, fileName?: string) {
+    this.#emitter.emit(RealtimeEvents.GlobalAttachment, { attachment, fileName });
   }
 
   sendGlobalExitCode(codes: ExitCode) {
@@ -81,7 +81,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter = emitter;
   }
 
-  onGlobalAttachment(listener: (attachment: ResultFile) => Promise<void>) {
+  onGlobalAttachment(listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.GlobalAttachment, listener);
 
     return () => {
