@@ -1,0 +1,1 @@
+{"id":"afd731e6e0d693235c3166e64cef564e","fullName":"test/store/store.test.ts#visitGlobals should use originalFileName as name when name is not provided","name":"should use originalFileName as name when name is not provided","status":"passed","testResultsByEnv":{"windows-latest":"5cfcedfa6fb14150637aaa5ca234e28e","ubuntu-latest":"24990318a55597dc245c0561c80ecfee"}}

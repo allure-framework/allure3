@@ -1,0 +1,1 @@
+{"id":"e1437fb062d464d93db8a94699aa723d","fullName":"test/store/store.test.ts#visitGlobals should include global attachments and errors in dump state","name":"should include global attachments and errors in dump state","status":"passed","testResultsByEnv":{"windows-latest":"e406cfe8c2a624fbf9c4ca089fa1dd59","ubuntu-latest":"6a8196b92069119a6a99745bc373daa9"}}

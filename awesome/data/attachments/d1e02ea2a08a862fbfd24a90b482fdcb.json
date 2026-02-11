@@ -1,0 +1,15 @@
+{
+  "attachments": [
+    {
+      "name": "Global log",
+      "type": "text/plain",
+      "source": "global-log.txt"
+    },
+    {
+      "name": "Global screenshot",
+      "type": "image/png",
+      "source": "global-screenshot.png"
+    }
+  ],
+  "errors": []
+}

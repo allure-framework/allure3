@@ -1,0 +1,1 @@
+{"id":"8b5303ce58d7204487200b89b389a102","fullName":"test/allure2.test.ts#allure2 reader should parse empty globals","name":"should parse empty globals","status":"passed","testResultsByEnv":{"windows-latest":"96dc53750d3828b8789a25bbb39e8e3b","ubuntu-latest":"6909974fd45e337e95d6651c37b0c6cb","macos-latest":"0fa295170567357fa822d210865fa3a0"}}

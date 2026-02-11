@@ -1,0 +1,15 @@
+{
+  "attachments": [
+    {
+      "name": "Setup log",
+      "type": "text/plain",
+      "source": "setup-log.txt"
+    }
+  ],
+  "errors": [
+    {
+      "message": "Configuration warning",
+      "trace": "Warning at config.js:42"
+    }
+  ]
+}

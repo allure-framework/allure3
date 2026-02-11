@@ -1,0 +1,1 @@
+{"id":"58fa4b5cf3b4ac228d64af44b48b7a38","fullName":"test/store/store.test.ts#visitGlobals should add both errors and attachments at the same time","name":"should add both errors and attachments at the same time","status":"passed","testResultsByEnv":{"windows-latest":"24ddefde1f0026cdf68c38b9a2428b0d","ubuntu-latest":"ae94f9c4cef31f961a2b24335d34caf1"}}

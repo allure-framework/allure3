@@ -1,1 +1,1 @@
-{"id":"76141794a8852251943d82d9881079e4","fullName":"test/xcresult.test.ts#A MAC machine activities outcomes should parse a passed activity","name":"should parse a passed activity","status":"passed","testResultsByEnv":{"macos-latest":"edc0c1605542ab6a5883c16a93b16c52"}}
+{"id":"76141794a8852251943d82d9881079e4","fullName":"test/xcresult.test.ts#A MAC machine activities outcomes should parse a passed activity","name":"should parse a passed activity","status":"passed","testResultsByEnv":{"macos-latest":"faeaecbe0e27d535a9042e63b302fc7b"}}

@@ -1,0 +1,1 @@
+{"id":"e5af37f61d49f6a977e64a1211016693","fullName":"test/allure2.test.ts#allure2 reader should parse globals with errors","name":"should parse globals with errors","status":"passed","testResultsByEnv":{"windows-latest":"166a810c10713316cb243c7ea1ff829c","ubuntu-latest":"010d03c9ab4aec35a42ec91981067553","macos-latest":"092c2c2a445b2c730ac92f651ab30580"}}

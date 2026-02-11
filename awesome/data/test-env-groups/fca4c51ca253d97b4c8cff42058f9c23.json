@@ -1,0 +1,1 @@
+{"id":"fca4c51ca253d97b4c8cff42058f9c23","fullName":"test/store/store.test.ts#visitGlobals should accumulate globals across multiple calls","name":"should accumulate globals across multiple calls","status":"passed","testResultsByEnv":{"windows-latest":"956521f3736a6286afe6b86a2a631259","ubuntu-latest":"c3e1bc2dbe984ea2e04b93795e72d0a7"}}
