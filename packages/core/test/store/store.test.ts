@@ -2078,6 +2078,7 @@ describe("dump state", () => {
     expect(dump.indexAttachmentByFixture).toBeDefined();
     expect(dump.indexFixturesByTestResult).toBeDefined();
     expect(dump.indexKnownByHistoryId).toBeDefined();
+    expect(dump.qualityGateResults).toEqual([]);
   });
 
   it("should include globalAttachments and globalErrors in dump state", async () => {
@@ -2136,6 +2137,44 @@ describe("dump state", () => {
     expect((dump.attachments[dump.globalAttachmentIds[1]] as AttachmentLinkLinked).name).toBe("global-screenshot.png");
     expect(dump.globalErrors).toHaveLength(2);
     expect(dump.globalErrors).toEqual([globalError1, globalError2]);
+    expect(dump.qualityGateResults).toEqual([]);
+  });
+
+  it("should include qualityGateResults in dump state", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const qualityGateResult1 = {
+      success: true,
+      expected: 0,
+      actual: 0,
+      rule: "failed",
+      message: "No failed tests",
+      environment: "default",
+    };
+    const qualityGateResult2 = {
+      success: false,
+      expected: 100,
+      actual: 80,
+      rule: "coverage",
+      message: "Coverage is below threshold",
+      environment: "staging",
+    };
+
+    const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
+
+    await onQualityGateResultsCallback([qualityGateResult1, qualityGateResult2]);
+
+    const dump = store.dumpState();
+
+    expect(dump.qualityGateResults).toHaveLength(2);
+    expect(dump.qualityGateResults).toEqual([qualityGateResult1, qualityGateResult2]);
   });
 
   it("should include empty arrays for globalAttachments and globalErrors when none exist", async () => {
@@ -2151,6 +2190,7 @@ describe("dump state", () => {
 
     expect(dump.globalAttachmentIds).toEqual([]);
     expect(dump.globalErrors).toEqual([]);
+    expect(dump.qualityGateResults).toEqual([]);
     expect(dump.indexAttachmentByTestResult).toBeDefined();
     expect(dump.indexTestResultByHistoryId).toBeDefined();
     expect(dump.indexTestResultByTestCase).toBeDefined();
@@ -2207,6 +2247,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [globalAttachment1.id, globalAttachment2.id],
       globalErrors: [globalError1, globalError2],
+      qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -2222,12 +2263,14 @@ describe("dump state", () => {
 
     const restoredGlobalAttachments = await store.allGlobalAttachments();
     const restoredGlobalErrors = await store.allGlobalErrors();
+    const restoredQualityGateResults = await store.qualityGateResults();
     const testResults = await store.allTestResults();
 
     expect(restoredGlobalAttachments).toHaveLength(2);
     expect(restoredGlobalAttachments).toEqual([globalAttachment1, globalAttachment2]);
     expect(restoredGlobalErrors).toHaveLength(2);
     expect(restoredGlobalErrors).toEqual([globalError1, globalError2]);
+    expect(restoredQualityGateResults).toEqual([]);
     expect(testResults).toHaveLength(1);
   });
 
@@ -2281,6 +2324,7 @@ describe("dump state", () => {
       reportVariables: {},
       globalAttachmentIds: [dumpAttachment.id],
       globalErrors: [dumpError],
+      qualityGateResults: [],
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
       indexTestResultByTestCase: {},
@@ -2403,6 +2447,108 @@ describe("dump state", () => {
     const allTestResults = await newStore.allTestResults();
 
     expect(allTestResults).toHaveLength(1);
+  });
+
+  it("should dump and restore qualityGateResults", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const qualityGateResults = [
+      {
+        success: true,
+        expected: 0,
+        actual: 0,
+        rule: "failed",
+        message: "No failed tests",
+        environment: "default",
+      },
+      {
+        success: false,
+        expected: 100,
+        actual: 80,
+        rule: "coverage",
+        message: "Coverage is below threshold",
+        environment: "staging",
+      },
+    ];
+
+    const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
+
+    await onQualityGateResultsCallback(qualityGateResults);
+
+    const dump = store.dumpState();
+
+    expect(dump.qualityGateResults).toEqual(qualityGateResults);
+
+    const newStore = new DefaultAllureStore();
+
+    await newStore.restoreState(dump, {});
+
+    const restoredResults = await newStore.qualityGateResults();
+
+    expect(restoredResults).toEqual(qualityGateResults);
+  });
+
+  it("should append qualityGateResults when restoring to existing store", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const initialResult = {
+      success: true,
+      expected: 0,
+      actual: 0,
+      rule: "failed",
+      message: "No failed tests",
+    };
+    const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
+
+    await onQualityGateResultsCallback([initialResult]);
+
+    const dumpResult = {
+      success: false,
+      expected: 100,
+      actual: 80,
+      rule: "coverage",
+      message: "Coverage is below threshold",
+    };
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [dumpResult],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const results = await store.qualityGateResults();
+
+    expect(results).toHaveLength(2);
+    expect(results).toContainEqual(initialResult);
+    expect(results).toContainEqual(dumpResult);
   });
 
   it("should merge two dumps with different envs", async () => {

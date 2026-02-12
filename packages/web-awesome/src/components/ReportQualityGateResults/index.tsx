@@ -1,3 +1,4 @@
+import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { Loadable, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
@@ -11,17 +12,17 @@ import * as styles from "./styles.scss";
 const QualityGateResultsList = ({ results }: { results: QualityGateValidationResult[] }) => (
   <ul className={styles["report-quality-gate-results-list"]} data-testid={"quality-gate-results-section-env-content"}>
     {results.map((result) => (
-      <li key={result.rule} data-testid="report-quality-gate-result">
+      <li key={result.rule} data-testid="quality-gate-result">
         <div className={styles["report-quality-gate-result"]}>
           <SvgIcon id={allureIcons.solidXCircle} className={styles["report-quality-gate-result-icon"]} />
           <div className={styles["report-quality-gate-result-content"]}>
-            <Text tag="p" size="l" type="ui" bold data-testid="report-quality-gate-result-rule">
+            <Text tag="p" size="l" type="ui" bold data-testid="quality-gate-result-rule">
               {result.rule}
             </Text>
             <TrError
               className={styles["report-quality-gate-result-error"]}
               message={result.message}
-              data-testid="report-quality-gate-result-message"
+              data-testid="quality-gate-result-message"
             />
           </div>
         </div>
@@ -53,6 +54,17 @@ export const ReportQualityGateResults = () => {
 
         if (!entries.length) {
           return <div className={styles["report-quality-gate-results-empty"]}>{t("no-quality-gate-results")}</div>;
+        }
+
+        // single default environment
+        if (entries.length === 1 && entries[0][0] === DEFAULT_ENVIRONMENT) {
+          const currentEnvResults = entries[0][1] ?? [];
+
+          if (!currentEnvResults.length) {
+            return <div className={styles["report-quality-gate-results-empty"]}>{t("no-quality-gate-results")}</div>;
+          }
+
+          return <QualityGateResultsList results={currentEnvResults} />;
         }
 
         return (

@@ -190,6 +190,7 @@ describe("plugin", () => {
         globalExitCode: vi.fn().mockResolvedValue(undefined),
         allGlobalErrors: vi.fn().mockResolvedValue([]),
         qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
         fixturesByTrId: vi.fn().mockResolvedValue([]),
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
