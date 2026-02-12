@@ -49,7 +49,7 @@ export class AwesomePlugin implements Plugin {
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
-    const qualityGateResults = await store.qualityGateResults();
+    const qualityGateResults = await store.qualityGateResultsByEnv();
 
     for (const env of environments) {
       envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));

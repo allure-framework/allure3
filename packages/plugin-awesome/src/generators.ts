@@ -474,7 +474,7 @@ export const generateGlobals = async (
 
 export const generateQualityGateResults = async (
   writer: AwesomeDataWriter,
-  qualityGateResults: QualityGateValidationResult[] = [],
+  qualityGateResults: Record<string, QualityGateValidationResult[]> = {},
 ) => {
   await writer.writeWidget("quality-gate.json", qualityGateResults);
 };

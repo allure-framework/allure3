@@ -22,13 +22,13 @@ export const runProcess = (params: {
   command: string;
   commandArgs: string[];
   cwd: string | undefined;
-  environment?: Record<string, string>;
+  environmentVariables?: Record<string, string>;
   logs?: "pipe" | "inherit" | "ignore";
 }): ChildProcess => {
-  const { command, commandArgs, cwd, environment = {}, logs = "inherit" } = params;
+  const { command, commandArgs, cwd, environmentVariables = {}, logs = "inherit" } = params;
   const env = {
     ...process.env,
-    ...environment,
+    ...environmentVariables,
   };
 
   if (logs === "pipe") {

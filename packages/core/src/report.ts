@@ -206,13 +206,19 @@ export class AllureReport {
     }
   };
 
-  validate = async (params: { trs: TestResult[]; knownIssues: KnownTestFailure[]; state?: QualityGateState }) => {
-    const { trs, knownIssues, state } = params;
+  validate = async (params: {
+    trs: TestResult[];
+    knownIssues: KnownTestFailure[];
+    state?: QualityGateState;
+    environment?: string;
+  }) => {
+    const { trs, knownIssues, state, environment } = params;
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       knownIssues,
       state,
+      environment,
     });
   };
 
@@ -280,7 +286,7 @@ export class AllureReport {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
-      qualityGateResultsByRules = {},
+      qualityGateResults = [],
     } = this.#store.dumpState();
     const allAttachments = await this.#store.allAttachments();
     const dumpArchive = new ZipWriteStream({
@@ -341,8 +347,8 @@ export class AllureReport {
     await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
       name: AllureStoreDumpFiles.IndexKnownByHistoryId,
     });
-    await addEntry(Buffer.from(JSON.stringify(qualityGateResultsByRules)), {
-      name: AllureStoreDumpFiles.QualityGateResultsByRules,
+    await addEntry(Buffer.from(JSON.stringify(qualityGateResults)), {
+      name: AllureStoreDumpFiles.QualityGateResults,
     });
 
     for (const attachment of allAttachments) {
@@ -394,7 +400,8 @@ export class AllureReport {
       const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
       const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
       const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-      const qualityGateResultsByRulesEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResultsByRules);
+      const qualityGateResultsEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResults);
+
       const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
@@ -412,7 +419,7 @@ export class AllureReport {
           case AllureStoreDumpFiles.IndexAttachmentsByFixture:
           case AllureStoreDumpFiles.IndexFixturesByTestResult:
           case AllureStoreDumpFiles.IndexKnownByHistoryId:
-          case AllureStoreDumpFiles.QualityGateResultsByRules:
+          case AllureStoreDumpFiles.QualityGateResults:
             return acc;
           default:
             return Object.assign(acc, {
@@ -436,7 +443,7 @@ export class AllureReport {
         indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
         indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
         indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
-        qualityGateResultsByRules: JSON.parse(qualityGateResultsByRulesEntry.toString("utf8")),
+        qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
       };
       const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};
@@ -660,7 +667,7 @@ export class AllureReport {
       return;
     }
 
-    const qualityGateResults = await this.#store.qualityGateResults();
+    const qualityGateResults = await this.#store.qualityGateResultsByEnv();
 
     await writeFile(join(this.#output, "quality-gate.json"), JSON.stringify(qualityGateResults));
   };
