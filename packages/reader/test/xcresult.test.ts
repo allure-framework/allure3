@@ -45,7 +45,7 @@ describe.skipIf(IS_MAC)("Not a MAC machine", () => {
   });
 });
 
-describe.skipIf(!IS_MAC)("A MAC machine", () => {
+describe.skipIf(!IS_MAC)("A MAC machine", { timeout: 10_000 }, () => {
   describe("attachments", () => {
     it("should parse a nameless test attachment", async () => {
       const result = await readXcResultResource("attachments/nameless.xcresult");
@@ -1378,7 +1378,10 @@ describe.skipIf(!IS_MAC)("A MAC machine", () => {
         const attachment = attachments.find(
           (a) =>
             a.getOriginalFileName() ===
-            (testResults[0] as any).steps.find(({ name }) => name === "Foo").steps[1].originalFileName,
+            (
+              (testResults[0].steps?.find(({ name }) => name === "Foo") as RawTestStepResult)
+                ?.steps?.[1] as RawTestAttachment
+            )?.originalFileName,
         );
         expect(attachment?.getContentLength()).toEqual(1654817);
       });

@@ -9,7 +9,7 @@ export interface ReportFile {
   value: string;
 }
 
-export interface AwesomeDataWriter {
+export interface ClassicDataWriter {
   writeData(fileName: string, data: any): Promise<void>;
 
   writeWidget(fileName: string, data: any): Promise<void>;
@@ -19,7 +19,7 @@ export interface AwesomeDataWriter {
   writeAttachment(source: string, file: ResultFile): Promise<void>;
 }
 
-export class FileSystemReportDataWriter implements AwesomeDataWriter {
+export class FileSystemReportDataWriter implements ClassicDataWriter {
   constructor(private readonly output: string) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
@@ -47,7 +47,7 @@ export class FileSystemReportDataWriter implements AwesomeDataWriter {
   }
 }
 
-export class InMemoryReportDataWriter implements AwesomeDataWriter {
+export class InMemoryReportDataWriter implements ClassicDataWriter {
   #data: Record<string, Buffer> = {};
 
   async writeData(fileName: string, data: any): Promise<void> {
@@ -85,7 +85,7 @@ export class InMemoryReportDataWriter implements AwesomeDataWriter {
   }
 }
 
-export class ReportFileDataWriter implements AwesomeDataWriter {
+export class ReportFileDataWriter implements ClassicDataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
   async writeData(fileName: string, data: any): Promise<void> {

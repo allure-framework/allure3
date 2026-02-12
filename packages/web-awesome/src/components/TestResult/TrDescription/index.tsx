@@ -18,7 +18,7 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ descrip
         <MetadataButton title={"Description"} setIsOpen={setIsOpen} isOpened={isOpen} />
         {isOpen && (
           <Text tag={"p"} className={styles["test-result-description-text"]}>
-            {description || "Description mock"}
+            {description}
           </Text>
         )}
       </div>

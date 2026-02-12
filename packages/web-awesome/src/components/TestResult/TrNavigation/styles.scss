@@ -1,11 +1,10 @@
-.test-result-nav {
+.nav {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
 }
 
-.test-result-fullName {
-  font-weight: 400;
+.fullName {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -13,36 +12,27 @@
   text-overflow: ellipsis;
   overflow: hidden;
   min-height: 32px;
+  margin-left: -4px;
+
+  & .text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    color: var(--on-text-secondary);
+  }
 }
 
-.test-result-fullName-text {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 100%;
-  font-weight: 400;
-  color: var(--on-text-secondary);
-}
-
-.test-result-fullName-icon {
-  --allure-btn-icon-color: var(--on-icon-secondary);
-}
-
-.test-result-navigator {
+.controls {
   display: flex;
   gap: 4px;
   align-items: center;
   margin-left: auto;
+  margin-right: -18px;
 }
 
-.test-result-navigator-numbers {
+.counter {
   color: var(--on-text-secondary);
-  font-weight: 400;
-}
-
-.test-result-nav-prev {
-  transform: rotate(-180deg);
-  &:active {
-    transform: scale(var(--allure-btn-pressed-scale)) rotate(-180deg);
-  }
+  padding-left: 4px;
+  padding-right: 4px;
 }

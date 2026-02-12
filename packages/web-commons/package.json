@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
@@ -20,19 +20,34 @@
   ],
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@allurereport/core-api": "workspace:*"
+    "@allurereport/aql": "workspace:*",
+    "@allurereport/charts-api": "workspace:*",
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "@preact/signals": "^2.6.1",
+    "@preact/signals-core": "^1.12.2",
+    "ansi-to-html": "^0.7.2",
+    "d3-interpolate": "^3.0.1",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "dompurify": "^3.2.6",
+    "nanoid": "^5.1.6"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
+    "@types/d3-interpolate": "^3.0.4",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "allure-js-commons": "^3.0.9",
-    "allure-vitest": "^3.0.9",
+    "@vitest/runner": "^2.1.9",
+    "allure-js-commons": "^3.3.0",
+    "allure-vitest": "^3.3.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -40,9 +55,10 @@
     "eslint-plugin-n": "^17.10.1",
     "eslint-plugin-no-null": "^1.0.2",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "jsdom": "^26.1.0",
     "rimraf": "^6.0.1",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

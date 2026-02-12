@@ -18,8 +18,8 @@ export const generateCsv = async <T>(
         .join(separator);
     })
     .join("\n");
-
   const header = disableHeaders ? "" : `${fields.map((f) => f.header).join(separator)}\n`;
+
   return header + content;
 };
 

@@ -1,23 +1,25 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
-import { Stage, Status } from "allure-js-commons";
+import { Stage, Status, label } from "allure-js-commons";
 import { readdir } from "node:fs/promises";
 import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
-let bootstrap: ReportBootstrap;
-
-test.afterAll(async () => {
-  await bootstrap?.shutdown?.();
-});
-
 test.describe("output", () => {
+  let bootstrap: ReportBootstrap;
+
+  test.afterAll(async () => {
+    await bootstrap?.shutdown?.();
+  });
+
+  test.beforeEach(async ({ browserName }) => {
+    await label("env", browserName);
+  });
+
   test("should generate single report in the report output directory without sub-directories", async () => {
     bootstrap = await bootstrapReport({
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {
@@ -51,8 +53,6 @@ test.describe("output", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {
@@ -94,8 +94,6 @@ test.describe("output", () => {
       reportConfig: {
         name: "Sample allure report",
         appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
         knownIssuesPath: undefined,
         plugins: [
           {

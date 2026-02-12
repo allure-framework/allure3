@@ -17,6 +17,16 @@
     height: 20px;
   }
 
+  &.size-l {
+    width: 24px;
+    height: 24px;
+  }
+
+  &.size-xl {
+    width: 32px;
+    height: 32px;
+  }
+
   &.inline {
     display: inline-block;
     vertical-align: middle;

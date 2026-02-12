@@ -1,13 +1,13 @@
 import { Loadable, PageLoader, Text } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { route } from "@/stores/router";
+import { testResultRoute } from "@/stores/router";
+import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -30,18 +30,18 @@ const Loader = () => {
   );
 };
 
+const isTestResultRoute = computed(() => testResultRoute.value.matches);
+
 export const SplitLayout = () => {
-  const { id: testResultId } = route.value;
+  const testResultId = currentTrId.value;
   const [cachedMain, setCachedMain] = useState<JSX.Element | null>(null);
-
   const { t } = useI18n("controls");
-
   const leftSide = (
     <Loadable source={treeStore} renderLoader={() => <PageLoader />} renderData={() => <MainReportWrapper />} />
   );
 
   const TrView = () => {
-    return testResultId ? (
+    return isTestResultRoute.value ? (
       <Loadable
         source={testResultStore}
         renderLoader={() => <Loader />}
@@ -69,9 +69,7 @@ export const SplitLayout = () => {
 
   return (
     <div className={styles["side-by-side"]} data-testId={"split-layout"}>
-      <Header className={styles.header} />
       <SideBySide left={cachedMain} right={<TrView />} />
-      <Footer />
     </div>
   );
 };

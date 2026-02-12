@@ -1,17 +1,17 @@
 /* eslint max-lines: 0 */
 import type { ResultFile } from "@allurereport/plugin-api";
-import {
-  BufferResultFile,
-  type RawStep,
-  type RawTestAttachment,
-  type RawTestLink,
-  type RawTestParameter,
-  type RawTestResult,
-  type RawTestStepResult,
+import { BufferResultFile, ensureObject, isDefined, isObject } from "@allurereport/reader-api";
+import type {
+  RawStep,
+  RawTestAttachment,
+  RawTestLink,
+  RawTestParameter,
+  RawTestResult,
+  RawTestStepResult,
+  ShallowKnown,
+  Unknown,
 } from "@allurereport/reader-api";
 import { randomUUID } from "node:crypto";
-import type { ShallowKnown, Unknown } from "../../../validation.js";
-import { ensureObject, isDefined, isObject } from "../../../validation.js";
 import type { AllureApiCall } from "../../model.js";
 import {
   DEFAULT_BUNDLE_NAME,

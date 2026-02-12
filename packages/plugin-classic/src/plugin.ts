@@ -1,6 +1,12 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
+  convertToSummaryTestResult,
+} from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import {
   generateAttachmentsFiles,
@@ -13,13 +19,13 @@ import {
   generateTree,
   generateTreeByCategories,
 } from "./generators.js";
-import type { AwesomePluginOptions } from "./model.js";
-import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
+import type { ClassicPluginOptions } from "./model.js";
+import { type ClassicDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
-export class AwesomePlugin implements Plugin {
-  #writer: AwesomeDataWriter | undefined;
+export class ClassicPlugin implements Plugin {
+  #writer: ClassicDataWriter | undefined;
 
-  constructor(readonly options: AwesomePluginOptions = {}) {}
+  constructor(readonly options: ClassicPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [] } = this.options ?? {};
@@ -104,14 +110,28 @@ export class AwesomePlugin implements Plugin {
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
     const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
+    const newTrs = await store.allNewTestResults();
+    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
+    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
     return {
       name: this.options.reportName || context.reportName,
       stats: await store.testsStatistic(this.options.filter),
       status: worstStatus ?? "passed",
+      createdAt,
       duration,
+      plugin: "Classic",
+      newTests: newTrs.map(convertToSummaryTestResult),
+      flakyTests: flakyTrs.map(convertToSummaryTestResult),
+      retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+        withTestResultsLinks: true,
+      },
     };
   }
 }

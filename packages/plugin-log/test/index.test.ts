@@ -1,180 +1,116 @@
 /* eslint-disable no-console */
 import type { TestResult } from "@allurereport/core-api";
-import type { MockedFunction } from "vitest";
-import { describe, expect, it, vi } from "vitest";
-import { printTest } from "../src/utils.js";
+import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LogPlugin } from "../src/plugin.js";
+import { printSummary, printTest } from "../src/utils.js";
 
-const glueConsoleCalls = (calls: any[]) => calls.flatMap((args: any[]) => args[0]).join("\n");
-
-describe("printTest", () => {
-  it("prints the test without steps if there are no failed steps", () => {
-    vi.spyOn(console, "info");
-
-    const fixture = {
-      name: "Test name",
+const fixtures = {
+  testResults: [
+    {
+      name: "Test A",
       status: "passed",
-      duration: 100,
-      steps: [
-        {
-          name: "step 1",
-          status: "passed",
-          steps: [
-            {
-              name: "step 1.1",
-              status: "passed",
-            },
-          ],
-        },
-      ],
-    } as TestResult;
-
-    printTest(fixture);
-
-    const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
-
-    expect(result).toMatchSnapshot();
-  });
-
-  it("prints the test without passed steps", () => {
-    vi.spyOn(console, "info");
-
-    const fixture = {
-      name: "Test name",
-      status: "passed",
-      duration: 100,
-      steps: [
-        {
-          name: "step 1",
-          status: "passed",
-          steps: [
-            {
-              name: "step 1.1",
-              status: "passed",
-            },
-          ],
-        },
-        {
-          name: "step 2",
-          status: "failed",
-        },
-        {
-          name: "step 3",
-          status: "broken",
-        },
-      ],
-    } as TestResult;
-
-    printTest(fixture);
-
-    const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
-
-    expect(result).toMatchSnapshot();
-  });
-
-  it("prints the test with all steps if allSteps is true", () => {
-    vi.spyOn(console, "info");
-
-    const fixture = {
-      name: "Test name",
-      status: "passed",
-      duration: 100,
-      steps: [
-        {
-          name: "step 1",
-          status: "passed",
-          steps: [
-            {
-              name: "step 1.1",
-              status: "passed",
-            },
-            {
-              name: "step 1.2",
-              status: "passed",
-              steps: [
-                {
-                  name: "step 1.2.1",
-                  status: "passed",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    } as TestResult;
-
-    printTest(fixture, { allSteps: true });
-
-    const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
-
-    expect(result).toMatchSnapshot();
-  });
-
-  it("prints the test with all steps if `allSteps` is true", () => {
-    vi.spyOn(console, "info");
-
-    const fixture = {
-      name: "Test name",
+    },
+    {
+      name: "Test B",
       status: "failed",
-      duration: 100,
-      steps: [
-        {
-          name: "step 1",
-          status: "failed",
-          steps: [
-            {
-              name: "step 1.1",
-              status: "failed",
-            },
-            {
-              name: "step 1.2",
-              status: "failed",
-              steps: [
-                {
-                  name: "step 1.2.1",
-                  status: "failed",
-                  error: {
-                    message: "Error message",
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    } as TestResult;
+    },
+  ] as TestResult[],
+};
 
-    printTest(fixture);
+vi.mock("../src/utils.js", async () => {
+  return {
+    ...(await vi.importActual("../src/utils.js")),
+    printTest: vi.fn(),
+    printSummary: vi.fn(),
+  };
+});
 
-    const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
-    expect(result).toMatchSnapshot();
+describe("plugin", () => {
+  it("prints all tests when filter is not provided", async () => {
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(fixtures.testResults),
+      testResultsByLabel: vi.fn().mockResolvedValue({
+        _: [...fixtures.testResults],
+      }),
+    } as unknown as AllureStore;
+    const plugin = new LogPlugin({});
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printTest).toHaveBeenCalledTimes(fixtures.testResults.length);
+    expect(printSummary).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledWith(fixtures.testResults, {
+      total: fixtures.testResults.length,
+      filtered: fixtures.testResults.length,
+    });
   });
 
-  it("prints error trace if `withTrace` is true", () => {
-    vi.spyOn(console, "info");
-
-    const fixture = {
-      name: "Test name",
-      status: "failed",
-      duration: 100,
-      steps: [
-        {
-          name: "step 1",
-          status: "failed",
-          error: {
-            message: "Error message",
-            trace: "Error trace",
-          },
-        },
-      ],
-    } as TestResult;
-
-    printTest(fixture, {
-      withTrace: true,
+  it("prints all tests when filter is not provided and tests are not groupped", async () => {
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(fixtures.testResults),
+      testResultsByLabel: vi.fn().mockResolvedValue({
+        _: [...fixtures.testResults],
+      }),
+    } as unknown as AllureStore;
+    const plugin = new LogPlugin({
+      groupBy: "none",
     });
 
-    const result = glueConsoleCalls((console.info as MockedFunction<any>).mock.calls);
+    await plugin.done({} as PluginContext, store);
 
-    expect(result).toMatchSnapshot();
+    expect(printTest).toHaveBeenCalledTimes(fixtures.testResults.length);
+    expect(printSummary).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledWith(fixtures.testResults, {
+      total: fixtures.testResults.length,
+      filtered: fixtures.testResults.length,
+    });
+  });
+
+  it("prints only filtered tests when filter is provided", async () => {
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(fixtures.testResults),
+      testResultsByLabel: vi.fn().mockResolvedValue({
+        _: [...fixtures.testResults],
+      }),
+    } as unknown as AllureStore;
+    const plugin = new LogPlugin({
+      filter: (test) => test.status === "failed",
+    });
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printTest).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledWith([fixtures.testResults[1]], {
+      total: fixtures.testResults.length,
+      filtered: 1,
+    });
+  });
+
+  it("prints only filtered tests when filter is provided and tests are not groupped", async () => {
+    const store = {
+      allTestResults: vi.fn().mockResolvedValue(fixtures.testResults),
+      testResultsByLabel: vi.fn().mockResolvedValue({
+        _: [...fixtures.testResults],
+      }),
+    } as unknown as AllureStore;
+    const plugin = new LogPlugin({
+      groupBy: "none",
+      filter: (test) => test.status === "failed",
+    });
+
+    await plugin.done({} as PluginContext, store);
+
+    expect(printTest).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledTimes(1);
+    expect(printSummary).toHaveBeenCalledWith([fixtures.testResults[1]], {
+      total: fixtures.testResults.length,
+      filtered: 1,
+    });
   });
 });

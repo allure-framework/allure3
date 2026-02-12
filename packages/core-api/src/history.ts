@@ -9,6 +9,8 @@ export interface HistoryTestResult {
   name: string;
   fullName?: string;
 
+  environment?: string;
+
   status: TestStatus;
   error?: TestError;
 
@@ -18,7 +20,10 @@ export interface HistoryTestResult {
 
   labels?: TestLabel[];
 
-  // TODO url
+  url: string;
+
+  historyId?: string; // TODO: double check the necessity to have historyId in the history test result
+  reportLinks?: any[]; // TODO: add the correct type for previously missing report links
 }
 
 /**
@@ -31,4 +36,13 @@ export interface HistoryDataPoint {
   knownTestCaseIds: string[];
   testResults: Record<string, HistoryTestResult>;
   metrics: Record<string, number>;
+  url: string;
+}
+
+/**
+ * Provides ability to load and update report history
+ */
+export interface AllureHistory {
+  readHistory(branch?: string): Promise<HistoryDataPoint[]>;
+  appendHistory(history: HistoryDataPoint, branch?: string): Promise<void>;
 }

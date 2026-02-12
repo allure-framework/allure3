@@ -4,7 +4,7 @@ module.exports = {
     "eslint-config-preact",
     "../../.eslintrc.cjs",
   ],
-  ignorePatterns: ["dist/", ".eslintrc.cjs", "postcss.config.js", "webpack.config.js", "types.d.ts"],
+  ignorePatterns: ["dist", ".eslintrc.cjs", "postcss.config.js", "webpack.config.js", "types.d.ts"],
   parser: "@typescript-eslint/parser",
   overrides: [
     {

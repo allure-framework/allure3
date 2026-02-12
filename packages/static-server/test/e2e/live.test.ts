@@ -2,10 +2,11 @@ import { test } from "@playwright/test";
 import { layer } from "allure-js-commons";
 import getPort from "get-port";
 import { rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { type AllureStaticServer, serve } from "../../src/index.js";
 
-const baseDir = new URL(".", import.meta.url).pathname;
+const baseDir = dirname(fileURLToPath(import.meta.url));
 const servePath = join(baseDir, "fixtures");
 const sampleFilePath = join(servePath, "sample.json");
 const fixtures = {
@@ -50,7 +51,7 @@ test("doesn't reload the page when a file changes and live reload is disabled", 
   test.expect(actualContent).not.toEqual(fixtures.json.content);
 });
 
-test.only("reloads the page when a file changes", async ({ page }) => {
+test("reloads the page when a file changes", async ({ page }) => {
   server = await serve({ port, servePath, live: true });
 
   await page.goto(url);

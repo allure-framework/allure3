@@ -1,4 +1,4 @@
-import { type Statistic, statusesList } from "@allurereport/core-api";
+import { type Statistic, capitalize, statusesList } from "@allurereport/core-api";
 import { computed } from "@preact/signals";
 import type { FunctionalComponent } from "preact";
 import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/MetadataItem";
@@ -6,13 +6,12 @@ import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
 import * as styles from "@/components/ReportMetadata/styles.scss";
 import { useI18n } from "@/stores/locale";
-import { capitalize } from "@/utils/capitalize";
 
 export interface MetadataSummaryProps {
   stats: Statistic;
 }
 
-const metadataTestsTypes = ["flaky", "retries"] as const as (keyof Statistic)[];
+const metadataTestsTypes = ["flaky", "new", "retries"] as const as (keyof Statistic)[];
 
 export const MetadataSummary: FunctionalComponent<MetadataSummaryProps> = ({ stats }) => {
   const { t } = useI18n("statuses");

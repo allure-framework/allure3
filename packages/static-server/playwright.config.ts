@@ -6,7 +6,12 @@ export default defineConfig({
     ["line"],
     [
       "allure-playwright",
-      { resultsDir: "./out/allure-results", globalLabels: [{ name: "module", value: "static-server" }] },
+      {
+        resultsDir: "./out/allure-results",
+        globalLabels: [
+          { name: "module", value: "static-server" },
+        ],
+      },
     ],
   ],
 });

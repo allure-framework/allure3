@@ -1,0 +1,12 @@
+@import "~@allurereport/web-components/mixins.scss";
+
+.report-global-errors {
+  padding: 20px 0;
+}
+
+.report-global-errors-empty {
+  display: flex;
+  padding: 48px 0;
+  width: 100%;
+  justify-content: center;
+}

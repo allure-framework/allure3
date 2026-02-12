@@ -20,13 +20,13 @@ export const statsByEnvStore = signal<StoreSignalState<Record<string, Statistic>
 
 export const fetchReportStats = async () => {
   reportStatsStore.value = {
-    ...reportStatsStore.value,
+    ...reportStatsStore.peek(),
     loading: true,
     error: undefined,
   };
 
   try {
-    const res = await fetchReportJsonData<Statistic>("widgets/statistic.json");
+    const res = await fetchReportJsonData<Statistic>("widgets/statistic.json", { bustCache: true });
 
     reportStatsStore.value = {
       data: res,
@@ -43,7 +43,7 @@ export const fetchReportStats = async () => {
 };
 
 export const fetchEnvStats = async (envs: string[]) => {
-  const envsToFetch = envs.filter((env) => !statsByEnvStore.value.data?.[env]);
+  const envsToFetch = envs.filter((env) => !statsByEnvStore.peek().data?.[env]);
 
   // all envs have already been fetched
   if (envsToFetch.length === 0) {
@@ -51,14 +51,14 @@ export const fetchEnvStats = async (envs: string[]) => {
   }
 
   statsByEnvStore.value = {
-    ...statsByEnvStore.value,
+    ...statsByEnvStore.peek(),
     loading: true,
     error: undefined,
   };
 
   try {
     const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/statistic.json`)),
+      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/statistic.json`, { bustCache: true })),
     );
 
     statsByEnvStore.value = {
@@ -73,7 +73,7 @@ export const fetchEnvStats = async (envs: string[]) => {
     };
   } catch (err) {
     statsByEnvStore.value = {
-      ...statsByEnvStore.value,
+      ...statsByEnvStore.peek(),
       error: err.message,
       loading: false,
     };

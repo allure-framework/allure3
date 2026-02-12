@@ -2,38 +2,123 @@ name: Build project
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Build
-    runs-on: ubuntu-latest
+  lint:
+    name: Lint
+    runs-on: "ubuntu-latest"
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'yarn'
-    - name: Install dependencies
-      run: yarn install --immutable --immutable-cache --check-cache
-    - name: Install playwright for static server
-      run: yarn workspace @allurereport/static-server playwright install chromium
-    - name: Install playwright for e2e
-      run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
-    - name: Install playwright dependencies for e2e
-      run: yarn workspace @allurereport/e2e playwright install-deps
-    - name: Build project
-      run: yarn build
-    - name: Test Project
-      run: yarn test
-    - name: Lint Project
-      run: yarn eslint
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./out/allure-report
-        publish_branch: gh-pages
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Build the project
+        run: yarn build
+      - name: Lint Project
+        run: yarn eslint
+      - name: Check formatting
+        run: yarn prettier:check
+
+  test:
+    needs: lint
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Install playwright for static server
+        run: yarn workspace @allurereport/static-server playwright install chromium
+      - name: Install playwright for e2e
+        run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
+      - name: Install playwright dependencies for e2e
+        run: yarn workspace @allurereport/e2e playwright install-deps
+      - name: Build project
+        run: yarn build
+      - name: Test Project
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
+      - name: Upload test results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: allure-results-${{ matrix.os }}
+          path: ./allure-results-${{ matrix.os }}.zip
+
+  report:
+    needs: [lint, test]
+    name: Build report
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    env:
+      ALLURE_SERVICE_ACCESS_TOKEN: ${{ secrets.ALLURE_SERVICE_ACCESS_TOKEN }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+      ALLURE_ENDPOINT: ${{ secrets.ALLURE_ENDPOINT }}
+      ALLURE_LAUNCH_TAGS: "${{ secrets.ALLURE_LAUNCH_TAGS }}, ${{ github.event_name }}"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+      - name: Download allure results from Ubuntu
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-ubuntu-latest
+          path: ./
+      - name: Download allure results from macOS
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-macos-latest
+          path: ./
+      - name: Download allure results from Windows
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-windows-latest
+          path: ./
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Build project
+        run: yarn build
+      - name: Generate report
+        run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
+      - name: Allure Report Official
+        uses: allure-framework/allure-action@v0
+        with:
+          report-directory: "./allure-report"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          publish_branch: gh-pages

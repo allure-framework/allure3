@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { TestResultPage, TreePage } from "../pageObjects/index.js";
+import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 let bootstrap: ReportBootstrap;
@@ -24,59 +24,62 @@ test.afterAll(async () => {
 
 test.describe("commons", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+          },
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+          {
+            name: "2 sample broken test",
+            fullName: "sample.js#2 sample broken test",
+            status: Status.BROKEN,
+            stage: Stage.FINISHED,
+            start: 10000,
+            statusDetails: {
+              message: "An unexpected error",
+              trace: "broken test trace",
+            },
+          },
+          {
+            name: "3 sample skipped test",
+            fullName: "sample.js#3 sample skipped test",
+            start: 15000,
+            status: Status.SKIPPED,
+          },
+          {
+            name: "4 sample unknown test",
+            fullName: "sample.js#4 sample unknown test",
+            status: undefined,
+            start: 20000,
+            stage: Stage.PENDING,
+          },
+        ],
       },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-        },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
-          },
-        },
-        {
-          name: "2 sample broken test",
-          fullName: "sample.js#2 sample broken test",
-          status: Status.BROKEN,
-          stage: Stage.FINISHED,
-          start: 10000,
-          statusDetails: {
-            message: "An unexpected error",
-            trace: "broken test trace",
-          },
-        },
-        {
-          name: "3 sample skipped test",
-          fullName: "sample.js#3 sample skipped test",
-          start: 15000,
-          status: Status.SKIPPED,
-        },
-        {
-          name: "4 sample unknown test",
-          fullName: "sample.js#4 sample unknown test",
-          status: undefined,
-          start: 20000,
-          stage: Stage.PENDING,
-        },
-      ],
-    });
+      {
+        groupBy: ["parentSuite", "suite", "subSuite"],
+      },
+    );
   });
 
   test("all types of tests are displayed", async () => {
@@ -106,7 +109,7 @@ test.describe("commons", () => {
   test("statistics in metadata renders information about the tests", async () => {
     const stats = await treePage.getMetadataValues();
 
-    expect(stats).toEqual({
+    expect(stats).toMatchObject({
       total: "5",
       passed: "1",
       failed: "1",
@@ -165,10 +168,9 @@ test.describe("SearchBox component with debounce", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: [],
-          historyPath: "",
           knownIssuesPath: "",
         },
+        history: [],
         testResults: [
           {
             name: "0 sample passed test",
@@ -214,8 +216,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -277,62 +277,65 @@ test.describe("suites", () => {
   });
 
   test("should not display groups when test results don't have related label", async ({ page }) => {
-    bootstrap = await bootstrapReport({
-      reportConfig: {
-        name: "Sample allure report",
-        appendHistory: false,
-        history: undefined,
-        historyPath: undefined,
-        knownIssuesPath: undefined,
-      },
-      testResults: [
-        {
-          name: "0 sample passed test",
-          fullName: "sample.js#0 sample passed test",
-          status: Status.PASSED,
-          stage: Stage.FINISHED,
-          start: 1000,
-          labels: [
-            {
-              name: "suite",
-              value: "foo",
-            },
-            { name: "subSuite", value: "bar" },
-          ],
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          knownIssuesPath: undefined,
         },
-        {
-          name: "1 sample failed test",
-          fullName: "sample.js#1 sample failed test",
-          status: Status.FAILED,
-          stage: Stage.FINISHED,
-          start: 5000,
-          statusDetails: {
-            message: "Assertion error: Expected 1 to be 2",
-            trace: "failed test trace",
+        testResults: [
+          {
+            name: "0 sample passed test",
+            fullName: "sample.js#0 sample passed test",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            labels: [
+              {
+                name: "suite",
+                value: "foo",
+              },
+              { name: "subSuite", value: "bar" },
+            ],
           },
-        },
-      ],
-    });
+          {
+            name: "1 sample failed test",
+            fullName: "sample.js#1 sample failed test",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: 5000,
+            statusDetails: {
+              message: "Assertion error: Expected 1 to be 2",
+              trace: "failed test trace",
+            },
+          },
+        ],
+      },
+      {
+        groupBy: ["parentSuite", "suite", "subSuite"],
+      },
+    );
 
     await page.goto(bootstrap.url);
 
-    expect(treePage.leafLocator).toHaveCount(1);
-    expect(treePage.sectionsLocator).toHaveCount(1);
-    expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.sectionsLocator).toHaveCount(1);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
     await treePage.toggleNthSection(0);
 
-    expect(treePage.leafLocator).toHaveCount(1);
-    expect(treePage.sectionsLocator).toHaveCount(2);
-    expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
-    expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
+    await expect(treePage.leafLocator).toHaveCount(1);
+    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("foo");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("bar");
     await treePage.toggleNthSection(1);
 
-    expect(treePage.sectionsLocator).toHaveCount(2);
-    expect(treePage.leafLocator).toHaveCount(2);
-    expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
-    expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
-    expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
-    expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
+    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.leafLocator).toHaveCount(2);
+    await expect(treePage.getNthLeafTitleLocator(0)).toHaveText("0 sample passed test");
+    await expect(treePage.getNthLeafOrderLocator(0)).toHaveText("1");
+    await expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
+    await expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
   });
 
   test("should assign default labels when test results don't any matched one label", async ({ page }) => {
@@ -341,8 +344,6 @@ test.describe("suites", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
           defaultLabels: {
             parentSuite: "Assign me please!",
@@ -411,8 +412,6 @@ test.describe("features", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [
@@ -462,8 +461,6 @@ test.describe("stories", () => {
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
-          history: undefined,
-          historyPath: undefined,
           knownIssuesPath: undefined,
         },
         testResults: [

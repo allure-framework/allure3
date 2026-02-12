@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import type { ComponentChild } from "preact";
 import { Spinner } from "@/components/Spinner";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
@@ -19,11 +20,12 @@ type BaseBtnProps = {
    *
    * @default m
    *
+   * - `xs` - Extra small button
    * - `s` - Small button
    * - `m` - Medium button
    * - `l` - Large button
    */
-  size?: "s" | "m" | "l";
+  size?: "xs" | "s" | "m" | "l";
   /**
    * Style of the button
    *
@@ -51,6 +53,12 @@ type BaseBtnProps = {
    * Custom icon size on the button
    */
   iconSize?: "xs" | "s" | "m";
+  /**
+   * Color of the icon
+   * applied only when style is not primary
+   * and action is default
+   */
+  iconColor?: "primary" | "secondary";
   /**
    * Indicates if the button should take the full width of its container
    */
@@ -90,8 +98,18 @@ type BaseBtnProps = {
    * @default true
    */
   focusable?: boolean;
+  /**
+   * URL to navigate to when the button is clicked
+   * If provided, the button will be rendered as an anchor element
+   */
+  href?: string;
+  rounded?: boolean;
+  target?: HTMLAnchorElement["target"];
   className?: string;
   dataTestId?: string;
+  leadingSlot?: ComponentChild;
+  trailingSlot?: ComponentChild;
+  isLink?: boolean;
 };
 
 const BaseBtn = (props: BaseBtnProps) => {
@@ -111,63 +129,102 @@ const BaseBtn = (props: BaseBtnProps) => {
     isDropdownButton = false,
     isActive = false,
     focusable = true,
+    href,
+    target = "_self",
     className,
+    leadingSlot,
+    trailingSlot,
+    rounded,
+    isLink = false,
+    iconColor = "primary",
     ...rest
   } = props;
-
   const isButtonDisabled = isDisabled || isPending;
 
+  // Common props for both button and anchor
+  const commonProps = {
+    ...rest,
+    "tabIndex": focusable ? 0 : -1,
+    "className": clsx(
+      styles.button,
+      isIconButton && styles.buttonIcon,
+      styles[`size_${size}`],
+      styles[`icon_size_${iconSize}`],
+      styles[`style_${style}`],
+      action === "danger" && styles.danger,
+      action === "positive" && styles.positive,
+      isPending && styles.pending,
+      fullWidth && styles.fullWidth,
+      !isButtonDisabled && isActive && styles.active,
+      className,
+    ),
+    onClick,
+    "data-rounded": rounded || undefined,
+    "data-link": isLink || undefined,
+    "data-icon-color": (action === "default" && iconColor) || undefined,
+  };
+
+  // Common content for both button and anchor
+  const content = (
+    <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
+      {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
+      {leadingSlot && <div className={styles.leadingSlot}>{leadingSlot}</div>}
+      {!isIconButton && <span className={styles.text}>{text}</span>}
+      {trailingSlot && <div className={styles.trailingSlot}>{trailingSlot}</div>}
+      {isDropdownButton && <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />}
+      <span className={styles.spinner} aria-hidden={!isPending}>
+        <Spinner />
+      </span>
+    </Text>
+  );
+
+  if (href) {
+    return (
+      <a
+        {...commonProps}
+        href={href}
+        target={target}
+        aria-disabled={isButtonDisabled ? "true" : undefined}
+        style={isButtonDisabled ? { pointerEvents: "none" } : undefined}
+      >
+        {content}
+      </a>
+    );
+  }
+
   return (
-    <button
-      {...rest}
-      tabIndex={focusable ? 0 : -1}
-      className={clsx(
-        styles.button,
-        isIconButton && styles.buttonIcon,
-        styles[`size_${size}`],
-        styles[`icon_size_${iconSize}`],
-        styles[`style_${style}`],
-        action === "danger" && styles.danger,
-        action === "positive" && styles.positive,
-        isPending && styles.pending,
-        fullWidth && styles.fullWidth,
-        !isButtonDisabled && isActive && styles.active,
-        className,
-      )}
-      disabled={isButtonDisabled}
-      onClick={onClick}
-      type={type}
-    >
-      <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
-        {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
-        {!isIconButton && <span className={styles.text}>{text}</span>}
-        {isDropdownButton && (
-          <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />
-        )}
-        <span className={styles.spinner} aria-hidden={!isPending}>
-          <Spinner />
-        </span>
-      </Text>
+    <button {...commonProps} disabled={isButtonDisabled} type={type}>
+      {content}
     </button>
   );
 };
 
-export type ButtonProps = Omit<BaseBtnProps, "text" | "isIconButton" | "isDropdownButton"> &
+export type ButtonProps = Omit<BaseBtnProps, "text" | "isIconButton" | "isDropdownButton" | "rounded" | "isLink"> &
   Pick<Required<BaseBtnProps>, "text">;
 
 export const Button = (props: ButtonProps) => <BaseBtn {...props} />;
 
 export type IconButtonProps = Omit<
   BaseBtnProps,
-  "text" | "icon" | "autoFocus" | "fullWidth" | "isIconButton" | "isDropdownButton"
+  | "text"
+  | "icon"
+  | "autoFocus"
+  | "fullWidth"
+  | "isIconButton"
+  | "isDropdownButton"
+  | "trailingSlot"
+  | "leadingSlot"
+  | "isLink"
 > &
-  Pick<Required<BaseBtnProps>, "icon">;
+  Pick<Required<BaseBtnProps>, "icon"> & {
+    rounded?: boolean;
+  };
 
 export const IconButton = (props: IconButtonProps) => <BaseBtn {...props} isIconButton />;
 
 type DropdownButtonProps = Omit<
   BaseBtnProps,
-  "type" | "autoFocus" | "isDropdownButton" | "isIconButton" | "text" | "isActive"
+  "type" | "autoFocus" | "isDropdownButton" | "isIconButton" | "text" | "isActive" | "isLink"
 > &
   Pick<Required<BaseBtnProps>, "text"> & {
     isExpanded?: boolean;
@@ -175,4 +232,8 @@ type DropdownButtonProps = Omit<
 
 export const DropdownButton = (props: DropdownButtonProps) => (
   <BaseBtn {...props} isDropdownButton isActive={props.isExpanded} />
+);
+
+export const ButtonLink = (props: Omit<BaseBtnProps, "href" | "isLink"> & Pick<Required<BaseBtnProps>, "href">) => (
+  <BaseBtn {...props} href={props.href} target={props.target} isLink />
 );

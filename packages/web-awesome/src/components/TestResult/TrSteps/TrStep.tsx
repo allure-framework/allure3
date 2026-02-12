@@ -1,8 +1,7 @@
 import type { DefaultTestStepResult, TestStepResult } from "@allurereport/core-api";
-import { Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
 import { TrError } from "@/components/TestResult/TrError";
@@ -20,13 +19,14 @@ export const TrStepParameters = (props: { parameters: DefaultTestStepResult["par
     </div>
   );
 };
+
 export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   const { item } = props;
 
   return (
     <div data-testid={"test-result-step-content"} className={styles["test-result-step-content"]}>
       {Boolean(item?.parameters?.length) && <TrStepParameters parameters={item.parameters} />}
-      {Boolean(item?.message && item?.trace) && <TrError {...item} />}
+      {Boolean((item?.message || item?.trace) && !item?.hasSimilarErrorInSubSteps) && <TrError {...item} />}
       {Boolean(item?.steps?.length) && (
         <>
           {item.steps?.map((subItem, key) => {

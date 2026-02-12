@@ -1,6 +1,6 @@
 {
   "name": "sandbox",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "private": true,
   "description": "A package to test another Allure Report packages in action",
   "keywords": [],
@@ -8,20 +8,25 @@
   "author": "Qameta Software",
   "type": "module",
   "scripts": {
+    "g": "yarn allure generate --config=./allurerc.mjs",
+    "o": "yarn allure open ./allure-report",
     "pret": "rimraf ./allure-results",
-    "t": "yarn allure run -- vitest run"
+    "t": "yarn allure run -- vitest run",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@allurereport/plugin-awesome": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
+    "@allurereport/plugin-testops": "workspace:*",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
+    "@vitest/runner": "^2.1.9",
     "allure": "workspace:*",
-    "allure-js-commons": "^3.0.9",
-    "allure-vitest": "^3.0.9",
+    "allure-js-commons": "^3.3.3",
+    "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -31,7 +36,7 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   },
   "packageManager": "yarn@4.3.1"
 }

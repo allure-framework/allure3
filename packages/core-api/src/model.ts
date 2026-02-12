@@ -2,6 +2,7 @@ import type { TestLabel, TestLink, TestParameter } from "./metadata.js";
 import type { TestCase } from "./testCase.js";
 
 export type TestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
+export type TestStatusTransition = "regressed" | "fixed" | "malfunctioned" | "new";
 export type SeverityLevel = "blocker" | "critical" | "normal" | "minor" | "trivial";
 
 /**
@@ -47,6 +48,8 @@ export interface TestResult {
   muted: boolean;
   known: boolean;
 
+  transition?: TestStatusTransition;
+
   hidden: boolean;
 
   hostId?: string;
@@ -64,6 +67,8 @@ export interface TestResult {
 
   retries?: TestResult[];
   categories?: any;
+
+  titlePath?: string[];
 }
 
 export interface TestEnvGroup {
@@ -161,4 +166,9 @@ export type AttachmentLink = AttachmentLinkFile | AttachmentLinkExpected | Attac
 export interface AttachmentTestStepResult {
   link: AttachmentLinkExpected | AttachmentLinkLinked | AttachmentLinkInvalid;
   type: "attachment";
+}
+
+export interface RepoData {
+  name: string;
+  branch: string;
 }

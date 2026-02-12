@@ -1,5 +1,5 @@
 import type { ResultFile } from "@allurereport/plugin-api";
-import type { RawFixtureResult, RawMetadata, RawTestResult } from "./model.js";
+import type { RawFixtureResult, RawGlobals, RawMetadata, RawTestResult } from "./model.js";
 
 export interface ReaderContext {
   readerId: string;
@@ -11,6 +11,7 @@ export interface ResultsVisitor {
   visitTestFixtureResult(result: RawFixtureResult, context: ReaderContext): Promise<void>;
   visitAttachmentFile(result: ResultFile, context: ReaderContext): Promise<void>;
   visitMetadata(metadata: RawMetadata, context: ReaderContext): Promise<void>;
+  visitGlobals(globals: RawGlobals, context: ReaderContext): Promise<void>;
 }
 
 export interface ResultsReader {

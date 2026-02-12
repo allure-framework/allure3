@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Fler filter",
-    "enable-filter": "Aktivera filtret \"{filter}\"",
+    "enable-filter": "Aktivera filtret \"{{filter}}\"",
     "flaky": "Ostadig",
     "retry": "Försök igen",
     "new": "Ny"
@@ -95,6 +95,7 @@
     "showLess": "Visa mindre",
     "showMore": "Visa mer",
     "copy": "Kopiera",
+    "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid"
   },
   "controls": {

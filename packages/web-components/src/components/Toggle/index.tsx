@@ -3,12 +3,13 @@ import styles from "./styles.scss";
 type Props = {
   value: boolean;
   label: string;
+  size?: "s" | "m";
   onChange: (value: boolean) => void;
   focusable?: boolean;
 };
 
 export const Toggle = (props: Props) => {
-  const { value, label, onChange, focusable = true, ...rest } = props;
+  const { value, label, onChange, focusable = true, size = "m", ...rest } = props;
 
   const handleChange = (e: Event) => {
     const newValue = !(e.target as HTMLInputElement).checked;
@@ -24,7 +25,8 @@ export const Toggle = (props: Props) => {
       type="checkbox"
       checked={value}
       aria-label={label}
-      onToggle={handleChange}
+      onClick={handleChange}
+      data-size={size}
     />
   );
 };

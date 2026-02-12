@@ -375,6 +375,7 @@ const resolveResultOfTestFromStepsData = ({
   allureStep: { name, status },
 }: PostProcessedStep) => ({
   status: status ?? "unknown",
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   ...resolveTestMessageAndTrace(name!, cucumberStatus, errorMessage),
 });
 

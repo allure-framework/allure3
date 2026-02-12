@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "More filters",
-    "enable-filter": "params('Enable \"{filter}\" filter')",
+    "enable-filter": "Enable \"{{filter}}\" filter",
     "flaky": "Flaky",
     "retry": "Retry",
     "new": "New"
@@ -96,6 +96,7 @@
     "showLess": "Show less",
     "showMore": "Show more",
     "copy": "Copy",
+    "attempt": "Attempt {{attempt}} of {{total}}",
     "at": "at"
   },
   "controls": {

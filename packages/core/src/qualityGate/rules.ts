@@ -1,0 +1,71 @@
+import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
+import { type QualityGateRule } from "@allurereport/plugin-api";
+import { bold } from "yoctocolors";
+
+export const maxFailuresRule: QualityGateRule<number> = {
+  rule: "maxFailures",
+  message: ({ actual, expected }) =>
+    `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
+  validate: async ({ trs, knownIssues, expected, state }) => {
+    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
+    const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const failedTrs = unknown.filter(filterUnsuccessful);
+    const actual = failedTrs.length + (state.getResult() ?? 0);
+
+    state.setResult(actual);
+
+    return {
+      success: actual <= expected,
+      actual,
+    };
+  },
+};
+
+export const minTestsCountRule: QualityGateRule<number> = {
+  rule: "minTestsCount",
+  message: ({ actual, expected }) =>
+    `The total number of tests ${bold(String(actual))} is less than the expected threshold value ${bold(String(expected))}`,
+  validate: async ({ trs, expected, state }) => {
+    const actual = trs.length + (state.getResult() ?? 0);
+
+    state.setResult(actual);
+
+    return {
+      success: actual >= expected,
+      actual,
+    };
+  },
+};
+
+export const successRateRule: QualityGateRule<number> = {
+  rule: "successRate",
+  message: ({ actual, expected }) =>
+    `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
+  validate: async ({ trs, knownIssues, expected }) => {
+    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
+    const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const passedTrs = unknown.filter(filterSuccessful);
+    const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;
+
+    return {
+      success: rate >= expected,
+      actual: rate,
+    };
+  },
+};
+
+export const maxDurationRule: QualityGateRule<number> = {
+  rule: "maxDuration",
+  message: ({ actual, expected }) =>
+    `Maximum duration of some tests exceed the defined limit; actual ${bold(String(actual))}, expected ${bold(String(expected))}`,
+  validate: async ({ trs, expected }) => {
+    const actual = Math.max(...trs.map((tr) => tr.duration ?? 0));
+
+    return {
+      success: actual <= expected,
+      actual,
+    };
+  },
+};
+
+export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule];

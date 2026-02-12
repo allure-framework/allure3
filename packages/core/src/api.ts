@@ -1,7 +1,6 @@
 import type {
   DefaultLabelsConfig,
   EnvironmentsConfig,
-  HistoryDataPoint,
   KnownTestFailure,
   ReportVariables,
 } from "@allurereport/core-api";
@@ -18,9 +17,11 @@ export interface PluginInstance {
 export interface FullConfig {
   name: string;
   output: string;
-  historyPath: string;
+  open: boolean;
+  port: string | undefined;
+  historyPath?: string;
+  historyLimit?: number;
   knownIssuesPath: string;
-  qualityGate?: QualityGateConfig;
   /**
    * You can specify default labels for tests which don't have them at all
    * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
@@ -35,13 +36,26 @@ export interface FullConfig {
    * ```
    */
   defaultLabels?: DefaultLabelsConfig;
+  /**
+   * Signals that the report's plugins shouldn't be executed, but test results should be archived
+   * Archived test results can be restored later
+   */
+  stage?: string;
+  /**
+   * Environment which will be assigned to all tests
+   * Has higher priority than matched environment from the environments config field
+   */
+  environment?: string;
   environments?: EnvironmentsConfig;
   variables?: ReportVariables;
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
-  history: HistoryDataPoint[];
   appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
+  qualityGate?: QualityGateConfig;
+  allureService?: {
+    accessToken?: string;
+  };
 }

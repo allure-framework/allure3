@@ -206,4 +206,88 @@ describe("testResultRawToState", () => {
       ]);
     });
   });
+
+  describe("a converted step", () => {
+    it("should mark the message if it's contained in a sub-step", async () => {
+      const result = await functionUnderTest(
+        emptyStateData,
+        {
+          steps: [
+            {
+              type: "step",
+              message: "Lorem Ipsum",
+              trace: "foo",
+              steps: [
+                {
+                  type: "step",
+                  message: "Lorem Ipsum",
+                  trace: "bar",
+                  steps: [
+                    {
+                      type: "step",
+                      message: "Lorem Ipsum",
+                      trace: "baz",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        { readerId },
+      );
+      expect(result.steps).toMatchObject([
+        {
+          hasSimilarErrorInSubSteps: true,
+          steps: [
+            {
+              hasSimilarErrorInSubSteps: true,
+              steps: [{ hasSimilarErrorInSubSteps: false }],
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("should not mark the message if it isn't contained in a sub-step", async () => {
+      const result = await functionUnderTest(
+        emptyStateData,
+        {
+          steps: [
+            {
+              type: "step",
+              message: "Lorem Ipsum 1",
+              trace: "foo",
+              steps: [
+                {
+                  type: "step",
+                  message: "Lorem Ipsum 2",
+                  trace: "bar",
+                  steps: [
+                    {
+                      type: "step",
+                      message: "Lorem Ipsum 3",
+                      trace: "baz",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        { readerId },
+      );
+      expect(result.steps).toMatchObject([
+        {
+          hasSimilarErrorInSubSteps: false,
+          steps: [
+            {
+              hasSimilarErrorInSubSteps: false,
+              steps: [{ hasSimilarErrorInSubSteps: false }],
+            },
+          ],
+        },
+      ]);
+    });
+  });
 });

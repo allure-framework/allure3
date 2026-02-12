@@ -1,0 +1,10 @@
+.legends {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  padding: 16px 0 0 0;
+  color: var(--on-text-primary);
+}

@@ -1,35 +1,51 @@
+/* eslint max-lines: off */
 import {
+  type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
+  DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
   type EnvironmentsConfig,
   type HistoryDataPoint,
   type HistoryTestResult,
   type KnownTestFailure,
   type ReportVariables,
+  type Statistic,
   type TestCase,
   type TestEnvGroup,
+  type TestError,
   type TestFixtureResult,
   type TestResult,
   compareBy,
   getWorstStatus,
+  htrsByTr,
   matchEnvironment,
   nullsLast,
   ordinal,
   reverse,
 } from "@allurereport/core-api";
-import { type AllureStore, type ResultFile, type TestResultFilter, md5 } from "@allurereport/plugin-api";
+import {
+  type AllureStore,
+  type AllureStoreDump,
+  type ExitCode,
+  type QualityGateValidationResult,
+  type RealtimeEventsDispatcher,
+  type RealtimeSubscriber,
+  type ResultFile,
+  type TestResultFilter,
+  md5,
+} from "@allurereport/plugin-api";
 import type {
   RawFixtureResult,
+  RawGlobals,
   RawMetadata,
   RawTestResult,
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import type { EventEmitter } from "node:events";
-import type { AllureStoreEvents } from "../utils/event.js";
+import { extname } from "node:path";
 import { isFlaky } from "../utils/flaky.js";
-import { getTestResultsStats } from "../utils/stats.js";
+import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
 
 const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items: T[]) => {
@@ -37,9 +53,61 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
     if (!indexMap.has(key)) {
       indexMap.set(key, []);
     }
+
     const current = indexMap.get(key)!;
+
     current.push(...items);
   }
+};
+
+const wasStartedEarlier = (first: TestResult, second: TestResult) =>
+  first.start === undefined || second.start === undefined || first.start < second.start;
+
+const hidePreviousAttempt = (state: Map<string, Map<string, TestResult>>, testResult: TestResult) => {
+  const { environment, historyId } = testResult;
+
+  if (environment) {
+    if (!state.has(environment)) {
+      state.set(environment, new Map());
+    }
+
+    if (historyId) {
+      const historyIdToLastAttemptResult = state.get(environment)!;
+      const currentLastAttemptResult = historyIdToLastAttemptResult.get(historyId);
+
+      if (currentLastAttemptResult) {
+        if (wasStartedEarlier(currentLastAttemptResult, testResult)) {
+          historyIdToLastAttemptResult.set(historyId, testResult);
+          currentLastAttemptResult.hidden = true;
+        } else {
+          testResult.hidden = true;
+        }
+      } else {
+        historyIdToLastAttemptResult.set(historyId, testResult);
+      }
+    }
+  }
+};
+
+export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
+  const result: Record<string | number | symbol, T> = {};
+
+  map.forEach((value, key) => {
+    result[key] = value;
+  });
+
+  return result;
+};
+
+export const updateMapWithRecord = <K extends string | number | symbol, T = any>(
+  map: Map<K, T>,
+  record: Record<K, T>,
+): Map<K, T> => {
+  Object.entries(record).forEach(([key, value]) => {
+    map.set(key as K, value as T);
+  });
+
+  return map;
 };
 
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
@@ -48,37 +116,54 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #attachmentContents: Map<string, ResultFile>;
   readonly #testCases: Map<string, TestCase>;
   readonly #metadata: Map<string, any>;
-  readonly #history: HistoryDataPoint[];
+  readonly #history: AllureHistory | undefined;
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
+  readonly #environment: string | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
-  readonly #eventEmitter?: EventEmitter<AllureStoreEvents>;
+  readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
+  readonly #realtimeSubscriber?: RealtimeSubscriber;
+
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
-  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>>;
+  readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>> = new Map();
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexAttachmentByFixture: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
   readonly indexFixturesByTestResult: Map<string, TestFixtureResult[]> = new Map<string, TestFixtureResult[]>();
   readonly indexKnownByHistoryId: Map<string, KnownTestFailure[]> = new Map<string, KnownTestFailure[]>();
 
+  #globalAttachmentIds: string[] = [];
+  #globalErrors: TestError[] = [];
+  #globalExitCode: ExitCode | undefined;
+  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
+  #historyPoints: HistoryDataPoint[] = [];
+  #environments: string[] = [];
+
   constructor(params?: {
-    history?: HistoryDataPoint[];
+    history?: AllureHistory;
     known?: KnownTestFailure[];
-    eventEmitter?: EventEmitter<AllureStoreEvents>;
+    realtimeDispatcher?: RealtimeEventsDispatcher;
+    realtimeSubscriber?: RealtimeSubscriber;
     defaultLabels?: DefaultLabelsConfig;
+    environment?: string;
     environmentsConfig?: EnvironmentsConfig;
     reportVariables?: ReportVariables;
   }) {
     const {
-      history = [],
+      history,
       known = [],
-      eventEmitter,
+      realtimeDispatcher,
+      realtimeSubscriber,
       defaultLabels = {},
+      environment,
       environmentsConfig = {},
       reportVariables = {},
     } = params ?? {};
+    const environments = Object.keys(environmentsConfig)
+      .concat(environment ?? "")
+      .filter(Boolean);
 
     this.#testResults = new Map<string, TestResult>();
     this.#attachments = new Map<string, AttachmentLink>();
@@ -86,21 +171,113 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#testCases = new Map<string, TestCase>();
     this.#metadata = new Map<string, any>();
     this.#fixtures = new Map<string, TestFixtureResult>();
-    this.#history = [...history].sort(compareBy("timestamp", reverse(ordinal())));
+    this.#history = history;
     this.#known = [...known];
     this.#known.forEach((ktf) => index(this.indexKnownByHistoryId, ktf.historyId, ktf));
-    this.#eventEmitter = eventEmitter;
+    this.#realtimeDispatcher = realtimeDispatcher;
+    this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = environmentsConfig;
+    this.#environment = environment;
     this.#reportVariables = reportVariables;
-    this.indexLatestEnvTestResultByHistoryId = new Map();
 
-    // initialize test result maps for every environment
-    Object.keys(this.#environmentsConfig)
-      .concat("default")
-      .forEach((key) => {
-        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+    this.#addEnvironments(environments);
+
+    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
+      results.forEach((result) => {
+        this.#qualityGateResultsByRules[result.rule] = result;
       });
+    });
+    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
+      this.#globalExitCode = exitCode;
+    });
+    this.#realtimeSubscriber?.onGlobalError(async (error: TestError) => {
+      this.#globalErrors.push(error);
+    });
+    this.#realtimeSubscriber?.onGlobalAttachment(async ({ attachment, fileName }) => {
+      const originalFileName = attachment.getOriginalFileName();
+      const attachmentLink: AttachmentLinkLinked = {
+        id: md5(originalFileName),
+        name: fileName || originalFileName,
+        missed: false,
+        used: true,
+        ext: attachment.getExtension(),
+        contentType: attachment.getContentType(),
+        contentLength: attachment.getContentLength(),
+        originalFileName,
+      };
+
+      this.#attachments.set(attachmentLink.id, attachmentLink);
+      this.#attachmentContents.set(attachmentLink.id, attachment);
+      this.#globalAttachmentIds.push(attachmentLink.id);
+    });
+  }
+
+  #addEnvironments(envs: string[]) {
+    if (this.#environments.length === 0) {
+      this.#environments.push(DEFAULT_ENVIRONMENT);
+    }
+
+    this.#environments = Array.from(new Set([...this.#environments, ...envs]));
+
+    envs.forEach((key) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(key)) {
+        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      }
+    });
+  }
+
+  // history state
+
+  async readHistory(): Promise<HistoryDataPoint[]> {
+    if (!this.#history) {
+      return [];
+    }
+
+    this.#historyPoints = (await this.#history.readHistory()) ?? [];
+    this.#historyPoints.sort(compareBy("timestamp", reverse(ordinal())));
+
+    return this.#historyPoints;
+  }
+
+  async appendHistory(history: HistoryDataPoint): Promise<void> {
+    if (!this.#history) {
+      return;
+    }
+
+    this.#historyPoints.push(history);
+
+    await this.#history.appendHistory(history);
+  }
+
+  // quality gate data
+
+  async qualityGateResults(): Promise<QualityGateValidationResult[]> {
+    return Object.values(this.#qualityGateResultsByRules);
+  }
+
+  // global data
+
+  async globalExitCode(): Promise<ExitCode | undefined> {
+    return this.#globalExitCode;
+  }
+
+  async allGlobalErrors(): Promise<TestError[]> {
+    return this.#globalErrors;
+  }
+
+  async allGlobalAttachments(): Promise<AttachmentLinkLinked[]> {
+    return this.#globalAttachmentIds.reduce((acc, id) => {
+      const attachment = this.#attachments.get(id);
+
+      if (!attachment) {
+        return acc;
+      }
+
+      acc.push(attachment as AttachmentLinkLinked);
+
+      return acc;
+    }, [] as AttachmentLinkLinked[]);
   }
 
   // test methods
@@ -137,38 +314,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    testResult.environment = matchEnvironment(this.#environmentsConfig, testResult);
+    testResult.environment = this.#environment || matchEnvironment(this.#environmentsConfig, testResult);
 
-    // Make flaky status more accurate
+    // Compute history-based statuses
     const trHistory = await this.historyByTr(testResult);
-    testResult.flaky = isFlaky(testResult, trHistory);
+
+    if (trHistory !== undefined) {
+      testResult.transition = getStatusTransition(testResult, trHistory);
+      testResult.flaky = isFlaky(testResult, trHistory);
+    }
 
     this.#testResults.set(testResult.id, testResult);
 
-    // retries
-    if (testResult.historyId) {
-      const maybeOther = this.indexLatestEnvTestResultByHistoryId
-        .get(testResult.environment)!
-        .get(testResult.historyId);
-
-      if (maybeOther) {
-        // if no start, means only duration is provided from result. In that case always use the latest (current).
-        // Otherwise, compare by start timestamp, the latest wins.
-        if (maybeOther.start === undefined || testResult.start === undefined || maybeOther.start < testResult.start) {
-          this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
-          maybeOther.hidden = true;
-        } else {
-          testResult.hidden = true;
-        }
-      } else {
-        this.indexLatestEnvTestResultByHistoryId.get(testResult.environment)!.set(testResult.historyId, testResult);
-      }
-    }
+    hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, testResult);
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
     index(this.indexAttachmentByTestResult, testResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testResult", testResult.id);
+
+    this.#realtimeDispatcher?.sendTestResult(testResult.id);
   }
 
   async visitTestFixtureResult(result: RawFixtureResult, context: ReaderContext): Promise<void> {
@@ -188,11 +352,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       index(this.indexFixturesByTestResult, trId, testFixtureResult);
     });
     index(this.indexAttachmentByFixture, testFixtureResult.id, ...attachmentLinks);
-    this.#eventEmitter?.emit("testFixtureResult", testFixtureResult.id);
+    this.#realtimeDispatcher?.sendTestFixtureResult(testFixtureResult.id);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async visitAttachmentFile(resultFile: ResultFile, context: ReaderContext): Promise<void> {
+  async visitAttachmentFile(resultFile: ResultFile): Promise<void> {
     const originalFileName = resultFile.getOriginalFileName();
     const id = md5(originalFileName);
 
@@ -200,9 +363,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#attachmentContents.set(id, resultFile);
 
     const maybeLink = this.#attachments.get(id);
+
     if (maybeLink) {
       // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
+
       link.missed = false;
       link.ext = link.ext === undefined || link.ext === "" ? resultFile.getExtension() : link.ext;
       link.contentType = link.contentType ?? resultFile.getContentType();
@@ -219,11 +384,36 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    this.#eventEmitter?.emit("attachmentFile", id);
+    this.#realtimeDispatcher?.sendAttachmentFile(id);
   }
 
   async visitMetadata(metadata: RawMetadata): Promise<void> {
-    Object.keys(metadata).forEach((key) => this.#metadata.set(key, metadata[key]));
+    Object.keys(metadata).forEach((key) => {
+      this.#metadata.set(key, metadata[key]);
+    });
+  }
+
+  async visitGlobals(globals: RawGlobals): Promise<void> {
+    const { errors, attachments } = globals;
+
+    this.#globalErrors.push(...errors);
+
+    attachments.forEach((attachment) => {
+      const originalFileName = attachment.originalFileName!;
+      const id = md5(originalFileName);
+      const attachmentLink: AttachmentLinkLinked = {
+        id,
+        name: attachment?.name || originalFileName,
+        originalFileName,
+        ext: extname(originalFileName),
+        used: true,
+        missed: false,
+        contentType: attachment?.contentType,
+      };
+
+      this.#attachments.set(id, attachmentLink);
+      this.#globalAttachmentIds.push(id);
+    });
   }
 
   // state access API
@@ -235,12 +425,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   async allTestResults(
     options: {
       includeHidden?: boolean;
+      filter?: TestResultFilter;
     } = { includeHidden: false },
   ): Promise<TestResult[]> {
-    const { includeHidden } = options;
-    const result = Array.from(this.#testResults.values());
+    const { includeHidden = false, filter } = options;
+    const result: TestResult[] = [];
 
-    return includeHidden ? result : result.filter((tr) => !tr.hidden);
+    for (const [, tr] of this.#testResults) {
+      if (!includeHidden && tr.hidden) {
+        continue;
+      }
+
+      if (typeof filter === "function" && !filter(tr)) {
+        continue;
+      }
+
+      result.push(tr);
+    }
+
+    return result;
   }
 
   async allAttachments(
@@ -250,10 +453,21 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     } = {},
   ): Promise<AttachmentLink[]> {
     const { includeMissed = false, includeUnused = false } = options;
-    const attachments = Array.from(this.#attachments.values());
-    return attachments
-      .filter((link) => (!includeMissed ? !link.missed : true))
-      .filter((link) => (!includeUnused ? link.used : true));
+    const filteredAttachments: AttachmentLink[] = [];
+
+    for (const [, attachment] of this.#attachments) {
+      if (!includeMissed && attachment.missed) {
+        continue;
+      }
+
+      if (!includeUnused && !attachment.used) {
+        continue;
+      }
+
+      filteredAttachments.push(attachment);
+    }
+
+    return filteredAttachments;
   }
 
   async allMetadata(): Promise<Record<string, any>> {
@@ -267,11 +481,75 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPoints(): Promise<HistoryDataPoint[]> {
-    return this.#history;
+    return this.#historyPoints;
+  }
+
+  async allHistoryDataPointsByEnvironment(environment: string): Promise<HistoryDataPoint[]> {
+    return this.#historyPoints.reduce((result, dp) => {
+      const filteredTestResults: HistoryTestResult[] = [];
+
+      for (const tr of Object.values(dp.testResults)) {
+        const hasLabels = tr.labels && tr.labels.length > 0;
+        const trEnvironment =
+          tr.environment ??
+          (hasLabels ? matchEnvironment(this.#environmentsConfig, tr as Pick<TestResult, "labels">) : undefined);
+
+        if (trEnvironment === environment) {
+          filteredTestResults.push(tr);
+        }
+      }
+      const hasNoEnvironmentTestResults = filteredTestResults.length === 0;
+
+      result.push({
+        ...dp,
+        testResults: hasNoEnvironmentTestResults
+          ? {}
+          : filteredTestResults.reduce(
+              (acc, tr) => {
+                acc[tr.historyId!] = tr;
+                return acc;
+              },
+              {} as Record<string, HistoryTestResult>,
+            ),
+        knownTestCaseIds: hasNoEnvironmentTestResults ? [] : filteredTestResults.map((tr) => tr.id),
+      });
+
+      return result;
+    }, [] as HistoryDataPoint[]);
   }
 
   async allKnownIssues(): Promise<KnownTestFailure[]> {
     return this.#known;
+  }
+
+  async allNewTestResults(filter?: TestResultFilter): Promise<TestResult[]> {
+    if (!this.#history) {
+      return [];
+    }
+
+    const newTrs: TestResult[] = [];
+    const allHistoryDps = await this.allHistoryDataPoints();
+
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
+      }
+
+      if (typeof filter === "function" && !filter(tr)) {
+        continue;
+      }
+
+      if (!tr.historyId) {
+        newTrs.push(tr);
+        continue;
+      }
+
+      if (!allHistoryDps.some((dp) => dp.testResults[tr.historyId!])) {
+        newTrs.push(tr);
+      }
+    }
+
+    return newTrs;
   }
 
   // search api
@@ -320,20 +598,22 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return tr ? this.retriesByTr(tr) : [];
   }
 
-  async historyByTr(tr: TestResult): Promise<HistoryTestResult[]> {
-    if (!tr?.historyId) {
-      return [];
+  async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
+    if (!this.#history) {
+      return undefined;
     }
 
-    return [...this.#history]
-      .filter((dp) => !!dp.testResults[tr.historyId!])
-      .map((dp) => ({ ...dp.testResults[tr.historyId!] }));
+    return htrsByTr(this.#historyPoints, tr);
   }
 
-  async historyByTrId(trId: string): Promise<HistoryTestResult[]> {
+  async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
     const tr = await this.testResultById(trId);
 
-    return tr ? this.historyByTr(tr) : [];
+    if (!tr) {
+      return undefined;
+    }
+
+    return this.historyByTr(tr);
   }
 
   async fixturesByTrId(trId: string): Promise<TestFixtureResult[]> {
@@ -343,9 +623,19 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // aggregate API
 
   async failedTestResults() {
-    const allTestResults = await this.allTestResults();
+    const failedTrs: TestResult[] = [];
 
-    return allTestResults.filter(({ status }) => status === "failed" || status === "broken");
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
+      }
+
+      if (tr.status === "failed" || tr.status === "broken") {
+        failedTrs.push(tr);
+      }
+    }
+
+    return failedTrs;
   }
 
   async unknownFailedTestResults() {
@@ -365,13 +655,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       _: [],
     };
 
-    const all = await this.allTestResults();
-    all.forEach((test) => {
+    for (const [, test] of this.#testResults) {
+      if (test.hidden) {
+        continue;
+      }
+
       const targetLabels = (test.labels ?? []).filter((label) => label.name === labelName);
 
       if (targetLabels.length === 0) {
         results._.push(test);
-        return;
+        continue;
       }
 
       targetLabels.forEach((label) => {
@@ -381,34 +674,54 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
         results[label.value!].push(test);
       });
-    });
+    }
 
     return results;
   }
 
   async testsStatistic(filter?: TestResultFilter) {
-    const all = await this.allTestResults();
+    const statistic: Statistic = { total: 0 };
 
-    const allWithStats = await Promise.all(
-      all.map(async (tr) => {
-        const trHistory = await this.historyByTr(tr);
-        const retries = await this.retriesByTr(tr);
+    for (const [, tr] of this.#testResults) {
+      if (tr.hidden) {
+        continue;
+      }
 
-        return {
-          ...tr,
-          flaky: isFlaky(tr, trHistory),
-          retries,
-        };
-      }),
-    );
+      if (filter && !filter(tr)) {
+        continue;
+      }
 
-    return getTestResultsStats(allWithStats, filter);
+      statistic.total++;
+
+      // This is fine because retriesByTr does not contain any async operations
+      const retries = await this.retriesByTr(tr);
+
+      if (retries.length > 0) {
+        statistic.retries = (statistic.retries ?? 0) + 1;
+      }
+
+      if (tr.flaky) {
+        statistic.flaky = (statistic.flaky ?? 0) + 1;
+      }
+
+      if (tr.transition === "new") {
+        statistic.new = (statistic.new ?? 0) + 1;
+      }
+
+      if (!statistic[tr.status]) {
+        statistic[tr.status] = 0;
+      }
+
+      statistic[tr.status]!++;
+    }
+
+    return statistic;
   }
 
   // environments
 
   async allEnvironments() {
-    return Array.from(new Set(["default", ...Object.keys(this.#environmentsConfig)]));
+    return this.#environments;
   }
 
   async testResultsByEnvironment(
@@ -417,31 +730,37 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       includeHidden: boolean;
     } = { includeHidden: false },
   ) {
-    const allTrs = await this.allTestResults(options);
+    const trs: TestResult[] = [];
 
-    return allTrs.filter((tr) => tr.environment === env);
+    for (const [, tr] of this.#testResults) {
+      if (!options.includeHidden && tr.hidden) {
+        continue;
+      }
+
+      if (tr.environment === env) {
+        trs.push(tr);
+      }
+    }
+
+    return trs;
   }
 
   async allTestEnvGroups() {
-    const allTr = await this.allTestResults({ includeHidden: true });
-    const trByTestCaseId = allTr.reduce(
-      (acc, tr) => {
-        const testCaseId = tr?.testCase?.id;
+    const trByTestCaseId: Record<string, TestResult[]> = {};
 
-        if (!testCaseId) {
-          return acc;
-        }
+    for (const [, tr] of this.#testResults) {
+      const testCaseId = tr?.testCase?.id;
 
-        if (acc[testCaseId]) {
-          acc[testCaseId].push(tr);
-        } else {
-          acc[testCaseId] = [tr];
-        }
+      if (!testCaseId) {
+        continue;
+      }
 
-        return acc;
-      },
-      {} as Record<string, TestResult[]>,
-    );
+      if (trByTestCaseId[testCaseId]) {
+        trByTestCaseId[testCaseId].push(tr);
+      } else {
+        trByTestCaseId[testCaseId] = [tr];
+      }
+    }
 
     return Object.entries(trByTestCaseId).reduce((acc, [testCaseId, trs]) => {
       if (trs.length === 0) {
@@ -458,7 +777,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       trs.forEach((tr) => {
-        const env = matchEnvironment(this.#environmentsConfig, tr);
+        const env = tr.environment || this.#environment || matchEnvironment(this.#environmentsConfig, tr);
 
         envGroup.testResultsByEnv[env] = tr.id;
       });
@@ -480,5 +799,185 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       ...this.#reportVariables,
       ...(this.#environmentsConfig?.[env]?.variables ?? {}),
     };
+  }
+
+  dumpState(): AllureStoreDump {
+    const storeDump: AllureStoreDump = {
+      testResults: mapToObject(this.#testResults),
+      attachments: mapToObject(this.#attachments),
+      testCases: mapToObject(this.#testCases),
+      fixtures: mapToObject(this.#fixtures),
+      environments: this.#environments,
+      reportVariables: this.#reportVariables,
+      globalAttachmentIds: this.#globalAttachmentIds,
+      globalErrors: this.#globalErrors,
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+      qualityGateResultsByRules: this.#qualityGateResultsByRules,
+    };
+
+    this.indexLatestEnvTestResultByHistoryId.forEach((envMap) => {
+      envMap.forEach((tr, historyId) => {
+        storeDump.indexLatestEnvTestResultByHistoryId[historyId] = tr.id;
+      });
+    });
+    this.indexAttachmentByFixture.forEach((link, fxId) => {
+      storeDump.indexAttachmentByFixture[fxId] = link.map((l) => l.id);
+    });
+    this.indexAttachmentByTestResult.forEach((links, trId) => {
+      storeDump.indexAttachmentByTestResult[trId] = links.map((l) => l.id);
+    });
+    this.indexTestResultByHistoryId.forEach((trs, historyId) => {
+      storeDump.indexTestResultByHistoryId[historyId] = trs.map((tr) => tr.id);
+    });
+    this.indexTestResultByTestCase.forEach((trs, tcId) => {
+      storeDump.indexTestResultByTestCase[tcId] = trs.map((tr) => tr.id);
+    });
+    this.indexFixturesByTestResult.forEach((fixtures, trId) => {
+      storeDump.indexFixturesByTestResult[trId] = fixtures.map((f) => f.id);
+    });
+    this.indexKnownByHistoryId.forEach((known, historyId) => {
+      storeDump.indexKnownByHistoryId[historyId] = known;
+    });
+
+    return storeDump;
+  }
+
+  async restoreState(stateDump: AllureStoreDump, attachmentsContents: Record<string, ResultFile> = {}) {
+    const {
+      testResults,
+      attachments,
+      testCases,
+      fixtures,
+      reportVariables,
+      environments,
+      globalAttachmentIds = [],
+      globalErrors = [],
+      indexAttachmentByTestResult = {},
+      indexTestResultByHistoryId = {},
+      indexTestResultByTestCase = {},
+      indexLatestEnvTestResultByHistoryId = {},
+      indexAttachmentByFixture = {},
+      indexFixturesByTestResult = {},
+      indexKnownByHistoryId = {},
+      qualityGateResultsByRules = {},
+    } = stateDump;
+
+    updateMapWithRecord(this.#testResults, testResults);
+    updateMapWithRecord(this.#attachments, attachments);
+    updateMapWithRecord(this.#testCases, testCases);
+    updateMapWithRecord(this.#fixtures, fixtures);
+    updateMapWithRecord(this.#attachmentContents, attachmentsContents);
+
+    this.#addEnvironments(environments);
+    this.#globalAttachmentIds.push(...globalAttachmentIds);
+    this.#globalErrors.push(...globalErrors);
+
+    Object.assign(this.#reportVariables, reportVariables);
+    Object.entries(indexAttachmentByTestResult).forEach(([trId, links]) => {
+      const attachmentsLinks = links.map((id) => this.#attachments.get(id)).filter(Boolean);
+
+      if (attachmentsLinks.length === 0) {
+        return;
+      }
+
+      const existingLinks = this.indexAttachmentByTestResult.get(trId)!;
+
+      if (!existingLinks) {
+        this.indexAttachmentByTestResult.set(trId, attachmentsLinks as AttachmentLink[]);
+        return;
+      }
+
+      existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
+    });
+    Object.entries(indexTestResultByHistoryId).forEach(([historyId, trIds]) => {
+      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean) as TestResult[];
+
+      if (trs.length === 0) {
+        return;
+      }
+
+      const existingTrs = this.indexTestResultByHistoryId.get(historyId);
+
+      if (!existingTrs) {
+        this.indexTestResultByHistoryId.set(historyId, trs);
+        return;
+      }
+
+      existingTrs.push(...trs);
+    });
+    Object.entries(indexTestResultByTestCase).forEach(([tcId, trIds]) => {
+      const trs = trIds.map((id) => this.#testResults.get(id)).filter(Boolean);
+
+      if (trs.length === 0) {
+        return;
+      }
+
+      const existingTrs = this.indexTestResultByTestCase.get(tcId);
+
+      if (!existingTrs) {
+        this.indexTestResultByTestCase.set(tcId, trs as TestResult[]);
+        return;
+      }
+
+      existingTrs.push(...(trs as TestResult[]));
+    });
+    Object.entries(indexAttachmentByFixture).forEach(([fxId, attachmentIds]) => {
+      const attachmentsLinks = attachmentIds.map((id) => this.#attachments.get(id)).filter(Boolean);
+
+      if (attachmentsLinks.length === 0) {
+        return;
+      }
+
+      const existingLinks = this.indexAttachmentByFixture.get(fxId);
+
+      if (!existingLinks) {
+        this.indexAttachmentByFixture.set(fxId, attachmentsLinks as AttachmentLink[]);
+        return;
+      }
+
+      existingLinks.push(...(attachmentsLinks as AttachmentLink[]));
+    });
+    Object.entries(indexFixturesByTestResult).forEach(([trId, fixtureIds]) => {
+      const fxs = fixtureIds.map((id) => this.#fixtures.get(id)).filter(Boolean);
+
+      if (fxs.length === 0) {
+        return;
+      }
+
+      const existingFixtures = this.indexFixturesByTestResult.get(trId);
+
+      if (!existingFixtures) {
+        this.indexFixturesByTestResult.set(trId, fxs as TestFixtureResult[]);
+        return;
+      }
+
+      existingFixtures.push(...(fxs as TestFixtureResult[]));
+    });
+    Object.entries(indexKnownByHistoryId).forEach(([historyId, knownFailures]) => {
+      const existingKnown = this.indexKnownByHistoryId.get(historyId);
+
+      if (!existingKnown) {
+        this.indexKnownByHistoryId.set(historyId, knownFailures);
+        return;
+      }
+
+      existingKnown.push(...knownFailures);
+    });
+    Object.values(indexLatestEnvTestResultByHistoryId).forEach((trId) => {
+      const tr = this.#testResults.get(trId);
+
+      if (!tr) {
+        return;
+      }
+
+      hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, tr);
+    });
+    Object.assign(this.#qualityGateResultsByRules, qualityGateResultsByRules);
   }
 }

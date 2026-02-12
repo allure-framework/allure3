@@ -1,10 +1,12 @@
 .layout {
   margin: auto;
-  padding: 12px 32px;
+  padding: 0 32px;
   background: var(--bg-base-secondary);
   color: var(--on-text-primary);
   font-size: 14px;
-  min-height: 100vh;
+  height: 100%;
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
 .wrapper {
@@ -51,7 +53,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
+  padding: 8px 24px;
+  width: 100%;
 }
 
 .test-result-errors {

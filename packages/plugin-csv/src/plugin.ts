@@ -1,5 +1,7 @@
 import { type TestResult, formatDuration } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute } from "node:path";
 import { generateCsv } from "./csv.js";
 import type { CsvField, CsvPluginOptions } from "./model.js";
 import { formatSteps, labelValue } from "./utils.js";
@@ -38,10 +40,18 @@ export class CsvPlugin implements Plugin {
   done = async (context: PluginContext, store: AllureStore): Promise<void> => {
     const { reportFiles } = context;
     const testResults = await store.allTestResults();
-    const { fields = defaultFields, sort = defaultSort, filter, fileName = "report.csv" } = this.options;
+    const { fields = defaultFields, sort = defaultSort, filter, fileName = "allure-report.csv" } = this.options;
     const content = await generateCsv(testResults, fields, sort, filter, this.options);
     const result = Buffer.from(content, "utf-8");
 
-    await reportFiles.addFile(fileName, result);
+    // if relative path is given – just write the file to the report's output dir
+    if (!isAbsolute(fileName)) {
+      await reportFiles.addFile(fileName, result);
+      return;
+    }
+
+    // if absolute path is given – write the file to the specified location
+    await mkdir(dirname(fileName), { recursive: true });
+    await writeFile(fileName, result);
   };
 }

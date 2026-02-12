@@ -1,3 +1,4 @@
+import { computed } from "@preact/signals";
 import clsx from "clsx";
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
@@ -5,14 +6,14 @@ import type { AwesomeTestResult } from "types";
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import TrEmpty from "@/components/TestResult/TrEmpty";
 import { TrEnvironmentsView } from "@/components/TestResult/TrEnvironmentsView";
-import { TrHeader } from "@/components/TestResult/TrHeader";
 import TrHistoryView from "@/components/TestResult/TrHistory";
 import { TrInfo } from "@/components/TestResult/TrInfo";
 import { TrOverview } from "@/components/TestResult/TrOverview";
 import { TrRetriesView } from "@/components/TestResult/TrRetriesView";
-import { TrTabs, useTestResultTabsContext } from "@/components/TestResult/TrTabs";
+import { TrTabs } from "@/components/TestResult/TrTabs";
 import { fetchTestEnvGroup } from "@/stores/env";
 import { isSplitMode } from "@/stores/layout";
+import { trCurrentTab } from "@/stores/testResult";
 import * as styles from "./styles.scss";
 
 export type TrViewProps = {
@@ -27,8 +28,7 @@ export type TrProps = {
   testResult?: AwesomeTestResult;
 };
 
-const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
-  const { currentTab } = useTestResultTabsContext();
+const view = computed(() => {
   const viewMap: Record<string, any> = {
     overview: TrOverview,
     history: TrHistoryView,
@@ -36,7 +36,11 @@ const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
     retries: TrRetriesView,
     environments: TrEnvironmentsView,
   };
-  const ViewComponent = viewMap[currentTab];
+  return viewMap[trCurrentTab.value];
+});
+
+const TrView: FunctionalComponent<TrViewProps> = ({ testResult }) => {
+  const ViewComponent = view.value;
 
   return <ViewComponent testResult={testResult} />;
 };
@@ -63,7 +67,6 @@ const TestResult: FunctionComponent<TrProps> = ({ testResult }) => {
 
   return (
     <>
-      {!isSplitMode.value && <TrHeader testResult={testResult} />}
       <div className={clsx(styles.content, splitModeClass)}>
         {testResult ? <TrContent testResult={testResult} /> : <TrEmpty />}
       </div>

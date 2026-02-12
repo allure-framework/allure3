@@ -15,7 +15,7 @@ export type DashboardReportOptions = {
   reportName?: string;
   logo?: string;
   theme?: "light" | "dark";
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: string;
   createdAt: number;
   reportUuid: string;
 };

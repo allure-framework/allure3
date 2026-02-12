@@ -1,0 +1,66 @@
+.legendItem {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-start;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.legendItemLink {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s;
+
+  &:hover,
+  &:focus {
+    background-color: var(--bg-control-flat-medium);
+  }
+}
+
+.legendName {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.legendLabel {
+  display: block;
+  min-width: 26px;
+  max-width: 102px;
+  white-space: normal;
+}
+
+.space {
+  flex: 1 0;
+  width: 4px;
+}
+
+.menuSpace {
+  flex: 1 0;
+  min-width: 16px;
+}
+
+.legendValue {
+  color: var(--on-text-secondary);
+
+  [data-tooltip-type="chart"] & {
+    color: var(--constant-on-text-secondary);
+  }
+
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.point {
+  display: flex;
+  align-items: center;
+  height: 16px;
+  width: 16px;
+}

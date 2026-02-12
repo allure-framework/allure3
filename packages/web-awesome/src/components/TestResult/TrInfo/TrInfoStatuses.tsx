@@ -1,7 +1,7 @@
-import { SvgIcon, allureIcons } from "@allurereport/web-components";
+import { capitalize } from "@allurereport/core-api";
+import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useI18n } from "@/stores";
-import { capitalize } from "@/utils/capitalize";
 import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {
@@ -21,7 +21,9 @@ export const TrInfoStatuses: FunctionalComponent<{ statuses: [string, boolean][]
         return (
           <div key={key} className={styles["test-result-info-status"]}>
             <SvgIcon className={styles["metadata-icon"]} id={icons[status]} size={"s"} />
-            {capitalize(title)}
+            <Text type={"ui"} size={"s"}>
+              {capitalize(title)}
+            </Text>
           </div>
         );
       })}

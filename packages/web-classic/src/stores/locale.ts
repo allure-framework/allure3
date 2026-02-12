@@ -2,9 +2,9 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/translations/constants";
-import type { AwesomeReportOptions } from "../../types.js";
+import type { ClassicReportOptions } from "../../types.js";
 
-const { reportLanguage } = getReportOptions<AwesomeReportOptions>() ?? {};
+const { reportLanguage } = getReportOptions<ClassicReportOptions>() ?? {};
 
 const namespaces = [
   "empty",
@@ -52,7 +52,8 @@ i18next
       callback: (errorValue: unknown, translations: Record<string, string> | null) => void,
     ) => {
       try {
-        const resources = await import(`@/translations/${language}.json`);
+        const loadLocale = language === "en-iso" ? "en" : language;
+        const resources = await import(`@/translations/${loadLocale}.json`);
         callback(null, (resources[namespace] as Record<string, string>) || null);
       } catch (error) {
         callback(error, null);

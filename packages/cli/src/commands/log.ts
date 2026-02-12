@@ -1,60 +1,83 @@
-import { AllureReport, resolveConfig } from "@allurereport/core";
+import { AllureReport, readConfig } from "@allurereport/core";
+import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
+import { Command, Option } from "clipanion";
 import * as console from "node:console";
-import { createCommand } from "../utils/commands.js";
+import { existsSync } from "node:fs";
+import { realpath } from "node:fs/promises";
+import process, { exit } from "node:process";
+import { red } from "yoctocolors";
 
-export type LogCommandOptions = {
-  allSteps?: boolean;
-  withTrace?: boolean;
-  groupBy?: "suites" | "features" | "packages" | "none";
-};
+export class LogCommand extends Command {
+  static paths = [["log"]];
 
-export const LogCommandAction = async (resultsDir: string, options: LogCommandOptions) => {
-  const before = new Date().getTime();
-
-  const config = await resolveConfig({
-    plugins: {
-      "@allurereport/plugin-log": {
-        options,
-      },
-    },
+  static usage = Command.Usage({
+    category: "Reports",
+    description: "Prints Allure Results to the console",
+    details: "This command prints Allure Results to the console from the provided Allure Results directory.",
+    examples: [
+      ["log ./allure-results", "Print results from the ./allure-results directory"],
+      [
+        "log ./allure-results --all-steps --with-trace",
+        "Print results with all steps and stack traces from the ./allure-results directory",
+      ],
+    ],
   });
 
-  const allureReport = new AllureReport(config);
+  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
 
-  await allureReport.start();
-  await allureReport.readDirectory(resultsDir);
-  await allureReport.done();
+  config = Option.String("--config,-c", {
+    description: "The path Allure config file",
+  });
 
-  const after = new Date().getTime();
+  cwd = Option.String("--cwd", {
+    description: "The working directory for the command to run (default: current working directory)",
+  });
 
-  console.log(`the report successfully generated (${after - before}ms)`);
-};
+  groupBy = Option.String("--group-by", {
+    description: "Group tests by type (none, suite, feature, package, etc.)",
+  });
 
-export const LogCommand = createCommand({
-  name: "log <resultsDir>",
-  description: "Prints Allure Results to the console",
-  options: [
-    [
-      "--group-by <label>",
+  allSteps = Option.Boolean("--all-steps", {
+    description: "Show all steps. By default only failed steps are shown",
+  });
+
+  withTrace = Option.Boolean("--with-trace", {
+    description: "Print stack trace for failed tests",
+  });
+
+  async execute() {
+    if (!existsSync(this.resultsDir)) {
+      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+      exit(1);
+      return;
+    }
+
+    const cwd = await realpath(this.cwd ?? process.cwd());
+    const before = new Date().getTime();
+    const defaultLogOptions = {
+      allSteps: this.allSteps ?? false,
+      withTrace: this.withTrace ?? false,
+      groupBy: this.groupBy ?? "suite",
+    } as LogPluginOptions;
+    const config = await readConfig(cwd, this.config);
+
+    config.plugins = [
       {
-        description: "Group tests by type (none, suite, feature, package, etc.)",
-        default: "suite",
+        id: "log",
+        enabled: true,
+        options: defaultLogOptions,
+        plugin: new LogPlugin(defaultLogOptions),
       },
-    ],
-    [
-      "--all-steps",
-      {
-        description: "Show all steps. By default only failed steps are shown",
-        default: false,
-      },
-    ],
-    [
-      "--with-trace",
-      {
-        description: "Print stack trace for failed tests",
-        default: false,
-      },
-    ],
-  ],
-  action: LogCommandAction,
-});
+    ];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.readDirectory(this.resultsDir);
+    await allureReport.done();
+
+    const after = new Date().getTime();
+
+    console.log(`the report successfully generated (${after - before}ms)`);
+  }
+}

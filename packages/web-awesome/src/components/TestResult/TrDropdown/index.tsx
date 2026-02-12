@@ -1,8 +1,7 @@
-import { Counter, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { ArrowButton, Counter, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
-import { ArrowButton } from "@/components/ArrowButton";
 import * as styles from "./styles.scss";
 
 export const TrDropdown: FunctionalComponent<{

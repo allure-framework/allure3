@@ -1,20 +1,9 @@
-import { IconButton, allureIcons } from "@allurereport/web-components";
-import { useEffect } from "preact/hooks";
-import { getTheme, themeStore, toggleTheme } from "@/stores/theme";
+import { themeStore, toggleUserTheme } from "@allurereport/web-commons";
+import { ThemeButton as UIThemeButton } from "@allurereport/web-components";
+import { computed } from "@preact/signals";
+
+const selectedTheme = computed(() => themeStore.value.selected);
 
 export const ThemeButton = () => {
-  const theme = themeStore.value;
-
-  useEffect(() => {
-    getTheme();
-  }, []);
-
-  return (
-    <IconButton
-      onClick={toggleTheme}
-      style="ghost"
-      icon={theme === "light" ? allureIcons.lineShapesMoon : allureIcons.lineShapesSun}
-      size="s"
-    />
-  );
+  return <UIThemeButton theme={selectedTheme.value} toggleTheme={toggleUserTheme} />;
 };

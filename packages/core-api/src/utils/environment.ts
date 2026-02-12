@@ -3,7 +3,7 @@ import type { TestEnvGroup, TestResult } from "../model.js";
 
 export const DEFAULT_ENVIRONMENT = "default";
 
-export const matchEnvironment = (envConfig: EnvironmentsConfig, tr: TestResult): string => {
+export const matchEnvironment = (envConfig: EnvironmentsConfig, tr: Pick<TestResult, "labels">): string => {
   return (
     Object.entries(envConfig).find(([, { matcher }]) => matcher({ labels: tr.labels }))?.[0] ?? DEFAULT_ENVIRONMENT
   );

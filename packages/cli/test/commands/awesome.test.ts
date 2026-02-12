@@ -1,13 +1,42 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AllureReportMock } from "../utils.js";
+import { AllureReport, readConfig } from "@allurereport/core";
+import AwesomePlugin from "@allurereport/plugin-awesome";
+import { run } from "clipanion";
+import * as console from "node:console";
+import { existsSync } from "node:fs";
+import { exit } from "node:process";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { AwesomeCommand } from "../../src/commands/awesome.js";
 
-const core = await import("@allurereport/core");
-const { AwesomeCommandAction } = await import("../../src/commands/awesome.js");
+const fixtures = {
+  resultsDir: "foo/bar/allure-results",
+  reportName: "Custom Allure Report",
+  output: "./custom/output/path",
+  knownIssues: "./custom/known/issues/path",
+  historyPath: "./custom/history/path",
+  reportLanguage: "es",
+  singleFile: true,
+  logo: "./custom/logo.png",
+  config: "./custom/allurerc.mjs",
+};
 
-vi.spyOn(core, "resolveConfig");
+vi.mock("node:console", async (importOriginal) => ({
+  ...(await importOriginal()),
+  error: vi.fn(),
+}));
+vi.mock("node:process", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exit: vi.fn(),
+}));
+vi.mock("node:fs", async (importOriginal) => ({
+  ...(await importOriginal()),
+  existsSync: vi.fn(),
+}));
 vi.mock("@allurereport/core", async (importOriginal) => {
+  const { AllureReportMock } = await import("../utils.js");
+
   return {
     ...(await importOriginal()),
+    readConfig: vi.fn(),
     AllureReport: AllureReportMock,
   };
 });
@@ -17,96 +46,129 @@ beforeEach(() => {
 });
 
 describe("awesome command", () => {
-  it("should initialize allure report with a correct default plugin options", async () => {
-    const resultsDir = "foo/bar/allure-results";
+  it("should exit with code 1 when resultsDir doesn't exist", async () => {
+    (existsSync as Mock).mockReturnValueOnce(false);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
 
-    await AwesomeCommandAction(resultsDir, {});
+    const command = new AwesomeCommand();
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-awesome": {
-          options: {
-            groupBy: undefined,
-          },
-        },
-      }),
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+    );
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(AllureReport).not.toHaveBeenCalled();
+  });
+
+  it("should initialize allure report with default plugin options when config doesn't exist", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
     });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
+
+    const command = new AwesomeCommand();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith({
+      plugins: expect.arrayContaining([
+        expect.objectContaining({
+          id: "awesome",
+          enabled: true,
+          options: expect.objectContaining({
+            groupBy: ["parentSuite", "suite", "subSuite"],
+          }),
+          plugin: expect.any(AwesomePlugin),
+        }),
+      ]),
+    });
+  });
+
+  it("should initialize allure report with default plugin options even when config exists", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [
+        {
+          id: "my-awesome-plugin1",
+          enabled: true,
+          options: {},
+          plugin: new AwesomePlugin({}),
+        },
+        {
+          id: "my-awesome-plugin2",
+          enabled: true,
+          options: {},
+          plugin: new AwesomePlugin({}),
+        },
+      ],
+    });
+
+    const command = new AwesomeCommand();
+
+    command.cwd = ".";
+    command.resultsDir = fixtures.resultsDir;
+
+    await command.execute();
+
+    expect(AllureReport).toHaveBeenCalledTimes(1);
+    expect(AllureReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Allure Report",
-        history: [],
         plugins: expect.arrayContaining([
           expect.objectContaining({
-            id: "plugin-awesome",
-            enabled: true,
-            options: {
-              groupBy: undefined,
-            },
+            id: "awesome",
+            plugin: expect.any(AwesomePlugin),
           }),
         ]),
       }),
     );
   });
 
-  it("should initialize allure report with a provided plugin options", async () => {
-    const fixtures = {
-      resultsDir: "foo/bar/allure-results",
-      reportName: "Custom Allure Report",
-      output: "./custom/output/path",
-      knownIssues: "./custom/known/issues/path",
-      historyPath: "./custom/history/path",
-      reportLanguage: "es",
-      singleFile: true,
-      logo: "./custom/logo.png",
-    };
+  it("should prefer CLI arguments over config and defaults", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
 
-    await AwesomeCommandAction(fixtures.resultsDir, {
-      reportName: fixtures.reportName,
-      output: fixtures.output,
-      knownIssues: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
-      reportLanguage: fixtures.reportLanguage,
-      singleFile: fixtures.singleFile,
-      logo: fixtures.logo,
-    });
+    await run(AwesomeCommand, [
+      "awesome",
+      "--report-name",
+      "foo",
+      "--output",
+      "bar",
+      "--known-issues",
+      "baz",
+      "--history-path",
+      "qux",
+      "./allure-results",
+    ]);
 
-    expect(core.resolveConfig).toHaveBeenCalledTimes(1);
-    expect(core.resolveConfig).toHaveBeenCalledWith({
-      name: "Custom Allure Report",
-      output: fixtures.output,
-      knownIssuesPath: fixtures.knownIssues,
-      historyPath: fixtures.historyPath,
-      plugins: expect.objectContaining({
-        "@allurereport/plugin-awesome": {
-          options: {
-            groupBy: undefined,
-            reportLanguage: fixtures.reportLanguage,
-            singleFile: fixtures.singleFile,
-            logo: fixtures.logo,
-          },
-        },
-      }),
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: "foo",
+      output: "bar",
+      knownIssuesPath: "baz",
+      historyPath: "qux",
     });
-    expect(core.AllureReport).toHaveBeenCalledTimes(1);
-    expect(core.AllureReport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: fixtures.reportName,
-        history: [],
-        plugins: expect.arrayContaining([
-          expect.objectContaining({
-            id: "plugin-awesome",
-            enabled: true,
-            options: {
-              groupBy: undefined,
-              reportLanguage: fixtures.reportLanguage,
-              singleFile: fixtures.singleFile,
-              logo: fixtures.logo,
-            },
-          }),
-        ]),
-      }),
-    );
+  });
+
+  it("should not overwrite readConfig values if no CLI arguments provided", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(AwesomeCommand, ["awesome", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      knownIssuesPath: undefined,
+      historyPath: undefined,
+    });
   });
 });

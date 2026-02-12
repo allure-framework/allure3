@@ -3,44 +3,6 @@
  */
 export const ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY = "__allure_report_live_reload_hash__";
 
-export const createReportDataScript = (
-  reportFiles: {
-    name: string;
-    value: string;
-  }[] = [],
-) => {
-  if (reportFiles.length === 0) {
-    return `
-      <script async>
-        window.allureReportDataReady = true;
-      </script>
-    `;
-  }
-
-  const reportFilesDeclaration = reportFiles.map(({ name, value }) => `d('${name}','${value}')`).join(",");
-
-  return `
-    <script async>
-      window.allureReportDataReady = false;
-      window.allureReportData = window.allureReportData || {};
-
-      function d(name, value){
-        return new Promise(function (resolve) {
-          window.allureReportData[name] = value;
-
-          return resolve(true);
-        });
-      }
-    </script>
-    <script defer>
-      Promise.allSettled([${reportFilesDeclaration}])
-        .then(function(){
-          window.allureReportDataReady = true;
-        })
-    </script>
-  `;
-};
-
 export const ensureReportDataReady = () =>
   new Promise((resolve) => {
     const waitForReady = () => {
@@ -66,9 +28,13 @@ export const loadReportData = async (name: string): Promise<string> => {
   });
 };
 
-export const reportDataUrl = async (path: string, contentType = "application/octet-stream") => {
+export const reportDataUrl = async (
+  path: string,
+  contentType: string = "application/octet-stream",
+  params?: { bustCache: boolean },
+) => {
   if (globalThis.allureReportData) {
-    const dataKey = path.replace(/\?attachment$/, "");
+    const [dataKey] = path.split("?");
     const value = await loadReportData(dataKey);
 
     return `data:${contentType};base64,${value}`;
@@ -76,21 +42,35 @@ export const reportDataUrl = async (path: string, contentType = "application/oct
 
   const baseEl = globalThis.document.head.querySelector("base")?.href ?? "https://localhost";
   const url = new URL(path, baseEl);
-
   const liveReloadHash = globalThis.localStorage.getItem(ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY);
+  const cacheKey = getReportOptions<{ cacheKey?: string }>()?.cacheKey;
+
   if (liveReloadHash) {
     url.searchParams.set("live_reload_hash", liveReloadHash);
   }
 
-  return url.pathname + url.search + url.hash;
+  if (params?.bustCache && cacheKey) {
+    url.searchParams.set("v", cacheKey);
+  }
+
+  return url.toString();
 };
 
-export const fetchReportJsonData = async <T>(path: string) => {
-  const url = await reportDataUrl(path);
+export class ReportFetchError extends Error {
+  constructor(
+    message: string,
+    public readonly response: Response,
+  ) {
+    super(message);
+  }
+}
+
+export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
+  const url = await reportDataUrl(path, undefined, params);
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}, response status: ${res.status}`);
+    throw new ReportFetchError(`Failed to fetch ${url}, response status: ${res.status}`, res);
   }
 
   const data = res.json();
@@ -105,5 +85,5 @@ export const fetchReportAttachment = async (path: string, contentType?: string) 
 };
 
 export const getReportOptions = <T>() => {
-  return globalThis.allureReportOptions as T;
+  return globalThis.allureReportOptions as Readonly<T>;
 };

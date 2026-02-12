@@ -1,6 +1,12 @@
 import { getWorstStatus } from "@allurereport/core-api";
-import type { AllureStore, Plugin, PluginContext, PluginSummary } from "@allurereport/plugin-api";
-import { generateAllCharts, generateStaticFiles } from "./generators.js";
+import {
+  type AllureStore,
+  type Plugin,
+  type PluginContext,
+  type PluginSummary,
+  convertToSummaryTestResult,
+} from "@allurereport/plugin-api";
+import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";
 
@@ -10,7 +16,8 @@ export class DashboardPlugin implements Plugin {
   constructor(readonly options: DashboardPluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    await generateAllCharts(this.#writer!, store, this.options, context);
+    await generateAllCharts(this.#writer!, store, this.options, context, this.options.filter);
+    await generateEnvirontmentsList(this.#writer!, store);
 
     const reportDataFiles = this.options.singleFile ? (this.#writer! as InMemoryDashboardDataWriter).reportFiles() : [];
 
@@ -49,15 +56,29 @@ export class DashboardPlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = (await store.allTestResults()).filter(this.options.filter ? this.options.filter : () => true);
+    const allTrs = await store.allTestResults({ filter: this.options.filter });
+    const newTrs = await store.allNewTestResults(this.options.filter);
+
+    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
+    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
     const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
+    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
 
     return {
       name: this.options.reportName || context.reportName,
       stats: await store.testsStatistic(this.options.filter),
       status: worstStatus ?? "passed",
       duration,
+      createdAt,
+      plugin: "Dashboard",
+      newTests: newTrs.map(convertToSummaryTestResult),
+      flakyTests: flakyTrs.map(convertToSummaryTestResult),
+      retryTests: retryTrs.map(convertToSummaryTestResult),
+      meta: {
+        reportId: context.reportUuid,
+        singleFile: this.options.singleFile ?? false,
+      },
     };
   }
 }

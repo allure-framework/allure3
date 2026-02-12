@@ -1,14 +1,14 @@
 .item-info {
-    display: flex;
-    gap: 8px;
-    color: var(--on-text-secondary);
-    align-items: center;
-    flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  color: var(--on-text-secondary);
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .item-info-time {
-    flex: none;
-    min-width: 56px;
-    text-align: right;
-    color: var(--on-text-hint);
+  flex: none;
+  min-width: 72px;
+  text-align: right;
+  color: var(--on-text-hint);
 }

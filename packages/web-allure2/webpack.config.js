@@ -11,12 +11,13 @@ const { SINGLE_FILE_MODE } = env;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default (env, argv) => {
+  const devMode = argv?.mode === "development";
   const config = {
     entry: "./src/index.js",
     output: {
       path: join(__dirname, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
-      filename: "app-[hash:8].js",
-      assetModuleFilename: `[name]-[hash:8][ext]`,
+      filename: devMode ? "app.js" : "app-[fullhash].js",
+      assetModuleFilename: "[name][ext]",
     },
     module: {
       rules: [
@@ -27,7 +28,7 @@ export default (env, argv) => {
         },
         {
           test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, "css-loader"]
+          use: [MiniCssExtractPlugin.loader, "css-loader"],
         },
         {
           test: /\.scss$/,
@@ -44,7 +45,7 @@ export default (env, argv) => {
               loader: "sass-loader",
               options: {
                 api: "modern",
-              }
+              },
             },
           ],
         },
@@ -53,10 +54,7 @@ export default (env, argv) => {
           use: {
             loader: "handlebars-loader",
             options: {
-              helperDirs: [
-                utils.root("src/helpers"),
-                utils.root("src/blocks"),
-              ],
+              helperDirs: [utils.root("src/helpers"), utils.root("src/blocks")],
             },
           },
         },
@@ -64,12 +62,6 @@ export default (env, argv) => {
           test: /translations\/\D+\.json$/,
           type: "asset/source",
         },
-        // FIXME: how can we solve the problem with svg in css?
-        // {
-        //   test: /\.svg$/,
-        //   type: "asset/inline",
-        //   resourceQuery: /inline/,
-        // },
         {
           test: /\.svg$/,
           loader: "svg-sprite-loader",
@@ -96,7 +88,7 @@ export default (env, argv) => {
         },
       }),
       new MiniCssExtractPlugin({
-        filename: "styles-[hash:8].css",
+        filename: devMode ? "styles.css" : "styles-[contenthash].css",
       }),
       new SpriteLoaderPlugin(),
       new WebpackManifestPlugin({
@@ -110,12 +102,17 @@ export default (env, argv) => {
         "@": join(__dirname, "src"),
       },
     },
+    externals: {
+      // Some packages use crypto from node:crypto, but webpack doesn't support it
+      // I think this does not end up in a bundle, so it is safe to do this
+      "node:crypto": "crypto",
+    },
   };
 
   if (SINGLE_FILE_MODE) {
     config.optimization = {
       splitChunks: false,
-    }
+    };
     config.plugins.push(
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,

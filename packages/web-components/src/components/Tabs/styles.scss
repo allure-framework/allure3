@@ -1,0 +1,64 @@
+.list {
+  display: flex;
+  overflow-x: auto;
+  flex-grow: 0;
+  max-width: max-content;
+  gap: 8px;
+  padding-top: 1px;
+}
+
+.tab {
+  --allure-tab-underline-color: var(--bg-control-flat);
+
+  color: var(--on-text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transform: scale(1);
+  outline: none;
+  background-color: var(--bg-control-flat);
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  transition:
+    transform var(--interaction-transition-duration) ease-out,
+    outline var(--interaction-transition-duration) ease-out,
+    background-color var(--color-change-transition-duration),
+    border-color var(--color-change-transition-duration);
+  margin: 0 0 8px;
+
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    width: 100%;
+    height: 2px;
+    left: 0;
+    background-color: var(--allure-tab-underline-color);
+    transition: background-color 0.3s ease-out;
+  }
+
+  &[aria-current] {
+    cursor: default;
+
+    &:after {
+      --allure-tab-underline-color: var(--on-support-aldebaran);
+    }
+  }
+
+  &:hover:not([aria-current]) {
+    background-color: var(--bg-control-flat-medium);
+  }
+
+  &:active:not([aria-current]) {
+    background-color: var(--bg-control-flat-heavy);
+    transform: scale(0.94);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible:not([aria-current]) {
+    background-color: var(--bg-control-flat-medium);
+  }
+}

@@ -9,13 +9,7 @@ const TrThumb = () => {
   return (
     <div className={styles["test-result-thumb"]}>
       <div className={styles["test-result-thumb-wrapper"]}>
-        <SvgIcon
-          size={"m"}
-          width={"32px"}
-          height={"32px"}
-          id={allureIcons.lineDevCodeSquare}
-          className={styles["test-result-thumb-icon"]}
-        />
+        <SvgIcon size={"xl"} id={allureIcons.lineDevCodeSquare} className={styles["test-result-thumb-icon"]} />
         <Text className={styles["test-result-thumb-text"]}>{t("no-test-case-results")}</Text>
       </div>
     </div>

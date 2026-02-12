@@ -1,3 +1,5 @@
+@import "~@allurereport/web-components/mixins.scss";
+
 .test-result-steps {
   padding-right: 24px;
 
@@ -40,7 +42,6 @@
   align-items: flex-start;
   gap: 4px;
   transition: background-color 300ms;
-  cursor: pointer;
   padding: 4px 8px 4px 6px;
   min-height: 32px;
 
@@ -91,7 +92,7 @@
   align-items: center;
   gap: 4px;
   color: var(--on-icon-secondary);
-  min-width: 52px;
+  min-width: 56px;
   justify-content: flex-end;
 }
 
@@ -121,8 +122,11 @@
   align-items: center;
   gap: 4px;
   transition: background-color 300ms;
-  cursor: pointer;
   padding: 4px 8px 4px 6px;
+
+  &:not(.empty) {
+    cursor: pointer;
+  }
 
   &:hover {
     background: var(--bg-control-flat-medium);
@@ -215,8 +219,46 @@
 
 .test-result-strut {
   width: 24px;
+  flex: none;
 }
 
 .html-attachment-preview {
   padding: 0 16px;
+}
+
+.item-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-status-icon {
+  &.status-passed {
+    color: var(--bg-support-castor);
+  }
+
+  &.status-failed {
+    color: var(--bg-support-capella);
+  }
+
+  &.status-broken {
+    color: var(--bg-support-atlas);
+  }
+
+  &.status-skipped {
+    color: var(--bg-support-rau);
+  }
+
+  &.status-unknown {
+    color: var(--bg-support-skat);
+  }
+}
+
+.failed-steps {
+  display: flex;
+  gap: 8px;
+}
+
+:global(.code-toolbar .toolbar) {
+  display: none;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
@@ -25,6 +25,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@allurereport/ci": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-allure2": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
@@ -32,15 +33,24 @@
     "@allurereport/plugin-classic": "workspace:*",
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-dashboard": "workspace:*",
+    "@allurereport/plugin-jira": "workspace:*",
     "@allurereport/plugin-log": "workspace:*",
     "@allurereport/plugin-progress": "workspace:*",
     "@allurereport/plugin-slack": "workspace:*",
+    "@allurereport/plugin-testops": "workspace:*",
     "@allurereport/plugin-testplan": "workspace:*",
     "@allurereport/reader": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
+    "@allurereport/service": "workspace:*",
     "@allurereport/summary": "workspace:*",
     "handlebars": "^4.7.8",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "node-stream-zip": "^1.15.0",
+    "p-limit": "^7.2.0",
+    "progress": "^2.0.3",
+    "yaml": "^2.8.1",
+    "yoctocolors": "^2.1.1",
+    "zip-stream": "^7.0.2"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
@@ -48,12 +58,14 @@
     "@types/handlebars": "^4.1.0",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.17.9",
+    "@types/progress": "^2",
+    "@types/zip-stream": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "@vitest/snapshot": "^2.1.8",
-    "allure-js-commons": "^3.0.9",
-    "allure-vitest": "^3.0.9",
+    "@vitest/runner": "^2.1.9",
+    "@vitest/snapshot": "^2.1.9",
+    "allure-js-commons": "^3.3.3",
+    "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -64,6 +76,6 @@
     "rimraf": "^6.0.1",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

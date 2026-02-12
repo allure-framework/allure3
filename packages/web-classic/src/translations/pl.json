@@ -22,7 +22,7 @@
   },
   "filters": {
     "more-filters": "Filtry",
-    "enable-filter": "Filtruj po \"{filter}\"",
+    "enable-filter": "Filtruj po \"{{filter}}\"",
     "flaky": "Niestabilne",
     "retry": "Powtórne",
     "new": "Nowe"
@@ -93,6 +93,7 @@
     "showLess": "Pokaż mniej",
     "showMore": "Pokaż więcej",
     "copy": "Skopuj",
+    "attempt": "Próba {{attempt}} z {{total}}",
     "at": "w"
   },
   "controls": {

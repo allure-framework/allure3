@@ -92,6 +92,16 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   cursor: pointer;
+
+  &:is(a) {
+    color: inherit;
+    font-weight: bold;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .report-metadata-list {

@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/e2e",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "private": true,
   "description": "E2E tests for Allure reports",
   "keywords": [],
@@ -13,17 +13,21 @@
   },
   "devDependencies": {
     "@allurereport/core": "workspace:*",
+    "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/plugin-awesome": "workspace:*",
+    "@allurereport/reader-api": "workspace:*",
     "@allurereport/static-server": "workspace:*",
-    "@playwright/test": "^1.48.2",
+    "@faker-js/faker": "^9.8.0",
+    "@playwright/test": "^1.56.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/eslint": "^8.56.11",
+    "@types/lodash.times": "^4.3.9",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "allure-js-commons": "^3.0.9",
-    "allure-playwright": "^3.2.1",
+    "allure-js-commons": "^3.3.3",
+    "allure-playwright": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -31,8 +35,10 @@
     "eslint-plugin-n": "^17.10.1",
     "eslint-plugin-no-null": "^1.0.2",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "lodash.times": "^4.3.2",
     "prettier": "^3.3.3",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
   },
   "packageManager": "yarn@4.3.1"
 }

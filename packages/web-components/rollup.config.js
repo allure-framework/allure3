@@ -1,6 +1,7 @@
 import alias from "@rollup/plugin-alias";
 import { babel } from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
+import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
@@ -27,8 +28,9 @@ export default defineConfig([
         sourcemap: true,
       },
     ],
-    external: ["preact", "preact/hooks", "react", "react-dom"],
+    external: ["preact", "preact/hooks", "@preact/compat", "@preact/signals", "@preact/signals/utils", "react", "react-dom"],
     plugins: [
+      json(),
       alias({
         entries: [
           {
@@ -45,8 +47,7 @@ export default defineConfig([
       babel({
         babelHelpers: "bundled",
         extensions: [".js", ".jsx", ".ts", ".tsx"],
-        exclude: ["**", "**/*.test.tsx", "**/*.test.ts"],
-        jsx: true,
+        exclude: ["**/*.test.tsx", "**/*.test.ts"],
       }),
       svg(),
       postcss({

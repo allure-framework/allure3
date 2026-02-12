@@ -1,0 +1,44 @@
+@import "~@allurereport/web-components/mixins.scss";
+
+.report-quality-gate-results {
+  padding: 20px 0;
+
+  & > li + li {
+    margin-top: 12px;
+  }
+}
+
+.report-quality-gate-results-empty {
+  display: flex;
+  padding: 48px 0;
+  width: 100%;
+  justify-content: center;
+}
+
+.report-quality-gate-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 0 8px;
+
+  b {
+    font-weight: 700;
+  }
+}
+
+.report-quality-gate-result-icon {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--bg-support-capella);
+}
+
+.report-quality-gate-result-content {
+  flex: 1 1 auto;
+
+  & > * + * {
+    margin-top: 4px;
+  }
+}
+
+.report-quality-gate-result-error {
+  margin-top: 8px;
+}

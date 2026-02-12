@@ -1,13 +1,13 @@
 import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import {
   createBaseUrlScript,
   createFaviconLinkTag,
   createReportDataScript,
   createScriptTag,
   createStylesLinkTag,
-} from "@allurereport/web-commons";
+} from "@allurereport/core-api";
+import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -36,6 +36,9 @@ const template = `<!DOCTYPE html>
     <meta charset="utf-8">
     <title>{{reportName}}</title>
     {{{ headTags }}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}};
+    </script>
 </head>
 <body>
     <svg id="__SVG_SPRITE_NODE__" aria-hidden="true" style="position: absolute; width: 0; height: 0"></svg>
@@ -62,9 +65,6 @@ const template = `<!DOCTYPE html>
         });
     </script>
     {{/if}}
-    <script>
-      window.allureReportOptions = {{{ reportOptions }}};
-    </script>
     {{{ reportFilesScript }}}
 </body>
 </html>
@@ -172,20 +172,31 @@ export const generateStaticFiles = async (payload: {
     reportLanguage: reportLanguage ?? "en",
     createdAt: Date.now(),
   };
-  const html = compile({
-    headTags: headTags.join("\n"),
-    bodyTags: bodyTags.join("\n"),
-    reportFilesScript: createReportDataScript(reportDataFiles),
-    reportOptions: JSON.stringify(reportOptions),
-    analyticsEnable: true,
-    allureVersion,
-    reportLanguage,
-    reportUuid,
-    reportName,
-    singleFile,
-  });
 
-  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  try {
+    const html = compile({
+      headTags: headTags.join("\n"),
+      bodyTags: bodyTags.join("\n"),
+      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportOptions: JSON.stringify(reportOptions),
+      analyticsEnable: true,
+      allureVersion,
+      reportLanguage,
+      reportUuid,
+      reportName,
+      singleFile,
+    });
+
+    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  } catch (err) {
+    if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
+      console.error("The report is too large to be generated in the single file mode!");
+      process.exit(1);
+    }
+
+    throw err;
+  }
 };
 
 export const generateTree = async (

@@ -1,0 +1,59 @@
+name: Allure Report
+output: ./allure-report
+historyPath: ./history.jsonl
+qualityGate:
+  rules:
+    - maxFailures: 5
+      fastFail: true
+plugins:
+  allure2:
+    options:
+      reportName: HelloWorld
+      singleFile: false
+      reportLanguage: en
+  classic:
+    options:
+      reportName: HelloWorld
+      singleFile: false
+      reportLanguage: en
+  awesome:
+    options:
+      reportName: HelloWorld
+      singleFile: false
+      reportLanguage: en
+      open: false
+      charts:
+        - type: trend
+          dataType: status
+          mode: percent
+        - type: trend
+          dataType: status
+          limit: 10
+        - title: Custom Status Trend
+          type: trend
+          dataType: status
+          mode: percent
+          limit: 15
+        - type: trend
+          dataType: status
+          limit: 15
+        - type: trend
+          dataType: severity
+          limit: 15
+        - type: pie
+        - type: pie
+          title: Custom Pie
+      publish: true
+  dashboard:
+    options:
+      singleFile: false
+      reportName: HelloWorld-Dashboard
+      reportLanguage: en
+  csv:
+    options:
+      fileName: allure-report.csv
+  log:
+    options:
+      groupBy: none
+variables:
+  env_variable: unknown

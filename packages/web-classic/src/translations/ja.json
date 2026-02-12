@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "さらにフィルター",
-    "enable-filter": "\"{filter}\" フィルターを有効にする",
+    "enable-filter": "\"{{filter}}\" フィルターを有効にする",
     "flaky": "不安定",
     "retry": "再試行",
     "new": "新しい"
@@ -95,6 +95,7 @@
     "showLess": "表示を減らす",
     "showMore": "もっと見る",
     "copy": "コピー",
+    "attempt": "試行 {{attempt}} 回目（全 {{total}} 回）",
     "at": "時"
   },
   "controls": {

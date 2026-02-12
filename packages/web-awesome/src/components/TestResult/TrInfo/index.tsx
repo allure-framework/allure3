@@ -70,7 +70,7 @@ export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
             </TrTab>
             <Loadable<Record<string, TestEnvGroup>, TestEnvGroup | undefined>
               source={testEnvGroupsStore}
-              transformData={(groups) => groups[testResult.testCase.id]}
+              transformData={(groups) => groups?.[testResult?.testCase?.id]}
               renderData={(group) => {
                 const envsCount = getRealEnvsCount(group);
 

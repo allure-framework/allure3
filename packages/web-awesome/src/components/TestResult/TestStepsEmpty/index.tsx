@@ -7,13 +7,7 @@ const TrStepsEmpty = () => {
   return (
     <div className={styles["test-steps-empty"]}>
       <div className={styles["test-steps-empty-wrapper"]}>
-        <SvgIcon
-          size={"m"}
-          width={"32px"}
-          height={"32px"}
-          id={allureIcons.lineDevCodeSquare}
-          className={styles["test-steps-empty-icon"]}
-        />
+        <SvgIcon size={"xl"} id={allureIcons.lineDevCodeSquare} className={styles["test-steps-empty-icon"]} />
         <Text className={styles["test-steps-empty-text"]}>{t("no-test-steps-results")}</Text>
       </div>
     </div>

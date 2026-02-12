@@ -1,26 +1,34 @@
-import { DropdownButton, allureIcons } from "@allurereport/web-components";
-import { Link } from "@allurereport/web-components";
-import { Menu } from "@allurereport/web-components";
-import { SvgIcon } from "@allurereport/web-components";
-import { Text } from "@allurereport/web-components";
+import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import { useI18n } from "@/stores/locale";
-import { setTreeDirection, setTreeSortBy, treeFiltersStore } from "@/stores/tree";
+import { type SortByDirection, type SortByField, type SortBy as TSortBy, setSortBy, sortBy } from "@/stores/treeSort";
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {
   return <div className={styles.sortByBtnWrap}>{children}</div>;
 };
 
+const setSortByField = (value: SortByField) => {
+  const direction = sortBy.peek().split(",")[1];
+  setSortBy(`${value},${direction}` as TSortBy);
+};
+
+const setDirection = (value: SortByDirection) => {
+  setSortBy(`${sortBy.peek().split(",")[0]},${value}` as TSortBy);
+};
+
 export const SortBy = () => {
   const { t: sortByLocale } = useI18n("sort-by");
   const { t: sortByValuesLocale } = useI18n("sort-by.values");
   const { t: sortByDirectionsLocale } = useI18n("sort-by.directions");
-  const { sortBy, direction } = treeFiltersStore.value;
+  const sortByValue = sortBy.value.split(",")[0] as SortByField;
+  const direction = sortBy.value.split(",")[1] as SortByDirection;
 
-  const displayedSortByValue = sortByValuesLocale(sortBy);
-  const displayedDirection = sortByDirectionsLocale(`${sortBy}-${direction}-short`);
+  const displayedSortByValue = sortByValuesLocale(sortByValue === "name" ? "alphabet" : sortByValue);
+  const displayedDirection = sortByDirectionsLocale(
+    `${sortByValue === "name" ? "alphabet" : sortByValue}-${direction}-short`,
+  );
 
   return (
     <div>
@@ -68,16 +76,19 @@ export const SortBy = () => {
               )}
             >
               <Menu.Section>
-                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("order")} isChecked={sortBy === "order"}>
+                <Menu.ItemWithCheckmark onClick={() => setSortByField("order")} isChecked={sortByValue === "order"}>
                   {sortByValuesLocale("order")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("duration")} isChecked={sortBy === "duration"}>
+                <Menu.ItemWithCheckmark
+                  onClick={() => setSortByField("duration")}
+                  isChecked={sortByValue === "duration"}
+                >
                   {sortByValuesLocale("duration")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("status")} isChecked={sortBy === "status"}>
+                <Menu.ItemWithCheckmark onClick={() => setSortByField("status")} isChecked={sortByValue === "status"}>
                   {sortByValuesLocale("status")}
                 </Menu.ItemWithCheckmark>
-                <Menu.ItemWithCheckmark onClick={() => setTreeSortBy("alphabet")} isChecked={sortBy === "alphabet"}>
+                <Menu.ItemWithCheckmark onClick={() => setSortByField("name")} isChecked={sortByValue === "name"}>
                   {sortByValuesLocale("alphabet")}
                 </Menu.ItemWithCheckmark>
               </Menu.Section>
@@ -109,18 +120,18 @@ export const SortBy = () => {
             >
               <Menu.Section>
                 <Menu.ItemWithCheckmark
-                  onClick={() => setTreeDirection("asc")}
+                  onClick={() => setDirection("asc")}
                   leadingIcon={allureIcons.lineArrowsSortLineAsc}
                   isChecked={direction === "asc"}
                 >
-                  {sortByDirectionsLocale(`${sortBy}-asc`)}
+                  {sortByDirectionsLocale(`${sortByValue}-asc`)}
                 </Menu.ItemWithCheckmark>
                 <Menu.ItemWithCheckmark
-                  onClick={() => setTreeDirection("desc")}
+                  onClick={() => setDirection("desc")}
                   leadingIcon={allureIcons.lineArrowsSortLineDesc}
                   isChecked={direction === "desc"}
                 >
-                  {sortByDirectionsLocale(`${sortBy}-desc`)}
+                  {sortByDirectionsLocale(`${sortByValue}-desc`)}
                 </Menu.ItemWithCheckmark>
               </Menu.Section>
             </Menu>

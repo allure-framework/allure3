@@ -1,48 +1,42 @@
-import { computed, signal } from "@preact/signals";
+import { createRoute, navigateTo as routerNavigateTo } from "@allurereport/web-commons";
+import { computed } from "@preact/signals";
 
-type NavigateToString = string;
-type NavigateToObject = {
-  id?: string | null;
-  params?: {
-    tabName?: string | null;
-  };
+export const navigateToTestResult = (params: { testResultId: string; tab?: string }) => {
+  routerNavigateTo({ path: "/:testResultId/:tab?", params, keepSearchParams: true });
 };
 
-const parseHash = () => {
-  const hash = globalThis.location.hash.slice(1);
-  const [id, params] = hash.split("/");
-  return {
-    id: id || null,
-    params: params ? { tabName: params } : {},
-  };
+export const navigateToTestResultTab = (params: { testResultId: string; tab: string }) => {
+  routerNavigateTo({ path: "/:testResultId/:tab?", params, keepSearchParams: true, replace: true });
 };
 
-export const route = signal<NavigateToObject>(parseHash());
-
-export const handleHashChange = () => {
-  const newRoute = parseHash();
-
-  if (newRoute.id !== route.value.id || newRoute.params.tabName !== route.value.params.tabName) {
-    route.value = newRoute;
-  }
+export const navigateToRoot = () => {
+  routerNavigateTo({ path: "/", keepSearchParams: true });
 };
 
-export const navigateTo = (path: NavigateToString | NavigateToObject) => {
-  let newHash = "";
-
-  if (typeof path === "string") {
-    newHash = path.startsWith("#") ? path.slice(1) : path;
-  } else {
-    const { id, params = {} } = path;
-
-    newHash = `${id}/${params.tabName ?? ""}`;
-  }
-  history.pushState(null, "", `#${newHash}`);
-  handleHashChange();
+export const navigateToSection = (params: { section: "timeline" | "charts" }) => {
+  routerNavigateTo({ path: "/:section", params, keepSearchParams: true, replace: false });
 };
+
+const sections = ["charts", "timeline"];
+
+export const testResultRoute = computed(() =>
+  createRoute<{ testResultId: string; tab?: string }>("/:testResultId/:tab?", ({ params }) => {
+    return params.testResultId && !sections.includes(params.testResultId);
+  }),
+);
+
+export const rootRoute = computed(() => createRoute<{}>("/"));
+
+export const sectionRoute = computed(() =>
+  createRoute<{ section: "timeline" | "charts" }>("/:section", ({ params }) => {
+    return sections.includes(params.section);
+  }),
+);
 
 export const openInNewTab = (path: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   window.open(`#${path}`, "_blank");
 };
-
-export const activeTab = computed(() => route.value.params?.tabName || "overview");

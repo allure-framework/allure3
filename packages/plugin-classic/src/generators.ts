@@ -5,6 +5,11 @@ import {
   type TreeGroup,
   type TreeLeaf,
   compareBy,
+  createBaseUrlScript,
+  createFontLinkTag,
+  createReportDataScript,
+  createScriptTag,
+  createStylesLinkTag,
   incrementStatistic,
   nullsLast,
   ordinal,
@@ -20,28 +25,21 @@ import {
   transformTree,
 } from "@allurereport/plugin-api";
 import type {
-  AwesomeFixtureResult,
-  AwesomeReportOptions,
-  AwesomeTestResult,
-  AwesomeTreeGroup,
-  AwesomeTreeLeaf,
-} from "@allurereport/web-awesome";
-import {
-  createBaseUrlScript,
-  createFontLinkTag,
-  createReportDataScript,
-  createScriptTag,
-  createStylesLinkTag,
-} from "@allurereport/web-commons";
+  ClassicFixtureResult,
+  ClassicReportOptions,
+  ClassicTestResult,
+  ClassicTreeGroup,
+  ClassicTreeLeaf,
+} from "@allurereport/web-classic";
+import { getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
 import { matchCategories } from "./categories.js";
-import { getChartData } from "./charts.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
-import type { AwesomeCategory, AwesomeOptions, TemplateManifest } from "./model.js";
-import type { AwesomeDataWriter, ReportFile } from "./writer.js";
+import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";
+import type { ClassicDataWriter, ReportFile } from "./writer.js";
 
 const require = createRequire(import.meta.url);
 
@@ -52,6 +50,9 @@ const template = `<!DOCTYPE html>
     <title> {{ reportName }} </title>
     <link rel="icon" href="favicon.ico">
     {{{ headTags }}}
+    <script>
+      window.allureReportOptions = {{{ reportOptions }}}
+    </script>
 </head>
 <body>
     <div id="app"></div>
@@ -74,9 +75,6 @@ const template = `<!DOCTYPE html>
         });
     </script>
     {{/if}}
-    <script>
-      window.allureReportOptions = {{{ reportOptions }}}
-    </script>
     {{{ reportFilesScript }}}
 </body>
 </html>
@@ -91,7 +89,7 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
   return JSON.parse(templateManifest);
 };
 
-const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
+const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
     (acc, label) => {
       if (!acc[label.name]) {
@@ -120,16 +118,16 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore) => {
+export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
   const allTr = await store.allTestResults({ includeHidden: true });
-  let convertedTrs: AwesomeTestResult[] = [];
+  let convertedTrs: ClassicTestResult[] = [];
 
   for (const tr of allTr) {
     const trFixtures = await store.fixturesByTrId(tr.id);
-    const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr);
+    const convertedTrFixtures: ClassicFixtureResult[] = trFixtures.map(convertFixtureResult);
+    const convertedTr: ClassicTestResult = convertTestResult(tr);
     const { error, status, flaky } = convertedTr;
-    const categories: AwesomeCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
+    const categories: ClassicCategory[] = (await store.metadataByKey("allure2_categories")) ?? [];
     const matchedCategories = matchCategories(categories, {
       message: error?.message,
       trace: error?.trace,
@@ -138,7 +136,7 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
     });
 
     convertedTr.categories = matchedCategories;
-    convertedTr.history = await store.historyByTrId(tr.id);
+    convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retry = convertedTr.retries.length > 0;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
@@ -172,23 +170,27 @@ export const generateTestResults = async (writer: AwesomeDataWriter, store: Allu
 };
 
 export const generateTree = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   treeName: string,
   labels: string[],
-  tests: AwesomeTestResult[],
+  tests: ClassicTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
-  const tree = createTreeByLabels<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
     labels,
-    ({ id, name, status, duration, flaky, start, retries }) => {
+    ({ id, name, status, duration, flaky, transition, start, retries }) => {
+      const retriesCount = retries?.length ?? 0;
+
       return {
         nodeId: id,
-        retry: !!retries?.length,
+        retry: Boolean(retriesCount),
+        retriesCount,
         name,
         status,
         duration,
         flaky,
+        transition,
         start,
       };
     },
@@ -206,22 +208,22 @@ export const generateTree = async (
   await writer.writeWidget(`${treeName}.json`, tree);
 };
 
-export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: EnvironmentItem[]) => {
+export const generateEnvironmentJson = async (writer: ClassicDataWriter, env: EnvironmentItem[]) => {
   await writer.writeWidget("allure_environment.json", env);
 };
 
-export const generateStatistic = async (writer: AwesomeDataWriter, statistic: Statistic) => {
+export const generateStatistic = async (writer: ClassicDataWriter, statistic: Statistic) => {
   await writer.writeWidget("allure_statistic.json", statistic);
 };
 
-export const generatePieChart = async (writer: AwesomeDataWriter, statistic: Statistic) => {
-  const chartData = getChartData(statistic);
+export const generatePieChart = async (writer: ClassicDataWriter, statistic: Statistic) => {
+  const chartData = getPieChartValues(statistic);
 
   await writer.writeWidget("allure_pie_chart.json", chartData);
 };
 
 export const generateAttachmentsFiles = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   attachmentLinks: AttachmentLink[],
   contentFunction: (id: string) => Promise<ResultFile | undefined>,
 ) => {
@@ -241,7 +243,7 @@ export const generateAttachmentsFiles = async (
   return result;
 };
 
-export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store: AllureStore) => {
+export const generateHistoryDataPoints = async (writer: ClassicDataWriter, store: AllureStore) => {
   const result = new Map<string, string>();
   const allHistoryPoints = await store.allHistoryDataPoints();
 
@@ -253,7 +255,7 @@ export const generateHistoryDataPoints = async (writer: AwesomeDataWriter, store
 };
 
 export const generateStaticFiles = async (
-  payload: AwesomeOptions & {
+  payload: ClassicOptions & {
     allureVersion: string;
     reportFiles: ReportFiles;
     reportDataFiles: ReportFile[];
@@ -266,7 +268,7 @@ export const generateStaticFiles = async (
     reportLanguage = "en",
     singleFile,
     logo = "",
-    theme = "light",
+    theme = "auto",
     groupBy,
     reportFiles,
     reportDataFiles,
@@ -313,61 +315,78 @@ export const generateStaticFiles = async (
     bodyTags.push(createScriptTag(`data:text/javascript;base64,${mainJsContentBuffer.toString("base64")}`));
   }
 
-  const reportOptions: AwesomeReportOptions = {
+  const now = Date.now();
+  const reportOptions: ClassicReportOptions = {
     reportName,
     logo,
     theme,
     reportLanguage,
-    createdAt: Date.now(),
+    createdAt: now,
     reportUuid,
     groupBy: groupBy?.length ? groupBy : ["parentSuite", "suite", "subSuite"],
     allureVersion,
+    cacheKey: now.toString(),
   };
-  const html = compile({
-    headTags: headTags.join("\n"),
-    bodyTags: bodyTags.join("\n"),
-    reportFilesScript: createReportDataScript(reportDataFiles),
-    reportOptions: JSON.stringify(reportOptions),
-    analyticsEnable: true,
-    allureVersion,
-    reportUuid,
-    reportName,
-    singleFile: payload.singleFile,
-  });
 
-  await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  try {
+    const html = compile({
+      headTags: headTags.join("\n"),
+      bodyTags: bodyTags.join("\n"),
+      reportFilesScript: createReportDataScript(reportDataFiles),
+      reportOptions: JSON.stringify(reportOptions),
+      analyticsEnable: true,
+      allureVersion,
+      reportUuid,
+      reportName,
+      singleFile: payload.singleFile,
+    });
+
+    await reportFiles.addFile("index.html", Buffer.from(html, "utf8"));
+  } catch (err) {
+    if (err instanceof RangeError) {
+      // eslint-disable-next-line no-console
+      console.error("The report is too large to be generated in the single file mode!");
+      process.exit(1);
+    }
+
+    throw err;
+  }
 };
 
 export const generateTreeByCategories = async (
-  writer: AwesomeDataWriter,
+  writer: ClassicDataWriter,
   treeName: string,
-  tests: AwesomeTestResult[],
+  tests: ClassicTestResult[],
 ) => {
   const visibleTests = tests.filter((test) => !test.hidden);
 
-  const tree = createTreeByCategories<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
-    ({ id, name, status, duration, flaky, start, retries }: AwesomeTestResult) => {
+    ({ id, name, status, duration, flaky, transition, start, retries }: ClassicTestResult) => {
+      const retriesCount = retries?.length ?? 0;
+
       return {
         nodeId: id,
-        retry: !!retries?.length,
+        retry: Boolean(retriesCount),
+        retriesCount,
         name,
         status,
         duration,
         flaky,
+        transition,
         start,
       };
     },
     undefined,
-    (group: TreeGroup<AwesomeTreeGroup>, leaf: TreeLeaf<AwesomeTreeLeaf>) => {
+    (group: TreeGroup<ClassicTreeGroup>, leaf: TreeLeaf<ClassicTreeLeaf>) => {
       incrementStatistic(group.statistic, leaf.status);
     },
   );
 
   // @ts-ignore
-  filterTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>) => !leaf.hidden);
+  filterTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>) => !leaf.hidden);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf: TreeLeaf<AwesomeTreeLeaf>, idx: number) => ({
+  transformTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
     ...leaf,
     groupOrder: idx + 1,
   }));

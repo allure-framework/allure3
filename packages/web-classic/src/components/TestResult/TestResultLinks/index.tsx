@@ -1,7 +1,7 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
-import type { AwesomeTestResult } from "types";
+import type { ClassicTestResult } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
@@ -35,7 +35,7 @@ const TestResultLink: FunctionalComponent<{
 };
 
 export type TestResultLinksProps = {
-  links: AwesomeTestResult["links"];
+  links: ClassicTestResult["links"];
 };
 
 export const TestResultLinks: FunctionalComponent<TestResultLinksProps> = ({ links }) => {

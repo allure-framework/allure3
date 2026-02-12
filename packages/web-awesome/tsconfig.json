@@ -17,11 +17,16 @@
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["ES2019", "dom"],
+    "lib": ["ES2019", "dom", "dom.iterable"],
     // node types should not be used in web-commons
     "types": [],
     "skipLibCheck": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

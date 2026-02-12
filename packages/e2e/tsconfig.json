@@ -1,8 +1,27 @@
 {
   "compilerOptions": {
-    "module": "node16",
-    "target": "ES2017",
-    "lib": ["ES2017"],
-    "moduleResolution": "node16"
+    "module": "ESNext",
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": ".",
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
+  "include": [
+    "**/*.ts",
+    "**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

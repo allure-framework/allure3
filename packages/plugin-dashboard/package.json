@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-dashboard",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "description": "Allure Dashboard Plugin – plugin for generating dashboard with a mix of charts",
   "keywords": [
     "allure",
@@ -32,6 +32,7 @@
     "test": "rimraf ./out && vitest run"
   },
   "dependencies": {
+    "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
@@ -46,8 +47,8 @@
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "allure-vitest": "^3.0.9",
+    "@vitest/runner": "^2.1.9",
+    "allure-vitest": "^3.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -57,6 +58,6 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

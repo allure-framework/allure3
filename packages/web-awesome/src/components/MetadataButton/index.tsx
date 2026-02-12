@@ -1,7 +1,6 @@
-import { Counter, Text } from "@allurereport/web-components";
+import { ArrowButton, Counter, Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
-import { ArrowButton } from "@/components/ArrowButton";
 import * as styles from "./styles.scss";
 
 interface MetadataButtonProps {
@@ -28,12 +27,13 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
       <Text size={"m"} bold>
         {title}
       </Text>
-      {counter !== null && <Counter count={counter} size="s" />}
+      {!!counter && <Counter count={counter} size="s" />}
       <ArrowButton
         isOpened={isOpened}
         iconSize={"s"}
         buttonSize={"s"}
         className={styles["report-metadata-header-arrow"]}
+        tag={"div"}
       />
     </button>
   );

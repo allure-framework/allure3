@@ -33,8 +33,51 @@
             unknown: 2,
             total: 139
           },
+          createdAt: Date.now(),
           duration: 1240812,
           status: "failed",
+          newTests: [
+            {
+              name: "New test 1",
+              id: "1",
+              status: "passed",
+              duration: 100
+            },
+            {
+              name: "New test 2",
+              id: "2",
+              status: "passed",
+              duration: 100
+            },
+            {
+              name: "New test 3",
+              id: "3",
+              status: "passed",
+              duration: 100
+            },
+          ],
+          flakyTests: [
+            {
+              name: "New test 1",
+              id: "1",
+              status: "passed",
+              duration: 100
+            },
+          ],
+          retryTests: [
+            {
+              name: "New test 1",
+              id: "1",
+              status: "passed",
+              duration: 100
+            },
+            {
+              name: "New test 2",
+              id: "2",
+              status: "passed",
+              duration: 100
+            },
+          ]
         },
         {
           name: "Second sample report with longer title",
@@ -43,8 +86,19 @@
             passed: 67,
             total: 67
           },
+          createdAt: Date.now(),
           duration: 31290,
           status: "passed",
+          newTests: [
+            {
+              name: "New test 1",
+              id: "1",
+              status: "failed",
+              duration: 100
+            },
+          ],
+          flakyTests: [],
+          retryTests: [],
         },
         {
           name: "Third report",
@@ -54,8 +108,12 @@
             broken: 48,
             total: 60
           },
+          createdAt: Date.now(),
           duration: 512341,
           status: "broken",
+          newTests: [],
+          flakyTests: [],
+          retryTests: [],
         },
         {
           name: "Fourth report",
@@ -68,6 +126,9 @@
           },
           duration: 12341,
           status: "broken",
+          newTests: [],
+          flakyTests: [],
+          retryTests: [],
         },
         {
           name: "Fifth report with a very long title that should not be truncated and should be displayed in full",
@@ -79,6 +140,22 @@
           },
           duration: 0,
           status: "unknown",
+          newTests: [
+            {
+              name: "New test 1",
+              id: "1",
+              status: "passed",
+              duration: 100
+            },
+            {
+              name: "New test 2",
+              id: "2",
+              status: "failed",
+              duration: 100
+            }
+          ],
+          flakyTests: [],
+          retryTests: [],
         },
       ]
     </script>

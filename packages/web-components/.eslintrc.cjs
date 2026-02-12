@@ -11,6 +11,14 @@ module.exports = {
       extends: ["plugin:@typescript-eslint/disable-type-checked"],
       files: [".eslintrc.cjs", ".babelrc.js"],
     },
+    {
+      files: ["stories/**/*.stories.tsx"],
+      rules: {
+        "no-console": "off",
+        "react-hooks/rules-of-hooks": "off",
+        "react-hooks/exhaustive-deps": "off",
+      },
+    }
   ],
   rules: {
     "n/file-extension-in-import": "off"

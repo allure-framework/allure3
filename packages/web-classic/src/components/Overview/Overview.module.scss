@@ -7,12 +7,12 @@
 
 .overview-grid {
   display: grid;
-  gap: 24px;
+  gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(50% - 12px)), 1fr));
 }
 
 .overview-grid-item {
-  padding: 12px;
+  padding: 4px;
   width: 100%;
 }
 

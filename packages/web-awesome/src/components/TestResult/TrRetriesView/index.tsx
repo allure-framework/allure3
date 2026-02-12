@@ -1,8 +1,9 @@
+import { EmptyView } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
-import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { TrRetriesItem } from "@/components/TestResult/TrRetriesView/TrRetriesItem";
 import { useI18n } from "@/stores";
+import * as styles from "./styles.scss";
 
 export const TrRetriesView: FunctionalComponent<{
   testResult: AwesomeTestResult;
@@ -11,11 +12,18 @@ export const TrRetriesView: FunctionalComponent<{
   const { t } = useI18n("empty");
 
   return (
-    <div className={styles["test-result-history"]}>
+    <div className={styles["test-result-retries"]}>
       {retries.length ? (
-        retries?.map((item, key) => <TrRetriesItem testResultItem={item as unknown as AwesomeTestResult} key={key} />)
+        retries?.map((item, key) => (
+          <TrRetriesItem
+            testResultItem={item as unknown as AwesomeTestResult}
+            key={key}
+            attempt={retries.length - key}
+            totalAttempts={retries.length + 1}
+          />
+        ))
       ) : (
-        <div className={styles["test-result-empty"]}>{t("no-retries-results")}</div>
+        <EmptyView description={t("no-retries-results")} />
       )}
     </div>
   );

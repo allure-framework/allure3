@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "更多过滤器",
-    "enable-filter": "启用 \"{filter}\" 过滤器",
+    "enable-filter": "启用 \"{{filter}}\" 过滤器",
     "flaky": "不稳定",
     "retry": "重试",
     "new": "新的"
@@ -95,6 +95,7 @@
     "showLess": "显示更少",
     "showMore": "显示更多",
     "copy": "复制",
+    "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在"
   },
   "controls": {

@@ -1,5 +1,6 @@
 import type {
   AttachmentTestStepResult,
+  CiDescriptor,
   DefaultTreeGroup,
   HistoryTestResult,
   TestFixtureResult,
@@ -16,12 +17,16 @@ export type AwesomeReportOptions = {
   allureVersion: string;
   reportName?: string;
   logo?: string;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "auto";
   groupBy?: string[];
-  reportLanguage?: "en" | "ru";
+  reportLanguage?: string;
   createdAt: number;
   reportUuid: string;
   layout?: Layout;
+  defaultSection?: string;
+  sections?: string[];
+  cacheKey: string;
+  ci?: CiDescriptor;
 };
 
 export type AwesomeFixtureResult = Omit<
@@ -72,13 +77,17 @@ export type AwesomeTestResult = Omit<
   retry: boolean;
   categories?: AwesomeCategory[];
   environment?: string | "default";
+  tooltips?: Record<string, string>;
 };
 
 export type AwesomeTreeLeaf = Pick<
   AwesomeTestResult,
-  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "retry" | "retriesCount"
+  "duration" | "name" | "start" | "status" | "groupOrder" | "flaky" | "transition" | "retry" | "retriesCount" | "id"
 > & {
   nodeId: string;
+  transitionTooltip?: string;
+  tooltips?: Record<string, string>;
+  tags?: string[];
 };
 
 export type AwesomeTreeGroup = WithChildren & DefaultTreeGroup & { nodeId: string };
@@ -97,4 +106,4 @@ export type AwesomeRecursiveTree = DefaultTreeGroup & {
 // TODO: add worst status
 export type AwesomeTestResultGroup = Pick<AwesomeTestResult, "name" | "fullName" | "groupOrder"> & {
   testResults: AwesomeTestResult[];
-}
+};

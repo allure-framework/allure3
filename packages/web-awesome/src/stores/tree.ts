@@ -1,21 +1,12 @@
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
-import type { AwesomeStatus, AwesomeTree, AwesomeTreeGroup } from "types";
+import type { AwesomeTree, AwesomeTreeGroup } from "types";
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
-
-export type TreeSortBy = "order" | "duration" | "status" | "alphabet";
-export type TreeDirection = "asc" | "desc";
-export type TreeFilters = "flaky" | "retry" | "new";
-export type TreeFiltersState = {
-  query: string;
-  status: AwesomeStatus;
-  filter: Record<TreeFilters, boolean>;
-  sortBy: TreeSortBy;
-  direction: TreeDirection;
-};
+import { treeFilters } from "./treeFilters/store";
+import { sortBy } from "./treeSort";
 
 export const treeStore = signal<StoreSignalState<Record<string, AwesomeTree>>>({
   loading: true,
@@ -45,43 +36,75 @@ export const toggleTree = (id: string) => {
   collapsedTrees.value = newSet;
 };
 
-export const selectedFilters = signal(new Set(loadFromLocalStorage("selectedFilters", []) as []));
+export const fetchEnvTreesData = async (envs: string[]) => {
+  const envsToFetch = envs.filter((env) => !treeStore.peek().data?.[env]);
 
-effect(() => {
-  localStorage.setItem("selectedFilters", JSON.stringify([...selectedFilters.value]));
-});
+  // all envs have already been fetched
+  if (envsToFetch.length === 0) {
+    return;
+  }
 
-export const treeFiltersStore = signal<TreeFiltersState>(
-  loadFromLocalStorage<TreeFiltersState>("treeFilters", {
-    query: "",
-    status: "total",
-    filter: {
-      flaky: false,
-      retry: false,
-      new: false,
-    },
-    sortBy: "order",
-    direction: "asc",
-  }) as TreeFiltersState,
-);
+  treeStore.value = {
+    ...treeStore.peek(),
+    loading: true,
+    error: undefined,
+  };
 
-effect(() => {
-  localStorage.setItem("treeFilters", JSON.stringify(treeFiltersStore.value));
+  try {
+    const data = await Promise.all(
+      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`, { bustCache: true })),
+    );
+
+    const previous = treeStore.peek().data;
+    treeStore.value = {
+      data: envsToFetch.reduce(
+        (acc, env, index) => {
+          return {
+            ...acc,
+            [env]: data[index],
+          };
+        },
+        { ...previous },
+      ),
+      loading: false,
+      error: undefined,
+    };
+  } catch (e) {
+    treeStore.value = {
+      ...treeStore.peek(),
+      error: e.message,
+      loading: false,
+    };
+  }
+};
+
+const treeEntries = computed(() => (treeStore.value.data ? Object.entries(treeStore.value.data) : []));
+
+const alwaysTruePredicate = () => true;
+
+const filterPredicate = computed(() => {
+  if (treeFilters.value.length === 0) {
+    return alwaysTruePredicate;
+  }
+
+  return buildFilterPredicate(treeFilters.value);
 });
 
 export const filteredTree = computed(() => {
-  return Object.entries(treeStore.value.data).reduce(
+  return treeEntries.value.reduce(
     (acc, [key, value]) => {
       if (!value) {
         return acc;
       }
 
       const { root, leavesById, groupsById } = value;
+
       const tree = createRecursiveTree({
         group: root as AwesomeTreeGroup,
         leavesById,
         groupsById,
-        filterOptions: treeFiltersStore.value,
+        filterPredicate: filterPredicate.value,
+        sortBy: sortBy.value,
       });
 
       return Object.assign(acc, {
@@ -92,97 +115,6 @@ export const filteredTree = computed(() => {
   );
 });
 
-export const noTestsFound = computed(() => {
-  return Object.values(filteredTree.value).every(isRecursiveTreeEmpty);
-});
-
-export const clearTreeFilters = () => {
-  treeFiltersStore.value = {
-    query: "",
-    status: "total",
-    filter: {
-      flaky: false,
-      retry: false,
-      new: false,
-    },
-    sortBy: "order",
-    direction: "asc",
-  };
-};
-
-export const setTreeQuery = (query: string) => {
-  treeFiltersStore.value = {
-    ...treeFiltersStore.value,
-    query,
-  };
-};
-
-export const setTreeStatus = (status: AwesomeStatus) => {
-  treeFiltersStore.value = {
-    ...treeFiltersStore.value,
-    status,
-  };
-};
-
-export const setTreeSortBy = (sortBy: TreeSortBy) => {
-  treeFiltersStore.value = {
-    ...treeFiltersStore.value,
-    sortBy,
-  };
-};
-
-export const setTreeDirection = (direction: TreeDirection) => {
-  treeFiltersStore.value = {
-    ...treeFiltersStore.value,
-    direction,
-  };
-};
-
-export const setTreeFilter = (filterKey: TreeFilters, value: boolean) => {
-  treeFiltersStore.value = {
-    ...treeFiltersStore.value,
-    filter: {
-      ...treeFiltersStore.value.filter,
-      [filterKey]: value,
-    },
-  };
-};
-
-export const fetchEnvTreesData = async (envs: string[]) => {
-  const envsToFetch = envs.filter((env) => !treeStore.value.data?.[env]);
-
-  // all envs have already been fetched
-  if (envsToFetch.length === 0) {
-    return;
-  }
-
-  treeStore.value = {
-    ...treeStore.value,
-    loading: true,
-    error: undefined,
-  };
-
-  try {
-    const data = await Promise.all(
-      envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/tree.json`)),
-    );
-
-    treeStore.value = {
-      data: envs.reduce(
-        (acc, env, index) => ({
-          ...acc,
-          [env]: data[index],
-        }),
-        {},
-      ),
-      loading: false,
-      error: undefined,
-    };
-  } catch (e) {
-    treeStore.value = {
-      ...treeStore.value,
-      error: e.message,
-      loading: false,
-    };
-  }
-};
+export const noTestsFound = computed(
+  () => !Object.values(filteredTree.value).some((tree) => !isRecursiveTreeEmpty(tree)),
+);

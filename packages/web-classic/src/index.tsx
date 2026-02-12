@@ -12,7 +12,7 @@ import Packages from "@/components/Packages";
 import Suites from "@/components/Suites";
 import { TestResultView } from "@/components/TestResultView";
 import Timeline from "@/components/Timeline";
-import { currentLocale, getLocale, getTheme } from "@/stores";
+import { currentLocale, getLocale } from "@/stores";
 import { handleHashChange, route } from "@/stores/router";
 
 const tabComponents = {
@@ -28,7 +28,6 @@ const tabComponents = {
 
 const App = () => {
   useEffect(() => {
-    getTheme();
     getLocale();
     handleHashChange();
   }, []);

@@ -1,60 +1,119 @@
 import { type HistoryTestResult, formatDuration } from "@allurereport/core-api";
-import { IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
+import { getReportOptions } from "@allurereport/web-commons";
+import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
-import { ArrowButton } from "@/components/ArrowButton";
+import { useMemo, useState } from "preact/hooks";
+import type { AwesomeReportOptions } from "types";
 import { TrError } from "@/components/TestResult/TrError";
 import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
-import { navigateTo, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
 
-export const TrHistoryItem: FunctionalComponent<{
-  testResultItem: HistoryTestResult;
-}> = ({ testResultItem }: { testResultItem: HistoryTestResult }) => {
-  const { status, error, stop, duration, id } = testResultItem;
-  const [isOpened, setIsOpen] = useState(false);
-  const convertedStop = timestampToDate(stop);
-  const formattedDuration = formatDuration(duration as number);
-  const { t } = useI18n("controls");
+type Props = {
+  historyTr: HistoryTestResult;
+};
 
-  const navigateUrl = id;
+const getDate = (historyTr: HistoryTestResult) => {
+  const { stop, duration, start } = historyTr;
+
+  if (stop) {
+    return timestampToDate(stop);
+  }
+
+  if (start && duration) {
+    return timestampToDate(start + duration);
+  }
+
+  return undefined;
+};
+
+const HistoryDate = (props: { date: string | undefined }) => {
+  const { t } = useI18n("trHistory");
+  const { date } = props;
 
   return (
-    <div>
+    <Text data-unknown={!date || undefined} className={styles["test-result-history-item-text"]}>
+      {date ?? t("unknown-date")}
+    </Text>
+  );
+};
+
+export const TrHistoryItem: FunctionalComponent<Props> = (props) => {
+  const reportOptions = getReportOptions<AwesomeReportOptions & { id: string }>();
+  const { historyTr } = props;
+  const { status, error, duration, id, url } = historyTr;
+  const [isOpened, setIsOpen] = useState(false);
+  const historyDate = getDate(historyTr);
+  const formattedDuration = duration ? formatDuration(duration) : undefined;
+
+  const { t } = useI18n("controls");
+
+  const navigateUrl = useMemo(() => {
+    if (!url) {
+      return undefined;
+    }
+
+    const { origin, pathname } = new URL(url);
+    const navUrl = new URL([pathname, reportOptions.id].join("/"), origin);
+
+    navUrl.hash = id;
+
+    return navUrl.toString();
+  }, [id, url]);
+
+  const renderExternalLink = () => {
+    if (!navigateUrl) {
+      return null;
+    }
+
+    return (
+      <TooltipWrapper tooltipText={t("openInNewTab")}>
+        <IconButton
+          href={navigateUrl.toString()}
+          target={"_blank"}
+          icon={allureIcons.lineGeneralLinkExternal}
+          style={"ghost"}
+          size={"s"}
+          className={styles["test-result-history-item-link"]}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        />
+      </TooltipWrapper>
+    );
+  };
+  const renderItemContent = () => {
+    return (
+      <>
+        <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
+        <HistoryDate date={historyDate} />
+        <div className={styles["test-result-history-item-info"]}>
+          {formattedDuration && (
+            <Text type="ui" size={"s"} className={styles["item-time"]}>
+              {formattedDuration}
+            </Text>
+          )}
+          {renderExternalLink()}
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div data-testid={"test-result-history-item"}>
       <div className={styles["test-result-history-item-header"]}>
         {Boolean(error) && (
           <span onClick={() => setIsOpen(!isOpened)}>
             <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
           </span>
         )}
-        <div
-          className={styles["test-result-history-item-wrap"]}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigateTo(navigateUrl);
-          }}
-        >
-          <TreeItemIcon status={status} className={styles["test-result-history-item-status"]} />
-          <Text className={styles["test-result-history-item-text"]}>{convertedStop}</Text>
-          <div className={styles["test-result-history-item-info"]}>
-            <Text type="ui" size={"s"} className={styles["item-time"]}>
-              {formattedDuration}
-            </Text>
-            <TooltipWrapper tooltipText={t("openInNewTab")}>
-              <IconButton
-                icon={allureIcons.lineGeneralLinkExternal}
-                style={"ghost"}
-                size={"s"}
-                className={styles["test-result-history-item-link"]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openInNewTab(navigateUrl);
-                }}
-              />
-            </TooltipWrapper>
-          </div>
-        </div>
+        {navigateUrl ? (
+          <a href={navigateUrl} className={styles["test-result-history-item-wrap"]}>
+            {renderItemContent()}
+          </a>
+        ) : (
+          <div className={styles["test-result-history-item-wrap"]}>{renderItemContent()}</div>
+        )}
       </div>
       {isOpened && error && (
         <div>

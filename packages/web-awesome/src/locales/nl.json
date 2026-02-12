@@ -17,18 +17,39 @@
     "new": "Nieuwe tests"
   },
   "tabs": {
-    "total": "Alle"
+    "total": "Alle",
+    "results": "Resultaten",
+    "globalAttachments": "Globale Bijlagen",
+    "globalErrors": "Globale Fouten",
+    "qualityGates": "Kwaliteitspoorten"
   },
   "search": {
     "search": "Zoeken",
     "search-placeholder": "Naam of ID"
   },
   "filters": {
-    "more-filters": "Meer filters",
-    "enable-filter": "Filter \"{filter}\" inschakelen",
     "flaky": "Onstabiel",
     "retry": "Opnieuw proberen",
-    "new": "Nieuw"
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect",
+    "transition": "Overgang",
+    "tags": "Tags",
+    "goto_filter": "Ga naar filter",
+    "errors": {
+      "max_values_one": "Alleen de eerste {{count}} waarde wordt gebruikt voor filtering.\nAanvullende waarden worden genegeerd",
+      "max_values_other": "Alleen de eerste {{count}} waarden worden gebruikt voor filtering.\nAanvullende waarden worden genegeerd"
+    },
+    "description": {
+      "flaky": "Onstabiele tests weergeven",
+      "retry": "Testresultaten weergeven die opnieuw zijn uitgevoerd",
+      "new": "Toont testresultaten die voor het eerst in dit rapport verschijnen",
+      "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
+      "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
+      "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status",
+      "tags": "Toont testresultaten die de opgegeven tags hebben"
+    }
   },
   "sort-by": {
     "sort-by-text": "Sorteren op:",
@@ -42,18 +63,18 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Laatste – Eerste",
-    "order-asc": "Eerste – Laatste",
+    "order-desc": "Laatste – Eerste",
+    "order-asc": "Eerste – Laatste",
     "order-asc-short": "Eerste",
     "order-desc-short": "Laatste",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
     "status-asc": "Zoals in de filterlijst",
     "status-desc": "Omgekeerd",
     "status-asc-short": "Normaal",
@@ -62,8 +83,11 @@
   "empty": {
     "no-results": "Geen resultaten",
     "no-tests-found": "Geen resultaten gevonden",
+    "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
     "no-attachments-results": "Geen bijlageninformatie beschikbaar",
+    "no-global-errors-results": "Geen globale fouteninformatie beschikbaar",
+    "no-quality-gate-results": "Geen kwaliteitspoort resultaten beschikbaar",
     "no-history-results": "Geen geschiedenisinformatie beschikbaar",
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
@@ -104,9 +128,13 @@
     "showLess": "Minder weergeven",
     "showMore": "Meer weergeven",
     "copy": "Kopiëren",
+    "copy-email": "E-mail kopiëren",
+    "attempt": "Poging {{attempt}} van {{total}}",
     "at": "om",
     "variables": "Variabelen",
-    "openPwTrace": "Playwright Trace openen"
+    "openPwTrace": "Open Playwright Trace",
+    "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
+    "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
   },
   "controls": {
     "newTabAttachment": "Bijlage openen in nieuw tabblad",
@@ -138,5 +166,242 @@
   },
   "errors": {
     "missedAttachment": "Bijlage niet gevonden"
+  },
+  "sections": {
+    "report": "Report",
+    "charts": "Grafieken",
+    "timeline": "Tijdlijn"
+  },
+  "timeline": {
+    "empty": "Geen gegevens",
+    "empty_host": "Geen gegevens voor {{ host }}",
+    "selected_one": "{{ count }} test ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "selected_other": "{{ count }} tests ({{ percentage }}%) met duur meer dan {{ minDuration }} en minder dan {{ maxDuration }} geselecteerd",
+    "host": "Host: {{ host }}"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trendgrafiek: {{type}}",
+      "type": {
+        "status": "Status",
+        "severity": "Ernst"
+      }
+    },
+    "currentStatus": {
+      "title": "Huidige status",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "van {{total}}",
+      "total": "totaal",
+      "tests": {
+        "new_zero": "Geen nieuwe tests",
+        "new_one": "{{count}} nieuwe test",
+        "new_other": "{{count}} nieuwe tests",
+        "flaky_zero": "Geen instabiele tests",
+        "flaky_one": "{{count}} instabiele test",
+        "flaky_other": "{{count}} instabiele tests",
+        "retries_zero": "Geen herhaalde tests",
+        "retries_one": "{{count}} herhaalde test",
+        "retries_other": "{{count}} herhaalde tests"
+      }
+    },
+    "statusDynamics": {
+      "title": "Statusdynamiek",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "Statusovergangen",
+      "legend": {
+        "trend": "Correctieratio"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "Histogram van duur per {{groupBy}}",
+      "title_none": "Histogram van duur",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "Geen",
+        "layer": "Laag"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "Aantal tests"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "Stabiliteitsverdeling",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "Stabiliteitspercentage"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "Groeodynamiek van testbasis",
+      "status": {
+        "newpassed": "Nieuw $t(statuses:passed)",
+        "newfailed": "Nieuw $t(statuses:failed)",
+        "newbroken": "Nieuw $t(statuses:broken)",
+        "newskipped": "Nieuw $t(statuses:skipped)",
+        "newunknown": "Nieuw $t(statuses:unknown)",
+        "removedpassed": "Verwijderd $t(statuses:passed)",
+        "removedfailed": "Verwijderd $t(statuses:failed)",
+        "removedbroken": "Verwijderd $t(statuses:broken)",
+        "removedskipped": "Verwijderd $t(statuses:skipped)",
+        "removedunknown": "Verwijderd $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "Groeitrend"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "fbsuAgePyramid": {
+      "title": "FBSU leeftijdspiramide",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "Testresultaten per ernst",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "Geen ernst"
+      }
+    },
+    "durationDynamics": {
+      "title": "Duurdynamiek",
+      "durations": {
+        "sequential": "Sequentiële duur",
+        "duration": "Testduur",
+        "speedup": "Versnelling"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "Laatste rapport ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "Rapport van {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "Laatste",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    }
+  },
+  "transitions": {
+    "description": {
+      "new": "Eerste keer dat dit testresultaat in het rapport verschijnt",
+      "fixed": "Eerder \"mislukt\" of \"gebroken\" test die nu \"geslaagd\" is",
+      "regressed": "Eerder \"geslaagd\" of \"gebroken\" test die nu \"mislukt\" is",
+      "malfunctioned": "Eerder \"geslaagd\" of \"mislukt\" test die nu \"gebroken\" is",
+      "retries": "{{count}} pogingen",
+      "flaky": "Inconsistent tussen runs"
+    },
+    "new": "Nieuw",
+    "fixed": "Opgelost",
+    "regressed": "Teruggevallen",
+    "malfunctioned": "Defect"
+  },
+  "trHistory": {
+    "unknown-date": "Onbekende datum"
+  },
+  "attachments": {
+    "imageDiff": {
+      "mode": {
+        "diff": "Diff",
+        "actual": "Werkelijk",
+        "expected": "Verwacht",
+        "side-by-side": "Naast elkaar",
+        "overlay": "Overlay"
+      },
+      "empty": {
+        "failed-to-load": "Kan afbeeldingsvergelijking niet laden"
+      },
+      "image": {
+        "diff": "Diff",
+        "actual": "Werkelijk",
+        "expected": "Verwacht"
+      }
+    }
   }
 }

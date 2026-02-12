@@ -2,10 +2,19 @@ export type * from "./api.js";
 export * from "./utils/misc.js";
 export * from "./utils/crypto.js";
 export * from "./utils/path.js";
-export * from "./utils/stats.js";
+export * from "./utils/new.js";
+export * from "./utils/flaky.js";
 export * from "./history.js";
 export * from "./known.js";
-export { resolveConfig, readConfig } from "./config.js";
+export { resolveConfig, readConfig, getPluginInstance } from "./config.js";
 export * from "./report.js";
 export * from "./plugin.js";
-export * from "./qualityGate.js";
+export {
+  QualityGateState,
+  qualityGateDefaultRules,
+  maxFailuresRule,
+  minTestsCountRule,
+  successRateRule,
+  convertQualityGateResultsToTestErrors,
+  stringifyQualityGateResults,
+} from "./qualityGate/index.js";

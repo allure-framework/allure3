@@ -31,6 +31,7 @@ export const mockVisitor: () => Mocked<ResultsVisitor> = () => ({
   visitAttachmentFile: vi.fn<ResultsVisitor["visitAttachmentFile"]>(),
   visitMetadata: vi.fn<ResultsVisitor["visitMetadata"]>(),
   visitTestFixtureResult: vi.fn<ResultsVisitor["visitTestFixtureResult"]>(),
+  visitGlobals: vi.fn<ResultsVisitor["visitGlobals"]>(),
 });
 
 export const readResults = async (
@@ -52,6 +53,7 @@ export const readResults = async (
 
 export const attachResultFile = async (resultFile: ResultFile) => {
   const content = await resultFile.asBuffer();
+
   if (content) {
     await attachment(resultFile.getOriginalFileName(), content, resultFile.getContentType() ?? "text/plain");
   }

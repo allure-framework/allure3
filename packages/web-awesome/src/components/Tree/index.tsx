@@ -1,27 +1,34 @@
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
-import type { AwesomeStatus } from "types";
+import { useMemo } from "preact/hooks";
 import { MetadataButton } from "@/components/MetadataButton";
-import { useTabsContext } from "@/components/Tabs";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
-import { navigateTo, route } from "@/stores/router";
-import {
-  clearTreeFilters,
-  collapsedTrees,
-  filteredTree,
-  noTests,
-  noTestsFound,
-  toggleTree,
-  treeStore,
-} from "@/stores/tree";
+import { navigateToTestResult } from "@/stores/router";
+import { currentTrId } from "@/stores/testResult";
+import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
+import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
+import { createTreeLocalizer } from "@/utils/tree";
 import * as styles from "./styles.scss";
+
+const treeNavigateTo = (id: string) => {
+  navigateToTestResult({ testResultId: id });
+};
 
 export const TreeList = () => {
   const { t } = useI18n("empty");
   const { t: tEnvironments } = useI18n("environments");
-  const { currentTab } = useTabsContext();
-  const { id: routeId } = route.value;
+  const { t: tooltip } = useI18n("transitions");
+  const trId = currentTrId.value;
+
+  const currentTreeStatus = treeStatus.value;
+
+  const localizers = useMemo(
+    () => ({
+      tooltip: (key: string, options: Record<string, string>) => tooltip(`description.${key}`, options),
+    }),
+    [tooltip],
+  );
 
   return (
     <Loadable
@@ -31,7 +38,7 @@ export const TreeList = () => {
         // TODO: use function instead of computed
         if (noTests.value) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <div className={styles["tree-empty-results"]}>
                 <Text className={styles["tree-empty-results-title"]}>{t("no-results")}</Text>
               </div>
@@ -41,7 +48,7 @@ export const TreeList = () => {
 
         if (noTestsFound.value) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <div className={styles["tree-empty-results"]}>
                 <Text tag="p" className={styles["tree-empty-results-title"]}>
                   {t("no-tests-found")}
@@ -59,19 +66,21 @@ export const TreeList = () => {
           );
         }
 
+        const treeLocalizer = createTreeLocalizer(localizers);
+
         // render single tree for single environment
         if (environmentsStore.value.data.length === 1) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <Tree
                 reportStatistic={reportStatsStore.value.data}
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                navigateTo={navigateTo}
-                tree={filteredTree.value.default}
-                statusFilter={currentTab as AwesomeStatus}
-                routeId={routeId}
+                navigateTo={treeNavigateTo}
+                tree={treeLocalizer(filteredTree.value.default)}
+                statusFilter={currentTreeStatus}
+                routeId={trId}
                 root
               />
             </div>
@@ -82,16 +91,16 @@ export const TreeList = () => {
 
         if (currentTree) {
           return (
-            <div className={styles["tree-list"]}>
+            <div>
               <Tree
                 reportStatistic={reportStatsStore.value.data}
                 statistic={statsByEnvStore.value.data[currentEnvironment.value]}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
-                navigateTo={navigateTo}
-                tree={currentTree}
-                statusFilter={currentTab as AwesomeStatus}
-                routeId={routeId}
+                navigateTo={treeNavigateTo}
+                tree={treeLocalizer(currentTree)}
+                statusFilter={currentTreeStatus}
+                routeId={trId}
                 root
               />
             </div>
@@ -129,20 +138,20 @@ export const TreeList = () => {
                     <TreeStatusBar
                       statistic={stats}
                       reportStatistic={reportStatsStore.value.data}
-                      statusFilter={currentTab}
+                      statusFilter={currentTreeStatus}
                     />
                   </div>
                   {isOpened && (
-                    <div className={styles["tree-list"]} data-testid={"tree-section-env-content"}>
+                    <div data-testid={"tree-section-env-content"}>
                       <Tree
                         statistic={statsByEnvStore.value.data[key]}
                         reportStatistic={reportStatsStore.value.data}
                         collapsedTrees={collapsedTrees.value}
                         toggleTree={toggleTree}
-                        statusFilter={currentTab}
-                        navigateTo={navigateTo}
-                        tree={value}
-                        routeId={routeId}
+                        statusFilter={currentTreeStatus}
+                        navigateTo={treeNavigateTo}
+                        tree={treeLocalizer(value)}
+                        routeId={trId}
                         root
                       />
                     </div>

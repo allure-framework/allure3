@@ -65,7 +65,11 @@ const createTree = <T, L, G>(
             groupsByClassifier[parentId] = {};
           }
 
-          if (groupsByClassifier[parentId][group] === undefined) {
+          // sometimes group name can clash with object prototype properties like 'constructor' 'toString', 'hasOwnProperty'
+          if (
+            groupsByClassifier[parentId][group] === undefined ||
+            typeof groupsByClassifier[parentId][group] === "function"
+          ) {
             const newGroup = groupFactory(parentId, group);
 
             groupsByClassifier[parentId][group] = newGroup;
@@ -82,7 +86,9 @@ const createTree = <T, L, G>(
       });
     }
 
-    parentGroups.forEach((parentGroup) => addLeaf(parentGroup, leaf.nodeId));
+    parentGroups.forEach((parentGroup) => {
+      addLeaf(parentGroup, leaf.nodeId);
+    });
   }
 
   // TODO: iterate over groupsById to sort leaves by start here?
@@ -328,4 +334,101 @@ export const transformTree = <L, G>(
   transformGroupLeaves(root as TreeGroup<G>);
 
   return tree;
+};
+
+export const createTreeByTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
+  return createTree(
+    data,
+    (item) => ((item as TestResult).titlePath ?? []).map((segment: string) => [segment]),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
+  );
+};
+
+const byLabelsAndTitlePath = (item: TestResult, labelNames: string[]): string[][] => {
+  const leaves: string[][] = [];
+
+  for (const labelName of labelNames) {
+    const values = item.labels.filter((label) => label.name === labelName).map((label) => label.value ?? "");
+
+    if (!values.length) {
+      continue;
+    }
+
+    leaves.push(values);
+  }
+
+  const titlePath = item.titlePath;
+  if (Array.isArray(titlePath) && titlePath.length > 0) {
+    for (const segment of titlePath) {
+      leaves.push([segment]);
+    }
+  }
+
+  return leaves;
+};
+
+export const createTreeByLabelsAndTitlePath = <T = TestResult, L = DefaultTreeLeaf, G = DefaultTreeGroup>(
+  data: T[],
+  labelNames: string[] = [],
+  leafFactory?: (item: T) => TreeLeaf<L>,
+  groupFactory?: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
+  addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
+) => {
+  const leafFactoryFn =
+    leafFactory ??
+    ((tr: T) => {
+      const { id, name, status, duration } = tr as TestResult;
+
+      return {
+        nodeId: id,
+        name,
+        status,
+        duration,
+      } as unknown as TreeLeaf<L>;
+    });
+
+  const groupFactoryFn =
+    groupFactory ??
+    ((parentId, groupClassifier) =>
+      ({
+        nodeId: md5((parentId ? `${parentId}.` : "") + groupClassifier),
+        name: groupClassifier,
+        statistic: emptyStatistic(),
+      }) as unknown as TreeGroup<G>);
+
+  return createTree<T, L, G>(
+    data,
+    (item) => byLabelsAndTitlePath(item as TestResult, labelNames),
+    leafFactoryFn,
+    groupFactoryFn,
+    addLeafToGroup,
+  );
 };

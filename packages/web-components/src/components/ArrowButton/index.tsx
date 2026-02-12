@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { FunctionalComponent } from "preact";
+import type { FunctionalComponent, JSX } from "preact";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import styles from "./styles.scss";
 
@@ -10,24 +10,22 @@ export interface ArrowButtonProps {
   className?: string;
   icon?: string;
   onClick?: VoidFunction;
+  tag?: keyof JSX.IntrinsicElements;
 }
 
 export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({
   isOpened,
   buttonSize = "m",
   iconSize = "xs",
+  tag: Tag = "button",
   className,
   icon = allureIcons.lineArrowsChevronDown,
   onClick,
   ...rest
 }) => {
   return (
-    <button
-      type="button"
-      {...rest}
-      className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])}
-      onClick={onClick}
-    >
+    // @ts-ignore
+    <Tag {...rest} className={clsx(styles["arrow-button"], styles[`arrow-button-${buttonSize}`])} onClick={onClick}>
       <SvgIcon
         id={icon}
         size={iconSize}
@@ -40,6 +38,6 @@ export const ArrowButton: FunctionalComponent<ArrowButtonProps> = ({
           className,
         )}
       />
-    </button>
+    </Tag>
   );
 };

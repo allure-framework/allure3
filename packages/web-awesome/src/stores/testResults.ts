@@ -21,7 +21,9 @@ export const testResultNavStore = signal<StoreSignalState<TrNavStoreState>>({
 
 export const fetchTestResultNav = async (env?: string) => {
   try {
-    const data = await fetchReportJsonData<string[]>(env ? `widgets/${env}/nav.json` : "widgets/nav.json");
+    const data = await fetchReportJsonData<string[]>(env ? `widgets/${env}/nav.json` : "widgets/nav.json", {
+      bustCache: true,
+    });
 
     testResultNavStore.value = {
       data,
@@ -30,7 +32,7 @@ export const fetchTestResultNav = async (env?: string) => {
     };
   } catch (err) {
     testResultNavStore.value = {
-      ...testResultNavStore.value,
+      ...testResultNavStore.peek(),
       error: err.message,
       loading: false,
     };
@@ -38,27 +40,31 @@ export const fetchTestResultNav = async (env?: string) => {
 };
 
 export const fetchTestResult = async (testResultId: string) => {
-  if (!testResultId || (testResultStore.value.data && testResultId in testResultStore.value.data)) {
+  const trData = testResultStore.peek().data;
+
+  if (!testResultId || (trData && testResultId in trData)) {
     return;
   }
 
   testResultStore.value = {
-    ...testResultStore.value,
+    ...testResultStore.peek(),
     loading: true,
     error: undefined,
   };
 
   try {
-    const data = await fetchReportJsonData<AwesomeTestResult>(`data/test-results/${testResultId}.json`);
+    const data = await fetchReportJsonData<AwesomeTestResult>(`data/test-results/${testResultId}.json`, {
+      bustCache: true,
+    });
 
     testResultStore.value = {
-      data: { ...testResultStore.value.data, [testResultId]: data },
+      data: { ...testResultStore.peek().data, [testResultId]: data },
       error: undefined,
       loading: false,
     };
   } catch (err) {
     testResultStore.value = {
-      ...testResultStore.value,
+      ...testResultStore.peek(),
       error: err.message,
       loading: false,
     };

@@ -13,7 +13,7 @@ export class DefaultPluginState implements PluginState {
   set = async (key: string, value: any): Promise<void> => {
     this.#state[key] = value;
   };
-  get = async (key: string): Promise<void> => {
+  get = async <T>(key: string): Promise<T> => {
     return this.#state[key];
   };
   unset = async (key: string): Promise<void> => {
@@ -25,21 +25,31 @@ export class PluginFiles implements ReportFiles {
   readonly #parent: ReportFiles;
   readonly #pluginId: string;
 
-  constructor(parent: ReportFiles, pluginId: string) {
+  constructor(
+    parent: ReportFiles,
+    pluginId: string,
+    readonly callback?: (key: string, path: string) => void,
+  ) {
     this.#parent = parent;
     this.#pluginId = pluginId;
   }
 
-  addFile = async (key: string, data: Buffer): Promise<void> => {
-    await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
+  addFile = async (key: string, data: Buffer): Promise<string> => {
+    const filepath = await this.#parent.addFile(joinPosix(this.#pluginId, key), data);
+
+    this.callback?.(key, filepath);
+
+    return filepath;
   };
 }
 
 export class InMemoryReportFiles implements ReportFiles {
   #state: Record<string, Buffer> = {};
 
-  addFile = async (path: string, data: Buffer): Promise<void> => {
+  addFile = async (path: string, data: Buffer): Promise<string> => {
     this.#state[path] = data;
+
+    return path;
   };
 }
 
@@ -50,11 +60,13 @@ export class FileSystemReportFiles implements ReportFiles {
     this.#output = resolve(output);
   }
 
-  addFile = async (path: string, data: Buffer): Promise<void> => {
+  addFile = async (path: string, data: Buffer): Promise<string> => {
     const targetPath = resolve(this.#output, path);
     const targetDirPath = dirname(targetPath);
 
     await mkdir(targetDirPath, { recursive: true });
     await writeFile(targetPath, data, { encoding: "utf-8" });
+
+    return targetPath;
   };
 }

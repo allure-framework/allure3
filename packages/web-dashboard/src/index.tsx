@@ -4,7 +4,6 @@ import { render } from "preact";
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import { getLocale, waitForI18next } from "@/stores/locale";
-import { getTheme } from "@/stores/theme";
 import { isMac } from "@/utils/isMac";
 import * as styles from "./styles.scss";
 
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
   await waitForI18next;
   if (globalThis) {
     await getLocale();
-    getTheme();
   }
   await ensureReportDataReady();
 

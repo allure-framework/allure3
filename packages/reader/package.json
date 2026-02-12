@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader",
-  "version": "3.0.0-beta.12",
+  "version": "3.1.0",
   "description": "Collection of utilities which helps to process different kind of test results as Allure Results",
   "keywords": [
     "allure",
@@ -38,9 +38,9 @@
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitest/runner": "^2.1.8",
-    "allure-js-commons": "^3.0.9",
-    "allure-vitest": "^3.0.9",
+    "@vitest/runner": "^2.1.9",
+    "allure-js-commons": "^3.3.3",
+    "allure-vitest": "^3.3.3",
     "archiver": "^7.0.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -51,6 +51,6 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   }
 }

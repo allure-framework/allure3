@@ -25,7 +25,7 @@
   },
   "filters": {
     "more-filters": "Weitere Filter",
-    "enable-filter": "Filter für \"{filter}\" aktivieren",
+    "enable-filter": "Filter für \"{{filter}}\" aktivieren",
     "flaky": "Instabil",
     "retry": "Wiederholen",
     "new": "Neu"
@@ -95,6 +95,7 @@
     "showLess": "Weniger anzeigen",
     "showMore": "Mehr anzeigen",
     "copy": "Kopieren",
+    "attempt": "Versuch {{attempt}} von {{total}}",
     "at": "bei"
   },
   "controls": {

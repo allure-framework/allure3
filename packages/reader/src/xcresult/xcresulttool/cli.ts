@@ -1,5 +1,10 @@
+import {
+  collectCliToolStdoutText,
+  invokeCliTool,
+  invokeJsonCliTool,
+  invokeStdoutCliTool,
+} from "@allurereport/reader-api";
 import console from "node:console";
-import { invokeCliTool, invokeJsonCliTool, invokeStdoutCliTool, invokeTextStdoutCliTool } from "../../toolRunner.js";
 import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
 export const xcrunJson = async <T>(utilityName: string, ...args: readonly string[]) => {
@@ -27,12 +32,8 @@ export const xcresulttool = async <T>(...args: readonly string[]) => await xcrun
 export const xcresulttoolBinary = async (...args: readonly string[]) => await xcrunBinary("xcresulttool", ...args);
 
 export const version = async () => {
-  const stdout = invokeTextStdoutCliTool("xcrun", ["xcresulttool", "version"], { timeout: 10000 });
-  const lines: string[] = [];
-  for await (const line of stdout) {
-    lines.push(line);
-  }
-  return lines.join("\n");
+  const stdout = await collectCliToolStdoutText("xcrun", ["xcresulttool", "version"], { timeout: 10000 });
+  return stdout.trim();
 };
 
 export const getTests = async (xcResultPath: string) =>

@@ -2,7 +2,26 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AwesomeReportOptions, Layout } from "types";
 
-export const layoutStore = signal<Layout>("base");
+const reportOptions = getReportOptions<AwesomeReportOptions>();
+
+const DEFAULT_LAYOUT = "base";
+
+const getInitialLayout = (): Layout => {
+  if (typeof window === "undefined") {
+    return DEFAULT_LAYOUT;
+  }
+
+  const lsLayout = localStorage.getItem("layout") as Layout | null;
+
+  if (lsLayout !== null) {
+    return lsLayout;
+  }
+
+  return lsLayout ?? reportOptions?.layout ?? DEFAULT_LAYOUT;
+};
+
+export const layoutStore = signal<Layout>(getInitialLayout());
+
 export const isLayoutLoading = signal(false);
 
 export const setLayout = (newLayout: Layout): void => {
@@ -24,13 +43,3 @@ export const toggleLayout = () => {
 };
 
 export const isSplitMode = computed(() => layoutStore.value === "split");
-
-export const getLayout = () => {
-  const { layout } = getReportOptions<AwesomeReportOptions>() ?? {};
-  const layoutFromLS = window.localStorage.getItem("layout") || (layout as Layout) || "base";
-
-  if (layoutFromLS) {
-    setLayout(layoutFromLS as Layout);
-    return;
-  }
-};

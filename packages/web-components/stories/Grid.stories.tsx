@@ -1,6 +1,6 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import { useState } from "preact/hooks";
-import { Grid, GridItem } from "@allurereport/web-components";
+import { Grid, GridItem } from "@/components/Grid";
 import type { SortableEvent } from "sortablejs";
 
 const meta: Meta<typeof Grid> = {
@@ -129,7 +129,7 @@ export const WithDisabledItems: StoryFn<typeof Grid> = (args) => {
       {Array.from({ length: 9 }, (_, index) => (
         <GridItem
           key={index}
-          isDndDisabled={index % 3 === 0}
+          dndEnabled={!(index % 3 === 0)}
           style={defaultItemStyle}
         >
           Grid Item {index + 1}
@@ -149,7 +149,7 @@ export const WithSwapMode: StoryFn<typeof Grid> = (args) => {
       {Array.from({ length: 9 }, (_, index) => (
         <GridItem
           key={index}
-          isDndDisabled={index % 3 === 0}
+          dndEnabled={!(index % 3 === 0)}
           style={defaultItemStyle}
         >
           Grid Item {index + 1}

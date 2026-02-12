@@ -1,64 +1,108 @@
 /* eslint-disable @stylistic/quotes */
 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Grid, GridItem, Loadable, PageLoader, SuccessRatePieChart } from "@allurereport/web-components";
+import { ChartType } from "@allurereport/charts-api";
+import type { UIChartData } from "@allurereport/web-commons";
+import { themeStore } from "@allurereport/web-commons";
+import {
+  Grid,
+  GridItem,
+  HeatMapWidget,
+  Loadable,
+  PageLoader,
+  ThemeProvider,
+  TreeMapChartWidget,
+} from "@allurereport/web-components";
+import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
-import { capitalize } from "@/utils/capitalize";
 import * as styles from "./Overview.module.scss";
-import { TrendChartWidget } from "./components/TrendChartWidget";
-import { Widget } from "./components/Widget";
+
+const getChartWidgetByType = (
+  chartData: UIChartData,
+  { empty }: Record<string, (key: string, options?: any) => string>,
+) => {
+  switch (chartData.type) {
+    case ChartType.CoverageDiff: {
+      return (
+        <TreeMapChartWidget
+          chartType={ChartType.CoverageDiff}
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.SuccessRateDistribution: {
+      return (
+        <TreeMapChartWidget
+          chartType={ChartType.SuccessRateDistribution}
+          data={chartData.treeMap}
+          title={chartData.title}
+          formatLegend={chartData.formatLegend}
+          colors={chartData.colors}
+          legendDomain={chartData.legendDomain}
+          tooltipRows={chartData.tooltipRows}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    case ChartType.ProblemsDistribution: {
+      return (
+        <HeatMapWidget
+          title={chartData.title}
+          data={chartData.data}
+          translations={{ "no-results": empty("no-results") }}
+        />
+      );
+    }
+    default: {
+      return null;
+    }
+  }
+};
+
+const currentTheme = computed(() => themeStore.value.current);
 
 const Overview = () => {
   const { t } = useI18n("charts");
+  const { t: empty } = useI18n("empty");
 
   useEffect(() => {
     fetchChartsData();
   }, []);
 
   return (
-    <Loadable
-      source={chartsStore}
-      renderLoader={() => <PageLoader />}
-      renderData={({ pie, trends }) => {
-        const pieTitle = t("pie.title");
+    <ThemeProvider theme={currentTheme.value}>
+      <Loadable
+        source={chartsStore}
+        renderLoader={() => <PageLoader />}
+        renderData={(data) => {
+          const charts = Object.entries(data).map(([chartId, value]) => {
+            const chartWidget = getChartWidgetByType(value, { t, empty });
 
-        const TrendChartGridItems = Object.entries(trends.charts).map(([chartId, value]) => {
-          const title = value.title ?? t("trend.title", { type: capitalize(value.type) });
+            return (
+              <GridItem key={chartId} className={styles["overview-grid-item"]}>
+                {chartWidget}
+              </GridItem>
+            );
+          });
 
           return (
-            <GridItem key={chartId} className={styles["overview-grid-item"]}>
-              <TrendChartWidget
-                title={title}
-                items={value.items}
-                slices={value.slices}
-                min={value.min}
-                max={value.max}
-                rootAriaLabel={title}
-              />
-            </GridItem>
+            <div className={styles.overview}>
+              <Grid kind="swap" className={styles["overview-grid"]}>
+                {charts}
+              </Grid>
+            </div>
           );
-        });
-
-        return (
-          <div className={styles.overview}>
-            <Grid kind="swap" className={styles["overview-grid"]}>
-              {TrendChartGridItems}
-              <GridItem className={styles["overview-grid-item"]}>
-                <Widget title={pieTitle}>
-                  <div className={styles["overview-grid-item-pie-chart-wrapper"]}>
-                    <div className={styles["overview-grid-item-pie-chart-wrapper-squeezer"]}>
-                      <SuccessRatePieChart slices={pie.slices} percentage={pie.percentage} />
-                    </div>
-                  </div>
-                </Widget>
-              </GridItem>
-            </Grid>
-          </div>
-        );
-      }}
-    />
+        }}
+      />
+    </ThemeProvider>
   );
 };
 

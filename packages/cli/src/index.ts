@@ -1,59 +1,62 @@
-import { cac } from "cac";
-import console from "node:console";
+import { Builtins, Cli } from "clipanion";
 import { readFileSync } from "node:fs";
-import { cwd } from "node:process";
+import { argv } from "node:process";
 import {
+  Allure2Command,
   AwesomeCommand,
   ClassicCommand,
-  ClassicLegacyCommand,
   CsvCommand,
   DashboardCommand,
   GenerateCommand,
   HistoryCommand,
+  JiraClearCommand,
   KnownIssueCommand,
   LogCommand,
   OpenCommand,
   QualityGateCommand,
+  ResultsPackCommand,
+  ResultsUnpackCommand,
   RunCommand,
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
+  WhoamiCommand,
 } from "./commands/index.js";
+
+const [node, app, ...args] = argv;
 
 const pkg: { name: string; description: string; version: string } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
-const cli = cac(pkg.name).usage(pkg.description).help().version(pkg.version);
-const commands = [
-  ClassicCommand,
-  ClassicLegacyCommand,
-  AwesomeCommand,
-  CsvCommand,
-  DashboardCommand,
-  GenerateCommand,
-  HistoryCommand,
-  KnownIssueCommand,
-  LogCommand,
-  OpenCommand,
-  QualityGateCommand,
-  RunCommand,
-  SlackCommand,
-  TestPlanCommand,
-  WatchCommand,
-];
-
-commands.forEach((command) => {
-  command(cli);
+const cli = new Cli({
+  binaryName: pkg.name,
+  binaryLabel: `${node} ${app}`,
+  binaryVersion: pkg.version,
 });
 
-cli.on("command:*", () => {
-  console.error("Invalid command: %s", cli.args.join(" "));
-  process.exit(1);
-});
+cli.register(AwesomeCommand);
+cli.register(Allure2Command);
+cli.register(ClassicCommand);
+cli.register(CsvCommand);
+cli.register(DashboardCommand);
+cli.register(GenerateCommand);
+cli.register(HistoryCommand);
+cli.register(JiraClearCommand);
+cli.register(KnownIssueCommand);
+cli.register(LogCommand);
+cli.register(OpenCommand);
+cli.register(QualityGateCommand);
+cli.register(RunCommand);
+cli.register(SlackCommand);
+cli.register(TestPlanCommand);
+cli.register(WatchCommand);
+cli.register(ResultsPackCommand);
+cli.register(ResultsUnpackCommand);
+cli.register(WhoamiCommand);
+cli.register(Builtins.HelpCommand);
+cli.register(Builtins.VersionCommand);
+cli.runExit(args);
 
-console.log(cwd());
-
-cli.parse();
-
-export { defineConfig } from "@allurereport/plugin-api";
+export { type Config as AllureConfig, defineConfig } from "@allurereport/plugin-api";
+export { defaultChartsConfig } from "@allurereport/charts-api";

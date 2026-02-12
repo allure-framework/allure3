@@ -4,7 +4,6 @@ import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
-import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
 
 export type TrMetadataProps = {
@@ -13,12 +12,16 @@ export type TrMetadataProps = {
 };
 
 export const TrPwTraces: FunctionalComponent<TrMetadataProps> = ({ pwTraces }) => {
-  const { t } = useI18n("ui");
   const [isOpened, setIsOpened] = useState(true);
 
   return (
     <div className={styles["tr-metadata"]}>
-      <MetadataButton isOpened={isOpened} setIsOpen={setIsOpened} counter={pwTraces?.length} title={t("pwTrace")} />
+      <MetadataButton
+        isOpened={isOpened}
+        setIsOpen={setIsOpened}
+        counter={pwTraces?.length}
+        title={"Playwright Trace"}
+      />
       {isOpened && (
         <div className={styles["tr-metadata-wrapper"]}>
           {pwTraces?.map((pw, index) => <TrAttachment stepIndex={index + 1} item={pw} key={pw.link.id} />)}

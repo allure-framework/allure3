@@ -3,3 +3,4 @@ allure-report/
 node_modules/
 history.jsonl
 .DS_Store
+foo.zip
