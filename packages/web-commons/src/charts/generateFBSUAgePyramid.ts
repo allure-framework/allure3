@@ -4,16 +4,15 @@ import type {
   FBSUAgePyramidChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
-import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
-import { htrsByTr } from "@allurereport/core-api";
+import type { HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 type DataItem = FBSUAgePyramidChartData["data"][number];
 
 type FBSUStatus = Exclude<TestStatus, "passed">;
 
-const createEmptyStats = (statuses: FBSUStatus[]): Omit<DataItem, "id" | "timestamp"> => {
-  return statuses.reduce(
+const createEmptyStats = (): Omit<DataItem, "id" | "timestamp"> => {
+  return STATUSES.reduce(
     (acc, status) => {
       acc[status] = 0;
       return acc;
@@ -49,18 +48,36 @@ export const generateFBSUAgePyramid = (props: {
         {
           id: "current",
           timestamp: currentReportTimestamp,
-          ...createEmptyStats(STATUSES),
+          ...createEmptyStats(),
         },
       ],
       statuses: STATUSES,
     };
   }
-  const [earliestHdp, ...hdps] = limitedHistoryPoints;
+  const hdps = limitedHistoryPoints.map((datapoint) => ({
+    ...datapoint,
+    testResults: Object.values(datapoint.testResults).reduce(
+      (acc, testResult) => {
+        if (!testResult.historyId) {
+          return acc;
+        }
+
+        const isInCurrentRun = testResults.findIndex((tr) => tr.historyId === testResult.historyId) !== -1;
+
+        if (isInCurrentRun) {
+          acc[testResult.historyId] = testResult;
+        }
+
+        return acc;
+      },
+      {} as Record<string, HistoryTestResult>,
+    ),
+  }));
 
   const dataPoints = [
     ...hdps.map((hdp) => ({
       ...hdp,
-      ...createEmptyStats(STATUSES),
+      ...createEmptyStats(),
     })),
     {
       testResults: testResults.reduce(
@@ -72,32 +89,32 @@ export const generateFBSUAgePyramid = (props: {
       ),
       uuid: "current",
       timestamp: currentReportTimestamp,
-      ...createEmptyStats(STATUSES),
+      ...createEmptyStats(),
     },
   ];
 
-  // @TODO: Add accumulation later
-  dataPoints.forEach((dp, index, dataPointsAscending) => {
+  dataPoints.forEach((dp, index, dps) => {
     const { testResults: trs } = dp;
-    const isFirst = index === 0;
-    // Add earliest history point to the beginning of the array if it's the first data point
-    const hpsPriorToCurrent = isFirst ? [earliestHdp] : dataPointsAscending.slice(0, index);
+    const historyAfter = dps.slice(index, dps.length - 1);
 
     const currentTrs: (TestResult | HistoryTestResult)[] = Object.values(trs);
 
     for (const cTr of currentTrs) {
-      // Skip test results with statuses that are not in the status list from chart options
-      if (!isFBSUStatus(cTr.status)) {
+      const currentTrStatus = cTr.status;
+
+      if (!isFBSUStatus(currentTrStatus)) {
         continue;
       }
 
-      // Compare only to latest history point, as we don't know the previous history
-      const htrsPriortoCurr = htrsByTr(hpsPriorToCurrent as HistoryDataPoint[], cTr);
+      const historyAfterTrsStatuses: (TestStatus | undefined)[] = historyAfter.map(
+        (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
+      );
 
-      // Test result is new, because it has no history
-      if (htrsPriortoCurr.length === 0) {
-        dp[cTr.status]++;
+      if (historyAfterTrsStatuses.some((status) => status !== currentTrStatus)) {
+        continue;
       }
+
+      dp[currentTrStatus]++;
     }
   });
 
