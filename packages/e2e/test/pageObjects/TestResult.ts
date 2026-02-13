@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { CommonPage } from "./Common.js";
+import { LinkFixture } from "./LinkFixture.js";
 import { RetryItemFixture } from "./RetryItem.js";
 import { StepResultFixture } from "./StepResult.js";
 
@@ -39,6 +40,8 @@ export class TestResultPage extends CommonPage {
   retriesItemLocator: Locator;
   prevStatusLocator: Locator;
 
+  linksLocator: Locator;
+
   constructor(readonly page: Page) {
     super(page);
 
@@ -76,6 +79,8 @@ export class TestResultPage extends CommonPage {
     this.historyItemLocator = page.getByTestId("test-result-history-item");
     this.retriesItemLocator = page.getByTestId("test-result-retries-item");
     this.prevStatusLocator = page.getByTestId("test-result-prev-status");
+
+    this.linksLocator = page.getByTestId("test-result-meta-links");
   }
 
   tabById(id: string) {
@@ -97,6 +102,13 @@ export class TestResultPage extends CommonPage {
    */
   getRetry(index: number) {
     return new RetryItemFixture(this, index);
+  }
+
+  /**
+   * Returns a fixture for a link by its index.
+   */
+  getLink(index: number) {
+    return new LinkFixture(this, index);
   }
 
   get envTabLocator() {
@@ -137,5 +149,9 @@ export class TestResultPage extends CommonPage {
     });
 
     await locator.click();
+  }
+
+  async toggleLinkSection() {
+    this.linksLocator.getByRole("button").click();
   }
 }

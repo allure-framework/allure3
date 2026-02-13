@@ -22,13 +22,13 @@ const linksIconMap: Record<string, string> = {
 const TrLink: FunctionalComponent<{
   link: TrLinkProps;
 }> = ({ link }) => {
-  const { url, type } = link;
+  const { url, name, type } = link;
 
   return (
-    <div className={styles["test-result-link"]}>
+    <div className={styles["test-result-link"]} data-testid="test-result-meta-link">
       <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
       <Text tag={"a"} href={url} target={"_blank"} size={"m"} className={styles["test-result-link-text"]}>
-        {url}
+        {name || url}
       </Text>
     </div>
   );
@@ -46,7 +46,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ links }) => {
   });
 
   return (
-    <div className={styles["test-result-links"]}>
+    <div className={styles["test-result-links"]} data-testid="test-result-meta-links">
       <div className={styles["test-result-links-wrapper"]}>
         <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={links.length} title={t("links")} />
         {isOpened && <div className={styles["test-result-links-list"]}>{linkMap}</div>}

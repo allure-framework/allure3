@@ -33,6 +33,15 @@ test.beforeAll(async () => {
         stage: Stage.FINISHED,
         start: now,
         stop: now + 1000,
+        links: [
+          {
+            url: "https://allurereport.org/",
+            name: "Homepage",
+          },
+          {
+            url: "https://allurereport.org/docs/",
+          },
+        ],
       },
       {
         name: "1 sample failed test",
@@ -155,6 +164,33 @@ test.describe("allure-awesome", () => {
       await expect(testResultPage.errorTraceLocator).not.toBeVisible();
       await testResultPage.errorMessageLocator.click();
       await expect(testResultPage.errorTraceLocator).toHaveText("broken test trace");
+    });
+
+    test("has a collapsable links section with links", async () => {
+      const homepageLink = testResultPage.getLink(0);
+      const docsLink = testResultPage.getLink(1);
+
+      await treePage.clickLeafByTitle("0 sample passed test");
+      await expect(testResultPage.linksLocator).toBeVisible();
+
+      // Collapse
+      await testResultPage.toggleLinkSection();
+
+      await expect(homepageLink.locator).not.toBeVisible();
+      await expect(docsLink.locator).not.toBeVisible();
+
+      // Expand
+      await testResultPage.toggleLinkSection();
+
+      await expect(homepageLink.locator).toBeVisible();
+      await expect(homepageLink.iconLocator).toBeVisible();
+      await expect(homepageLink.anchorLocator).toHaveAttribute("href", "https://allurereport.org/");
+      await expect(homepageLink.anchorLocator).toHaveText("Homepage");
+
+      await expect(docsLink.locator).toBeVisible();
+      await expect(docsLink.iconLocator).toBeVisible();
+      await expect(docsLink.anchorLocator).toHaveAttribute("href", "https://allurereport.org/docs/");
+      await expect(docsLink.anchorLocator).toHaveText("https://allurereport.org/docs/");
     });
   });
 });
