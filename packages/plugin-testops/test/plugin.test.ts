@@ -2,6 +2,7 @@
 import { detect } from "@allurereport/ci";
 import type { AttachmentLink, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
+import { env } from "node:process";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TestopsUploaderPluginOptions } from "../src/model.js";
@@ -284,6 +285,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledWith("Allure Report", []);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
 
     it("should pass launchTags to createLaunch", async () => {
@@ -523,6 +525,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
 
     it("should upload test results", async () => {
@@ -703,6 +706,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.issueOauthToken).toHaveBeenCalledTimes(1);
       expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.createSession).toHaveBeenCalledWith(env);
     });
 
     it("should upload test results", async () => {

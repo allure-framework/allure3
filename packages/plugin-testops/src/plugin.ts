@@ -8,6 +8,7 @@ import {
   type PluginSummary,
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
+import { env } from "node:process";
 import { TestOpsClient } from "./client.js";
 import type { TestopsUploaderPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
@@ -84,7 +85,7 @@ export class TestopsUploaderPlugin implements Plugin {
       await this.#client!.issueOauthToken();
     }
 
-    await this.#client!.createSession();
+    await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
       attachmentsResolver: async (tr) => {

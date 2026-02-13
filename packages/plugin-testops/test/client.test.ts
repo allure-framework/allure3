@@ -299,7 +299,7 @@ describe("testops http client", () => {
       expect(AxiosMock.post).toHaveBeenCalledTimes(0);
     });
 
-    it("should create a session for a current launch", async () => {
+    it("should create a session for a current launch with empty environment by default", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
           return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
@@ -327,9 +327,53 @@ describe("testops http client", () => {
       expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", expect.anything(), expect.anything());
       expect(AxiosMock.post).toHaveBeenNthCalledWith(
         3,
-        "/api/rs/upload/session?manual=true",
+        "/api/upload/session?manual=true",
         {
           launchId: fixtures.launch.id,
+          environment: [],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${fixtures.ouathToken}`,
+          },
+        },
+      );
+    });
+
+    it("should pass environment variables as key-value pairs to the session", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const environment = { NODE_ENV: "test", CI: "true", BUILD_NUMBER: 42 };
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession(environment);
+
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(
+        3,
+        "/api/upload/session?manual=true",
+        {
+          launchId: fixtures.launch.id,
+          environment: [
+            { key: "NODE_ENV", value: "test" },
+            { key: "CI", value: "true" },
+            { key: "BUILD_NUMBER", value: "42" },
+          ],
         },
         {
           headers: {
