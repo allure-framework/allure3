@@ -1,13 +1,13 @@
 import type {
   AllureChartsStoreData,
-  FBSUAgePyramidChartData,
-  FBSUAgePyramidChartOptions,
+  StatusAgePyramidChartData,
+  StatusAgePyramidChartOptions,
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
-type DataItem = FBSUAgePyramidChartData["data"][number];
+type DataItem = StatusAgePyramidChartData["data"][number];
 
 type FBSUStatus = Exclude<TestStatus, "passed">;
 
@@ -25,10 +25,10 @@ const STATUSES: FBSUStatus[] = ["failed", "broken", "skipped", "unknown"];
 
 const isFBSUStatus = (status: TestStatus): status is FBSUStatus => STATUSES.includes(status as FBSUStatus);
 
-export const generateFBSUAgePyramid = (props: {
-  options: FBSUAgePyramidChartOptions;
+export const generateStatusAgePyramid = (props: {
+  options: StatusAgePyramidChartOptions;
   storeData: AllureChartsStoreData;
-}): FBSUAgePyramidChartData => {
+}): StatusAgePyramidChartData => {
   const { options, storeData } = props;
   const { limit = DEFAULT_CHART_HISTORY_LIMIT } = options;
   const { historyDataPoints, testResults } = storeData;
@@ -42,7 +42,7 @@ export const generateFBSUAgePyramid = (props: {
 
   if (limitedHistoryPoints.length === 0) {
     return {
-      type: ChartType.FBSUAgePyramid,
+      type: ChartType.StatusAgePyramid,
       title: options.title,
       data: [
         {
@@ -64,6 +64,7 @@ export const generateFBSUAgePyramid = (props: {
 
         const isInCurrentRun = testResults.findIndex((tr) => tr.historyId === testResult.historyId) !== -1;
 
+        // Skip all tests that are not in the current run
         if (isInCurrentRun) {
           acc[testResult.historyId] = testResult;
         }
@@ -102,6 +103,7 @@ export const generateFBSUAgePyramid = (props: {
     for (const cTr of currentTrs) {
       const currentTrStatus = cTr.status;
 
+      // Skip non-FBSU status tests
       if (!isFBSUStatus(currentTrStatus)) {
         continue;
       }
@@ -110,6 +112,7 @@ export const generateFBSUAgePyramid = (props: {
         (hdp) => hdp.testResults[cTr.historyId!]?.status ?? undefined,
       );
 
+      // If the test status changed in a later run, skip it
       if (historyAfterTrsStatuses.some((status) => status !== currentTrStatus)) {
         continue;
       }
@@ -128,7 +131,7 @@ export const generateFBSUAgePyramid = (props: {
   }));
 
   return {
-    type: ChartType.FBSUAgePyramid,
+    type: ChartType.StatusAgePyramid,
     title: options.title,
     data: data,
     statuses: STATUSES,

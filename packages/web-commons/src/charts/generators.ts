@@ -10,8 +10,8 @@ import { type AllureStore } from "@allurereport/plugin-api";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
-import { generateFBSUAgePyramid } from "./generateFBSUAgePyramid.js";
 import { generateStabilityDistributionChart } from "./generateStabilityDistributionChart.js";
+import { generateStatusAgePyramid } from "./generateStatusAgePyramid.js";
 import { generateStatusDynamicsChart } from "./generateStatusDynamicsChart.js";
 import { generateStatusTransitionsChart } from "./generateStatusTransitionsChart.js";
 import { generateTestBaseGrowthDynamicsChart } from "./generateTestBaseGrowthDynamicsChart.js";
@@ -125,8 +125,8 @@ const generateChartData = async (props: {
       case ChartType.TestBaseGrowthDynamics:
         result[chartId] = generateTestBaseGrowthDynamicsChart({ options: chartOption, storeData })!;
         break;
-      case ChartType.FBSUAgePyramid:
-        result[chartId] = generateFBSUAgePyramid({ options: chartOption, storeData })!;
+      case ChartType.StatusAgePyramid:
+        result[chartId] = generateStatusAgePyramid({ options: chartOption, storeData })!;
         break;
       case ChartType.TrSeverities:
         result[chartId] = generateTrSeveritiesChart({ options: chartOption, storeData })!;

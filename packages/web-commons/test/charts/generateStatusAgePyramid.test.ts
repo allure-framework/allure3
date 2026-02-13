@@ -2,7 +2,7 @@ import { ChartType } from "@allurereport/charts-api";
 import type { AllureChartsStoreData } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
-import { generateFBSUAgePyramid } from "../../src/charts/generateFBSUAgePyramid.js";
+import { generateStatusAgePyramid } from "../../src/charts/generateStatusAgePyramid.js";
 
 const baseTestResult: Pick<
   TestResult,
@@ -63,24 +63,24 @@ const createStoreData = (overrides: Partial<AllureChartsStoreData>): AllureChart
   ...overrides,
 });
 
-describe("generateFBSUAgePyramid", () => {
-  it("should return chart with type FBSUAgePyramid and default statuses", () => {
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+describe("generateStatusAgePyramid", () => {
+  it("should return chart with type StatusAgePyramid and default statuses", () => {
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData: createStoreData({}),
     });
 
-    expect(result.type).toBe(ChartType.FBSUAgePyramid);
+    expect(result.type).toBe(ChartType.StatusAgePyramid);
     expect(result.statuses).toEqual(["failed", "broken", "skipped", "unknown"]);
   });
 
   it("should use custom title from options", () => {
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, title: "Custom FBSU Pyramid" },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, title: "Custom Status Pyramid" },
       storeData: createStoreData({}),
     });
 
-    expect(result.title).toBe("Custom FBSU Pyramid");
+    expect(result.title).toBe("Custom Status Pyramid");
   });
 
   it("should return single current data point with zero stats when no history", () => {
@@ -88,8 +88,8 @@ describe("generateFBSUAgePyramid", () => {
       testResults: [createTestResult({ id: "1", status: "failed", historyId: "hid-1", stop: 2000 })],
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData,
     });
 
@@ -125,8 +125,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 2, failed: 1, broken: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData,
     });
 
@@ -154,8 +154,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 1, passed: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData,
     });
 
@@ -193,8 +193,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 2, failed: 1, broken: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData,
     });
 
@@ -230,8 +230,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 1, failed: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, limit: 10 },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, limit: 10 },
       storeData,
     });
 
@@ -274,8 +274,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 1, failed: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, limit: 10 },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, limit: 10 },
       storeData,
     });
 
@@ -321,8 +321,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 1, failed: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, limit: 10 },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, limit: 10 },
       storeData,
     });
 
@@ -349,8 +349,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 0 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, limit: 2 },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, limit: 2 },
       storeData,
     });
 
@@ -369,8 +369,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 0 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid, limit: 10 },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid, limit: 10 },
       storeData,
     });
 
@@ -399,8 +399,8 @@ describe("generateFBSUAgePyramid", () => {
       statistic: { total: 2, skipped: 1, unknown: 1 },
     });
 
-    const result = generateFBSUAgePyramid({
-      options: { type: ChartType.FBSUAgePyramid },
+    const result = generateStatusAgePyramid({
+      options: { type: ChartType.StatusAgePyramid },
       storeData,
     });
 

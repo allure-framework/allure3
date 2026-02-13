@@ -151,8 +151,8 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "fbsuAgePyramid": {
-      "title": "FBSU leeftijdspiramide",
+    "statusAgePyramid": {
+      "title": "Leeftijdspiramide per status",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",

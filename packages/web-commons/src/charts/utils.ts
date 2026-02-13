@@ -3,8 +3,8 @@ import type {
   CurrentStatusChartData,
   DurationDynamicsChartData,
   DurationsChartData,
-  FBSUAgePyramidChartData,
   StabilityDistributionChartData,
+  StatusAgePyramidChartData,
   StatusDynamicsChartData,
   StatusTransitionsChartData,
   TestBaseGrowthDynamicsChartData,
@@ -181,8 +181,8 @@ export const createCharts = (res: ChartsData): Record<ChartId, UIChartData> => {
         acc[chartId] = res[chartId] as StabilityDistributionChartData;
       } else if (chart.type === ChartType.TestBaseGrowthDynamics) {
         acc[chartId] = res[chartId] as TestBaseGrowthDynamicsChartData;
-      } else if (chart.type === ChartType.FBSUAgePyramid) {
-        acc[chartId] = res[chartId] as FBSUAgePyramidChartData;
+      } else if (chart.type === ChartType.StatusAgePyramid) {
+        acc[chartId] = res[chartId] as StatusAgePyramidChartData;
       } else if (chart.type === ChartType.TrSeverities) {
         acc[chartId] = res[chartId] as TrSeveritiesChartData;
       } else if (chart.type === ChartType.DurationDynamics) {

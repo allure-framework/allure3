@@ -5,13 +5,13 @@ import {
   CurrentStatusChartWidget,
   DurationDynamicsChartWidget,
   DurationsChartWidget,
-  FBSUAgePyramidChartWidget,
   Grid,
   GridItem,
   HeatMapWidget,
   Loadable,
   PageLoader,
   StabilityDistributionWidget,
+  StatusAgePyramidChartWidget,
   StatusDynamicsChartWidget,
   StatusTransitionsChartWidget,
   TestBaseGrowthDynamicsChartWidget,
@@ -112,15 +112,15 @@ const getChartWidgetByType = (
         />
       );
     }
-    case ChartType.FBSUAgePyramid: {
-      const title = chartData.title ?? t("fbsuAgePyramid.title");
+    case ChartType.StatusAgePyramid: {
+      const title = chartData.title ?? t("statusAgePyramid.title");
 
       return (
-        <FBSUAgePyramidChartWidget
+        <StatusAgePyramidChartWidget
           title={title}
           data={chartData.data}
           statuses={chartData.statuses}
-          i18n={(key, props = {}) => t(`fbsuAgePyramid.${key}`, props)}
+          i18n={(key, props = {}) => t(`statusAgePyramid.${key}`, props)}
         />
       );
     }

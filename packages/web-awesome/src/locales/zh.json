@@ -307,8 +307,8 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "fbsuAgePyramid": {
-      "title": "FBSU年龄金字塔",
+    "statusAgePyramid": {
+      "title": "状态年龄金字塔",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",

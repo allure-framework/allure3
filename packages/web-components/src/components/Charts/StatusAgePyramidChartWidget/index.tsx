@@ -36,7 +36,7 @@ const getStatusStats = (data: Props["data"][number], statuses: FBSUStatus[]) => 
   );
 };
 
-export const FBSUAgePyramidChartWidget: FunctionalComponent<Props> = (props) => {
+export const StatusAgePyramidChartWidget: FunctionalComponent<Props> = (props) => {
   const { title, data, i18n, statuses } = props;
 
   const currentData = data.find((item) => item.id === "current");
