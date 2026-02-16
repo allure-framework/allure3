@@ -1,0 +1,1466 @@
+[38;5;132m[@allurereport/aql]:[39m Process started
+[38;5;214m[@allurereport/core-api]:[39m Process started
+[38;5;214m[@allurereport/core-api]:[39m 
+[38;5;214m[@allurereport/core-api]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/core-api[39m
+[38;5;214m[@allurereport/core-api]:[39m 
+[38;5;214m[@allurereport/core-api]:[39m  [32m✓[39m test/utils/status.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+[38;5;214m[@allurereport/core-api]:[39m  [32m✓[39m test/utils/time.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+[38;5;214m[@allurereport/core-api]:[39m  [32m✓[39m test/utils/comparator.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+[38;5;214m[@allurereport/core-api]:[39m  [32m✓[39m test/utils/environment.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+[38;5;214m[@allurereport/core-api]:[39m 
+[38;5;214m[@allurereport/core-api]:[39m [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[38;5;214m[@allurereport/core-api]:[39m [2m      Tests [22m [1m[32m39 passed[39m[22m[90m (39)[39m
+[38;5;214m[@allurereport/core-api]:[39m [2m   Start at [22m 16:55:39
+[38;5;214m[@allurereport/core-api]:[39m [2m   Duration [22m 3.90s[2m (transform 450ms, setup 1.02s, collect 636ms, tests 64ms, environment 1ms, prepare 2.24s)[22m
+[38;5;214m[@allurereport/core-api]:[39m 
+[38;5;214m[@allurereport/core-api]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/core-api]:[39m Process exited (exit code 0), completed in 8s 658ms
+[38;5;167m[@allurereport/directory-watcher]:[39m Process started
+[38;5;132m[@allurereport/aql]:[39m 
+[38;5;132m[@allurereport/aql]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/aql[39m
+[38;5;132m[@allurereport/aql]:[39m 
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/parser.config.test.ts [2m([22m[2m33 tests[22m[2m)[22m[90m 47[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/filter.test.ts [2m([22m[2m50 tests[22m[2m)[22m[90m 45[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/chaos.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/parser.test.ts [2m([22m[2m45 tests[22m[2m)[22m[90m 41[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/roundtrip.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/property.test.ts [2m([22m[2m20 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/tokenizer.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/error-messages.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/integration.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/errors.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/snapshot.test.ts [2m([22m[2m30 tests[22m[2m)[22m[90m 31[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/performance.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 502[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m  [32m✓[39m tests/utils.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+[38;5;132m[@allurereport/aql]:[39m 
+[38;5;132m[@allurereport/aql]:[39m [2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[38;5;132m[@allurereport/aql]:[39m [2m      Tests [22m [1m[32m351 passed[39m[22m[90m (351)[39m
+[38;5;132m[@allurereport/aql]:[39m [2m   Start at [22m 16:55:38
+[38;5;132m[@allurereport/aql]:[39m [2m   Duration [22m 8.63s[2m (transform 885ms, setup 2.91s, collect 1.49s, tests 1.21s, environment 8ms, prepare 5.44s)[22m
+[38;5;132m[@allurereport/aql]:[39m 
+[38;5;132m[@allurereport/aql]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-86a8d723d1/0/cache/allure-vitest-npm-3.4.5-b30be1b56b-1a69a0108c.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;132m[@allurereport/aql]:[39m Process exited (exit code 0), completed in 12s 420ms
+[38;5;167m[@allurereport/directory-watcher]:[39m 
+[38;5;167m[@allurereport/directory-watcher]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/directory-watcher[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m 
+[38;5;167m[@allurereport/directory-watcher]:[39m  [32m✓[39m test/index.test.ts [2m([22m[2m7 tests[22m[2m | [22m[33m3 skipped[39m[2m)[22m[33m 1451[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m    [33m[2m✓[22m[39m watchDirectory[2m > [22mcalls the callback when file is changed [33m408[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m    [33m[2m✓[22m[39m watchDirectory[2m > [22mcalls the callback when file is deleted [33m411[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m    [33m[2m✓[22m[39m watchDirectory[2m > [22mdoesn't call the callback when unwatched [33m411[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m  [32m✓[39m test/watcher.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 2571[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m    [33m[2m✓[22m[39m newFilesInDirectoryWatcher[2m > [22mdoesn't call the callback when unwatched [33m409[2mms[22m[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m 
+[38;5;167m[@allurereport/directory-watcher]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m [2m      Tests [22m [1m[32m23 passed[39m[22m[2m | [22m[33m3 skipped[39m[90m (26)[39m
+[38;5;167m[@allurereport/directory-watcher]:[39m [2m   Start at [22m 16:55:48
+[38;5;167m[@allurereport/directory-watcher]:[39m [2m   Duration [22m 3.71s[2m (transform 168ms, setup 262ms, collect 233ms, tests 4.02s, environment 0ms, prepare 417ms)[22m
+[38;5;167m[@allurereport/directory-watcher]:[39m 
+[38;5;167m[@allurereport/directory-watcher]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/directory-watcher]:[39m can't process file watcher.test.ts-ZyDdUN\file1.txt Error: callback error
+[38;5;167m[@allurereport/directory-watcher]:[39m     at [90mD:\a\allure3\allure3\packages\directory-watcher\[39mtest\watcher.test.ts:186:51
+[38;5;167m[@allurereport/directory-watcher]:[39m     at file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:146:14
+[38;5;167m[@allurereport/directory-watcher]:[39m     at file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:533:11
+[38;5;167m[@allurereport/directory-watcher]:[39m     at runWithTimeout (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:39:7)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at runTest (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:1056:17)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at runSuite (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:1205:15)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at runSuite (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:1205:15)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at runFiles (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:1262:5)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at startTests (file:///D:/a/allure3/allure3/.yarn/cache/@vitest-runner-npm-2.1.9-1d50535316-3f2b67406c.zip/node_modules/[4m@vitest/runner[24m/dist/index.js:1271:3)
+[38;5;167m[@allurereport/directory-watcher]:[39m     at file:///D:/a/allure3/allure3/.yarn/__virtual__/vitest-virtual-d3f096a03d/0/cache/vitest-npm-2.1.9-da245b091d-28e061be0f.zip/node_modules/[4mvitest[24m/dist/chunks/runBaseTests.3qpJUEJM.js:126:11
+[38;5;167m[@allurereport/directory-watcher]:[39m Process exited (exit code 0), completed in 8s 900ms
+[38;5;187m[@allurereport/ci]:[39m Process started
+[38;5;73m[@allurereport/plugin-api]:[39m Process started
+[38;5;73m[@allurereport/plugin-api]:[39m 
+[38;5;73m[@allurereport/plugin-api]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-api[39m
+[38;5;73m[@allurereport/plugin-api]:[39m 
+[38;5;73m[@allurereport/plugin-api]:[39m  [32m✓[39m test/treeByTitlePath.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-api]:[39m  [32m✓[39m test/treeByLabelsAndTP.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-api]:[39m  [32m✓[39m test/tree.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-api]:[39m  [32m✓[39m test/config.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 5[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-api]:[39m 
+[38;5;73m[@allurereport/plugin-api]:[39m [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[38;5;73m[@allurereport/plugin-api]:[39m [2m      Tests [22m [1m[32m23 passed[39m[22m[90m (23)[39m
+[38;5;73m[@allurereport/plugin-api]:[39m [2m   Start at [22m 16:55:56
+[38;5;73m[@allurereport/plugin-api]:[39m [2m   Duration [22m 3.77s[2m (transform 353ms, setup 1.32s, collect 519ms, tests 59ms, environment 2ms, prepare 2.03s)[22m
+[38;5;73m[@allurereport/plugin-api]:[39m 
+[38;5;73m[@allurereport/plugin-api]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;73m[@allurereport/plugin-api]:[39m Process exited (exit code 0), completed in 8s 93ms
+[38;5;132m[@allurereport/static-server]:[39m Process started
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/static-server[39m
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52455
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52454
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52458
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52460
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52461
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52464
+[38;5;132m[@allurereport/static-server]:[39m  [32m✓[39m test/unit/static.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 108[2mms[22m[39m
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52466
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52468
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52470
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52472
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52474
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52476
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52478
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52481
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52483
+[38;5;132m[@allurereport/static-server]:[39m  [32m✓[39m test/unit/html.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 237[2mms[22m[39m
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;132m[@allurereport/static-server]:[39m [2m      Tests [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+[38;5;132m[@allurereport/static-server]:[39m [2m   Start at [22m 16:56:07
+[38;5;132m[@allurereport/static-server]:[39m [2m   Duration [22m 2.07s[2m (transform 190ms, setup 356ms, collect 1.35s, tests 345ms, environment 1ms, prepare 507ms)[22m
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [2mRunning [22m3[2m tests using [22m1[2m worker[22m
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[1/3] test\e2e\live.test.ts:37:1 › doesn't reload the page when a file changes and live reload is disabled
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[2mtest\e2e\live.test.ts:37:1 › doesn't reload the page when a file changes and live reload is disabled[22m
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:52486
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[2/3] test\e2e\live.test.ts:54:1 › reloads the page when a file changes
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[2mtest\e2e\live.test.ts:54:1 › reloads the page when a file changes[22m
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:54155
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[3/3] test\e2e\live.test.ts:76:1 › reloads the page manually even when live reload is disabled
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[2mtest\e2e\live.test.ts:76:1 › reloads the page manually even when live reload is disabled[22m
+[38;5;132m[@allurereport/static-server]:[39m Allure is running on http://localhost:57097
+[38;5;132m[@allurereport/static-server]:[39m 
+[38;5;132m[@allurereport/static-server]:[39m [1A[2K[32m  3 passed[39m[2m (9.4s)[22m
+[38;5;132m[@allurereport/static-server]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;132m[@allurereport/static-server]:[39m Process exited (exit code 0), completed in 16s 189ms
+[38;5;187m[@allurereport/ci]:[39m 
+[38;5;187m[@allurereport/ci]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/ci[39m
+[38;5;187m[@allurereport/ci]:[39m 
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/azure.test.ts [2m([22m[2m25 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/amazon.test.ts [2m([22m[2m34 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/github.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/jenkins.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/drone.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/gitlab.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/circle.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/bitbucket.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/detectors/local.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m  [32m✓[39m test/utils.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+[38;5;187m[@allurereport/ci]:[39m 
+[38;5;187m[@allurereport/ci]:[39m [2m Test Files [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+[38;5;187m[@allurereport/ci]:[39m [2m      Tests [22m [1m[32m185 passed[39m[22m[90m (185)[39m
+[38;5;187m[@allurereport/ci]:[39m [2m   Start at [22m 16:55:56
+[38;5;187m[@allurereport/ci]:[39m [2m   Duration [22m 19.97s[2m (transform 663ms, setup 15.73s, collect 1.26s, tests 157ms, environment 7ms, prepare 4.02s)[22m
+[38;5;187m[@allurereport/ci]:[39m 
+[38;5;187m[@allurereport/ci]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-bfa60f5d96/0/cache/allure-vitest-npm-3.3.2-de7e44a25d-b5a5062224.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;187m[@allurereport/ci]:[39m Process exited (exit code 0), completed in 24s 669ms
+[38;5;214m[@allurereport/plugin-allure2]:[39m Process started
+[38;5;167m[@allurereport/plugin-csv]:[39m Process started
+[38;5;214m[@allurereport/plugin-allure2]:[39m 
+[38;5;214m[@allurereport/plugin-allure2]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-allure2[39m
+[38;5;214m[@allurereport/plugin-allure2]:[39m 
+[38;5;214m[@allurereport/plugin-allure2]:[39m  [32m✓[39m test/categories.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+[38;5;214m[@allurereport/plugin-allure2]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;214m[@allurereport/plugin-allure2]:[39m 
+[38;5;214m[@allurereport/plugin-allure2]:[39m [2m Test Files [22m [1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (2)[39m
+[38;5;214m[@allurereport/plugin-allure2]:[39m [2m      Tests [22m [1m[32m5 passed[39m[22m[2m | [22m[90m1 todo[39m[90m (6)[39m
+[38;5;214m[@allurereport/plugin-allure2]:[39m [2m   Start at [22m 16:56:21
+[38;5;214m[@allurereport/plugin-allure2]:[39m [2m   Duration [22m 1.64s[2m (transform 150ms, setup 382ms, collect 111ms, tests 11ms, environment 1ms, prepare 607ms)[22m
+[38;5;214m[@allurereport/plugin-allure2]:[39m 
+[38;5;214m[@allurereport/plugin-allure2]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/plugin-allure2]:[39m Process exited (exit code 0), completed in 6s 225ms
+[38;5;187m[@allurereport/plugin-jira]:[39m Process started
+[38;5;167m[@allurereport/plugin-csv]:[39m 
+[38;5;167m[@allurereport/plugin-csv]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-csv[39m
+[38;5;167m[@allurereport/plugin-csv]:[39m 
+[38;5;167m[@allurereport/plugin-csv]:[39m  [32m✓[39m test/index.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+[38;5;167m[@allurereport/plugin-csv]:[39m 
+[38;5;167m[@allurereport/plugin-csv]:[39m [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[38;5;167m[@allurereport/plugin-csv]:[39m [2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[38;5;167m[@allurereport/plugin-csv]:[39m [2m   Start at [22m 16:56:21
+[38;5;167m[@allurereport/plugin-csv]:[39m [2m   Duration [22m 1.91s[2m (transform 217ms, setup 197ms, collect 282ms, tests 19ms, environment 0ms, prepare 312ms)[22m
+[38;5;167m[@allurereport/plugin-csv]:[39m 
+[38;5;167m[@allurereport/plugin-csv]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/plugin-csv]:[39m Process exited (exit code 0), completed in 6s 429ms
+[38;5;73m[@allurereport/plugin-log]:[39m Process started
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-log[39m
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m [90muncategorized[39m
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m [90muncategorized[39m
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m  [32m✓[39m test/index.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [32m✓[39m Test name [33m100ms[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [32m✓[39m Test name [33m100ms[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [32m✓[39m Test name [33m100ms[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [31m⨯[39m Test name [33m100ms[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [31m⨯[39m Test name [33m100ms[39m
+[38;5;73m[@allurereport/plugin-log]:[39m  [32m✓[39m test/utils.test.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [2m      Tests [22m [1m[32m21 passed[39m[22m[90m (21)[39m
+[38;5;73m[@allurereport/plugin-log]:[39m [2m   Start at [22m 16:56:27
+[38;5;73m[@allurereport/plugin-log]:[39m [2m   Duration [22m 1.88s[2m (transform 342ms, setup 353ms, collect 509ms, tests 34ms, environment 1ms, prepare 658ms)[22m
+[38;5;73m[@allurereport/plugin-log]:[39m 
+[38;5;73m[@allurereport/plugin-log]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;73m[@allurereport/plugin-log]:[39m Process exited (exit code 0), completed in 5s 956ms
+[38;5;132m[@allurereport/plugin-progress]:[39m Process started
+[38;5;187m[@allurereport/plugin-jira]:[39m 
+[38;5;187m[@allurereport/plugin-jira]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-jira[39m
+[38;5;187m[@allurereport/plugin-jira]:[39m 
+[38;5;187m[@allurereport/plugin-jira]:[39m  [32m✓[39m test/index.test.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+[38;5;187m[@allurereport/plugin-jira]:[39m 
+[38;5;187m[@allurereport/plugin-jira]:[39m [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[38;5;187m[@allurereport/plugin-jira]:[39m [2m      Tests [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[38;5;187m[@allurereport/plugin-jira]:[39m [2m   Start at [22m 16:56:27
+[38;5;187m[@allurereport/plugin-jira]:[39m [2m   Duration [22m 2.21s[2m (transform 247ms, setup 188ms, collect 623ms, tests 32ms, environment 1ms, prepare 409ms)[22m
+[38;5;187m[@allurereport/plugin-jira]:[39m 
+[38;5;187m[@allurereport/plugin-jira]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;187m[@allurereport/plugin-jira]:[39m Process exited (exit code 0), completed in 6s 538ms
+[38;5;214m[@allurereport/plugin-server-reload]:[39m Process started
+[38;5;132m[@allurereport/plugin-progress]:[39m 
+[38;5;132m[@allurereport/plugin-progress]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-progress[39m
+[38;5;132m[@allurereport/plugin-progress]:[39m 
+[38;5;132m[@allurereport/plugin-progress]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;132m[@allurereport/plugin-progress]:[39m 
+[38;5;132m[@allurereport/plugin-progress]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;132m[@allurereport/plugin-progress]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;132m[@allurereport/plugin-progress]:[39m [2m   Start at [22m 16:56:33
+[38;5;132m[@allurereport/plugin-progress]:[39m [2m   Duration [22m 1.38s[2m (transform 71ms, setup 256ms, collect 25ms, tests 0ms, environment 0ms, prepare 371ms)[22m
+[38;5;132m[@allurereport/plugin-progress]:[39m 
+[38;5;132m[@allurereport/plugin-progress]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;132m[@allurereport/plugin-progress]:[39m Process exited (exit code 0), completed in 5s 489ms
+[38;5;167m[@allurereport/plugin-slack]:[39m Process started
+[38;5;214m[@allurereport/plugin-server-reload]:[39m 
+[38;5;214m[@allurereport/plugin-server-reload]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-server-reload[39m
+[38;5;214m[@allurereport/plugin-server-reload]:[39m 
+[38;5;214m[@allurereport/plugin-server-reload]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;214m[@allurereport/plugin-server-reload]:[39m 
+[38;5;214m[@allurereport/plugin-server-reload]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;214m[@allurereport/plugin-server-reload]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;214m[@allurereport/plugin-server-reload]:[39m [2m   Start at [22m 16:56:33
+[38;5;214m[@allurereport/plugin-server-reload]:[39m [2m   Duration [22m 1.34s[2m (transform 60ms, setup 144ms, collect 18ms, tests 0ms, environment 0ms, prepare 224ms)[22m
+[38;5;214m[@allurereport/plugin-server-reload]:[39m 
+[38;5;214m[@allurereport/plugin-server-reload]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/plugin-server-reload]:[39m Process exited (exit code 0), completed in 5s 574ms
+[38;5;187m[@allurereport/plugin-testplan]:[39m Process started
+[38;5;167m[@allurereport/plugin-slack]:[39m 
+[38;5;167m[@allurereport/plugin-slack]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-slack[39m
+[38;5;167m[@allurereport/plugin-slack]:[39m 
+[38;5;167m[@allurereport/plugin-slack]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;167m[@allurereport/plugin-slack]:[39m 
+[38;5;167m[@allurereport/plugin-slack]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;167m[@allurereport/plugin-slack]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;167m[@allurereport/plugin-slack]:[39m [2m   Start at [22m 16:56:39
+[38;5;167m[@allurereport/plugin-slack]:[39m [2m   Duration [22m 1.27s[2m (transform 77ms, setup 190ms, collect 33ms, tests 0ms, environment 0ms, prepare 301ms)[22m
+[38;5;167m[@allurereport/plugin-slack]:[39m 
+[38;5;167m[@allurereport/plugin-slack]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/plugin-slack]:[39m Process exited (exit code 0), completed in 5s 457ms
+[38;5;73m[@allurereport/reader-api]:[39m Process started
+[38;5;187m[@allurereport/plugin-testplan]:[39m 
+[38;5;187m[@allurereport/plugin-testplan]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-testplan[39m
+[38;5;187m[@allurereport/plugin-testplan]:[39m 
+[38;5;187m[@allurereport/plugin-testplan]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;187m[@allurereport/plugin-testplan]:[39m 
+[38;5;187m[@allurereport/plugin-testplan]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;187m[@allurereport/plugin-testplan]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;187m[@allurereport/plugin-testplan]:[39m [2m   Start at [22m 16:56:39
+[38;5;187m[@allurereport/plugin-testplan]:[39m [2m   Duration [22m 1.26s[2m (transform 67ms, setup 144ms, collect 21ms, tests 0ms, environment 0ms, prepare 262ms)[22m
+[38;5;187m[@allurereport/plugin-testplan]:[39m 
+[38;5;187m[@allurereport/plugin-testplan]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;187m[@allurereport/plugin-testplan]:[39m Process exited (exit code 0), completed in 5s 541ms
+[38;5;132m[@allurereport/service]:[39m Process started
+[38;5;132m[@allurereport/service]:[39m 
+[38;5;132m[@allurereport/service]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/service[39m
+[38;5;132m[@allurereport/service]:[39m 
+[38;5;132m[@allurereport/service]:[39m  [32m✓[39m test/history.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+[38;5;132m[@allurereport/service]:[39m  [32m✓[39m test/service.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 79[2mms[22m[39m
+[38;5;132m[@allurereport/service]:[39m 
+[38;5;132m[@allurereport/service]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;132m[@allurereport/service]:[39m [2m      Tests [22m [1m[32m33 passed[39m[22m[90m (33)[39m
+[38;5;132m[@allurereport/service]:[39m [2m   Start at [22m 16:56:45
+[38;5;132m[@allurereport/service]:[39m [2m   Duration [22m 2.85s[2m (transform 293ms, setup 627ms, collect 1.52s, tests 94ms, environment 1ms, prepare 808ms)[22m
+[38;5;132m[@allurereport/service]:[39m 
+[38;5;132m[@allurereport/service]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;132m[@allurereport/service]:[39m Process exited (exit code 0), completed in 7s 155ms
+[38;5;214m[@allurereport/summary]:[39m Process started
+[38;5;214m[@allurereport/summary]:[39m 
+[38;5;214m[@allurereport/summary]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/summary[39m
+[38;5;214m[@allurereport/summary]:[39m 
+[38;5;214m[@allurereport/summary]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;214m[@allurereport/summary]:[39m 
+[38;5;214m[@allurereport/summary]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;214m[@allurereport/summary]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;214m[@allurereport/summary]:[39m [2m   Start at [22m 16:56:52
+[38;5;214m[@allurereport/summary]:[39m [2m   Duration [22m 1.14s[2m (transform 69ms, setup 157ms, collect 22ms, tests 0ms, environment 0ms, prepare 228ms)[22m
+[38;5;214m[@allurereport/summary]:[39m 
+[38;5;214m[@allurereport/summary]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/summary]:[39m Process exited (exit code 0), completed in 5s 202ms
+[38;5;167m[@allurereport/web-commons]:[39m Process started
+[38;5;73m[@allurereport/reader-api]:[39m 
+[38;5;73m[@allurereport/reader-api]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/reader-api[39m
+[38;5;73m[@allurereport/reader-api]:[39m 
+[38;5;73m[@allurereport/reader-api]:[39m  [32m✓[39m test/utils.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m  [32m✓[39m test/resultFile.test.ts [2m([22m[2m57 tests[22m[2m)[22m[90m 72[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m  [32m✓[39m test/detect.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m �  [32m✓[39m test/toolRunner.test.ts [2m([22m[2m33 tests[22m[2m)[22m[33m 8914[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mshould throw on non-zero exit code [33m438[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mshould accept a user-defined exit code [33m573[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mshould accept if a user-defined exit code predicate returns true [33m460[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mshould throw if a user-defined exit code predicate returns false [33m419[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mshows stderr if failed [33m323[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m invokeStdoutCliTool[2m > [22mtext mode[2m > [22mshould iterate empty output [33m313[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m collectCliToolStdoutText[2m > [22mshould emit unterminated line [33m324[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m collectCliToolStdoutText[2m > [22mshould throw on non-zero exit code [33m393[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m    [33m[2m✓[22m[39m collectCliToolStdoutText[2m > [22mshows stderr if failed [33m303[2mms[22m[39m
+[38;5;73m[@allurereport/reader-api]:[39m 
+[38;5;73m[@allurereport/reader-api]:[39m [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[38;5;73m[@allurereport/reader-api]:[39m [2m      Tests [22m [1m[32m99 passed[39m[22m[90m (99)[39m
+[38;5;73m[@allurereport/reader-api]:[39m [2m   Start at [22m 16:56:44
+[38;5;73m[@allurereport/reader-api]:[39m [2m   Duration [22m 10.59s[2m (transform 325ms, setup 1.22s, collect 501ms, tests 9.02s, environment 2ms, prepare 2.00s)[22m
+[38;5;73m[@allurereport/reader-api]:[39m 
+[38;5;73m[@allurereport/reader-api]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;73m[@allurereport/reader-api]:[39m Process exited (exit code 0), completed in 14s 872ms
+[38;5;167m[@allurereport/web-commons]:[39m 
+[38;5;167m[@allurereport/web-commons]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/web-commons[39m
+[38;5;167m[@allurereport/web-commons]:[39m 
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/charts/generateStatusAgePyramid.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/filters/builders.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/theme/actions.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 427[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/theme/store.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 106[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/stores/url/store.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m  [32m✓[39m test/theme/utils.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 8[2mms[22m[39m
+[38;5;167m[@allurereport/web-commons]:[39m 
+[38;5;167m[@allurereport/web-commons]:[39m [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[38;5;167m[@allurereport/web-commons]:[39m [2m      Tests [22m [1m[32m74 passed[39m[22m[90m (74)[39m
+[38;5;167m[@allurereport/web-commons]:[39m [2m   Start at [22m 16:56:56
+[38;5;167m[@allurereport/web-commons]:[39m [2m   Duration [22m 6.28s[2m (transform 731ms, setup 941ms, collect 720ms, tests 603ms, environment 10.40s, prepare 1.68s)[22m
+[38;5;167m[@allurereport/web-commons]:[39m 
+[38;5;167m[@allurereport/web-commons]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-b81a4f36a2/0/cache/allure-vitest-npm-3.3.0-3dfda6c6ea-a98dc38eb2.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/web-commons]:[39m Process exited (exit code 0), completed in 9s 485ms
+[38;5;187m[@allurereport/plugin-testops]:[39m Process started
+[38;5;73m[@allurereport/reader]:[39m Process started
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-testops[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m  [32m✓[39m test/utils.test.ts [2m([22m[2m22 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m  [32m✓[39m test/client.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 31[2mms[22m[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mci mode[2m > [22m[2mshould start upload when ci is detected (non-local)
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2moutside ci mode[2m > [22m[2mshould not start upload when ci is local
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould issue oauth token, create launch and session
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould pass launchTags to createLaunch
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould not issue oauth token again in upload when called from start
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould upload all test results from the store
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould map linked steps attachments before upload test results
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould not upload test results when store is empty
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould call attachmentsResolver for each test result
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould call fixturesResolver for each test result
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mstart[2m > [22m[2mshould apply filter when uploading test results
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mupdate[2m > [22m[2mshould not re-upload test results that were already uploaded
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstdout[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mupdate[2m > [22m[2mshould upload only new test results on subsequent calls
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps launch has been created: undefined
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m  [32m✓[39m test/plugin.test.ts [2m([22m[2m37 tests[22m[2m)[22m[90m 49[2mms[22m[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m [2m      Tests [22m [1m[32m75 passed[39m[22m[90m (75)[39m
+[38;5;187m[@allurereport/plugin-testops]:[39m [2m   Start at [22m 16:57:07
+[38;5;187m[@allurereport/plugin-testops]:[39m [2m   Duration [22m 3.11s[2m (transform 608ms, setup 1.63s, collect 957ms, tests 107ms, environment 2ms, prepare 1.69s)[22m
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mconstructor[2m > [22m[2mshould not initialize client when accessToken is missing
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps access token is missing. Please provide a valid access token in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mconstructor[2m > [22m[2mshould not initialize client when endpoint is missing
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps endpoint is missing. Please provide a valid endpoint in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mconstructor[2m > [22m[2mshould not initialize client when projectId is missing
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps project ID is missing. Please provide a valid project ID in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mwhen client is not initialized[2m > [22m[2mshould return early from start when client is not initialized
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps access token is missing. Please provide a valid access token in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mwhen client is not initialized[2m > [22m[2mshould return early from update when client is not initialized
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps endpoint is missing. Please provide a valid endpoint in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2mwhen client is not initialized[2m > [22m[2mshould return early from done when client is not initialized
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps project ID is missing. Please provide a valid project ID in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m [90mstderr[2m | test/plugin.test.ts[2m > [22m[2mtestops plugin[2m > [22m[2minfo[2m > [22m[2mshould return undefined when client is not initialized
+[38;5;187m[@allurereport/plugin-testops]:[39m [22m[39mTestOps access token is missing. Please provide a valid access token in the plugin options.
+[38;5;187m[@allurereport/plugin-testops]:[39m 
+[38;5;187m[@allurereport/plugin-testops]:[39m Process exited (exit code 0), completed in 7s 769ms
+[38;5;132m[@allurereport/web-components]:[39m Process started
+[38;5;73m[@allurereport/reader]:[39m 
+[38;5;73m[@allurereport/reader]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/reader[39m
+[38;5;73m[@allurereport/reader]:[39m 
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/xcresult.test.ts [2m([22m[2m94 tests[22m[2m | [22m[33m93 skipped[39m[2m)[22m[33m 370[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m    [33m[2m✓[22m[39m Not a MAC machine[2m > [22mshould ignore xcresult bundles [33m367[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/cucumberjson.test.ts [2m([22m[2m105 tests[22m[2m)[22m[33m 1019[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/allure1.test.ts [2m([22m[2m135 tests[22m[2m)[22m[33m 1147[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/properties.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 7[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/allure2.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 385[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m  [32m✓[39m test/junitxml.test.ts [2m([22m[2m55 tests[22m[2m)[22m[33m 398[2mms[22m[39m
+[38;5;73m[@allurereport/reader]:[39m 
+[38;5;73m[@allurereport/reader]:[39m [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[38;5;73m[@allurereport/reader]:[39m [2m      Tests [22m [1m[32m337 passed[39m[22m[2m | [22m[33m93 skipped[39m[90m (430)[39m
+[38;5;73m[@allurereport/reader]:[39m [2m   Start at [22m 16:57:06
+[38;5;73m[@allurereport/reader]:[39m [2m   Duration [22m 6.90s[2m (transform 1.43s, setup 1.92s, collect 5.97s, tests 3.33s, environment 3ms, prepare 2.95s)[22m
+[38;5;73m[@allurereport/reader]:[39m 
+[38;5;73m[@allurereport/reader]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;73m[@allurereport/reader]:[39m It looks like D:\a\allure3\allure3\packages\reader\test\resources\xcresultdata\outcomes\passed.xcresult is a Mac OS bundle. Allure 3 can only parse such bundles on a Mac OS machine.
+[38;5;73m[@allurereport/reader]:[39m Process exited (exit code 0), completed in 11s 442ms
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/web-components[39m
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m  [32m✓[39m src/components/Button/Button.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[90m 144[2mms[22m[39m
+[38;5;132m[@allurereport/web-components]:[39m  [32m✓[39m src/components/Link/Link.test.tsx [2m([22m[2m1 test[22m[2m)[22m[90m 18[2mms[22m[39m
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;132m[@allurereport/web-components]:[39m [2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[38;5;132m[@allurereport/web-components]:[39m [2m   Start at [22m 16:57:15
+[38;5;132m[@allurereport/web-components]:[39m [2m   Duration [22m 4.69s[2m (transform 553ms, setup 0ms, collect 1.08s, tests 162ms, environment 2.27s, prepare 320ms)[22m
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m DEPRECATION WARNING [user-authored]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m More info: https://sass-lang.com/d/legacy-js-api
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m DEPRECATION WARNING [user-authored]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m More info: https://sass-lang.com/d/legacy-js-api
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m [90mstderr[2m | src/components/Button/Button.test.tsx
+[38;5;132m[@allurereport/web-components]:[39m [22m[39mError: Not implemented: navigation (except hash changes)
+[38;5;132m[@allurereport/web-components]:[39m     at module.exports (D:\a\allure3\allure3\.yarn\__virtual__\jsdom-virtual-2cf54745e8\0\cache\jsdom-npm-26.0.0-01acafd498-8c230ee465.zip\node_modules\jsdom\lib\jsdom\browser\not-implemented.js:9:17)
+[38;5;132m[@allurereport/web-components]:[39m     at navigateFetch (D:\a\allure3\allure3\.yarn\__virtual__\jsdom-virtual-2cf54745e8\0\cache\jsdom-npm-26.0.0-01acafd498-8c230ee465.zip\node_modules\jsdom\lib\jsdom\living\window\navigation.js:77:3)
+[38;5;132m[@allurereport/web-components]:[39m     at exports.navigate (D:\a\allure3\allure3\.yarn\__virtual__\jsdom-virtual-2cf54745e8\0\cache\jsdom-npm-26.0.0-01acafd498-8c230ee465.zip\node_modules\jsdom\lib\jsdom\living\window\navigation.js:55:3)
+[38;5;132m[@allurereport/web-components]:[39m     at Timeout._onTimeout (D:\a\allure3\allure3\.yarn\__virtual__\jsdom-virtual-2cf54745e8\0\cache\jsdom-npm-26.0.0-01acafd498-8c230ee465.zip\node_modules\jsdom\lib\jsdom\living\nodes\HTMLHyperlinkElementUtils-impl.js:81:7)
+[38;5;132m[@allurereport/web-components]:[39m     at listOnTimeout (node:internal/timers:581:17)
+[38;5;132m[@allurereport/web-components]:[39m     at processTimers (node:internal/timers:519:7) [90mundefined[39m
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m DEPRECATION WARNING [user-authored]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m More info: https://sass-lang.com/d/legacy-js-api
+[38;5;132m[@allurereport/web-components]:[39m 
+[38;5;132m[@allurereport/web-components]:[39m Process exited (exit code 0), completed in 9s 607ms
+[38;5;214m[@allurereport/web-awesome]:[39m Process started
+[38;5;167m[@allurereport/web-classic]:[39m Process started
+[38;5;167m[@allurereport/web-classic]:[39m 
+[38;5;167m[@allurereport/web-classic]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/web-classic[39m
+[38;5;167m[@allurereport/web-classic]:[39m 
+[38;5;167m[@allurereport/web-classic]:[39m  [32m✓[39m test/dummy.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 5[2mms[22m[39m
+[38;5;167m[@allurereport/web-classic]:[39m  [32m✓[39m test/utils/treeFilters.test.ts [2m([22m[2m13 tests[22m[2m)[22m[90m 37[2mms[22m[39m
+[38;5;167m[@allurereport/web-classic]:[39m 
+[38;5;167m[@allurereport/web-classic]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[38;5;167m[@allurereport/web-classic]:[39m [2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[38;5;167m[@allurereport/web-classic]:[39m [2m   Start at [22m 16:57:24
+[38;5;167m[@allurereport/web-classic]:[39m [2m   Duration [22m 1.42s[2m (transform 227ms, setup 327ms, collect 280ms, tests 41ms, environment 1ms, prepare 521ms)[22m
+[38;5;167m[@allurereport/web-classic]:[39m 
+[38;5;167m[@allurereport/web-classic]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/web-classic]:[39m Process exited (exit code 0), completed in 5s 659ms
+[38;5;187m[@allurereport/web-dashboard]:[39m Process started
+[38;5;187m[@allurereport/web-dashboard]:[39m 
+[38;5;187m[@allurereport/web-dashboard]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/web-dashboard[39m
+[38;5;187m[@allurereport/web-dashboard]:[39m 
+[38;5;187m[@allurereport/web-dashboard]:[39m No test files found, exiting with code 0
+[38;5;187m[@allurereport/web-dashboard]:[39m 
+[38;5;187m[@allurereport/web-dashboard]:[39m [2minclude: [22m[33m./test/**/*.test.ts[39m
+[38;5;187m[@allurereport/web-dashboard]:[39m [2mexclude:  [22m[33m**/node_modules/**[2m, [22m**/dist/**[2m, [22m**/cypress/**[2m, [22m**/.{idea,git,cache,output,temp}/**[2m, [22m**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*[39m
+[38;5;187m[@allurereport/web-dashboard]:[39m Process exited (exit code 0), completed in 6s 939ms
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m [1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mD:/a/allure3/allure3/packages/web-awesome[39m
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m  [32m✓[39m test/utils/ownerAddress.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+[38;5;214m[@allurereport/web-awesome]:[39m  [32m✓[39m test/utils/treeFilters.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+[38;5;214m[@allurereport/web-awesome]:[39m  [32m✓[39m test/components/Header/CiInfo.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[32m 184[2mms[22m[39m
+[38;5;214m[@allurereport/web-awesome]:[39m  [32m✓[39m test/components/Header.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[38;5;214m[@allurereport/web-awesome]:[39m [2m      Tests [22m [1m[32m35 passed[39m[22m[90m (35)[39m
+[38;5;214m[@allurereport/web-awesome]:[39m [2m   Start at [22m 16:57:26
+[38;5;214m[@allurereport/web-awesome]:[39m [2m   Duration [22m 11.41s[2m (transform 4.97s, setup 5.59s, collect 8.40s, tests 267ms, environment 8.36s, prepare 1.68s)[22m
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-74321580a1/0/cache/allure-vitest-npm-3.3.2-de7e44a25d-b5a5062224.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/web-awesome]:[39m Browserslist: browsers data (caniuse-lite) is 15 months old. Please run:
+[38;5;214m[@allurereport/web-awesome]:[39m   npx update-browserslist-db@latest
+[38;5;214m[@allurereport/web-awesome]:[39m   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[38;5;214m[@allurereport/web-awesome]:[39m DEPRECATION WARNING: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m Browserslist: caniuse-lite is outdated. Please run:
+[38;5;214m[@allurereport/web-awesome]:[39m   npx update-browserslist-db@latest
+[38;5;214m[@allurereport/web-awesome]:[39m   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[38;5;214m[@allurereport/web-awesome]:[39m DEPRECATION WARNING: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+[38;5;214m[@allurereport/web-awesome]:[39m 
+[38;5;214m[@allurereport/web-awesome]:[39m Process exited (exit code 0), completed in 18s 204ms
+[38;5;73m[@allurereport/plugin-awesome]:[39m Process started
+[38;5;132m[@allurereport/plugin-classic]:[39m Process started
+[38;5;132m[@allurereport/plugin-classic]:[39m 
+[38;5;132m[@allurereport/plugin-classic]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-classic[39m
+[38;5;132m[@allurereport/plugin-classic]:[39m 
+[38;5;132m[@allurereport/plugin-classic]:[39m  [32m✓[39m test/categories.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+[38;5;132m[@allurereport/plugin-classic]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;132m[@allurereport/plugin-classic]:[39m 
+[38;5;132m[@allurereport/plugin-classic]:[39m [2m Test Files [22m [1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (2)[39m
+[38;5;132m[@allurereport/plugin-classic]:[39m [2m      Tests [22m [1m[32m5 passed[39m[22m[2m | [22m[90m1 todo[39m[90m (6)[39m
+[38;5;132m[@allurereport/plugin-classic]:[39m [2m   Start at [22m 16:57:42
+[38;5;132m[@allurereport/plugin-classic]:[39m [2m   Duration [22m 2.15s[2m (transform 126ms, setup 675ms, collect 106ms, tests 11ms, environment 1ms, prepare 1.03s)[22m
+[38;5;132m[@allurereport/plugin-classic]:[39m 
+[38;5;132m[@allurereport/plugin-classic]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;132m[@allurereport/plugin-classic]:[39m Process exited (exit code 0), completed in 6s 643ms
+[38;5;214m[@allurereport/plugin-dashboard]:[39m Process started
+[38;5;73m[@allurereport/plugin-awesome]:[39m 
+[38;5;73m[@allurereport/plugin-awesome]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-awesome[39m
+[38;5;73m[@allurereport/plugin-awesome]:[39m 
+[38;5;73m[@allurereport/plugin-awesome]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;73m[@allurereport/plugin-awesome]:[39m  [32m✓[39m test/generators.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 19[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-awesome]:[39m  [32m✓[39m test/plugin.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 99[2mms[22m[39m
+[38;5;73m[@allurereport/plugin-awesome]:[39m 
+[38;5;73m[@allurereport/plugin-awesome]:[39m [2m Test Files [22m [1m[32m2 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (3)[39m
+[38;5;73m[@allurereport/plugin-awesome]:[39m [2m      Tests [22m [1m[32m5 passed[39m[22m[2m | [22m[90m1 todo[39m[90m (6)[39m
+[38;5;73m[@allurereport/plugin-awesome]:[39m [2m   Start at [22m 16:57:42
+[38;5;73m[@allurereport/plugin-awesome]:[39m [2m   Duration [22m 3.67s[2m (transform 841ms, setup 709ms, collect 3.52s, tests 118ms, environment 1ms, prepare 1.85s)[22m
+[38;5;73m[@allurereport/plugin-awesome]:[39m 
+[38;5;73m[@allurereport/plugin-awesome]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;73m[@allurereport/plugin-awesome]:[39m Process exited (exit code 0), completed in 7s 921ms
+[38;5;214m[@allurereport/plugin-dashboard]:[39m 
+[38;5;214m[@allurereport/plugin-dashboard]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/plugin-dashboard[39m
+[38;5;214m[@allurereport/plugin-dashboard]:[39m 
+[38;5;214m[@allurereport/plugin-dashboard]:[39m  [2m[90m↓[39m[22m test/index.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+[38;5;214m[@allurereport/plugin-dashboard]:[39m 
+[38;5;214m[@allurereport/plugin-dashboard]:[39m [2m Test Files [22m [33m1 skipped[39m[90m (1)[39m
+[38;5;214m[@allurereport/plugin-dashboard]:[39m [2m      Tests [22m [90m1 todo[39m[90m (1)[39m
+[38;5;214m[@allurereport/plugin-dashboard]:[39m [2m   Start at [22m 16:57:48
+[38;5;214m[@allurereport/plugin-dashboard]:[39m [2m   Duration [22m 951ms[2m (transform 65ms, setup 127ms, collect 18ms, tests 0ms, environment 0ms, prepare 203ms)[22m
+[38;5;214m[@allurereport/plugin-dashboard]:[39m 
+[38;5;214m[@allurereport/plugin-dashboard]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;214m[@allurereport/plugin-dashboard]:[39m Process exited (exit code 0), completed in 4s 618ms
+[38;5;167m[@allurereport/core]:[39m Process started
+[38;5;167m[@allurereport/core]:[39m 
+[38;5;167m[@allurereport/core]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/core[39m
+[38;5;167m[@allurereport/core]:[39m 
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/qualityGate/qualityGate.test.ts [2m([22m[2m22 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/config.test.ts [2m([22m[2m48 tests[22m[2m)[22m[90m 249[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/store/store.test.ts [2m([22m[2m74 tests[22m[2m)[22m[90m 105[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/qualityGate/rules.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/store/convert.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 59[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/history.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 59[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/util/event.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1094[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m    [33m[2m✓[22m[39m Events[2m > [22mshould send multiple test result event batches [33m353[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m Next reports have been published:
+[38;5;167m[@allurereport/core]:[39m - https://allurereport.com/reports/p1/
+[38;5;167m[@allurereport/core]:[39m  [32m✓[39m test/report.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 1474[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m    [33m[2m✓[22m[39m report[2m > [22mshould not fail with the empty report [33m1241[2mms[22m[39m
+[38;5;167m[@allurereport/core]:[39m 
+[38;5;167m[@allurereport/core]:[39m [2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[38;5;167m[@allurereport/core]:[39m [2m      Tests [22m [1m[32m194 passed[39m[22m[90m (194)[39m
+[38;5;167m[@allurereport/core]:[39m [2m   Start at [22m 16:57:52
+[38;5;167m[@allurereport/core]:[39m [2m   Duration [22m 6.82s[2m (transform 1.76s, setup 1.81s, collect 4.13s, tests 3.08s, environment 4ms, prepare 2.71s)[22m
+[38;5;167m[@allurereport/core]:[39m 
+[38;5;167m[@allurereport/core]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;167m[@allurereport/core]:[39m [Error: ENOENT: no such file or directory, stat 'D:\a\allure3\allure3\packages\core\config.test.ts-findConfig-oC2t8T\config.js'] {
+[38;5;167m[@allurereport/core]:[39m   errno: [33m-4058[39m,
+[38;5;167m[@allurereport/core]:[39m   code: [32m'ENOENT'[39m,
+[38;5;167m[@allurereport/core]:[39m   syscall: [32m'stat'[39m,
+[38;5;167m[@allurereport/core]:[39m   path: [32m'D:\\a\\allure3\\allure3\\packages\\core\\config.test.ts-findConfig-oC2t8T\\config.js'[39m
+[38;5;167m[@allurereport/core]:[39m }
+[38;5;167m[@allurereport/core]:[39m Process exited (exit code 0), completed in 10s 32ms
+[38;5;187m[allure]:[39m Process started
+[38;5;73m[@allurereport/e2e]:[39m Process started
+[38;5;187m[allure]:[39m 
+[38;5;187m[allure]:[39m [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/a/allure3/allure3/packages/cli[39m
+[38;5;187m[allure]:[39m 
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/open.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/generate.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 42[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/csv.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 45[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/qualityGate.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 31[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/commons/generate.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (1ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/awesome.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 52[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/classic.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 44[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (1ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/allure2.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 43[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/process.test.ts [2m([22m[2m9 tests[22m[2m | [22m[33m5 skipped[39m[2m)[22m[33m 11978[2mms[22m[39m
+[38;5;187m[allure]:[39m    [33m[2m✓[22m[39m stopProcessTree[2m > [22mon Windows[2m > [22mshould stop a tree of a single process [33m1627[2mms[22m[39m
+[38;5;187m[allure]:[39m    [33m[2m✓[22m[39m stopProcessTree[2m > [22mon Windows[2m > [22mshould stop a tree of a parent and one child [33m2439[2mms[22m[39m
+[38;5;187m[allure]:[39m    [33m[2m✓[22m[39m stopProcessTree[2m > [22mon Windows[2m > [22mshould stop a tree of a parent and three children [33m3375[2mms[22m[39m
+[38;5;187m[allure]:[39m    [33m[2m✓[22m[39m stopProcessTree[2m > [22mon Windows[2m > [22mshould stop a three-level process tree [33m4533[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/dashboard.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 46[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/whoami.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (1ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/slack.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/knownIssue.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m the report successfully generated (0ms)
+[38;5;187m[allure]:[39m  [32m✓[39m test/commands/log.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+[38;5;187m[allure]:[39m 
+[38;5;187m[allure]:[39m [2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[38;5;187m[allure]:[39m [2m      Tests [22m [1m[32m82 passed[39m[22m[2m | [22m[33m5 skipped[39m[90m (87)[39m
+[38;5;187m[allure]:[39m [2m   Start at [22m 16:58:03
+[38;5;187m[allure]:[39m [2m   Duration [22m 18.99s[2m (transform 2.02s, setup 2.44s, collect 25.11s, tests 12.41s, environment 7ms, prepare 4.28s)[22m
+[38;5;187m[allure]:[39m 
+[38;5;187m[allure]:[39m Sourcemap for "D:/a/allure3/allure3/.yarn/__virtual__/allure-vitest-virtual-3a0053d30e/0/cache/allure-vitest-npm-3.3.3-9424586b36-df1e4506cb.zip/node_modules/allure-vitest/dist/setup.js" points to missing source files
+[38;5;187m[allure]:[39m Process exited (exit code 0), completed in 23s 498ms
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [2mRunning [22m270[2m tests using [22m1[2m worker[22m
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[1/270] [chromium] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:59443
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2/270] [chromium] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:62780
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[3/270] [chromium] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:53899
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[4/270] [chromium] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:54019
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[5/270] [chromium] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:62065
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[6/270] [chromium] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58259
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[7/270] [chromium] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:52511
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[8/270] [chromium] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:50225
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[9/270] [chromium] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:63037
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[10/270] [chromium] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:62319
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[11/270] [chromium] › test\allure-awesome\features\flaky.test.ts:117:3 › flaky › should show flaky icon only for flaky tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[12/270] [chromium] › test\allure-awesome\features\flaky.test.ts:124:3 › flaky › metadata shows correct count of flaky tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[13/270] [chromium] › test\allure-awesome\features\flaky.test.ts:134:3 › flaky › should apply flaky filter to the tree when filter=flaky query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[14/270] [chromium] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51539
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[15/270] [chromium] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51045
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[16/270] [chromium] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:60207
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[17/270] [chromium] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:53116
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[18/270] [chromium] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:65527
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[19/270] [chromium] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56737
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[20/270] [chromium] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58157
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[21/270] [chromium] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:60527
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[22/270] [chromium] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:53656
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[23/270] [chromium] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:64721
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[24/270] [chromium] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:64292
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[25/270] [chromium] › test\allure-awesome\features\new.test.ts:96:3 › new tests › should show new icon only for new tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[26/270] [chromium] › test\allure-awesome\features\new.test.ts:107:3 › new tests › metadata shows correct count of new tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[27/270] [chromium] › test\allure-awesome\features\new.test.ts:117:3 › new tests › should apply new filter to the tree when filter=new query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[28/270] [chromium] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51568
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[29/270] [chromium] › test\allure-awesome\features\owner.test.ts:69:3 › owner label (RFC 2822) › should show Copy email and Copy buttons in owner popup for RFC 2822 email
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[30/270] [chromium] › test\allure-awesome\features\owner.test.ts:83:3 › owner label (RFC 2822) › should show URL link and Copy button in owner popup for RFC 2822 URL
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[31/270] [chromium] › test\allure-awesome\features\owner.test.ts:97:3 › owner label (RFC 2822) › should show only Copy button in owner popup for plain text owner
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[32/270] [chromium] › test\allure-awesome\features\owner.test.ts:111:3 › owner label (RFC 2822) › should show only Copy button in owner popup when owner is plain email address
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[33/270] [chromium] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:64950
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[34/270] [chromium] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:59441
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[35/270] [chromium] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:59130
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[36/270] [chromium] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:62799
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[37/270] [chromium] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:60365
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[38/270] [chromium] › test\allure-awesome\features\retries.test.ts:84:5 › retries › tree › should show retry icon in the tree for tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[39/270] [chromium] › test\allure-awesome\features\retries.test.ts:100:5 › retries › tree › metadata shows correct count of retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[40/270] [chromium] › test\allure-awesome\features\retries.test.ts:110:5 › retries › tree › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[41/270] [chromium] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51955
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[42/270] [chromium] › test\allure-awesome\features\retries.test.ts:208:7 › retries › test results › titles › retry titles of tests with no timestampts have prefixes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[43/270] [chromium] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:50446
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[44/270] [chromium] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:52883
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[45/270] [chromium] › test\allure-awesome\features\transitions.test.ts:138:3 › status transitions › should be able to filter regressed tests with using freshely regressed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[46/270] [chromium] › test\allure-awesome\features\transitions.test.ts:162:3 › status transitions › should be able to filter malfunctioned tests with using freshely malfunctioned status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[47/270] [chromium] › test\allure-awesome\features\transitions.test.ts:188:3 › status transitions › should show only one Tooltip and change its content on hover different transitions
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[48/270] [chromium] › test\allure-awesome\features\transitions.test.ts:229:3 › status transitions › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[49/270] [chromium] › test\allure-awesome\features\transitions.test.ts:245:3 › status transitions › should apply malfunctioned filter to the tree when filter=malfunctioned query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[50/270] [chromium] › test\allure-awesome\features\transitions.test.ts:261:3 › status transitions › should apply fixed filter to the tree when filter=fixed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[51/270] [chromium] › test\allure-awesome\test\environments.test.ts:117:8 › environments › should render all environment tree sections by default and allow to toggle them
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[52/270] [chromium] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:59992
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[53/270] [chromium] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:50613
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[54/270] [chromium] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57907
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[55/270] [chromium] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57785
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[56/270] [chromium] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:49899
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[57/270] [chromium] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58202
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[58/270] [chromium] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:53873
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[59/270] [chromium] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:61002
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[60/270] [chromium] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:59497
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[61/270] [chromium] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:50678
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[62/270] [chromium] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:52306
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[63/270] [chromium] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57955
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[64/270] [chromium] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58319
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[65/270] [chromium] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:60970
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[66/270] [chromium] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:61312
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[67/270] [chromium] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:49282
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[68/270] [chromium] › test\allure-awesome\test\testResult.test.ts:131:5 › allure-awesome › test results › test result fullname copies to clipboard
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[69/270] [chromium] › test\allure-awesome\test\testResult.test.ts:144:5 › allure-awesome › test results › failed test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[70/270] [chromium] › test\allure-awesome\test\testResult.test.ts:152:5 › allure-awesome › test results › failed test contains error actual/expected comparison
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[71/270] [chromium] › test\allure-awesome\test\testResult.test.ts:161:5 › allure-awesome › test results › broken test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[72/270] [chromium] › test\allure-awesome\test\testResult.test.ts:169:5 › allure-awesome › test results › has a collapsable links section with links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[73/270] [chromium] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:64720
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[74/270] [chromium] › test\allure-awesome\test\tree.test.ts:109:3 › commons › statistics in metadata renders information about the tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[75/270] [chromium] › test\allure-awesome\test\tree.test.ts:122:3 › commons › tree tabs filter tests by the status
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[76/270] [chromium] › test\allure-awesome\test\tree.test.ts:149:3 › commons › test result page opens after test result click
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[77/270] [chromium] › test\allure-awesome\test\tree.test.ts:156:3 › commons › search filters tests on typing
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[78/270] [chromium] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51444
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[79/270] [chromium] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:50508
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[80/270] [chromium] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:51424
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[81/270] [chromium] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:54974
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[82/270] [chromium] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:63281
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[83/270] [chromium] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:55571
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[84/270] [chromium] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56015
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[85/270] [chromium] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56017
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[86/270] [chromium] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56018
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[87/270] [chromium] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56019
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[88/270] [chromium] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:61867
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[89/270] [chromium] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:54380
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[90/270] [chromium] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[chromium] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:63009
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[91/270] [firefox] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56449
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[92/270] [firefox] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56458
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[93/270] [firefox] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56468
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[94/270] [firefox] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56478
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[95/270] [firefox] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56487
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[96/270] [firefox] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56496
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[97/270] [firefox] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56505
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[98/270] [firefox] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56519
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[99/270] [firefox] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56528
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[100/270] [firefox] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56537
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[101/270] [firefox] › test\allure-awesome\features\flaky.test.ts:117:3 › flaky › should show flaky icon only for flaky tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[102/270] [firefox] › test\allure-awesome\features\flaky.test.ts:124:3 › flaky › metadata shows correct count of flaky tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[103/270] [firefox] › test\allure-awesome\features\flaky.test.ts:134:3 › flaky › should apply flaky filter to the tree when filter=flaky query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[104/270] [firefox] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56571
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[105/270] [firefox] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56581
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[106/270] [firefox] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56591
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[107/270] [firefox] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56601
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[108/270] [firefox] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56611
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[109/270] [firefox] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56628
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[110/270] [firefox] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56637
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[111/270] [firefox] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56647
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[112/270] [firefox] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56656
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[113/270] [firefox] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56665
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[114/270] [firefox] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56675
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[115/270] [firefox] › test\allure-awesome\features\new.test.ts:96:3 › new tests › should show new icon only for new tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[116/270] [firefox] › test\allure-awesome\features\new.test.ts:107:3 › new tests › metadata shows correct count of new tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[117/270] [firefox] › test\allure-awesome\features\new.test.ts:117:3 › new tests › should apply new filter to the tree when filter=new query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[118/270] [firefox] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56708
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[119/270] [firefox] › test\allure-awesome\features\owner.test.ts:69:3 › owner label (RFC 2822) › should show Copy email and Copy buttons in owner popup for RFC 2822 email
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[120/270] [firefox] › test\allure-awesome\features\owner.test.ts:83:3 › owner label (RFC 2822) › should show URL link and Copy button in owner popup for RFC 2822 URL
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[121/270] [firefox] › test\allure-awesome\features\owner.test.ts:97:3 › owner label (RFC 2822) › should show only Copy button in owner popup for plain text owner
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[122/270] [firefox] › test\allure-awesome\features\owner.test.ts:111:3 › owner label (RFC 2822) › should show only Copy button in owner popup when owner is plain email address
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[123/270] [firefox] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56754
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[124/270] [firefox] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56765
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[125/270] [firefox] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56775
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[126/270] [firefox] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56785
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[127/270] [firefox] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56795
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[128/270] [firefox] › test\allure-awesome\features\retries.test.ts:84:5 › retries › tree › should show retry icon in the tree for tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[129/270] [firefox] › test\allure-awesome\features\retries.test.ts:100:5 › retries › tree › metadata shows correct count of retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[130/270] [firefox] › test\allure-awesome\features\retries.test.ts:110:5 › retries › tree › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[131/270] [firefox] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56833
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[132/270] [firefox] › test\allure-awesome\features\retries.test.ts:208:7 › retries › test results › titles › retry titles of tests with no timestampts have prefixes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[133/270] [firefox] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56851
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[134/270] [firefox] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56861
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[135/270] [firefox] › test\allure-awesome\features\transitions.test.ts:138:3 › status transitions › should be able to filter regressed tests with using freshely regressed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[136/270] [firefox] › test\allure-awesome\features\transitions.test.ts:162:3 › status transitions › should be able to filter malfunctioned tests with using freshely malfunctioned status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[137/270] [firefox] › test\allure-awesome\features\transitions.test.ts:188:3 › status transitions › should show only one Tooltip and change its content on hover different transitions
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[138/270] [firefox] › test\allure-awesome\features\transitions.test.ts:229:3 › status transitions › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[139/270] [firefox] › test\allure-awesome\features\transitions.test.ts:245:3 › status transitions › should apply malfunctioned filter to the tree when filter=malfunctioned query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[140/270] [firefox] › test\allure-awesome\features\transitions.test.ts:261:3 › status transitions › should apply fixed filter to the tree when filter=fixed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[141/270] [firefox] › test\allure-awesome\test\environments.test.ts:117:8 › environments › should render all environment tree sections by default and allow to toggle them
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[142/270] [firefox] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56923
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[143/270] [firefox] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56937
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[144/270] [firefox] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56946
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[145/270] [firefox] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56955
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[146/270] [firefox] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56964
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[147/270] [firefox] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56975
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[148/270] [firefox] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56986
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[149/270] [firefox] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:56995
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[150/270] [firefox] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57010
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[151/270] [firefox] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57019
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[152/270] [firefox] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57028
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[153/270] [firefox] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57037
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[154/270] [firefox] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57046
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[155/270] [firefox] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57056
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[156/270] [firefox] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57065
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[157/270] [firefox] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57074
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[158/270] [firefox] › test\allure-awesome\test\testResult.test.ts:131:5 › allure-awesome › test results › test result fullname copies to clipboard
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[159/270] [firefox] › test\allure-awesome\test\testResult.test.ts:144:5 › allure-awesome › test results › failed test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[160/270] [firefox] › test\allure-awesome\test\testResult.test.ts:152:5 › allure-awesome › test results › failed test contains error actual/expected comparison
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[161/270] [firefox] › test\allure-awesome\test\testResult.test.ts:161:5 › allure-awesome › test results › broken test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[162/270] [firefox] › test\allure-awesome\test\testResult.test.ts:169:5 › allure-awesome › test results › has a collapsable links section with links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[163/270] [firefox] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57128
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[164/270] [firefox] › test\allure-awesome\test\tree.test.ts:109:3 › commons › statistics in metadata renders information about the tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[165/270] [firefox] › test\allure-awesome\test\tree.test.ts:122:3 › commons › tree tabs filter tests by the status
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[166/270] [firefox] › test\allure-awesome\test\tree.test.ts:149:3 › commons › test result page opens after test result click
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[167/270] [firefox] › test\allure-awesome\test\tree.test.ts:156:3 › commons › search filters tests on typing
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[168/270] [firefox] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57182
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[169/270] [firefox] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57197
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[170/270] [firefox] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57212
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[171/270] [firefox] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57226
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[172/270] [firefox] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57232
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[173/270] [firefox] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57241
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[174/270] [firefox] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57254
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[175/270] [firefox] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57255
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[176/270] [firefox] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57256
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[177/270] [firefox] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57257
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[178/270] [firefox] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57266
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[179/270] [firefox] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57276
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[180/270] [firefox] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[firefox] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57284
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[181/270] [safari] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:69:5 › attachments › commons › should render "missed" label for attachments which don't exist[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57299
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[182/270] [safari] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:129:5 › attachments › text attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57314
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[183/270] [safari] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:143:5 › attachments › text attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57328
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[184/270] [safari] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:210:5 › attachments › code attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57347
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[185/270] [safari] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:224:5 › attachments › code attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57360
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[186/270] [safari] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:293:5 › attachments › image attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57375
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[187/270] [safari] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:306:5 › attachments › image attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57390
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[188/270] [safari] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:374:5 › attachments › video attachment › should render attachment in the test result body and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57409
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[189/270] [safari] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\attachments.test.ts:387:5 › attachments › video attachment › should render attachment in the test result attachments tab and allow to preview it[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57423
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[190/270] [safari] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\flaky.test.ts:105:3 › flaky › should be able to filter flaky tests with flaky status using flaky filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57438
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[191/270] [safari] › test\allure-awesome\features\flaky.test.ts:117:3 › flaky › should show flaky icon only for flaky tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[192/270] [safari] › test\allure-awesome\features\flaky.test.ts:124:3 › flaky › metadata shows correct count of flaky tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[193/270] [safari] › test\allure-awesome\features\flaky.test.ts:134:3 › flaky › should apply flaky filter to the tree when filter=flaky query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[194/270] [safari] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:25:5 › globals › exit code › should show only original exit code[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57495
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[195/270] [safari] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:48:5 › globals › exit code › should show both exit codes[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57510
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[196/270] [safari] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:72:5 › globals › exit code › shouldn't show global status and exit code when exit code isn't available[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57525
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[197/270] [safari] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:94:5 › globals › attachments › should show empty state when no global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57540
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[198/270] [safari] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:115:5 › globals › attachments › should shows global attachments[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57556
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[199/270] [safari] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:158:5 › globals › errors › should show empty state when no global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57570
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[200/270] [safari] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\globals.test.ts:179:5 › globals › errors › should show global errors[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57585
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[201/270] [safari] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\history.test.ts:66:5 › history › without history › should not show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57604
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[202/270] [safari] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\history.test.ts:84:5 › history › with local history › should show history for the test result, but without links[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57618
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[203/270] [safari] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\history.test.ts:116:5 › history › with remote history › should show history for the test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57631
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[204/270] [safari] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\new.test.ts:73:3 › new tests › should be able to filter new tests with using new filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57644
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[205/270] [safari] › test\allure-awesome\features\new.test.ts:96:3 › new tests › should show new icon only for new tests in the tree
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[206/270] [safari] › test\allure-awesome\features\new.test.ts:107:3 › new tests › metadata shows correct count of new tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[207/270] [safari] › test\allure-awesome\features\new.test.ts:117:3 › new tests › should apply new filter to the tree when filter=new query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[208/270] [safari] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\owner.test.ts:50:3 › owner label (RFC 2822) › should display owner label in metadata with RFC 2822 display names and plain text[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57697
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[209/270] [safari] › test\allure-awesome\features\owner.test.ts:69:3 › owner label (RFC 2822) › should show Copy email and Copy buttons in owner popup for RFC 2822 email
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[210/270] [safari] › test\allure-awesome\features\owner.test.ts:83:3 › owner label (RFC 2822) › should show URL link and Copy button in owner popup for RFC 2822 URL
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[211/270] [safari] › test\allure-awesome\features\owner.test.ts:97:3 › owner label (RFC 2822) › should show only Copy button in owner popup for plain text owner
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[212/270] [safari] › test\allure-awesome\features\owner.test.ts:111:3 › owner label (RFC 2822) › should show only Copy button in owner popup when owner is plain email address
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[213/270] [safari] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\qualityGates.test.ts:26:3 › quality gates › should render empty quality gate tab when there is no quality gate validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57769
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[214/270] [safari] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\qualityGates.test.ts:46:3 › quality gates › should not render quality gate sections when there're results without any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57783
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[215/270] [safari] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\qualityGates.test.ts:100:3 › quality gates › should render quality gate sections with environments from validation results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57798
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[216/270] [safari] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\qualityGates.test.ts:153:3 › quality gates › should allow to switch between environments to see certain quality gate results[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57819
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[217/270] [safari] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\retries.test.ts:74:5 › retries › tree › shows only tests with retries[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57834
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[218/270] [safari] › test\allure-awesome\features\retries.test.ts:84:5 › retries › tree › should show retry icon in the tree for tests with retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[219/270] [safari] › test\allure-awesome\features\retries.test.ts:100:5 › retries › tree › metadata shows correct count of retries
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[220/270] [safari] › test\allure-awesome\features\retries.test.ts:110:5 › retries › tree › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[221/270] [safari] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\retries.test.ts:197:7 › retries › test results › titles › retry titles of tests with timestampts have prefixes and timestamps[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57888
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[222/270] [safari] › test\allure-awesome\features\retries.test.ts:208:7 › retries › test results › titles › retry titles of tests with no timestampts have prefixes
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[223/270] [safari] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\tags.test.ts:51:3 › tags › should filter tree by tag when clicking Go to filter from tag metadata[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57918
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[224/270] [safari] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\features\transitions.test.ts:114:3 › status transitions › should be able to filter fixed tests with using freshely fixed status filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:57936
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[225/270] [safari] › test\allure-awesome\features\transitions.test.ts:138:3 › status transitions › should be able to filter regressed tests with using freshely regressed status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[226/270] [safari] › test\allure-awesome\features\transitions.test.ts:162:3 › status transitions › should be able to filter malfunctioned tests with using freshely malfunctioned status filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[227/270] [safari] › test\allure-awesome\features\transitions.test.ts:188:3 › status transitions › should show only one Tooltip and change its content on hover different transitions
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[228/270] [safari] › test\allure-awesome\features\transitions.test.ts:229:3 › status transitions › should apply regressed filter to the tree when filter=regressed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[229/270] [safari] › test\allure-awesome\features\transitions.test.ts:245:3 › status transitions › should apply malfunctioned filter to the tree when filter=malfunctioned query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[230/270] [safari] › test\allure-awesome\features\transitions.test.ts:261:3 › status transitions › should apply fixed filter to the tree when filter=fixed query parameter is present
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[231/270] [safari] › test\allure-awesome\test\environments.test.ts:117:8 › environments › should render all environment tree sections by default and allow to toggle them
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[232/270] [safari] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:158:3 › environments › should allow to switch environments using the picker in the header[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58033
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[233/270] [safari] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:166:3 › environments › should render statistics for all environments by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58052
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[234/270] [safari] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:176:3 › environments › shouldn't render any environment for test result which doesn't match any environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58066
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[235/270] [safari] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:187:3 › environments › should render a matched environment for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58079
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[236/270] [safari] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:206:3 › environments › should render several environments for test result[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58093
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[237/270] [safari] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:236:3 › environments › should use different navigations between all environments and a specific one[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58108
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[238/270] [safari] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:249:3 › environments › should render report variables by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58129
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[239/270] [safari] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\environments.test.ts:261:3 › environments › should render environment variables for a chosen environment[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58142
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[240/270] [safari] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\reportOptions.test.ts:38:5 › allure-awesome › report options › should contain title from config in the page title[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58156
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[241/270] [safari] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\reportOptions.test.ts:64:7 › allure-awesome › report options › layout switching › should render split layout when it's enabled in the plugin options[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58170
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[242/270] [safari] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\reportOptions.test.ts:91:7 › allure-awesome › report options › layout switching › should render single layout by default[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58182
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[243/270] [safari] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\reportOptions.test.ts:114:7 › allure-awesome › report options › layout switching › should toggle from base layout to splitted one and back[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58195
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[244/270] [safari] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\reportOptions.test.ts:142:5 › allure-awesome › report options › render test results which match the filter[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58207
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[245/270] [safari] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\steps.test.ts:124:3 › Steps in Allure Awesome › the same error is only rendered at the leaf level[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58227
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[246/270] [safari] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\steps.test.ts:142:3 › Steps in Allure Awesome › unique errors are always rendered[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58241
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[247/270] [safari] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\testResult.test.ts:105:5 › allure-awesome › test results › it's possible to navigate between tests results using navigation arrows[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58255
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[248/270] [safari] › test\allure-awesome\test\testResult.test.ts:131:5 › allure-awesome › test results › test result fullname copies to clipboard
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[249/270] [safari] › test\allure-awesome\test\testResult.test.ts:144:5 › allure-awesome › test results › failed test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[250/270] [safari] › test\allure-awesome\test\testResult.test.ts:152:5 › allure-awesome › test results › failed test contains error actual/expected comparison
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[251/270] [safari] › test\allure-awesome\test\testResult.test.ts:161:5 › allure-awesome › test results › broken test contains error message and stack
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[252/270] [safari] › test\allure-awesome\test\testResult.test.ts:169:5 › allure-awesome › test results › has a collapsable links section with links
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[253/270] [safari] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:85:3 › commons › all types of tests are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58338
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[254/270] [safari] › test\allure-awesome\test\tree.test.ts:109:3 › commons › statistics in metadata renders information about the tests
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[255/270] [safari] › test\allure-awesome\test\tree.test.ts:122:3 › commons › tree tabs filter tests by the status
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[256/270] [safari] › test\allure-awesome\test\tree.test.ts:149:3 › commons › test result page opens after test result click
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[257/270] [safari] › test\allure-awesome\test\tree.test.ts:156:3 › commons › search filters tests on typing
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[258/270] [safari] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:165:3 › SearchBox component with debounce › should update value with debounce and clear input[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58422
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[259/270] [safari] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:213:3 › suites › should display tree groups with a correct suites hierarchy[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58441
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[260/270] [safari] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:279:3 › suites › should not display groups when test results don't have related label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58462
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[261/270] [safari] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:341:3 › suites › should assign default labels when test results don't any matched one label[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58483
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[262/270] [safari] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:445:3 › features › features groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58495
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[263/270] [safari] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\allure-awesome\test\tree.test.ts:494:3 › stories › stories groups are displayed[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58508
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[264/270] [safari] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\output.test.ts:18:3 › output › should generate single report in the report output directory without sub-directories[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58522
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[265/270] [safari] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\output.test.ts:51:3 › output › should generate summary page and sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58523
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[266/270] [safari] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\output.test.ts:92:3 › output › should not generate summary page if no one report provided summary, but still should generate sub-directories for every report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58524
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[267/270] [safari] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\summary.test.ts:23:3 › summary › should not generate summary for a single report[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58525
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[268/270] [safari] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\summary.test.ts:55:3 › summary › should not generate summary on the single report re-generation[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58540
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[269/270] [safari] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\summary.test.ts:93:3 › summary › should render cards for each generated report with summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58558
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[270/270] [safari] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[2m[safari] › test\commons\summary.test.ts:140:3 › summary › should not render cards for reports without summary[22m
+[38;5;73m[@allurereport/e2e]:[39m Allure is running on http://localhost:58571
+[38;5;73m[@allurereport/e2e]:[39m 
+[38;5;73m[@allurereport/e2e]:[39m [1A[2K[33m  5 skipped[39m
+[38;5;73m[@allurereport/e2e]:[39m [32m  265 passed[39m[2m (11.8m)[22m
+[38;5;73m[@allurereport/e2e]:[39m Process exited (exit code 0), completed in 11m 52s
+Done in 14m 17s
