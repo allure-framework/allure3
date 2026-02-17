@@ -177,7 +177,7 @@ describe("matchCategoryMatcher / matchCategory", () => {
 
   it("matchCategory returns undefined when no matchers match", () => {
     const cats = normalizeErrorCategoriesConfig([{ name: "OnlyBroken", matchers: { statuses: ["broken"] } }]);
-    const m = matchCategory(cats, mkData({ status: "failed" }));
+    const m = matchCategory(cats, mkData({ status: "unknown" }));
     expect(m).toBeUndefined();
   });
 });
