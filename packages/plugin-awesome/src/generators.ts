@@ -213,7 +213,7 @@ export const generateTree = async (
   // @ts-ignore
   filterTree(tree, (leaf) => !leaf.hidden);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf: AwesomeTreeLeaf, idx: number) => ({ ...leaf, groupOrder: idx + 1 }));
+  transformTree(tree, (leaf, idx: number) => ({ ...leaf, groupOrder: idx + 1 }));
 
   await writer.writeWidget(treeFilename, tree);
 };
@@ -227,7 +227,7 @@ const buildTreeByLabels = (
     labels,
     leafFactory,
     undefined,
-    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => {
+    (group, leaf) => {
       incrementStatistic(group.statistic, leaf.status);
     },
   );
@@ -245,12 +245,12 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     }
   }
 
-  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult, AwesomeTreeLeaf, AwesomeTreeGroup>(
+  const treeByTitlePath = createTreeByTitlePath<AwesomeTestResult>(
     testsWithTitlePath,
     leafFactory,
     undefined,
-    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
-  );
+    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+  ) as TreeData<AwesomeTreeLeaf, AwesomeTreeGroup>;
 
   if (!testsWithoutTitlePath.length) {
     return treeByTitlePath;
@@ -270,7 +270,7 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
       defaultLabels,
       leafFactory,
       undefined,
-      (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
+      (group, leaf) => incrementStatistic(group.statistic, leaf.status),
     );
   } else {
     for (const test of testsWithoutTitlePath) {

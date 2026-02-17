@@ -11,6 +11,7 @@ interface TreeHeaderProps {
   isOpened: boolean;
   toggleTree: () => void;
   statusFilter?: Status;
+  style?: Record<string, string>;
 }
 
 export const TreeHeader: FunctionComponent<TreeHeaderProps> = ({

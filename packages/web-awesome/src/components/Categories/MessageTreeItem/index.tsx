@@ -1,9 +1,10 @@
 import type { CategoryNode, CategoryNodeProps, Statistic, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { ansiToHTML } from "@allurereport/web-commons";
-import { ArrowButton, Code, Text, TreeStatusBar } from "@allurereport/web-components";
+import { ArrowButton, Code, TreeStatusBar } from "@allurereport/web-components";
 import clsx from "clsx";
-import type { ComponentChildren, FC } from "preact/compat";
+import type { ComponentChildren } from "preact";
+import type { FC } from "preact/compat";
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
@@ -58,22 +59,17 @@ export const MessageTreeItem: FC<MessageTreeItemProps> = ({
 
   return (
     <div className={clsx(styles["tree-content"], styles["tree-item-message"])} id={nodeId}>
-      <div
-        className={styles["tree-item-message-container"]}
-        data-tree-header
-      >
-        <ArrowButton isOpened={isOpened}  className={styles["tree-item-message-arrow"]} />
-        <div className={clsx(styles["tree-item-message-card"], status && styles[`message-status-${status}`])} style={stickyStyle}>
-          <div className={styles["tree-item-message-header"]} onClick={onToggle}>
-            <Code size="s">
-              {/* eslint-disable-next-line react/no-danger */}
-              <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
-            </Code>
-            <div className={styles["tree-item-message-actions"]}>
-              {subtreeToggle}
-              <div className={styles["tree-item-message-stats"]}>
-                <TreeStatusBar reportStatistic={reportStatistic} statusFilter={"total"} statistic={node.statistic} />
-              </div>
+      <div className={styles["tree-item-message-container"]} data-tree-header style={stickyStyle} onClick={onToggle}>
+        <ArrowButton isOpened={isOpened} className={styles["tree-item-message-arrow"]} />
+        <div className={clsx(styles["tree-item-message-card"], status && styles[`message-status-${status}`])}>
+          <Code size="s" className={styles["tree-item-message-header"]}>
+            {/* eslint-disable-next-line react/no-danger */}
+            <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
+          </Code>
+          <div className={styles["tree-item-message-actions"]}>
+            {subtreeToggle}
+            <div className={styles["tree-item-message-stats"]}>
+              <TreeStatusBar reportStatistic={reportStatistic} statusFilter={"total"} statistic={node.statistic} />
             </div>
           </div>
         </div>

@@ -8,9 +8,16 @@
 
 .tree-item-message-container {
   display: flex;
-  gap:8px;
+  gap: 8px;
   align-items: center;
-  flex:1 1 auto;
+  flex: 1 1 auto;
+  background: var(--bg-base-primary);
+  min-height: var(--tree-section-min-height, auto);
+  padding: 4px 0;
+  position: var(--tree-section-position, relative);
+  top: var(--tree-section-top, auto);
+  transition: background-color 0.3s;
+  z-index: var(--tree-section-z, auto);
 }
 
 .tree-item-message-card {
@@ -20,7 +27,8 @@
   background-color: var(--bg-alpha-capella);
   position: relative;
   overflow: hidden;
-
+  text-overflow: ellipsis;
+  display: flex;
 
   &:before {
     content: "";
@@ -39,6 +47,13 @@
   gap: 4px;
   cursor: pointer;
   box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  pre {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .tree-item-message-arrow {
@@ -60,7 +75,6 @@
 .tree-item-message-actions .tree-item-subtree-toggle {
   margin-left: 0;
 }
-
 
 .tree-item-message-stats {
   display: flex;
@@ -134,4 +148,3 @@
 .message-color-unknown {
   color: var(--on-support-skat);
 }
-

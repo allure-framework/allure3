@@ -4,6 +4,7 @@ import type {
   CategoryNode,
   CategoryNodeType,
   ErrorCategoryNorm,
+  ErrorMatchingData,
   Statistic,
 } from "@allurereport/core-api";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
-import type { AwesomeDataWriter } from "../writer.js";
+import type { AwesomeDataWriter } from "./writer.js";
 
 const emptyStat = (): Statistic => ({
   total: 0,
@@ -44,6 +45,19 @@ type GroupLevel = {
   key: string;
   value: string;
   name: string;
+};
+
+export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categories: ErrorCategoryNorm[]) => {
+  for (const tr of tests) {
+    const matchingData = extractErrorMatchingData(tr);
+    const matched = matchCategory(categories, matchingData);
+    if (!matched) {
+      tr.categories = [];
+      continue;
+    }
+
+    tr.categories = [{ name: matched.name }];
+  }
 };
 
 const extractGroupValue = (
@@ -87,7 +101,7 @@ const extractGroupValue = (
 const buildGroupLevels = (
   category: ErrorCategoryNorm,
   tr: AwesomeTestResult,
-  matchingData: ReturnType<typeof extractErrorMatchingData>,
+  matchingData: ErrorMatchingData,
   environmentCount: number,
   envValue: string,
 ): GroupLevel[] => {
@@ -249,13 +263,12 @@ export const generateCategories = async (
   }
 
   for (const [parentId, children] of childrenMap.entries()) {
-    const sorted = Array.from(children).sort((a, b) => {
+    nodes[parentId].childrenIds = Array.from(children).sort((a, b) => {
       const aName = nodes[a]?.name ?? "";
       const bName = nodes[b]?.name ?? "";
       const byName = aName.localeCompare(bName);
       return byName !== 0 ? byName : a.localeCompare(b);
     });
-    nodes[parentId].childrenIds = sorted;
   }
 
   for (const catName of categoryOrder) {

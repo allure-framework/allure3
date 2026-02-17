@@ -1,6 +1,7 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
 import { TreeHeader } from "@allurereport/web-components";
-import type { ComponentChildren, FC } from "preact/compat";
+import type { ComponentChildren } from "preact";
+import type { FC } from "preact/compat";
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import * as styles from "./styles.scss";
 

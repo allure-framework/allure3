@@ -22,6 +22,8 @@ export type ObjectMatcher = {
   message?: string | RegExp;
   trace?: string | RegExp;
   flaky?: boolean;
+  transitions?: readonly TestStatusTransition[];
+  environments?: readonly string[];
 };
 
 export type PredicateMatcher = (d: ErrorMatchingData) => boolean;
@@ -30,13 +32,20 @@ export type Matcher = ObjectMatcher | PredicateMatcher;
 
 export type CategoryMatcher = Matcher | readonly Matcher[];
 
-export type CategoryGroupBuiltInSelector = "flaky" | "owner" | "severity" | "transition";
+export type CategoryGroupBuiltInSelector =
+  | "flaky"
+  | "owner"
+  | "severity"
+  | "transition"
+  | "status"
+  | "environment"
+  | "layer";
 
 export type CategoryGroupCustomSelector = {
   label: string;
 };
 
-export type CategoryGroupSelector = CategoryGroupBuiltInSelector | CategoryGroupCustomSelector;
+export type CategoryGroupSelector = CategoryGroupBuiltInSelector & CategoryGroupCustomSelector;
 
 export type ErrorCategoryRule = {
   name: string;
@@ -105,7 +114,6 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === "object" && !Array.isArray(v);
 
 const toRegExp = (v: string | RegExp): RegExp => (v instanceof RegExp ? v : new RegExp(v));
-
 const isMatcherArray = (value: CategoryMatcher): value is readonly Matcher[] => Array.isArray(value);
 
 const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] => {

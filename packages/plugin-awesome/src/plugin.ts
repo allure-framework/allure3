@@ -14,8 +14,7 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
 import { filterEnv } from "./environments.js";
-import { applyCategoriesToTestResults } from "./errorCategories/apply.js";
-import { generateCategories } from "./errorCategories/categories.js";
+import { applyCategoriesToTestResults, generateCategories } from "./errorCategories.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,

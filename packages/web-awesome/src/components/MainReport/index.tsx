@@ -56,13 +56,80 @@ const MainReportContent = () => {
 
 const MainReport = () => {
   const { t } = useI18n("tabs");
+  const rootTabToReportTab: Record<string, ReportRootTab> = {
+    categories: ReportRootTab.ErrorCategories,
+    qualityGate: ReportRootTab.QualityGate,
+    globalAttachments: ReportRootTab.GlobalAttachments,
+    globalErrors: ReportRootTab.GlobalErrors,
+  };
+  const reportTabToRootTab: Partial<Record<ReportRootTab, string>> = {
+    [ReportRootTab.ErrorCategories]: "categories",
+    [ReportRootTab.QualityGate]: "qualityGate",
+    [ReportRootTab.GlobalAttachments]: "globalAttachments",
+    [ReportRootTab.GlobalErrors]: "globalErrors",
+  };
+  const initialTab = rootTabRoute.value.matches
+    ? (rootTabToReportTab[rootTabRoute.value.params.rootTab] ?? ReportRootTab.Results)
+    : ReportRootTab.Results;
+
+  const RootTab = (props: { id: ReportRootTab; children: any }) => {
+    const { id, children } = props;
+    const { currentTab, setCurrentTab } = useNavTabsContext();
+    const isCurrentTab = currentTab === id;
+
+    const handleClick = () => {
+      if (isCurrentTab) {
+        return;
+      }
+      setCurrentTab(id);
+      if (id === ReportRootTab.Results) {
+        if (currentTrId.value) {
+          navigateToPlainTestResult({ testResultId: currentTrId.value, tab: trCurrentTab.value });
+        } else {
+          navigateToRoot();
+        }
+        return;
+      }
+      const rootTab = reportTabToRootTab[id];
+      if (rootTab) {
+        if (currentTrId.value) {
+          navigateToRootTabTestResult({ rootTab, testResultId: currentTrId.value, tab: trCurrentTab.value });
+        } else {
+          navigateToRootTabRoot({ rootTab });
+        }
+      } else {
+        navigateToRoot();
+      }
+    };
+
+    return (
+      <NavTab id={id} onClick={handleClick} isCurrentTab={isCurrentTab}>
+        {children}
+      </NavTab>
+    );
+  };
+
+  // @ts-ignore
+  const RootTabRouteSync = () => {
+    const { currentTab, setCurrentTab } = useNavTabsContext();
+    const routeKey = rootTabRoute.value.matches ? (rootTabRoute.value.params.rootTab ?? "") : "";
+    useEffect(() => {
+      const routeMatches = rootTabRoute.value.matches;
+      const routeTab = routeMatches ? rootTabRoute.value.params.rootTab : undefined;
+      const mapped = routeMatches ? (rootTabToReportTab[routeTab] ?? ReportRootTab.Results) : ReportRootTab.Results;
+      if (currentTab !== mapped) {
+        setCurrentTab(mapped);
+      }
+    }, [currentTab, setCurrentTab, routeKey]);
+    return null;
+  };
 
   return (
     <div className={clsx(styles.content, isSplitMode.value ? styles["scroll-inside"] : "")}>
       <ReportHeader />
       <div className={styles["main-report-tabs"]}>
         <NavTabs initialTab={initialTab}>
-            <RootTabRouteSync />
+          <RootTabRouteSync />
           <NavTabsList>
             <Loadable
               source={reportStatsStore}
@@ -70,21 +137,21 @@ const MainReport = () => {
                 <RootTab id={ReportRootTab.Results}>
                   {t("results")} <Counter count={stats?.total ?? 0} />
                 </RootTab>
-                )}
-              />
-              <Loadable
-                source={categoriesStore}
-                renderData={(categories) => {
-                  if (!categories || !categories.roots?.length) {
-                    return null;
-                  }
-                  return (
-                    <>
-                      <RootTab id={ReportRootTab.ErrorCategories}>
-                        {t("categories")} <Counter count={categories.roots?.length} />
-                      </RootTab>
-                    </>
-                  );
+              )}
+            />
+            <Loadable
+              source={categoriesStore}
+              renderData={(categories) => {
+                if (!categories || !categories.roots?.length) {
+                  return null;
+                }
+                return (
+                  <>
+                    <RootTab id={ReportRootTab.ErrorCategories}>
+                      {t("categories")} <Counter count={categories.roots?.length} />
+                    </RootTab>
+                  </>
+                );
               }}
             />
             <Loadable
