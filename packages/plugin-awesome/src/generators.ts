@@ -213,7 +213,7 @@ export const generateTree = async (
   // @ts-ignore
   filterTree(tree, (leaf) => !leaf.hidden);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
-  transformTree(tree, (leaf, idx: number) => ({ ...leaf, groupOrder: idx + 1 }));
+  transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
   await writer.writeWidget(treeFilename, tree);
 };

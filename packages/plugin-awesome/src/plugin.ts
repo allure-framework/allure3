@@ -76,6 +76,9 @@ export class AwesomePlugin implements Plugin {
       tests: convertedTrs,
       categories: normalizedCategories,
       environmentCount: environments.length,
+      environments,
+      defaultEnvironment: "default",
+      selectedEnvironmentCount: environments.length,
     });
     const hasGroupBy = groupBy.length > 0;
 
@@ -104,6 +107,8 @@ export class AwesomePlugin implements Plugin {
         tests: envConvertedTrs,
         categories: normalizedCategories,
         environmentCount: 1,
+        defaultEnvironment: "default",
+        selectedEnvironmentCount: 1,
         filename: join(reportEnvironment, "categories.json"),
       });
     }

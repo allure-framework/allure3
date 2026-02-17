@@ -8,6 +8,9 @@ import type {
   Statistic,
 } from "@allurereport/core-api";
 import {
+  EMPTY_VALUE,
+  buildEnvironmentSortOrder,
+  compareChildNodes,
   extractErrorMatchingData,
   findLastByLabelName,
   incrementStatistic,
@@ -17,13 +20,18 @@ import { md5 } from "@allurereport/plugin-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
 import type { AwesomeDataWriter } from "./writer.js";
 
+type GroupLevel = {
+  type: CategoryNodeType;
+  key: string;
+  value: string;
+  name: string;
+};
+
 const emptyStat = (): Statistic => ({
   total: 0,
 });
-
-const EMPTY_VALUE = "<Empty>";
-
 const msgKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
+
 const envKey = (m?: string) => (m && m.trim().length ? m : EMPTY_VALUE);
 
 const formatEmptyValue = (key: string) => {
@@ -36,16 +44,32 @@ const formatEmptyValue = (key: string) => {
   return `No ${key}`;
 };
 
+const hasEnvironmentSelector = (category: ErrorCategoryNorm) =>
+  category.groupBy.some((selector) => selector === "environment");
+
+const computeGroupEnvironments = (
+  category: ErrorCategoryNorm,
+  environmentCount: number,
+  isSingleEnvironmentSelected: boolean,
+) => {
+  if (isSingleEnvironmentSelected) {
+    return false;
+  }
+
+  if (category.groupEnvironments) {
+    return category.groupEnvironments;
+  }
+
+  if (environmentCount > 1 && !hasEnvironmentSelector(category)) {
+    return true;
+  }
+
+  return false;
+};
+
 const displayGroupValue = (key: string, value: string) => (value === EMPTY_VALUE ? formatEmptyValue(key) : value);
 
 const formatGroupName = (key: string, value: string) => `${key}: ${displayGroupValue(key, value)}`;
-
-type GroupLevel = {
-  type: CategoryNodeType;
-  key: string;
-  value: string;
-  name: string;
-};
 
 export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categories: ErrorCategoryNorm[]) => {
   for (const tr of tests) {
@@ -62,89 +86,87 @@ export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categor
 
 const extractGroupValue = (
   selector: CategoryGroupSelector,
-  tr: AwesomeTestResult,
+  testResult: AwesomeTestResult,
 ): { key: string; value: string; name: string } => {
   if (selector === "flaky") {
-    const flakyValue = tr.flaky ? "true" : "false";
-    return {
-      key: "flaky",
-      value: flakyValue,
-      name: formatGroupName("flaky", flakyValue),
-    };
+    const flakyValue = testResult.flaky ? "true" : "false";
+    return { key: "flaky", value: flakyValue, name: formatGroupName("flaky", flakyValue) };
   }
+
   if (selector === "transition") {
-    const transitionValue = tr.transition ?? EMPTY_VALUE;
-    return {
-      key: "transition",
-      value: transitionValue,
-      name: formatGroupName("transition", transitionValue),
-    };
+    const transitionValue = testResult.transition ?? EMPTY_VALUE;
+    return { key: "transition", value: transitionValue, name: formatGroupName("transition", transitionValue) };
   }
-  if (selector === "owner" || selector === "severity") {
+
+  if (selector === "status") {
+    const statusValue = testResult.status ?? "unknown";
+    return { key: "status", value: statusValue, name: formatGroupName("status", statusValue) };
+  }
+
+  if (selector === "environment") {
+    const environmentValue = envKey(testResult.environment);
+    return { key: "environment", value: environmentValue, name: formatGroupName("environment", environmentValue) };
+  }
+
+  if (selector === "owner") {
+    const ownerValue = findLastByLabelName(testResult.labels, "owner") ?? EMPTY_VALUE;
+    return { key: "owner", value: ownerValue, name: formatGroupName("owner", ownerValue) };
+  }
+
+  if (selector === "severity") {
     const fallbackValue = selector === "severity" ? "normal" : EMPTY_VALUE;
-    const builtInValue = findLastByLabelName(tr.labels, selector) ?? fallbackValue;
+    const builtInValue = findLastByLabelName(testResult.labels, selector) ?? fallbackValue;
     return {
       key: selector,
       value: builtInValue,
       name: formatGroupName(selector, builtInValue),
     };
   }
+
+  if (selector === "layer") {
+    const layerValue = findLastByLabelName(testResult.labels, "layer") ?? EMPTY_VALUE;
+    return { key: "layer", value: layerValue, name: formatGroupName("layer", layerValue) };
+  }
+
   const labelName = selector.label;
-  const labelValue = findLastByLabelName(tr.labels, labelName) ?? EMPTY_VALUE;
-  return {
-    key: labelName,
-    value: labelValue,
-    name: formatGroupName(labelName, labelValue),
-  };
+  const labelValue = findLastByLabelName(testResult.labels, labelName) ?? EMPTY_VALUE;
+  return { key: labelName, value: labelValue, name: formatGroupName(labelName, labelValue) };
 };
 
 const buildGroupLevels = (
   category: ErrorCategoryNorm,
-  tr: AwesomeTestResult,
+  testResult: AwesomeTestResult,
   matchingData: ErrorMatchingData,
   environmentCount: number,
-  envValue: string,
+  isSingleEnvironmentSelected: boolean,
 ): GroupLevel[] => {
   const levels: GroupLevel[] = [];
-  const envGrouping = (category.groupByEnvironment ?? environmentCount > 1) && environmentCount > 1;
 
   for (const selector of category.groupBy) {
-    const groupValue = extractGroupValue(selector, tr);
-    levels.push({
-      type: "group",
-      key: groupValue.key,
-      value: groupValue.value,
-      name: groupValue.name,
-    });
+    const groupValue = extractGroupValue(selector, testResult);
+    levels.push({ type: "group", key: groupValue.key, value: groupValue.value, name: groupValue.name });
   }
 
   if (category.groupByMessage) {
-    const message = msgKey(matchingData.message);
+    const messageValue = msgKey(matchingData.message);
     levels.push({
       type: "message",
       key: "message",
-      value: message,
-      name: displayGroupValue("message", message),
+      value: messageValue,
+      name: displayGroupValue("message", messageValue),
     });
   }
 
-  if (category.groupByHistoryId) {
-    const historyValue = tr.historyId ?? tr.id;
-    const historyName = tr.name ?? historyValue;
+  const groupEnvironments = computeGroupEnvironments(category, environmentCount, isSingleEnvironmentSelected);
+
+  if (groupEnvironments) {
+    const testKeyValue = testResult.historyId ?? testResult.id;
+    const testDisplayName = testResult.name ?? testKeyValue;
     levels.push({
       type: "history",
       key: "historyId",
-      value: historyValue,
-      name: historyName,
-    });
-  }
-
-  if (envGrouping && !category.groupByHistoryId) {
-    levels.push({
-      type: "group",
-      key: "environment",
-      value: envValue,
-      name: formatGroupName("environment", envValue),
+      value: testKeyValue,
+      name: testDisplayName,
     });
   }
 
@@ -158,14 +180,21 @@ export const generateCategories = async (
     categories,
     filename = "categories.json",
     environmentCount = 0,
+    selectedEnvironmentCount,
+    environments = [],
+    defaultEnvironment = "default",
   }: {
     tests: AwesomeTestResult[];
     categories: ErrorCategoryNorm[];
     filename?: string;
     environmentCount?: number;
+    selectedEnvironmentCount?: number;
+    environments?: string[];
+    defaultEnvironment?: string;
   },
 ) => {
   const visible = tests.filter((t) => !t.hidden);
+  const environmentOrderMap = buildEnvironmentSortOrder(environments, defaultEnvironment);
 
   const nodes: Record<string, CategoryNode> = {};
   const roots: string[] = [];
@@ -214,13 +243,17 @@ export const generateCategories = async (
     if (!matchedCategory || matchedCategory.hide) {
       continue;
     }
-
     const catId = ensureCategoryNode(matchedCategory);
     categoryTouched.add(matchedCategory.name);
     bumpStat(catId, tr.status);
 
-    const envValue = envKey(tr.environment);
-    const levels = buildGroupLevels(matchedCategory, tr, matchingData, environmentCount, envValue);
+    const environmentValue = envKey(tr.environment);
+
+    const isSingleEnvironmentSelected = selectedEnvironmentCount === 1;
+
+    const groupEnvironments = computeGroupEnvironments(matchedCategory, environmentCount, isSingleEnvironmentSelected);
+    const levels = buildGroupLevels(matchedCategory, tr, matchingData, environmentCount, isSingleEnvironmentSelected);
+    const leafName = groupEnvironments ? formatGroupName("environment", environmentValue) : tr.name;
     let parentId = catId;
 
     for (const level of levels) {
@@ -241,13 +274,6 @@ export const generateCategories = async (
       parentId = levelId;
     }
 
-    const leafName =
-      matchedCategory.groupByHistoryId &&
-      (matchedCategory.groupByEnvironment ?? environmentCount > 1) &&
-      environmentCount > 1
-        ? formatGroupName("environment", envValue)
-        : tr.name;
-
     duplicateChecker({
       id: tr.id,
       type: "tr",
@@ -262,13 +288,12 @@ export const generateCategories = async (
     attachChild(parentId, tr.id);
   }
 
-  for (const [parentId, children] of childrenMap.entries()) {
-    nodes[parentId].childrenIds = Array.from(children).sort((a, b) => {
-      const aName = nodes[a]?.name ?? "";
-      const bName = nodes[b]?.name ?? "";
-      const byName = aName.localeCompare(bName);
-      return byName !== 0 ? byName : a.localeCompare(b);
-    });
+  for (const [parentNodeId, childNodeIds] of childrenMap.entries()) {
+    const sortedChildIds = Array.from(childNodeIds).sort((leftChildId, rightChildId) =>
+      compareChildNodes(leftChildId, rightChildId, nodes, environmentOrderMap),
+    );
+
+    nodes[parentNodeId].childrenIds = sortedChildIds;
   }
 
   for (const catName of categoryOrder) {

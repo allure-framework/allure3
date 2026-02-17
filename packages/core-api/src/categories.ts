@@ -2,6 +2,30 @@ import type { Statistic } from "./aggregate.js";
 import type { TestLabel } from "./metadata.js";
 import type { TestResult, TestStatus, TestStatusTransition } from "./model.js";
 
+export const EMPTY_VALUE = "<Empty>";
+export const STATUS_ORDER: Record<string, number> = {
+  failed: 0,
+  broken: 1,
+  passed: 2,
+  skipped: 3,
+  unknown: 4,
+};
+
+export const SEVERITY_ORDER: Record<string, number> = {
+  blocker: 0,
+  critical: 1,
+  normal: 2,
+  minor: 3,
+  trivial: 4,
+};
+
+export const TRANSITION_ORDER: Record<string, number> = {
+  regressed: 0,
+  malfunctioned: 1,
+  new: 2,
+  fixed: 3,
+};
+
 export type TestCategories = {
   roots: string[];
   nodes: Record<string, CategoryNode>;
@@ -45,15 +69,14 @@ export type CategoryGroupCustomSelector = {
   label: string;
 };
 
-export type CategoryGroupSelector = CategoryGroupBuiltInSelector & CategoryGroupCustomSelector;
+export type CategoryGroupSelector = CategoryGroupBuiltInSelector | CategoryGroupCustomSelector;
 
 export type ErrorCategoryRule = {
   name: string;
   matchers?: CategoryMatcher;
   groupBy?: readonly CategoryGroupSelector[];
   groupByMessage?: boolean;
-  groupByEnvironment?: boolean;
-  groupByHistoryId?: boolean;
+  groupEnvironments?: boolean;
   expand?: boolean;
   hide?: boolean;
   matchedStatuses?: readonly TestStatus[];
@@ -67,8 +90,7 @@ export type CategoriesStore = {
   nodes: Record<string, CategoryNode>;
 };
 
-export interface ErrorCategoryNorm
-  extends Pick<ErrorCategoryRule, "name" | "groupByEnvironment" | "groupByHistoryId" | "expand" | "hide"> {
+export interface ErrorCategoryNorm extends Pick<ErrorCategoryRule, "name" | "expand" | "hide" | "groupEnvironments"> {
   matchers: Matcher[];
   groupBy: CategoryGroupSelector[];
   groupByMessage: boolean;
@@ -110,10 +132,16 @@ export interface CategoryTr extends Pick<TestResult, "name" | "status" | "durati
 
 export type CategoryNode = Partial<CategoryTr> & CategoryNodeItem;
 
+type GroupSortKey = {
+  missingRank: number;
+  primaryRank: number;
+  alphaKey: string;
+};
+
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === "object" && !Array.isArray(v);
-
 const toRegExp = (v: string | RegExp): RegExp => (v instanceof RegExp ? v : new RegExp(v));
+
 const isMatcherArray = (value: CategoryMatcher): value is readonly Matcher[] => Array.isArray(value);
 
 const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] => {
@@ -140,10 +168,10 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
     if (rule.matchedStatuses) {
       compatMatcher.statuses = rule.matchedStatuses;
     }
-    if (rule.messageRegex) {
+    if (rule.messageRegex !== undefined) {
       compatMatcher.message = rule.messageRegex;
     }
-    if (rule.traceRegex) {
+    if (rule.traceRegex !== undefined) {
       compatMatcher.trace = rule.traceRegex;
     }
     if (rule.flaky !== undefined) {
@@ -153,7 +181,7 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
   }
 
   if (matchers.length === 0) {
-    throw new Error(`errorCategories[${index}] must define matchers or compatibility keys`);
+    throw new Error(`errorCategories[${index}] must define matchers`);
   }
 
   for (let i = 0; i < matchers.length; i++) {
@@ -215,8 +243,7 @@ export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): Err
       matchers,
       groupBy,
       groupByMessage: rule.groupByMessage ?? true,
-      groupByEnvironment: rule.groupByEnvironment,
-      groupByHistoryId: rule.groupByHistoryId ?? false,
+      groupEnvironments: rule.groupEnvironments,
       expand: rule.expand ?? false,
       hide: rule.hide ?? false,
       index,
@@ -301,4 +328,139 @@ export const extractErrorMatchingData = (
     flaky: tr.flaky,
     duration: tr.duration,
   };
+};
+
+export const buildEnvironmentSortOrder = (environmentNames: string[], defaultEnvironmentName: string) => {
+  const orderMap = new Map<string, number>();
+
+  for (let index = 0; index < environmentNames.length; index++) {
+    orderMap.set(environmentNames[index], index);
+  }
+
+  const missingEnvironmentRank = environmentNames.length;
+
+  const defaultEnvironmentRank = environmentNames.length + 1;
+
+  orderMap.set(EMPTY_VALUE, missingEnvironmentRank);
+  orderMap.set(defaultEnvironmentName, defaultEnvironmentRank);
+
+  return orderMap;
+};
+
+export const compareNumbers = (left: number, right: number) => (left < right ? -1 : left > right ? 1 : 0);
+
+export const compareStrings = (left: string, right: string) => left.localeCompare(right);
+
+export const isMissingValue = (value: string | undefined) => (value ?? EMPTY_VALUE) === EMPTY_VALUE;
+
+export const getGroupSortKey = (
+  groupKey: string | undefined,
+  groupValue: string | undefined,
+  environmentOrderMap?: Map<string, number>,
+): GroupSortKey => {
+  const normalizedValue = groupValue ?? EMPTY_VALUE;
+  const missingRank = normalizedValue === EMPTY_VALUE ? 1 : 0;
+
+  if (groupKey === "status") {
+    const primaryRank = STATUS_ORDER[normalizedValue] ?? 999;
+    return { primaryRank, missingRank, alphaKey: normalizedValue };
+  }
+
+  if (groupKey === "severity") {
+    const primaryRank = SEVERITY_ORDER[normalizedValue] ?? 999;
+    return { primaryRank, missingRank, alphaKey: normalizedValue };
+  }
+
+  if (groupKey === "transition") {
+    const primaryRank = TRANSITION_ORDER[normalizedValue] ?? 999;
+    return { primaryRank, missingRank, alphaKey: normalizedValue };
+  }
+
+  if (groupKey === "flaky") {
+    const primaryRank = normalizedValue === "true" ? 0 : 1;
+    return { primaryRank, missingRank, alphaKey: normalizedValue };
+  }
+
+  if (groupKey === "environment") {
+    if (environmentOrderMap) {
+      const primaryRank = environmentOrderMap.get(normalizedValue) ?? 1000;
+      // default env last is handled by map
+      return { primaryRank, missingRank: 0, alphaKey: normalizedValue };
+    }
+    return { primaryRank: 0, missingRank, alphaKey: normalizedValue };
+  }
+
+  return { primaryRank: 0, missingRank, alphaKey: normalizedValue };
+};
+
+export const compareChildNodes = (
+  leftNodeId: string,
+  rightNodeId: string,
+  nodesById: Record<string, CategoryNode>,
+  environmentOrderMap?: Map<string, number>,
+): number => {
+  const leftNode = nodesById[leftNodeId];
+  const rightNode = nodesById[rightNodeId];
+
+  const leftType = leftNode?.type ?? "";
+  const rightType = rightNode?.type ?? "";
+
+  if (leftType === "message" && rightType === "message") {
+    const leftTotal = leftNode.statistic?.total ?? 0;
+    const rightTotal = rightNode.statistic?.total ?? 0;
+
+    const byCountDescending = compareNumbers(rightTotal, leftTotal);
+    if (byCountDescending !== 0) {
+      return byCountDescending;
+    }
+
+    const byNameMessage = compareStrings(leftNode.name ?? "", rightNode.name ?? "");
+    if (byNameMessage !== 0) {
+      return byNameMessage;
+    }
+
+    return compareStrings(leftNodeId, rightNodeId);
+  }
+
+  if (leftType === "group" && rightType === "group") {
+    const leftGroupKey = leftNode.key ?? "";
+    const rightGroupKey = rightNode.key ?? "";
+
+    const byGroupKey = compareStrings(leftGroupKey, rightGroupKey);
+    if (byGroupKey !== 0) {
+      return byGroupKey;
+    }
+
+    const leftSortKey = getGroupSortKey(leftGroupKey, leftNode.value, environmentOrderMap);
+    const rightSortKey = getGroupSortKey(rightGroupKey, rightNode.value, environmentOrderMap);
+
+    const byPrimaryRank = compareNumbers(leftSortKey.primaryRank, rightSortKey.primaryRank);
+    if (byPrimaryRank !== 0) {
+      return byPrimaryRank;
+    }
+
+    const byMissingLast = compareNumbers(leftSortKey.missingRank, rightSortKey.missingRank);
+    if (byMissingLast !== 0) {
+      return byMissingLast;
+    }
+
+    const byAlpha = compareStrings(leftSortKey.alphaKey, rightSortKey.alphaKey);
+    if (byAlpha !== 0) {
+      return byAlpha;
+    }
+
+    return compareStrings(leftNodeId, rightNodeId);
+  }
+
+  const byType = compareStrings(leftType, rightType);
+  if (byType !== 0) {
+    return byType;
+  }
+
+  const byName = compareStrings(leftNode?.name ?? "", rightNode?.name ?? "");
+  if (byName !== 0) {
+    return byName;
+  }
+
+  return compareStrings(leftNodeId, rightNodeId);
 };
