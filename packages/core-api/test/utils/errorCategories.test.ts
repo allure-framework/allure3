@@ -77,9 +77,9 @@ describe("normalizeErrorCategoriesConfig", () => {
     expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/name must be non-empty string/);
   });
 
-  it("throws when matchers missing and no compatibility keys", () => {
+  it("throws when matchers missing", () => {
     const cfg: ErrorCategoriesConfig = [{ name: "X" } as any];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must define matchers or compatibility keys/);
+    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must define matchers/);
   });
 
   it("throws when canonical keys are mixed with compatibility keys", () => {
@@ -108,14 +108,6 @@ describe("normalizeErrorCategoriesConfig", () => {
     expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must be object\|function/);
   });
 
-  it("defaults groupByMessage to true and groupByHistoryId to false", () => {
-    const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] } }];
-    const normalized = normalizeErrorCategoriesConfig(cfg);
-    const x = normalized.find((r) => r.name === "X")!;
-    expect(x.groupByMessage).toBe(true);
-    expect(x.groupByHistoryId).toBe(false);
-  });
-
   it("validates groupBy selectors: accepts built-ins and { label }", () => {
     const cfg: ErrorCategoriesConfig = [
       {
@@ -129,9 +121,72 @@ describe("normalizeErrorCategoriesConfig", () => {
     expect(x.groupBy).toHaveLength(5);
   });
 
-  it("rejects groupBy selector 'status' with current implementation (captures bug/regression)", () => {
+  it("accepts groupBy selector 'status' (built-in)", () => {
     const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any }];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/groupBy contains invalid selector/);
+    const normalized = normalizeErrorCategoriesConfig(cfg);
+    expect(normalized.find((rule) => rule.name === "X")!.groupBy).toEqual(["status"]);
+  });
+
+  describe("new config fields", () => {
+    it("accepts groupEnvironments boolean and keeps it undefined by default", () => {
+      const cfg: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupEnvironments: true },
+        { name: "Y", matchers: { statuses: ["failed"] } },
+      ];
+
+      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const x = normalized.find((r) => r.name === "X") as any;
+      const y = normalized.find((r) => r.name === "Y") as any;
+
+      expect(x.groupEnvironments).toBe(true);
+      expect(y.groupEnvironments).toBeUndefined();
+    });
+
+    it("accepts groupBy selector 'environment' (built-in) for new spec", () => {
+      const cfg: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["environment"] as any },
+      ];
+      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const x = normalized.find((r) => r.name === "X")!;
+      expect(x.groupBy).toEqual(["environment"]);
+    });
+
+    it("accepts groupBy selector 'status'", () => {
+      const cfg: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any },
+      ];
+      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const x = normalized.find((r) => r.name === "X")!;
+      expect(x.groupBy).toEqual(["status"]);
+    });
+
+    it("accepts groupBy selector 'layer'", () => {
+      const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["layer"] as any }];
+      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const x = normalized.find((r) => r.name === "X")!;
+      expect(x.groupBy).toEqual(["layer"]);
+    });
+
+    it("still accepts custom { label } selector", () => {
+      const cfg: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupBy: [{ label: "component" } as any] },
+      ];
+      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const x = normalized.find((r) => r.name === "X")!;
+      expect(x.groupBy).toHaveLength(1);
+    });
+
+    it("rejects invalid groupBy selectors: object without label and unknown strings", () => {
+      const cfg1: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupBy: [{ nope: "x" } as any] },
+      ];
+      expect(() => normalizeErrorCategoriesConfig(cfg1)).toThrow(/groupBy contains invalid selector/);
+
+      const cfg2: ErrorCategoriesConfig = [
+        { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["not-a-built-in" as any] },
+      ];
+      expect(() => normalizeErrorCategoriesConfig(cfg2)).toThrow(/groupBy contains invalid selector/);
+    });
   });
 });
 

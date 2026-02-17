@@ -26,6 +26,17 @@ export const TRANSITION_ORDER: Record<string, number> = {
   fixed: 3,
 };
 
+export const DEFAULT_ERROR_CATEGORIES: ErrorCategoryRule[] = [
+  {
+    name: "Product errors",
+    matchers: { statuses: ["failed"] },
+  },
+  {
+    name: "Test errors",
+    matchers: { statuses: ["broken"] },
+  },
+];
+
 export type TestCategories = {
   roots: string[];
   nodes: Record<string, CategoryNode>;
@@ -137,26 +148,23 @@ type GroupSortKey = {
   primaryRank: number;
   alphaKey: string;
 };
-
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === "object" && !Array.isArray(v);
+
 const toRegExp = (v: string | RegExp): RegExp => (v instanceof RegExp ? v : new RegExp(v));
 
 const isMatcherArray = (value: CategoryMatcher): value is readonly Matcher[] => Array.isArray(value);
-
 const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] => {
   const compatKeysUsed =
     rule.matchedStatuses !== undefined ||
     rule.messageRegex !== undefined ||
     rule.traceRegex !== undefined ||
     rule.flaky !== undefined;
-
   if (rule.matchers !== undefined && compatKeysUsed) {
     throw new Error(`errorCategories[${index}] mixes canonical keys with compatibility keys`);
   }
 
   let matchers: Matcher[] = [];
-
   if (rule.matchers !== undefined) {
     if (isMatcherArray(rule.matchers)) {
       matchers = [...rule.matchers];
@@ -179,11 +187,9 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
     }
     matchers = [compatMatcher];
   }
-
   if (matchers.length === 0) {
     throw new Error(`errorCategories[${index}] must define matchers`);
   }
-
   for (let i = 0; i < matchers.length; i++) {
     const m = matchers[i];
     const ok = typeof m === "function" || isPlainObject(m);
@@ -191,20 +197,8 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
       throw new Error(`errorCategories[${index}].matchers[${i}] must be object|function`);
     }
   }
-
   return matchers;
 };
-
-export const DEFAULT_ERROR_CATEGORIES: ErrorCategoryRule[] = [
-  {
-    name: "Product errors",
-    matchers: { statuses: ["failed"] },
-  },
-  {
-    name: "Test errors",
-    matchers: { statuses: ["broken"] },
-  },
-];
 
 export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): ErrorCategoryNorm[] => {
   const rawRules = Array.isArray(cfg) ? cfg : (cfg?.rules ?? []);
@@ -227,12 +221,25 @@ export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): Err
       existing.matchers.push(...matchers);
       return;
     }
+    const BUILT_IN_GROUP_SELECTORS = new Set<CategoryGroupBuiltInSelector>([
+      "flaky",
+      "owner",
+      "severity",
+      "transition",
+      "status",
+      "environment",
+      "layer",
+    ]);
 
     const groupBy = Array.isArray(rule.groupBy) ? [...rule.groupBy] : [];
     for (const selector of groupBy) {
       const isBuiltIn =
-        selector === "flaky" || selector === "owner" || selector === "severity" || selector === "transition";
-      const isCustom = isPlainObject(selector) && typeof (selector as CategoryGroupCustomSelector).label === "string";
+        typeof selector === "string" && BUILT_IN_GROUP_SELECTORS.has(selector as CategoryGroupBuiltInSelector);
+      const isCustom =
+        isPlainObject(selector) &&
+        typeof (selector as CategoryGroupCustomSelector).label === "string" &&
+        (selector as CategoryGroupCustomSelector).label.trim().length > 0;
+
       if (!isBuiltIn && !isCustom) {
         throw new Error(`errorCategories[${index}].groupBy contains invalid selector`);
       }
