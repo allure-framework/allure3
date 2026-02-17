@@ -36,7 +36,7 @@ export const GroupTreeItem: FC<GroupTreeItemProps> = ({
       {subtreeToggle}
     </span>
   ) : (
-    title ?? node.name
+    (title ?? node.name)
   );
 
   return (
