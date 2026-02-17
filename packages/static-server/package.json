@@ -47,7 +47,7 @@
     "allure-js-commons": "^3.3.3",
     "allure-playwright": "^3.3.3",
     "allure-vitest": "^3.3.3",
-    "axios": "^1.13.1",
+    "axios": "^1.13.5",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",

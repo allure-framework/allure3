@@ -44,7 +44,7 @@
     "@allurereport/service": "workspace:*",
     "@allurereport/summary": "workspace:*",
     "handlebars": "^4.7.8",
-    "markdown-it": "^14.1.0",
+    "markdown-it": "^14.1.1",
     "node-stream-zip": "^1.15.0",
     "p-limit": "^7.2.0",
     "progress": "^2.0.3",

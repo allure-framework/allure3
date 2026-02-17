@@ -36,7 +36,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
-    "axios": "^1.13.2",
+    "axios": "^1.13.5",
     "form-data": "^4.0.5",
     "lodash.chunk": "^4.2.0"
   },
