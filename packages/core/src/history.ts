@@ -1,6 +1,6 @@
 import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
 import { once } from "node:events";
-import { type FileHandle, mkdir, open, writeFile } from "node:fs/promises";
+import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
 import { pipeline } from "node:stream/promises";
@@ -69,13 +69,6 @@ export const createHistory = (
     metrics: {},
     url: remoteUrl,
   };
-};
-
-export const writeHistory = async (historyPath: string, data: HistoryDataPoint) => {
-  const fullPath = path.resolve(historyPath);
-  const parentDir = path.dirname(fullPath);
-  await mkdir(parentDir, { recursive: true });
-  await writeFile(fullPath, `${JSON.stringify(data)}\n`, { encoding: "utf-8", flag: "a+" });
 };
 
 export class AllureLocalHistory implements AllureHistory {
