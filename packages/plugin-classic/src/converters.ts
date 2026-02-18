@@ -1,5 +1,9 @@
 import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
 import type { ClassicFixtureResult, ClassicTestResult, ClassicTestStepResult } from "@allurereport/web-classic";
+import MarkdownIt from "markdown-it";
+
+const md = new MarkdownIt();
+const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
 
 const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   return labels.reduce<Record<string, string[]>>((acc, { name, value }: TestLabel) => {
@@ -34,6 +38,7 @@ export const convertTestResult = (tr: TestResult): ClassicTestResult => {
     steps: tr.steps,
     error: tr.error,
     testCase: tr.testCase,
+    descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
     setup: [],
     teardown: [],
     history: [],

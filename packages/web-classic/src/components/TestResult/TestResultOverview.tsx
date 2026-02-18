@@ -15,7 +15,7 @@ export type TestResultOverviewProps = {
 };
 
 export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, description, setup, steps, teardown } = testResult || {};
+  const { error, parameters, groupedLabels, links, descriptionHtml, setup, steps, teardown } = testResult || {};
 
   return (
     <>
@@ -29,7 +29,7 @@ export const TestResultOverview: FunctionalComponent<TestResultOverviewProps> = 
         <TestResultMetadata testResult={testResult} />
       )}
       {Boolean(links?.length) && <TestResultLinks links={links} />}
-      {Boolean(description) && <TestResultDescription description={description} />}
+      {Boolean(descriptionHtml) && <TestResultDescription descriptionHtml={descriptionHtml} />}
       <div className={styles["test-results"]}>
         {Boolean(setup?.length) && <TestResultSetup setup={setup} />}
         {Boolean(steps?.length) && <TestResultSteps steps={steps} />}

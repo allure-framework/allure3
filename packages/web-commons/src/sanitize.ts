@@ -7,3 +7,9 @@ import DOMPurify from "dompurify";
  * @returns Sanitized HTML string.
  */
 export const sanitize = (html: string, config?: Record<string, any>) => DOMPurify.sanitize(html, config);
+
+const IFRAME_SANITIZE_CONFIG = {
+  USE_PROFILES: { html: true },
+};
+
+export const sanitizeIframeHtml = (html: string) => sanitize(html, IFRAME_SANITIZE_CONFIG);

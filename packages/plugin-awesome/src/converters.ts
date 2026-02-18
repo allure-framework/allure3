@@ -1,5 +1,9 @@
 import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
 import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
+import MarkdownIt from "markdown-it";
+
+const md = new MarkdownIt();
+const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
 
 const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   return labels.reduce<Record<string, string[]>>((acc, { name, value }: TestLabel) => {
@@ -34,6 +38,7 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     steps: tr.steps,
     error: tr.error,
     testCase: tr.testCase,
+    descriptionHtml: tr.descriptionHtml ?? markdownToHtml(tr.description),
     environment: tr.environment,
     setup: [],
     teardown: [],

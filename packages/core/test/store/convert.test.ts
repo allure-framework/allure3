@@ -290,4 +290,52 @@ describe("testResultRawToState", () => {
       ]);
     });
   });
+
+  describe("description fields", () => {
+    it("should pass through description as-is", async () => {
+      const result = await functionUnderTest(emptyStateData, { description: "plain text description" }, { readerId });
+      expect(result).toMatchObject({
+        description: "plain text description",
+      });
+    });
+
+    it("should pass through descriptionHtml as-is when provided", async () => {
+      const result = await functionUnderTest(
+        emptyStateData,
+        { descriptionHtml: "<p>HTML description</p>" },
+        { readerId },
+      );
+      expect(result).toMatchObject({
+        descriptionHtml: "<p>HTML description</p>",
+      });
+    });
+
+    it("should not generate descriptionHtml from markdown description when descriptionHtml is not provided", async () => {
+      const result = await functionUnderTest(emptyStateData, { description: "**bold** text" }, { readerId });
+      expect(result).toMatchObject({
+        description: "**bold** text",
+        descriptionHtml: undefined,
+      });
+    });
+
+    it("should preserve both description and descriptionHtml when both are provided", async () => {
+      const result = await functionUnderTest(
+        emptyStateData,
+        { description: "plain text", descriptionHtml: "<p>custom HTML</p>" },
+        { readerId },
+      );
+      expect(result).toMatchObject({
+        description: "plain text",
+        descriptionHtml: "<p>custom HTML</p>",
+      });
+    });
+
+    it("should not generate descriptionHtml when description is undefined", async () => {
+      const result = await functionUnderTest(emptyStateData, {}, { readerId });
+      expect(result).toMatchObject({
+        description: undefined,
+        descriptionHtml: undefined,
+      });
+    });
+  });
 });

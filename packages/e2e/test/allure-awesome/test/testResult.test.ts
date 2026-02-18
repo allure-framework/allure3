@@ -8,6 +8,31 @@ let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 let testResultPage: TestResultPage;
 
+const build100x100TableHtml = () => {
+  const headerCells = Array.from({ length: 100 }, (_, columnIndex) => `<th>H${columnIndex + 1}</th>`).join("");
+  const bodyRows = Array.from({ length: 100 }, (_, rowIndex) => {
+    const rowCells = Array.from(
+      { length: 100 },
+      (__, columnIndex) => `<td>R${rowIndex + 1}C${columnIndex + 1}</td>`,
+    ).join("");
+
+    return `<tr>${rowCells}</tr>`;
+  }).join("");
+
+  return [
+    "<h1>100x100 table showcase</h1>",
+    "<p>This test renders a 100-column by 100-row HTML table.</p>",
+    "<table>",
+    "<thead>",
+    `<tr>${headerCells}</tr>`,
+    "</thead>",
+    "<tbody>",
+    bodyRows,
+    "</tbody>",
+    "</table>",
+  ].join("");
+};
+
 test.beforeAll(async () => {
   const now = Date.now();
 
@@ -73,6 +98,55 @@ test.beforeAll(async () => {
         status: undefined,
         start: now + 4000,
         stage: Stage.PENDING,
+      },
+      {
+        name: "5 sample test with description",
+        fullName: "sample.js#5 sample test with description",
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+        start: now + 5000,
+        stop: now + 6000,
+        description: "This is a **markdown** description with `code` and _emphasis_.",
+      },
+      {
+        name: "6 sample test with rich markdown description",
+        fullName: "sample.js#6 sample test with rich markdown description",
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+        start: now + 6000,
+        stop: now + 7000,
+        description: [
+          "# Heading 1",
+          "## Heading 2",
+          "This is **bold** and _italic_ and `inline code`.",
+          "",
+          "- List item one",
+          "- List item two",
+          "",
+          "1. First ordered",
+          "2. Second ordered",
+          "",
+          "> Blockquote text",
+          "",
+          "[Example link](https://example.com)",
+          "",
+          "| Col1 | Col2 |",
+          "|------|------|",
+          "| A    | B    |",
+          "",
+          "```",
+          "code block",
+          "```",
+        ].join("\n"),
+      },
+      {
+        name: "7 sample test with 100x100 table description html",
+        fullName: "sample.js#7 sample test with 100x100 table description html",
+        status: Status.PASSED,
+        stage: Stage.FINISHED,
+        start: now + 7000,
+        stop: now + 8000,
+        descriptionHtml: build100x100TableHtml(),
       },
     ],
   });
@@ -155,6 +229,81 @@ test.describe("allure-awesome", () => {
       await expect(testResultPage.errorTraceLocator).not.toBeVisible();
       await testResultPage.errorMessageLocator.click();
       await expect(testResultPage.errorTraceLocator).toHaveText("broken test trace");
+    });
+    test("has a collapsable links section with links", async () => {
+      const homepageLink = testResultPage.getLink(0);
+      const docsLink = testResultPage.getLink(1);
+
+      await treePage.clickLeafByTitle("0 sample passed test");
+      await expect(testResultPage.linksLocator).toBeVisible();
+
+      // Collapse
+      await testResultPage.toggleLinkSection();
+
+      await expect(homepageLink.locator).not.toBeVisible();
+      await expect(docsLink.locator).not.toBeVisible();
+
+      // Expand
+      await testResultPage.toggleLinkSection();
+
+      await expect(homepageLink.locator).toBeVisible();
+      await expect(homepageLink.iconLocator).toBeVisible();
+      await expect(homepageLink.anchorLocator).toHaveAttribute("href", "https://allurereport.org/");
+      await expect(homepageLink.anchorLocator).toHaveText("Homepage");
+
+      await expect(docsLink.locator).toBeVisible();
+      await expect(docsLink.iconLocator).toBeVisible();
+      await expect(docsLink.anchorLocator).toHaveAttribute("href", "https://allurereport.org/docs/");
+      await expect(docsLink.anchorLocator).toHaveText("https://allurereport.org/docs/");
+    });
+
+    test("test with description displays rendered HTML", async () => {
+      await treePage.clickLeafByTitle("5 sample test with description");
+      await expect(testResultPage.descriptionLocator).toBeVisible();
+      const descriptionFrame = testResultPage.page.frameLocator("[data-testid='test-result-description-frame']");
+      await expect(descriptionFrame.locator("body")).toContainText("markdown");
+      await expect(descriptionFrame.locator("body")).toContainText("code");
+      await expect(descriptionFrame.locator("body")).toContainText("emphasis");
+
+      const strongElement = descriptionFrame.locator("strong");
+      await expect(strongElement).toContainText("markdown");
+      await expect(descriptionFrame.locator("body")).not.toContainText("**markdown**");
+      await expect(descriptionFrame.locator("body")).not.toContainText("`code`");
+      await expect(descriptionFrame.locator("body")).not.toContainText("_emphasis_");
+    });
+
+    test("test with rich markdown description displays key prose elements", async () => {
+      await treePage.clickLeafByTitle("6 sample test with rich markdown description");
+      await expect(testResultPage.descriptionLocator).toBeVisible();
+      const descriptionFrame = testResultPage.page.frameLocator("[data-testid='test-result-description-frame']");
+      await expect(descriptionFrame.locator("p").first()).toBeVisible();
+      await expect(descriptionFrame.locator("a[href='https://example.com']")).toContainText("Example link");
+      await expect(descriptionFrame.locator("table")).toBeVisible();
+      await expect(descriptionFrame.locator("pre code")).toContainText("code block");
+    });
+
+    test("100x100 HTML table keeps horizontal scroll and expected size", async () => {
+      await treePage.clickLeafByTitle("7 sample test with 100x100 table description html");
+      await expect(testResultPage.descriptionLocator).toBeVisible();
+      const descriptionFrame = testResultPage.page.frameLocator("[data-testid='test-result-description-frame']");
+
+      const table = descriptionFrame.locator("table");
+      await expect(table).toBeVisible();
+      await expect(table.locator("thead tr th")).toHaveCount(100);
+      await expect(table.locator("tbody tr")).toHaveCount(100);
+      await expect(table.locator("tbody tr").first().locator("td")).toHaveCount(100);
+
+      const scrollInfo = await table.evaluate((node) => {
+        const style = globalThis.getComputedStyle(node);
+        return {
+          clientWidth: node.clientWidth,
+          overflowX: style.overflowX,
+          scrollWidth: node.scrollWidth,
+        };
+      });
+
+      expect(scrollInfo.scrollWidth).toBeGreaterThan(scrollInfo.clientWidth);
+      expect(["auto", "scroll"]).toContain(scrollInfo.overflowX);
     });
   });
 });

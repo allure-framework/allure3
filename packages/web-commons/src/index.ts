@@ -11,3 +11,4 @@ export * from "./stores/theme/index.js";
 export * from "./stores/loadableStore/index.js";
 export * from "./stores/persister/index.js";
 export * from "./utils.js";
+export * from "./prose.js";

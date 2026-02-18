@@ -17,7 +17,8 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, description, setup, steps, teardown, id, status } = testResult || {};
+  const { error, parameters, groupedLabels, links, descriptionHtml, setup, steps, teardown, id, status } =
+    testResult || {};
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
@@ -34,7 +35,7 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
       {Boolean(parameters?.length) && <TrParameters parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && <TrMetadata testResult={testResult} />}
       {Boolean(links?.length) && <TrLinks links={links} />}
-      {Boolean(description) && <TrDescription description={description} />}
+      {Boolean(descriptionHtml) && <TrDescription descriptionHtml={descriptionHtml} />}
       <div className={styles["test-results"]}>
         {isNoSteps && <TestStepsEmpty />}
         {Boolean(setup?.length) && <TrSetup id={id} setup={setup} />}

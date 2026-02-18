@@ -26,7 +26,6 @@ import type {
   ReaderContext,
 } from "@allurereport/reader-api";
 import { extension, lookupContentType } from "@allurereport/reader-api";
-import MarkdownIt from "markdown-it";
 import { randomUUID } from "node:crypto";
 
 const defaultStatus: TestStatus = "unknown";
@@ -95,11 +94,11 @@ export const testResultRawToState = (stateData: StateData, raw: RawTestResult, c
     ...processTimings(raw),
 
     description: raw.description,
-    descriptionHtml: raw.descriptionHtml ?? markdownToHtml(raw.description),
+    descriptionHtml: raw.descriptionHtml,
     precondition: raw.precondition,
-    preconditionHtml: raw.preconditionHtml ?? markdownToHtml(raw.precondition),
+    preconditionHtml: raw.preconditionHtml,
     expectedResult: raw.expectedResult,
-    expectedResultHtml: raw.expectedResultHtml ?? markdownToHtml(raw.expectedResult),
+    expectedResultHtml: raw.expectedResultHtml,
 
     flaky: raw.flaky ?? false,
     muted: raw.muted ?? false,
@@ -338,8 +337,6 @@ const convertLink = (link: RawTestLink): TestLink => ({
   url: link.url ?? __unknown,
   type: link.type,
 });
-
-const markdownToHtml = (value?: string): string | undefined => (value ? new MarkdownIt().render(value) : undefined);
 
 const calculateTestId = (raw: RawTestResult): [string | undefined, string | undefined] => {
   const maybeAllureId = raw.labels?.find((label) => label.name === "ALLURE_ID" || label.name === "AS_ID")?.value;

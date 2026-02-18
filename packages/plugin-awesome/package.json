@@ -36,12 +36,14 @@
     "@allurereport/web-awesome": "workspace:*",
     "@allurereport/web-commons": "workspace:*",
     "d3-shape": "^3.2.0",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.8",
+    "markdown-it": "^14.1.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.17.9",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
