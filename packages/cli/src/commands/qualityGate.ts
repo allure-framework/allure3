@@ -55,6 +55,11 @@ export class QualityGateCommand extends Command {
     description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
   });
 
+  environment = Option.String("--environment,--env", {
+    description:
+      "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
+  });
+
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
@@ -62,7 +67,7 @@ export class QualityGateCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? processCwd());
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
-    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
+    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath, environment } = this;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath,
     });
@@ -133,6 +138,7 @@ export class QualityGateCommand extends Command {
       const notHiddenTrs = (trs as TestResult[]).filter((tr) => !tr.hidden);
       const { results, fastFailed } = await allureReport.validate({
         trs: notHiddenTrs,
+        environment,
         knownIssues,
         state,
       });
@@ -159,6 +165,7 @@ export class QualityGateCommand extends Command {
     const validationResults = await allureReport.validate({
       trs: allTrs,
       knownIssues,
+      environment,
     });
 
     if (validationResults.results.length === 0) {

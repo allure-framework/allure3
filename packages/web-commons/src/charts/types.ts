@@ -3,9 +3,9 @@ import type {
   ChartType,
   DurationDynamicsChartData,
   DurationsChartData,
-  FBSUAgePyramidChartData,
   HeatMapSerie,
   StabilityDistributionChartData,
+  StatusAgePyramidChartData,
   StatusTransitionsChartData,
   TestBaseGrowthDynamicsChartData,
   TestingPyramidChartData,
@@ -92,7 +92,7 @@ export type ChartData =
   | ResponseTreeMapChartData
   | ResponseHeatMapChartData
   | TestBaseGrowthDynamicsChartData
-  | FBSUAgePyramidChartData
+  | StatusAgePyramidChartData
   | TrSeveritiesChartData
   | DurationDynamicsChartData
   | TestingPyramidChartData;
@@ -105,7 +105,7 @@ export type UIChartData =
   | UIStatusTransitionsChartData
   | UIDurationsChartData
   | TestBaseGrowthDynamicsChartData
-  | FBSUAgePyramidChartData
+  | StatusAgePyramidChartData
   | StabilityDistributionChartData
   | TrSeveritiesChartData
   | DurationDynamicsChartData

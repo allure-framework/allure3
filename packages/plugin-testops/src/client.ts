@@ -131,15 +131,16 @@ export class TestOpsClient {
     this.#launch = data;
   }
 
-  async createSession() {
+  async createSession(environment: Record<string, any> = {}) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
     const { data } = await this.#client.post<TestOpsSession>(
-      "/api/rs/upload/session?manual=true",
+      "/api/upload/session?manual=true",
       {
         launchId: this.#launch.id,
+        environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
       },
       {
         headers: {

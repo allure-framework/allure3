@@ -1,5 +1,5 @@
 import { Button, Code, CodeViewer } from "@allurereport/web-components";
-import type { BaseOptions, Change } from "diff";
+import type { Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";
 import * as styles from "@/components/TestResult/TrError/styles.scss";
@@ -33,11 +33,7 @@ export const TrDiff = ({ expected, actual }: { expected: string; actual: string 
   };
   const changeTypeDiff = (type: DiffType = "chars") => {
     const diffFn = diffFunctions[type];
-    const result = (diffFn as (oldStr: string, newStr: string, options?: BaseOptions) => Change[])(
-      expected,
-      actual,
-      {},
-    );
+    const result: Change[] = diffFn(expected, actual, {});
 
     setDiffType(type);
     setDiff(result);

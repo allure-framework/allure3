@@ -58,6 +58,15 @@ test.beforeAll(async () => {
         stage: Stage.FINISHED,
         start: now,
         stop: now + 1000,
+        links: [
+          {
+            url: "https://allurereport.org/",
+            name: "Homepage",
+          },
+          {
+            url: "https://allurereport.org/docs/",
+          },
+        ],
       },
       {
         name: "1 sample failed test",
@@ -256,7 +265,6 @@ test.describe("allure-awesome", () => {
       await expect(docsLink.anchorLocator).toHaveAttribute("href", "https://allurereport.org/docs/");
       await expect(docsLink.anchorLocator).toHaveText("https://allurereport.org/docs/");
     });
-
     test("test with description displays rendered HTML", async () => {
       await treePage.clickLeafByTitle("5 sample test with description");
       await expect(testResultPage.descriptionLocator).toBeVisible();

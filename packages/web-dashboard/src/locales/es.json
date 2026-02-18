@@ -151,8 +151,8 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "fbsuAgePyramid": {
-      "title": "Pirámide de edad FBSU",
+    "statusAgePyramid": {
+      "title": "Pirámide de edad por estado",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",

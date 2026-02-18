@@ -137,7 +137,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalAttachmentIds: string[] = [];
   #globalErrors: TestError[] = [];
   #globalExitCode: ExitCode | undefined;
-  #qualityGateResultsByRules: Record<string, QualityGateValidationResult> = {};
+  #qualityGateResults: QualityGateValidationResult[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: string[] = [];
 
@@ -184,9 +184,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#addEnvironments(environments);
 
     this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
-      results.forEach((result) => {
-        this.#qualityGateResultsByRules[result.rule] = result;
-      });
+      this.#qualityGateResults.push(...results);
     });
     this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
@@ -253,7 +251,23 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // quality gate data
 
   async qualityGateResults(): Promise<QualityGateValidationResult[]> {
-    return Object.values(this.#qualityGateResultsByRules);
+    return this.#qualityGateResults;
+  }
+
+  async qualityGateResultsByEnv(): Promise<Record<string, QualityGateValidationResult[]>> {
+    const resultsByEnv: Record<string, QualityGateValidationResult[]> = {};
+
+    for (const result of this.#qualityGateResults) {
+      const environment = result.environment || "default";
+
+      if (!resultsByEnv[environment]) {
+        resultsByEnv[environment] = [];
+      }
+
+      resultsByEnv[environment].push(result);
+    }
+
+    return resultsByEnv;
   }
 
   // global data
@@ -818,7 +832,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture: {},
       indexFixturesByTestResult: {},
       indexKnownByHistoryId: {},
-      qualityGateResultsByRules: this.#qualityGateResultsByRules,
+      qualityGateResults: this.#qualityGateResults,
     };
 
     this.indexLatestEnvTestResultByHistoryId.forEach((envMap) => {
@@ -865,7 +879,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
-      qualityGateResultsByRules = {},
+      qualityGateResults = [],
     } = stateDump;
 
     updateMapWithRecord(this.#testResults, testResults);
@@ -978,6 +992,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, tr);
     });
-    Object.assign(this.#qualityGateResultsByRules, qualityGateResultsByRules);
+
+    this.#qualityGateResults.push(...qualityGateResults);
   }
 }

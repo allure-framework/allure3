@@ -22,7 +22,7 @@ export class GenerateCommand extends Command {
       ],
       [
         "generate --stage=allure-*.zip",
-        "Generate a report using data from any stage archive that matches the given pattern only (ignoring results directories)",
+        "Generate a report using data from any stage archive that matches the given pattern and results directory if it exists",
       ],
     ],
   });

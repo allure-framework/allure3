@@ -1,6 +1,11 @@
 @import "~@allurereport/web-components/mixins.scss";
 
 .report-quality-gate-results {
+  padding: 12px 0 32px 8px;
+  min-height: 320px;
+}
+
+.report-quality-gate-results-list {
   padding: 20px 0;
 
   & > li + li {
@@ -41,4 +46,12 @@
 
 .report-quality-gate-result-error {
   margin-top: 8px;
+}
+
+.report-quality-gate-section {
+  &:not(:last-child) {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
+  }
 }

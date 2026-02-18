@@ -1,3 +1,4 @@
+import path from "node:path";
 import { vi } from "vitest";
 
 export class AllureServiceMock {}
@@ -30,3 +31,5 @@ AllureServiceClientMock.prototype.deleteReport = vi.fn();
 AllureServiceClientMock.prototype.addReportAsset = vi.fn();
 
 AllureServiceClientMock.prototype.addReportFile = vi.fn();
+
+export const getDataPath = (name: string) => path.resolve(import.meta.filename, "..", "data", "history", name);

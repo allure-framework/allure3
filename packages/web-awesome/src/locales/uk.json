@@ -258,8 +258,8 @@
         "history": "{{timestamp, timestamp_date}}"
       }
     },
-    "fbsuAgePyramid": {
-      "title": "FBSU вікова піраміда",
+    "statusAgePyramid": {
+      "title": "Вікова піраміда за статусом",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",

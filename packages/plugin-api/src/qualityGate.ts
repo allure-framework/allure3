@@ -6,6 +6,7 @@ export type QualityGateValidationResult = {
   actual: any;
   rule: string;
   message: string;
+  environment?: string;
 };
 
 export type QualityGateRules = Record<string, any> & {
@@ -35,6 +36,7 @@ export type QualityGateRule<T = any, K = T> = {
     trs: TestResult[];
     knownIssues: KnownTestFailure[];
     state: QualityGateRuleState<K>;
+    environment?: string;
   }) => Promise<QualityGateRuleResult>;
 };
 

@@ -7,7 +7,7 @@ export enum ChartType {
   StatusTransitions = "statusTransitions",
   StabilityDistribution = "stabilityDistribution",
   TestBaseGrowthDynamics = "testBaseGrowthDynamics",
-  FBSUAgePyramid = "fbsuAgePyramid",
+  StatusAgePyramid = "statusAgePyramid",
   Durations = "durations",
   DurationDynamics = "durationDynamics",
   TrSeverities = "testResultSeverities",
@@ -273,8 +273,8 @@ export interface TestBaseGrowthDynamicsChartData {
   statuses: TestStatus[];
 }
 
-export interface FBSUAgePyramidChartData {
-  type: ChartType.FBSUAgePyramid;
+export interface StatusAgePyramidChartData {
+  type: ChartType.StatusAgePyramid;
   title?: string;
   data: {
     id: string;
@@ -318,7 +318,7 @@ export type GeneratedChartData =
   | DurationsChartData
   | StabilityDistributionChartData
   | TestBaseGrowthDynamicsChartData
-  | FBSUAgePyramidChartData
+  | StatusAgePyramidChartData
   | TreeMapChartData
   | HeatMapChartData
   | TestingPyramidChartData
@@ -454,8 +454,8 @@ export type TestBaseGrowthDynamicsChartOptions = {
   limit?: number;
 };
 
-export type FBSUAgePyramidChartOptions = {
-  type: ChartType.FBSUAgePyramid;
+export type StatusAgePyramidChartOptions = {
+  type: ChartType.StatusAgePyramid;
   title?: string;
   /**
    * Limit of history data points to be used for the chart
@@ -525,7 +525,7 @@ export type ChartOptions =
   | TestingPyramidChartOptions
   | StatusTransitionsChartOptions
   | StabilityDistributionChartOptions
-  | FBSUAgePyramidChartOptions
+  | StatusAgePyramidChartOptions
   | TestBaseGrowthDynamicsChartOptions
   | TrSeveritiesChartOptions
   | DurationDynamicsChartOptions;

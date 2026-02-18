@@ -75,8 +75,8 @@ export const defaultChartsConfig: ChartOptions[] = [
     title: "Durations dynamics",
   },
   {
-    type: ChartType.FBSUAgePyramid,
-    title: "FBSU age pyramid",
+    type: ChartType.StatusAgePyramid,
+    title: "Status age pyramid",
   },
   {
     type: ChartType.TestingPyramid,

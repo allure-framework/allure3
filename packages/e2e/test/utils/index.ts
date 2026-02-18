@@ -167,7 +167,7 @@ export const bootstrapReport = async (
       try {
         await rm(resultsDir, { recursive: true });
         await rm(reportDir, { recursive: true });
-      } catch (ignored) {}
+      } catch {}
     },
   };
 };
@@ -177,9 +177,3 @@ export class AwesomePluginWithoutSummary extends AwesomePlugin {
     return undefined;
   }
 }
-
-/**
- * 2. Release
- * 3. GH Actions permissions
- * 4. Plan for next two weeks
- */

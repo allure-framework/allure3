@@ -42,12 +42,24 @@ const runTests = async (params: {
   cwd: string;
   command: string;
   commandArgs: string[];
-  environment: Record<string, string>;
+  environmentVariables: Record<string, string>;
+  environment?: string;
   withQualityGate: boolean;
   silent?: boolean;
   logs?: "pipe" | "inherit" | "ignore";
 }): Promise<TestProcessResult | null> => {
-  const { allureReport, knownIssues, cwd, command, commandArgs, logs, environment, withQualityGate, silent } = params;
+  const {
+    allureReport,
+    knownIssues,
+    cwd,
+    command,
+    commandArgs,
+    logs,
+    environmentVariables,
+    environment,
+    withQualityGate,
+    silent,
+  } = params;
   let testProcessStarted = false;
   const allureResultsWatchers: Map<string, Watcher> = new Map();
   const processWatcher = delayedFileProcessingWatcher(
@@ -108,7 +120,7 @@ const runTests = async (params: {
     command,
     commandArgs,
     cwd,
-    environment,
+    environmentVariables,
     logs,
   });
   const qualityGateState = new QualityGateState();
@@ -129,6 +141,7 @@ const runTests = async (params: {
       const { results, fastFailed } = await allureReport.validate({
         trs: filteredTrs,
         state: qualityGateState,
+        environment,
         knownIssues,
       });
 
@@ -363,7 +376,8 @@ export class RunCommand extends Command {
         cwd,
         command,
         commandArgs,
-        environment: {},
+        environment: this.environment,
+        environmentVariables: {},
         withQualityGate,
       });
 
@@ -393,7 +407,8 @@ export class RunCommand extends Command {
           cwd,
           command,
           commandArgs,
-          environment: {
+          environment: this.environment,
+          environmentVariables: {
             ALLURE_TESTPLAN_PATH: testPlanPath,
             ALLURE_RERUN: `${rerun}`,
           },
@@ -412,6 +427,7 @@ export class RunCommand extends Command {
         const { results } = await allureReport.validate({
           trs,
           knownIssues,
+          environment: this.environment,
         });
 
         qualityGateResults = results;

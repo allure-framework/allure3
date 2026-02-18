@@ -3,7 +3,7 @@ import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { type StoreSignalState } from "./types";
 
-export const qualityGateStore = signal<StoreSignalState<QualityGateValidationResult[]>>({
+export const qualityGateStore = signal<StoreSignalState<Record<string, QualityGateValidationResult[]>>>({
   loading: true,
   error: undefined,
   data: undefined,
@@ -11,7 +11,7 @@ export const qualityGateStore = signal<StoreSignalState<QualityGateValidationRes
 
 export const fetchQualityGateResults = async () => {
   try {
-    const data = await fetchReportJsonData<QualityGateValidationResult[]>("widgets/quality-gate.json");
+    const data = await fetchReportJsonData<Record<string, QualityGateValidationResult[]>>("widgets/quality-gate.json");
 
     qualityGateStore.value = {
       data,
