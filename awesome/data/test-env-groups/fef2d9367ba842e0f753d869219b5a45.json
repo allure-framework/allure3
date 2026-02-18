@@ -1,0 +1,1 @@
+{"id":"fef2d9367ba842e0f753d869219b5a45","fullName":"test/history.test.ts#AllureLocalHistory readHistory performance guarantees large file should not hit MAX_STRING_LENGTH","name":"should not hit MAX_STRING_LENGTH","status":"passed","testResultsByEnv":{"windows-latest":"bfd5cd8fed717b9a7031029cd1d5a2e0","ubuntu-latest":"7ac0386be8c088fff1c3bf871b1105a0"}}

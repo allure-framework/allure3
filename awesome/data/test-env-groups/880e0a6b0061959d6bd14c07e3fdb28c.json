@@ -1,0 +1,1 @@
+{"id":"880e0a6b0061959d6bd14c07e3fdb28c","fullName":"test/history.test.ts#AllureLocalHistory readHistory a three-entry file should return the latest two entries if limit is 2","name":"should return the latest two entries if limit is 2","status":"passed","testResultsByEnv":{"windows-latest":"6b5799b876eb8d8f23181f95bcd31a3f","ubuntu-latest":"28e9c7e360e1b1cd1601305e8646c754"}}

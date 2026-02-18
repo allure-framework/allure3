@@ -1,0 +1,1 @@
+{"id":"e0957a2d93047ca1e71f2fae59b15c9d","fullName":"test/history.test.ts#AllureLocalHistory readHistory a single-entry file should throw if limit is negative","name":"should throw if limit is negative","status":"passed","testResultsByEnv":{"windows-latest":"34199487180b27d381a242f5911009b7","ubuntu-latest":"b48a475d7148731e5da20073e8067110"}}

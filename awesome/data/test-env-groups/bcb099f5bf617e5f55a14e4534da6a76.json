@@ -1,0 +1,1 @@
+{"id":"bcb099f5bf617e5f55a14e4534da6a76","fullName":"test/history.test.ts#AllureLocalHistory appendHistory should write entry to new file if limit is not defined","name":"should write entry to new file if limit is not defined","status":"passed","testResultsByEnv":{"windows-latest":"da72d41f47b9b7ebfece5c392ada75dc","ubuntu-latest":"f9dba8df42d5164e7098188b31628c39"}}

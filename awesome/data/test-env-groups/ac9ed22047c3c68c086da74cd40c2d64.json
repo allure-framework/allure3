@@ -1,0 +1,1 @@
+{"id":"ac9ed22047c3c68c086da74cd40c2d64","fullName":"test/history.test.ts#AllureLocalHistory appendHistory existing file single entry should overwrite the entry if limit is one","name":"should overwrite the entry if limit is one","status":"passed","testResultsByEnv":{"windows-latest":"109e9a954543581938fd5b66c4e5588d","ubuntu-latest":"48725902715068f39321330d9bcee5f5"}}

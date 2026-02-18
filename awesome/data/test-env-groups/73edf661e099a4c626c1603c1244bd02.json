@@ -1,1 +1,1 @@
-{"id":"73edf661e099a4c626c1603c1244bd02","fullName":"test/xcresult.test.ts#A MAC machine outcomes should parse a passed test","name":"should parse a passed test","status":"passed","testResultsByEnv":{"macos-latest":"981764d06e176aadbb980561df7a0ab8"}}
+{"id":"73edf661e099a4c626c1603c1244bd02","fullName":"test/xcresult.test.ts#A MAC machine outcomes should parse a passed test","name":"should parse a passed test","status":"failed","testResultsByEnv":{"macos-latest":"32b228e94f67ecddaaae15ba9bd7b849"}}

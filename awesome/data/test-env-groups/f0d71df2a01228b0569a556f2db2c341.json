@@ -1,0 +1,1 @@
+{"id":"f0d71df2a01228b0569a556f2db2c341","fullName":"test/history.test.ts#AllureLocalHistory appendHistory existing file two entries should rotate the entries if limit is two","name":"should rotate the entries if limit is two","status":"passed","testResultsByEnv":{"windows-latest":"c656afbefebafe4d2f82326da11c42b1","ubuntu-latest":"bece5ec58e00c0fb234bd48f0504937a"}}
