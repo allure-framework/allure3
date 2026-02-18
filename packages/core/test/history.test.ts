@@ -1,6 +1,7 @@
+import type { HistoryDataPoint } from "@allurereport/core-api";
 import { constants } from "node:buffer";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, open, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { appendFile, mkdtemp, open, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -375,7 +376,7 @@ describe("AllureLocalHistory", () => {
           // Prepare a file that, if read as a single string, guarantees to throw RangeError
           const oneEntryHistoryPath = getDataPath("one-entry.jsonl");
           const line = await readFile(oneEntryHistoryPath, { encoding: "utf-8" });
-          const entry = JSON.parse(line.split("\n")[0]);
+          const entry = JSON.parse(line);
           const entryLength = line.length - 1;
           const entriesToPrepare = Math.floor(constants.MAX_STRING_LENGTH / entryLength) + 1;
           historyPath = join(tmpdir(), randomUUID());
@@ -410,6 +411,218 @@ describe("AllureLocalHistory", () => {
               name: entries.at(-1).name,
             }),
           ]);
+        });
+      });
+    });
+  });
+
+  describe("appendHistory", () => {
+    let historyPath: string;
+    let entry: HistoryDataPoint;
+
+    const checkHistoryFile = async (expectedNames: readonly string[]) => {
+      const content = await readFile(historyPath, { encoding: "utf-8" });
+      const actualNames = content
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line).name);
+      expect(actualNames).toEqual(expectedNames);
+    };
+
+    beforeEach(async () => {
+      historyPath = join(tmpdir(), randomUUID());
+      const oneEntryHistoryPath = getDataPath("one-entry.jsonl");
+      const line = await readFile(oneEntryHistoryPath, { encoding: "utf-8" });
+      entry = JSON.parse(line);
+      entry.name = "New entry";
+    });
+
+    afterEach(async () => {
+      await rm(historyPath);
+    });
+
+    it("should create empty file if limit is zero", async () => {
+      const history = new AllureLocalHistory({ historyPath, limit: 0 });
+
+      await history.appendHistory(entry);
+
+      await checkHistoryFile([]);
+    });
+
+    it("should write entry to new file if limit is not defined", async () => {
+      const history = new AllureLocalHistory({ historyPath });
+
+      await history.appendHistory(entry);
+
+      await checkHistoryFile(["New entry"]);
+    });
+
+    it("should write entry to new file if limit is positive", async () => {
+      const history = new AllureLocalHistory({ historyPath, limit: 1 });
+
+      await history.appendHistory(entry);
+
+      await checkHistoryFile(["New entry"]);
+    });
+
+    describe("existing file", () => {
+      beforeEach(async () => {
+        await writeFile(historyPath, "", { encoding: "utf-8", flag: "wx" });
+      });
+
+      it("should keep file empty if limit is zero", async () => {
+        const history = new AllureLocalHistory({ historyPath, limit: 0 });
+
+        await history.appendHistory(entry);
+
+        await checkHistoryFile([]);
+      });
+
+      it("should append entry to existing file if limit is not defined", async () => {
+        const history = new AllureLocalHistory({ historyPath });
+
+        await history.appendHistory(entry);
+
+        await checkHistoryFile(["New entry"]);
+      });
+
+      it("should append entry to existing file if limit is positive", async () => {
+        const history = new AllureLocalHistory({ historyPath, limit: 1 });
+
+        await history.appendHistory(entry);
+
+        await checkHistoryFile(["New entry"]);
+      });
+
+      describe("single entry", () => {
+        beforeEach(async () => {
+          await appendFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+        });
+
+        it("should make file empty if limit is zero", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 0 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile([]);
+        });
+
+        it("should overwrite the entry if limit is one", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 1 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile(["New entry"]);
+        });
+
+        it("should append the entry if limit is greater than one", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 2 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile(["Entry 1", "New entry"]);
+        });
+      });
+
+      describe("two entries", () => {
+        beforeEach(async () => {
+          await appendFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+          await appendFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 2" })}\n`, "utf-8");
+        });
+
+        it("should make file empty if limit is zero", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 0 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile([]);
+        });
+
+        it("should overwrite file with single entry if limit is one", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 1 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile(["New entry"]);
+        });
+
+        it("should rotate the entries if limit is two", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 2 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile(["Entry 2", "New entry"]);
+        });
+
+        it("should append the entry if limit is greater than two", async () => {
+          const history = new AllureLocalHistory({ historyPath, limit: 3 });
+
+          await history.appendHistory(entry);
+
+          await checkHistoryFile(["Entry 1", "Entry 2", "New entry"]);
+        });
+      });
+
+      describe("performance guarantees", () => {
+        it("should not parse the existing content when rotating", async () => {
+          await appendFile(
+            historyPath,
+            "This line is not a valid JSON. If passed to JSON.parse, SyntaxError is thrown.\n",
+            "utf-8",
+          );
+          await appendFile(
+            historyPath,
+            "This line is also not a valid JSON. If passed to JSON.parse, SyntaxError is thrown.\n",
+            "utf-8",
+          );
+          const history = new AllureLocalHistory({ historyPath, limit: 2 });
+
+          await history.appendHistory(entry);
+
+          // Each line ends with \n, hence, an extra empty line appears when calling .split("\n")
+          expect((await readFile(historyPath, "utf-8")).split("\n")).toEqual([
+            "This line is also not a valid JSON. If passed to JSON.parse, SyntaxError is thrown.",
+            expect.stringContaining('"name":"New entry"'),
+            "",
+          ]);
+        });
+
+        describe("no extra decoding", () => {
+          beforeEach(async () => {
+            // 0x80 and 0x81 are not valid UTF-8 sequences. If decoded, they're replaced with 0xFFFD.
+            // If then encoded back, each produces a three-byte sequence [0xEF, 0xBF, 0xBD].
+            // The tests checks if no binary-to-string encoding is involved, in which case the bytes must
+            // remain in the file as is.
+            // Note: 0x0a is '\n'
+            await appendFile(historyPath, Buffer.from([0x80, 0x0a]), "utf-8");
+            await appendFile(historyPath, Buffer.from([0x81, 0x0a]), "utf-8");
+          });
+
+          it("should rotate without decoding if limit is 2", async () => {
+            const history = new AllureLocalHistory({ historyPath, limit: 2 });
+
+            await history.appendHistory(entry);
+
+            const buffer = await readFile(historyPath);
+            const jsonBytes = buffer.subarray(2);
+            const json = jsonBytes.toString("utf-8");
+            const parsed = JSON.parse(json);
+            expect(buffer.subarray(0, 2)).toEqual(Buffer.from([0x81, 0x0a]));
+            expect(parsed.name).toEqual("New entry");
+          });
+
+          it("should append without decoding if limit is greater than 2", async () => {
+            const history = new AllureLocalHistory({ historyPath, limit: 3 });
+
+            await history.appendHistory(entry);
+
+            const buffer = await readFile(historyPath);
+            const jsonBytes = buffer.subarray(4);
+            const json = jsonBytes.toString("utf-8");
+            const parsed = JSON.parse(json);
+            expect(buffer.subarray(0, 4)).toEqual(Buffer.from([0x80, 0x0a, 0x81, 0x0a]));
+            expect(parsed.name).toEqual("New entry");
+          });
         });
       });
     });
