@@ -2661,6 +2661,95 @@ describe("dump state", () => {
   });
 });
 
+describe("dictionary safety", () => {
+  it("groups test results by prototype-like label values", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult(
+      {
+        name: "proto test",
+        labels: [{ name: "suite", value: "__proto__" }],
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "constructor test",
+        labels: [{ name: "suite", value: "constructor" }],
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "toString test",
+        labels: [{ name: "suite", value: "toString" }],
+      },
+      { readerId },
+    );
+    await store.visitTestResult(
+      {
+        name: "no suite label",
+      },
+      { readerId },
+    );
+
+    const byLabel = await store.testResultsByLabel("suite");
+
+    expect(Object.getPrototypeOf(byLabel)).toBeNull();
+    expect(byLabel.__proto__.map((tr) => tr.name)).toEqual(["proto test"]);
+    expect(byLabel.constructor.map((tr) => tr.name)).toEqual(["constructor test"]);
+    expect(byLabel.toString.map((tr) => tr.name)).toEqual(["toString test"]);
+    expect(byLabel._.map((tr) => tr.name)).toEqual(["no suite label"]);
+  });
+
+  it("groups quality gate results by prototype-like environment names", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+    });
+    const onQualityGateResultsCallback = mockRealtimeSubscriber.onQualityGateResults.mock.calls[0][0];
+
+    await onQualityGateResultsCallback([
+      {
+        success: true,
+        expected: 0,
+        actual: 0,
+        rule: "failed",
+        message: "No failed tests",
+        environment: "__proto__",
+      },
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "failed",
+        message: "Failed tests",
+        environment: "constructor",
+      },
+      {
+        success: false,
+        expected: 0,
+        actual: 1,
+        rule: "failed",
+        message: "Failed tests",
+        environment: "toString",
+      },
+    ]);
+
+    const byEnv = await store.qualityGateResultsByEnv();
+
+    expect(Object.getPrototypeOf(byEnv)).toBeNull();
+    expect(byEnv.__proto__).toHaveLength(1);
+    expect(byEnv.constructor).toHaveLength(1);
+    expect(byEnv.toString).toHaveLength(1);
+  });
+});
+
 describe("updateMapWithRecord", () => {
   it("should update a map with a record", () => {
     const map = new Map<string, number>([

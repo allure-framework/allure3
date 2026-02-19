@@ -286,5 +286,44 @@ describe("utils > treeFilters", () => {
         }),
       );
     });
+
+    it("ignores missing nested group references", () => {
+      const group = {
+        leaves: ["a1"],
+        groups: ["exists", "missing"],
+      };
+      const leavesById = {
+        a1: {
+          name: "a1",
+          status: "passed",
+        } as AwesomeTestResult,
+        b2: {
+          name: "b2",
+          status: "failed",
+        } as AwesomeTestResult,
+      };
+      const groupsById = {
+        exists: {
+          leaves: ["b2"],
+          groups: [] as string[],
+        },
+      };
+
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "name,asc",
+      });
+
+      expect(result.trees).toHaveLength(1);
+      expect(result.trees[0]).toEqual(
+        expect.objectContaining({
+          leaves: [expect.objectContaining({ name: "b2" })],
+          trees: [],
+        }),
+      );
+    });
   });
 });

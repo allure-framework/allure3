@@ -7,6 +7,7 @@ import {
   type TreeGroup,
   type TreeLeaf,
   type WithChildren,
+  createDictionary,
   findByLabelName,
 } from "@allurereport/core-api";
 import { emptyStatistic } from "@allurereport/core-api";
@@ -39,7 +40,7 @@ const createTree = <T, L, G>(
   groupFactory: (parentGroup: string | undefined, groupClassifier: string) => TreeGroup<G>,
   addLeafToGroup: (group: TreeGroup<G>, leaf: TreeLeaf<L>) => void = () => {},
 ): TreeData<L, G> => {
-  const groupsByClassifier: Record<string, Record<string, TreeGroup<G>>> = {};
+  const groupsByClassifier = createDictionary<Record<string, TreeGroup<G>>>();
   const leavesById: Record<string, TreeLeaf<L>> = {};
   const groupsById: Record<string, TreeGroup<G>> = {};
   const root: WithChildren = { groups: [], leaves: [] };
@@ -58,30 +59,32 @@ const createTree = <T, L, G>(
       }
 
       parentGroups = layer.flatMap((group) => {
-        return parentGroups.map((parentGroup) => {
+        return parentGroups.flatMap((parentGroup) => {
           const parentId = "nodeId" in parentGroup ? (parentGroup.nodeId as string) : "";
 
           if (groupsByClassifier[parentId] === undefined) {
-            groupsByClassifier[parentId] = {};
+            groupsByClassifier[parentId] = createDictionary<TreeGroup<G>>();
           }
 
-          // sometimes group name can clash with object prototype properties like 'constructor' 'toString', 'hasOwnProperty'
-          if (
-            groupsByClassifier[parentId][group] === undefined ||
-            typeof groupsByClassifier[parentId][group] === "function"
-          ) {
+          if (groupsByClassifier[parentId][group] === undefined) {
             const newGroup = groupFactory(parentId, group);
+            if (!newGroup || typeof newGroup !== "object" || typeof newGroup.nodeId !== "string") {
+              return [];
+            }
 
             groupsByClassifier[parentId][group] = newGroup;
             groupsById[newGroup.nodeId] = newGroup;
           }
 
           const currentGroup = groupsByClassifier[parentId][group];
+          if (!currentGroup || typeof currentGroup !== "object") {
+            return [];
+          }
 
           addGroup(parentGroup, currentGroup.nodeId);
           addLeafToGroup(currentGroup, leaf);
 
-          return currentGroup;
+          return [currentGroup];
         });
       });
     }
@@ -101,10 +104,12 @@ const createTree = <T, L, G>(
 };
 
 export const byLabels = (item: TestResult, labelNames: string[]): string[][] => {
-  return labelNames.map(
-    (labelName) =>
-      item.labels.filter((label) => labelName === label.name).map((label) => label.value ?? "__unknown") ?? [],
-  );
+  return labelNames
+    .map(
+      (labelName) =>
+        item.labels.filter((label) => labelName === label.name).map((label) => label.value ?? "__unknown") ?? [],
+    )
+    .filter((layer) => layer.length > 0);
 };
 
 export const filterTreeLabels = (data: TestResult[], labelNames: string[]) => {

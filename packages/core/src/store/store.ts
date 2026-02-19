@@ -17,6 +17,7 @@ import {
   type TestFixtureResult,
   type TestResult,
   compareBy,
+  createDictionary,
   getWorstStatus,
   htrsByTr,
   matchEnvironment,
@@ -255,7 +256,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async qualityGateResultsByEnv(): Promise<Record<string, QualityGateValidationResult[]>> {
-    const resultsByEnv: Record<string, QualityGateValidationResult[]> = {};
+    const resultsByEnv = createDictionary<QualityGateValidationResult[]>();
 
     for (const result of this.#qualityGateResults) {
       const environment = result.environment || "default";
@@ -664,10 +665,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return failedTestResults.filter(({ historyId }) => historyId && !knownHistoryIds.includes(historyId));
   }
 
-  async testResultsByLabel(labelName: string) {
-    const results: { _: TestResult[]; [x: string]: TestResult[] } = {
-      _: [],
-    };
+  async testResultsByLabel(labelName: string): Promise<{ _: TestResult[]; [x: string]: TestResult[] }> {
+    const results = createDictionary<TestResult[]>() as { _: TestResult[]; [x: string]: TestResult[] };
+    results._ = [];
 
     for (const [, test] of this.#testResults) {
       if (test.hidden) {

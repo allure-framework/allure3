@@ -43,4 +43,21 @@ describe("convertTestResult", () => {
 
     expect(result.descriptionHtml).toBe("<p>custom html</p>");
   });
+
+  it("groups labels safely when label names are prototype-like", () => {
+    const result = convertTestResult(
+      createTestResult({
+        labels: [
+          { name: "__proto__", value: "proto-value" },
+          { name: "constructor", value: "constructor-value" },
+          { name: "toString", value: "to-string-value" },
+        ],
+      }),
+    );
+
+    expect(Object.getPrototypeOf(result.groupedLabels)).toBeNull();
+    expect(result.groupedLabels.__proto__).toEqual(["proto-value"]);
+    expect(result.groupedLabels.constructor).toEqual(["constructor-value"]);
+    expect(result.groupedLabels.toString).toEqual(["to-string-value"]);
+  });
 });
