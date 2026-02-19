@@ -34,6 +34,8 @@
     ]
   },
   "resolutions": {
+    "ajv@npm:^8.0.0": "8.17.1",
+    "ajv@npm:^8.9.0": "8.17.1",
     "@isaacs/brace-expansion@npm:^5.0.0": "5.0.1",
     "@preact/compat": "^18.3.1",
     "@preact/signals": "^2.6.1",
@@ -47,7 +49,7 @@
     "cross-spawn@npm:^7.0.3": "7.0.5",
     "diff@npm:^4.0.1": "4.0.4",
     "esbuild": "^0.25.0",
-    "fast-xml-parser": "^5.3.4",
+    "fast-xml-parser": "^5.3.6",
     "http-proxy-middleware": "^2.0.9",
     "lodash": "4.17.23",
     "markdown-it@npm:^14.1.0": "14.1.1",
@@ -61,7 +63,7 @@
     "react": "npm:@preact/compat@*",
     "react-dom": "npm:@preact/compat@*",
     "semver": "^7.5.2",
-    "tar": "^7.5.7",
+    "tar": "^7.5.8",
     "vite": "^5.4.17",
     "webpack": "^5.105.0"
   },

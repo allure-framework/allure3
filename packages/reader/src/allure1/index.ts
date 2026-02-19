@@ -55,6 +55,7 @@ const xmlParser = new XMLParser({
   attributeNamePrefix: "",
   removeNSPrefix: true,
   allowBooleanAttributes: true,
+  processEntities: false,
   isArray: arrayTags.has.bind(arrayTags),
 });
 

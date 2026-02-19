@@ -40,6 +40,7 @@ const xmlParser = new XMLParser({
   attributeNamePrefix: "",
   removeNSPrefix: true,
   allowBooleanAttributes: true,
+  processEntities: false,
   isArray: (tagName, jPath) => arrayTags.has(jPath),
 });
 

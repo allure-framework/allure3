@@ -29,7 +29,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
-    "fast-xml-parser": "^4.5.0"
+    "fast-xml-parser": "^5.3.6"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.6.1",
