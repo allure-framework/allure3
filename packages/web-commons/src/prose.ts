@@ -359,6 +359,27 @@ address {
 }
 `;
 
+const CSS_VAR_PATTERN = /var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g;
+
+const resolveCssValue = (value: string, rootStyles: CSSStyleDeclaration, visitedVars: Set<string>): string => {
+  return value.replace(CSS_VAR_PATTERN, (_, variableName: string, fallback: string | undefined) => {
+    if (visitedVars.has(variableName)) {
+      return fallback ? resolveCssValue(fallback.trim(), rootStyles, visitedVars) : "";
+    }
+
+    const nextVisited = new Set(visitedVars);
+    nextVisited.add(variableName);
+
+    const variableValue = rootStyles.getPropertyValue(variableName).trim();
+
+    if (variableValue) {
+      return resolveCssValue(variableValue, rootStyles, nextVisited);
+    }
+
+    return fallback ? resolveCssValue(fallback.trim(), rootStyles, nextVisited) : "";
+  });
+};
+
 export const resolveCssVarDeclarations = (cssText: string) => {
   if (typeof globalThis === "undefined" || !globalThis.document) {
     return "";
@@ -369,7 +390,8 @@ export const resolveCssVarDeclarations = (cssText: string) => {
 
   return variableNames
     .map((name) => {
-      const value = rootStyles.getPropertyValue(name).trim();
+      const rawValue = rootStyles.getPropertyValue(name).trim();
+      const value = resolveCssValue(rawValue, rootStyles, new Set([name])).trim();
       return value ? `${name}: ${value};` : "";
     })
     .filter(Boolean)
