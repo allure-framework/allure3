@@ -1,4 +1,5 @@
 import type {
+  AllureHistory,
   AttachmentLink,
   CategoryDefinition,
   CiDescriptor,
@@ -41,6 +42,7 @@ export interface PluginContext {
   output: string;
   ci?: CiDescriptor;
   categories?: CategoryDefinition[];
+  history?: AllureHistory;
 }
 
 /**

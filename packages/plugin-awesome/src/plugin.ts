@@ -1,10 +1,10 @@
-import { type EnvironmentItem, type Statistic, getWorstStatus } from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
   type PluginContext,
   type PluginSummary,
-  convertToSummaryTestResult,
+  createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
@@ -173,30 +173,18 @@ export class AwesomePlugin implements Plugin {
   };
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary> {
-    const allTrs = await store.allTestResults({ filter: this.options.filter });
-
-    const newTrs = await store.allNewTestResults(this.options.filter);
-    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
-    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
-    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
-    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-
-    return {
+    return createPluginSummary({
       name: this.options.reportName || context.reportName,
-      stats: await store.testsStatistic(this.options.filter),
-      status: worstStatus ?? "passed",
-      duration,
-      createdAt,
       plugin: "Awesome",
-      newTests: newTrs.map(convertToSummaryTestResult),
-      flakyTests: flakyTrs.map(convertToSummaryTestResult),
-      retryTests: retryTrs.map(convertToSummaryTestResult),
       meta: {
         reportId: context.reportUuid,
         singleFile: this.options.singleFile ?? false,
         withTestResultsLinks: true,
       },
-    };
+      filter: this.options.filter,
+      ci: context.ci,
+      history: context.history,
+      store,
+    });
   }
 }

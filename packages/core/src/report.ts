@@ -115,14 +115,13 @@ export class AllureReport {
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
-        allureServiceClient: this.#allureServiceClient,
-        branch: this.#ci?.jobRunBranch,
         limit: historyLimit,
+        allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
       this.#history = new AllureLocalHistory({
-        historyPath,
         limit: historyLimit,
+        historyPath,
       });
     }
 
@@ -727,6 +726,7 @@ export class AllureReport {
         output: this.#output,
         ci: this.#ci,
         categories: this.#categories,
+        history: this.#history,
       };
 
       try {

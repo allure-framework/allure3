@@ -79,24 +79,29 @@ export class AllureLocalHistory implements AllureHistory {
     },
   ) {}
 
-  async readHistory() {
+  /**
+   * @param params
+   * @param params.limit - limit of history points to read, pass to override default limit given in the constructor
+   */
+  async readHistory(params?: { limit?: number }) {
+    const { limit = this.params.limit } = params ?? {};
     const fullPath = path.resolve(this.params.historyPath);
-
     const historyFile = await this.#openFileToReadIfExists(fullPath);
+
     if (historyFile === undefined) {
       return [];
     }
 
     try {
-      const start = await this.#findFirstEntryAddress(historyFile, this.params.limit);
+      const start = await this.#findFirstEntryAddress(historyFile, limit);
       const stream = historyFile.createReadStream({ start, encoding: "utf-8", autoClose: false });
-
       const historyPoints: HistoryDataPoint[] = [];
       const readlineInterface = readline
         .createInterface({ input: stream, terminal: false, crlfDelay: Infinity })
         .on("line", (line) => {
           if (line && line.trim().length) {
             const historyEntry = JSON.parse(line);
+
             historyPoints.push(historyEntry);
           }
         });
@@ -108,10 +113,15 @@ export class AllureLocalHistory implements AllureHistory {
     }
   }
 
-  async appendHistory(data: HistoryDataPoint) {
+  /**
+   * @param data - history point data to append to the history
+   * @param params
+   * @param params.limit - limit of history points to read, pass to override default limit given in the constructor
+   */
+  async appendHistory(data: HistoryDataPoint, params?: { limit?: number }) {
     const fullPath = path.resolve(this.params.historyPath);
     const parentDir = path.dirname(fullPath);
-    const { limit } = this.params;
+    const { limit = this.params.limit } = params ?? {};
 
     await mkdir(parentDir, { recursive: true });
 
@@ -120,16 +130,18 @@ export class AllureLocalHistory implements AllureHistory {
     try {
       const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
-      if (limit !== 0) {
+      if (limit) {
         if (historyExists) {
           // Move up to `limit-1` most recent entries to the beginning of the file
           const start = limit ? await this.#findFirstEntryAddress(historyFile, limit - 1) : 0;
           const src = historyFile.createReadStream({ start, autoClose: false });
+
           await pipeline(src, dst, { end: false });
         }
 
         // Append a new entry; the total number is up to `limit`.
         const sources = [JSON.stringify(data), Buffer.from([0x0a])];
+
         await pipeline(sources, dst);
       }
 
