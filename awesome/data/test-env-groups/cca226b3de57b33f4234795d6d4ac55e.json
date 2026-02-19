@@ -1,0 +1,1 @@
+{"id":"cca226b3de57b33f4234795d6d4ac55e","fullName":"test/converters.test.ts#convertTestResult keeps provided descriptionHtml as-is","name":"keeps provided descriptionHtml as-is","status":"passed","testResultsByEnv":{"windows-latest":"ed0a0c685b6240a176370671e97c7a7f","ubuntu-latest":"9e6472ad62833c3c8be89e54fe0576fc","macos-latest":"163d5b65548234b1652ad4eb412110bd"}}
