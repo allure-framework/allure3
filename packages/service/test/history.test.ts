@@ -75,48 +75,85 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}`);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?branch=${encodeURIComponent(fixtures.branch)}`,
+      );
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
-    it("should return resolved history data with a provided limit", async () => {
+    it("should return resolved history data with a limit set in the constructor", async () => {
       history = new AllureRemoteHistory({
         allureServiceClient: serviceClient,
         branch: fixtures.branch,
         limit: 10,
       });
 
-      HttpClientMock.prototype.get.mockResolvedValue({
-        history: [
-          {
-            uuid: "1",
-            name: "test",
-            timestamp: 0,
-            knownTestCaseIds: [],
-            testResults: {},
-            url: "",
-            metrics: {},
-            status: "passed",
-            stage: "test",
-          },
-        ],
-      });
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}?limit=10`);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?limit=10&branch=${encodeURIComponent(fixtures.branch)}`,
+      );
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
-    it("should return empty array if branch is not provided", async () => {
+    it("should override the constructor limit via the method argument", async () => {
+      history = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+        branch: fixtures.branch,
+        limit: 10,
+      });
+
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const result = await history.readHistory({ limit: 5 });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?limit=5&branch=${encodeURIComponent(fixtures.branch)}`,
+      );
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should override the constructor branch via the method argument", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const result = await history.readHistory({ branch: "feature" });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?branch=${encodeURIComponent("feature")}`,
+      );
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should override both constructor branch and limit via the method arguments", async () => {
+      history = new AllureRemoteHistory({
+        allureServiceClient: serviceClient,
+        branch: fixtures.branch,
+        limit: 10,
+      });
+
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const result = await history.readHistory({ branch: "feature", limit: 3 });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?limit=3&branch=${encodeURIComponent("feature")}`,
+      );
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should call without branch param if branch is not provided", async () => {
       const historyWithoutBranch = new AllureRemoteHistory({
         allureServiceClient: serviceClient,
       });
 
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [] });
+
       const result = await historyWithoutBranch.readHistory();
 
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/projects/history");
       expect(result).toEqual([]);
-      expect(HttpClientMock.prototype.get).not.toHaveBeenCalled();
     });
 
     it("should return empty array if history is not found", async () => {

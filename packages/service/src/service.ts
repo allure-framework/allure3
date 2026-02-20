@@ -93,7 +93,7 @@ export class AllureServiceClient {
     }
 
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      `/projects/history?${params.toString()}`,
+      params.size > 0 ? `/projects/history?${params.toString()}` : "/projects/history",
     );
 
     return history;

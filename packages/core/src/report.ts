@@ -116,6 +116,7 @@ export class AllureReport {
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
+        branch: this.#ci?.jobRunBranch,
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {

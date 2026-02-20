@@ -165,7 +165,9 @@ describe("AllureServiceClient", () => {
         branch: fixtures.branch,
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}`);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?branch=${encodeURIComponent(fixtures.branch)}`,
+      );
       expect(res).toEqual([fixtures.history]);
     });
 
@@ -177,7 +179,9 @@ describe("AllureServiceClient", () => {
         limit: 10,
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/history/${fixtures.branch}?limit=10`);
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?limit=10&branch=${encodeURIComponent(fixtures.branch)}`,
+      );
       expect(res).toEqual([fixtures.history]);
     });
 
@@ -188,7 +192,9 @@ describe("AllureServiceClient", () => {
         branch: "feature/test-branch",
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/projects/history/feature%2Ftest-branch");
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
+        `/projects/history?branch=${encodeURIComponent(encodeURIComponent("feature/test-branch"))}`,
+      );
     });
   });
 

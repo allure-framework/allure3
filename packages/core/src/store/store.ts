@@ -537,13 +537,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#known;
   }
 
-  async allNewTestResults(filter?: TestResultFilter): Promise<TestResult[]> {
-    if (!this.#history) {
+  async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
+    const allHistoryDps = history ?? (await this.allHistoryDataPoints());
+
+    if (allHistoryDps.length === 0) {
       return [];
     }
 
+    const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults)));
     const newTrs: TestResult[] = [];
-    const allHistoryDps = await this.allHistoryDataPoints();
 
     for (const [, tr] of this.#testResults) {
       if (tr.hidden) {
@@ -554,12 +556,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         continue;
       }
 
-      if (!tr.historyId) {
-        newTrs.push(tr);
-        continue;
-      }
-
-      if (!allHistoryDps.some((dp) => dp.testResults[tr.historyId!])) {
+      if (!tr.historyId || !historicalIds.has(tr.historyId)) {
         newTrs.push(tr);
       }
     }

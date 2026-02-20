@@ -226,6 +226,7 @@ describe("AllureLocalHistory", () => {
         .split("\n")
         .filter(Boolean)
         .map((line) => JSON.parse(line).name);
+
       expect(actualNames).toEqual(expectedNames);
     };
 

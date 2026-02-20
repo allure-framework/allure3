@@ -18,18 +18,15 @@ export const createPluginSummary = async (params: {
   ci?: CiDescriptor;
   meta: Record<string, any>;
 }): Promise<PluginSummary> => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { name, filter, plugin, store, history, ci, meta } = params;
+  const { name, filter, plugin, store, history, meta } = params;
   const allTrs = await store.allTestResults({ filter });
-
-  const newTrs = await store.allNewTestResults(filter);
-
+  const mainBranchHistory = (await history?.readHistory?.({ branch: "" })) ?? [];
+  const newTrs = await store.allNewTestResults(filter, mainBranchHistory);
   const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
   const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
   const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
   const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
   const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-
   const summary: PluginSummary = {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
