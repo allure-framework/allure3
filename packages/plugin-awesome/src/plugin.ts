@@ -7,7 +7,7 @@ import {
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import { join } from "node:path";
+import { join as joinPosix } from "node:path/posix";
 import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
@@ -80,10 +80,10 @@ export class AwesomePlugin implements Plugin {
     for (const reportEnvironment of reportEnvironments) {
       const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
-      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
+      await generateTree(this.#writer!, joinPosix(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
-      await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
+      await generateNav(this.#writer!, envConvertedTrs, joinPosix(reportEnvironment, "nav.json"));
     }
 
     await generateTreeFilters(this.#writer!, convertedTrs);

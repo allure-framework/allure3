@@ -232,4 +232,77 @@ describe("plugin", () => {
       expect(treeFilters.tags).not.toContain("regression");
     });
   });
+
+  describe("single file mode", () => {
+    it("should embed env widget paths using posix separators", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          environment: "default",
+          labels: [{ name: "tag", value: "smoke" }],
+        },
+      ] as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default"]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        singleFile: true,
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
+
+      expect(indexHtml).toContain("widgets/default/tree.json");
+      expect(indexHtml).toContain("widgets/default/nav.json");
+      expect(indexHtml).not.toContain("widgets/default\\\\tree.json");
+      expect(indexHtml).not.toContain("widgets/default\\\\nav.json");
+    });
+  });
 });

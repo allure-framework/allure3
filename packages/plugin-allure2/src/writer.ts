@@ -1,6 +1,7 @@
+import { getPosixPath } from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
 import type { Allure2TestResult } from "./model.js";
 
@@ -51,25 +52,25 @@ export class InMemoryReportDataWriter implements Allure2DataWriter {
   #data: Record<string, Buffer> = {};
 
   async writeData(fileName: string, data: any): Promise<void> {
-    const dist = join("data", fileName);
+    const dist = joinPosix("data", getPosixPath(fileName));
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
-    const dist = join("widgets", fileName);
+    const dist = joinPosix("widgets", getPosixPath(fileName));
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
   async writeTestCase(test: Allure2TestResult): Promise<void> {
-    const dist = join("data", "test-cases", `${test.uid}.json`);
+    const dist = joinPosix("data", "test-cases", `${test.uid}.json`);
 
     this.#data[dist] = Buffer.from(JSON.stringify(test), "utf-8");
   }
 
   async writeAttachment(fileName: string, file: ResultFile): Promise<void> {
-    const dist = join("data", "attachments", fileName);
+    const dist = joinPosix("data", "attachments", getPosixPath(fileName));
 
     const content = await file.asBuffer();
     if (content) {
@@ -89,11 +90,17 @@ export class ReportFileDataWriter implements Allure2DataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
-    await this.reportFiles.addFile(joinPosix("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+    await this.reportFiles.addFile(
+      joinPosix("data", getPosixPath(fileName)),
+      Buffer.from(JSON.stringify(data), "utf-8"),
+    );
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
-    await this.reportFiles.addFile(joinPosix("widgets", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+    await this.reportFiles.addFile(
+      joinPosix("widgets", getPosixPath(fileName)),
+      Buffer.from(JSON.stringify(data), "utf-8"),
+    );
   }
 
   async writeAttachment(source: string, file: ResultFile): Promise<void> {
@@ -104,7 +111,7 @@ export class ReportFileDataWriter implements Allure2DataWriter {
       return;
     }
 
-    await this.reportFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
+    await this.reportFiles.addFile(joinPosix("data", "attachments", getPosixPath(source)), contentBuffer);
   }
 
   async writeTestCase(test: Allure2TestResult): Promise<void> {

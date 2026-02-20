@@ -48,6 +48,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { basename, join } from "node:path";
+import { join as joinPosix } from "node:path/posix";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";
@@ -174,7 +175,7 @@ export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeT
 
 export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: TestEnvGroup[]) => {
   for (const group of groups) {
-    const src = join("test-env-groups", `${group.id}.json`);
+    const src = joinPosix("test-env-groups", `${group.id}.json`);
 
     await writer.writeData(src, group);
   }
@@ -375,7 +376,7 @@ export const generateVariables = async (writer: AwesomeDataWriter, store: Allure
   for (const env of environments) {
     const envVariables = await store.envVariables(env);
 
-    await writer.writeWidget(join(env, "variables.json"), envVariables);
+    await writer.writeWidget(joinPosix(env, "variables.json"), envVariables);
   }
 };
 
@@ -399,8 +400,8 @@ export const generateStatistic = async (
       continue;
     }
 
-    await writer.writeWidget(join(env, "statistic.json"), envStats);
-    await writer.writeWidget(join(env, "pie_chart.json"), envStats);
+    await writer.writeWidget(joinPosix(env, "statistic.json"), envStats);
+    await writer.writeWidget(joinPosix(env, "pie_chart.json"), envStats);
   }
 };
 
