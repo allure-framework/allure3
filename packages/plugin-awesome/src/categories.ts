@@ -278,6 +278,8 @@ export const generateCategories = async (
       id: tr.id,
       type: "tr",
       name: leafName,
+      key: groupEnvironments ? "environment" : undefined,
+      value: groupEnvironments ? environmentValue : undefined,
       status: tr.status,
       duration: tr.duration,
       flaky: tr.flaky,

@@ -1,10 +1,10 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
 import { CategoriesTree } from "@/components/Categories/CategoriesTree";
 import { useI18n } from "@/stores";
-import { categoriesStore } from "@/stores/errorCategories";
+import { categoriesStore } from "@/stores/categories";
 import * as styles from "./styles.scss";
 
-export const ReportErrorCategories = () => {
+export const ReportCategories = () => {
   const { t } = useI18n("empty");
 
   return (

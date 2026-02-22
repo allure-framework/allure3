@@ -1,10 +1,11 @@
 import type { CategoryNode, CategoryNodeProps, Statistic, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { ansiToHTML } from "@allurereport/web-commons";
-import { ArrowButton, Code, TreeStatusBar } from "@allurereport/web-components";
+import { ArrowButton, Button, Code, TreeStatusBar } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";
+import { useState } from "preact/hooks";
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores/locale";
 import * as styles from "./styles.scss";
@@ -56,17 +57,43 @@ export const MessageTreeItem: FC<MessageTreeItemProps> = ({
   const status = statusFromStatistic(node.statistic);
   const sanitizedMessage = ansiToHTML(node.name ?? "", { fg: "var(--on-text-primary)", colors: {} });
   const stickyStyle = createCategoriesStickyStyle(depth);
+  const [isMessageExpanded, setIsMessageExpanded] = useState(false);
+  const hasLongMessage = (node.name ?? "").length > 120;
 
   return (
     <div className={clsx(styles["tree-content"], styles["tree-item-message"])} id={nodeId}>
       <div className={styles["tree-item-message-container"]} data-tree-header style={stickyStyle} onClick={onToggle}>
         <ArrowButton isOpened={isOpened} className={styles["tree-item-message-arrow"]} />
-        <div className={clsx(styles["tree-item-message-card"], status && styles[`message-status-${status}`])}>
-          <Code size="s" className={styles["tree-item-message-header"]}>
+        <div
+          className={clsx(
+            styles["tree-item-message-card"],
+            status && styles[`message-status-${status}`],
+            isMessageExpanded && styles["tree-item-message-card-expanded"],
+          )}
+        >
+          <Code
+            size="s"
+            className={clsx(
+              styles["tree-item-message-header"],
+              isMessageExpanded && styles["tree-item-message-header-expanded"],
+            )}
+          >
             {/* eslint-disable-next-line react/no-danger */}
             <pre dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
           </Code>
           <div className={styles["tree-item-message-actions"]}>
+            {hasLongMessage && (
+              <Button
+                size="s"
+                style="ghost"
+                text={isMessageExpanded ? t("showLess") : t("showMore")}
+                className={styles["tree-item-message-expand"]}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsMessageExpanded((value) => !value);
+                }}
+              />
+            )}
             {subtreeToggle}
             <div className={styles["tree-item-message-stats"]}>
               <TreeStatusBar reportStatistic={reportStatistic} statusFilter={"total"} statistic={node.statistic} />

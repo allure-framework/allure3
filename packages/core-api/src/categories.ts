@@ -115,7 +115,7 @@ export type CategoryNodeProps = {
   depth?: number;
 };
 
-export type ErrorCategoriesConfig =
+export type CategoriesConfig =
   | ErrorCategoryRule[]
   | {
       rules: ErrorCategoryRule[];
@@ -161,7 +161,7 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
     rule.traceRegex !== undefined ||
     rule.flaky !== undefined;
   if (rule.matchers !== undefined && compatKeysUsed) {
-    throw new Error(`errorCategories[${index}] mixes canonical keys with compatibility keys`);
+    throw new Error(`categories[${index}] mixes canonical keys with compatibility keys`);
   }
 
   let matchers: Matcher[] = [];
@@ -188,19 +188,19 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
     matchers = [compatMatcher];
   }
   if (matchers.length === 0) {
-    throw new Error(`errorCategories[${index}] must define matchers`);
+    throw new Error(`categories[${index}] must define matchers`);
   }
   for (let i = 0; i < matchers.length; i++) {
     const m = matchers[i];
     const ok = typeof m === "function" || isPlainObject(m);
     if (!ok) {
-      throw new Error(`errorCategories[${index}].matchers[${i}] must be object|function`);
+      throw new Error(`categories[${index}].matchers[${i}] must be object|function`);
     }
   }
   return matchers;
 };
 
-export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): ErrorCategoryNorm[] => {
+export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): ErrorCategoryNorm[] => {
   const rawRules = Array.isArray(cfg) ? cfg : (cfg?.rules ?? []);
   const rules = rawRules.length ? rawRules : [];
 
@@ -209,10 +209,10 @@ export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): Err
 
   const applyRule = (rule: ErrorCategoryRule, index: number) => {
     if (!isPlainObject(rule)) {
-      throw new Error(`errorCategories[${index}] must be an object`);
+      throw new Error(`categories[${index}] must be an object`);
     }
     if (typeof rule.name !== "string" || !rule.name.trim()) {
-      throw new Error(`errorCategories[${index}].name must be non-empty string`);
+      throw new Error(`categories[${index}].name must be non-empty string`);
     }
 
     const matchers = normalizeMatchers(rule, index);
@@ -241,7 +241,7 @@ export const normalizeErrorCategoriesConfig = (cfg?: ErrorCategoriesConfig): Err
         (selector as CategoryGroupCustomSelector).label.trim().length > 0;
 
       if (!isBuiltIn && !isCustom) {
-        throw new Error(`errorCategories[${index}].groupBy contains invalid selector`);
+        throw new Error(`categories[${index}].groupBy contains invalid selector`);
       }
     }
 
@@ -427,6 +427,32 @@ export const compareChildNodes = (
     }
 
     return compareStrings(leftNodeId, rightNodeId);
+  }
+
+  if (leftType === "tr" && rightType === "tr") {
+    const leftKey = leftNode.key;
+    const rightKey = rightNode.key;
+    if (leftKey === "environment" && rightKey === "environment") {
+      const leftSortKey = getGroupSortKey("environment", leftNode.value, environmentOrderMap);
+      const rightSortKey = getGroupSortKey("environment", rightNode.value, environmentOrderMap);
+
+      const byPrimaryRank = compareNumbers(leftSortKey.primaryRank, rightSortKey.primaryRank);
+      if (byPrimaryRank !== 0) {
+        return byPrimaryRank;
+      }
+
+      const byMissingLast = compareNumbers(leftSortKey.missingRank, rightSortKey.missingRank);
+      if (byMissingLast !== 0) {
+        return byMissingLast;
+      }
+
+      const byAlpha = compareStrings(leftSortKey.alphaKey, rightSortKey.alphaKey);
+      if (byAlpha !== 0) {
+        return byAlpha;
+      }
+
+      return compareStrings(leftNodeId, rightNodeId);
+    }
   }
 
   if (leftType === "group" && rightType === "group") {

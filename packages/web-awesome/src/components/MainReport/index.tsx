@@ -3,14 +3,14 @@ import clsx from "clsx";
 import { useEffect } from "preact/hooks";
 import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
 import { ReportBody } from "@/components/ReportBody";
-import { ReportErrorCategories } from "@/components/ReportErrorCategories";
+import { ReportCategories } from "@/components/ReportCategories";
 import { ReportGlobalAttachments } from "@/components/ReportGlobalAttachments";
 import { ReportGlobalErrors } from "@/components/ReportGlobalErrors";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportMetadata } from "@/components/ReportMetadata";
 import { reportStatsStore, useI18n } from "@/stores";
+import { categoriesStore } from "@/stores/categories";
 import { currentEnvironment } from "@/stores/env";
-import { categoriesStore } from "@/stores/errorCategories";
 import { globalsStore } from "@/stores/globals";
 import { isSplitMode } from "@/stores/layout";
 import { qualityGateStore } from "@/stores/qualityGate";
@@ -30,7 +30,7 @@ export enum ReportRootTab {
   QualityGate = "qualityGate",
   GlobalAttachments = "globalAttachments",
   GlobalErrors = "globalErrors",
-  ErrorCategories = "errorCategories",
+  Categories = "categories",
 }
 
 const viewsByTab = {
@@ -43,7 +43,7 @@ const viewsByTab = {
   [ReportRootTab.GlobalAttachments]: () => <ReportGlobalAttachments />,
   [ReportRootTab.GlobalErrors]: () => <ReportGlobalErrors />,
   [ReportRootTab.QualityGate]: () => <ReportQualityGateResults />,
-  [ReportRootTab.ErrorCategories]: () => <ReportErrorCategories />,
+  [ReportRootTab.Categories]: () => <ReportCategories />,
 };
 
 const MainReportContent = () => {
@@ -57,13 +57,13 @@ const MainReportContent = () => {
 const MainReport = () => {
   const { t } = useI18n("tabs");
   const rootTabToReportTab: Record<string, ReportRootTab> = {
-    categories: ReportRootTab.ErrorCategories,
+    categories: ReportRootTab.Categories,
     qualityGate: ReportRootTab.QualityGate,
     globalAttachments: ReportRootTab.GlobalAttachments,
     globalErrors: ReportRootTab.GlobalErrors,
   };
   const reportTabToRootTab: Partial<Record<ReportRootTab, string>> = {
-    [ReportRootTab.ErrorCategories]: "categories",
+    [ReportRootTab.Categories]: "categories",
     [ReportRootTab.QualityGate]: "qualityGate",
     [ReportRootTab.GlobalAttachments]: "globalAttachments",
     [ReportRootTab.GlobalErrors]: "globalErrors",
@@ -147,7 +147,7 @@ const MainReport = () => {
                 }
                 return (
                   <>
-                    <RootTab id={ReportRootTab.ErrorCategories}>
+                    <RootTab id={ReportRootTab.Categories}>
                       {t("categories")} <Counter count={categories.roots?.length} />
                     </RootTab>
                   </>

@@ -9,6 +9,7 @@ import { LabelTreeItem } from "@/components/Categories/LabelTreeItem";
 import { MessageTreeItem } from "@/components/Categories/MessageTreeItem";
 import { SeverityTreeItem } from "@/components/Categories/SeverityTreeItem";
 import { reportStatsStore } from "@/stores";
+import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
@@ -52,10 +53,12 @@ const getNodeOpenedState = (nodeId: string, store: TestCategories) => {
 export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, order, depth = 0 }) => {
   const node: CategoryNode = store.nodes[nodeId];
   const trId = currentTrId.value;
+  const { t: tTransitions } = useI18n("transitions");
   const hasSavedState = collapsedTrees.value.has(nodeId);
   const defaultOpened = getDefaultOpened(node);
   const [isOpened, setIsOpen] = useState<boolean>(hasSavedState ? !defaultOpened : defaultOpened);
   const [subtreeVersion, setSubtreeVersion] = useState(0);
+  const [lastSubtreeToggle, setLastSubtreeToggle] = useState<"first" | "all" | "none" | null>(null);
 
   if (!node) {
     return null;
@@ -70,10 +73,13 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
   const isSubtreeFirstLevelOnly =
     getNodeOpenedState(nodeId, store) &&
     expandableNodeIds.filter((id) => id !== nodeId).every((id) => !getNodeOpenedState(id, store));
+  const isSubtreeExpandedAll =
+    getNodeOpenedState(nodeId, store) && expandableNodeIds.every((id) => getNodeOpenedState(id, store));
 
   const onClick = () => {
     setIsOpen(!isOpened);
     toggleTree(nodeId);
+    setLastSubtreeToggle(null);
   };
 
   const setSubtreeState = (state: "first" | "all" | "none") => {
@@ -109,23 +115,28 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
       if (isSubtreeCollapsedAll) {
         setSubtreeState("all");
         setIsOpen(true);
+        setLastSubtreeToggle("all");
       } else {
         setSubtreeState("none");
         setIsOpen(false);
+        setLastSubtreeToggle("none");
       }
       setSubtreeVersion((value: number) => value + 1);
       return;
     }
+    let nextState: "first" | "all" | "none" = "first";
     if (isSubtreeCollapsedAll) {
-      setSubtreeState("first");
-      setIsOpen(true);
+      nextState = "first";
     } else if (isSubtreeFirstLevelOnly) {
-      setSubtreeState("all");
-      setIsOpen(true);
+      nextState = lastSubtreeToggle === "all" ? "none" : "all";
+    } else if (isSubtreeExpandedAll) {
+      nextState = "first";
     } else {
-      setSubtreeState("none");
-      setIsOpen(false);
+      nextState = "all";
     }
+    setSubtreeState(nextState);
+    setIsOpen(nextState !== "none");
+    setLastSubtreeToggle(nextState);
     setSubtreeVersion((value: number) => value + 1);
   };
 
@@ -259,6 +270,18 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
     );
   }
   if (node.type === "tr") {
+    const leafTooltips =
+      node.type === "tr"
+        ? {
+            transition:
+              node.tooltips?.transition ??
+              (node.transition ? tTransitions(`description.${node.transition}`) : undefined),
+            flaky: node.tooltips?.flaky ?? (node.flaky ? tTransitions("description.flaky") : undefined),
+            retries:
+              node.tooltips?.retries ??
+              (node.retriesCount ? tTransitions("description.retries", { count: node.retriesCount }) : undefined),
+          }
+        : node.tooltips;
     return (
       <div className={styles["tree-item"]} id={nodeId}>
         <TreeItem
@@ -266,6 +289,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
           groupOrder={(order ?? 0) + 1}
           marked={node.id === trId}
           navigateTo={() => navigateToTestResult({ testResultId: nodeId })}
+          tooltips={leafTooltips}
         />
       </div>
     );

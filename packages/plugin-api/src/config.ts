@@ -1,7 +1,7 @@
 import type {
+  CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
-  ErrorCategoriesConfig,
   ReportVariables,
 } from "@allurereport/core-api";
 import type { PluginDescriptor } from "./plugin.js";
@@ -60,7 +60,7 @@ export interface Config {
   allureService?: {
     accessToken?: string;
   };
-  categories?: ErrorCategoriesConfig;
+  categories?: CategoriesConfig;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

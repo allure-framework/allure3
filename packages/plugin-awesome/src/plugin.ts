@@ -2,7 +2,7 @@ import {
   type EnvironmentItem,
   type Statistic,
   getWorstStatus,
-  normalizeErrorCategoriesConfig,
+  normalizeCategoriesConfig,
 } from "@allurereport/core-api";
 import {
   type AllureStore,
@@ -13,8 +13,8 @@ import {
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 import { join } from "node:path";
+import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { filterEnv } from "./environments.js";
-import { applyCategoriesToTestResults, generateCategories } from "./errorCategories.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
@@ -43,7 +43,8 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter, appendTitlePath, categories } = this.options ?? {};
+    const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const categories = context.categories;
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -70,7 +71,7 @@ export class AwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs);
 
-    const normalizedCategories = normalizeErrorCategoriesConfig(categories);
+    const normalizedCategories = normalizeCategoriesConfig(categories);
     applyCategoriesToTestResults(convertedTrs, normalizedCategories);
     await generateCategories(this.#writer!, {
       tests: convertedTrs,

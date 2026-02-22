@@ -24,6 +24,20 @@
   border-radius: 4px;
   padding: 2px 4px;
   line-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.tree-item-label-icon {
+  margin-right: 2px;
+}
+
+.tree-item-label-transition-icon {
+  display: inline-flex;
+  align-items: center;
+  color: currentColor;
 }
 
 .tree-item-label-value-text {

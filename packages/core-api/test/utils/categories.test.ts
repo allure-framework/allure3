@@ -4,9 +4,9 @@ import {
   extractErrorMatchingData,
   matchCategory,
   matchCategoryMatcher,
-  normalizeErrorCategoriesConfig,
+  normalizeCategoriesConfig,
 } from "../../src/index.js";
-import type { ErrorCategoriesConfig } from "../../src/index.js";
+import type { CategoriesConfig } from "../../src/index.js";
 import type { TestLabel } from "../../src/metadata.js";
 import type { TestResult, TestStatus } from "../../src/model.js";
 
@@ -24,20 +24,20 @@ const mkData = (overrides?: Partial<ReturnType<typeof extractErrorMatchingData>>
   return { ...base, ...overrides };
 };
 
-describe("normalizeErrorCategoriesConfig", () => {
+describe("normalizeCategoriesConfig", () => {
   it("returns only defaults when cfg is undefined", () => {
-    const normalized = normalizeErrorCategoriesConfig(undefined);
+    const normalized = normalizeCategoriesConfig(undefined);
     expect(normalized.map((r) => r.name)).toEqual(DEFAULT_ERROR_CATEGORIES.map((r) => r.name));
     expect(normalized).toHaveLength(DEFAULT_ERROR_CATEGORIES.length);
   });
 
   it("accepts array config and appends defaults after custom rules", () => {
-    const cfg: ErrorCategoriesConfig = [
+    const cfg: CategoriesConfig = [
       { name: "Custom", matchers: { statuses: ["failed"] } },
       { name: "Another", matchers: { statuses: ["broken"] } },
     ];
 
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const normalized = normalizeCategoriesConfig(cfg);
     expect(normalized.map((r) => r.name)).toEqual([
       "Custom",
       "Another",
@@ -50,91 +50,89 @@ describe("normalizeErrorCategoriesConfig", () => {
   });
 
   it("accepts object config with { rules }", () => {
-    const cfg: ErrorCategoriesConfig = {
+    const cfg: CategoriesConfig = {
       rules: [{ name: "Custom", matchers: { statuses: ["failed"] } }],
     };
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const normalized = normalizeCategoriesConfig(cfg);
     expect(normalized[0].name).toBe("Custom");
   });
 
   it("merges rules with the same name by concatenating matchers", () => {
-    const cfg: ErrorCategoriesConfig = [
+    const cfg: CategoriesConfig = [
       { name: "Same", matchers: { statuses: ["failed"] } },
       { name: "Same", matchers: { statuses: ["broken"] } },
     ];
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const normalized = normalizeCategoriesConfig(cfg);
     const same = normalized.find((r) => r.name === "Same")!;
     expect(same.matchers).toHaveLength(2);
   });
 
   it("throws when rule is not an object", () => {
     const cfg = [null as any] satisfies any;
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must be an object/);
+    expect(() => normalizeCategoriesConfig(cfg)).toThrow(/must be an object/);
   });
 
   it("throws when name is empty", () => {
-    const cfg: ErrorCategoriesConfig = [{ name: "   ", matchers: { statuses: ["failed"] } }];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/name must be non-empty string/);
+    const cfg: CategoriesConfig = [{ name: "   ", matchers: { statuses: ["failed"] } }];
+    expect(() => normalizeCategoriesConfig(cfg)).toThrow(/name must be non-empty string/);
   });
 
   it("throws when matchers missing", () => {
-    const cfg: ErrorCategoriesConfig = [{ name: "X" } as any];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must define matchers/);
+    const cfg: CategoriesConfig = [{ name: "X" } as any];
+    expect(() => normalizeCategoriesConfig(cfg)).toThrow(/must define matchers/);
   });
 
   it("throws when canonical keys are mixed with compatibility keys", () => {
-    const cfg: ErrorCategoriesConfig = [
+    const cfg: CategoriesConfig = [
       {
         name: "X",
         matchers: { statuses: ["failed"] },
         messageRegex: "boom",
       },
     ];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/mixes canonical keys with compatibility keys/);
+    expect(() => normalizeCategoriesConfig(cfg)).toThrow(/mixes canonical keys with compatibility keys/);
   });
 
   it("builds matcher from compatibility keys", () => {
-    const cfg: ErrorCategoriesConfig = [
-      { name: "Compat", matchedStatuses: ["failed"], messageRegex: "boom", flaky: false },
-    ];
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const cfg: CategoriesConfig = [{ name: "Compat", matchedStatuses: ["failed"], messageRegex: "boom", flaky: false }];
+    const normalized = normalizeCategoriesConfig(cfg);
     const compat = normalized.find((r) => r.name === "Compat")!;
     expect(compat.matchers).toHaveLength(1);
     expect(typeof compat.matchers[0]).toBe("object");
   });
 
   it("throws when matchers contains invalid types", () => {
-    const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: [123 as any] as any }];
-    expect(() => normalizeErrorCategoriesConfig(cfg)).toThrow(/must be object\|function/);
+    const cfg: CategoriesConfig = [{ name: "X", matchers: [123 as any] as any }];
+    expect(() => normalizeCategoriesConfig(cfg)).toThrow(/must be object\|function/);
   });
 
   it("validates groupBy selectors: accepts built-ins and { label }", () => {
-    const cfg: ErrorCategoriesConfig = [
+    const cfg: CategoriesConfig = [
       {
         name: "X",
         matchers: { statuses: ["failed"] },
         groupBy: ["flaky", "owner", "severity", "transition", { label: "myLabel" } as any],
       },
     ];
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const normalized = normalizeCategoriesConfig(cfg);
     const x = normalized.find((r) => r.name === "X")!;
     expect(x.groupBy).toHaveLength(5);
   });
 
   it("accepts groupBy selector 'status' (built-in)", () => {
-    const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any }];
-    const normalized = normalizeErrorCategoriesConfig(cfg);
+    const cfg: CategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any }];
+    const normalized = normalizeCategoriesConfig(cfg);
     expect(normalized.find((rule) => rule.name === "X")!.groupBy).toEqual(["status"]);
   });
 
   describe("new config fields", () => {
     it("accepts groupEnvironments boolean and keeps it undefined by default", () => {
-      const cfg: ErrorCategoriesConfig = [
+      const cfg: CategoriesConfig = [
         { name: "X", matchers: { statuses: ["failed"] }, groupEnvironments: true },
         { name: "Y", matchers: { statuses: ["failed"] } },
       ];
 
-      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const normalized = normalizeCategoriesConfig(cfg);
       const x = normalized.find((r) => r.name === "X") as any;
       const y = normalized.find((r) => r.name === "Y") as any;
 
@@ -143,49 +141,47 @@ describe("normalizeErrorCategoriesConfig", () => {
     });
 
     it("accepts groupBy selector 'environment' (built-in) for new spec", () => {
-      const cfg: ErrorCategoriesConfig = [
+      const cfg: CategoriesConfig = [
         { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["environment"] as any },
       ];
-      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const normalized = normalizeCategoriesConfig(cfg);
       const x = normalized.find((r) => r.name === "X")!;
       expect(x.groupBy).toEqual(["environment"]);
     });
 
     it("accepts groupBy selector 'status'", () => {
-      const cfg: ErrorCategoriesConfig = [
-        { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any },
-      ];
-      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const cfg: CategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["status"] as any }];
+      const normalized = normalizeCategoriesConfig(cfg);
       const x = normalized.find((r) => r.name === "X")!;
       expect(x.groupBy).toEqual(["status"]);
     });
 
     it("accepts groupBy selector 'layer'", () => {
-      const cfg: ErrorCategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["layer"] as any }];
-      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const cfg: CategoriesConfig = [{ name: "X", matchers: { statuses: ["failed"] }, groupBy: ["layer"] as any }];
+      const normalized = normalizeCategoriesConfig(cfg);
       const x = normalized.find((r) => r.name === "X")!;
       expect(x.groupBy).toEqual(["layer"]);
     });
 
     it("still accepts custom { label } selector", () => {
-      const cfg: ErrorCategoriesConfig = [
+      const cfg: CategoriesConfig = [
         { name: "X", matchers: { statuses: ["failed"] }, groupBy: [{ label: "component" } as any] },
       ];
-      const normalized = normalizeErrorCategoriesConfig(cfg);
+      const normalized = normalizeCategoriesConfig(cfg);
       const x = normalized.find((r) => r.name === "X")!;
       expect(x.groupBy).toHaveLength(1);
     });
 
     it("rejects invalid groupBy selectors: object without label and unknown strings", () => {
-      const cfg1: ErrorCategoriesConfig = [
+      const cfg1: CategoriesConfig = [
         { name: "X", matchers: { statuses: ["failed"] }, groupBy: [{ nope: "x" } as any] },
       ];
-      expect(() => normalizeErrorCategoriesConfig(cfg1)).toThrow(/groupBy contains invalid selector/);
+      expect(() => normalizeCategoriesConfig(cfg1)).toThrow(/groupBy contains invalid selector/);
 
-      const cfg2: ErrorCategoriesConfig = [
+      const cfg2: CategoriesConfig = [
         { name: "X", matchers: { statuses: ["failed"] }, groupBy: ["not-a-built-in" as any] },
       ];
-      expect(() => normalizeErrorCategoriesConfig(cfg2)).toThrow(/groupBy contains invalid selector/);
+      expect(() => normalizeCategoriesConfig(cfg2)).toThrow(/groupBy contains invalid selector/);
     });
   });
 });
@@ -221,7 +217,7 @@ describe("matchCategoryMatcher / matchCategory", () => {
   });
 
   it("matchCategory returns first matching category in order", () => {
-    const cats = normalizeErrorCategoriesConfig([
+    const cats = normalizeCategoriesConfig([
       { name: "First", matchers: { statuses: ["failed"] } },
       { name: "Second", matchers: { statuses: ["failed"] } },
     ]);
@@ -231,7 +227,7 @@ describe("matchCategoryMatcher / matchCategory", () => {
   });
 
   it("matchCategory returns undefined when no matchers match", () => {
-    const cats = normalizeErrorCategoriesConfig([{ name: "OnlyBroken", matchers: { statuses: ["broken"] } }]);
+    const cats = normalizeCategoriesConfig([{ name: "OnlyBroken", matchers: { statuses: ["broken"] } }]);
     const m = matchCategory(cats, mkData({ status: "unknown" }));
     expect(m).toBeUndefined();
   });
