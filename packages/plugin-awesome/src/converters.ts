@@ -1,4 +1,10 @@
-import type { TestFixtureResult, TestLabel, TestResult, TestStepResult } from "@allurereport/core-api";
+import {
+  type TestFixtureResult,
+  type TestLabel,
+  type TestResult,
+  type TestStepResult,
+  createDictionary,
+} from "@allurereport/core-api";
 import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
 import MarkdownIt from "markdown-it";
 
@@ -14,7 +20,7 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
     }
 
     return acc;
-  }, {});
+  }, createDictionary<string[]>());
 };
 
 export const convertTestResult = (tr: TestResult): AwesomeTestResult => {

@@ -219,6 +219,91 @@ describe("tree builder", () => {
     expect(treeByLabels.groupsById[storyBUuid]).toHaveProperty("name", "B");
     expect(treeByLabels.groupsById[storyBUuid]).toHaveProperty("leaves", [tr3.id]);
   });
+
+  it("should skip missing labels and keep deeper labels", async () => {
+    const tr1 = itResult({
+      name: "with full suite depth",
+      labels: [
+        { name: "parentSuite", value: "frontend" },
+        { name: "suite", value: "checkout" },
+        { name: "subSuite", value: "happy path" },
+      ],
+    });
+    const tr2 = itResult({
+      name: "without subSuite",
+      labels: [
+        { name: "parentSuite", value: "frontend" },
+        { name: "suite", value: "checkout" },
+      ],
+    });
+    const tr3 = itResult({
+      name: "without parentSuite",
+      labels: [{ name: "suite", value: "payments" }],
+    });
+
+    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["parentSuite", "suite", "subSuite"]);
+    const rootGroupIds = treeByLabels.root.groups ?? [];
+    const rootGroupNames = rootGroupIds.map((id) => treeByLabels.groupsById[id]?.name).sort();
+
+    expect(rootGroupNames).toEqual(["frontend", "payments"]);
+
+    const frontendGroupId = rootGroupIds.find((id) => treeByLabels.groupsById[id]?.name === "frontend")!;
+    const frontendGroup = treeByLabels.groupsById[frontendGroupId];
+    expect(frontendGroup.leaves).toBeUndefined();
+    expect(frontendGroup.groups).toHaveLength(1);
+
+    const checkoutGroupId = frontendGroup.groups![0];
+    const checkoutGroup = treeByLabels.groupsById[checkoutGroupId];
+    expect(checkoutGroup.leaves).toContain(tr2.id);
+    expect(checkoutGroup.groups).toHaveLength(1);
+
+    const happyPathGroup = treeByLabels.groupsById[checkoutGroup.groups![0]];
+    expect(happyPathGroup.name).toBe("happy path");
+    expect(happyPathGroup.leaves).toEqual([tr1.id]);
+
+    const paymentsGroupId = rootGroupIds.find((id) => treeByLabels.groupsById[id]?.name === "payments")!;
+    expect(treeByLabels.groupsById[paymentsGroupId].leaves).toEqual([tr3.id]);
+  });
+
+  it("should handle prototype-like group names", async () => {
+    const tr1 = itResult({
+      name: "proto key",
+      labels: [{ name: "suite", value: "__proto__" }],
+    });
+    const tr2 = itResult({
+      name: "constructor key",
+      labels: [{ name: "suite", value: "constructor" }],
+    });
+    const tr3 = itResult({
+      name: "toString key",
+      labels: [{ name: "suite", value: "toString" }],
+    });
+
+    const treeByLabels = createTreeByLabels([tr1, tr2, tr3], ["suite"]);
+    const rootGroupIds = treeByLabels.root.groups ?? [];
+    const rootGroupNames = rootGroupIds.map((id) => treeByLabels.groupsById[id]?.name).sort();
+
+    expect(rootGroupNames).toEqual(["__proto__", "constructor", "toString"]);
+    for (const groupId of rootGroupIds) {
+      expect(treeByLabels.groupsById[groupId]?.leaves).toHaveLength(1);
+    }
+  });
+
+  it("should not crash if groupFactory returns malformed value", async () => {
+    const tr = itResult({
+      name: "tr malformed group",
+      labels: [{ name: "suite", value: "broken-group" }],
+    });
+
+    expect(() =>
+      createTreeByLabels(
+        [tr],
+        ["suite"],
+        sampleLeafFactory,
+        () => null as unknown as { nodeId: string; name: string; statistic: { total: number } },
+      ),
+    ).not.toThrow();
+  });
 });
 
 describe("tree sorting", () => {
@@ -486,5 +571,16 @@ describe("byLabels", () => {
     } as TestResult;
 
     expect(byLabels(tr1, ["parentSuite", "suite", "subSuite"])).toEqual([["A"], ["B"], ["C"]]);
+  });
+
+  it("should skip missing labels and keep deeper labels order", () => {
+    const tr1 = {
+      labels: [
+        { name: "parentSuite", value: "A" },
+        { name: "subSuite", value: "C" },
+      ],
+    } as TestResult;
+
+    expect(byLabels(tr1, ["parentSuite", "suite", "subSuite"])).toEqual([["A"], ["C"]]);
   });
 });

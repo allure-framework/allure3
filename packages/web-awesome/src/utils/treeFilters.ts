@@ -105,15 +105,22 @@ export const createRecursiveTree = (payload: {
 
   const trees =
     group.groups
-      ?.map((groupId) =>
-        createRecursiveTree({
-          group: groupsById[groupId],
-          groupsById,
-          leavesById,
-          filterPredicate,
-          sortBy,
-        }),
-      )
+      ?.flatMap((groupId) => {
+        const nestedGroup = groupsById[groupId];
+        if (!nestedGroup) {
+          return [];
+        }
+
+        return [
+          createRecursiveTree({
+            group: nestedGroup,
+            groupsById,
+            leavesById,
+            filterPredicate,
+            sortBy,
+          }),
+        ];
+      })
       ?.filter((rt) => !isRecursiveTreeEmpty(rt)) ?? [];
 
   const statistic: Statistic = emptyStatistic();

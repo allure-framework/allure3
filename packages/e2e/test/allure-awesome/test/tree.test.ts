@@ -403,6 +403,76 @@ test.describe("suites", () => {
     await expect(treePage.getNthLeafTitleLocator(1)).toHaveText("1 sample failed test");
     await expect(treePage.getNthLeafOrderLocator(1)).toHaveText("1");
   });
+
+  test("should render mixed suite depth when some labels are missing", async ({ page }) => {
+    bootstrap = await bootstrapReport(
+      {
+        reportConfig: {
+          name: "Sample allure report",
+          appendHistory: false,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "0 with full depth",
+            fullName: "sample.js#0 with full depth",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 1000,
+            labels: [
+              { name: "parentSuite", value: "frontend" },
+              { name: "suite", value: "checkout" },
+              { name: "subSuite", value: "happy path" },
+            ],
+          },
+          {
+            name: "1 without subSuite",
+            fullName: "sample.js#1 without subSuite",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 2000,
+            labels: [
+              { name: "parentSuite", value: "frontend" },
+              { name: "suite", value: "checkout" },
+            ],
+          },
+          {
+            name: "2 without parentSuite",
+            fullName: "sample.js#2 without parentSuite",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: 3000,
+            labels: [{ name: "suite", value: "payments" }],
+          },
+        ],
+      },
+      {
+        groupBy: ["parentSuite", "suite", "subSuite"],
+      },
+    );
+
+    await page.goto(bootstrap.url);
+
+    await expect(treePage.sectionsLocator).toHaveCount(2);
+    await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("frontend");
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("payments");
+
+    await treePage.toggleNthSection(0);
+    await expect(treePage.getNthSectionTitleLocator(1)).toHaveText("checkout");
+    await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("payments");
+
+    await treePage.toggleNthSection(1);
+    await expect(treePage.getNthSectionTitleLocator(2)).toHaveText("happy path");
+    await expect(treePage.getNthSectionTitleLocator(3)).toHaveText("payments");
+
+    await treePage.toggleNthSection(2);
+    await treePage.toggleNthSection(3);
+
+    await expect(treePage.leafLocator).toHaveCount(3);
+    await expect(treePage.getLeafByTitle("0 with full depth")).toHaveCount(1);
+    await expect(treePage.getLeafByTitle("1 without subSuite")).toHaveCount(1);
+    await expect(treePage.getLeafByTitle("2 without parentSuite")).toHaveCount(1);
+  });
 });
 
 test.describe("features", () => {
