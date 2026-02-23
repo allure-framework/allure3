@@ -2,12 +2,13 @@
 import { detect } from "@allurereport/ci";
 import type {
   AllureHistory,
-  CategoriesConfig,
+  CategoryDefinition,
   CiDescriptor,
   KnownTestFailure,
   ReportVariables,
   TestResult,
 } from "@allurereport/core-api";
+import { normalizeCategoriesConfig } from "@allurereport/core-api";
 import {
   type AllureStoreDump,
   AllureStoreDumpFiles,
@@ -61,7 +62,7 @@ export class AllureReport {
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
-  readonly #categories: CategoriesConfig | undefined;
+  readonly #categories: CategoryDefinition[];
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -110,7 +111,7 @@ export class AllureReport {
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
     }
-    this.#categories = categories;
+    this.#categories = normalizeCategoriesConfig(categories);
 
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
