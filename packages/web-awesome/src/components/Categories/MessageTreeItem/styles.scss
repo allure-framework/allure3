@@ -87,6 +87,14 @@
 
 .tree-item-message-expand {
   flex: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.tree-item-message-card:hover .tree-item-message-expand {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .tree-item-message-actions .tree-item-subtree-toggle {

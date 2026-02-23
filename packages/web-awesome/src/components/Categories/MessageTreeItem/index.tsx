@@ -57,8 +57,8 @@ export const MessageTreeItem: FC<MessageTreeItemProps> = ({
   const status = statusFromStatistic(node.statistic);
   const sanitizedMessage = ansiToHTML(node.name ?? "", { fg: "var(--on-text-primary)", colors: {} });
   const stickyStyle = createCategoriesStickyStyle(depth);
+  const hasLongMessage = (node.name ?? "").length > 80;
   const [isMessageExpanded, setIsMessageExpanded] = useState(false);
-  const hasLongMessage = (node.name ?? "").length > 120;
 
   return (
     <div className={clsx(styles["tree-content"], styles["tree-item-message"])} id={nodeId}>
