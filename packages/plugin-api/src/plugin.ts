@@ -1,6 +1,6 @@
 import type {
   AttachmentLink,
-  CategoriesConfig,
+  CategoryDefinition,
   CiDescriptor,
   Statistic,
   TestError,
@@ -40,7 +40,7 @@ export interface PluginContext {
   reportUrl?: string;
   output: string;
   ci?: CiDescriptor;
-  categories?: CategoriesConfig;
+  categories?: CategoryDefinition[];
 }
 
 /**

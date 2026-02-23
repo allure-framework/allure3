@@ -26,7 +26,7 @@ export const TRANSITION_ORDER: Record<string, number> = {
   fixed: 3,
 };
 
-export const DEFAULT_ERROR_CATEGORIES: ErrorCategoryRule[] = [
+export const DEFAULT_ERROR_CATEGORIES: CategoryRule[] = [
   {
     name: "Product errors",
     matchers: { statuses: ["failed"] },
@@ -42,13 +42,15 @@ export type TestCategories = {
   nodes: Record<string, CategoryNode>;
 };
 
-export type ErrorMatchingData = {
+export type CategoryMatchingData = {
   status: TestStatus;
   labels: readonly TestLabel[];
   message?: string;
   trace?: string;
   flaky: boolean;
   duration?: number;
+  transition?: TestStatusTransition;
+  environment?: string;
 };
 
 export type ObjectMatcher = {
@@ -61,7 +63,7 @@ export type ObjectMatcher = {
   environments?: readonly string[];
 };
 
-export type PredicateMatcher = (d: ErrorMatchingData) => boolean;
+export type PredicateMatcher = (d: CategoryMatchingData) => boolean;
 
 export type Matcher = ObjectMatcher | PredicateMatcher;
 
@@ -82,7 +84,7 @@ export type CategoryGroupCustomSelector = {
 
 export type CategoryGroupSelector = CategoryGroupBuiltInSelector | CategoryGroupCustomSelector;
 
-export type ErrorCategoryRule = {
+export type CategoryRule = {
   name: string;
   matchers?: CategoryMatcher;
   groupBy?: readonly CategoryGroupSelector[];
@@ -101,7 +103,7 @@ export type CategoriesStore = {
   nodes: Record<string, CategoryNode>;
 };
 
-export interface ErrorCategoryNorm extends Pick<ErrorCategoryRule, "name" | "expand" | "hide" | "groupEnvironments"> {
+export interface CategoryDefinition extends Pick<CategoryRule, "name" | "expand" | "hide" | "groupEnvironments"> {
   matchers: Matcher[];
   groupBy: CategoryGroupSelector[];
   groupByMessage: boolean;
@@ -116,9 +118,9 @@ export type CategoryNodeProps = {
 };
 
 export type CategoriesConfig =
-  | ErrorCategoryRule[]
+  | CategoryRule[]
   | {
-      rules: ErrorCategoryRule[];
+      rules: CategoryRule[];
     };
 
 export type CategoryNodeType = "category" | "group" | "history" | "message" | "tr";
@@ -154,7 +156,7 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> =>
 const toRegExp = (v: string | RegExp): RegExp => (v instanceof RegExp ? v : new RegExp(v));
 
 const isMatcherArray = (value: CategoryMatcher): value is readonly Matcher[] => Array.isArray(value);
-const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] => {
+const normalizeMatchers = (rule: CategoryRule, index: number): Matcher[] => {
   const compatKeysUsed =
     rule.matchedStatuses !== undefined ||
     rule.messageRegex !== undefined ||
@@ -200,14 +202,14 @@ const normalizeMatchers = (rule: ErrorCategoryRule, index: number): Matcher[] =>
   return matchers;
 };
 
-export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): ErrorCategoryNorm[] => {
+export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefinition[] => {
   const rawRules = Array.isArray(cfg) ? cfg : (cfg?.rules ?? []);
   const rules = rawRules.length ? rawRules : [];
 
-  const normalized: ErrorCategoryNorm[] = [];
-  const seen = new Map<string, ErrorCategoryNorm>();
+  const normalized: CategoryDefinition[] = [];
+  const seen = new Map<string, CategoryDefinition>();
 
-  const applyRule = (rule: ErrorCategoryRule, index: number) => {
+  const applyRule = (rule: CategoryRule, index: number) => {
     if (!isPlainObject(rule)) {
       throw new Error(`categories[${index}] must be an object`);
     }
@@ -245,7 +247,7 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): ErrorCategory
       }
     }
 
-    const norm: ErrorCategoryNorm = {
+    const norm: CategoryDefinition = {
       name: rule.name,
       matchers,
       groupBy,
@@ -265,7 +267,7 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): ErrorCategory
   return normalized;
 };
 
-const matchObjectMatcher = (m: ObjectMatcher, d: ErrorMatchingData): boolean => {
+const matchObjectMatcher = (m: ObjectMatcher, d: CategoryMatchingData): boolean => {
   if (m.statuses && !m.statuses.includes(d.status)) {
     return false;
   }
@@ -297,10 +299,18 @@ const matchObjectMatcher = (m: ObjectMatcher, d: ErrorMatchingData): boolean => 
     }
   }
 
+  if (m.transitions && !m.transitions.includes(d.transition as TestStatusTransition)) {
+    return false;
+  }
+
+  if (m.environments && !m.environments.includes(d.environment ?? EMPTY_VALUE)) {
+    return false;
+  }
+
   return true;
 };
 
-export const matchCategoryMatcher = (matcher: Matcher, d: ErrorMatchingData): boolean => {
+export const matchCategoryMatcher = (matcher: Matcher, d: CategoryMatchingData): boolean => {
   if (typeof matcher === "function") {
     return matcher(d);
   }
@@ -310,7 +320,10 @@ export const matchCategoryMatcher = (matcher: Matcher, d: ErrorMatchingData): bo
   return false;
 };
 
-export const matchCategory = (categories: ErrorCategoryNorm[], d: ErrorMatchingData): ErrorCategoryNorm | undefined => {
+export const matchCategory = (
+  categories: CategoryDefinition[],
+  d: CategoryMatchingData,
+): CategoryDefinition | undefined => {
   for (const c of categories) {
     if (c.matchers.some((m) => matchCategoryMatcher(m, d))) {
       return c;
@@ -320,8 +333,8 @@ export const matchCategory = (categories: ErrorCategoryNorm[], d: ErrorMatchingD
 };
 
 export const extractErrorMatchingData = (
-  tr: Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration">,
-): ErrorMatchingData => {
+  tr: Pick<TestResult, "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment">,
+): CategoryMatchingData => {
   const { message, trace } = tr.error ?? {};
   const labels: TestLabel[] = Array.isArray(tr.labels)
     ? tr.labels.map((l) => ({ name: l.name, value: l.value ?? "" }))
@@ -334,6 +347,8 @@ export const extractErrorMatchingData = (
     trace,
     flaky: tr.flaky,
     duration: tr.duration,
+    transition: tr.transition,
+    environment: tr.environment,
   };
 };
 

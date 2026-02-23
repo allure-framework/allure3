@@ -3,6 +3,36 @@
   border-top: 1px solid var(--on-border-muted);
 }
 
+.tree-item-label-status {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-status-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-transition {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-transition-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-transition-text {
+  font-weight: 600;
+}
+
 .tree-item-label-row {
   display: flex;
   gap: 16px;

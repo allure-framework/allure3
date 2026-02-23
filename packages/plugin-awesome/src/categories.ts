@@ -1,10 +1,10 @@
 import type {
   CategoriesStore,
+  CategoryDefinition,
   CategoryGroupSelector,
+  CategoryMatchingData,
   CategoryNode,
   CategoryNodeType,
-  ErrorCategoryNorm,
-  ErrorMatchingData,
   Statistic,
 } from "@allurereport/core-api";
 import {
@@ -38,17 +38,20 @@ const formatEmptyValue = (key: string) => {
   if (key === "message") {
     return "No message";
   }
+  if (key === "transition") {
+    return "No transition";
+  }
   if (key === "environment") {
     return "No environment";
   }
   return `No ${key}`;
 };
 
-const hasEnvironmentSelector = (category: ErrorCategoryNorm) =>
+const hasEnvironmentSelector = (category: CategoryDefinition) =>
   category.groupBy.some((selector) => selector === "environment");
 
 const computeGroupEnvironments = (
-  category: ErrorCategoryNorm,
+  category: CategoryDefinition,
   environmentCount: number,
   isSingleEnvironmentSelected: boolean,
 ) => {
@@ -56,7 +59,7 @@ const computeGroupEnvironments = (
     return false;
   }
 
-  if (category.groupEnvironments) {
+  if (category.groupEnvironments !== undefined) {
     return category.groupEnvironments;
   }
 
@@ -71,7 +74,7 @@ const displayGroupValue = (key: string, value: string) => (value === EMPTY_VALUE
 
 const formatGroupName = (key: string, value: string) => `${key}: ${displayGroupValue(key, value)}`;
 
-export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categories: ErrorCategoryNorm[]) => {
+export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categories: CategoryDefinition[]) => {
   for (const tr of tests) {
     const matchingData = extractErrorMatchingData(tr);
     const matched = matchCategory(categories, matchingData);
@@ -134,9 +137,9 @@ const extractGroupValue = (
 };
 
 const buildGroupLevels = (
-  category: ErrorCategoryNorm,
+  category: CategoryDefinition,
   testResult: AwesomeTestResult,
-  matchingData: ErrorMatchingData,
+  matchingData: CategoryMatchingData,
   environmentCount: number,
   isSingleEnvironmentSelected: boolean,
 ): GroupLevel[] => {
@@ -185,7 +188,7 @@ export const generateCategories = async (
     defaultEnvironment = "default",
   }: {
     tests: AwesomeTestResult[];
-    categories: ErrorCategoryNorm[];
+    categories: CategoryDefinition[];
     filename?: string;
     environmentCount?: number;
     selectedEnvironmentCount?: number;
@@ -221,7 +224,7 @@ export const generateCategories = async (
     incrementStatistic(node.statistic, status);
   };
 
-  const ensureCategoryNode = (category: ErrorCategoryNorm) => {
+  const ensureCategoryNode = (category: CategoryDefinition) => {
     const catId = categoryIds.get(category.name) ?? `cat:${md5(category.name)}`;
     if (!categoryIds.has(category.name)) {
       categoryIds.set(category.name, catId);

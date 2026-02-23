@@ -216,6 +216,14 @@ describe("matchCategoryMatcher / matchCategory", () => {
     expect(matchCategoryMatcher({ message: /ReferenceError/ }, d)).toBe(false);
   });
 
+  it("matches transitions and environments", () => {
+    const d = mkData({ transition: "fixed" as any, environment: "prod" });
+    expect(matchCategoryMatcher({ transitions: ["fixed", "new"] }, d)).toBe(true);
+    expect(matchCategoryMatcher({ transitions: ["regressed"] }, d)).toBe(false);
+    expect(matchCategoryMatcher({ environments: ["prod", "staging"] }, d)).toBe(true);
+    expect(matchCategoryMatcher({ environments: ["staging"] }, d)).toBe(false);
+  });
+
   it("matchCategory returns first matching category in order", () => {
     const cats = normalizeCategoriesConfig([
       { name: "First", matchers: { statuses: ["failed"] } },
@@ -239,6 +247,8 @@ describe("extractErrorMatchingData", () => {
       status: "failed",
       flaky: false,
       duration: 50,
+      transition: "fixed",
+      environment: "prod",
       labels: [
         { name: "owner", value: undefined },
         { name: "severity", value: "critical" },
@@ -252,6 +262,8 @@ describe("extractErrorMatchingData", () => {
     expect(d.duration).toBe(50);
     expect(d.message).toBe("boom");
     expect(d.trace).toBe("stack");
+    expect(d.transition).toBe("fixed");
+    expect(d.environment).toBe("prod");
     expect(d.labels).toEqual([mkLabel("owner", ""), mkLabel("severity", "critical")]);
   });
 

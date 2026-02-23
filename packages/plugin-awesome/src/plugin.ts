@@ -1,9 +1,4 @@
-import {
-  type EnvironmentItem,
-  type Statistic,
-  getWorstStatus,
-  normalizeCategoriesConfig,
-} from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic, getWorstStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -44,7 +39,7 @@ export class AwesomePlugin implements Plugin {
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
-    const categories = context.categories;
+    const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -71,11 +66,10 @@ export class AwesomePlugin implements Plugin {
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs);
 
-    const normalizedCategories = normalizeCategoriesConfig(categories);
-    applyCategoriesToTestResults(convertedTrs, normalizedCategories);
+    applyCategoriesToTestResults(convertedTrs, categories);
     await generateCategories(this.#writer!, {
       tests: convertedTrs,
-      categories: normalizedCategories,
+      categories,
       environmentCount: environments.length,
       environments,
       defaultEnvironment: "default",
@@ -106,7 +100,7 @@ export class AwesomePlugin implements Plugin {
 
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
-        categories: normalizedCategories,
+        categories,
         environmentCount: 1,
         defaultEnvironment: "default",
         selectedEnvironmentCount: 1,
