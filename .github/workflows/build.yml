@@ -57,7 +57,7 @@ jobs:
       - name: Build project
         run: yarn build
       - name: Test Project
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --stage=allure-results-${{ matrix.os }} -- yarn test
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test
       - name: Upload test results
         uses: actions/upload-artifact@v5
         if: always()
@@ -109,7 +109,7 @@ jobs:
       - name: Build project
         run: yarn build
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --stage="allure-results-*.zip" --output=./allure-report
+        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:

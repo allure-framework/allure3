@@ -225,8 +225,8 @@ export class RunCommand extends Command {
       ["run -- npm run test", "Run npm run test and collect Allure results"],
       ["run --rerun 3 -- npm run test", "Run npm run test and rerun failed tests up to 3 times"],
       [
-        "run --stage=my-stage -- npm run test",
-        "Run npm run test and pack inner report state into my-stage.zip archive to restore the state in the next run",
+        "run --dump=my-dump -- npm run test",
+        "Run npm run test and pack inner report state into my-dump.zip archive to restore the state in the next run",
       ],
     ],
   });
@@ -267,9 +267,9 @@ export class RunCommand extends Command {
     description: "Prevent logs attaching to the report (default: false)",
   });
 
-  stage = Option.String("--stage", {
+  dump = Option.String("--dump", {
     description:
-      "Runs tests in stage mode to collect results to a stage archive with the provided name (default: empty string)",
+      "Runs tests in dump mode to collect results to a dump archive with the provided name (default: empty string)",
   });
 
   environment = Option.String("--environment,--env", {
@@ -339,7 +339,7 @@ export class RunCommand extends Command {
     const allureReport = new AllureReport({
       ...config,
       environment: this.environment,
-      stage: this.stage,
+      dump: this.dump,
       realTime: false,
       plugins: [
         ...(config.plugins?.length

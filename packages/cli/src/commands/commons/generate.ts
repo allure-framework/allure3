@@ -6,13 +6,13 @@ import { exit } from "node:process";
 import { red } from "yoctocolors";
 import { logError } from "../../utils/logs.js";
 
-export const generate = async (params: { cwd: string; config: FullConfig; resultsDir: string; stage?: string[] }) => {
-  const stageDumpFiles: string[] = [];
+export const generate = async (params: { cwd: string; config: FullConfig; resultsDir: string; dump?: string[] }) => {
+  const dumpFiles: string[] = [];
   const resultsDirectories: string[] = [];
 
-  if (params?.stage?.length) {
-    for (const stage of params.stage) {
-      const matchedFiles = await glob(stage, {
+  if (params?.dump?.length) {
+    for (const dump of params.dump) {
+      const matchedFiles = await glob(dump, {
         nodir: true,
         dot: true,
         absolute: true,
@@ -20,13 +20,13 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
         cwd: params.cwd,
       });
 
-      stageDumpFiles.push(...matchedFiles);
+      dumpFiles.push(...matchedFiles);
     }
   }
 
-  // don't read allure results directories without the parameter when stage file has been found
+  // don't read allure results directories without the parameter when dump file has been found
   // or read allure results directory when it is explicitly provided
-  if (!!params?.resultsDir || stageDumpFiles.length === 0) {
+  if (!!params?.resultsDir || dumpFiles.length === 0) {
     const matchedDirs = (
       await glob(params.resultsDir, {
         mark: true,
@@ -41,7 +41,7 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
     resultsDirectories.push(...matchedDirs);
   }
 
-  if (resultsDirectories.length === 0 && stageDumpFiles.length === 0) {
+  if (resultsDirectories.length === 0 && dumpFiles.length === 0) {
     // eslint-disable-next-line no-console
     console.error(red(`No test results directories found matching pattern: ${params.resultsDir}`));
     exit(1);
@@ -51,7 +51,7 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
   try {
     const allureReport = new AllureReport(params.config);
 
-    await allureReport.restoreState(Array.from(stageDumpFiles));
+    await allureReport.restoreState(Array.from(dumpFiles));
     await allureReport.start();
 
     for (const dir of resultsDirectories) {

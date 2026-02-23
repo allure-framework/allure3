@@ -49,7 +49,7 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { output: fixtures.output, open: false },
         resultsDir: fixtures.resultsDir,
-        stage: expect.any(Object),
+        dump: expect.any(Object),
       }),
     );
     expect(serve).not.toHaveBeenCalled();
@@ -76,17 +76,17 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { open: false },
         resultsDir: fixtures.defaultResultsDir,
-        stage: expect.any(Object),
+        dump: expect.any(Object),
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
-  it("should call generate with stage files when provided", async () => {
+  it("should call generate with dump files when provided", async () => {
     const fixtures = {
       cwd: ".",
       defaultResultsDir: "./**/allure-results",
-      stage: ["stage1.zip", "stage2.zip"],
+      dump: ["dump.zip", "dump.zip"],
     };
 
     (readConfig as Mock).mockResolvedValue({ open: false });
@@ -96,7 +96,7 @@ describe("generate command", () => {
 
     command.cwd = fixtures.cwd;
     command.resultsDir = undefined;
-    command.stage = fixtures.stage;
+    command.dump = fixtures.dump;
 
     await command.execute();
 
@@ -105,13 +105,13 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { open: false },
         resultsDir: fixtures.defaultResultsDir,
-        stage: fixtures.stage,
+        dump: fixtures.dump,
       }),
     );
     expect(serve).not.toHaveBeenCalled();
   });
 
-  it("should call generate with both stage files and results directory", async () => {
+  it("should call generate with both state dump files and results directory", async () => {
     const fixtures = {
       cwd: ".",
       resultsDir: join(".", "allure-results"),
@@ -132,7 +132,7 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { open: false },
         resultsDir: fixtures.resultsDir,
-        stage: expect.any(Object),
+        dump: expect.any(Object),
       }),
     );
     expect(serve).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe("generate command", () => {
         cwd: expect.any(String),
         config: { open: false },
         resultsDir: fixtures.resultsDir,
-        stage: undefined,
+        dump: undefined,
       }),
     );
     expect(serve).not.toHaveBeenCalled();
@@ -197,7 +197,7 @@ describe("generate command", () => {
         cwd: expect.any(String),
         config: { open: false },
         resultsDir: fixtures.resultsDir,
-        stage: undefined,
+        dump: undefined,
       }),
     );
     expect(serve).not.toHaveBeenCalled();
@@ -226,7 +226,7 @@ describe("generate command", () => {
         cwd: expect.any(String),
         config: { output: fixtures.output, open: false },
         resultsDir: fixtures.resultsDir,
-        stage: undefined,
+        dump: undefined,
       }),
     );
     expect(serve).not.toHaveBeenCalled();
@@ -275,7 +275,7 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { output: fixtures.output, open: true },
         resultsDir: fixtures.resultsDir,
-        stage: expect.any(Object),
+        dump: expect.any(Object),
       }),
     );
     expect(serve).toHaveBeenCalledWith(
@@ -313,7 +313,7 @@ describe("generate command", () => {
         cwd: fixtures.cwd,
         config: { output: fixtures.output, open: true, port: fixtures.port },
         resultsDir: fixtures.resultsDir,
-        stage: expect.any(Object),
+        dump: expect.any(Object),
       }),
     );
     expect(serve).toHaveBeenCalledWith(
