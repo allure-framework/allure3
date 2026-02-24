@@ -59,9 +59,9 @@ export class AllureReport {
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
-  readonly #stage: string | undefined;
+  readonly #dump: string | undefined;
 
-  #stageTempDirs: string[] = [];
+  #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
   #executionStage: "init" | "running" | "done" = "init";
 
@@ -84,7 +84,7 @@ export class AllureReport {
       environments,
       output,
       qualityGate,
-      stage,
+      dump,
       allureService: allureServiceConfig,
     } = opts;
 
@@ -102,7 +102,7 @@ export class AllureReport {
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
-    this.#stage = stage;
+    this.#dump = dump;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -293,7 +293,7 @@ export class AllureReport {
       zlib: { level: 5 },
     });
     const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
-    const dumpArchiveWriteStream = createWriteStream(`${this.#stage}.zip`);
+    const dumpArchiveWriteStream = createWriteStream(`${this.#dump}.zip`);
     const promise = new Promise((res, rej) => {
       dumpArchive.on("error", (err) => rej(err));
       dumpArchiveWriteStream.on("finish", () => res(void 0));
@@ -374,35 +374,41 @@ export class AllureReport {
     return promise as Promise<void>;
   };
 
-  restoreState = async (stages: string[]): Promise<void> => {
-    for (const stage of stages) {
-      if (!existsSync(stage)) {
+  restoreState = async (dumps: string[]): Promise<void> => {
+    for (const dump of dumps) {
+      if (!existsSync(dump)) {
         continue;
       }
 
-      const dump = new ZipReadStream.async({
-        file: stage,
+      const dumpArchive = new ZipReadStream.async({
+        file: dump,
       });
-      const testResultsEntry = await dump.entryData(AllureStoreDumpFiles.TestResults);
-      const testCasesEntry = await dump.entryData(AllureStoreDumpFiles.TestCases);
-      const fixturesEntry = await dump.entryData(AllureStoreDumpFiles.Fixtures);
-      const attachmentsEntry = await dump.entryData(AllureStoreDumpFiles.Attachments);
-      const environmentsEntry = await dump.entryData(AllureStoreDumpFiles.Environments);
-      const reportVariablesEntry = await dump.entryData(AllureStoreDumpFiles.ReportVariables);
-      const globalAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalAttachments);
-      const globalErrorsEntry = await dump.entryData(AllureStoreDumpFiles.GlobalErrors);
-      const indexAttachmentsEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
-      const indexTestResultsByHistoryId = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
-      const indexTestResultsByTestCaseEntry = await dump.entryData(AllureStoreDumpFiles.IndexTestResultsByTestCase);
-      const indexLatestEnvTestResultsByHistoryIdEntry = await dump.entryData(
+      const testResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestResults);
+      const testCasesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestCases);
+      const fixturesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Fixtures);
+      const attachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Attachments);
+      const environmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Environments);
+      const reportVariablesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.ReportVariables);
+      const globalAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalAttachments);
+      const globalErrorsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalErrors);
+      const indexAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.IndexAttachmentsByTestResults);
+      const indexTestResultsByHistoryId = await dumpArchive.entryData(AllureStoreDumpFiles.IndexTestResultsByHistoryId);
+      const indexTestResultsByTestCaseEntry = await dumpArchive.entryData(
+        AllureStoreDumpFiles.IndexTestResultsByTestCase,
+      );
+      const indexLatestEnvTestResultsByHistoryIdEntry = await dumpArchive.entryData(
         AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
       );
-      const indexAttachmentsByFixtureEntry = await dump.entryData(AllureStoreDumpFiles.IndexAttachmentsByFixture);
-      const indexFixturesByTestResultEntry = await dump.entryData(AllureStoreDumpFiles.IndexFixturesByTestResult);
-      const indexKnownByHistoryIdEntry = await dump.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
-      const qualityGateResultsEntry = await dump.entryData(AllureStoreDumpFiles.QualityGateResults);
+      const indexAttachmentsByFixtureEntry = await dumpArchive.entryData(
+        AllureStoreDumpFiles.IndexAttachmentsByFixture,
+      );
+      const indexFixturesByTestResultEntry = await dumpArchive.entryData(
+        AllureStoreDumpFiles.IndexFixturesByTestResult,
+      );
+      const indexKnownByHistoryIdEntry = await dumpArchive.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
+      const qualityGateResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.QualityGateResults);
 
-      const attachmentsEntries = Object.entries(await dump.entries()).reduce((acc, [entryName, entry]) => {
+      const attachmentsEntries = Object.entries(await dumpArchive.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
           case AllureStoreDumpFiles.Attachments:
           case AllureStoreDumpFiles.TestResults:
@@ -445,28 +451,28 @@ export class AllureReport {
         indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
         qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
       };
-      const stageTempDir = await mkdtemp(join(tmpdir(), basename(stage, ".zip")));
+      const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
       const resultsAttachments: Record<string, ResultFile> = {};
 
-      this.#stageTempDirs.push(stageTempDir);
+      this.#dumpTempDirs.push(dumpTempDir);
 
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
-          const attachmentContentEntry = await dump.entryData(attachmentId);
-          const attachmentFilePath = join(stageTempDir, attachmentId);
+          const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
+          const attachmentFilePath = join(dumpTempDir, attachmentId);
 
           await writeFile(attachmentFilePath, attachmentContentEntry);
 
           resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
         }
       } catch (err) {
-        console.error(`Can't restore state from "${stage}", continuing without it`);
+        console.error(`Can't restore state from "${dump}", continuing without it`);
         console.error(err);
       }
 
       await this.#store.restoreState(dumpState, resultsAttachments);
 
-      console.info(`Successfully restored state from "${stage}"`);
+      console.info(`Successfully restored state from "${dump}"`);
     }
   };
 
@@ -488,13 +494,13 @@ export class AllureReport {
     // closing it early, to prevent future reads
     this.#executionStage = "done";
 
-    // just dump state when stage is set and generate nothing
-    if (this.#stage) {
+    // just dump state when dump is set and generate nothing
+    if (this.#dump) {
       await this.dumpState();
       return;
     }
 
-    // isolate logs of different reports stages: done and summary
+    // isolate logs of different reports dumps: done and summary
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.done?.(context, this.#store);
     });
@@ -633,8 +639,8 @@ export class AllureReport {
       await rm(reportPath, { recursive: true });
     }
 
-    // remove all stage dump temp dirs
-    for (const dir of this.#stageTempDirs) {
+    // remove all dump temp dirs
+    for (const dir of this.#dumpTempDirs) {
       try {
         await rm(dir, { recursive: true });
       } catch {}

@@ -17,12 +17,12 @@ export class GenerateCommand extends Command {
         "Generate a report from the ./allure-results directory to the custom-report directory",
       ],
       [
-        "generate --stage=windows.zip --stage=macos.zip ./allure-results",
+        "generate --dump=windows.zip --dump=macos.zip ./allure-results",
         "Generate a report using data from windows.zip and macos.zip archives and using results from the ./allure-results directory",
       ],
       [
-        "generate --stage=allure-*.zip",
-        "Generate a report using data from any stage archive that matches the given pattern and results directory if it exists",
+        "generate --dump=allure-*.zip",
+        "Generate a report using data from any dump archive that matches the given pattern and results directory if it exists",
       ],
     ],
   });
@@ -48,8 +48,8 @@ export class GenerateCommand extends Command {
     description: "The report name (default: Allure Report)",
   });
 
-  stage = Option.Array("--stage", {
-    description: "Stages archives to restore state from (default: empty string)",
+  dump = Option.Array("--dump", {
+    description: "Dump archives to restore state from (default: empty string)",
   });
 
   open = Option.Boolean("--open", {
@@ -75,7 +75,7 @@ export class GenerateCommand extends Command {
     });
 
     await generate({
-      stage: this.stage,
+      dump: this.dump,
       resultsDir: this.resultsDir ?? "./**/allure-results",
       cwd,
       config,

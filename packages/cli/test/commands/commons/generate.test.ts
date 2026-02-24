@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 
 describe("generate function", () => {
-  it("should do nothing when there are no results directory and stage files", async () => {
+  it("should do nothing when there are no results directory and dump files", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({});
@@ -42,7 +42,7 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "./notfound",
-      stage: [],
+      dump: [],
     });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "./allure-results",
-      stage: [],
+      dump: [],
     });
 
     expect(AllureReportMock).toHaveBeenCalled();
@@ -83,7 +83,7 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "./allure-results",
-      stage: [],
+      dump: [],
     });
 
     await Promise.resolve();
@@ -108,7 +108,7 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "./allure-results",
-      stage: [],
+      dump: [],
     });
 
     await Promise.resolve();
@@ -122,11 +122,11 @@ describe("generate function", () => {
     expect(exit).toHaveBeenCalledWith(1);
   });
 
-  it("should restore state from stage dump files when provided", async () => {
+  it("should restore state from state dump files when provided", async () => {
     vi.mocked(glob).mockReset();
 
-    vi.mocked(glob).mockResolvedValueOnce(["stage1.zip"]);
-    vi.mocked(glob).mockResolvedValueOnce(["stage2.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["dump1.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["dump2.zip"]);
     vi.mocked(glob).mockResolvedValueOnce([]);
 
     (readConfig as Mock).mockResolvedValue({});
@@ -135,21 +135,21 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "",
-      stage: ["stage1.zip", "stage2.zip"],
+      dump: ["dump1.zip", "dump2.zip"],
     });
 
     expect(AllureReportMock).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["dump1.zip", "dump2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).not.toHaveBeenCalled();
   });
 
-  it("should restore state from both stage dump files and results directories", async () => {
+  it("should restore state from both state dump files and results directories", async () => {
     vi.mocked(glob).mockReset();
 
-    vi.mocked(glob).mockResolvedValueOnce(["stage1.zip"]);
-    vi.mocked(glob).mockResolvedValueOnce(["stage2.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["dump1.zip"]);
+    vi.mocked(glob).mockResolvedValueOnce(["dump2.zip"]);
     vi.mocked(glob).mockResolvedValueOnce(["./allure-results/"]);
 
     (readConfig as Mock).mockResolvedValue({});
@@ -158,11 +158,11 @@ describe("generate function", () => {
       cwd: ".",
       config: {} as FullConfig,
       resultsDir: "./allure-results",
-      stage: ["stage1.zip", "stage2.zip"],
+      dump: ["dump1.zip", "dump2.zip"],
     });
 
     expect(AllureReportMock).toHaveBeenCalled();
-    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["stage1.zip", "stage2.zip"]);
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith(["dump1.zip", "dump2.zip"]);
     expect(AllureReportMock.prototype.start).toHaveBeenCalled();
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
