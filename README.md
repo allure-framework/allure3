@@ -10,7 +10,7 @@ The **Allure 3 CLI** provides a comprehensive suite of commands designed to stre
 - 📚 [Documentation](https://allurereport.org/docs/) – discover official documentation for Allure Report
 - ❓ [Questions and Support](https://github.com/orgs/allure-framework/discussions/categories/questions-support) – get help from the team and community
 - 📢 [Official annoucements](https://github.com/orgs/allure-framework/discussions/categories/announcements) – be in touch with the latest updates
-- 💬 [General Discussion ](https://github.com/orgs/allure-framework/discussions/categories/general-discussion) – engage in casual conversations, share insights and ideas with the community
+- 💬 [General Discussion](https://github.com/orgs/allure-framework/discussions/categories/general-discussion)  – engage in casual conversations, share insights and ideas with the community
 
 ## Key Features
 
@@ -159,6 +159,107 @@ The **Awesome** plugin offers several customizable options:
 
 For example, setting `"reportLanguage": "fr"` will render the report interface in French.
 
+### Categories (Awesome only)
+
+> [!NOTE]
+> Categories are currently supported only by the **Awesome** report.
+
+Categories let you group test results into named buckets with optional grouping inside each category.
+Configuration is defined at the top level of `defineConfig`.
+
+> [!IMPORTANT]
+> A test result can belong to only one category. The first matching rule wins, and results are not duplicated across categories.
+
+#### Example
+
+```js
+import { defineConfig } from "allure";
+
+export default defineConfig({
+  name: "Allure Report Example",
+  output: "./out/allure-report",
+  categories: [
+    {
+      name: "Product errors",
+      matchers: { statuses: ["failed"] },
+      groupBy: ["severity", "owner", "environment"],
+      groupByMessage: true,
+      groupEnvironments: true,
+      expand: true,
+    },
+    {
+      name: "Flaky tests",
+      matchers: { flaky: true },
+      groupBy: ["flaky"],
+      groupByMessage: false,
+      hide: false,
+    },
+  ],
+  plugins: {
+    awesome: {
+      options: {
+        reportLanguage: "en",
+      },
+    },
+  },
+});
+```
+
+#### `categories` shape
+
+You can provide either:
+
+- an array of rules: `categories: CategoryRule[]`
+- or an object with rules: `categories: { rules: CategoryRule[] }`
+
+#### Default categories
+
+If `categories` is not specified, two built‑in categories are enabled by default:
+
+- **Product errors**: `statuses: ["failed"]`
+- **Test errors**: `statuses: ["broken"]`
+
+These defaults are always appended, but you can override them by defining rules with the same names.
+
+#### Disabling categories
+
+To skip categories generation entirely, use the short flag:
+
+```js
+export default defineConfig({
+  categories: false,
+});
+```
+
+#### Try it in the sandbox
+
+To see categories in action, use the demo setup in the `packages/sandbox` folder and run it from there.
+
+#### CategoryRule fields
+
+- `**name**` *(string, required)*: Category title shown in the report.
+- `**matchers*`* *(object | function | array, required)*:
+  - **Object matcher** supports:
+    - `statuses`: `TestStatus[]` (`passed`, `failed`, `broken`, `skipped`, `unknown`)
+    - `labels`: `{ [labelName]: string | RegExp }`
+    - `message`: `string | RegExp`
+    - `trace`: `string | RegExp`
+    - `flaky`: `boolean`
+    - `transitions`: `TestStatusTransition[]` (`new`, `fixed`, `regressed`, `malfunctioned`)
+    - `environments`: `string[]`
+  - **Function matcher**: `(data) => boolean` where `data` includes
+  `status`, `labels`, `message`, `trace`, `flaky`, `duration`, `transition`, `environment` or any custom label in your test results.
+  - **Array of matchers**: any mix of object/function matchers.
+- `**groupBy**` *(array)*: grouping order for category tree.
+  - Built‑in selectors: `flaky`, `owner`, `severity`, `transition`, `status`, `environment`, `layer`
+  - Custom selector: `{ label: "myLabel" }`
+- `**groupByMessage*`* *(boolean, default `true`)*: show message grouping.
+- `**groupEnvironments*`* *(boolean, optional)*:
+  - `true` → always group by environments (default)
+  - `false` → never group by environments
+- `**expand*`* *(boolean, default `false`)*: expand category by default.
+- `**hide*`* *(boolean, default `false`)*: exclude category from the tree.
+
 ### Declarative configuration format
 
 You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way to configure Allure 3.
@@ -171,3 +272,4 @@ You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way t
 
 - [GitHub Actions](https://github.com/marketplace/actions/allure-report-official)
 - [Azure DevOps](https://marketplace.visualstudio.com/items?itemName=qameta.allure-azure-pipelines)
+

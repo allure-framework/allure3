@@ -33,6 +33,29 @@
   font-weight: 600;
 }
 
+.tree-item-label-flaky {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-flaky-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-flaky-text {
+  font-weight: 600;
+}
+
+.tree-item-label-flaky-icon {
+  display: inline-flex;
+  align-items: center;
+  color: currentColor;
+}
+
 .tree-item-label-row {
   display: flex;
   gap: 16px;

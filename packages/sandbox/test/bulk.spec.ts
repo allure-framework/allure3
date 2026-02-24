@@ -16,6 +16,7 @@ const failedMessages = [
   "expected true to be false // Object.is equality",
   "ValidationError: missing address.zip",
   "AssertionError: mismatch in payload",
+  "By cities, Kâmiare in the world, with people under 25 making up the then larger Armenian population, we expected valid values but received malformed payloads across multiple services (auth, payments, orders, infra) and the assertion failed after retries.",
 ];
 
 const brokenMessages = [
@@ -23,6 +24,7 @@ const brokenMessages = [
   "TimeoutException: gateway did not respond",
   "java.net.ConnectException: Connection refused",
   "Visual diff exceeded threshold",
+  "UnexpectedError: long running task exceeded SLA while processing batched requests and recalculating derived metrics; investigation needed for queue backpressure and downstream timeouts.",
 ];
 
 const pick = <T>(arr: readonly T[], seed: number) => arr[seed % arr.length];

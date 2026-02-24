@@ -3,6 +3,7 @@ import { TreeHeader } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren, FC } from "preact/compat";
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
+import { useI18n } from "@/stores";
 import * as styles from "./styles.scss";
 
 type GroupTreeItemProps = CategoryNodeProps & {
@@ -29,14 +30,28 @@ export const GroupTreeItem: FC<GroupTreeItemProps> = ({
   title,
   subtreeToggle,
 }) => {
+  const { t: tEmpty } = useI18n("empty");
+  const { t: tFilters } = useI18n("filters");
+  const { t: tEnvironments } = useI18n("environments");
   const stickyStyle = createCategoriesStickyStyle(depth);
+  const emptyKeyByGroup: Partial<Record<string, string>> = {
+    transition: "no-transition",
+    layer: "no-layer",
+    owner: "no-owner",
+    severity: "no-severity",
+    status: "no-status",
+    environment: "no-environment",
+    flaky: "no-flaky",
+  };
+  const defaultTitle =
+    node.name === "<Empty>" ? tEmpty(node.key ? (emptyKeyByGroup[node.key] ?? "no-value") : "no-value") : node.name;
   const headerTitle = subtreeToggle ? (
     <span className={styles["tree-item-group-title"]}>
-      <span className={styles["tree-item-group-title-content"]}>{title ?? node.name}</span>
+      <span className={styles["tree-item-group-title-content"]}>{title ?? defaultTitle}</span>
       {subtreeToggle}
     </span>
   ) : (
-    (title ?? node.name)
+    (title ?? defaultTitle)
   );
 
   return (

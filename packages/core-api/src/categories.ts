@@ -118,6 +118,7 @@ export type CategoryNodeProps = {
 };
 
 export type CategoriesConfig =
+  | false
   | CategoryRule[]
   | {
       rules: CategoryRule[];
@@ -203,6 +204,9 @@ const normalizeMatchers = (rule: CategoryRule, index: number): Matcher[] => {
 };
 
 export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefinition[] => {
+  if (cfg === false) {
+    return [];
+  }
   const rawRules = Array.isArray(cfg) ? cfg : (cfg?.rules ?? []);
   const rules = rawRules.length ? rawRules : [];
 

@@ -37,21 +37,57 @@ export const LabelTreeItem: FC<LabelTreeItemProps> = ({
   reportStatistic,
 }) => {
   const { t: tTransitions } = useI18n("transitions");
+  const { t: tEnvironments } = useI18n("environments");
+  const { t: tFilters } = useI18n("filters");
+  const { t: tEmpty } = useI18n("empty");
   const transitionIcons: Partial<Record<TestStatusTransition, string>> = {
     new: allureIcons.lineAlertsNew,
     fixed: allureIcons.lineAlertsFixed,
     regressed: allureIcons.lineAlertsRegressed,
     malfunctioned: allureIcons.lineAlertsMalfunctioned,
   };
-  const value = node.value === "<Empty>" ? `No ${node.key ?? "label"}` : (node.value ?? "");
+  const keyLabels: Partial<Record<string, string>> = {
+    owner: tFilters("owner"),
+    layer: tFilters("layer"),
+    severity: tFilters("severity"),
+    status: tFilters("status"),
+    transition: tFilters("transition"),
+    flaky: tFilters("flaky"),
+    environment: tEnvironments("environment", { count: 1 }),
+  };
+  const keyLabel = node.key ? (keyLabels[node.key] ?? node.key) : node.key;
+  const emptyKeyByGroup: Partial<Record<string, string>> = {
+    transition: "no-transition",
+    layer: "no-layer",
+    owner: "no-owner",
+    severity: "no-severity",
+    status: "no-status",
+    environment: "no-environment",
+    flaky: "no-flaky",
+  };
+  const emptyValueLabel = node.key ? tEmpty(emptyKeyByGroup[node.key] ?? "no-value") : tEmpty("no-value");
+  const value = node.value === "<Empty>" ? emptyValueLabel : (node.value ?? "");
   const isStatusGroup = node.key === "status";
   const isTransitionGroup = node.key === "transition";
+  const isFlakyGroup = node.key === "flaky";
   const statusLabelValue = node.value === "<Empty>" ? "unknown" : (node.value ?? "unknown");
   const statusValue = node.key === "status" ? (node.value ?? "") : "";
   const transitionValue = node.key === "transition" ? (node.value ?? "") : "";
   const statusIcon = statusValue && statusValue !== "<Empty>" ? (statusValue as TestStatus) : undefined;
-  const transitionIcon = transitionIcons[transitionValue as TestStatusTransition];
-  const transitionLabel = transitionValue ? (tTransitions(transitionValue) ?? transitionValue) : transitionValue;
+  const transitionIcon =
+    transitionValue && transitionValue !== "<Empty>"
+      ? transitionIcons[transitionValue as TestStatusTransition]
+      : undefined;
+  const transitionLabel =
+    transitionValue === "<Empty>"
+      ? tEmpty("no-transition")
+      : transitionValue
+        ? (tTransitions(transitionValue) ?? transitionValue)
+        : transitionValue;
+  const isFlakyValue = node.value === true || node.value === "true";
+  const flakyLabel =
+    node.value === "<Empty>" ? tEmpty("no-flaky") : isFlakyValue ? tFilters("flaky") : tFilters("nonFlaky");
+  const flakyIcon = isFlakyValue ? allureIcons.lineIconBomb2 : undefined;
   return (
     <GroupTreeItem
       node={node}
@@ -66,6 +102,7 @@ export const LabelTreeItem: FC<LabelTreeItemProps> = ({
         styles["tree-item-label"],
         isStatusGroup && styles["tree-item-label-status"],
         isTransitionGroup && styles["tree-item-label-transition"],
+        isFlakyGroup && styles["tree-item-label-flaky"],
       )}
       title={
         isStatusGroup ? (
@@ -79,10 +116,17 @@ export const LabelTreeItem: FC<LabelTreeItemProps> = ({
               {capitalize(transitionLabel ?? "")}
             </Text>
           </div>
+        ) : isFlakyGroup ? (
+          <div className={styles["tree-item-label-flaky-title"]}>
+            {flakyIcon && <SvgIcon id={flakyIcon} className={styles["tree-item-label-flaky-icon"]} />}
+            <Text size="m" className={styles["tree-item-label-flaky-text"]}>
+              {flakyLabel}
+            </Text>
+          </div>
         ) : (
           <div className={styles["tree-item-label-row"]}>
             <Text type={"ui"} size="m" className={styles["tree-item-label-key"]}>
-              {node.key}
+              {keyLabel}
             </Text>
             <div className={styles["tree-item-label-values"]}>
               <div className={styles["tree-item-label-bubble"]}>

@@ -54,6 +54,8 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
   const node: CategoryNode = store.nodes[nodeId];
   const trId = currentTrId.value;
   const { t: tTransitions } = useI18n("transitions");
+  const { t: tEnvironments } = useI18n("environments");
+  const { t: tEmpty } = useI18n("empty");
   const hasSavedState = collapsedTrees.value.has(nodeId);
   const defaultOpened = getDefaultOpened(node);
   const [isOpened, setIsOpen] = useState<boolean>(hasSavedState ? !defaultOpened : defaultOpened);
@@ -270,6 +272,15 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
     );
   }
   if (node.type === "tr") {
+    const isEnvLeaf = node.key === "environment";
+    let envValue = node.value ?? node.name;
+    if (typeof envValue === "string" && envValue.toLowerCase().startsWith("environment:")) {
+      envValue = envValue.slice("environment:".length).trim();
+    }
+    if (node.value === "<Empty>") {
+      envValue = tEmpty("no-environment");
+    }
+    const displayName = isEnvLeaf ? `${tEnvironments("environment", { count: 1 })}: ${envValue}` : node.name;
     const leafTooltips =
       node.type === "tr"
         ? {
@@ -286,6 +297,7 @@ export const CategoryTreeItem: FC<CategoryTreeItemProps> = ({ nodeId, store, ord
       <div className={styles["tree-item"]} id={nodeId}>
         <TreeItem
           {...node}
+          name={displayName}
           groupOrder={(order ?? 0) + 1}
           marked={node.id === trId}
           navigateTo={() => navigateToTestResult({ testResultId: nodeId })}

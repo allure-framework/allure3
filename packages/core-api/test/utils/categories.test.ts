@@ -25,6 +25,11 @@ const mkData = (overrides?: Partial<ReturnType<typeof extractErrorMatchingData>>
 };
 
 describe("normalizeCategoriesConfig", () => {
+  it("returns empty list when cfg is false", () => {
+    const normalized = normalizeCategoriesConfig(false);
+    expect(normalized).toEqual([]);
+  });
+
   it("returns only defaults when cfg is undefined", () => {
     const normalized = normalizeCategoriesConfig(undefined);
     expect(normalized.map((r) => r.name)).toEqual(DEFAULT_ERROR_CATEGORIES.map((r) => r.name));
