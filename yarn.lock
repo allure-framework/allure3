@@ -850,7 +850,7 @@ __metadata:
     handlebars: "npm:^4.7.8"
     handlebars-loader: "npm:^1.7.3"
     highlight.js: "npm:^10.7.3"
-    i18next: "npm:^8.4.3"
+    i18next: "npm:^25.8.13"
     jquery: "npm:^3.7.1"
     mini-css-extract-plugin: "npm:^2.9.1"
     normalize-css: "npm:^2.3.1"
@@ -4196,6 +4196,13 @@ __metadata:
   version: 7.28.2
   resolution: "@babel/runtime@npm:7.28.2"
   checksum: 10/a0965fbdd6aaa40709290923bbe05e1c4314021f0cef608eb1d69f04f717c41829e50a53d79c4a0f461512b4be9b3c0190dc19387b219bcdaacdd793b2fe1b8a
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.28.4":
+  version: 7.28.6
+  resolution: "@babel/runtime@npm:7.28.6"
+  checksum: 10/fbcd439cb74d4a681958eb064c509829e3f46d8a4bfaaf441baa81bb6733d1e680bccc676c813883d7741bcaada1d0d04b15aa320ef280b5734e2192b50decf9
   languageName: node
   linkType: hard
 
@@ -14864,10 +14871,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^8.4.3":
-  version: 8.4.3
-  resolution: "i18next@npm:8.4.3"
-  checksum: 10/24681b12ba162a2f8eaccd2be43471a4f3e72f5c2096224bda6cef61b016734793114da6ddcc6a78844b9d100a9389a5feb639626b5abdff7faf63bc81954e20
+"i18next@npm:^25.8.13":
+  version: 25.8.13
+  resolution: "i18next@npm:25.8.13"
+  dependencies:
+    "@babel/runtime": "npm:^7.28.4"
+  peerDependencies:
+    typescript: ^5
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/69d1277587810b86d2cc0c36240004151f1ed696a5c6bb8ced9ffbc0addd9f9f5a0a13b35459a322ffa52ea177b2602cad2a39c11025adb81f4df93510b6a46a
   languageName: node
   linkType: hard
 
