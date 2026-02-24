@@ -7,19 +7,29 @@ describe("loadReportData", () => {
     delete (globalThis as any).allureReportData;
   });
 
-  it("should resolve using windows-style key when posix key is requested", async () => {
+  it("should resolve exact key when present", async () => {
     (globalThis as any).allureReportDataReady = true;
     (globalThis as any).allureReportData = {
-      "widgets\\default\\tree.json": "dHJlZQ==",
+      "widgets/default/tree.json": "dHJlZQ==",
     };
 
     await expect(loadReportData("widgets/default/tree.json")).resolves.toBe("dHJlZQ==");
   });
 
-  it("should resolve exact key when present", async () => {
+  it("should prefer posix key when both posix and windows forms exist", async () => {
     (globalThis as any).allureReportDataReady = true;
     (globalThis as any).allureReportData = {
-      "widgets/default/tree.json": "dHJlZQ==",
+      "widgets/default/tree.json": "cG9zaXg=",
+      "widgets\\default\\tree.json": "d2luZG93cw==",
+    };
+
+    await expect(loadReportData("widgets/default/tree.json")).resolves.toBe("cG9zaXg=");
+  });
+
+  it("should resolve using windows-style key for legacy reports", async () => {
+    (globalThis as any).allureReportDataReady = true;
+    (globalThis as any).allureReportData = {
+      "widgets\\default\\tree.json": "dHJlZQ==",
     };
 
     await expect(loadReportData("widgets/default/tree.json")).resolves.toBe("dHJlZQ==");

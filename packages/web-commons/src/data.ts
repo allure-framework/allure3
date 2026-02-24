@@ -1,4 +1,4 @@
-import { getPosixPath } from "@allurereport/core-api";
+import { toPosixPath } from "@allurereport/core-api";
 
 /**
  * Hash which attaches to any report file to prevent caching
@@ -27,14 +27,14 @@ export const loadReportData = async (name: string): Promise<string> => {
       return resolve(dataByName[name] as string);
     }
 
-    const windowsKey = getPosixPath(name).replace(/\//g, "\\");
-    if (dataByName[windowsKey]) {
-      return resolve(dataByName[windowsKey] as string);
-    }
-
-    const posixKey = getPosixPath(name);
+    const posixKey = toPosixPath(name);
     if (dataByName[posixKey]) {
       return resolve(dataByName[posixKey] as string);
+    }
+
+    const legacyBackslashKey = posixKey.replace(/\//g, "\\");
+    if (dataByName[legacyBackslashKey]) {
+      return resolve(dataByName[legacyBackslashKey] as string);
     }
 
     return reject(new Error(`Data "${name}" not found!`));
