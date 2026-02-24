@@ -855,6 +855,7 @@ const RAW_RUNTIME_STATE =
           ["@types/form-data", "npm:2.5.2"],\
           ["@types/lodash.chunk", "npm:4.2.9"],\
           ["@types/node", "npm:20.17.9"],\
+          ["@types/progress", "npm:2.0.7"],\
           ["@typescript-eslint/eslint-plugin", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@typescript-eslint/parser", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:8.17.0"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -871,6 +872,7 @@ const RAW_RUNTIME_STATE =
           ["form-data", "npm:4.0.5"],\
           ["lodash.chunk", "npm:4.2.0"],\
           ["p-limit", "npm:7.3.0"],\
+          ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\

@@ -9,6 +9,7 @@ import {
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { env } from "node:process";
+import ProgressBar from "progress";
 import { TestOpsClient } from "./client.js";
 import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
@@ -85,9 +86,17 @@ export class TestopsPlugin implements Plugin {
       await this.#client!.issueOauthToken();
     }
 
+    const progressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
+      total: allTrsWithAttachments.length,
+      width: 20,
+    });
+
+    progressBar.render();
+
     await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
+      onProgress: () => progressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
 

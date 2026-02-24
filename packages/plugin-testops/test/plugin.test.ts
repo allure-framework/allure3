@@ -330,6 +330,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
@@ -356,6 +357,7 @@ describe("testops plugin", () => {
             ],
           },
         ],
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
@@ -428,6 +430,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: [fixtures.testResults[0]],
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
@@ -538,6 +541,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
@@ -719,6 +723,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
@@ -758,6 +763,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: [fixtures.testResults[0]],
+        onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });

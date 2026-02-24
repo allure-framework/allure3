@@ -166,12 +166,13 @@ export class TestOpsClient {
     trs: TestResult[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
+    onProgress?: () => void;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, attachmentsResolver, fixturesResolver } = params;
+    const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, 100);
     const uploadLimitFn = pLimit(this.#uploadLimit);
 
@@ -242,6 +243,8 @@ export class TestOpsClient {
                   },
                 );
               }
+
+              onProgress?.();
             }),
           ),
         );
