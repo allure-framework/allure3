@@ -21,7 +21,8 @@
     "results": "Ergebnisse",
     "globalAttachments": "Globale Anhänge",
     "globalErrors": "Globale Fehler",
-    "qualityGates": "Qualitätstore"
+    "qualityGates": "Qualitätstore",
+    "categories": "Kategorien"
   },
   "search": {
     "search": "Suchen",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Instabil",
+    "nonFlaky": "Stabil",
     "retry": "Wiederholt",
     "new": "Neu",
     "fixed": "Behoben",
     "regressed": "Regressiert",
     "malfunctioned": "Defekt",
     "transition": "Übergang",
+    "status": "Status",
+    "severity": "Schweregrad",
+    "owner": "Besitzer",
+    "layer": "Schicht",
     "tags": "Tags",
+    "categories": "Kategorien",
     "goto_filter": "Zum Filter gehen",
     "errors": {
       "max_values_one": "Nur der erste {{count}} Wert wird für die Filterung verwendet.\nZusätzliche Werte werden ignoriert",
@@ -48,7 +55,8 @@
       "fixed": "Tests anzeigen, die jetzt erfolgreich sind, aber zuvor \"fehlgeschlagen\" oder \"defekt\" waren",
       "regressed": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"defekt\" zu \"fehlgeschlagen\" geändert haben",
       "malfunctioned": "Testergebnisse anzeigen, die den Status von \"erfolgreich\" oder \"fehlgeschlagen\" zu \"defekt\" geändert haben",
-      "tags": "Testergebnisse anzeigen, die die angegebenen Tags haben"
+      "tags": "Testergebnisse anzeigen, die die angegebenen Tags haben",
+      "categories": "Testergebnisse anzeigen, die die angegebenen Kategorien haben"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "Keine Ergebnisse",
+    "no-value": "Kein Wert",
+    "no-value-for": "Kein Wert: {{entity}}",
+    "no-transition": "Kein Übergang",
+    "no-layer": "Keine Schicht",
+    "no-owner": "Kein Besitzer",
+    "no-severity": "Kein Schweregrad",
+    "no-status": "Kein Status",
+    "no-environment": "Keine Umgebung",
+    "no-flaky": "Keine Instabilität",
+    "empty-value": "Leer",
     "no-tests-found": "Keine Ergebnisse gefunden",
     "no-message-provided": "Keine Nachricht vorhanden",
     "clear-filters": "Filter zurücksetzen",
@@ -92,7 +110,8 @@
     "no-retries-results": "Keine Wiederholungsinformationen verfügbar",
     "no-test-steps-results": "Keine Informationen zu Testschritten verfügbar",
     "no-test-case-results": "Keine Testergebnisse verfügbar",
-    "no-environments-results": "Keine Umgebungsinformationen verfügbar"
+    "no-environments-results": "Keine Umgebungsinformationen verfügbar",
+    "no-categories-results": "Keine Kategorien verfügbar"
   },
   "severity": {
     "blocker": "Blocker",
@@ -116,6 +135,7 @@
     "labels": "Labels",
     "metadata": "Metadaten",
     "parameters": "Parameter",
+    "category": "Kategorie",
     "description": "Beschreibung",
     "links": "Links",
     "overview": "Übersicht",

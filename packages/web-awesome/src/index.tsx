@@ -11,6 +11,7 @@ import { Header } from "@/components/Header";
 import { ModalComponent } from "@/components/Modal";
 import { SectionSwitcher } from "@/components/SectionSwitcher";
 import { fetchEnvStats, fetchReportStats, getLocale, waitForI18next } from "@/stores";
+import { fetchCategoriesData } from "@/stores/categories";
 import { fetchPieChartData } from "@/stores/chart";
 import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stores/env";
 import { fetchEnvInfo } from "@/stores/envInfo";
@@ -20,7 +21,7 @@ import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import { fetchQualityGateResults } from "./stores/qualityGate";
-import { testResultRoute } from "./stores/router";
+import { rootTabRoute, testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
 import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
@@ -36,7 +37,9 @@ const Loader = () => {
   );
 };
 
-const isTestResultRoute = computed(() => testResultRoute.value.matches);
+const isTestResultRoute = computed(
+  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
+);
 
 const App = () => {
   const className = styles[`layout-${currentSection.value !== "default" ? currentSection.value : layoutStore.value}`];
@@ -51,6 +54,7 @@ const App = () => {
       fetchEnvInfo,
       fetchGlobals,
       fetchQualityGateResults,
+      fetchCategoriesData,
     ];
 
     if (globalThis) {

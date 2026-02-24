@@ -5,6 +5,7 @@ import {
   type Statistic,
   type TestEnvGroup,
   type TestError,
+  type TestLabel,
   type TestResult,
   type TreeData,
   compareBy,
@@ -36,6 +37,7 @@ import {
   transformTree,
 } from "@allurereport/plugin-api";
 import type {
+  AwesomeCategory,
   AwesomeFixtureResult,
   AwesomeReportOptions,
   AwesomeTestResult,
@@ -102,7 +104,7 @@ export const readTemplateManifest = async (singleFileMode?: boolean): Promise<Te
 
 const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   const labelsByType = convertedTr.labels.reduce(
-    (acc, label) => {
+    (acc: Record<string, string[]>, label: TestLabel) => {
       if (!acc[label.name]) {
         acc[label.name] = [];
       }
@@ -112,13 +114,13 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
     {} as Record<string, string[]>,
   );
 
-  const parentSuites = labelsByType.parentSuite || [""];
-  const suites = labelsByType.suite || [""];
-  const subSuites = labelsByType.subSuite || [""];
+  const parentSuites: string[] = labelsByType.parentSuite ?? [""];
+  const suites: string[] = labelsByType.suite ?? [""];
+  const subSuites: string[] = labelsByType.subSuite ?? [""];
 
-  return parentSuites.reduce((acc, parentSuite) => {
-    suites.forEach((suite) => {
-      subSuites.forEach((subSuite) => {
+  return parentSuites.reduce((acc: string[][], parentSuite: string) => {
+    suites.forEach((suite: string) => {
+      subSuites.forEach((subSuite: string) => {
         const path = [parentSuite, suite, subSuite].filter(Boolean);
         if (path.length > 0) {
           acc.push(path);
@@ -254,8 +256,10 @@ const buildTreeByTitlePath = (tests: AwesomeTestResult[]): TreeData<AwesomeTreeL
     return treeByTitlePath;
   }
 
-  const defaultLabels = preciseTreeLabels(["parentSuite", "suite", "subSuite"], testsWithoutTitlePath, ({ labels }) =>
-    labels.map(({ name }) => name),
+  const defaultLabels = preciseTreeLabels(
+    ["parentSuite", "suite", "subSuite"],
+    testsWithoutTitlePath,
+    ({ labels }: { labels: TestLabel[] }) => labels.map(({ name }: TestLabel) => name),
   );
 
   let treeByDefaultLabels: TreeData<AwesomeTreeLeaf, AwesomeTreeGroup> | null = null;
@@ -318,7 +322,7 @@ const buildTreeByLabelsAndTitlePathCombined = (
     labels,
     leafFactory,
     undefined,
-    (group, leaf) => incrementStatistic(group.statistic, leaf.status),
+    (group: AwesomeTreeGroup, leaf: AwesomeTreeLeaf) => incrementStatistic(group.statistic, leaf.status),
   );
 
 const leafFactory = ({
@@ -334,6 +338,7 @@ const leafFactory = ({
   tooltips,
   historyId,
   groupedLabels,
+  categories,
 }: AwesomeTestResult): AwesomeTreeLeaf => {
   const leaf: AwesomeTreeLeaf = {
     nodeId: id,
@@ -351,6 +356,10 @@ const leafFactory = ({
 
   if (groupedLabels.tag && groupedLabels.tag.length > 0) {
     leaf.tags = groupedLabels.tag;
+  }
+
+  if (categories?.length) {
+    leaf.categories = categories.map((category: AwesomeCategory) => category.name).filter(Boolean);
   }
 
   return leaf;
@@ -607,23 +616,27 @@ export const generateAllCharts = async (
 
 export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults: AwesomeTestResult[]) => {
   const trTags = new Set<string>();
+  const trCategories = new Set<string>();
 
   for (const tr of testResults) {
-    if (tr.labels.length === 0) {
-      continue;
+    for (const tag of tr.groupedLabels.tag ?? []) {
+      trTags.add(tag);
     }
 
-    Object.values(tr.groupedLabels.tag ?? []).forEach((tag) => {
-      trTags.add(tag);
+    tr.categories?.forEach((category: AwesomeCategory) => {
+      if (category.name) {
+        trCategories.add(category.name);
+      }
     });
   }
 
   // No need to generate a json file if it will be empty
-  if (trTags.size === 0) {
+  if (trTags.size === 0 && trCategories.size === 0) {
     return Promise.resolve();
   }
 
   const tags = Array.from(trTags).sort((a, b) => a.localeCompare(b));
+  const categories = Array.from(trCategories).sort((a, b) => a.localeCompare(b));
 
-  await writer.writeWidget("tree-filters.json", { tags });
+  await writer.writeWidget("tree-filters.json", { tags, categories });
 };

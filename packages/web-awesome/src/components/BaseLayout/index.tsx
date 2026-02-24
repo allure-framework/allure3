@@ -1,7 +1,7 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
 import MainReport from "@/components/MainReport";
 import TestResult from "@/components/TestResult";
-import { testResultRoute } from "@/stores/router";
+import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
 import * as styles from "./styles.scss";
@@ -11,11 +11,12 @@ export type BaseLayoutProps = {
 };
 
 export const BaseLayout = () => {
-  const { matches, params } = testResultRoute.value;
+  const matches = testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId);
+  const testResultId = testResultRoute.value.matches
+    ? testResultRoute.value.params.testResultId
+    : rootTabRoute.value.params.testResultId;
 
   if (matches) {
-    const testResultId = params.testResultId;
-
     return (
       <div className={styles.layout} data-testid="base-layout">
         <Loadable

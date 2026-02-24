@@ -24,16 +24,6 @@ export default defineConfig({
               urlTemplate: "https://jira.example.com/browse/%s",
             },
           },
-          categories: [
-            {
-              name: "kek",
-              matchedStatuses: [Status.FAILED],
-            },
-            {
-              name: "kek-lol",
-              matchedStatuses: [Status.PASSED],
-            },
-          ],
           environmentInfo: {
             os_platform: os.platform(),
             os_release: os.release(),

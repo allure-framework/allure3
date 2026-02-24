@@ -2,7 +2,7 @@ import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { ReportFetchError, fetchReportJsonData, setParams } from "@allurereport/web-commons";
 import { PARAMS } from "./constants";
 import type { TreeFiltersData } from "./model";
-import { treeTags } from "./store";
+import { treeCategories, treeTags } from "./store";
 
 export const setQueryFilter = (query?: string) => {
   setParams({
@@ -46,14 +46,23 @@ export const setTagsFilter = (tags: string[]) => {
   });
 };
 
+export const setCategoriesFilter = (categories: string[]) => {
+  setParams({
+    key: PARAMS.CATEGORIES,
+    value: categories,
+  });
+};
+
 export const fetchTreeFiltersData = async () => {
   try {
     const response = await fetchReportJsonData<TreeFiltersData>("widgets/tree-filters.json", { bustCache: true });
 
     treeTags.value = response.tags;
+    treeCategories.value = response.categories ?? [];
   } catch (error) {
     if (error instanceof ReportFetchError && error.response.status === 404) {
       treeTags.value = [];
+      treeCategories.value = [];
       return;
     }
 

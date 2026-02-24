@@ -98,6 +98,7 @@ export const validateConfig = (config: Config) => {
     "appendHistory",
     "qualityGate",
     "allureService",
+    "categories",
   ];
   const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
 
@@ -200,6 +201,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     defaultLabels: config.defaultLabels ?? {},
     qualityGate: config.qualityGate,
     allureService: config.allureService,
+    categories: config.categories,
   };
 };
 

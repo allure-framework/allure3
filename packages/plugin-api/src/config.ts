@@ -1,4 +1,9 @@
-import type { DefaultLabelsConfig, EnvironmentsConfig, ReportVariables } from "@allurereport/core-api";
+import type {
+  CategoriesConfig,
+  DefaultLabelsConfig,
+  EnvironmentsConfig,
+  ReportVariables,
+} from "@allurereport/core-api";
 import type { PluginDescriptor } from "./plugin.js";
 import type { QualityGateConfig } from "./qualityGate.js";
 
@@ -55,6 +60,7 @@ export interface Config {
   allureService?: {
     accessToken?: string;
   };
+  categories?: CategoriesConfig;
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

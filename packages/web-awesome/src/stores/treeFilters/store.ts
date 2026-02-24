@@ -3,6 +3,7 @@ import { getParamValue, getParamValues } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AwesomeStatus } from "types";
 import {
+  setCategoriesFilter,
   setFlakyFilter,
   setQueryFilter,
   setRetryFilter,
@@ -19,6 +20,7 @@ import type {
   AwesomeStringFieldFilter,
 } from "./model";
 import {
+  isCategoryFilter,
   isFlakyFilter,
   isRetryFilter,
   isTagFilter,
@@ -28,8 +30,10 @@ import {
 } from "./utils";
 
 export const treeTags = signal<string[]>([]);
+export const treeCategories = signal<string[]>([]);
 
 const hasTreeTags = computed(() => treeTags.value.length > 0);
+const hasTreeCategories = computed(() => treeCategories.value.length > 0);
 
 const urlQueryFilter = computed<string | undefined>(() => {
   const queryValue = getParamValue(PARAMS.QUERY) ?? "";
@@ -80,6 +84,22 @@ const urlTagsFilter = computed<string[]>(() => {
   }
 
   return tags.filter((tag) => treeTags.value.includes(tag));
+});
+
+const EMPTY_CATEGORIES: string[] = [];
+
+const urlCategoriesFilter = computed<string[]>(() => {
+  const categories = getParamValues(PARAMS.CATEGORIES) ?? EMPTY_CATEGORIES;
+
+  if (categories.length === 0) {
+    return EMPTY_CATEGORIES;
+  }
+
+  if (treeCategories.value.length === 0) {
+    return categories;
+  }
+
+  return categories.filter((category) => treeCategories.value.includes(category));
 });
 
 const treeStatusFilter = computed<AwesomeStringFieldFilter>(() => ({
@@ -177,11 +197,23 @@ const treeTagsFilter = computed<AwesomeArrayFieldFilter>(() => ({
   },
 }));
 
+const treeCategoriesFilter = computed<AwesomeArrayFieldFilter>(() => ({
+  type: "field",
+  logicalOperator: "AND",
+  value: {
+    key: "categories",
+    value: urlCategoriesFilter.value,
+    type: "array",
+    strict: false,
+  },
+}));
+
 export const treeQuickFilters = computed<AwesomeFilter[]>(() => [
   treeRetryFilter.value,
   treeFlakyFilter.value,
   treeTransitionFilter.value,
   treeTagsFilter.value,
+  treeCategoriesFilter.value,
 ]);
 
 export const treeFilters = computed(() => {
@@ -220,6 +252,10 @@ export const treeFilters = computed(() => {
     filters.push(treeTagsFilter.value);
   }
 
+  if (urlCategoriesFilter.value.length > 0) {
+    filters.push(treeCategoriesFilter.value);
+  }
+
   if (urlStatusFilter.value) {
     filters.push(treeStatusFilter.value);
   }
@@ -255,6 +291,14 @@ export const setTreeFilter = (filter: AwesomeFilter) => {
   ) {
     setTagsFilter(filter.value.value);
   }
+
+  if (
+    isCategoryFilter(filter) &&
+    // Apply categories filter only if there are categories to filter by
+    hasTreeCategories.peek()
+  ) {
+    setCategoriesFilter(filter.value.value);
+  }
 };
 
 export const treeStatus = computed<AwesomeStatus>(() => urlStatusFilter.value ?? "total");
@@ -269,5 +313,6 @@ export const clearTreeFilters = () => {
   setFlakyFilter(false);
   setTransitionFilter([]);
   setTagsFilter([]);
+  setCategoriesFilter([]);
   setStatusFilter();
 };

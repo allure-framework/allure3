@@ -1,0 +1,14 @@
+.categories-tree-view {
+  display: block;
+  min-height: 480px;
+  padding-bottom: 48px;
+  padding-top: 16px;
+  --categories-sticky-step: 32px;
+}
+
+.categories-tree-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}

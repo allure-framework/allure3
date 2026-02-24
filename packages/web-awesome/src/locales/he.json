@@ -21,7 +21,8 @@
     "results": "תוצאות",
     "globalAttachments": "קבצים מצורפים גלובליים",
     "globalErrors": "שגיאות גלובליות",
-    "qualityGates": "שערי איכות"
+    "qualityGates": "שערי איכות",
+    "categories": "קטגוריות"
   },
   "search": {
     "search": "חפש",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "לא יציב",
+    "nonFlaky": "יציב",
     "retry": "חוזר",
     "new": "חדש",
     "fixed": "מתוקן",
     "regressed": "נסוג",
     "malfunctioned": "פגום",
     "transition": "מעבר",
+    "status": "סטטוס",
+    "severity": "חומרה",
+    "owner": "בעלים",
+    "layer": "שכבה",
     "tags": "תגיות",
+    "categories": "קטגוריות",
     "goto_filter": "עבור למסנן",
     "errors": {
       "max_values_one": "רק הערך הראשון {{count}} משמש לסינון.\nערכים נוספים מתעלמים",
@@ -48,7 +55,8 @@
       "fixed": "הצג בדיקות שעוברות עכשיו אבל היו קודם \"נכשלות\" או \"שבורות\"",
       "regressed": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"שבור\" ל-\"נכשל\"",
       "malfunctioned": "הצג תוצאות בדיקות ששינו סטטוס מ-\"עבר\" או \"נכשל\" ל-\"שבור\"",
-      "tags": "הצג תוצאות בדיקות שיש להן את התגים שצוינו"
+      "tags": "הצג תוצאות בדיקות שיש להן את התגים שצוינו",
+      "categories": "הצג תוצאות בדיקות שיש להן את הקטגוריות שצוינו"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "אין תוצאות",
+    "no-value": "אין ערך",
+    "no-value-for": "אין ערך: {{entity}}",
+    "no-transition": "אין מעבר",
+    "no-layer": "אין שכבה",
+    "no-owner": "אין בעלים",
+    "no-severity": "אין חומרה",
+    "no-status": "אין סטטוס",
+    "no-environment": "אין סביבה",
+    "no-flaky": "אין אי־יציבות",
+    "empty-value": "ריק",
     "no-tests-found": "לא נמצאו תוצאות",
     "no-message-provided": "לא סופק הודעה",
     "clear-filters": "נקה מסננים",
@@ -92,7 +110,8 @@
     "no-retries-results": "לא נמצאה מידע על נסיונות חוזרים",
     "no-test-steps-results": "אין מידע על שלבי הבדיקה",
     "no-test-case-results": "אין תוצאות של מקרי בדיקה",
-    "no-environments-results": "לא נמצא מידע על סביבות"
+    "no-environments-results": "לא נמצא מידע על סביבות",
+    "no-categories-results": "אין קטגוריות זמינות"
   },
   "severity": {
     "blocker": "חוסם",
@@ -116,6 +135,7 @@
     "labels": "תוויות",
     "metadata": "נתונים",
     "parameters": "פרמטרים",
+    "category": "קטגוריה",
     "description": "תיאור",
     "links": "קישורים",
     "overview": "סקירה כללית",

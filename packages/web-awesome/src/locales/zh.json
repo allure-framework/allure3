@@ -21,7 +21,8 @@
     "results": "结果",
     "globalAttachments": "全局附件",
     "globalErrors": "全局错误",
-    "qualityGates": "质量门"
+    "qualityGates": "质量门",
+    "categories": "分类"
   },
   "search": {
     "search": "搜索",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "不稳定",
+    "nonFlaky": "稳定",
     "retry": "重试",
     "new": "新的",
     "fixed": "已修复",
     "regressed": "已回归",
     "malfunctioned": "已损坏",
     "transition": "过渡",
+    "status": "状态",
+    "severity": "严重程度",
+    "owner": "负责人",
+    "layer": "层",
     "tags": "标签",
+    "categories": "分类",
     "goto_filter": "转到过滤器",
     "errors": {
       "max_values_one": "仅使用第一个 {{count}} 值进行过滤。\n忽略其他值",
@@ -48,7 +55,8 @@
       "fixed": "显示现在通过但之前\"失败\"或\"损坏\"的测试",
       "regressed": "显示从\"通过\"或\"损坏\"状态变为\"失败\"状态的测试结果",
       "malfunctioned": "显示从\"通过\"或\"失败\"状态变为\"损坏\"状态的测试结果",
-      "tags": "显示具有指定标签的测试结果"
+      "tags": "显示具有指定标签的测试结果",
+      "categories": "显示具有指定分类的测试结果"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "没有结果",
+    "no-value": "无值",
+    "no-value-for": "无值：{{entity}}",
+    "no-transition": "无过渡",
+    "no-layer": "无层",
+    "no-owner": "无负责人",
+    "no-severity": "无严重程度",
+    "no-status": "无状态",
+    "no-environment": "无环境",
+    "no-flaky": "无不稳定",
+    "empty-value": "空",
     "no-tests-found": "未找到结果",
     "no-message-provided": "未提供消息",
     "clear-filters": "清除过滤器",
@@ -92,7 +110,8 @@
     "no-retries-results": "没有重试信息",
     "no-test-steps-results": "没有可用的测试步骤信息",
     "no-test-case-results": "没有测试用例结果",
-    "no-environments-results": "没有环境信息"
+    "no-environments-results": "没有环境信息",
+    "no-categories-results": "暂无可用的分类结果"
   },
   "severity": {
     "blocker": "阻断",
@@ -116,6 +135,7 @@
     "labels": "标签",
     "metadata": "元数据",
     "parameters": "参数",
+    "category": "分类",
     "description": "描述",
     "links": "链接",
     "overview": "概览",
