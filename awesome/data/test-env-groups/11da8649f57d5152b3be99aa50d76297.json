@@ -1,0 +1,1 @@
+{"id":"11da8649f57d5152b3be99aa50d76297","fullName":"test/utils/categories.test.ts#normalizeCategoriesConfig throws when matchers missing","name":"throws when matchers missing","status":"passed","testResultsByEnv":{"windows-latest":"5bff338272c7b49fbe4a9bc720353492","ubuntu-latest":"be97358d972697f154057971e2bcf3c9","macos-latest":"6728174cb13f24cdc3ce210a465ad517"}}

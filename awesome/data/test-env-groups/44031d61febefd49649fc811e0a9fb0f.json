@@ -1,1 +1,1 @@
-{"id":"44031d61febefd49649fc811e0a9fb0f","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse screenshots at test level","name":"should parse screenshots at test level","status":"passed","testResultsByEnv":{"macos-latest":"8118f1b8d6e2fa1baf7335b4c0bb06f3"}}
+{"id":"44031d61febefd49649fc811e0a9fb0f","fullName":"test/xcresult.test.ts#A MAC machine attachments should parse screenshots at test level","name":"should parse screenshots at test level","status":"passed","testResultsByEnv":{"macos-latest":"2c4ed028a10a8416655cc48bbc17e38d"}}
