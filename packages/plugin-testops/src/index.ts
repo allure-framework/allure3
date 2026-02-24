@@ -1,2 +1,2 @@
-export type { TestopsUploaderPluginOptions } from "./model.js";
-export { TestopsUploaderPlugin as default } from "./plugin.js";
+export type { TestopsPluginOptions as TestopsUploaderPluginOptions } from "./model.js";
+export { TestopsPlugin as default } from "./plugin.js";

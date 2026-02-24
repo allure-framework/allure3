@@ -10,17 +10,17 @@ import {
 } from "@allurereport/plugin-api";
 import { env } from "node:process";
 import { TestOpsClient } from "./client.js";
-import type { TestopsUploaderPluginOptions } from "./model.js";
+import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
-export class TestopsUploaderPlugin implements Plugin {
+export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
 
-  constructor(readonly options: TestopsUploaderPluginOptions) {
+  constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
     this.#ci = detect();
