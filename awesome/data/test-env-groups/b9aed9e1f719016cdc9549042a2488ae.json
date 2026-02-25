@@ -1,0 +1,1 @@
+{"id":"b9aed9e1f719016cdc9549042a2488ae","fullName":"test/history.test.ts#AllureLocalHistory cache should update after appendHistory call","name":"should update after appendHistory call","status":"passed","testResultsByEnv":{"windows-latest":"286e8e52acaee9143df3219592d5697e","ubuntu-latest":"133956e7ca7dc08892b3a46b474753d4","macos-latest":"2c2d9cbf5ed5a0b9454119a5bf7632b6"}}
