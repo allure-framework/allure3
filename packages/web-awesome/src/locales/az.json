@@ -1,27 +1,27 @@
 {
   "statuses": {
-    "passed": "keçdi",
+    "passed": "uğurlu",
     "failed": "uğursuz",
     "broken": "sınıq",
-    "skipped": "keçildi",
+    "skipped": "buraxılmış",
     "unknown": "naməlum",
     "total": "cəmi",
-    "flakyTests": "etibarsız",
+    "flakyTests": "qeyri-sabit",
     "newTests": "yeni",
     "retryTests": "təkrar"
   },
   "testSummary": {
     "total": "Cəmi",
-    "flaky": "Etibarsız testlər",
+    "flaky": "Qeyri-sabit testlər",
     "retries": "Təkrar testlər",
     "new": "Yeni testlər"
   },
   "tabs": {
     "total": "Hamısı",
     "results": "Nəticələr",
-    "globalAttachments": "Qlobal Əlavələr",
-    "globalErrors": "Qlobal Xətalar",
-    "qualityGates": "Keyfiyyət Darvazaları",
+    "globalAttachments": "Qlobal əlavələr",
+    "globalErrors": "Qlobal xətalar",
+    "qualityGates": "Keyfiyyət meyarları",
     "categories": "Kateqoriyalar"
   },
   "search": {
@@ -29,7 +29,7 @@
     "search-placeholder": "Ad və ya ID"
   },
   "filters": {
-    "flaky": "Etibarsız",
+    "flaky": "Qeyri-sabit",
     "nonFlaky": "Stabil",
     "retry": "Təkrar",
     "new": "Yeni",
@@ -38,30 +38,30 @@
     "malfunctioned": "Sınıq",
     "transition": "Keçid",
     "status": "Status",
-    "severity": "Ciddilik",
+    "severity": "Vaciblik",
     "owner": "Sahib",
     "layer": "Qat",
     "tags": "Teqlər",
     "categories": "Kateqoriyalar",
-    "goto_filter": "Filtre keç",
+    "goto_filter": "Filtrə keç",
     "errors": {
       "max_values_one": "Filtrasiya üçün yalnız ilk {{count}} dəyər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır",
-      "max_values_other": "Filtrasiya üçün yalnız ilk {{count}} dəyərlər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır"
+      "max_values_other": "Filtrasiya üçün yalnız ilk {{count}} dəyər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır"
     },
     "description": {
-      "flaky": "Qeyri-sabit testləri göstərir",
-      "retry": "Yenidən işə salınan test nəticələrini göstərir",
-      "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstərir",
-      "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
-      "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
-      "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir",
-      "tags": "Müəyyən edilmiş teqləri olan test nəticələrini göstərir",
-      "categories": "Müəyyən edilmiş kateqoriyaları olan test nəticələrini göstərir"
+      "flaky": "Qeyri-sabit testləri göstər",
+      "retry": "Yenidən işə salınan testlərin nəticələrini göstər",
+      "new": "Bu hesabatda ilk dəfə görünən test nəticələrini göstər",
+      "fixed": "İndi uğurlu olan, lakin əvvəlki hesabatda \"uğursuz\" və ya \"sınıq\" olan testləri göstər",
+      "regressed": "Statusu \"uğurlu\" və ya \"sınıq\"dan \"uğursuz\"a dəyişən test nəticələrini göstər",
+      "malfunctioned": "Statusu \"uğurlu\" və ya \"uğursuz\"dan \"sınıq\"a dəyişən test nəticələrini göstər",
+      "tags": "Göstərilən teqləri olan test nəticələrini göstər",
+      "categories": "Göstərilən kateqoriyaları olan test nəticələrini göstər"
     }
   },
   "sort-by": {
-    "sort-by-text": "Sıralamaq üzrə:",
-    "sort-by-category": "Sıralamaq üzrə",
+    "sort-by-text": "Sıralama növü:",
+    "sort-by-category": "Sıralama növü",
     "direction-category": "İstiqamət"
   },
   "sort-by.values": {
@@ -71,10 +71,10 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Sonuncu – Birinci",
-    "order-asc": "Birinci – Sonuncu",
-    "order-asc-short": "Birinci",
-    "order-desc-short": "Sonuncu",
+    "order-desc": "Əvvəlki – Sonrakı",
+    "order-asc": "Sonrakı – Əvvəlki",
+    "order-asc-short": "Sonrakı",
+    "order-desc-short": "Əvvəlki",
     "alphabet-asc": "A – Z",
     "alphabet-desc": "Z – A",
     "alphabet-asc-short": "A – Z",
@@ -83,46 +83,46 @@
     "duration-desc": "9 – 1",
     "duration-asc-short": "1 – 9",
     "duration-desc-short": "9 – 1",
-    "status-asc": "Filtr siyahısına uyğun",
-    "status-desc": "Tərsinə çevrilmiş",
+    "status-asc": "Filtr siyahısındakı kimi",
+    "status-desc": "Tərs sıralanmış",
     "status-asc-short": "Adi",
     "status-desc-short": "Tərs"
   },
   "empty": {
-    "no-results": "Nəticə tapılmadı",
+    "no-results": "Nəticə yoxdur",
     "no-value": "Dəyər yoxdur",
     "no-value-for": "Dəyər yoxdur: {{entity}}",
     "no-transition": "Keçid yoxdur",
     "no-layer": "Qat yoxdur",
     "no-owner": "Sahib yoxdur",
-    "no-severity": "Ciddilik yoxdur",
+    "no-severity": "Vaciblik yoxdur",
     "no-status": "Status yoxdur",
     "no-environment": "Mühit yoxdur",
-    "no-flaky": "Etibarsızlıq yoxdur",
+    "no-flaky": "Qeyri-sabitlik yoxdur",
     "empty-value": "Boş",
     "no-tests-found": "Nəticə tapılmadı",
     "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
-    "no-attachments-results": "Əlavə məlumatı mövcud deyil",
-    "no-global-errors-results": "Qlobal səhvlər haqqında məlumat mövcud deyil",
-    "no-quality-gate-results": "Keyfiyyət darvazası nəticələri mövcud deyil",
-    "no-history-results": "Tarixçə məlumatı mövcud deyil",
-    "no-retries-results": "Təkrar məlumatı mövcud deyil",
-    "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",
-    "no-test-case-results": "Test halları haqqında nəticələr yoxdur",
-    "no-environments-results": "Mühitlər haqqında məlumat mövcud deyil",
-    "no-categories-results": "Kateqoriyalar mövcud deyil"
+    "no-attachments-results": "Əlavələr haqqında məlumat yoxdur",
+    "no-global-errors-results": "Qlobal xətalar haqqında məlumat yoxdur",
+    "no-quality-gate-results": "Keyfiyyət meyarları haqqında məlumat yoxdur",
+    "no-history-results": "Tarixçə ha3qqında məlumat yoxdur",
+    "no-retries-results": "Yenidən işə salınmalar haqqında məlumat yoxdur",
+    "no-test-steps-results": "Test addımları haqqında məlumat yoxdur",
+    "no-test-case-results": "Test halları üzrə nəticə yoxdur",
+    "no-environments-results": "Mühitlər haqqında məlumat yoxdur",
+    "no-categories-results": "Kateqoriyalar üzrə nəticə yoxdur"
   },
   "severity": {
     "blocker": "bloklayıcı",
     "critical": "kritik",
     "normal": "normal",
-    "minor": "kiçik",
+    "minor": "aşağı",
     "trivial": "əhəmiyyətsiz"
   },
   "execution": {
     "name": "İcra",
-    "body": "Test məzmunu",
+    "body": "Testin məzmunu",
     "setup": "Hazırlıq",
     "teardown": "Yekunlaşma"
   },
@@ -141,43 +141,43 @@
     "overview": "Ümumi baxış",
     "history": "Tarixçə",
     "attachments": "Əlavələr",
-    "retries": "Təkrarlar",
+    "retries": "Yenidən işə salınmalar",
     "environments": "Mühitlər",
-    "error": "Səhv",
+    "error": "Xəta",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "copy-email": "E-poçtu kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
-    "at": "üçün",
+    "at": "saat",
     "variables": "Dəyişənlər",
-    "openPwTrace": "Playwright Trace aç",
+    "openPwTrace": "Playwright Trace-i aç",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
-    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (əsas {{original}})"
+    "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
   },
   "controls": {
-    "newTabAttachment": "Yeni sekmede aç",
-    "nextTR": "Növbəti test nəticəsi",
-    "prevTR": "Əvvəlki test nəticəsi",
+    "newTabAttachment": "Yeni tabda aç",
+    "nextTR": "Növbəti test",
+    "prevTR": "Əvvəlki test",
     "downloadAttachment": "Əlavəni yüklə",
-    "backto": "Geri dön",
-    "clipboard": "Panoya kopyala",
-    "clipboardError": "Səhv. Görünür, bu xüsusiyyət brauzeriniz tərəfindən dəstəklənmir",
-    "clipboardSuccess": "Uğurla kopyalandı",
-    "collapse": "Daralt",
+    "backto": "Geri dön:",
+    "clipboard": "Mübadilə buferinə kopyala",
+    "clipboardError": "Xəta. Görünür brauzeriniz bu funksiyanı dəstəkləmir",
+    "clipboardSuccess": "Dəyər uğurla kopyalandı",
+    "collapse": "Yığ",
     "expand": "Genişləndir",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç",
     "openPreview": "Önizləməni aç",
-    "noSelectedTR": "Seçilmiş Test nəticəsi yoxdur",
+    "noSelectedTR": "Heç bir test nəticəsi seçilməyib",
     "comparison": "Müqayisə",
     "showDiff": "Fərqi göstər",
     "viewMode": "Baxış rejimi",
     "unified": "Birləşdirilmiş",
     "side-by-side": "Yan-yana",
-    "compareBy": "Müqayisə üsulu",
+    "compareBy": "Müqayisə növü:",
     "chars": "simvollar",
     "words": "sözlər",
     "lines": "sətirlər",
@@ -188,15 +188,17 @@
     "missedAttachment": "Əlavə tapılmadı"
   },
   "sections": {
-    "report": "Report",
+    "report": "Hesabat",
     "charts": "Qrafiklər",
     "timeline": "Zaman xətti"
   },
   "timeline": {
     "empty": "Məlumat yoxdur",
     "empty_host": "{{ host }} üçün məlumat yoxdur",
-    "selected_one": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dən çox və {{ maxDuration }}-dən az müddətlə seçildi",
-    "selected_other": "{{ count }} test ({{ percentage }}%) {{ minDuration }}-dən çox və {{ maxDuration }}-dən az müddətlə seçildi",
+    "selected_one": "{{ count }} test ({{ percentage }}%) seçildi (müddət: {{ minDuration }} - {{ maxDuration }} arası)",
+    "selected_few": "{{ count }} test ({{ percentage }}%) seçildi (müddət: {{ minDuration }} - {{ maxDuration }} arası)",
+    "selected_many": "{{ count }} test ({{ percentage }}%) seçildi (müddət: {{ minDuration }} - {{ maxDuration }} arası)",
+    "selected_other": "{{ count }} test ({{ percentage }}%) seçildi (müddət: {{ minDuration }} - {{ maxDuration }} arası)",
     "host": "Host: {{ host }}"
   },
   "charts": {
@@ -204,11 +206,11 @@
       "title": "Trend qrafiki: {{type}}",
       "type": {
         "status": "Status",
-        "severity": "Ciddilik"
+        "severity": "Vaciblik"
       }
     },
     "currentStatus": {
-      "title": "Cari Status",
+      "title": "Cari status",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",
@@ -217,18 +219,24 @@
         "unknown": "$t(statuses:unknown, capitalize)"
       },
       "percentage": "{{percentage}}%",
-      "of": "{{total}} dən",
+      "of": "/ {{total}}",
       "total": "cəmi",
       "tests": {
         "new_zero": "Yeni test yoxdur",
         "new_one": "{{count}} yeni test",
+        "new_few": "{{count}} yeni test",
+        "new_many": "{{count}} yeni test",
         "new_other": "{{count}} yeni test",
         "flaky_zero": "Qeyri-sabit test yoxdur",
         "flaky_one": "{{count}} qeyri-sabit test",
+        "flaky_few": "{{count}} qeyri-sabit test",
+        "flaky_many": "{{count}} qeyri-sabit test",
         "flaky_other": "{{count}} qeyri-sabit test",
-        "retries_zero": "Yenidən cəhd edilmiş test yoxdur",
-        "retries_one": "{{count}} yenidən cəhd edilmiş test",
-        "retries_other": "{{count}} yenidən cəhd edilmiş test"
+        "retries_zero": "Təkrar test yoxdur",
+        "retries_one": "{{count}} təkrar test",
+        "retries_few": "{{count}} təkrar test",
+        "retries_many": "{{count}} təkrar test",
+        "retries_other": "{{count}} təkrar test"
       }
     },
     "statusDynamics": {
@@ -244,7 +252,7 @@
       "no-results": "$t(empty:no-results)",
       "tooltips": {
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
-        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
         "current": "Sonuncu",
@@ -254,7 +262,7 @@
     "statusTransitions": {
       "title": "Status keçidləri",
       "legend": {
-        "trend": "Düzəltmə dərəcəsi"
+        "trend": "Düzəlmə əmsalı"
       },
       "transitions": {
         "new": "$t(transitions:new, capitalize)",
@@ -266,7 +274,7 @@
       "no-results": "$t(empty:no-results)",
       "tooltips": {
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
-        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
         "current": "Sonuncu",
@@ -274,7 +282,7 @@
       }
     },
     "durations": {
-      "title": "{{groupBy}} görə müddət histogramı",
+      "title": "{{groupBy}} üzrə müddət histogramı",
       "title_none": "Müddət histogramı",
       "no-results": "$t(empty:no-results)",
       "groupBy": {
@@ -289,14 +297,14 @@
       },
       "legend": {
         "value": "{{value}}",
-        "total": "Test sayı"
+        "total": "Testlərin sayı"
       }
     },
     "stabilityDistribution": {
       "title": "Sabitlik paylanması",
       "no-results": "$t(empty:no-results)",
       "legend": {
-        "stabilityRate": "Sabitlik dərəcəsi"
+        "stabilityRate": "Sabitlik əmsalı"
       }
     },
     "testBaseGrowthDynamics": {
@@ -323,12 +331,12 @@
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       }
     },
     "statusAgePyramid": {
-      "title": "Statusa görə yaş piramidası",
+      "title": "Status üzrə yaş piramidası",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",
@@ -343,12 +351,12 @@
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       }
     },
     "trSeverities": {
-      "title": "Ciddilik dərəcəsinə görə test nəticələri",
+      "title": "Vacibliyə görə test nəticələri",
       "no-results": "$t(empty:no-results)",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
@@ -363,23 +371,23 @@
         "normal": "$t(severity:normal, capitalize)",
         "minor": "$t(severity:minor, capitalize)",
         "trivial": "$t(severity:trivial, capitalize)",
-        "unset": "Ciddilik dərəcəsi yoxdur"
+        "unset": "Vaciblik təyin edilməyib"
       }
     },
     "durationDynamics": {
       "title": "Müddət dinamikası",
       "durations": {
         "sequential": "Ardıcıl müddət",
-        "duration": "Test müddəti",
-        "speedup": "Sürətləndirmə"
+        "duration": "Testlərin müddəti",
+        "speedup": "Sürətlənmə"
       },
       "no-results": "$t(empty:no-results)",
       "tooltips": {
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
-        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       },
       "legend": {
@@ -394,8 +402,8 @@
       "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test",
-      "retries": "{{count}} yenidən cəhd",
-      "flaky": "İcra nəticələri qeyri-sabitdir"
+      "retries": "{{count}} təkrar",
+      "flaky": "İşəsalınmalar arasında qeyri-sabitdir"
     },
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
@@ -415,7 +423,7 @@
         "overlay": "Üst-üstə"
       },
       "empty": {
-        "failed-to-load": "Şəkil müqayisəsi yüklənə bilmədi"
+        "failed-to-load": "Şəkil müqayisəsini yükləmək mümkün olmadı"
       },
       "image": {
         "diff": "Fərq",
