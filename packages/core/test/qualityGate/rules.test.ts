@@ -1,15 +1,29 @@
 import type { KnownTestFailure, TestResult, TestStatus } from "@allurereport/core-api";
 import type { QualityGateRuleState } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { maxDurationRule, maxFailuresRule, minTestsCountRule, successRateRule } from "../../src/qualityGate/rules.js";
+import {
+  allTestsContainEnvRule,
+  environmentsTestedRule,
+  maxDurationRule,
+  maxFailuresRule,
+  minTestsCountRule,
+  successRateRule,
+} from "../../src/qualityGate/rules.js";
 
-const createTestResult = (id: string, status: TestStatus, historyId?: string, duration?: number) =>
+const createTestResult = (
+  id: string,
+  status: TestStatus,
+  historyId?: string,
+  duration?: number,
+  environment?: string,
+) =>
   ({
     id,
     name: `Test ${id}`,
     historyId,
     status,
     duration,
+    environment,
     flaky: false,
     muted: false,
     known: false,
@@ -309,5 +323,136 @@ describe("maxDurationRule", () => {
 
     expect(result.success).toBe(false);
     expect(result.actual).toBe(500);
+  });
+});
+
+describe("allTestsContainEnvRule", () => {
+  const state: QualityGateRuleState<string> = {
+    getResult: () => undefined,
+    setResult: () => {},
+  };
+
+  it("should pass when all tests have the required environment", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed", undefined, undefined, "staging"),
+    ];
+    const result = await allTestsContainEnvRule.validate({
+      trs: testResults,
+      expected: "staging",
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(0);
+  });
+
+  it("should fail when some tests have different environment", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed", undefined, undefined, "prod"),
+    ];
+    const result = await allTestsContainEnvRule.validate({
+      trs: testResults,
+      expected: "staging",
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should fail when some tests have no environment", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed"),
+    ];
+    const result = await allTestsContainEnvRule.validate({
+      trs: testResults,
+      expected: "staging",
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toBe(1);
+  });
+
+  it("should pass when no tests and expected env is given", async () => {
+    const result = await allTestsContainEnvRule.validate({
+      trs: [],
+      expected: "staging",
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(0);
+  });
+});
+
+describe("environmentsTestedRule", () => {
+  const state: QualityGateRuleState<string[]> = {
+    getResult: () => undefined,
+    setResult: () => {},
+  };
+
+  it("should pass when all required environments are present in the run", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed", undefined, undefined, "prod"),
+    ];
+    const result = await environmentsTestedRule.validate({
+      trs: testResults,
+      expected: ["staging", "prod"],
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toEqual([]);
+  });
+
+  it("should fail when some required environments are missing", async () => {
+    const testResults: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed", undefined, undefined, "staging"),
+    ];
+    const result = await environmentsTestedRule.validate({
+      trs: testResults,
+      expected: ["staging", "prod"],
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toEqual(["prod"]);
+  });
+
+  it("should fail when all required environments are missing", async () => {
+    const testResults: TestResult[] = [createTestResult("1", "passed", undefined, undefined, "dev")];
+    const result = await environmentsTestedRule.validate({
+      trs: testResults,
+      expected: ["staging", "prod"],
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.actual).toEqual(["staging", "prod"]);
+  });
+
+  it("should pass when expected list is empty", async () => {
+    const result = await environmentsTestedRule.validate({
+      trs: [createTestResult("1", "passed", undefined, undefined, "staging")],
+      expected: [],
+      knownIssues: [],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toEqual([]);
   });
 });

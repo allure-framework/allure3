@@ -116,6 +116,14 @@ export default defineConfig({
         maxFailures: 5,
         fastFail: true,
       },
+      {
+        // Fails: not all tests have env "foo" (some have "bar" or "default")
+        allTestsContainEnv: "foo",
+      },
+      {
+        // Fails: "staging" is not present in the run (only foo, bar, default exist)
+        environmentsTested: ["foo", "bar", "staging"],
+      },
     ],
   },
   categories: {
