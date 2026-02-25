@@ -109,6 +109,8 @@ export class Allure2Plugin implements Plugin {
         singleFile: this.options.singleFile ?? false,
         withTestResultsLinks: true,
       },
+      history: context.history,
+      ci: context.ci,
       store,
     });
   }

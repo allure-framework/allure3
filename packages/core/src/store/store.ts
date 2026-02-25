@@ -538,10 +538,16 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allNewTestResults(filter?: TestResultFilter, history?: HistoryDataPoint[]): Promise<TestResult[]> {
+    // when history doesn't exist we can't treat tests as new
+    if (!this.#history && !history) {
+      return [];
+    }
+
     const allHistoryDps = history ?? (await this.allHistoryDataPoints());
 
+    // when history exists, but it's empty – all tests can be treated as new
     if (allHistoryDps.length === 0) {
-      return [];
+      return Array.from(this.#testResults.values());
     }
 
     const historicalIds = new Set(allHistoryDps.flatMap((dp) => Object.keys(dp.testResults)));

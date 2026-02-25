@@ -85,7 +85,7 @@ export class AllureServiceClient {
     const params = new URLSearchParams();
 
     if (limit) {
-      params.append("limit", limit.toString());
+      params.append("limit", encodeURIComponent(limit));
     }
 
     if (branch) {

@@ -72,6 +72,8 @@ export const createHistory = (
 };
 
 export class AllureLocalHistory implements AllureHistory {
+  #cachedHistory: HistoryDataPoint[] = [];
+
   constructor(
     private readonly params: {
       historyPath: string;
@@ -79,12 +81,11 @@ export class AllureLocalHistory implements AllureHistory {
     },
   ) {}
 
-  /**
-   * @param params
-   * @param params.limit - limit of history points to read, pass to override default limit given in the constructor
-   */
-  async readHistory(params?: { limit?: number }) {
-    const { limit = this.params.limit } = params ?? {};
+  async readHistory() {
+    if (this.#cachedHistory.length > 0) {
+      return this.#cachedHistory;
+    }
+
     const fullPath = path.resolve(this.params.historyPath);
     const historyFile = await this.#openFileToReadIfExists(fullPath);
 
@@ -93,7 +94,7 @@ export class AllureLocalHistory implements AllureHistory {
     }
 
     try {
-      const start = await this.#findFirstEntryAddress(historyFile, limit);
+      const start = await this.#findFirstEntryAddress(historyFile, this.params.limit);
       const stream = historyFile.createReadStream({ start, encoding: "utf-8", autoClose: false });
       const historyPoints: HistoryDataPoint[] = [];
       const readlineInterface = readline
@@ -107,21 +108,19 @@ export class AllureLocalHistory implements AllureHistory {
         });
 
       await once(readlineInterface, "close");
-      return historyPoints;
+
+      this.#cachedHistory = historyPoints;
+
+      return this.#cachedHistory;
     } finally {
       await historyFile.close();
     }
   }
 
-  /**
-   * @param data - history point data to append to the history
-   * @param params
-   * @param params.limit - limit of history points to read, pass to override default limit given in the constructor
-   */
-  async appendHistory(data: HistoryDataPoint, params?: { limit?: number }) {
+  async appendHistory(data: HistoryDataPoint) {
     const fullPath = path.resolve(this.params.historyPath);
     const parentDir = path.dirname(fullPath);
-    const { limit = this.params.limit } = params ?? {};
+    const { limit } = this.params;
 
     await mkdir(parentDir, { recursive: true });
 
@@ -139,7 +138,7 @@ export class AllureLocalHistory implements AllureHistory {
         return;
       }
 
-      if (limit !== 0 && historyExists) {
+      if (historyExists) {
         // move up to `limit-1` most recent entries to the beginning of the file
         const start = await this.#findFirstEntryAddress(historyFile, limit ? limit - 1 : undefined);
         const src = historyFile.createReadStream({ start, autoClose: false });
@@ -157,6 +156,15 @@ export class AllureLocalHistory implements AllureHistory {
       }
     } finally {
       await historyFile.close();
+
+      // in case when limit is undefined – the history is unlimited, so we need to add the point too
+      if (limit !== 0) {
+        this.#cachedHistory.unshift(data);
+      }
+
+      if (limit) {
+        this.#cachedHistory.splice(limit);
+      }
     }
   }
 

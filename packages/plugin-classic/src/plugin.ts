@@ -117,6 +117,8 @@ export class ClassicPlugin implements Plugin {
         withTestResultsLinks: true,
       },
       filter: this.options.filter,
+      history: context.history,
+      ci: context.ci,
       store,
     });
   }

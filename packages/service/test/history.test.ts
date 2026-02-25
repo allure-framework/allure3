@@ -98,23 +98,6 @@ describe("AllureRemoteHistory", () => {
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
-    it("should override the constructor limit via the method argument", async () => {
-      history = new AllureRemoteHistory({
-        allureServiceClient: serviceClient,
-        branch: fixtures.branch,
-        limit: 10,
-      });
-
-      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
-
-      const result = await history.readHistory({ limit: 5 });
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?limit=5&branch=${encodeURIComponent(fixtures.branch)}`,
-      );
-      expect(result).toEqual([fixtures.historyDataPoint]);
-    });
-
     it("should override the constructor branch via the method argument", async () => {
       HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
 
@@ -122,23 +105,6 @@ describe("AllureRemoteHistory", () => {
 
       expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
         `/projects/history?branch=${encodeURIComponent("feature")}`,
-      );
-      expect(result).toEqual([fixtures.historyDataPoint]);
-    });
-
-    it("should override both constructor branch and limit via the method arguments", async () => {
-      history = new AllureRemoteHistory({
-        allureServiceClient: serviceClient,
-        branch: fixtures.branch,
-        limit: 10,
-      });
-
-      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
-
-      const result = await history.readHistory({ branch: "feature", limit: 3 });
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?limit=3&branch=${encodeURIComponent("feature")}`,
       );
       expect(result).toEqual([fixtures.historyDataPoint]);
     });

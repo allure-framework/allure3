@@ -63,6 +63,8 @@ export class DashboardPlugin implements Plugin {
         singleFile: this.options.singleFile ?? false,
       },
       filter: this.options.filter,
+      history: context.history,
+      ci: context.ci,
       store,
     });
   }

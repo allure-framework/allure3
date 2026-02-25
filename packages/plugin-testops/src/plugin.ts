@@ -198,6 +198,8 @@ export class TestopsPlugin implements Plugin {
           reportId: context.reportUuid,
         },
         filter: this.options.filter,
+        history: context.history,
+        ci: context.ci,
         store,
       })),
       remoteHref: this.#client.launchUrl,
