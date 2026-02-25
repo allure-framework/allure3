@@ -1,0 +1,32 @@
+.tree-item-category {
+  font-size: 24px;
+  margin-bottom: 16px;
+  &:not(:first-child) {
+    border-top: 1px solid var(--on-border-muted);
+  }
+}
+
+.tree-item-category :global(.styles_tree-section-title) {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.tree-item-category-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.tree-item-category-name {
+  color: var(--on-text-primary);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

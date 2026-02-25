@@ -21,7 +21,8 @@
     "results": "Results",
     "globalAttachments": "Global Attachments",
     "globalErrors": "Global Errors",
-    "qualityGates": "Quality Gates"
+    "qualityGates": "Quality Gates",
+    "categories": "Categories"
   },
   "search": {
     "search": "Search",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Flaky",
+    "nonFlaky": "Non-flaky",
     "retry": "Retry",
     "new": "New",
     "fixed": "Fixed",
     "regressed": "Regressed",
     "malfunctioned": "Malfunctioned",
     "transition": "Transition",
+    "status": "Status",
+    "severity": "Severity",
+    "owner": "Owner",
+    "layer": "Layer",
     "tags": "Tags",
+    "categories": "Categories",
     "goto_filter": "Go to filter",
     "errors": {
       "max_values_one": "Only the first {{count}} value is used for filtering.\nAdditional values are ignored",
@@ -48,7 +55,8 @@
       "fixed": "Show tests that are passed now but had been \"failed\" or \"broken\" in a previous report",
       "regressed": "Show test results that changed to \"failed\" status from \"passed\" or \"broken\" status",
       "malfunctioned": "Show test results that changed to \"broken\" status from \"passed\" or \"failed\" status",
-      "tags": "Show test results that have the specified tags"
+      "tags": "Show test results that have the specified tags",
+      "categories": "Show test results that have the specified categories"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "No results",
+    "no-value": "No value",
+    "no-value-for": "No value: {{entity}}",
+    "no-transition": "No transition",
+    "no-layer": "No layer",
+    "no-owner": "No owner",
+    "no-severity": "No severity",
+    "no-status": "No status",
+    "no-environment": "No environment",
+    "no-flaky": "No flaky",
+    "empty-value": "Empty",
     "no-tests-found": "No results found",
     "no-message-provided": "No message is provided",
     "clear-filters": "Clear filters",
@@ -92,7 +110,8 @@
     "no-retries-results": "No retries information available",
     "no-test-steps-results": "No test steps information available",
     "no-test-case-results": "No test case results",
-    "no-environments-results": "No environments information available"
+    "no-environments-results": "No environments information available",
+    "no-categories-results": "No categories results available"
   },
   "severity": {
     "blocker": "blocker",
@@ -116,6 +135,7 @@
     "labels": "Labels",
     "metadata": "Metadata",
     "parameters": "Parameters",
+    "category": "Category",
     "description": "Description",
     "links": "Links",
     "overview": "Overview",

@@ -1,6 +1,6 @@
 import type { TestStepResult } from "@allurereport/core-api";
 import { env } from "node:process";
-import type { TestopsUploaderPluginOptions } from "./model.js";
+import type { TestopsPluginOptions } from "./model.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
   return steps.map((step) => {
@@ -22,9 +22,7 @@ export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[
   });
 };
 
-export const resolvePluginOptions = (
-  options: TestopsUploaderPluginOptions,
-): Omit<TestopsUploaderPluginOptions, "filter"> => {
+export const resolvePluginOptions = (options: TestopsPluginOptions): Omit<TestopsPluginOptions, "filter"> => {
   const { ALLURE_TOKEN, ALLURE_ENDPOINT, ALLURE_PROJECT_ID, ALLURE_LAUNCH_TAGS, ALLURE_LAUNCH_NAME } = env;
   const {
     accessToken = ALLURE_TOKEN,

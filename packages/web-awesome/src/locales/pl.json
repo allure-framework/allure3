@@ -21,7 +21,8 @@
     "results": "Wyniki",
     "globalAttachments": "Globalne Załączniki",
     "globalErrors": "Globalne Błędy",
-    "qualityGates": "Bramy Jakości"
+    "qualityGates": "Bramy Jakości",
+    "categories": "Kategorie"
   },
   "search": {
     "search": "Poszukiwanie",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Niestabilne",
+    "nonFlaky": "Stabilne",
     "retry": "Powtórne",
     "new": "Nowe",
     "fixed": "Naprawione",
     "regressed": "Zaregresowane",
     "malfunctioned": "Uszkodzone",
     "transition": "Przejście",
+    "status": "Status",
+    "severity": "Ważność",
+    "owner": "Właściciel",
+    "layer": "Warstwa",
     "tags": "Tagi",
+    "categories": "Kategorie",
     "goto_filter": "Przejdź do filtra",
     "errors": {
       "max_values_one": "Tylko pierwsza {{count}} wartość jest używana do filtrowania.\nDodatkowe wartości są ignorowane",
@@ -48,7 +55,8 @@
       "fixed": "Pokaż testy, które teraz są udane, ale wcześniej były \"nieudane\" lub \"uszkodzone\"",
       "regressed": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"uszkodzony\" na \"nieudany\"",
       "malfunctioned": "Pokaż wyniki testów, które zmieniły status z \"udany\" lub \"nieudany\" na \"uszkodzony\"",
-      "tags": "Pokaż wyniki testów, które mają określone tagi"
+      "tags": "Pokaż wyniki testów, które mają określone tagi",
+      "categories": "Pokaż wyniki testów, które mają określone kategorie"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "Brak wyników",
+    "no-value": "Brak wartości",
+    "no-value-for": "Brak wartości: {{entity}}",
+    "no-transition": "Brak przejścia",
+    "no-layer": "Brak warstwy",
+    "no-owner": "Brak właściciela",
+    "no-severity": "Brak ważności",
+    "no-status": "Brak statusu",
+    "no-environment": "Brak środowiska",
+    "no-flaky": "Brak niestabilności",
+    "empty-value": "Puste",
     "no-tests-found": "Nie znaleziono wyników",
     "no-message-provided": "Nie podano komunikatu",
     "clear-filters": "Wyczyść filtry",
@@ -92,7 +110,8 @@
     "no-retries-results": "Brak dostępnych informacji o ponownych próbach",
     "no-test-steps-results": "Brak dostępnych informacji o krokach testowych",
     "no-test-case-results": "Brak wyników przypadków testowych",
-    "no-environments-results": "Brak dostępnych informacji o środowiskach"
+    "no-environments-results": "Brak dostępnych informacji o środowiskach",
+    "no-categories-results": "Brak dostępnych wyników kategorii"
   },
   "severity": {
     "blocker": "bloker",
@@ -116,6 +135,7 @@
     "labels": "Labelki",
     "metadata": "Metadane",
     "parameters": "Parametry",
+    "category": "Kategoria",
     "description": "Opis",
     "links": "Linki",
     "overview": "Przegląd",

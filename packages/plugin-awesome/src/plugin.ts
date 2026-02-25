@@ -7,6 +7,7 @@ import {
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
@@ -37,6 +38,7 @@ export class AwesomePlugin implements Plugin {
 
   #generate = async (context: PluginContext, store: AllureStore) => {
     const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
@@ -62,6 +64,16 @@ export class AwesomePlugin implements Plugin {
     await generateAllCharts(this.#writer!, store, this.options, context);
 
     const convertedTrs = await generateTestResults(this.#writer!, store, allTrs);
+
+    applyCategoriesToTestResults(convertedTrs, categories);
+    await generateCategories(this.#writer!, {
+      tests: convertedTrs,
+      categories,
+      environmentCount: environments.length,
+      environments,
+      defaultEnvironment: "default",
+      selectedEnvironmentCount: environments.length,
+    });
     const hasGroupBy = groupBy.length > 0;
 
     await generateTimeline(this.#writer!, convertedTrs, this.options);
@@ -83,6 +95,14 @@ export class AwesomePlugin implements Plugin {
         appendTitlePath,
       });
       await generateNav(this.#writer!, envConvertedTrs, joinReportPath(reportEnvironment, "nav.json"));
+      await generateCategories(this.#writer!, {
+        tests: envConvertedTrs,
+        categories,
+        environmentCount: 1,
+        defaultEnvironment: "default",
+        selectedEnvironmentCount: 1,
+        filename: joinReportPath(reportEnvironment, "categories.json"),
+      });
     }
 
     await generateTreeFilters(this.#writer!, convertedTrs);

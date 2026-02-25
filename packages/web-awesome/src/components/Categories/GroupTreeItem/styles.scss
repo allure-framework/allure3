@@ -1,0 +1,47 @@
+.tree-content {
+  padding-left: 24px;
+}
+
+.tree-item-group {
+  padding: 0;
+}
+
+.tree-item-group :global(.styles_tree-section-title) {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.tree-item-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.tree-item-group-title-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-item-group[data-group-key="flaky"] :global(.styles_tree-section-title) {
+  color: var(--on-support-atlas);
+}
+
+.tree-item-group[data-group-key="transition"] :global(.styles_tree-section-title) {
+  color: var(--on-support-aldebaran);
+}
+
+.tree-item-group[data-group-key="owner"] :global(.styles_tree-section-title) {
+  color: var(--on-support-sirius);
+}
+
+.tree-item-group[data-group-key="layer"] :global(.styles_tree-section-title) {
+  color: var(--on-support-castor);
+}
+

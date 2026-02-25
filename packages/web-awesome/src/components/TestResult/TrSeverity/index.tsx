@@ -10,17 +10,26 @@ const icons: Record<string, string> = {
   normal: allureIcons.lineGeneralEqual,
   minor: allureIcons.lineArrowsChevronDown,
   trivial: allureIcons.lineArrowsChevronDownDouble,
+  none: allureIcons.lineGeneralXClose,
 };
 
-export const TrSeverity = ({ severity = "normal" }: { severity?: string }) => {
+export const TrSeverity = ({
+  severity = "normal",
+  text = "",
+  size = "s",
+}: {
+  severity?: string;
+  text?: string;
+  size?: "s" | "m";
+}) => {
   const { t } = useI18n("severity");
   const statusClass = clsx(styles[`severity-${severity}`]);
 
   return (
     <div className={styles["test-result-severity"]}>
-      <SvgIcon className={statusClass} id={icons[severity]} />
-      <Text size={"s"} bold className={styles["test-result-severity-text"]}>
-        {capitalize(t(severity))}
+      <SvgIcon className={statusClass} id={icons[severity]} size={size} />
+      <Text size={size} bold className={styles["test-result-severity-text"]}>
+        {text || capitalize(t(severity))}
       </Text>
     </div>
   );

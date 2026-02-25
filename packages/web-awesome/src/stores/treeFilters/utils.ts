@@ -108,6 +108,12 @@ export const constructFilterParams = (filters: Filters) => {
     });
   }
 
+  if (filters.categories) {
+    filters.categories.forEach((category) => {
+      params.set(PARAMS.CATEGORIES, category);
+    });
+  }
+
   if (filters.status) {
     params.set(PARAMS.STATUS, filters.status);
   }
@@ -125,6 +131,10 @@ export const isFlakyFilter = (filter: AwesomeFilter): filter is AwesomeBooleanFi
 
 export const isTagFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {
   return filter.type === "field" && filter.value.type === "array" && filter.value.key === "tags";
+};
+
+export const isCategoryFilter = (filter: AwesomeFilter): filter is AwesomeArrayFieldFilter => {
+  return filter.type === "field" && filter.value.type === "array" && filter.value.key === "categories";
 };
 
 export const isTransitionFilter = (filter: AwesomeFilter): filter is AwesomeFilterGroupSimple => {

@@ -1,8 +1,15 @@
 import { For } from "@preact/signals/utils";
 import type { AwesomeFilter } from "@/stores/treeFilters/model";
 import { setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
-import { isFlakyFilter, isRetryFilter, isTagFilter, isTransitionFilter } from "@/stores/treeFilters/utils";
+import {
+  isCategoryFilter,
+  isFlakyFilter,
+  isRetryFilter,
+  isTagFilter,
+  isTransitionFilter,
+} from "@/stores/treeFilters/utils";
 import { BooleanFieldFilter } from "./BaseFilters";
+import { CategoriesFilter } from "./CategoriesFilter";
 import { RetryFlakyFilter } from "./RetryFlaky";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
@@ -26,6 +33,10 @@ const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter
 
   if (isTagFilter(filter)) {
     return <TagsFilter filter={filter} onChange={onChange} />;
+  }
+
+  if (isCategoryFilter(filter)) {
+    return <CategoriesFilter filter={filter} onChange={onChange} />;
   }
 
   return null;

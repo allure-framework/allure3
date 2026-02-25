@@ -601,6 +601,7 @@ __metadata:
     "@types/form-data": "npm:^2.5.2"
     "@types/lodash.chunk": "npm:^4"
     "@types/node": "npm:^20.17.9"
+    "@types/progress": "npm:^2"
     "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitest/runner": "npm:^2.1.9"
@@ -616,6 +617,8 @@ __metadata:
     eslint-plugin-prefer-arrow: "npm:^1.2.3"
     form-data: "npm:^4.0.5"
     lodash.chunk: "npm:^4.2.0"
+    p-limit: "npm:^7.3.0"
+    progress: "npm:^2.0.3"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.9"
@@ -17380,6 +17383,15 @@ __metadata:
   dependencies:
     yocto-queue: "npm:^1.2.1"
   checksum: 10/ea1cae6e8bbf84a65cc832e4d6a802ec34902bfe0da2fba0c6fadb72f0c51d48db67b7fb2df8433dde5f4a970cf482b9c2cb4edbfa8cfadd7f4341c6fdb38a5d
+  languageName: node
+  linkType: hard
+
+"p-limit@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "p-limit@npm:7.3.0"
+  dependencies:
+    yocto-queue: "npm:^1.2.1"
+  checksum: 10/bd3f3487ec84401e2cbf243122eef11813edacb621a27808e60a425646d0e75a79514acc2c01e39c41911550dbae5ef0f0ab01caa61cfc1c541cd17a19e8f01b
   languageName: node
   linkType: hard
 

@@ -1,0 +1,47 @@
+.tree-content {
+  padding-left: 24px;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 12px;
+    width: 1px;
+    background: var(--on-border-muted);
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+}
+
+.tree-item {
+  border-top: 1px solid var(--on-border-muted);
+  // padding-left: 24px;
+
+}
+
+.tree-children {
+  display: contents;
+}
+
+.tree-item-subtree-toggle {
+  flex: 0 0 auto;
+  margin-left: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+:global([data-tree-header]:hover) .tree-item-subtree-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tree-children > [data-tree-content]::before {
+  opacity: 0;
+}
+
+.tree-content:hover::before {
+  opacity: 1;
+}

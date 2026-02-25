@@ -21,7 +21,8 @@
     "results": "결과",
     "globalAttachments": "전역 첨부파일",
     "globalErrors": "전역 오류",
-    "qualityGates": "품질 게이트"
+    "qualityGates": "품질 게이트",
+    "categories": "카테고리"
   },
   "search": {
     "search": "검색",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "불안정함",
+    "nonFlaky": "안정적",
     "retry": "재시도",
     "new": "새로운",
     "fixed": "수정됨",
     "regressed": "퇴행",
     "malfunctioned": "고장",
     "transition": "전환",
+    "status": "상태",
+    "severity": "심각도",
+    "owner": "소유자",
+    "layer": "레이어",
     "tags": "태그",
+    "categories": "카테고리",
     "goto_filter": "필터로 이동",
     "errors": {
       "max_values_one": "필터링에는 첫 번째 {{count}} 값만 사용됩니다.\n추가 값은 무시됩니다",
@@ -48,7 +55,8 @@
       "fixed": "현재 \"통과\"하지만 이전에 \"실패\" 또는 \"손상됨\"이었던 테스트를 표시합니다",
       "regressed": "\"통과\" 또는 \"손상됨\" 상태에서 \"실패\" 상태로 변경된 테스트 결과를 표시합니다",
       "malfunctioned": "\"통과\" 또는 \"실패\" 상태에서 \"손상됨\" 상태로 변경된 테스트 결과를 표시합니다",
-      "tags": "지정된 태그가 있는 테스트 결과를 표시합니다"
+      "tags": "지정된 태그가 있는 테스트 결과를 표시합니다",
+      "categories": "지정된 카테고리가 있는 테스트 결과를 표시합니다"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "결과 없음",
+    "no-value": "값 없음",
+    "no-value-for": "값 없음: {{entity}}",
+    "no-transition": "전환 없음",
+    "no-layer": "레이어 없음",
+    "no-owner": "소유자 없음",
+    "no-severity": "심각도 없음",
+    "no-status": "상태 없음",
+    "no-environment": "환경 없음",
+    "no-flaky": "불안정함 없음",
+    "empty-value": "비어 있음",
     "no-tests-found": "결과를 찾을 수 없음",
     "no-message-provided": "메시지가 제공되지 않음",
     "clear-filters": "필터 지우기",
@@ -92,7 +110,8 @@
     "no-retries-results": "재시도 정보를 사용할 수 없습니다",
     "no-test-steps-results": "테스트 단계 정보가 없습니다",
     "no-test-case-results": "테스트 케이스 결과가 없습니다",
-    "no-environments-results": "환경 정보를 사용할 수 없습니다"
+    "no-environments-results": "환경 정보를 사용할 수 없습니다",
+    "no-categories-results": "사용 가능한 카테고리가 없습니다"
   },
   "severity": {
     "blocker": "차단자",
@@ -116,6 +135,7 @@
     "labels": "레이블",
     "metadata": "메타데이터",
     "parameters": "매개변수",
+    "category": "카테고리",
     "description": "설명",
     "links": "링크",
     "overview": "개요",

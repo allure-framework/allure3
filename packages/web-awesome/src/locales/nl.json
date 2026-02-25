@@ -21,7 +21,8 @@
     "results": "Resultaten",
     "globalAttachments": "Globale Bijlagen",
     "globalErrors": "Globale Fouten",
-    "qualityGates": "Kwaliteitspoorten"
+    "qualityGates": "Kwaliteitspoorten",
+    "categories": "Categorieën"
   },
   "search": {
     "search": "Zoeken",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Onstabiel",
+    "nonFlaky": "Stabiel",
     "retry": "Opnieuw proberen",
     "new": "Nieuw",
     "fixed": "Opgelost",
     "regressed": "Teruggevallen",
     "malfunctioned": "Defect",
     "transition": "Overgang",
+    "status": "Status",
+    "severity": "Ernst",
+    "owner": "Eigenaar",
+    "layer": "Laag",
     "tags": "Tags",
+    "categories": "Categorieën",
     "goto_filter": "Ga naar filter",
     "errors": {
       "max_values_one": "Alleen de eerste {{count}} waarde wordt gebruikt voor filtering.\nAanvullende waarden worden genegeerd",
@@ -48,7 +55,8 @@
       "fixed": "Toont tests die nu geslaagd zijn maar eerder \"mislukt\" of \"gebroken\" waren",
       "regressed": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"gebroken\" naar \"mislukt\" status",
       "malfunctioned": "Toont testresultaten die zijn gewijzigd van \"geslaagd\" of \"mislukt\" naar \"gebroken\" status",
-      "tags": "Toont testresultaten die de opgegeven tags hebben"
+      "tags": "Toont testresultaten die de opgegeven tags hebben",
+      "categories": "Toont testresultaten die de opgegeven categorieën hebben"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "Geen resultaten",
+    "no-value": "Geen waarde",
+    "no-value-for": "Geen waarde: {{entity}}",
+    "no-transition": "Geen overgang",
+    "no-layer": "Geen laag",
+    "no-owner": "Geen eigenaar",
+    "no-severity": "Geen ernst",
+    "no-status": "Geen status",
+    "no-environment": "Geen omgeving",
+    "no-flaky": "Geen instabiliteit",
+    "empty-value": "Leeg",
     "no-tests-found": "Geen resultaten gevonden",
     "no-message-provided": "Geen bericht opgegeven",
     "clear-filters": "Filters wissen",
@@ -92,7 +110,8 @@
     "no-retries-results": "Geen herhalingsinformatie beschikbaar",
     "no-test-steps-results": "Geen informatie over teststappen beschikbaar",
     "no-test-case-results": "Geen testresultaten",
-    "no-environments-results": "Geen informatie over omgevingen beschikbaar"
+    "no-environments-results": "Geen informatie over omgevingen beschikbaar",
+    "no-categories-results": "Geen categorieresultaten beschikbaar"
   },
   "severity": {
     "blocker": "blokkerend",
@@ -116,6 +135,7 @@
     "labels": "Labels",
     "metadata": "Metadata",
     "parameters": "Parameters",
+    "category": "Categorie",
     "description": "Beschrijving",
     "links": "Links",
     "overview": "Overzicht",

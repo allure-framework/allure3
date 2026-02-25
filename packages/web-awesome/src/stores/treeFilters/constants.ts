@@ -10,4 +10,5 @@ export const PARAMS = {
   RETRY: "retry",
   TRANSITION: "transition",
   TAGS: "tags",
+  CATEGORIES: "categories",
 } as const;

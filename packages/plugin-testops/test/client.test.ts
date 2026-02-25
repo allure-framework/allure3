@@ -71,6 +71,41 @@ describe("testops http client", () => {
         () => new TestOpsClient({ accessToken: fixtures.accessToken, projectId: fixtures.projectId, baseUrl: "" }),
       ).toThrow();
     });
+
+    it("should throw an error when limit is greater than 5", () => {
+      expect(
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: fixtures.projectId,
+            baseUrl: fixtures.endpoint,
+            limit: 6,
+          }),
+      ).toThrow("limit can't be greater than 5");
+    });
+
+    it("should not throw when limit is 5 or less", () => {
+      expect(
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: fixtures.projectId,
+            baseUrl: fixtures.endpoint,
+            limit: 5,
+          }),
+      ).not.toThrow();
+    });
+
+    it("should not throw when limit is not provided", () => {
+      expect(
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: fixtures.projectId,
+            baseUrl: fixtures.endpoint,
+          }),
+      ).not.toThrow();
+    });
   });
 
   describe("launchUrl", () => {
@@ -455,6 +490,56 @@ describe("testops http client", () => {
         expect.any(FormData),
         expect.anything(),
       );
+    });
+
+    it("should limit concurrent per-TR uploads to the configured limit", async () => {
+      let concurrentCount = 0;
+      let maxConcurrentCount = 0;
+      const limit = 2;
+
+      AxiosMock.post.mockImplementation(async (url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return { data: { access_token: fixtures.ouathToken } };
+        }
+
+        if (url === "/api/launch") {
+          return { data: fixtures.launch };
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return { data: { id: 1 } };
+        }
+
+        if (url === "/api/upload/test-result") {
+          return { data: { results: fixtures.testOpsResults } };
+        }
+
+        // simulate async work for attachment uploads to make per-TR concurrency observable
+        concurrentCount++;
+        maxConcurrentCount = Math.max(maxConcurrentCount, concurrentCount);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        concurrentCount--;
+
+        return { data: {} };
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+        limit,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: fixtures.testResults,
+        attachmentsResolver: () => Promise.resolve(fixtures.attachments),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
     });
 
     it("should resolve fixtures and upload them", async () => {

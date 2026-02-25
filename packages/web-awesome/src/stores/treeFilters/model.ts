@@ -16,6 +16,7 @@ export type Filters = {
   retry?: boolean;
   transition?: TestStatusTransition[];
   tags?: string[];
+  categories?: string[];
 };
 
 export type AwesomeFieldFilter = FieldFilter<keyof AwesomeTreeLeaf>;
@@ -48,4 +49,5 @@ export type AwesomeBooleanFieldFilter = AwesomeFieldFilter & {
 
 export type TreeFiltersData = {
   tags: string[];
+  categories: string[];
 };

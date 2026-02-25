@@ -21,7 +21,8 @@
     "results": "Resultados",
     "globalAttachments": "Anexos Globais",
     "globalErrors": "Erros Globais",
-    "qualityGates": "Portões de Qualidade"
+    "qualityGates": "Portões de Qualidade",
+    "categories": "Categorias"
   },
   "search": {
     "search": "Pesquisar",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Instável",
+    "nonFlaky": "Estável",
     "retry": "Repetir",
     "new": "Novo",
     "fixed": "Corrigido",
     "regressed": "Regredido",
     "malfunctioned": "Defeituoso",
     "transition": "Transição",
+    "status": "Estado",
+    "severity": "Severidade",
+    "owner": "Proprietário",
+    "layer": "Camada",
     "tags": "Tags",
+    "categories": "Categorias",
     "goto_filter": "Ir para o filtro",
     "errors": {
       "max_values_one": "Apenas o primeiro {{count}} valor é usado para filtragem.\nValores adicionais são ignorados",
@@ -48,7 +55,8 @@
       "fixed": "Mostra testes que agora estão aprovados mas que anteriormente \"falharam\" ou \"quebraram\"",
       "regressed": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"quebrado\" para \"falhou\"",
       "malfunctioned": "Mostra resultados de testes que mudaram de status \"aprovado\" ou \"falhou\" para \"quebrado\"",
-      "tags": "Mostra resultados de testes que têm as tags especificadas"
+      "tags": "Mostra resultados de testes que têm as tags especificadas",
+      "categories": "Mostra resultados de testes que têm as categorias especificadas"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "Sem resultados",
+    "no-value": "Sem valor",
+    "no-value-for": "Sem valor: {{entity}}",
+    "no-transition": "Sem transição",
+    "no-layer": "Sem camada",
+    "no-owner": "Sem proprietário",
+    "no-severity": "Sem severidade",
+    "no-status": "Sem estado",
+    "no-environment": "Sem ambiente",
+    "no-flaky": "Sem instabilidade",
+    "empty-value": "Vazio",
     "no-tests-found": "Nenhum resultado encontrado",
     "no-message-provided": "Nenhuma mensagem fornecida",
     "clear-filters": "Limpar filtros",
@@ -92,7 +110,8 @@
     "no-retries-results": "Nenhuma informação de repetições disponível",
     "no-test-steps-results": "Nenhuma informação disponível sobre as etapas do teste",
     "no-test-case-results": "Nenhum resultado de caso de teste",
-    "no-environments-results": "Nenhuma informação de ambiente disponível"
+    "no-environments-results": "Nenhuma informação de ambiente disponível",
+    "no-categories-results": "Nenhum resultado de categorias disponível"
   },
   "severity": {
     "blocker": "bloqueador",
@@ -116,6 +135,7 @@
     "labels": "Etiquetas",
     "metadata": "Metadados",
     "parameters": "Parâmetros",
+    "category": "Categoria",
     "description": "Descrição",
     "links": "Links",
     "overview": "Visão geral",

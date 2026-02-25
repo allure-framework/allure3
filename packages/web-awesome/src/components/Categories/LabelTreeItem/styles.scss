@@ -1,0 +1,102 @@
+.tree-item-label {
+  padding: 0;
+  border-top: 1px solid var(--on-border-muted);
+}
+
+.tree-item-label-status {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-status-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-transition {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-transition-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-transition-text {
+  font-weight: 600;
+}
+
+.tree-item-label-flaky {
+  :global(.styles_tree-section-title) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tree-item-label-flaky-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-item-label-flaky-text {
+  font-weight: 600;
+}
+
+.tree-item-label-flaky-icon {
+  display: inline-flex;
+  align-items: center;
+  color: currentColor;
+}
+
+.tree-item-label-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.tree-item-label-key {
+  padding: 4px 0;
+}
+
+.tree-item-label-values {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tree-item-label-bubble {
+  background: var(--on-border-primary);
+  border-radius: 4px;
+  padding: 2px 4px;
+  line-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.tree-item-label-icon {
+  margin-right: 2px;
+}
+
+.tree-item-label-transition-icon {
+  display: inline-flex;
+  align-items: center;
+  color: currentColor;
+}
+
+.tree-item-label-value-text {
+  width: max-content;
+  height: max-content;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

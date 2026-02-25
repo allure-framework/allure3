@@ -15,6 +15,11 @@ export const TrTab = (props: { id: string; children: ComponentChildren }) => {
       return;
     }
 
+    if (id === "overview") {
+      navigateToTestResultTab({ testResultId: currentTrId.value, tab: "" });
+      return;
+    }
+
     navigateToTestResultTab({ testResultId: currentTrId.value, tab: id });
   };
 

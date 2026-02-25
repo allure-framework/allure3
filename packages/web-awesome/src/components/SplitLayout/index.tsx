@@ -6,7 +6,7 @@ import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
 import { useI18n } from "@/stores";
-import { testResultRoute } from "@/stores/router";
+import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
@@ -30,7 +30,9 @@ const Loader = () => {
   );
 };
 
-const isTestResultRoute = computed(() => testResultRoute.value.matches);
+const isTestResultRoute = computed(
+  () => testResultRoute.value.matches || Boolean(rootTabRoute.value.params.testResultId),
+);
 
 export const SplitLayout = () => {
   const testResultId = currentTrId.value;

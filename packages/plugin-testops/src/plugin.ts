@@ -9,18 +9,19 @@ import {
   convertToSummaryTestResult,
 } from "@allurereport/plugin-api";
 import { env } from "node:process";
+import ProgressBar from "progress";
 import { TestOpsClient } from "./client.js";
-import type { TestopsUploaderPluginOptions } from "./model.js";
+import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
-export class TestopsUploaderPlugin implements Plugin {
+export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
 
-  constructor(readonly options: TestopsUploaderPluginOptions) {
+  constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
     this.#ci = detect();
@@ -85,9 +86,17 @@ export class TestopsUploaderPlugin implements Plugin {
       await this.#client!.issueOauthToken();
     }
 
+    const progressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
+      total: allTrsWithAttachments.length,
+      width: 20,
+    });
+
+    progressBar.render();
+
     await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
+      onProgress: () => progressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
 

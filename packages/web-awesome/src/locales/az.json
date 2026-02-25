@@ -21,7 +21,8 @@
     "results": "Nəticələr",
     "globalAttachments": "Qlobal Əlavələr",
     "globalErrors": "Qlobal Xətalar",
-    "qualityGates": "Keyfiyyət Darvazaları"
+    "qualityGates": "Keyfiyyət Darvazaları",
+    "categories": "Kateqoriyalar"
   },
   "search": {
     "search": "Axtarış",
@@ -29,13 +30,19 @@
   },
   "filters": {
     "flaky": "Etibarsız",
+    "nonFlaky": "Stabil",
     "retry": "Təkrar",
     "new": "Yeni",
     "fixed": "Düzəldilmiş",
     "regressed": "Reqressiya",
     "malfunctioned": "Sınıq",
     "transition": "Keçid",
+    "status": "Status",
+    "severity": "Ciddilik",
+    "owner": "Sahib",
+    "layer": "Qat",
     "tags": "Teqlər",
+    "categories": "Kateqoriyalar",
     "goto_filter": "Filtre keç",
     "errors": {
       "max_values_one": "Filtrasiya üçün yalnız ilk {{count}} dəyər istifadə olunur.\nƏlavə dəyərlər nəzərə alınmır",
@@ -48,7 +55,8 @@
       "fixed": "İndi uğurlu olan, əvvəl \"uğursuz\" və ya \"sınıq\" olan testləri göstərir",
       "regressed": "Statusu \"uğursuz\" olan, əvvəl \"uğurlu\" və ya \"sınıq\" olan test nəticələrini göstərir",
       "malfunctioned": "Statusu \"sınıq\" olan, əvvəl \"uğurlu\" və ya \"uğursuz\" olan test nəticələrini göstərir",
-      "tags": "Müəyyən edilmiş teqləri olan test nəticələrini göstərir"
+      "tags": "Müəyyən edilmiş teqləri olan test nəticələrini göstərir",
+      "categories": "Müəyyən edilmiş kateqoriyaları olan test nəticələrini göstərir"
     }
   },
   "sort-by": {
@@ -82,6 +90,16 @@
   },
   "empty": {
     "no-results": "Nəticə tapılmadı",
+    "no-value": "Dəyər yoxdur",
+    "no-value-for": "Dəyər yoxdur: {{entity}}",
+    "no-transition": "Keçid yoxdur",
+    "no-layer": "Qat yoxdur",
+    "no-owner": "Sahib yoxdur",
+    "no-severity": "Ciddilik yoxdur",
+    "no-status": "Status yoxdur",
+    "no-environment": "Mühit yoxdur",
+    "no-flaky": "Etibarsızlıq yoxdur",
+    "empty-value": "Boş",
     "no-tests-found": "Nəticə tapılmadı",
     "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
@@ -92,7 +110,8 @@
     "no-retries-results": "Təkrar məlumatı mövcud deyil",
     "no-test-steps-results": "Test addımları haqqında məlumat mövcud deyil",
     "no-test-case-results": "Test halları haqqında nəticələr yoxdur",
-    "no-environments-results": "Mühitlər haqqında məlumat mövcud deyil"
+    "no-environments-results": "Mühitlər haqqında məlumat mövcud deyil",
+    "no-categories-results": "Kateqoriyalar mövcud deyil"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -116,6 +135,7 @@
     "labels": "Etiketlər",
     "metadata": "Metaməlumat",
     "parameters": "Parametrlər",
+    "category": "Kateqoriya",
     "description": "Təsvir",
     "links": "Keçidlər",
     "overview": "Ümumi baxış",

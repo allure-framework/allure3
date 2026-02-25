@@ -3,6 +3,7 @@ import type { AxiosInstance } from "axios";
 import axios from "axios";
 import FormData from "form-data";
 import chunk from "lodash.chunk";
+import pLimit from "p-limit";
 import type { TestOpsLaunch, TestOpsSession } from "./model.js";
 
 export class TestOpsClient {
@@ -13,8 +14,9 @@ export class TestOpsClient {
   #launch?: TestOpsLaunch;
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
+  #uploadLimit: number = 1;
 
-  constructor(params: { baseUrl: string; projectId: string; accessToken: string }) {
+  constructor(params: { baseUrl: string; projectId: string; accessToken: string; limit?: number }) {
     if (!params.accessToken) {
       throw new Error("accessToken is required");
     }
@@ -27,12 +29,20 @@ export class TestOpsClient {
       throw new Error("baseUrl is required");
     }
 
+    if (params.limit && params.limit > 5) {
+      throw new Error("limit can't be greater than 5");
+    }
+
     this.#accessToken = params.accessToken;
     this.#projectId = params.projectId;
     this.#client = axios.create({
       baseURL: params.baseUrl,
       validateStatus: (status) => status >= 200 && status < 400,
     });
+
+    if (params.limit) {
+      this.#uploadLimit = params.limit;
+    }
   }
 
   get launchUrl() {
@@ -156,13 +166,15 @@ export class TestOpsClient {
     trs: TestResult[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
+    onProgress?: () => void;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, attachmentsResolver, fixturesResolver } = params;
+    const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, 100);
+    const uploadLimitFn = pLimit(this.#uploadLimit);
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
@@ -189,48 +201,52 @@ export class TestOpsClient {
         );
 
         await Promise.all(
-          trsChunk.map(async (tr) => {
-            const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
-            const attachments = await attachmentsResolver(tr);
-            const fixtures = await fixturesResolver(tr);
+          trsChunk.map((tr) =>
+            uploadLimitFn(async () => {
+              const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
+              const attachments = await attachmentsResolver(tr);
+              const fixtures = await fixturesResolver(tr);
 
-            if (attachments.length > 0) {
-              const attachmentsChunks = chunk(attachments, 100);
+              if (attachments.length > 0) {
+                const attachmentsChunks = chunk(attachments, 100);
 
-              await Promise.all(
-                attachmentsChunks.map(async (attachmentsChunk) => {
-                  const formData = new FormData();
+                await Promise.all(
+                  attachmentsChunks.map(async (attachmentsChunk) => {
+                    const formData = new FormData();
 
-                  attachmentsChunk.forEach((attachment: any) => {
-                    formData.append("file", attachment.content, {
-                      filename: attachment.originalFileName,
-                      contentType: attachment.contentType,
+                    attachmentsChunk.forEach((attachment: any) => {
+                      formData.append("file", attachment.content, {
+                        filename: attachment.originalFileName,
+                        contentType: attachment.contentType,
+                      });
                     });
-                  });
-                  await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
+                    await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
+                      headers: {
+                        Authorization: `Bearer ${this.#oauthToken}`,
+                        ...formData.getHeaders(),
+                      },
+                    });
+                  }),
+                );
+              }
+
+              if (fixtures.length > 0) {
+                await this.#client.post(
+                  `/api/upload/test-result/${trTestOpsId}/test-fixture-result`,
+                  {
+                    fixtures,
+                  },
+                  {
                     headers: {
                       Authorization: `Bearer ${this.#oauthToken}`,
-                      ...formData.getHeaders(),
                     },
-                  });
-                }),
-              );
-            }
-
-            if (fixtures.length > 0) {
-              await this.#client.post(
-                `/api/upload/test-result/${trTestOpsId}/test-fixture-result`,
-                {
-                  fixtures,
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${this.#oauthToken}`,
                   },
-                },
-              );
-            }
-          }),
+                );
+              }
+
+              onProgress?.();
+            }),
+          ),
         );
       }),
     );

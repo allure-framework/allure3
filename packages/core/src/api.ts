@@ -1,4 +1,5 @@
 import type {
+  CategoriesConfig,
   DefaultLabelsConfig,
   EnvironmentsConfig,
   KnownTestFailure,
@@ -55,6 +56,7 @@ export interface FullConfig {
   known?: KnownTestFailure[];
   realTime?: any;
   qualityGate?: QualityGateConfig;
+  categories?: CategoriesConfig;
   allureService?: {
     accessToken?: string;
   };

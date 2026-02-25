@@ -17,8 +17,42 @@
   transition: background-color 300ms;
   cursor: pointer;
   padding: 4px 8px 4px 6px;
+  position: var(--tree-section-position, relative);
+  top: var(--tree-section-top, auto);
+  z-index: var(--tree-section-z, auto);
+  background: var(--tree-section-bg);
+  min-height: var(--tree-section-min-height, auto);
+  box-sizing: border-box;
 
-  &:hover {
+  > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
+    pointer-events: none;
+    transition: background-color 300ms;
+  }
+
+  &:hover::before {
+    background: var(--tree-section-bg);
+  }
+
+  &:hover::after {
     background: var(--bg-control-flat-medium);
   }
 }
@@ -28,6 +62,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 24px;
+  flex-grow: 1;
 }
 
 .tree-count {
