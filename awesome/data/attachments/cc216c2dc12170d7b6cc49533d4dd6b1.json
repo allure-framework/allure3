@@ -1,0 +1,19 @@
+{
+  "id": "820f4d9b08cd5dc8b46c64d4b8e5247b",
+  "name": "Unknown test",
+  "status": "unknown",
+  "error": {},
+  "flaky": false,
+  "muted": false,
+  "known": false,
+  "hidden": false,
+  "labels": [],
+  "steps": [],
+  "parameters": [],
+  "links": [],
+  "sourceMetadata": {
+    "readerId": "convert.test.ts",
+    "metadata": {}
+  },
+  "titlePath": []
+}
