@@ -153,6 +153,8 @@
     "at": "vid",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
+    "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
   },

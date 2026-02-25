@@ -153,6 +153,8 @@
     "at": "в",
     "variables": "Змінні",
     "openPwTrace": "Відкрити Playwright Trace",
+    "pwTracePopupBlocked": "Браузер заблокував відкриття Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})"
   },

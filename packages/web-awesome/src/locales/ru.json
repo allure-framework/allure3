@@ -153,6 +153,8 @@
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
+    "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
   },
