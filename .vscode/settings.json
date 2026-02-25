@@ -9,5 +9,6 @@
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "oxc.enable": true,
   "oxc.typeAware": true,
-  "eslint.enable": false
+  "eslint.enable": false,
+  "typescript.experimental.useTsgo": false
 }

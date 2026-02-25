@@ -99,6 +99,7 @@ const getChartWidgetByType = (
           data={chartData.data}
           keys={chartData.keys}
           i18n={(key, props = {}) => t(`stabilityDistribution.${key}`, props)}
+          threshold={chartData.threshold}
         />
       );
     }

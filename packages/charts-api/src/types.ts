@@ -398,6 +398,18 @@ export type StabilityDistributionChartOptions = {
   type: ChartType.StabilityDistribution;
   title?: string;
   /**
+   * Limit of history data points to be used for the chart
+   *
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Stabilization period: number of consecutive same statuses that reset the stability score
+   *
+   * @default 5
+   */
+  stabilizationPeriod?: number;
+  /**
    * Threshold for the stability rate
    *
    * if the stability rate is less than the threshold,
