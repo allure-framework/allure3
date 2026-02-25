@@ -54,6 +54,9 @@ export const generateStatusAgePyramid = (props: {
       statuses: STATUSES,
     };
   }
+
+  const currTrIds = new Set(testResults.map((tr) => tr.historyId ?? tr.id));
+
   const hdps = limitedHistoryPoints.map((datapoint) => ({
     ...datapoint,
     testResults: Object.values(datapoint.testResults).reduce(
@@ -62,7 +65,7 @@ export const generateStatusAgePyramid = (props: {
           return acc;
         }
 
-        const isInCurrentRun = testResults.findIndex((tr) => tr.historyId === testResult.historyId) !== -1;
+        const isInCurrentRun = currTrIds.has(testResult.historyId);
 
         // Skip all tests that are not in the current run
         if (isInCurrentRun) {
