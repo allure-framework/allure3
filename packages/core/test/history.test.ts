@@ -501,8 +501,8 @@ describe("AllureLocalHistory", () => {
       const secondRead = await history.readHistory();
 
       expect(secondRead).toEqual([
-        expect.objectContaining({ name: "New entry" }),
         expect.objectContaining({ name: "Entry 1" }),
+        expect.objectContaining({ name: "New entry" }),
       ]);
     });
   });

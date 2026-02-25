@@ -159,7 +159,7 @@ export class AllureLocalHistory implements AllureHistory {
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {
-        this.#cachedHistory.unshift(data);
+        this.#cachedHistory.push(data);
       }
 
       if (limit) {
