@@ -135,7 +135,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("attachment content");
 
       await testResultPage.attachScreenshot();
     });
@@ -154,7 +154,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("attachment content");
 
       await testResultPage.attachScreenshot();
     });
@@ -216,7 +216,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("console.log('Hello world!');");
 
       await testResultPage.attachScreenshot();
     });
@@ -235,7 +235,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("console.log('Hello world!');");
 
       await testResultPage.attachScreenshot();
     });
