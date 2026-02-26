@@ -144,7 +144,17 @@ export class TestResultPage extends CommonPage {
       has: this.page.getByText(title, { exact: true }),
     });
 
-    await locator.nth(0).getByTestId("test-result-step-arrow-button").click();
+    await locator.nth(0).waitFor({ state: "visible" });
+    await locator.nth(0).getByTestId("test-result-step-header").click();
+  }
+
+  async expandStepByTitle(title: string) {
+    await this.toggleStepByTitle(title);
+    try {
+      await this.testResultAttachmentLocator.first().waitFor({ state: "visible", timeout: 2000 });
+    } catch {
+      await this.toggleStepByTitle(title);
+    }
   }
 
   async toggleAttachmentByTitle(title: string) {

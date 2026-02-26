@@ -68,7 +68,7 @@ test.describe("attachments", () => {
 
     test('should render "missed" label for attachments which don\'t exist', async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
       await expect(
@@ -128,7 +128,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
@@ -209,7 +209,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
@@ -292,7 +292,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
@@ -373,7 +373,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 

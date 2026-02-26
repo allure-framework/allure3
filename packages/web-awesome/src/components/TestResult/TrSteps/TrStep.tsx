@@ -59,7 +59,7 @@ export const TrStep: FunctionComponent<{
 
   return (
     <div data-testid={"test-result-step"} className={styles["test-result-step"]}>
-      <div className={styles["test-result-step-header"]} onClick={handleClick}>
+      <div data-testid={"test-result-step-header"} className={styles["test-result-step-header"]} onClick={handleClick}>
         {!hasContent ? (
           <div className={styles["test-result-strut"]} />
         ) : (
