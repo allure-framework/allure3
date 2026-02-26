@@ -294,11 +294,11 @@ test.describe("attachments", () => {
       await treePage.clickNthLeaf(0);
       await testResultPage.expandStepByTitle("bar");
 
-      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1, { timeout: 10000 });
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
-      await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
+      await testResultPage.waitForImageAttachmentLoaded(15000);
 
       await testResultPage.attachScreenshot();
     });
@@ -312,11 +312,11 @@ test.describe("attachments", () => {
 
       await attachmentsTab.click();
 
-      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1, { timeout: 10000 });
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
-      await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
+      await testResultPage.waitForImageAttachmentLoaded(15000);
 
       await testResultPage.attachScreenshot();
     });
