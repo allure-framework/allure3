@@ -72,6 +72,8 @@ export const createHistory = (
 };
 
 export class AllureLocalHistory implements AllureHistory {
+  #cachedHistory: HistoryDataPoint[] = [];
+
   constructor(
     private readonly params: {
       historyPath: string;
@@ -80,9 +82,13 @@ export class AllureLocalHistory implements AllureHistory {
   ) {}
 
   async readHistory() {
-    const fullPath = path.resolve(this.params.historyPath);
+    if (this.#cachedHistory.length > 0) {
+      return this.#cachedHistory;
+    }
 
+    const fullPath = path.resolve(this.params.historyPath);
     const historyFile = await this.#openFileToReadIfExists(fullPath);
+
     if (historyFile === undefined) {
       return [];
     }
@@ -90,19 +96,22 @@ export class AllureLocalHistory implements AllureHistory {
     try {
       const start = await this.#findFirstEntryAddress(historyFile, this.params.limit);
       const stream = historyFile.createReadStream({ start, encoding: "utf-8", autoClose: false });
-
       const historyPoints: HistoryDataPoint[] = [];
       const readlineInterface = readline
         .createInterface({ input: stream, terminal: false, crlfDelay: Infinity })
         .on("line", (line) => {
           if (line && line.trim().length) {
             const historyEntry = JSON.parse(line);
+
             historyPoints.push(historyEntry);
           }
         });
 
       await once(readlineInterface, "close");
-      return historyPoints;
+
+      this.#cachedHistory = historyPoints;
+
+      return this.#cachedHistory;
     } finally {
       await historyFile.close();
     }
@@ -120,24 +129,42 @@ export class AllureLocalHistory implements AllureHistory {
     try {
       const dst = historyFile.createWriteStream({ encoding: "utf-8", start: 0, autoClose: false });
 
-      if (limit !== 0) {
-        if (historyExists) {
-          // Move up to `limit-1` most recent entries to the beginning of the file
-          const start = limit ? await this.#findFirstEntryAddress(historyFile, limit - 1) : 0;
-          const src = historyFile.createReadStream({ start, autoClose: false });
-          await pipeline(src, dst, { end: false });
-        }
-
-        // Append a new entry; the total number is up to `limit`.
-        const sources = [JSON.stringify(data), Buffer.from([0x0a])];
-        await pipeline(sources, dst);
+      if (limit === 0 && historyExists) {
+        await historyFile.truncate(0);
+        return;
       }
+
+      if (limit === 0 && !historyExists) {
+        return;
+      }
+
+      if (historyExists) {
+        // move up to `limit-1` most recent entries to the beginning of the file
+        const start = await this.#findFirstEntryAddress(historyFile, limit ? limit - 1 : undefined);
+        const src = historyFile.createReadStream({ start, autoClose: false });
+
+        await pipeline(src, dst, { end: false });
+      }
+
+      // append a new entry; the total number is up to `limit`.
+      const sources = [JSON.stringify(data), Buffer.from([0x0a])];
+
+      await pipeline(sources, dst);
 
       if (historyExists) {
         await historyFile.truncate(dst.bytesWritten);
       }
     } finally {
       await historyFile.close();
+
+      // in case when limit is undefined – the history is unlimited, so we need to add the point too
+      if (limit !== 0) {
+        this.#cachedHistory.push(data);
+      }
+
+      if (limit) {
+        this.#cachedHistory.splice(limit);
+      }
     }
   }
 

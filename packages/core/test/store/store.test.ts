@@ -310,6 +310,105 @@ describe("test results", () => {
   });
 });
 
+describe("allNewTestResults", () => {
+  const historyId = `${md5("test1")}.${md5("")}`;
+  const createHistoryDataPoint = (testResultKeys: string[]): HistoryDataPoint => ({
+    uuid: "dp-1",
+    name: "history point",
+    timestamp: 1,
+    knownTestCaseIds: [],
+    testResults: Object.fromEntries(
+      testResultKeys.map((key) => [key, { id: key, name: key, status: "passed" as const, url: "", historyId: key }]),
+    ),
+    metrics: {},
+    url: "",
+  });
+
+  it("should return empty array when no history exists", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([]);
+  });
+
+  it("should return all test results when history exists but is empty", async () => {
+    const store = new DefaultAllureStore({ history: new AllureTestHistory([]) });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+
+  it("should return empty array when test result exists in history", async () => {
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+    });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([]);
+  });
+
+  it("should return test result when it is not in history", async () => {
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([createHistoryDataPoint(["other-history-id"])]),
+    });
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+
+  it("should use provided history argument over stored history", async () => {
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([createHistoryDataPoint([historyId])]),
+    });
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults(undefined, []);
+
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+
+  it("should return all test results when no filter is given", async () => {
+    const store = new DefaultAllureStore({ history: new AllureTestHistory([]) });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+
+  it("should apply filter when given", async () => {
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([createHistoryDataPoint(["other-history-id"])]),
+    });
+
+    await store.readHistory();
+    await store.visitTestResult({ name: "tr1", testId: "test1" }, { readerId });
+
+    const noMatch = await store.allNewTestResults((tr) => tr.name === "no match");
+    const match = await store.allNewTestResults((tr) => tr.name === "tr1");
+
+    expect(noMatch).toEqual([]);
+    expect(match).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+});
+
 describe("attachments", () => {
   it("should index test result attachments", async () => {
     const store = new DefaultAllureStore();

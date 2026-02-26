@@ -6,7 +6,7 @@ import {
   type Plugin,
   type PluginContext,
   type PluginSummary,
-  convertToSummaryTestResult,
+  createPluginSummary,
 } from "@allurereport/plugin-api";
 import { env } from "node:process";
 import ProgressBar from "progress";
@@ -190,30 +190,19 @@ export class TestopsPlugin implements Plugin {
       return undefined;
     }
 
-    const allTrs = (await store.allTestResults()).filter((tr) =>
-      this.options.filter ? this.options.filter(tr) : true,
-    );
-    const newTrs = await store.allNewTestResults();
-    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
-    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
-    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
-    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-
     return {
-      name: this.#launchName,
+      ...(await createPluginSummary({
+        name: this.#launchName,
+        plugin: "TestOps",
+        meta: {
+          reportId: context.reportUuid,
+        },
+        filter: this.options.filter,
+        history: context.history,
+        ci: context.ci,
+        store,
+      })),
       remoteHref: this.#client.launchUrl,
-      stats: await store.testsStatistic(this.options.filter),
-      status: worstStatus ?? "passed",
-      duration,
-      createdAt,
-      plugin: "Awesome",
-      newTests: newTrs.map(convertToSummaryTestResult),
-      flakyTests: flakyTrs.map(convertToSummaryTestResult),
-      retryTests: retryTrs.map(convertToSummaryTestResult),
-      meta: {
-        reportId: context.reportUuid,
-      },
     };
   }
 }

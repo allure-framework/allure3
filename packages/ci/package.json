@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/ci",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Utilities set to get useful report data from different CI",
   "keywords": [
     "allure",

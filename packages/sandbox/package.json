@@ -1,6 +1,6 @@
 {
   "name": "sandbox",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "private": true,
   "description": "A package to test another Allure Report packages in action",
   "keywords": [],

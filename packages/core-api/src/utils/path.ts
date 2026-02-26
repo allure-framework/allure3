@@ -1,6 +1,6 @@
 export const toPosixPath = (path: string) => path.replace(/\\/g, "/");
 
-export const joinReportPath = (...parts: string[]) => {
+export const joinPosixPath = (...parts: string[]) => {
   const segments = parts.map(toPosixPath).join("/").split("/");
   const nonEmptySegments: string[] = [];
 
@@ -12,5 +12,3 @@ export const joinReportPath = (...parts: string[]) => {
 
   return nonEmptySegments.join("/");
 };
-
-export const getPosixPath = toPosixPath;

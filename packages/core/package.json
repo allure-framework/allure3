@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/core",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Collection of generic Allure utilities used across the entire project",
   "keywords": [
     "allure"
