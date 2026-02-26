@@ -11,14 +11,26 @@ import { TrPwTraces } from "@/components/TestResult/TrPwTraces";
 import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
+import { currentTrId } from "@/stores/testResult";
 
 export type TrOverviewProps = {
   testResult?: AwesomeTestResult;
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
-  const { error, parameters, groupedLabels, links, descriptionHtml, setup, steps, teardown, id, status } =
-    testResult || {};
+  const {
+    error,
+    parameters,
+    groupedLabels,
+    links,
+    descriptionHtml,
+    setup,
+    steps,
+    teardown,
+    id: testResultId,
+    status,
+  } = testResult || {};
+  const id = testResultId ?? currentTrId.value;
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
@@ -32,10 +44,12 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
         </div>
       )}
       {Boolean(pwTraces.length) && <TrPwTraces pwTraces={pwTraces} />}
-      {Boolean(parameters?.length) && <TrParameters parameters={parameters} />}
-      {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && <TrMetadata testResult={testResult} />}
-      {Boolean(links?.length) && <TrLinks links={links} />}
-      {Boolean(descriptionHtml) && <TrDescription descriptionHtml={descriptionHtml} />}
+      {Boolean(parameters?.length) && <TrParameters id={id} parameters={parameters} />}
+      {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
+        <TrMetadata id={id} testResult={testResult} />
+      )}
+      {Boolean(links?.length) && <TrLinks id={id} links={links} />}
+      {Boolean(descriptionHtml) && <TrDescription id={id} descriptionHtml={descriptionHtml} />}
       <div className={styles["test-results"]}>
         {isNoSteps && <TestStepsEmpty />}
         {Boolean(setup?.length) && <TrSetup id={id} setup={setup} />}

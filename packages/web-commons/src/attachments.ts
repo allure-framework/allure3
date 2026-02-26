@@ -120,6 +120,104 @@ export type AttachmentType =
   | "archive"
   | "image-diff";
 
+export const PREVIEWABLE_CONTENT_TYPES = [
+  "text/html",
+  "text/csv",
+  "text/markdown",
+  "text/tab-separated-values",
+  "text/uri-list",
+] as const;
+
+export const isPreviewableContentType = (type?: string): boolean =>
+  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type);
+
+const SYNTAX_HIGHLIGHTABLE_EXTENSIONS = new Set([
+  "js",
+  "mjs",
+  "cjs",
+  "jsx",
+  "ts",
+  "mts",
+  "cts",
+  "tsx",
+  "json",
+  "html",
+  "htm",
+  "xml",
+  "css",
+  "csv",
+  "tsv",
+  "md",
+  "markdown",
+  "yaml",
+  "yml",
+  "java",
+  "py",
+  "rb",
+  "go",
+  "php",
+  "sql",
+  "kt",
+  "swift",
+  "rs",
+  "c",
+  "cpp",
+  "cs",
+  "scala",
+  "dart",
+  "lua",
+  "haskell",
+  "r",
+  "perl",
+]);
+
+const pickExtension = (...parts: (string | undefined)[]) => {
+  for (const part of parts) {
+    if (!part) {
+      continue;
+    }
+    const cleaned = part.replace(/^\./, "").toLowerCase();
+    if (cleaned.includes(".")) {
+      const fromName = /\.([a-z0-9]+)$/i.exec(cleaned)?.[1];
+      if (fromName) {
+        return fromName.toLowerCase();
+      }
+      continue;
+    }
+    return cleaned;
+  }
+  return undefined;
+};
+
+export const isSyntaxHighlightSupported = (payload?: {
+  contentType?: string;
+  ext?: string;
+  name?: string;
+  originalFileName?: string;
+}): boolean => {
+  if (!payload) {
+    return false;
+  }
+
+  const contentType = payload.contentType?.toLowerCase();
+  const ext = pickExtension(payload.ext, payload.name, payload.originalFileName);
+
+  if (contentType === "text/plain" || contentType === "text/*" || contentType === "text/uri-list") {
+    return false;
+  }
+
+  if (contentType === "text/markdown") {
+    return true;
+  }
+
+  const type = attachmentType(contentType);
+  if (type === "code" || type === "html" || type === "table") {
+    return true;
+  }
+
+  return !!ext && SYNTAX_HIGHLIGHTABLE_EXTENSIONS.has(ext);
+};
+
 export const attachmentType = (type?: string): AttachmentType | null => {
   switch (type) {
     case "image/bmp":
