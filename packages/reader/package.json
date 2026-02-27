@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Collection of utilities which helps to process different kind of test results as Allure Results",
   "keywords": [
     "allure",

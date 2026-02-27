@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-components",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",

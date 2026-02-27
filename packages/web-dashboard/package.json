@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-dashboard",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "The static files for Allure Dashboard Report",
   "keywords": [
     "allure",

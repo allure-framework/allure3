@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/directory-watcher",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "File system watcher for directories",
   "keywords": [
     "allure",

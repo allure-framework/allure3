@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-summary",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "The static files for Allure Report Summary",
   "keywords": [
     "allure",
