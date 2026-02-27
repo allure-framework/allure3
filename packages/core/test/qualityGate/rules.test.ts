@@ -394,12 +394,12 @@ describe("allTestsContainEnvRule", () => {
 });
 
 describe("environmentsTestedRule", () => {
-  const state: QualityGateRuleState<string[]> = {
-    getResult: () => undefined,
-    setResult: () => {},
-  };
-
   it("should pass when all required environments are present in the run", async () => {
+    const state: QualityGateRuleState<string[]> = {
+      getResult: () => undefined,
+      setResult: () => {},
+    };
+
     const testResults: TestResult[] = [
       createTestResult("1", "passed", undefined, undefined, "staging"),
       createTestResult("2", "passed", undefined, undefined, "prod"),
@@ -416,6 +416,11 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should fail when some required environments are missing", async () => {
+    const state: QualityGateRuleState<string[]> = {
+      getResult: () => undefined,
+      setResult: () => {},
+    };
+
     const testResults: TestResult[] = [
       createTestResult("1", "passed", undefined, undefined, "staging"),
       createTestResult("2", "passed", undefined, undefined, "staging"),
@@ -432,6 +437,11 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should fail when all required environments are missing", async () => {
+    const state: QualityGateRuleState<string[]> = {
+      getResult: () => undefined,
+      setResult: () => {},
+    };
+
     const testResults: TestResult[] = [createTestResult("1", "passed", undefined, undefined, "dev")];
     const result = await environmentsTestedRule.validate({
       trs: testResults,
@@ -445,6 +455,11 @@ describe("environmentsTestedRule", () => {
   });
 
   it("should pass when expected list is empty", async () => {
+    const state: QualityGateRuleState<string[]> = {
+      getResult: () => undefined,
+      setResult: () => {},
+    };
+
     const result = await environmentsTestedRule.validate({
       trs: [createTestResult("1", "passed", undefined, undefined, "staging")],
       expected: [],
@@ -454,5 +469,53 @@ describe("environmentsTestedRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toEqual([]);
+  });
+
+  it("should accumulate tested environments across multiple batches using state", async () => {
+    let stored: string[] | undefined;
+    const setState = vi.fn((value: string[]) => {
+      stored = value;
+    });
+
+    const state: QualityGateRuleState<string[]> = {
+      getResult: () => stored,
+      setResult: setState,
+    };
+
+    const expected = ["staging", "prod"];
+
+    // First batch: only "staging" is present, so rule should fail
+    const firstBatch: TestResult[] = [
+      createTestResult("1", "passed", undefined, undefined, "staging"),
+      createTestResult("2", "passed", undefined, undefined, "staging"),
+    ];
+
+    const firstResult = await environmentsTestedRule.validate({
+      trs: firstBatch,
+      expected,
+      knownIssues: [],
+      state,
+    });
+
+    expect(firstResult.success).toBe(false);
+    expect(firstResult.actual).toEqual(["prod"]);
+    expect(setState).toHaveBeenLastCalledWith(["staging"]);
+
+    // Second batch: only "prod" is present, but state already contains "staging"
+    const secondBatch: TestResult[] = [
+      createTestResult("3", "passed", undefined, undefined, "prod"),
+      createTestResult("4", "passed", undefined, undefined, "prod"),
+    ];
+
+    const secondResult = await environmentsTestedRule.validate({
+      trs: secondBatch,
+      expected,
+      knownIssues: [],
+      state,
+    });
+
+    expect(secondResult.success).toBe(true);
+    expect(secondResult.actual).toEqual([]);
+    expect(setState).toHaveBeenLastCalledWith(expect.arrayContaining(["staging", "prod"]));
   });
 });

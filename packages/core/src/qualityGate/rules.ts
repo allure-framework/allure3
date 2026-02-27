@@ -95,10 +95,14 @@ export const environmentsTestedRule: QualityGateRule<string[]> = {
   rule: "environmentsTested",
   message: ({ actual, expected }) =>
     `The following environments were not tested: "${actual.join('", "')}"; expected all of: "${expected.join('", "')}"`,
-  validate: async ({ trs, expected }) => {
-    const testedEnvs = new Set(
-      trs.map((tr) => tr.environment).filter((env): env is string => env != null && env !== ""),
-    );
+  validate: async ({ trs, expected, state }) => {
+    const previouslyTested = new Set(state.getResult() ?? []);
+    const batchTested = trs.map((tr) => tr.environment).filter((env): env is string => env != null && env !== "");
+
+    const testedEnvs = new Set([...previouslyTested, ...batchTested]);
+
+    state.setResult([...testedEnvs]);
+
     const missing = expected.filter((env) => !testedEnvs.has(env));
 
     return {
