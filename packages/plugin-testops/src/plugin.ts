@@ -6,21 +6,22 @@ import {
   type Plugin,
   type PluginContext,
   type PluginSummary,
-  convertToSummaryTestResult,
+  createPluginSummary,
 } from "@allurereport/plugin-api";
 import { env } from "node:process";
+import ProgressBar from "progress";
 import { TestOpsClient } from "./client.js";
-import type { TestopsUploaderPluginOptions } from "./model.js";
+import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
-export class TestopsUploaderPlugin implements Plugin {
+export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
 
-  constructor(readonly options: TestopsUploaderPluginOptions) {
+  constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
     this.#ci = detect();
@@ -85,9 +86,17 @@ export class TestopsUploaderPlugin implements Plugin {
       await this.#client!.issueOauthToken();
     }
 
+    const progressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
+      total: allTrsWithAttachments.length,
+      width: 20,
+    });
+
+    progressBar.render();
+
     await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
+      onProgress: () => progressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
 
@@ -181,30 +190,19 @@ export class TestopsUploaderPlugin implements Plugin {
       return undefined;
     }
 
-    const allTrs = (await store.allTestResults()).filter((tr) =>
-      this.options.filter ? this.options.filter(tr) : true,
-    );
-    const newTrs = await store.allNewTestResults();
-    const retryTrs = allTrs.filter((tr) => !!tr?.retries?.length);
-    const flakyTrs = allTrs.filter((tr) => !!tr?.flaky);
-    const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
-    const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
-    const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-
     return {
-      name: this.#launchName,
+      ...(await createPluginSummary({
+        name: this.#launchName,
+        plugin: "TestOps",
+        meta: {
+          reportId: context.reportUuid,
+        },
+        filter: this.options.filter,
+        history: context.history,
+        ci: context.ci,
+        store,
+      })),
       remoteHref: this.#client.launchUrl,
-      stats: await store.testsStatistic(this.options.filter),
-      status: worstStatus ?? "passed",
-      duration,
-      createdAt,
-      plugin: "Awesome",
-      newTests: newTrs.map(convertToSummaryTestResult),
-      flakyTests: flakyTrs.map(convertToSummaryTestResult),
-      retryTests: retryTrs.map(convertToSummaryTestResult),
-      meta: {
-        reportId: context.reportUuid,
-      },
     };
   }
 }

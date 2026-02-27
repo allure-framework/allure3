@@ -7,11 +7,12 @@ export type TestopsUploaderOptions = {
   launchName: string;
   launchTags: string[];
   filter?: (testResult: TestResult) => boolean;
+  limit?: number;
 };
 
 export type TemplateManifest = Record<string, string>;
 
-export type TestopsUploaderPluginOptions = TestopsUploaderOptions;
+export type TestopsPluginOptions = TestopsUploaderOptions;
 
 export type TestOpsSession = {
   id: number;

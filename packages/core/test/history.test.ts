@@ -226,6 +226,7 @@ describe("AllureLocalHistory", () => {
         .split("\n")
         .filter(Boolean)
         .map((line) => JSON.parse(line).name);
+
       expect(actualNames).toEqual(expectedNames);
     };
 
@@ -425,6 +426,84 @@ describe("AllureLocalHistory", () => {
           });
         });
       });
+    });
+  });
+
+  describe("cache", () => {
+    let historyPath: string;
+    let entry: HistoryDataPoint;
+
+    beforeEach(async () => {
+      historyPath = join(tmpdir(), randomUUID());
+      const oneEntryHistoryPath = getDataPath("one-entry.jsonl");
+      const line = await readFile(oneEntryHistoryPath, { encoding: "utf-8" });
+      entry = JSON.parse(line);
+    });
+
+    afterEach(async () => {
+      await rm(historyPath, { force: true });
+    });
+
+    it("should be empty before readHistory is called", async () => {
+      await writeFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+
+      const history = new AllureLocalHistory({ historyPath });
+      const result = await history.readHistory();
+
+      expect(result).toEqual([expect.objectContaining({ name: "Entry 1" })]);
+    });
+
+    it("should return cached data without re-reading the file", async () => {
+      await writeFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+
+      const history = new AllureLocalHistory({ historyPath });
+      const firstRead = await history.readHistory();
+
+      await rm(historyPath);
+
+      const secondRead = await history.readHistory();
+
+      expect(secondRead).toBe(firstRead);
+      expect(secondRead).toEqual([expect.objectContaining({ name: "Entry 1" })]);
+    });
+
+    it("should be set once the history file is read", async () => {
+      await writeFile(
+        historyPath,
+        `${JSON.stringify({ ...entry, name: "Entry 1" })}\n${JSON.stringify({ ...entry, name: "Entry 2" })}\n`,
+        "utf-8",
+      );
+
+      const history = new AllureLocalHistory({ historyPath, limit: 1 });
+      const firstRead = await history.readHistory();
+
+      expect(firstRead).toEqual([expect.objectContaining({ name: "Entry 2" })]);
+
+      await rm(historyPath);
+
+      const secondRead = await history.readHistory();
+
+      expect(secondRead).toEqual([expect.objectContaining({ name: "Entry 2" })]);
+    });
+
+    it("should update after appendHistory call", async () => {
+      await writeFile(historyPath, `${JSON.stringify({ ...entry, name: "Entry 1" })}\n`, "utf-8");
+
+      const history = new AllureLocalHistory({ historyPath });
+      const firstRead = await history.readHistory();
+
+      expect(firstRead).toEqual([expect.objectContaining({ name: "Entry 1" })]);
+
+      const newEntry = { ...entry, name: "New entry" };
+
+      await history.appendHistory(newEntry);
+
+      const secondRead = await history.readHistory();
+
+      expect(secondRead).toEqual([
+        expect.objectContaining({ name: "Entry 1" }),
+        expect.objectContaining({ name: "New entry" }),
+      ]);
     });
   });
 });

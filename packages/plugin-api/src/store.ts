@@ -27,7 +27,7 @@ export interface AllureStore {
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
-  allNewTestResults: (filter?: TestResultFilter) => Promise<TestResult[]>;
+  allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   qualityGateResultsByEnv: () => Promise<Record<string, QualityGateValidationResult[]>>;

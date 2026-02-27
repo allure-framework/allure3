@@ -80,12 +80,20 @@ export class AllureServiceClient {
    * Downloads history data for a specific branch
    * @param payload
    */
-  async downloadHistory(payload: { branch: string; limit?: number }) {
-    const { branch, limit } = payload;
+  async downloadHistory(payload: { branch?: string; limit?: number }) {
+    const { branch, limit } = payload ?? {};
+    const params = new URLSearchParams();
+
+    if (limit) {
+      params.append("limit", encodeURIComponent(limit));
+    }
+
+    if (branch) {
+      params.append("branch", encodeURIComponent(branch));
+    }
+
     const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>(
-      limit
-        ? `/projects/history/${encodeURIComponent(branch)}?limit=${encodeURIComponent(limit.toString())}`
-        : `/projects/history/${encodeURIComponent(branch)}`,
+      params.size > 0 ? `/projects/history?${params.toString()}` : "/projects/history",
     );
 
     return history;
