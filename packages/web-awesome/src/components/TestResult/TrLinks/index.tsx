@@ -6,7 +6,7 @@ import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
-const LINKS_VISIBLE_LIMIT = 8;
+const VISIBLE_LINKS_LIMIT = 8;
 
 interface TrLinkProps {
   name: string;
