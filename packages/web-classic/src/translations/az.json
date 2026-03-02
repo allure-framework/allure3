@@ -1,23 +1,23 @@
 {
   "statuses": {
-    "passed": "keçdi",
+    "passed": "uğurlu",
     "failed": "uğursuz",
     "broken": "sınıq",
-    "skipped": "keçildi",
+    "skipped": "buraxılmış",
     "unknown": "naməlum",
     "total": "cəmi",
-    "flakyTests": "etibarsız",
+    "flakyTests": "qeyri-sabit",
     "newTests": "yeni",
     "retryTests": "təkrar"
   },
   "testSummary": {
     "all": "Bütün testlər",
-    "flaky": "Etibarsız testlər",
+    "flaky": "Qeyri-sabit testlər",
     "retry": "Təkrar testlər",
     "new": "Yeni testlər"
   },
   "tabs": {
-    "total": "Bütün"
+    "total": "Hamısı"
   },
   "search": {
     "search": "Axtarış",
@@ -25,14 +25,14 @@
   },
   "filters": {
     "more-filters": "Daha çox filtr",
-    "enable-filter": "\"{{filter}}\" filtrlərini aktiv edin",
-    "flaky": "Etibarsız",
+    "enable-filter": "\"{{filter}}\" filtrini aktivləşdir",
+    "flaky": "Qeyri-sabit",
     "retry": "Təkrar",
     "new": "Yeni"
   },
   "sort-by": {
-    "sort-by-text": "Sıralamaq üzrə:",
-    "sort-by-category": "Sıralamaq üzrə",
+    "sort-by-text": "Sıralama növü:",
+    "sort-by-category": "Sıralama",
     "direction-category": "İstiqamət"
   },
   "sort-by.values": {
@@ -42,30 +42,31 @@
     "status": "Status"
   },
   "sort-by.directions": {
-    "order-desc": "Sonuncu – Birinci",
-    "order-asc": "Birinci – Sonuncu",
+    "order-desc": "Sonuncu – Birinci",
+    "order-asc": "Birinci – Sonuncu",
     "order-asc-short": "Birinci",
     "order-desc-short": "Sonuncu",
-    "alphabet-asc": "A – Z",
-    "alphabet-desc": "Z – A",
-    "alphabet-asc-short": "A – Z",
-    "alphabet-desc-short": "Z – A",
-    "duration-asc": "1 – 9",
-    "duration-desc": "9 – 1",
-    "duration-asc-short": "1 – 9",
-    "duration-desc-short": "9 – 1",
-    "status-asc": "Filtr siyahısına uyğun",
-    "status-desc": "Tərsinə çevrilmiş",
-    "status-asc-short": "Adi",
+    "alphabet-asc": "A – Z",
+    "alphabet-desc": "Z – A",
+    "alphabet-asc-short": "A – Z",
+    "alphabet-desc-short": "Z – A",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "Filtr siyahısındakı kimi",
+    "status-desc": "Tərs",
+    "status-asc-short": "Normal",
     "status-desc-short": "Tərs"
   },
   "empty": {
-    "no-results": "Nəticə tapılmadı",
+    "no-results": "Nəticə yoxdur",
     "no-tests-found": "Nəticə tapılmadı",
+    "no-message-provided": "Mesaj təqdim edilməyib",
     "clear-filters": "Filtrləri təmizlə",
-    "no-attachments-results": "Əlavə məlumatı mövcud deyil",
-    "no-history-results": "Tarixçə məlumatı mövcud deyil",
-    "no-retries-results": "Təkrar məlumatı mövcud deyil"
+    "no-attachments-results": "Qoşmalar haqqında məlumat yoxdur",
+    "no-history-results": "Tarixçə haqqında məlumat yoxdur",
+    "no-retries-results": "Təkrar cəhdlər haqqında məlumat yoxdur"
   },
   "severity": {
     "blocker": "bloklayıcı",
@@ -76,9 +77,9 @@
   },
   "execution": {
     "name": "İcra",
-    "body": "Test məzmunu",
-    "setup": "Hazırlıq",
-    "teardown": "Yekunlaşma"
+    "body": "Testin məzmunu",
+    "setup": "Quraşdırma (Setup)",
+    "teardown": "Yekunlaşdırma (Teardown)"
   },
   "ui": {
     "labels": "Etiketlər",
@@ -88,41 +89,49 @@
     "links": "Keçidlər",
     "overview": "Ümumi baxış",
     "history": "Tarixçə",
-    "attachments": "Əlavələr",
-    "retries": "Təkrarlar",
-    "error": "Səhv",
+    "attachments": "Qoşmalar",
+    "retries": "Təkrar cəhdlər",
+    "error": "Xəta",
     "goToStep": "Addıma keç",
     "showLess": "Daha az göstər",
     "showMore": "Daha çox göstər",
     "copy": "Kopyala",
     "attempt": "Cəhd {{attempt}} / {{total}}",
-    "at": "üçün"
+    "at": "saat"
   },
   "controls": {
-    "newTabAttachment": "Yeni sekmede aç",
+    "newTabAttachment": "Qoşmanı yeni tabda aç",
     "nextTR": "Növbəti test nəticəsi",
     "prevTR": "Əvvəlki test nəticəsi",
-    "downloadAttachment": "Əlavəni yüklə",
+    "downloadAttachment": "Qoşmanı yüklə",
     "backto": "Geri dön",
-    "clipboard": "Panoya kopyala",
-    "clipboardError": "Səhv. Görünür, bu xüsusiyyət brauzeriniz tərəfindən dəstəklənmir",
+    "clipboard": "Mübadilə buferinə kopyala",
+    "clipboardError": "Xəta. Görünür brauzeriniz bu funksiyanı dəstəkləmir",
     "clipboardSuccess": "Uğurla kopyalandı",
-    "collapse": "Daralt",
+    "collapse": "Yığ",
     "expand": "Genişləndir",
     "fullscreen": "Tam ekran",
     "language": "Dili dəyiş",
     "openInNewTab": "Yeni tabda aç"
   },
   "errors": {
-    "missedAttachment": "Əlavə tapılmadı"
+    "missedAttachment": "Qoşma tapılmadı"
   },
   "nav": {
-    "overview": "İcmal",
+    "overview": "Ümumi baxış",
     "behaviors": "Davranışlar",
     "categories": "Kateqoriyalar",
     "graphs": "Qrafiklər",
     "packages": "Paketlər",
     "suites": "Dəstlər",
-    "timeline": "Zaman çizelgesi"
+    "timeline": "Zaman xətti"
+  },
+  "charts": {
+    "trend": {
+      "title": "Trend {{type}} Qrafiki"
+    },
+    "pie": {
+      "title": "Testin Uğur Faizi"
+    }
   }
 }

@@ -1,14 +1,14 @@
 {
   "summary": {
     "status": {
-      "passed": "keçdi",
+      "passed": "uğurlu",
       "failed": "uğursuz",
       "broken": "sınıq",
-      "skipped": "keçildi",
+      "skipped": "buraxılmış",
       "unknown": "naməlum"
     },
     "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
-    "total": "cəmi",
+    "total": "Cəmi",
     "in": "içində",
     "metadata": {
       "new_zero": "Yeni test yoxdur",

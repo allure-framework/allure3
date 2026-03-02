@@ -1,9 +1,9 @@
 {
   "statuses": {
-    "passed": "Keçdi",
+    "passed": "Uğurlu",
     "failed": "Uğursuz",
     "broken": "Sınıq",
-    "skipped": "Keçildi",
+    "skipped": "Buraxılmış",
     "unknown": "Naməlum",
     "total": "Cəmi"
   },
@@ -28,7 +28,7 @@
       "title": "Trend qrafiki: {{type}}",
       "type": {
         "status": "Status",
-        "severity": "Ciddilik"
+        "severity": "Əhəmiyyət dərəcəsi"
       }
     },
     "currentStatus": {
@@ -41,7 +41,7 @@
         "unknown": "$t(statuses:unknown, capitalize)"
       },
       "percentage": "{{percentage}}%",
-      "of": "{{total}} dən",
+      "of": "{{total}} içindən",
       "total": "{{total}}",
       "tests": {
         "new_zero": "Yeni test yoxdur",
@@ -68,7 +68,7 @@
       "no-results": "$t(empty:no-results)",
       "tooltips": {
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
-        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
         "current": "Sonuncu",
@@ -90,7 +90,7 @@
       "no-results": "$t(empty:no-results)",
       "tooltips": {
         "current": "Son hesabat ({{timestamp, timestamp_long_no_seconds}})",
-        "history": "{{timestamp, timestamp_long_no_seconds}} hesabatı"
+        "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
         "current": "Sonuncu",
@@ -98,7 +98,7 @@
       }
     },
     "durations": {
-      "title": "{{groupBy}} görə müddət histogramı",
+      "title": "{{groupBy}} üzrə müddət histogramı",
       "title_none": "Müddət histogramı",
       "no-results": "$t(empty:no-results)",
       "groupBy": {
@@ -147,7 +147,7 @@
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       }
     },
@@ -167,12 +167,12 @@
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       }
     },
     "trSeverities": {
-      "title": "Ciddilik dərəcəsinə görə test nəticələri",
+      "title": "Əhəmiyyət dərəcəsinə görə test nəticələri",
       "no-results": "$t(empty:no-results)",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
@@ -187,7 +187,7 @@
         "normal": "$t(severity:normal, capitalize)",
         "minor": "$t(severity:minor, capitalize)",
         "trivial": "$t(severity:trivial, capitalize)",
-        "unset": "Ciddilik dərəcəsi yoxdur"
+        "unset": "Əhəmiyyət dərəcəsi yoxdur"
       }
     },
     "durationDynamics": {
@@ -195,7 +195,7 @@
       "durations": {
         "sequential": "Ardıcıl müddət",
         "duration": "Test müddəti",
-        "speedup": "Sürətləndirmə"
+        "speedup": "Sürətlənmə"
       },
       "no-results": "$t(empty:no-results)",
       "tooltips": {
@@ -203,7 +203,7 @@
         "history": "{{timestamp, timestamp_long_no_seconds}} tarixli hesabat"
       },
       "ticks": {
-        "current": "Son",
+        "current": "Sonuncu",
         "history": "{{timestamp, timestamp_date}}"
       },
       "legend": {
@@ -214,7 +214,7 @@
   },
   "transitions": {
     "description": {
-      "new": "Bu test nəticəsinin hesabatda ilk dəfə görünməsi",
+      "new": "Bu test sonucunun hesabatda ilk dəfə görünməsi",
       "fixed": "Əvvəl \"uğursuz\" və ya \"sınıq\" olan, indi \"uğurlu\" olan test",
       "regressed": "Əvvəl \"uğurlu\" və ya \"sınıq\" olan, indi \"uğursuz\" olan test",
       "malfunctioned": "Əvvəl \"uğurlu\" və ya \"uğursuz\" olan, indi \"sınıq\" olan test"
