@@ -49,7 +49,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const showAll = linksShowAllId != null && collapsedTrees.value.has(linksShowAllId);
   const totalCount = links.length;
   const visibleLinks =
-    totalCount <= LINKS_VISIBLE_LIMIT ? links : showAll ? links : links.slice(0, LINKS_VISIBLE_LIMIT);
+    totalCount <= VISIBLE_LINKS_LIMIT ? links : showAll ? links : links.slice(0, VISIBLE_LINKS_LIMIT);
   const linkMap = visibleLinks.map((link, index) => {
     return <TrLink link={link as TrLinkProps} key={index} />;
   });
@@ -70,7 +70,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
         {isOpened && (
           <>
             <div className={styles["test-result-links-list"]}>{linkMap}</div>
-            {totalCount > LINKS_VISIBLE_LIMIT && (
+            {totalCount > VISIBLE_LINKS_LIMIT && (
               <Button
                 style="ghost"
                 size="s"
