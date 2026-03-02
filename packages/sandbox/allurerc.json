@@ -7,6 +7,12 @@
       {
         "maxFailures": 5,
         "fastFail": true
+      },
+      {
+        "allTestsContainEnv": "foo"
+      },
+      {
+        "environmentsTested": ["foo", "bar", "staging"]
       }
     ]
   },

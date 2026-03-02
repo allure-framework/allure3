@@ -5,6 +5,11 @@ qualityGate:
   rules:
     - maxFailures: 5
       fastFail: true
+    - allTestsContainEnv: foo
+    - environmentsTested:
+        - foo
+        - bar
+        - staging
 plugins:
   allure2:
     options:

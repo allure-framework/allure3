@@ -99,6 +99,7 @@ export class QualityGate {
           },
           expected,
           knownIssues,
+          environment: environment || DEFAULT_ENVIRONMENT,
         });
 
         if (result.success) {

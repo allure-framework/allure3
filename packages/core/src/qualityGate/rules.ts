@@ -68,4 +68,55 @@ export const maxDurationRule: QualityGateRule<number> = {
   },
 };
 
-export const qualityGateDefaultRules = [maxFailuresRule, minTestsCountRule, successRateRule, maxDurationRule];
+/**
+ * Fails if any test in the run does not have the given environment.
+ * Expected: environment name (string).
+ */
+export const allTestsContainEnvRule: QualityGateRule<string> = {
+  rule: "allTestsContainEnv",
+  message: ({ actual, expected }) =>
+    `Not all tests contain the required environment, ${bold(`"${expected}"`)}; ${bold(actual.length === 1 ? "one" : String(actual))} ${actual.length === 1 ? "test has" : "tests have"} different or missing environment`,
+  validate: async ({ trs, expected }) => {
+    const testsWithoutEnv = trs.filter((tr) => (tr.environment ?? "") !== expected);
+    const actual = testsWithoutEnv.length;
+
+    return {
+      success: actual === 0,
+      actual,
+    };
+  },
+};
+
+/**
+ * Fails if the run does not contain at least one test for each of the given environments.
+ * Expected: array of environment names (string[]).
+ */
+export const environmentsTestedRule: QualityGateRule<string[]> = {
+  rule: "environmentsTested",
+  message: ({ actual, expected }) =>
+    `The following environments were not tested: "${actual.join('", "')}"; expected all of: "${expected.join('", "')}"`,
+  validate: async ({ trs, expected, state }) => {
+    const previouslyTested = new Set(state.getResult() ?? []);
+    const batchTested = trs.map((tr) => tr.environment).filter((env): env is string => env != null && env !== "");
+
+    const testedEnvs = new Set([...previouslyTested, ...batchTested]);
+
+    state.setResult([...testedEnvs]);
+
+    const missing = expected.filter((env) => !testedEnvs.has(env));
+
+    return {
+      success: missing.length === 0,
+      actual: missing,
+    };
+  },
+};
+
+export const qualityGateDefaultRules = [
+  maxFailuresRule,
+  minTestsCountRule,
+  successRateRule,
+  maxDurationRule,
+  allTestsContainEnvRule,
+  environmentsTestedRule,
+];
