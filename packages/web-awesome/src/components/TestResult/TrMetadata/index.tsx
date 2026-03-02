@@ -24,7 +24,7 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
   const totalCount = entries.length;
   const showAll = labelsShowAllId != null && collapsedTrees.value.has(labelsShowAllId);
   const visibleEntries =
-    totalCount <= LABELS_VISIBLE_LIMIT ? entries : showAll ? entries : entries.slice(0, LABELS_VISIBLE_LIMIT);
+    totalCount <= VISIBLE_LABELS_LIMIT ? entries : showAll ? entries : entries.slice(0, VISIBLE_LABELS_LIMIT);
   const groupedLabelsVisible = Object.fromEntries(visibleEntries);
 
   const handleToggleShowAll = () => {
@@ -50,7 +50,7 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
         {isOpened && (
           <>
             <TrMetadataList groupedLabels={groupedLabelsVisible} />
-            {totalCount > LABELS_VISIBLE_LIMIT && (
+            {totalCount > VISIBLE_LABELS_LIMIT && (
               <Button
                 style="ghost"
                 size="s"
