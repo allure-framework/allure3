@@ -13,9 +13,14 @@
   "author": "Qameta Software",
   "type": "module",
   "types": "./types.d.ts",
+  "exports": {
+    ".": "./types.d.ts",
+    "./App": "./src/App.tsx",
+    "./styles": "./src/assets/scss/index.scss"
+  },
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "webpack serve --mode development",
+    "dev": "API_BASE_URL=http://localhost:3000 webpack serve --mode development",
     "build": "run-s clean 'build:prod:*'",
     "build:dev": "run-s clean 'build:dev:*'",
     "build:prod:single": "SINGLE_FILE_MODE=1 webpack --mode production",
@@ -89,6 +94,7 @@
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.1",
     "npm-run-all2": "^7.0.1",
+    "pnp-webpack-plugin": "^1.7.0",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "sass": "^1.79.1",

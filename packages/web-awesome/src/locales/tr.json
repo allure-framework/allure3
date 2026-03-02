@@ -132,6 +132,7 @@
     "attempt": "Deneme {{attempt}} / {{total}}",
     "at": "tarihinde",
     "variables": "Değişkenler",
+    "statistics": "İstatistikler",
     "openPwTrace": "Playwright Trace Aç",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"

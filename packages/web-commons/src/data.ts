@@ -1,18 +1,24 @@
+import { getApiReportUrl } from "./apiReportClient.js";
+import type { AllureReportApiOptions } from "./types/reportOptions.js";
+import type { ReportDataClient } from "./reportDataClient.js";
+import { StaticReportClient, ApiReportClient } from "./reportDataClient.js";
+
 /**
  * Hash which attaches to any report file to prevent caching
  */
 export const ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY = "__allure_report_live_reload_hash__";
 
+function isApiMode(): boolean {
+  const opts = globalThis.allureReportOptions as AllureReportApiOptions | undefined;
+  return Boolean(opts?.apiBaseUrl);
+}
+
 export const ensureReportDataReady = () =>
   new Promise((resolve) => {
     const waitForReady = () => {
-      if (globalThis.allureReportDataReady) {
-        return resolve(true);
-      }
-
+      if (globalThis.allureReportDataReady) return resolve(true);
       setTimeout(waitForReady, 30);
     };
-
     waitForReady();
   });
 
@@ -28,15 +34,18 @@ export const loadReportData = async (name: string): Promise<string> => {
   });
 };
 
-export const reportDataUrl = async (
+/**
+ * Resolves report path to URL for static report only (no API branch).
+ * Used by StaticReportClient. For full URL resolution including API mode, use reportDataUrl().
+ */
+export async function getStaticReportDataUrl(
   path: string,
   contentType: string = "application/octet-stream",
-  params?: { bustCache: boolean },
-) => {
+  params?: { bustCache?: boolean },
+): Promise<string> {
   if (globalThis.allureReportData) {
     const [dataKey] = path.split("?");
     const value = await loadReportData(dataKey);
-
     return `data:${contentType};base64,${value}`;
   }
 
@@ -54,6 +63,22 @@ export const reportDataUrl = async (
   }
 
   return url.toString();
+}
+
+export const reportDataUrl = async (
+  path: string,
+  contentType: string = "application/octet-stream",
+  params?: { bustCache: boolean },
+) => {
+  if (isApiMode()) {
+    const apiUrl = getApiReportUrl(path);
+    if (apiUrl) return apiUrl;
+    if (path === "widgets/environments.json" || path.startsWith("widgets/environments")) {
+      return "data:application/json;base64,W10=";
+    }
+  }
+
+  return getStaticReportDataUrl(path, contentType, params);
 };
 
 export class ReportFetchError extends Error {
@@ -65,23 +90,35 @@ export class ReportFetchError extends Error {
   }
 }
 
-export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
-  const url = await reportDataUrl(path, undefined, params);
-  const res = await globalThis.fetch(url);
+let reportClientCache: ReportDataClient | undefined;
 
-  if (!res.ok) {
-    throw new ReportFetchError(`Failed to fetch ${url}, response status: ${res.status}`, res);
+/**
+ * Clears the cached report client. Used in tests to isolate mode switching.
+ */
+export function clearReportClientCache(): void {
+  reportClientCache = undefined;
+}
+
+/**
+ * Returns the report data client for the current mode (static or API).
+ * Choice is based on allureReportOptions.apiBaseUrl. Cached per session.
+ */
+export function getReportClient(): ReportDataClient {
+  if (reportClientCache !== undefined) return reportClientCache;
+  if (isApiMode()) {
+    reportClientCache = new ApiReportClient();
+  } else {
+    reportClientCache = new StaticReportClient(getStaticReportDataUrl, (msg, res) => new ReportFetchError(msg, res));
   }
+  return reportClientCache;
+}
 
-  const data = res.json();
-
-  return data as T;
+export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
+  return getReportClient().getJson<T>(path, params);
 };
 
 export const fetchReportAttachment = async (path: string, contentType?: string) => {
-  const url = await reportDataUrl(path, contentType);
-
-  return globalThis.fetch(url);
+  return getReportClient().getAttachment(path, contentType);
 };
 
 export const getReportOptions = <T>() => {

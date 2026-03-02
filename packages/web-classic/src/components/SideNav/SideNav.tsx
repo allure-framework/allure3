@@ -29,7 +29,15 @@ const SideNav = () => {
 
   return (
     <div class={clsx(styles["side-nav"], isCollapsed && styles.collapsed)}>
-      <a href="#" className={styles.brand} data-ga4-event="home_click">
+      <a
+        href="#overview"
+        className={styles.brand}
+        data-ga4-event="home_click"
+        onClick={(e) => {
+          e.preventDefault();
+          navigateTo("overview");
+        }}
+      >
         <SvgIcon id={allureIcons.reportLogo} size={"s"} className={styles.icon} />
         <Text className={styles["brand-text"]} bold>
           Allure Report
@@ -47,7 +55,10 @@ const SideNav = () => {
             <a
               href={`#${tab.tabName}`}
               className={clsx(styles.link, { [styles["link-active"]]: activeTab.value === tab.tabName })}
-              onClick={() => navigateTo(tab.tabName)}
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo(tab.tabName);
+              }}
             >
               <span className={styles.icon}>
                 <SvgIcon id={allureIcons[tab.icon]} />

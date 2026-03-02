@@ -33,3 +33,25 @@ Run the tests:
 ```shell
 yarn test
 ```
+
+### Frontend–backend UI tests
+
+The **frontend-backend** project runs Playwright tests against the real report-app and backend (API + Postgres). Infrastructure is started automatically in `globalSetup`:
+
+- **Postgres** via [Testcontainers](https://testcontainers.com/) (requires Docker)
+- **Backend** (Express) as a child process
+- **Report-app** (Vite preview) built with `VITE_API_BASE_URL` pointing at the backend
+
+Run only frontend-backend tests:
+
+```shell
+yarn test:frontend-backend
+```
+
+Or with the dedicated config:
+
+```shell
+npx playwright test -c playwright.frontend-backend.config.ts
+```
+
+Tests live in `test/frontend-backend/` and expect `env.json` (written by globalSetup) with `API_BASE_URL` and `FRONTEND_URL`. Do not run this project without the setup (e.g. plain `yarn test` runs only the static-report tests).

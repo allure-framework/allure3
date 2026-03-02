@@ -8,7 +8,7 @@ import * as styles from "./styles.scss";
 export const TrRetriesView: FunctionalComponent<{
   testResult: AwesomeTestResult;
 }> = ({ testResult }) => {
-  const { retries } = testResult ?? {};
+  const { retries = [] } = testResult ?? {};
   const { t } = useI18n("empty");
 
   return (

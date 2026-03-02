@@ -33,9 +33,10 @@ export const fetchTimelineData = async () => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     timelineStore.value = {
       data: undefined,
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }

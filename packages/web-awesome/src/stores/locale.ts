@@ -43,7 +43,8 @@ export const currentLocaleIsRTL = computed(() => ["ar", "he", "fa"].includes(cur
 
 export const getLocale = async () => {
   const { reportLanguage } = getReportOptions<AwesomeReportOptions>() ?? {};
-  const locale = localStorage.getItem("currentLocale") || reportLanguage || DEFAULT_LOCALE;
+  // Prefer reportLanguage (parity with static report) over localStorage
+  const locale = reportLanguage || localStorage.getItem("currentLocale") || DEFAULT_LOCALE;
 
   await setLocale(locale as LangLocale);
 };
@@ -78,7 +79,10 @@ export const waitForI18next = i18next
     });
     i18next.services.formatter.add(
       "timestamp_date",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
+      (value: unknown, lng: string, options?: Intl.DateTimeFormatOptions) => {
+        const num = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(num)) return "—";
+        try {
         const override = getLocaleDateTimeOverride(lng, "date");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
@@ -87,14 +91,20 @@ export const waitForI18next = i18next
           year: "numeric",
           ...(override?.options ?? {}),
         });
-        const formatted = formatter.format(value);
+        const formatted = formatter.format(num);
         return override?.stripComma ? formatted.replace(",", "") : formatted;
+        } catch {
+          return "—";
+        }
       },
     );
 
     i18next.services.formatter.add(
       "timestamp_long",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
+      (value: unknown, lng: string, options?: Intl.DateTimeFormatOptions) => {
+        const num = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(num)) return "—";
+        try {
         const override = getLocaleDateTimeOverride(lng, "dateTime");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
@@ -107,16 +117,22 @@ export const waitForI18next = i18next
           hour12: false,
           ...(override?.options ?? {}),
         });
-        const formatted = formatter.format(value);
+        const formatted = formatter.format(num);
         if (override?.includeAtSeparator === false || override?.stripComma) {
           return formatted.replace(",", "");
         }
         return formatted.replace(",", ` ${i18next.t("ui:at")}`);
+        } catch {
+          return "—";
+        }
       },
     );
     i18next.services.formatter.add(
       "timestamp_long_no_seconds",
-      (value: number, lng: string, options?: Intl.DateTimeFormatOptions) => {
+      (value: unknown, lng: string, options?: Intl.DateTimeFormatOptions) => {
+        const num = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(num)) return "—";
+        try {
         const override = getLocaleDateTimeOverride(lng, "dateTimeNoSeconds");
         const formatter = new Intl.DateTimeFormat(override?.locale ?? lng, {
           ...options,
@@ -128,11 +144,14 @@ export const waitForI18next = i18next
           hour12: false,
           ...(override?.options ?? {}),
         });
-        const formatted = formatter.format(value);
+        const formatted = formatter.format(num);
         if (override?.includeAtSeparator === false || override?.stripComma) {
           return formatted.replace(",", "");
         }
         return formatted.replace(",", ` ${i18next.t("ui:at")}`);
+        } catch {
+          return "—";
+        }
       },
     );
     i18next.services.formatter.add("format_duration", (value: number) => {

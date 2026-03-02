@@ -12,10 +12,17 @@ type NavigateToObject = {
 const parseHash = () => {
   const hash = globalThis.location.hash.slice(1);
   const [tabName, ...params] = hash.split("/");
-  return {
-    tabName: tabName,
+  const result = {
+    tabName: tabName || "overview",
     params: { id: params[0] || null, testResultId: params[1] || null },
   };
+  /* #region agent log */
+  if (typeof fetch !== "undefined") {
+    const payload = { sessionId: "f7a19b", location: "router.ts:parseHash", message: "parseHash result", data: { hash, parsedTabName: tabName, resultTabName: result.tabName }, timestamp: Date.now(), hypothesisId: "A", runId: "post-fix" };
+    fetch("http://127.0.0.1:7769/ingest/a8122316-6c42-40f6-b56b-8ed62be2f997", { method: "POST", headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f7a19b" }, body: JSON.stringify(payload) }).catch(() => {});
+  }
+  /* #endregion */
+  return result;
 };
 
 export const route = signal(parseHash());

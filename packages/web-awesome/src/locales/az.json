@@ -132,6 +132,7 @@
     "attempt": "Cəhd {{attempt}} / {{total}}",
     "at": "üçün",
     "variables": "Dəyişənlər",
+    "statistics": "Statistika",
     "openPwTrace": "Playwright Trace aç",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (əsas {{original}})"

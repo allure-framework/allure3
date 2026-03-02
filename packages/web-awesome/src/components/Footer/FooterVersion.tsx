@@ -25,18 +25,21 @@ export const FooterVersion = () => {
     return undefined;
   });
 
-  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
+  const formattedCreatedAt =
+    createdAt != null && Number.isFinite(createdAt)
+      ? new Date(createdAt).toLocaleDateString(currentLocaleIso.value as string, {
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+        })
+      : null;
 
   return (
     <Text type="paragraph" size="m" className={styles.version}>
-      {formattedCreatedAt}
+      {formattedCreatedAt ?? ""}
       {currentVersion && <span> Ver: {currentVersion}</span>}
     </Text>
   );

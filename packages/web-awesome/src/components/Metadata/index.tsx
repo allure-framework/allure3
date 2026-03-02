@@ -160,8 +160,10 @@ const MetaDataKeyLabel: FunctionalComponent<{
   size?: "s" | "m";
   value: string;
 }> = ({ name, size = "s", value }) => {
+  // Ensure we never render objects (e.g. Preact signals) as children
+  const displayValue = typeof value === "string" ? value : String(value ?? "");
   if (name === "owner") {
-    return <MetaDataOwnerLabel value={value} size={size} />;
+    return <MetaDataOwnerLabel value={displayValue} size={size} />;
   }
 
   return (
@@ -170,13 +172,13 @@ const MetaDataKeyLabel: FunctionalComponent<{
       menuTrigger={({ onClick }) => (
         <div className={styles["report-metadata-keyvalue-wrapper"]}>
           <Text type={"ui"} size={size} onClick={onClick} bold className={styles["report-metadata-keyvalue-value"]}>
-            {value}
+            {displayValue}
           </Text>
         </div>
       )}
     >
       <Menu.Section>
-        <MetadataTooltip value={value} name={name} />
+        <MetadataTooltip value={displayValue} name={name} />
       </Menu.Section>
     </Menu>
   );
@@ -201,12 +203,16 @@ const MetadataKeyValue: FunctionalComponent<{
       {values?.length ? (
         <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
           {values.map((item) => (
-            <MetaDataKeyLabel key={item} value={item} name={title} />
+            <MetaDataKeyLabel
+              key={typeof item === "string" ? item : String(item)}
+              value={typeof item === "string" ? item : String(item ?? "")}
+              name={title}
+            />
           ))}
         </div>
       ) : (
         <div className={styles["report-metadata-values"]} data-testid={"metadata-item-value"}>
-          <MetaDataKeyLabel value={value ?? ""} name={title} />
+          <MetaDataKeyLabel value={typeof value === "string" ? value : String(value ?? "")} name={title} />
         </div>
       )}
     </div>

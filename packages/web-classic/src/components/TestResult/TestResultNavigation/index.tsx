@@ -2,6 +2,7 @@ import { Code, IconButton, Loadable, TooltipWrapper, allureIcons } from "@allure
 import type { FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
 import { useI18n } from "@/stores";
+import { route } from "@/stores/router";
 import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import { navigateTo } from "@/utils/navigate";
@@ -34,24 +35,29 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
     );
   };
 
+  const tabName = route.value.tabName || "suites";
+  const buildHash = (testResultId: string) => `${tabName}/root/${testResultId}`;
+
   return (
     <Loadable
       source={testResultNavStore}
       renderData={(data) => {
         const currentIndex = data.indexOf(id) + 1;
+        const canGoPrev = currentIndex > 1;
+        const canGoNext = currentIndex < data.length;
         return (
           <div className={styles["test-result-nav"]}>
             {fullName && <FullName />}
-            {data && !testResult?.hidden && (
+            {data && data.length > 0 && !testResult?.hidden && (
               <div className={styles["test-result-navigator"]}>
-                <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={currentIndex > 1}>
+                <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={canGoPrev}>
                   <IconButton
                     icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
-                    isDisabled={currentIndex === data.length}
+                    isDisabled={!canGoPrev}
                     data-testid="test-result-nav-prev"
                     className={styles["test-result-nav-prev"]}
-                    onClick={() => navigateTo(data[currentIndex])}
+                    onClick={() => navigateTo(buildHash(data[currentIndex - 2]))}
                   />
                 </TooltipWrapper>
                 <Code
@@ -61,13 +67,13 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
                 >
                   {currentIndex}/{data.length}
                 </Code>
-                <TooltipWrapper tooltipText={tooltip("nextTR")}>
+                <TooltipWrapper tooltipText={tooltip("nextTR")} isTriggerActive={canGoNext}>
                   <IconButton
                     icon={allureIcons.lineArrowsChevronDown}
                     style={"ghost"}
-                    isDisabled={currentIndex <= 1}
+                    isDisabled={!canGoNext}
                     data-testid="test-result-nav-next"
-                    onClick={() => navigateTo(data[currentIndex - 2])}
+                    onClick={() => navigateTo(buildHash(data[currentIndex]))}
                   />
                 </TooltipWrapper>
               </div>

@@ -18,6 +18,11 @@
         createdAt: 1731513697651,
         groupBy: "suite",
       };
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var launchId = params.get("launch_id") || params.get("launchId");
+        if (launchId) window.allureReportOptions.launchId = launchId;
+      })();
     </script>
   </head>
   <body>
@@ -36,7 +41,7 @@
       window.document.head.appendChild(baseEl);
     </script>
 
-    <script async>
+    <script>
       window.allureReportDataReady = true;
     </script>
   </body>

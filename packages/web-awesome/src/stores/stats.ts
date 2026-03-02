@@ -34,9 +34,10 @@ export const fetchReportStats = async () => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     reportStatsStore.value = {
       data: { total: 0 },
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }
@@ -72,9 +73,10 @@ export const fetchEnvStats = async (envs: string[]) => {
       error: undefined,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     statsByEnvStore.value = {
       ...statsByEnvStore.peek(),
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }

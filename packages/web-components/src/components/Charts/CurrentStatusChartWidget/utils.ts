@@ -11,17 +11,22 @@ const UNITS = [
 ];
 
 export const getPercentOf = (value = 0, total = 0) => {
+  const v = Number(value);
+  const t = Number(total);
   // Return 0 if value is zero since percentage calculation would result in 0
-  if (value === 0) {
+  if (v === 0 || !Number.isFinite(v)) {
     return "0";
   }
 
   // Return 0 if total is zero to avoid division by zero
-  if (total === 0) {
+  if (t === 0 || !Number.isFinite(t)) {
     return "0";
   }
 
-  const percentage = (value / total) * 100;
+  const percentage = (v / t) * 100;
+  if (!Number.isFinite(percentage)) {
+    return "0";
+  }
 
   // Return as integer string if there's no decimal part
   if (Number.isInteger(percentage)) {
@@ -172,10 +177,11 @@ export const toChartData = (props: { data: Statistic; i18n: I18nProp; statuses?:
 
   for (const status of statuses) {
     if (status in data) {
+      const raw = data[status] ?? 0;
       chartData.push({
         color: getColorFromStatus(status),
         id: status,
-        value: data[status] ?? 0,
+        value: Number(raw) || 0,
         label: i18n(`status.${status}`),
       });
     }

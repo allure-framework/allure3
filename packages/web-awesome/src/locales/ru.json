@@ -132,6 +132,7 @@
     "attempt": "Попытка {{attempt}} из {{total}}",
     "at": "в",
     "variables": "Переменные",
+    "statistics": "Статистика",
     "openPwTrace": "Открыть Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"

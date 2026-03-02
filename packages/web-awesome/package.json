@@ -13,6 +13,11 @@
   "author": "Qameta Software",
   "type": "module",
   "types": "./types.d.ts",
+  "exports": {
+    ".": "./types.d.ts",
+    "./App": "./src/App.tsx",
+    "./styles": "./src/assets/scss/index.scss"
+  },
   "scripts": {
     "clean": "rimraf dist",
     "dev": "webpack serve --mode development",

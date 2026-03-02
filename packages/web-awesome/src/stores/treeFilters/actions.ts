@@ -56,8 +56,5 @@ export const fetchTreeFiltersData = async () => {
       treeTags.value = [];
       return;
     }
-
-    // eslint-disable-next-line no-console
-    console.error("Failed to fetch tree filters data:\n\n", error);
   }
 };

@@ -38,7 +38,7 @@ export type TrLinksProps = {
   links: AwesomeTestResult["links"];
 };
 
-export const TrLinks: FunctionalComponent<TrLinksProps> = ({ links }) => {
+export const TrLinks: FunctionalComponent<TrLinksProps> = ({ links = [] }) => {
   const [isOpened, setIsOpen] = useState(true);
   const { t } = useI18n("ui");
   const linkMap = links.map((link, index) => {

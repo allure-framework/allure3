@@ -1,3 +1,7 @@
+export type { AllureReportApiOptions } from "./types/reportOptions.js";
+export * from "./apiReportClient.js";
+export * from "./adapters/backendAdapters.js";
+export * from "./reportDataClient.js";
 export * from "./data.js";
 export * from "./attachments.js";
 export * from "./i18n.js";

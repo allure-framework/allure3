@@ -31,9 +31,10 @@ export const fetchTestResultNav = async (env?: string) => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     testResultNavStore.value = {
       ...testResultNavStore.peek(),
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }
@@ -63,9 +64,10 @@ export const fetchTestResult = async (testResultId: string) => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     testResultStore.value = {
       ...testResultStore.peek(),
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }

@@ -1,6 +1,6 @@
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
@@ -9,10 +9,13 @@ import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 
 const { SINGLE_FILE_MODE } = env;
 const baseDir = dirname(fileURLToPath(import.meta.url));
+const monorepoRoot = resolve(baseDir, "..", "..");
+const apiBaseUrl = process.env.API_BASE_URL || env.API_BASE_URL || "http://localhost:3000";
 
 export default (env, argv) => {
   const devMode = argv?.mode === "development";
   const config = {
+    context: baseDir,
     entry: "./src/index.tsx",
     output: {
       path: join(baseDir, SINGLE_FILE_MODE ? "dist/single" : "dist/multi"),
@@ -57,6 +60,7 @@ export default (env, argv) => {
       ],
     },
     devServer: {
+      port: 8080,
       hot: true,
       static: "./out/dev",
       historyApiFallback: true,
@@ -70,6 +74,7 @@ export default (env, argv) => {
     plugins: [
       new webpack.DefinePlugin({
         DEVELOPMENT: devMode,
+        __ALLURE_API_BASE_URL__: JSON.stringify(apiBaseUrl),
       }),
       new MiniCssExtractPlugin({
         filename: devMode ? "styles.css" : "styles-[contenthash].css",
@@ -80,10 +85,14 @@ export default (env, argv) => {
       }),
     ],
     resolve: {
-      modules: ["node_modules"],
+      modules: [resolve(monorepoRoot, "node_modules"), "node_modules"],
       extensions: [".js", ".ts", ".tsx"],
       alias: {
         "@": join(baseDir, "src"),
+        "@allurereport/web-components": resolve(monorepoRoot, "node_modules/@allurereport/web-components/dist"),
+        "@allurereport/core-api": resolve(monorepoRoot, "node_modules/@allurereport/core-api"),
+        "@allurereport/charts-api": resolve(monorepoRoot, "node_modules/@allurereport/charts-api"),
+        "@allurereport/web-commons": resolve(monorepoRoot, "node_modules/@allurereport/web-commons"),
       },
     },
     externals: {

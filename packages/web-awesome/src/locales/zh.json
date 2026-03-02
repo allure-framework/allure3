@@ -132,6 +132,7 @@
     "attempt": "第 {{attempt}} 次尝试，共 {{total}} 次",
     "at": "在",
     "variables": "变量",
+    "statistics": "统计",
     "openPwTrace": "打开 Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"

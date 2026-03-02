@@ -2,7 +2,7 @@ import { Timeline as AllureTimeline, Grid, GridItem, Loadable, PageLoader, Widge
 import { computed } from "@preact/signals";
 import { useEffect, useMemo } from "preact/hooks";
 import { useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentsStore } from "@/stores/env";
 import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 import * as styles from "./styles.scss";
@@ -17,8 +17,11 @@ const currentTimelineData = computed(() => {
     return [];
   }
 
-  if (currentEnvironment.value) {
-    const testsToEnv = tests.filter((test) => test.environment === currentEnvironment.value);
+  const envs = environmentsStore.value.data ?? [];
+  const env = currentEnvironment.value;
+  // When only one environment (root launch), show all tests; otherwise filter by env
+  if (env && envs.length > 1) {
+    const testsToEnv = tests.filter((test) => test.environment === env);
     const hostsByEnv = getHosts(testsToEnv);
 
     return hostsByEnv.map((host) => ({

@@ -11,13 +11,14 @@ const getInitialLayout = (): Layout => {
     return DEFAULT_LAYOUT;
   }
 
-  const lsLayout = localStorage.getItem("layout") as Layout | null;
-
-  if (lsLayout !== null) {
-    return lsLayout;
+  // Parity with static report: prefer reportOptions.layout over localStorage
+  const optsLayout = reportOptions?.layout as Layout | undefined;
+  if (optsLayout === "base" || optsLayout === "split") {
+    return optsLayout;
   }
 
-  return lsLayout ?? reportOptions?.layout ?? DEFAULT_LAYOUT;
+  const lsLayout = localStorage.getItem("layout") as Layout | null;
+  return lsLayout ?? DEFAULT_LAYOUT;
 };
 
 export const layoutStore = signal<Layout>(getInitialLayout());

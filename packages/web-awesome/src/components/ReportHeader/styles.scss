@@ -44,6 +44,10 @@
 
 .report-header-pie {
   width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  min-width: 88px;
+  min-height: 88px;
 }
 
 .report-header-pie-chart {

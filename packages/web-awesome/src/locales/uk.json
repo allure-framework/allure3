@@ -132,6 +132,7 @@
     "attempt": "Спроба {{attempt}} з {{total}}",
     "at": "в",
     "variables": "Змінні",
+    "statistics": "Статистика",
     "openPwTrace": "Відкрити Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})"

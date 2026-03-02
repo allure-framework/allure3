@@ -218,9 +218,12 @@ export const Charts = () => {
         source={chartsStore}
         renderLoader={() => <PageLoader />}
         renderData={(data) => {
-          const currentChartsData = currentEnvironment.value ? data.byEnv[currentEnvironment.value] : data.general;
+          const currentChartsData =
+            currentEnvironment.value && data.byEnv[currentEnvironment.value]
+              ? data.byEnv[currentEnvironment.value]
+              : data.general;
 
-          if (!currentChartsData) {
+          if (!currentChartsData || Object.keys(currentChartsData).length === 0) {
             return null;
           }
 

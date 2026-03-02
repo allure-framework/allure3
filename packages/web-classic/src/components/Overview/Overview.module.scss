@@ -27,3 +27,21 @@
 .overview-grid-item-pie-chart-wrapper-squeezer {
   width: 50%;
 }
+
+.overview-summary-card {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-background-layer-1, #f5f5f5);
+  border: 1px solid var(--color-border-primary, #e0e0e0);
+}
+
+.overview-summary-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-secondary, #666);
+}
+
+.overview-summary-value {
+  display: block;
+  color: var(--color-text-primary, #111);
+}

@@ -143,7 +143,12 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
 
   for (const test of timelineData) {
     const { host, thread, historyId, id: testId, start, duration, status, hidden, name } = test;
-    const stop = start! + duration!;
+    const startNum = Number(start);
+    const durationNum = Number(duration);
+    if (!Number.isFinite(startNum) || !Number.isFinite(durationNum)) {
+      continue;
+    }
+    const stop = startNum + durationNum;
 
     const hostId = stringToNanoIdWithSalt(host, dataId);
     const groupId = stringToNanoIdWithSalt(thread, hostId);
@@ -153,15 +158,15 @@ export const toTimelineData = (timelineData: TimelineChartData, dataId: string):
     const segmentId = historyId ?? testId;
     const hasSegment = newSegments.findIndex(({ id }) => id === segmentId) !== -1;
     const segmentWithSameTimeRange = newSegments.find(
-      ({ timeRange }) => timeRange[0].getTime() === start && timeRange[1].getTime() === stop,
+      ({ timeRange }) => timeRange[0].getTime() === startNum && timeRange[1].getTime() === stop,
     );
 
     if (!hasSegment && !segmentWithSameTimeRange) {
       newSegments.push({
         label: name,
         labelGroup: [name],
-        timeRange: [new Date(start as number), new Date(stop as number)],
-        val: duration!,
+        timeRange: [new Date(startNum), new Date(stop)],
+        val: durationNum,
         status: status,
         id: segmentId,
         hidden: hidden,

@@ -22,7 +22,7 @@ export type TrInfoProps = {
 
 export const TrInfo: FunctionalComponent<TrInfoProps> = ({ testResult }) => {
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
-  const formattedDuration = formatDuration(duration as number);
+  const formattedDuration = duration != null ? formatDuration(duration) : "—";
   const fullDate = stop && timestampToDate(stop);
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const { t } = useI18n("ui");

@@ -1,6 +1,6 @@
 import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { useI18n } from "@/stores";
-import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
+import { currentEnvironment, envDisplayNameMap, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -16,6 +16,10 @@ export const EnvironmentPicker = () => {
     return null;
   }
 
+  const envDisplayName = environment
+    ? envDisplayNameMap.value[environment] ?? environment
+    : t("all");
+
   return (
     <div className={styles["environment-picker"]} data-testid={"environment-picker"}>
       <SvgIcon id={allureIcons.environment} size={"s"} />
@@ -28,7 +32,7 @@ export const EnvironmentPicker = () => {
           <DropdownButton
             style="ghost"
             size="s"
-            text={environment || t("all")}
+            text={envDisplayName}
             isExpanded={isOpened}
             data-testid={"environment-picker-button"}
             onClick={onClick}
@@ -46,11 +50,11 @@ export const EnvironmentPicker = () => {
           {environmentsStore.value.data.map((env) => (
             <Menu.ItemWithCheckmark
               data-testid={"environment-picker-item"}
-              onClick={() => handleSelect(env)}
-              key={env}
-              isChecked={env === environment}
+              onClick={() => handleSelect(env.id)}
+              key={env.id}
+              isChecked={env.id === environment}
             >
-              {env}
+              {env.name}
             </Menu.ItemWithCheckmark>
           ))}
         </Menu.Section>

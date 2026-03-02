@@ -19,7 +19,7 @@ export type TestResultInfoProps = {
 export const TestResultInfo: FunctionalComponent<TestResultInfoProps> = ({ testResult }) => {
   const { name, status, muted, flaky, known, duration, labels, history, retries, attachments, stop } = testResult ?? {};
   const formattedDuration = formatDuration(duration as number);
-  const fullDate = stop && timestampToDate(stop);
+  const fullDate = typeof stop === "number" && Number.isFinite(stop) ? timestampToDate(stop) : undefined;
   const severity = labels?.find((label) => label.name === "severity")?.value ?? "normal";
   const { t } = useI18n("ui");
   const statuses = Object.entries({ flaky, muted, known }).filter(([, value]) => value);

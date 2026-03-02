@@ -24,7 +24,7 @@ export default (env, argv) => {
       filename: devMode ? "app.js" : "app-[fullhash].js",
       assetModuleFilename: "[name][ext]",
     },
-    devtool: devMode ? "eval-source-map" : false,
+    devtool: devMode ? "eval-source-map" : "source-map",
     optimization: {
       minimize: !devMode,
       minimizer: [

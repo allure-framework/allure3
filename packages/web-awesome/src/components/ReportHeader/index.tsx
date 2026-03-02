@@ -11,14 +11,17 @@ import * as styles from "./styles.scss";
 export const ReportHeader = () => {
   const { reportName, createdAt } = getReportOptions<AwesomeReportOptions>() ?? {};
   const { t } = useI18n("ui");
-  const formattedCreatedAt = new Date(createdAt as number).toLocaleDateString(currentLocaleIso.value as string, {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
+  const formattedCreatedAt =
+    createdAt != null && Number.isFinite(createdAt)
+      ? new Date(createdAt).toLocaleDateString(currentLocaleIso.value as string, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+        })
+      : "";
 
   return (
     <div className={styles["report-header"]}>

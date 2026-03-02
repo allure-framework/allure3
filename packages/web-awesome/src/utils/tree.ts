@@ -23,8 +23,13 @@ export const createLeafLocalizer =
 
 export const createTreeLocalizer =
   (t: Localizers) =>
-  (tree: RecursiveTree): RecursiveTree => ({
-    ...tree,
-    leaves: tree.leaves.length ? tree.leaves.map(createLeafLocalizer(t)) : tree.leaves,
-    trees: tree.trees.length ? tree.trees.map(createTreeLocalizer(t)) : tree.trees,
-  });
+  (tree: RecursiveTree | null | undefined): RecursiveTree | null => {
+    if (!tree) return null;
+    const leaves = tree.leaves ?? [];
+    const trees = tree.trees ?? [];
+    return {
+      ...tree,
+      leaves: leaves.length ? leaves.map(createLeafLocalizer(t)) : leaves,
+      trees: trees.length ? trees.map(createTreeLocalizer(t)) : trees,
+    };
+  };

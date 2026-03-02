@@ -6,7 +6,9 @@
 }
 
 .report-metadata-wrapper {
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .report-metadata-separator {

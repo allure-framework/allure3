@@ -132,6 +132,7 @@
     "attempt": "მცდელობა {{attempt}} {{total}}-დან",
     "at": "ზე",
     "variables": "ცვლადები",
+    "statistics": "სტატისტიკა",
     "openPwTrace": "გახსენი Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})"

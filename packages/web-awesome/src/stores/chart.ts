@@ -19,9 +19,10 @@ export const fetchPieChartData = async (env: string) => {
   };
 
   try {
-    const res = await fetchReportJsonData<Statistic>(env ? `widgets/${env}/statistic.json` : "widgets/statistic.json", {
-      bustCache: true,
-    });
+    const res = await fetchReportJsonData<Statistic>(
+      env ? `widgets/${env}/statistic.json` : "widgets/statistic.json",
+      { bustCache: true }
+    );
 
     pieChartStore.value = {
       data: getPieChartValues(res),
@@ -29,8 +30,9 @@ export const fetchPieChartData = async (env: string) => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     pieChartStore.value = {
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }
@@ -58,9 +60,10 @@ export const fetchChartsData = async () => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     chartsStore.value = {
       data: undefined,
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }

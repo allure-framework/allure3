@@ -1,4 +1,4 @@
-import type { EnvironmentItem } from "@allurereport/core-api";
+import type { EnvironmentItem, Statistic } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
@@ -45,10 +45,12 @@ const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
 const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) => {
   const { t } = useI18n("ui");
   const [isOpened, setIsOpen] = useState(true);
-  const convertedEnvInfo = Object.entries(props.variables).map(([key, value]) => {
+  const convertedEnvInfo = Object.entries(props.variables ?? {}).map(([key, value]) => {
+    // Ensure value is a string; never render objects/signals as children
+    const strValue = typeof value === "string" ? value : String(value ?? "");
     return {
       name: key,
-      value,
+      value: strValue,
     } as MetadataItem;
   });
 
@@ -58,7 +60,7 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
         isOpened={isOpened}
         setIsOpen={setIsOpen}
         title={t("variables")}
-        counter={Object.keys(props.variables).length}
+        counter={Object.keys(props.variables ?? {}).length}
         data-testid={"report-variables-button"}
       />
       {isOpened && <MetadataList envInfo={convertedEnvInfo} />}
@@ -66,21 +68,41 @@ const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) =
   );
 };
 
+const MetadataStatistics: FunctionalComponent<{ stats: Statistic }> = ({ stats }) => {
+  const { t } = useI18n("ui");
+  const [isOpened, setIsOpen] = useState(true);
+
+  return (
+    <div class={styles["report-metadata"]} data-testid={"report-statistics"}>
+      <MetadataButton
+        isOpened={isOpened}
+        setIsOpen={setIsOpen}
+        title={t("statistics")}
+        counter={stats?.total ?? 0}
+        data-testid={"report-statistics-button"}
+      />
+      {isOpened && <MetadataSummary stats={stats} />}
+    </div>
+  );
+};
+
 export const ReportMetadata = () => {
-  const stats = currentEnvironment.value
+  const envStats = currentEnvironment.value
     ? statsByEnvStore.value.data[currentEnvironment.value]
-    : reportStatsStore.value.data;
+    : undefined;
+  const stats = envStats ?? reportStatsStore.value.data;
 
   useEffect(() => {
-    fetchVariables(currentEnvironment.value);
+    // When "All" selected (empty), use "default" to fetch parent launch variables instead of child metadata
+    fetchVariables(currentEnvironment.value || "default");
   }, [currentEnvironment.value]);
 
   return (
     <div className={styles["report-metadata-wrapper"]}>
-      {stats && <MetadataSummary stats={stats} />}
+      {stats && <MetadataStatistics stats={stats} />}
       <Loadable
         source={variables}
-        transformData={(data) => data?.[currentEnvironment.value ?? "default"] ?? {}}
+        transformData={(data) => data?.[currentEnvironment.value || "default"] ?? {}}
         renderData={(data) => !!Object.keys(data).length && <MetadataVariables variables={data} />}
       />
       <Loadable

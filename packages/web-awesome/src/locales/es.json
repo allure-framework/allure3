@@ -132,6 +132,7 @@
     "attempt": "Intento {{attempt}} de {{total}}",
     "at": "a las",
     "variables": "Variables",
+    "statistics": "Estadísticas",
     "openPwTrace": "Abrir Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con código de salida {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con código de salida {{actual}} (original {{original}})"

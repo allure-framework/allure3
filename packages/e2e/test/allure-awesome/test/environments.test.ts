@@ -167,8 +167,6 @@ test.describe("environments", () => {
     const total = await treePage.getMetadataValue("total");
     const passed = await treePage.getMetadataValue("passed");
 
-    await page.pause();
-
     expect(passed).toEqual("4");
     expect(total).toEqual("4");
   });

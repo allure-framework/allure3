@@ -53,7 +53,8 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
       data: { actual, expected },
       component: <TrDiff actual={actual} expected={expected} />,
     });
-  const sanitizedMessage = ansiToHTML(message, {
+  const displayMessage = message || trace || "";
+  const sanitizedMessage = ansiToHTML(displayMessage, {
     fg: "var(--on-text-primary)",
     colors: {},
   });
@@ -64,7 +65,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
       className={clsx(styles["test-result-error"], styles[`tr-status-${status}`], className)}
       {...rest}
     >
-      {message ? (
+      {displayMessage ? (
         <>
           <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
             <Text
@@ -81,7 +82,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
                 size={"s"}
                 icon={allureIcons.lineGeneralCopy3}
                 onClick={() => {
-                  copyToClipboard(message);
+                  copyToClipboard(displayMessage);
                 }}
               />
             </TooltipWrapper>
@@ -105,7 +106,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
           onClick={openDiff}
         />
       )}
-      {isOpen && Boolean(trace?.length) && <TrErrorTrace trace={trace} />}
+      {isOpen && Boolean(trace?.length) && trace !== displayMessage && <TrErrorTrace trace={trace} />}
     </div>
   );
 };

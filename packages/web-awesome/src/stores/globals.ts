@@ -19,9 +19,10 @@ export const fetchGlobals = async () => {
       loading: false,
     };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     globalsStore.value = {
       ...globalsStore.peek(),
-      error: err.message,
+      error: msg,
       loading: false,
     };
   }

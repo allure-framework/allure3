@@ -11,8 +11,18 @@ const defaultOptions: Intl.DateTimeFormatOptions = {
   hour12: false,
 };
 
-export const timestampToDate = (timestamp: number, options = defaultOptions) => {
+/** Returns true if the value is a valid timestamp (ms) that Date can format. */
+const isValidTimestamp = (v: unknown): v is number =>
+  typeof v === "number" && Number.isFinite(v) && v > 0 && v < 8640000000000000;
+
+export const timestampToDate = (timestamp: number, options = defaultOptions): string => {
+  if (!isValidTimestamp(timestamp)) {
+    return "";
+  }
   const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { t } = useI18n("ui");
   const kind = options.second ? "dateTime" : options.hour || options.minute ? "dateTimeNoSeconds" : "date";

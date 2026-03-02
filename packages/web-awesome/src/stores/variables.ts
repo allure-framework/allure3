@@ -31,9 +31,10 @@ export const fetchVariables = async (env: string = "default") => {
       loading: false,
     };
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     variables.value = {
       ...variables.peek(),
-      error: e.message,
+      error: msg,
       loading: false,
     };
   }

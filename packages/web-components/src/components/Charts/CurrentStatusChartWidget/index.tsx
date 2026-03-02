@@ -37,11 +37,12 @@ const borderColor = { theme: "background" } as const;
 
 export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
   const { title, data, statuses, metric = "passed", i18n = noop } = props;
-  const chartData = useMemo(() => toChartData({ data, i18n, statuses }), [data, i18n, statuses]);
-  const totalCount = data.total;
+  const totalCount = Number(data?.total) || 0;
+  const dataNormalized = { ...data, total: totalCount } as Props["data"];
+  const chartData = useMemo(() => toChartData({ data: dataNormalized, i18n, statuses }), [dataNormalized, i18n, statuses]);
 
   const isEmpty = totalCount === 0;
-  const hasAdditionalStats = statsHasAdditionalStats(data);
+  const hasAdditionalStats = statsHasAdditionalStats(dataNormalized);
   const shiftWidth = hasAdditionalStats ? MAX_PIE_WIDTH + GAP + MAX_ADDITIONAL_STATS_WIDTH : MAX_PIE_WIDTH;
 
   return (
@@ -87,7 +88,7 @@ export const CurrentStatusChartWidget: FunctionalComponent<Props> = (props) => {
               />
             </div>
             {hasAdditionalStats && (
-              <AdditionalStats stats={data} i18n={i18n} layout={width > shiftWidth ? "vertical" : "horizontal"} />
+              <AdditionalStats stats={dataNormalized} i18n={i18n} layout={width > shiftWidth ? "vertical" : "horizontal"} />
             )}
           </div>
         )}

@@ -132,6 +132,7 @@
     "attempt": "ניסיון {{attempt}} מתוך {{total}}",
     "at": "ב-",
     "variables": "משתנים",
+    "statistics": "סטטיסטיקות",
     "openPwTrace": "פתח Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})"

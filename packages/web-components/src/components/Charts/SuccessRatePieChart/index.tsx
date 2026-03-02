@@ -14,7 +14,7 @@ const isValidPercentage = (percentage: number) =>
 export const SuccessRatePieChart = ({ slices, percentage, className }: SuccessRatePieChartProps) => {
   return (
     <article aria-label="Success rate" role="presentation" className={cx(styles.chart, className)}>
-      <svg aria-hidden viewBox="0 0 100 100">
+      <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <g transform={"translate(50, 50)"}>
           {slices.map(
             (slice) =>

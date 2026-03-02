@@ -62,7 +62,8 @@
     "clear-filters": "Очистить фильтры",
     "no-attachments-results": "Информация о вложениях отсутствует",
     "no-history-results": "Информация об истории отсутствует",
-    "no-retries-results": "Информация о перезапусках отсутствует"
+    "no-retries-results": "Информация о перезапусках отсутствует",
+    "timeline-placeholder": "На временной шкале будет отображаться порядок выполнения тестов. Этот вид пока недоступен."
   },
   "severity": {
     "name": "Важность",
@@ -113,5 +114,15 @@
   },
   "errors": {
     "missedAttachment": "Вложение не найдено"
+  },
+  "charts": {
+    "trend": { "title": "График тренда {{type}}" },
+    "pie": { "title": "Процент успешных тестов" },
+    "percentage": "{{percentage}}%",
+    "of": "из {{total}}",
+    "total": "Всего",
+    "totalDuration": "Общая длительность",
+    "flakyCount": "Нестабильные тесты",
+    "retriesCount": "Повторы"
   }
 }

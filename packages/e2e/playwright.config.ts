@@ -13,6 +13,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testMatch: /^(?!.*frontend-backend).*$/,
       use: {
         ...devices["Desktop Chrome"],
         launchOptions: {
@@ -32,11 +33,28 @@ export default defineConfig({
     },
     {
       name: "firefox",
+      testMatch: /^(?!.*frontend-backend).*$/,
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "safari",
+      testMatch: /^(?!.*frontend-backend).*$/,
       use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "frontend-backend",
+      testMatch: /frontend-backend\/.*\.spec\.ts$/,
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: [
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+          ],
+        },
+      },
     },
   ],
   reporter: [

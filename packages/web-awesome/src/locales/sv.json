@@ -132,6 +132,7 @@
     "attempt": "Försök {{attempt}} av {{total}}",
     "at": "vid",
     "variables": "Variabler",
+    "statistics": "Statistik",
     "openPwTrace": "Öppna Playwright Trace",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"

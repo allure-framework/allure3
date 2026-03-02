@@ -70,9 +70,10 @@ export const fetchEnvTreesData = async (envs: string[]) => {
       error: undefined,
     };
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     treeStore.value = {
       ...treeStore.peek(),
-      error: e.message,
+      error: msg,
       loading: false,
     };
   }

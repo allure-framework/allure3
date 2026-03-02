@@ -9,9 +9,9 @@ export const TrDropdown: FunctionalComponent<{
   setIsOpen: (isOpened: boolean) => void;
   title: string;
   icon: string;
-  counter: number;
+  counter?: number;
   className?: ClassValue;
-}> = ({ isOpened, setIsOpen, title, icon, counter, className }) => {
+}> = ({ isOpened, setIsOpen, title, icon, counter = 0, className }) => {
   return (
     <div className={clsx(styles["test-result-dropdown"], className)} onClick={() => setIsOpen(!isOpened)}>
       <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />

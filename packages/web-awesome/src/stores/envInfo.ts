@@ -25,9 +25,10 @@ export const fetchEnvInfo = async () => {
       loading: false,
     };
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     envInfoStore.value = {
       ...envInfoStore.peek(),
-      error: e.message,
+      error: msg,
       loading: false,
     };
   }

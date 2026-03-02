@@ -132,6 +132,7 @@
     "attempt": "시도 {{attempt}}/{{total}}",
     "at": "에서",
     "variables": "변수",
+    "statistics": "통계",
     "openPwTrace": "Playwright Trace 열기",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})"

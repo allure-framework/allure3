@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "run clean && tsc --project ./tsconfig.json",
+    "build": "run clean && (cd ../.. && tsc --project packages/charts-api/tsconfig.json)",
     "clean": "rimraf ./dist",
     "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
     "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}"
