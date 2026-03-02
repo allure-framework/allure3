@@ -12,7 +12,7 @@ import {
   readConfig,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
+import { type KnownTestFailure, createTestPlan, validateEnvironmentName } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -24,7 +24,7 @@ import Awesome from "@allurereport/plugin-awesome";
 import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
-import { Command, Option } from "clipanion";
+import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
@@ -297,7 +297,21 @@ export class RunCommand extends Command {
     const args = this.commandToRun.filter((arg) => arg !== "--") as string[] | undefined;
 
     if (!args || !args.length) {
-      throw new Error("expecting command to be specified after --, e.g. allure run -- npm run test");
+      throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
+    }
+
+    let normalizedEnvironment = this.environment;
+
+    if (this.environment !== undefined) {
+      const envValidationResult = validateEnvironmentName(this.environment);
+
+      if (!envValidationResult.valid) {
+        throw new UsageError(
+          `invalid --environment value ${JSON.stringify(this.environment)}: ${envValidationResult.reason}`,
+        );
+      }
+
+      normalizedEnvironment = envValidationResult.normalized;
     }
 
     const before = new Date().getTime();
@@ -322,6 +336,7 @@ export class RunCommand extends Command {
       port: this.port,
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
+    const resolvedEnvironment = normalizedEnvironment ?? config.environment;
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;
 
@@ -340,7 +355,7 @@ export class RunCommand extends Command {
     }
     const allureReport = new AllureReport({
       ...config,
-      environment: this.environment,
+      environment: resolvedEnvironment,
       dump: this.dump,
       realTime: false,
       plugins: [
@@ -378,7 +393,7 @@ export class RunCommand extends Command {
         cwd,
         command,
         commandArgs,
-        environment: this.environment,
+        environment: resolvedEnvironment,
         environmentVariables: {},
         withQualityGate,
       });
@@ -409,7 +424,7 @@ export class RunCommand extends Command {
           cwd,
           command,
           commandArgs,
-          environment: this.environment,
+          environment: resolvedEnvironment,
           environmentVariables: {
             ALLURE_TESTPLAN_PATH: testPlanPath,
             ALLURE_RERUN: `${rerun}`,
@@ -429,7 +444,7 @@ export class RunCommand extends Command {
         const { results } = await allureReport.validate({
           trs,
           knownIssues,
-          environment: this.environment,
+          environment: resolvedEnvironment,
         });
 
         qualityGateResults = results;

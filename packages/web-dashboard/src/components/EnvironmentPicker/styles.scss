@@ -2,8 +2,27 @@
   display: flex;
   align-items: center;
   gap: 0 4px;
+  min-width: 0;
+
+  > :last-child {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+  }
 }
 
 .environment-picker-label {
   text-transform: capitalize;
+}
+
+.environment-picker-button {
+  max-width: 100%;
+}
+
+.environment-picker-item-text {
+  display: block;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

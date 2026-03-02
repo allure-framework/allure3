@@ -1,5 +1,8 @@
 import { defaultChartsConfig, defineConfig } from "allure";
 
+const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
+const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+
 const chartLayout = [
   {
     type: "trend",
@@ -190,6 +193,21 @@ export default defineConfig({
         env_specific_variable: "bar",
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
+    },
+    [MAX_ENV_NAME_64]: {
+      variables: {
+        env_variable: MAX_ENV_NAME_64,
+        env_specific_variable: "max-length-64",
+      },
+      matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64),
+    },
+    [MAX_ENV_NAME_64_UNICODE]: {
+      variables: {
+        env_variable: MAX_ENV_NAME_64_UNICODE,
+        env_specific_variable: "max-length-64-unicode",
+      },
+      matcher: ({ labels }) =>
+        labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64_UNICODE),
     },
   },
 });

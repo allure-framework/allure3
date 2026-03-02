@@ -1,4 +1,10 @@
-import { DEFAULT_ENVIRONMENT, type KnownTestFailure, type TestError, type TestResult } from "@allurereport/core-api";
+import {
+  DEFAULT_ENVIRONMENT,
+  type KnownTestFailure,
+  type TestError,
+  type TestResult,
+  assertValidEnvironmentName,
+} from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
 
@@ -60,6 +66,9 @@ export class QualityGate {
     environment?: string;
   }): Promise<{ fastFailed: boolean; results: QualityGateValidationResult[] }> {
     const { state, trs, knownIssues, environment } = payload;
+    const resolvedEnvironment =
+      environment !== undefined ? assertValidEnvironmentName(environment, "quality gate environment") : undefined;
+
     const { rules, use = [...qualityGateDefaultRules] as QualityGateRule<any>[] } = this.config;
     const results: QualityGateValidationResult[] = [];
     let fastFailed = false;
@@ -115,7 +124,7 @@ export class QualityGate {
             actual: result.actual,
             expected,
           }),
-          environment: environment || DEFAULT_ENVIRONMENT,
+          environment: resolvedEnvironment || DEFAULT_ENVIRONMENT,
         });
 
         if (ruleset.fastFail) {
