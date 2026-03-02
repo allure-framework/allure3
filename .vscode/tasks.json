@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "E2E: Run All Tests",
+      "type": "shell",
+      "command": "cd packages/backend && (docker-compose up -d postgres 2>/dev/null || docker compose up -d postgres 2>/dev/null || true) && cd ../.. && yarn workspace @allurereport/backend run migration:run && yarn workspace @allurereport/backend run test:e2e && yarn workspace @allurereport/e2e run test:frontend-backend",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Start DB + Backend + Frontend + Load Demo + Open Browser",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/start-dev-with-demo.sh",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "uuid": "a000000c-000c-4000-8000-00000000000c",
+  "name": "Steps nested",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "Outer",
+      "status": "passed",
+      "steps": [
+        {
+          "name": "Inner",
+          "status": "passed",
+          "steps": [{ "name": "Deep", "status": "passed" }]
+        }
+      ]
+    }
+  ]
+}

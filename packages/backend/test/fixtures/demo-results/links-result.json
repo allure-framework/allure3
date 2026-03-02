@@ -1,0 +1,11 @@
+{
+  "uuid": "a000000a-000a-4000-8000-00000000000a",
+  "name": "Links test",
+  "status": "passed",
+  "links": [
+    { "name": "TMS-1", "url": "https://tms.example.com/1", "type": "tms" },
+    { "name": "BUG-2", "url": "https://bug.example.com/2", "type": "issue" },
+    { "name": "Custom link", "url": "https://example.com", "type": "custom" },
+    { "url": "https://example.com/noname", "type": "link" }
+  ]
+}

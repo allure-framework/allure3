@@ -1,0 +1,10 @@
+{
+  "uuid": "a0000009-0009-4000-8000-000000000009",
+  "name": "Parameters modes",
+  "status": "passed",
+  "parameters": [
+    { "name": "p1", "value": "v1", "mode": "hidden" },
+    { "name": "p2", "value": "v2", "mode": "masked" },
+    { "name": "p3", "value": "v3", "mode": "default" }
+  ]
+}

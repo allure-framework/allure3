@@ -1,0 +1,10 @@
+{
+  "uuid": "a000000b-000b-4000-8000-00000000000b",
+  "name": "Steps flat",
+  "status": "failed",
+  "steps": [
+    { "name": "Step 1", "status": "passed" },
+    { "name": "Step 2", "status": "passed" },
+    { "name": "Step 3", "status": "failed" }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "uuid": "a000000e-000e-4000-8000-00000000000e",
+  "name": "x",
+  "fullName": "y",
+  "status": "passed",
+  "historyId": "h",
+  "labels": [{ "name": "tag", "value": "a" }]
+}

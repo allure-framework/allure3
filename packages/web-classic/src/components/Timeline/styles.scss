@@ -1,0 +1,17 @@
+.timeline {
+  padding: 24px;
+  width: 100%;
+}
+
+.timeline-title {
+  margin-bottom: 16px;
+}
+
+.timeline-empty {
+  padding: 16px;
+  color: var(--color-text-secondary, #666);
+}
+
+.timeline-list {
+  min-height: 128px;
+}

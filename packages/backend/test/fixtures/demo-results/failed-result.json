@@ -1,0 +1,1 @@
+{"uuid":"a0000002-0002-4000-8000-000000000002","name":"Failed test","status":"failed","start":1000000001000,"stop":1000000002500,"statusDetails":{"message":"AssertionError: expected 1 to be 2","trace":"  at foo (test.ts:10)"},"message":"expected 1 to be 2","trace":"  at foo (test.ts:10)"}

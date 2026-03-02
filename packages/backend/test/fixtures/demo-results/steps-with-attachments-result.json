@@ -1,0 +1,14 @@
+{
+  "uuid": "a000000d-000d-4000-8000-00000000000d",
+  "name": "Steps with attachments",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "Step with attachment",
+      "status": "passed",
+      "attachments": [
+        { "name": "screenshot.png", "source": "abc123", "type": "image/png" }
+      ]
+    }
+  ]
+}

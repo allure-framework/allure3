@@ -1,0 +1,17 @@
+# Report-app with nginx: serves LaunchesPage, report.html, and web-awesome assets.
+# Proxies /api/ to backend (run separately: yarn workspace @allurereport/backend run dev).
+# Prerequisites: yarn workspace @allurereport/report-app run build
+# Note: restart-all.sh --nginx uses report-app serve (no Docker) for WSL2 compatibility.
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: scripts/nginx/Dockerfile
+    container_name: allure-report-nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./packages/report-app/dist:/app/static:ro
+      - ./packages/web-awesome/dist/multi:/app/web-awesome:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

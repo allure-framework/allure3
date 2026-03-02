@@ -1,0 +1,1 @@
+{"uuid": "a0000008-0008-4000-8000-000000000008", "name": "Labels variations", "status": "passed", "labels": [{"name": "suite", "value": "SuiteName"}, {"name": "package", "value": "pkg"}, {"name": "severity", "value": "blocker"}, {"name": "tag", "value": "tag1"}]}
