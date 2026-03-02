@@ -18,18 +18,8 @@ export type TrOverviewProps = {
 };
 
 export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult }) => {
-  const {
-    error,
-    parameters,
-    groupedLabels,
-    links,
-    descriptionHtml,
-    setup,
-    steps,
-    teardown,
-    id,
-    status,
-  } = testResult || {};
+  const { error, parameters, groupedLabels, links, descriptionHtml, setup, steps, teardown, id, status } =
+    testResult || {};
   const testResultId = id ?? currentTrId.value;
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
