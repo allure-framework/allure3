@@ -1,0 +1,222 @@
+{
+  "chart": {
+    "duration": {
+      "empty": "لا يوجد شيء لعرضه",
+      "name": "المدة"
+    },
+    "severity": {
+      "name": "الخطورة"
+    },
+    "status": {
+      "name": "الحالة"
+    },
+    "trend": {
+      "empty": "لا يوجد شيء لعرضه"
+    }
+  },
+  "component": {
+    "markToggle": {
+      "hideCases": "إخفاء نتائج اختبار {{mark}}",
+      "showCases": "عرض نتائج اختبار {{mark}}"
+    },
+    "statusToggle": {
+      "hideCases": "إخفاء نتائج الاختبار بحالة {{status}}",
+      "showCases": "عرض نتائج الاختبار بحالة {{status}}"
+    },
+    "tree": {
+      "download": "تحميل CSV",
+      "empty": "لا توجد عناصر",
+      "filter": "الحالة",
+      "filter-marks": "العلامات",
+      "filtered": {
+        "shown": "{{count}} معروض",
+        "total": "{{count}} نتيجة اختبار",
+        "total_plural": "{{count}} نتائج اختبار"
+      },
+      "groups": "تبديل معلومات المجموعات",
+      "time": {
+        "max": {
+          "name": "الأقصى",
+          "tooltip": "أطول مدة اختبار"
+        },
+        "sum": {
+          "name": "المجموع",
+          "tooltip": "مجموع مدد جميع الاختبارات"
+        },
+        "total": {
+          "name": "الإجمالي",
+          "tooltip": "المدة من بداية أول اختبار إلى نهاية آخر اختبار"
+        }
+      },
+      "unknown": "<فارغ>"
+    },
+    "widgetStatus": {
+      "showAll": "عرض الكل",
+      "total": "{{count}} عنصر إجمالاً",
+      "total_plural": "{{count}} عناصر إجمالاً"
+    }
+  },
+  "controls": {
+    "backto": "العودة إلى",
+    "clipboard": "نسخ إلى الحافظة",
+    "clipboardError": "لا يمكن نسخ القيمة إلى الحافظة. يبدو أن هذه الميزة غير مدعومة في متصفحك",
+    "clipboardSuccess": "تم النسخ بنجاح",
+    "collapse": "طي",
+    "expand": "توسيع",
+    "fullscreen": "ملء الشاشة",
+    "language": "تغيير اللغة"
+  },
+  "errors": {
+    "missedAttachment": "المرفق غير موجود",
+    "notFound": "غير موجود"
+  },
+  "marks": {
+    "flaky": "متقلب",
+    "newBroken": "معطل جديد",
+    "newFailed": "فاشل جديد",
+    "newPassed": "ناجح جديد",
+    "retriesStatusChange": "تغيرت الحالة بعد الإعادة"
+  },
+  "sorter": {
+    "duration": "المدة",
+    "name": "الاسم",
+    "order": "الترتيب",
+    "status": "الحالة"
+  },
+  "status": {
+    "broken": "معطل",
+    "failed": "فاشل",
+    "passed": "ناجح",
+    "skipped": "تم تخطيه",
+    "unknown": "غير معروف"
+  },
+  "tab": {
+    "categories": {
+      "name": "الفئات"
+    },
+    "graph": {
+      "name": "الرسوم البيانية"
+    },
+    "overview": {
+      "name": "نظرة عامة"
+    },
+    "suites": {
+      "name": "مجموعات الاختبار"
+    },
+    "timeline": {
+      "name": "الخط الزمني",
+      "selected": "تم تحديد {{count}} اختبار ({{percent}}%) بمدة أعلى من {{duration}}",
+      "selected_plural": "تم تحديد {{count}} اختبارات ({{percent}}%) بمدة أعلى من {{duration}}"
+    }
+  },
+  "testResult": {
+    "categories": {
+      "name": "الفئات"
+    },
+    "description": {
+      "name": "الوصف"
+    },
+    "duration": {
+      "name": "المدة"
+    },
+    "execution": {
+      "body": "جسم الاختبار",
+      "downloadAttachment": {
+        "tooltip": "فتح المرفق في علامة تبويب جديدة"
+      },
+      "name": "التنفيذ",
+      "setup": "الإعداد",
+      "teardown": "التفكيك"
+    },
+    "history": {
+      "empty": "لا تتوفر معلومات عن السجل.",
+      "name": "السجل",
+      "statistic": "{{passed}} من {{total}}",
+      "successRate": "معدل النجاح",
+      "time": "{{date}} في {{time}}"
+    },
+    "links": {
+      "name": "الروابط"
+    },
+    "overview": {
+      "name": "نظرة عامة"
+    },
+    "owner": {
+      "name": "المالك"
+    },
+    "parameters": {
+      "name": "المعاملات"
+    },
+    "retries": {
+      "empty": "لا تتوفر معلومات عن إعادات الاختبار",
+      "name": "الإعادات",
+      "time": "{{date}} في {{time}}"
+    },
+    "severity": {
+      "name": "الخطورة",
+      "blocker": "حاجب",
+      "critical": "حرج",
+      "normal": "عادي",
+      "minor": "ثانوي",
+      "trivial": "بسيط"
+    },
+    "stats": {
+      "count": {
+        "attachments": "{{count}} مرفق",
+        "attachments_plural": "{{count}} مرفقات",
+        "parameters": "{{count}} معامل",
+        "parameters_plural": "{{count}} معاملات",
+        "steps": "{{count}} خطوة فرعية",
+        "steps_plural": "{{count}} خطوات فرعية"
+      }
+    },
+    "status": {
+      "empty": "تفاصيل الحالة فارغة",
+      "trace": "عرض التتبع"
+    },
+    "tags": {
+      "name": "الوسوم"
+    }
+  },
+  "widget": {
+    "categories": {
+      "name": "الفئات"
+    },
+    "categoriesTrend": {
+      "name": "اتجاه الفئات"
+    },
+    "durationTrend": {
+      "name": "اتجاه المدة"
+    },
+    "environment": {
+      "empty": "لا توجد متغيرات بيئة",
+      "name": "البيئة",
+      "showAll": "عرض الكل"
+    },
+    "executors": {
+      "empty": "لا تتوفر معلومات عن منفذي الاختبارات",
+      "name": "المنفذون",
+      "unknown": "غير معروف"
+    },
+    "launches": {
+      "empty": "لا تتوفر معلومات عن عمليات الإطلاق",
+      "name": "عمليات الإطلاق"
+    },
+    "retryTrend": {
+      "name": "اتجاه الإعادات"
+    },
+    "suites": {
+      "name": "مجموعات الاختبار"
+    },
+    "summary": {
+      "aggregatedName": "تقرير مُجمَّع",
+      "launches": "عملية إطلاق",
+      "launches_plural": "عمليات إطلاق",
+      "testResults": "حالة اختبار",
+      "testResults_plural": "حالات اختبار"
+    },
+    "trend": {
+      "name": "الاتجاه"
+    }
+  }
+}

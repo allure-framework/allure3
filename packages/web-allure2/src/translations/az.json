@@ -1,70 +1,70 @@
 {
   "chart": {
     "duration": {
-      "empty": "Göstəriləcək heç nə yoxdur",
-      "name": "Test müddəti"
+      "empty": "Göstəriləcək məlumat yoxdur",
+      "name": "Müddət"
     },
     "severity": {
-      "name": "Testlərin əhəmiyyəti"
+      "name": "Ciddilik dərəcəsi"
     },
     "status": {
-      "name": "Testlərin statusu"
+      "name": "Status"
     },
     "trend": {
-      "empty": "Göstəriləcək heç nə yoxdur"
+      "empty": "Göstəriləcək məlumat yoxdur"
     }
   },
   "component": {
     "markToggle": {
-      "hideCases": "{{mark}} nəticəni gizlədin",
-      "showCases": "{{mark}} nəticəni göstərin"
+      "hideCases": "{{mark}} test nəticələrini gizlət",
+      "showCases": "{{mark}} test nəticələrini göstər"
     },
     "statusToggle": {
-      "hideCases": "{{status}} statuslu test nəticələrini gizlədin",
-      "showCases": "{{status}} statuslu test nəticələrini gizlədin"
+      "hideCases": "{{status}} statuslu test nəticələrini gizlət",
+      "showCases": "{{status}} statuslu test nəticələrini göstər"
     },
     "tree": {
-      "download": "CSV endirin",
+      "download": "CSV endir",
       "empty": "Məlumat yoxdur",
       "filter": "Status",
-      "filter-marks": "Teqlər",
+      "filter-marks": "İşarələr",
       "filtered": {
         "shown": "{{count}} göstərilir",
         "total": "{{count}} test nəticəsi",
         "total_plural": "{{count}} test nəticəsi"
       },
-      "groups": "Qruplar haqqında məlumatları göstərin",
+      "groups": "Qrup məlumatlarını göstər/gizlə",
       "time": {
         "max": {
-          "name": "Maks",
-          "tooltip": "Qrupdakı ən uzun testin müddəti"
+          "name": "Maks.",
+          "tooltip": "Ən uzun test müddəti"
         },
         "sum": {
           "name": "Cəm",
-          "tooltip": "Qrupdakı test müddətlərinin cəmi"
+          "tooltip": "Bütün test müddətlərinin cəmi"
         },
         "total": {
           "name": "Toplam",
-          "tooltip": "İlk test başlayandan sonuncu bitənə qədər olan vaxt"
+          "tooltip": "İlk testin başlanğıcından son testin bitişinə qədər olan vaxt"
         }
       },
       "unknown": "<Boş>"
     },
     "widgetStatus": {
       "showAll": "Hamısını göstər",
-      "total": "Toplam {{count}} element",
-      "total_plural": "Toplam {{count}} element"
+      "total": "Cəmi {{count}} element",
+      "total_plural": "Cəmi {{count}} element"
     }
   },
   "controls": {
-    "backto": "Geri",
+    "backto": "Geri dön:",
     "clipboard": "Mübadilə buferinə kopyala",
-    "clipboardError": "Mübadilə buferinə kopyalamaq mümkün olmadı. Bu özəllik browseriniz tərəfindən dəstəklənmir",
+    "clipboardError": "Kopyalamaq mümkün olmadı. Brauzeriniz bu funksiyanı dəstəkləmir.",
     "clipboardSuccess": "Uğurla kopyalandı",
-    "collapse": "Aç",
-    "expand": "Genişlət",
+    "collapse": "Yığ",
+    "expand": "Genişləndir",
     "fullscreen": "Tam ekran",
-    "language": "Dili dəyişin"
+    "language": "Dili dəyiş"
   },
   "errors": {
     "missedAttachment": "Qoşma tapılmadı",
@@ -74,8 +74,8 @@
     "flaky": "Qeyri-sabit",
     "newBroken": "Yeni qırılmış",
     "newFailed": "Yeni uğursuz",
-    "newPassed": "Yeni keçmiş",
-    "retriesStatusChange": "Yenidən cəhd etdikdən sonra status dəyişib"
+    "newPassed": "Yeni uğurlu",
+    "retriesStatusChange": "Təkrar cəhddən sonra status dəyişdi"
   },
   "sorter": {
     "duration": "müddət",
@@ -86,27 +86,27 @@
   "status": {
     "broken": "Qırılmış",
     "failed": "Uğursuz",
-    "passed": "Keçmiş",
+    "passed": "Uğurlu",
     "skipped": "Buraxılmış",
-    "unknown": "Qeyri müəyyən"
+    "unknown": "Naməlum"
   },
   "tab": {
     "categories": {
       "name": "Kateqoriyalar"
     },
     "graph": {
-      "name": "Qraflar"
+      "name": "Qrafiklər"
     },
     "overview": {
-      "name": "Ümumibaxış"
+      "name": "Ümumi baxış"
     },
     "suites": {
-      "name": "Test dəsti"
+      "name": "Test dəstləri"
     },
     "timeline": {
-      "name": "Zaman şkalası",
-      "selected": "Müddəti {{duration}} çox olan {{count}} test ({{percent}}%) seçildi",
-      "selected_plural": "Müddəti {{duration}} çox olan {{count}} test ({{percent}}%) seçildi"
+      "name": "Zaman xətti",
+      "selected": "Müddəti {{duration}}-dən çox olan {{count}} test ({{percent}}%) seçildi",
+      "selected_plural": "Müddəti {{duration}}-dən çox olan {{count}} test ({{percent}}%) seçildi"
     }
   },
   "testResult": {
@@ -114,7 +114,7 @@
       "name": "Kateqoriyalar"
     },
     "description": {
-      "name": "Açıqlama"
+      "name": "Təsvir"
     },
     "duration": {
       "name": "Müddət"
@@ -122,52 +122,57 @@
     "execution": {
       "body": "Test gövdəsi",
       "downloadAttachment": {
-        "tooltip": "Qoşmanı yeni tabda açın"
+        "tooltip": "Qoşmanı yeni tabda aç"
       },
       "name": "İcra",
-      "setup": "Hazırlanma",
-      "teardown": "Sonlandırma"
+      "setup": "Quraşdırma (Setup)",
+      "teardown": "Yekunlaşdırma (Teardown)"
     },
     "history": {
-      "empty": "Tarix məlumatı tapılmadı.",
-      "name": "Tarix",
-      "statistic": "Toplam:{{total}}, Keçmiş:{{passed}} ",
+      "empty": "Tarixçə məlumatı yoxdur.",
+      "name": "Tarixçə",
+      "statistic": "{{total}} testdən {{passed}} uğurlu olub",
       "successRate": "Uğur faizi",
-      "time": "{{date}} at {{time}}"
+      "time": "{{date}}, saat {{time}}"
     },
     "links": {
-      "name": "Linklər"
+      "name": "Keçidlər"
     },
     "overview": {
-      "name": "Ümumibaxış"
+      "name": "Ümumi baxış"
     },
     "owner": {
-      "name": "Sahibi"
+      "name": "Sahib"
     },
     "parameters": {
-      "name": "Parameterlər"
+      "name": "Parametrlər"
     },
     "retries": {
-      "empty": "Testlərin yenidən çalışdırılması ilə bağlı məlumat yoxdur",
-      "name": "Yenidən Cəhdlər",
-      "time": "{{date}} at {{time}}"
+      "empty": "Təkrar cəhdlər haqqında məlumat yoxdur",
+      "name": "Təkrar cəhdlər",
+      "time": "{{date}}, saat {{time}}"
     },
     "severity": {
-      "name": "Əhəmiyyəti"
+      "name": "Ciddilik",
+      "blocker": "bloklayıcı",
+      "critical": "kritik",
+      "normal": "normal",
+      "minor": "aşağı",
+      "trivial": "əhəmiyyətsiz"
     },
     "stats": {
       "count": {
         "attachments": "{{count}} qoşma",
         "attachments_plural": "{{count}} qoşma",
-        "parameters": "{{count}} parameter",
-        "parameters_plural": "{{count}} parameter",
-        "steps": "{{count}} alt addım",
-        "steps_plural": "{{count}} alt addım"
+        "parameters": "{{count}} parametr",
+        "parameters_plural": "{{count}} parametr",
+        "steps": "{{count}} alt-addım",
+        "steps_plural": "{{count}} alt-addım"
       }
     },
     "status": {
-      "empty": "Boş status detalları",
-      "trace": "Trace-i göstər"
+      "empty": "Status təfərrüatları boşdur",
+      "trace": "İzləməni (Trace) göstər"
     },
     "tags": {
       "name": "Teqlər"
@@ -178,37 +183,37 @@
       "name": "Kateqoriyalar"
     },
     "categoriesTrend": {
-      "name": "Kateqoriyalar trendi"
+      "name": "Kateqoriya trendi"
     },
     "durationTrend": {
       "name": "Müddət trendi"
     },
     "environment": {
-      "empty": "Mühit dəyişənləri haqqında məlumat yoxdur",
+      "empty": "Mühit dəyişənləri yoxdur",
       "name": "Mühit",
       "showAll": "Hamısını göstər"
     },
     "executors": {
-      "empty": "Testin icrası sistemi haqqında məlumat yoxdur",
-      "name": "Test icraçıları",
-      "unknown": "Bilinməyən"
+      "empty": "İcraçılar haqqında məlumat yoxdur",
+      "name": "İcraçılar",
+      "unknown": "Naməlum"
     },
     "launches": {
-      "empty": "Başlamalar haqqında məlumat yoxdur",
-      "name": "Başlamalar"
+      "empty": "Başlatmalar haqqında məlumat yoxdur",
+      "name": "Başlatmalar"
     },
     "retryTrend": {
-      "name": "Yenidən cəhdlər trendi"
+      "name": "Təkrar cəhdlər trendi"
     },
     "suites": {
       "name": "Dəstlər"
     },
     "summary": {
-      "aggregatedName": "Ümumi hesabat",
-      "launches": "Başlama",
-      "launches_plural": "Başlamalar",
-      "testResults": "test nəticəsi",
-      "testResults_plural": "test nəticələri"
+      "aggregatedName": "Toplu hesabat",
+      "launches": "başlatma",
+      "launches_plural": "başlatma",
+      "testResults": "test ssenarisi",
+      "testResults_plural": "test ssenarisi"
     },
     "trend": {
       "name": "Trend"

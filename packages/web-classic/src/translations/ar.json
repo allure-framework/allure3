@@ -1,0 +1,137 @@
+{
+  "statuses": {
+    "passed": "ناجح",
+    "failed": "فاشل",
+    "broken": "معطل",
+    "skipped": "تم تخطيه",
+    "unknown": "غير معروف",
+    "total": "الإجمالي",
+    "flakyTests": "متقلب",
+    "newTests": "جديد",
+    "retryTests": "إعادة"
+  },
+  "testSummary": {
+    "all": "كل الاختبارات",
+    "flaky": "اختبار متقلب",
+    "retry": "اختبار مُعاد",
+    "new": "اختبار جديد"
+  },
+  "tabs": {
+    "total": "الكل"
+  },
+  "search": {
+    "search": "بحث",
+    "search-placeholder": "الاسم أو المُعرِّف"
+  },
+  "filters": {
+    "more-filters": "فلاتر إضافية",
+    "enable-filter": "تفعيل فلتر \"{{filter}}\"",
+    "flaky": "متقلب",
+    "retry": "إعادة",
+    "new": "جديد"
+  },
+  "sort-by": {
+    "sort-by-text": "ترتيب حسب:",
+    "sort-by-category": "ترتيب حسب",
+    "direction-category": "الاتجاه"
+  },
+  "sort-by.values": {
+    "order": "الترتيب",
+    "alphabet": "الأبجدية",
+    "duration": "المدة",
+    "status": "الحالة"
+  },
+  "sort-by.directions": {
+    "order-desc": "الأحدث – الأقدم",
+    "order-asc": "الأقدم – الأحدث",
+    "order-asc-short": "الأقدم",
+    "order-desc-short": "الأحدث",
+    "alphabet-asc": "أ – ي",
+    "alphabet-desc": "ي – أ",
+    "alphabet-asc-short": "أ – ي",
+    "alphabet-desc-short": "ي – أ",
+    "duration-asc": "1 – 9",
+    "duration-desc": "9 – 1",
+    "duration-asc-short": "1 – 9",
+    "duration-desc-short": "9 – 1",
+    "status-asc": "كما في قائمة الفلتر",
+    "status-desc": "معكوس",
+    "status-asc-short": "عادي",
+    "status-desc-short": "معكوس"
+  },
+  "empty": {
+    "no-results": "لا توجد نتائج",
+    "no-tests-found": "لم يتم العثور على نتائج",
+    "no-message-provided": "لم يتم تقديم رسالة",
+    "clear-filters": "مسح الفلاتر",
+    "no-attachments-results": "لا تتوفر معلومات عن المرفقات",
+    "no-history-results": "لا تتوفر معلومات عن السجل",
+    "no-retries-results": "لا تتوفر معلومات عن الإعادات"
+  },
+  "severity": {
+    "blocker": "حاجب",
+    "critical": "حرج",
+    "normal": "عادي",
+    "minor": "ثانوي",
+    "trivial": "بسيط"
+  },
+  "execution": {
+    "name": "التنفيذ",
+    "body": "جسم الاختبار",
+    "setup": "الإعداد",
+    "teardown": "التفكيك"
+  },
+  "ui": {
+    "labels": "التصنيفات",
+    "metadata": "البيانات الوصفية",
+    "parameters": "المعاملات",
+    "description": "الوصف",
+    "links": "الروابط",
+    "overview": "نظرة عامة",
+    "history": "السجل",
+    "attachments": "المرفقات",
+    "retries": "الإعادات",
+    "error": "خطأ",
+    "goToStep": "انتقل إلى الخطوة",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد",
+    "copy": "نسخ",
+    "attempt": "المحاولة {{attempt}} من {{total}}",
+    "at": "في"
+  },
+  "controls": {
+    "newTabAttachment": "فتح المرفق في علامة تبويب جديدة",
+    "nextTR": "نتيجة الاختبار التالية",
+    "prevTR": "نتيجة الاختبار السابقة",
+    "downloadAttachment": "تحميل المرفق",
+    "backto": "العودة إلى",
+    "clipboard": "نسخ إلى الحافظة",
+    "clipboardError": "لا يمكن نسخ القيمة إلى الحافظة. يبدو أن هذه الميزة غير مدعومة في متصفحك",
+    "clipboardSuccess": "تم النسخ بنجاح",
+    "collapse": "طي",
+    "expand": "توسيع",
+    "fullscreen": "ملء الشاشة",
+    "language": "تغيير اللغة",
+    "openInNewTab": "فتح في علامة تبويب جديدة"
+  },
+  "errors": {
+    "missedAttachment": "المرفق غير موجود"
+  },
+  "nav": {
+    "overview": "نظرة عامة",
+    "behaviors": "السلوكيات",
+    "categories": "الفئات",
+    "graphs": "الرسوم البيانية",
+    "packages": "الحزم",
+    "suites": "مجموعات الاختبار",
+    "timeline": "الخط الزمني"
+  },
+  "charts": {
+    "trend": {
+      "title": "مخطط الاتجاه {{type}}"
+    },
+    "pie": {
+      "title": "معدل نجاح الاختبارات"
+    }
+  }
+}

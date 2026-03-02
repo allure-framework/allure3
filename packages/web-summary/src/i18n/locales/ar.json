@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "status": {
+      "passed": "ناجح",
+      "failed": "فاشل",
+      "broken": "معطل",
+      "skipped": "تم تخطيه",
+      "unknown": "غير معروف"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
+    "total": "الإجمالي",
+    "in": "في",
+    "metadata": {
+      "new_zero": "لا توجد اختبارات جديدة",
+      "new_one": "{{count}} اختبار جديد",
+      "new_other": "{{count}} اختبارات جديدة",
+      "flaky_zero": "لا توجد اختبارات متقلبة",
+      "flaky_one": "{{count}} اختبار متقلب",
+      "flaky_other": "{{count}} اختبارات متقلبة",
+      "retry_zero": "لا توجد اختبارات مُعادة",
+      "retry_one": "{{count}} اختبار مُعاد",
+      "retry_other": "{{count}} اختبارات مُعادة"
+    }
+  },
+  "ui": {
+    "at": "في"
+  },
+  "empty": {
+    "no-reports": "لم يتم العثور على تقارير"
+  }
+}

@@ -157,4 +157,5 @@ export const setLocale = async (locale: LangLocale) => {
   await i18next.changeLanguage(locale as string);
   localStorage.setItem("currentLocale", locale as string);
   currentLocale.value = locale;
+  document.documentElement.dir = ["ar", "he", "fa"].includes(locale) ? "rtl" : "ltr";
 };
