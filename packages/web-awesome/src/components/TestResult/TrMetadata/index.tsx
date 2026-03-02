@@ -7,7 +7,7 @@ import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 import * as styles from "./styles.scss";
 
-const LABELS_VISIBLE_LIMIT = 8;
+const VISIBLE_LABELS_LIMIT = 8;
 
 export type TrMetadataProps = {
   id?: string;
