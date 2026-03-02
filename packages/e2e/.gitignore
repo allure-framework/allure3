@@ -4,3 +4,5 @@ test-results/
 node_modules/
 history.jsonl
 .DS_Store
+test/frontend-backend/env.json
+out/

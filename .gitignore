@@ -55,3 +55,12 @@ allure-results.zip
 .cursorindexingignore
 
 *storybook.log
+
+# Backend specific
+packages/backend/dist/
+packages/backend/.env
+packages/backend/coverage/
+packages/backend/*.db
+packages/backend/docker-compose.override.yml
+packages/backend/storage/
+.yarn/cache
