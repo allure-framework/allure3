@@ -3,6 +3,7 @@ import gtag from "./gtag.js";
 import settings from "./settings.js";
 
 export const LANGUAGES = [
+  { id: "ar", title: "العربية" },
   { id: "az", title: "Azərbaycanca" },
   { id: "br", title: "Brazil" },
   { id: "de", title: "Deutsch" },
