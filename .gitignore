@@ -4,7 +4,7 @@ allure-report
 
 # yarn
 .yarn/*
-!.yarn/cache
+#!.yarn/cache
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
@@ -63,4 +63,5 @@ packages/backend/coverage/
 packages/backend/*.db
 packages/backend/docker-compose.override.yml
 packages/backend/storage/
-.yarn/cache
+packages/backend/src/**/*.js
+packages/backend/src/**/*.d.ts
