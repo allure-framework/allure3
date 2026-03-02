@@ -1,5 +1,10 @@
 import type { AttachmentLinkExpected, AttachmentTestStepResult } from "@allurereport/core-api";
-import { downloadAttachment, isPreviewableContentType, openAttachmentInNewTab } from "@allurereport/web-commons";
+import {
+  downloadAttachment,
+  isPreviewableContentType,
+  isSyntaxHighlightSupported,
+  openAttachmentInNewTab,
+} from "@allurereport/web-commons";
 import { clsx } from "clsx";
 import type { VNode } from "preact";
 import { cloneElement } from "preact/compat";
@@ -36,49 +41,6 @@ export interface ModalTranslationsProps {
   translations: ModalTranslations;
 }
 
-const syntaxHighlightContentTypes = new Set([
-  "text/javascript",
-  "application/javascript",
-  "text/x-javascript",
-  "application/x-javascript",
-  "text/ecmascript",
-  "application/ecmascript",
-  "text/typescript",
-  "application/typescript",
-  "text/x-typescript",
-  "application/x-typescript",
-  "application/json",
-  "text/json",
-  "text/html",
-  "text/xml",
-  "application/xml",
-  "text/css",
-  "text/csv",
-  "text/tab-separated-values",
-  "text/markdown",
-]);
-
-const syntaxHighlightExtensions = new Set([
-  "js",
-  "mjs",
-  "cjs",
-  "jsx",
-  "ts",
-  "mts",
-  "cts",
-  "tsx",
-  "json",
-  "html",
-  "htm",
-  "xml",
-  "css",
-  "csv",
-  "tsv",
-  "md",
-  "markdown",
-  "ansi",
-]);
-
 export const Modal = ({
   data,
   isModalOpen,
@@ -99,11 +61,12 @@ export const Modal = ({
   const isPreviewableAttachment = isPreviewableContentType(link?.contentType);
   const isCodeView =
     !isImageAttachment && !link?.contentType?.startsWith("video") && (isPreviewableAttachment ? !preview : true);
-  const syntaxContentType = link?.contentType?.toLowerCase();
-  const syntaxExt = link?.ext?.replace(".", "").toLowerCase();
-  const isSyntaxHighlightable =
-    (syntaxContentType ? syntaxHighlightContentTypes.has(syntaxContentType) : false) ||
-    (syntaxExt ? syntaxHighlightExtensions.has(syntaxExt) : false);
+  const isSyntaxHighlightable = isSyntaxHighlightSupported({
+    contentType: link?.contentType,
+    ext: link?.ext,
+    name: link?.name,
+    originalFileName: link?.originalFileName,
+  });
   const isAttachment = link?.id && link?.ext && link?.contentType;
   const attachmentName = link?.name || (link?.id && link?.ext && `${link.id}${link.ext}`) || "";
   const modalName = title || attachmentName;

@@ -27,10 +27,10 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
     setup,
     steps,
     teardown,
-    id: testResultId,
+    id,
     status,
   } = testResult || {};
-  const id = testResultId ?? currentTrId.value;
+  const testResultId = id ?? currentTrId.value;
   const isNoSteps = !setup?.length && !steps.length && !teardown.length;
   const pwTraces = testResult?.attachments?.filter(
     (attachment) => attachment.link.contentType === "application/vnd.allure.playwright-trace",
@@ -44,17 +44,17 @@ export const TrOverview: FunctionalComponent<TrOverviewProps> = ({ testResult })
         </div>
       )}
       {Boolean(pwTraces.length) && <TrPwTraces pwTraces={pwTraces} />}
-      {Boolean(parameters?.length) && <TrParameters id={id} parameters={parameters} />}
+      {Boolean(parameters?.length) && <TrParameters id={testResultId} parameters={parameters} />}
       {Boolean(groupedLabels && Object.keys(groupedLabels || {})?.length) && (
-        <TrMetadata id={id} testResult={testResult} />
+        <TrMetadata id={testResultId} testResult={testResult} />
       )}
-      {Boolean(links?.length) && <TrLinks id={id} links={links} />}
-      {Boolean(descriptionHtml) && <TrDescription id={id} descriptionHtml={descriptionHtml} />}
+      {Boolean(links?.length) && <TrLinks id={testResultId} links={links} />}
+      {Boolean(descriptionHtml) && <TrDescription id={testResultId} descriptionHtml={descriptionHtml} />}
       <div className={styles["test-results"]}>
         {isNoSteps && <TestStepsEmpty />}
-        {Boolean(setup?.length) && <TrSetup id={id} setup={setup} />}
-        {Boolean(steps?.length) && <TrSteps id={id} steps={steps} />}
-        {Boolean(teardown?.length) && <TrTeardown id={id} teardown={teardown} />}
+        {Boolean(setup?.length) && <TrSetup id={testResultId} setup={setup} />}
+        {Boolean(steps?.length) && <TrSteps id={testResultId} steps={steps} />}
+        {Boolean(teardown?.length) && <TrTeardown id={testResultId} teardown={teardown} />}
       </div>
     </>
   );

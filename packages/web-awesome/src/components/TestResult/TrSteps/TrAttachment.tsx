@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType, isPreviewableContentType } from "@allurereport/web-commons";
+import { attachmentType, isPreviewableContentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
@@ -56,49 +56,6 @@ const HAS_PREVIEW_COMPONENT: Record<string, boolean> = {
   html: true,
 };
 
-const syntaxHighlightContentTypes = new Set([
-  "text/javascript",
-  "application/javascript",
-  "text/x-javascript",
-  "application/x-javascript",
-  "text/ecmascript",
-  "application/ecmascript",
-  "text/typescript",
-  "application/typescript",
-  "text/x-typescript",
-  "application/x-typescript",
-  "application/json",
-  "text/json",
-  "text/html",
-  "text/xml",
-  "application/xml",
-  "text/css",
-  "text/csv",
-  "text/tab-separated-values",
-  "text/markdown",
-]);
-
-const syntaxHighlightExtensions = new Set([
-  "js",
-  "mjs",
-  "cjs",
-  "jsx",
-  "ts",
-  "mts",
-  "cts",
-  "tsx",
-  "json",
-  "html",
-  "htm",
-  "xml",
-  "css",
-  "csv",
-  "tsv",
-  "md",
-  "markdown",
-  "ansi",
-]);
-
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
   stepIndex?: number;
@@ -115,11 +72,12 @@ export const TrAttachment: FunctionComponent<{
   const isValidComponentType = !["archive", null].includes(componentType);
   const isPreviewable = isPreviewableContentType(link.contentType) && HAS_PREVIEW_COMPONENT[componentType ?? ""];
   const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
-  const contentType = link.contentType?.toLowerCase();
-  const ext = link.ext?.replace(".", "").toLowerCase();
-  const isSyntaxHighlightable =
-    (contentType ? syntaxHighlightContentTypes.has(contentType) : false) ||
-    (ext ? syntaxHighlightExtensions.has(ext) : false);
+  const isSyntaxHighlightable = isSyntaxHighlightSupported({
+    contentType: link.contentType,
+    ext: link.ext,
+    name: link.name,
+    originalFileName: link.originalFileName,
+  });
 
   const expandAttachment = (event: Event) => {
     event.stopPropagation();

@@ -131,7 +131,7 @@ export const PREVIEWABLE_CONTENT_TYPES = [
 export const isPreviewableContentType = (type?: string): boolean =>
   !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type);
 
-const SYNTAX_HIGHLIGHTABLE_EXTENSIONS = new Set([
+const HIGHLIGHT_EXTS = new Set([
   "js",
   "mjs",
   "cjs",
@@ -171,6 +171,44 @@ const SYNTAX_HIGHLIGHTABLE_EXTENSIONS = new Set([
   "perl",
 ]);
 
+const NO_HIGHLIGHT_TYPES = new Set(["text/plain", "text/*", "text/uri-list"]);
+
+const HIGHLIGHT_TYPES = new Set([
+  "text/markdown",
+  "text/html",
+  "text/csv",
+  "text/tab-separated-values",
+  "text/xml",
+  "text/json",
+  "text/yaml",
+  "text/javascript",
+  "text/typescript",
+  "text/ruby",
+  "text/python",
+  "text/php",
+  "text/java",
+  "text/csharp",
+  "text/cpp",
+  "text/c",
+  "text/go",
+  "text/rust",
+  "text/swift",
+  "text/kotlin",
+  "text/scala",
+  "text/perl",
+  "text/r",
+  "text/dart",
+  "text/lua",
+  "text/haskell",
+  "text/sql",
+  "text/x-yaml",
+  "text/css",
+  "application/yaml",
+  "application/x-yaml",
+  "application/xml",
+  "application/json",
+]);
+
 const pickExtension = (...parts: (string | undefined)[]) => {
   for (const part of parts) {
     if (!part) {
@@ -202,20 +240,13 @@ export const isSyntaxHighlightSupported = (payload?: {
   const contentType = payload.contentType?.toLowerCase();
   const ext = pickExtension(payload.ext, payload.name, payload.originalFileName);
 
-  if (contentType === "text/plain" || contentType === "text/*" || contentType === "text/uri-list") {
+  if (contentType && NO_HIGHLIGHT_TYPES.has(contentType)) {
     return false;
   }
-
-  if (contentType === "text/markdown") {
+  if (contentType && HIGHLIGHT_TYPES.has(contentType)) {
     return true;
   }
-
-  const type = attachmentType(contentType);
-  if (type === "code" || type === "html" || type === "table") {
-    return true;
-  }
-
-  return !!ext && SYNTAX_HIGHLIGHTABLE_EXTENSIONS.has(ext);
+  return !!ext && HIGHLIGHT_EXTS.has(ext);
 };
 
 export const attachmentType = (type?: string): AttachmentType | null => {
