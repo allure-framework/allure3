@@ -62,13 +62,13 @@ const App = () => {
 
       const currentId = route.value.params.testResultId;
       const currentIndex = navData.indexOf(currentId);
-      
+
       if (currentIndex === -1) {
         return;
       }
-      
+
       const indexPlusOne = currentIndex + 1;
-      
+
       switch (event.key) {
         case "ArrowUp":
           // Navigate to previous test result (earlier in the list)
