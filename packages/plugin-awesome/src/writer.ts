@@ -1,8 +1,8 @@
+import { joinPosixPath } from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { join as joinPosix } from "node:path/posix";
 
 export interface ReportFile {
   name: string;
@@ -51,25 +51,25 @@ export class InMemoryReportDataWriter implements AwesomeDataWriter {
   #data: Record<string, Buffer> = {};
 
   async writeData(fileName: string, data: any): Promise<void> {
-    const dist = joinPosix("data", fileName);
+    const dist = joinPosixPath("data", fileName);
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
-    const dist = joinPosix("widgets", fileName);
+    const dist = joinPosixPath("widgets", fileName);
 
     this.#data[dist] = Buffer.from(JSON.stringify(data), "utf-8");
   }
 
   async writeTestCase(test: AwesomeTestResult): Promise<void> {
-    const dist = joinPosix("data", "test-results", `${test.id}.json`);
+    const dist = joinPosixPath("data", "test-results", `${test.id}.json`);
 
     this.#data[dist] = Buffer.from(JSON.stringify(test), "utf-8");
   }
 
   async writeAttachment(fileName: string, file: ResultFile): Promise<void> {
-    const dist = joinPosix("data", "attachments", fileName);
+    const dist = joinPosixPath("data", "attachments", fileName);
 
     const content = await file.asBuffer();
     if (content) {
@@ -89,11 +89,11 @@ export class ReportFileDataWriter implements AwesomeDataWriter {
   constructor(readonly reportFiles: ReportFiles) {}
 
   async writeData(fileName: string, data: any): Promise<void> {
-    await this.reportFiles.addFile(joinPosix("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+    await this.reportFiles.addFile(joinPosixPath("data", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
   }
 
   async writeWidget(fileName: string, data: any): Promise<void> {
-    await this.reportFiles.addFile(joinPosix("widgets", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
+    await this.reportFiles.addFile(joinPosixPath("widgets", fileName), Buffer.from(JSON.stringify(data), "utf-8"));
   }
 
   async writeAttachment(source: string, file: ResultFile): Promise<void> {
@@ -104,12 +104,12 @@ export class ReportFileDataWriter implements AwesomeDataWriter {
       return;
     }
 
-    await this.reportFiles.addFile(joinPosix("data", "attachments", source), contentBuffer);
+    await this.reportFiles.addFile(joinPosixPath("data", "attachments", source), contentBuffer);
   }
 
   async writeTestCase(test: AwesomeTestResult): Promise<void> {
     await this.reportFiles.addFile(
-      joinPosix("data", "test-results", `${test.id}.json`),
+      joinPosixPath("data", "test-results", `${test.id}.json`),
       Buffer.from(JSON.stringify(test), "utf8"),
     );
   }
