@@ -14,8 +14,6 @@ import { TestResultView } from "@/components/TestResultView";
 import Timeline from "@/components/Timeline";
 import { currentLocale, getLocale } from "@/stores";
 import { handleHashChange, route } from "@/stores/router";
-import { testResultNavStore } from "@/stores/testResults";
-import { navigateTo } from "@/utils/navigate";
 
 const tabComponents = {
   overview: Overview,
@@ -39,58 +37,6 @@ const App = () => {
 
     return () => {
       globalThis.removeEventListener("hashchange", handleHashChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        route.value.tabName !== "testresult" ||
-        !route.value.params.testResultId ||
-        (event.target as HTMLElement)?.tagName === "INPUT" ||
-        (event.target as HTMLElement)?.tagName === "TEXTAREA" ||
-        (event.target as HTMLElement)?.isContentEditable ||
-        (event.key !== "ArrowUp" && event.key !== "ArrowDown") ||
-        !(event.ctrlKey || event.metaKey)
-      ) {
-        return;
-      }
-
-      const navData = testResultNavStore.value.data;
-      if (!navData || navData.length === 0) {
-        return;
-      }
-
-      const currentId = route.value.params.testResultId;
-      const currentIndex = navData.indexOf(currentId);
-
-      if (currentIndex === -1) {
-        return;
-      }
-
-      const indexPlusOne = currentIndex + 1;
-
-      switch (event.key) {
-        case "ArrowUp":
-          // Navigate to previous test result (earlier in the list)
-          if (indexPlusOne < navData.length) {
-            event.preventDefault();
-            navigateTo(navData[indexPlusOne]);
-          }
-          break;
-        case "ArrowDown":
-          if (indexPlusOne > 1) {
-            event.preventDefault();
-            navigateTo(navData[indexPlusOne - 2]);
-          }
-          break;
-      }
-    };
-
-    globalThis.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      globalThis.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
