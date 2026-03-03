@@ -50,7 +50,8 @@ const App = () => {
         (event.target as HTMLElement)?.tagName === "INPUT" ||
         (event.target as HTMLElement)?.tagName === "TEXTAREA" ||
         (event.target as HTMLElement)?.isContentEditable ||
-        (event.key !== "ArrowUp" && event.key !== "ArrowDown")
+        (event.key !== "ArrowUp" && event.key !== "ArrowDown") ||
+        !(event.ctrlKey || event.metaKey)
       ) {
         return;
       }
