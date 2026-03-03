@@ -1,0 +1,32 @@
+{
+  "id": "232f6375ed8450a67a4a79837a6f13dd",
+  "name": "Unknown test",
+  "status": "unknown",
+  "error": {},
+  "flaky": false,
+  "muted": false,
+  "known": false,
+  "hidden": false,
+  "labels": [],
+  "steps": [
+    {
+      "link": {
+        "id": "0afb6b620458d6c1ebf33a4a2ee12ce2",
+        "originalFileName": "some-file.txt",
+        "ext": ".txt",
+        "name": "some-file.txt",
+        "contentType": "text/plain",
+        "used": true,
+        "missed": true
+      },
+      "type": "attachment"
+    }
+  ],
+  "parameters": [],
+  "links": [],
+  "sourceMetadata": {
+    "readerId": "convert.test.ts",
+    "metadata": {}
+  },
+  "titlePath": []
+}
