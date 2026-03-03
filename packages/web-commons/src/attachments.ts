@@ -209,23 +209,7 @@ const HIGHLIGHT_TYPES = new Set([
   "application/json",
 ]);
 
-const pickExtension = (...parts: (string | undefined)[]) => {
-  for (const part of parts) {
-    if (!part) {
-      continue;
-    }
-    const cleaned = part.replace(/^\./, "").toLowerCase();
-    if (cleaned.includes(".")) {
-      const fromName = /\.([a-z0-9]+)$/i.exec(cleaned)?.[1];
-      if (fromName) {
-        return fromName.toLowerCase();
-      }
-      continue;
-    }
-    return cleaned;
-  }
-  return undefined;
-};
+const extname = (str: string) => str.match(/(\.\S+)$/)?.[0];
 
 export const isSyntaxHighlightSupported = (payload?: {
   contentType?: string;
@@ -238,7 +222,19 @@ export const isSyntaxHighlightSupported = (payload?: {
   }
 
   const contentType = payload.contentType?.toLowerCase();
-  const ext = pickExtension(payload.ext, payload.name, payload.originalFileName);
+  let ext: string | undefined;
+  for (const part of [payload.ext, payload.name, payload.originalFileName]) {
+    if (!part) {
+      continue;
+    }
+    const withDot = extname(part);
+    const normalized = (withDot ?? part.replace(/^\./, "")).toLowerCase();
+    const single = normalized.includes(".") ? normalized.split(".").pop() : normalized;
+    if (single) {
+      ext = single;
+      break;
+    }
+  }
 
   if (contentType && NO_HIGHLIGHT_TYPES.has(contentType)) {
     return false;
