@@ -42,7 +42,9 @@ export const createReportDataScript = (
     `;
   }
 
-  const reportFilesDeclaration = reportFiles.map(({ name, value }) => `d('${name}','${value}')`).join(",");
+  const reportFilesDeclaration = reportFiles
+    .map(({ name, value }) => `d(${JSON.stringify(name)},${JSON.stringify(value)})`)
+    .join(",");
 
   return `
     <script async>

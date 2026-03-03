@@ -15,6 +15,7 @@ import {
   createScriptTag,
   createStylesLinkTag,
   incrementStatistic,
+  joinPosixPath,
   nullsLast,
   ordinal,
 } from "@allurereport/core-api";
@@ -176,7 +177,7 @@ export const generateTestCases = async (writer: AwesomeDataWriter, trs: AwesomeT
 
 export const generateTestEnvGroups = async (writer: AwesomeDataWriter, groups: TestEnvGroup[]) => {
   for (const group of groups) {
-    const src = join("test-env-groups", `${group.id}.json`);
+    const src = joinPosixPath("test-env-groups", `${group.id}.json`);
 
     await writer.writeData(src, group);
   }
@@ -384,7 +385,7 @@ export const generateVariables = async (writer: AwesomeDataWriter, store: Allure
   for (const env of environments) {
     const envVariables = await store.envVariables(env);
 
-    await writer.writeWidget(join(env, "variables.json"), envVariables);
+    await writer.writeWidget(joinPosixPath(env, "variables.json"), envVariables);
   }
 };
 
@@ -408,8 +409,8 @@ export const generateStatistic = async (
       continue;
     }
 
-    await writer.writeWidget(join(env, "statistic.json"), envStats);
-    await writer.writeWidget(join(env, "pie_chart.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env, "statistic.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env, "pie_chart.json"), envStats);
   }
 };
 
