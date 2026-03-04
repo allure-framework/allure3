@@ -1,4 +1,4 @@
-import { type EnvironmentItem, type Statistic } from "@allurereport/core-api";
+import { type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -7,7 +7,6 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
-import { join } from "node:path";
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";
@@ -92,19 +91,17 @@ export class AwesomePlugin implements Plugin {
     for (const reportEnvironment of reportEnvironments) {
       const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
 
-      await generateTree(this.#writer!, join(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
+      await generateTree(this.#writer!, joinPosixPath(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
-
-      await generateNav(this.#writer!, envConvertedTrs, join(reportEnvironment, "nav.json"));
-
+      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment, "nav.json"));
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,
         environmentCount: 1,
         defaultEnvironment: "default",
         selectedEnvironmentCount: 1,
-        filename: join(reportEnvironment, "categories.json"),
+        filename: joinPosixPath(reportEnvironment, "categories.json"),
       });
     }
 

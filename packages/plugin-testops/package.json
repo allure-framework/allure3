@@ -46,7 +46,6 @@
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/d3-shape": "^3.1.6",
     "@types/eslint": "^8.56.11",
-    "@types/form-data": "^2.5.2",
     "@types/lodash.chunk": "^4",
     "@types/node": "^20.17.9",
     "@types/progress": "^2",
