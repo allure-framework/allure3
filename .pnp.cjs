@@ -1117,7 +1117,7 @@ const RAW_RUNTIME_STATE =
           ["handlebars", "npm:4.7.8"],\
           ["handlebars-loader", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:1.7.3"],\
           ["highlight.js", "npm:10.7.3"],\
-          ["i18next", "npm:8.4.3"],\
+          ["i18next", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:25.8.13"],\
           ["jquery", "npm:3.7.1"],\
           ["mini-css-extract-plugin", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:2.9.1"],\
           ["normalize-css", "npm:2.3.1"],\
@@ -7499,6 +7499,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.28.2-0c89c5b111-a0965fbdd6.zip/node_modules/@babel/runtime/",\
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:7.28.6", {\
+        "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.28.6-f40c99aeef-fbcd439cb7.zip/node_modules/@babel/runtime/",\
+        "packageDependencies": [\
+          ["@babel/runtime", "npm:7.28.6"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -22900,10 +22907,24 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["npm:8.4.3", {\
-        "packageLocation": "./.yarn/cache/i18next-npm-8.4.3-e4045b5722-24681b12ba.zip/node_modules/i18next/",\
+      ["npm:25.8.13", {\
+        "packageLocation": "./.yarn/cache/i18next-npm-25.8.13-53120f68a1-69d1277587.zip/node_modules/i18next/",\
         "packageDependencies": [\
-          ["i18next", "npm:8.4.3"]\
+          ["i18next", "npm:25.8.13"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:25.8.13", {\
+        "packageLocation": "./.yarn/__virtual__/i18next-virtual-6917952113/0/cache/i18next-npm-25.8.13-53120f68a1-69d1277587.zip/node_modules/i18next/",\
+        "packageDependencies": [\
+          ["i18next", "virtual:243a8d39f95fc50fe4c63a5921e915177d49fbc3bfea3cb45d47af64df3799b17fd8965f283c5c103c6cd4d907d37c53e23a2924d615143ff739dc016c48e6d8#npm:25.8.13"],\
+          ["@babel/runtime", "npm:7.28.6"],\
+          ["@types/typescript", null],\
+          ["typescript", null]\
+        ],\
+        "packagePeers": [\
+          "@types/typescript",\
+          "typescript"\
         ],\
         "linkType": "HARD"\
       }],\
