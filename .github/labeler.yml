@@ -1,0 +1,42 @@
+"theme:workflow":
+  - ".github/**"
+
+"theme:build":
+  - ".editorconfig"
+  - ".eslintrc.js"
+  - ".gitignore"
+  - ".prettierrc"
+  - "package.json"
+  - "tsconfig.json"
+  - ".husky/**"
+
+"theme:plugin":
+  - "packages/plugin-allure2/**"
+  - "packages/plugin-classic/**"
+  - "packages/plugin-csv/**"
+  - "packages/plugin-dashboard/**"
+  - "packages/plugin-jira/**"
+  - "packages/plugin-log/**"
+  - "packages/plugin-progress/**"
+  - "packages/plugin-server-reload/**"
+  - "packages/plugin-slack/**"
+  - "packages/plugin-testplan/**"
+
+"theme:cli":
+  - "packages/plugin-log/**"
+  - "packages/plugin-progress/**"
+  - "packages/cli/**"
+
+"theme:reader":
+  - "packages/plugin-reader/**"
+
+"theme:awesome":
+  - "packages/plugin-awesome/**"
+  - "packages/web-awesome/**"
+
+"theme:dashboard":
+  - "packages/plugin-dashboard/**"
+  - "packages/web-dashboard/**"
+
+"theme:testops":
+  - "packages/plugin-testops/**"
