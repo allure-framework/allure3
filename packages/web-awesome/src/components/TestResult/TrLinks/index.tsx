@@ -43,10 +43,10 @@ export type TrLinksProps = {
 
 export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const { t } = useI18n("ui");
-  const linksId = id != null ? `${id}-links` : null;
-  const linksShowAllId = id != null ? `${id}-links-showAll` : null;
+  const linksId = id !== null ? `${id}-links` : null;
+  const linksShowAllId = id !== null ? `${id}-links-showAll` : null;
   const isOpened = linksId == null || !collapsedTrees.value.has(linksId);
-  const showAll = linksShowAllId != null && collapsedTrees.value.has(linksShowAllId);
+  const showAll = linksShowAllId !== null && collapsedTrees.value.has(linksShowAllId);
   const totalCount = links.length;
   const visibleLinks =
     totalCount <= VISIBLE_LINKS_LIMIT ? links : showAll ? links : links.slice(0, VISIBLE_LINKS_LIMIT);
@@ -60,7 +60,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
         <MetadataButton
           isOpened={isOpened}
           setIsOpen={() => {
-            if (linksId != null) {
+            if (linksId !== null) {
               toggleTree(linksId);
             }
           }}
@@ -76,7 +76,7 @@ export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
                 size="s"
                 text={showAll ? t("showLess") : t("showMore")}
                 onClick={() => {
-                  if (linksShowAllId != null) {
+                  if (linksShowAllId !== null) {
                     toggleTree(linksShowAllId);
                   }
                 }}

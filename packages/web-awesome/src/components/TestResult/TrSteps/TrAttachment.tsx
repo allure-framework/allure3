@@ -52,17 +52,15 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.playwright-trace": playwrightLogo,
 };
 
-const HAS_PREVIEW_COMPONENT: Record<string, boolean> = {
-  html: true,
-};
+const HAS_PREVIEW_COMPONENT = new Set(["html"]);
 
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  const attachmentTreeId = item.link?.id != null ? `attachment-${item.link.id}` : null;
-  const isOpened = attachmentTreeId == null || !collapsedTrees.value.has(attachmentTreeId);
+  const attachmentTreeId = item.link?.id !== null ? `attachment-${item.link.id}` : null;
+  const isOpened = !collapsedTrees.value.has(attachmentTreeId);
   const [showPreview, setShowPreview] = useState(false);
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
@@ -70,7 +68,7 @@ export const TrAttachment: FunctionComponent<{
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType);
-  const isPreviewable = isPreviewableContentType(link.contentType) && HAS_PREVIEW_COMPONENT[componentType ?? ""];
+  const isPreviewable = isPreviewableContentType(link.contentType) && HAS_PREVIEW_COMPONENT.has(componentType ?? "");
   const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
   const isSyntaxHighlightable = isSyntaxHighlightSupported({
     contentType: link.contentType,
@@ -99,7 +97,7 @@ export const TrAttachment: FunctionComponent<{
         })}
         onClick={(e) => {
           e.stopPropagation();
-          if (attachmentTreeId != null) {
+          if (attachmentTreeId !== null) {
             toggleTree(attachmentTreeId);
           }
         }}

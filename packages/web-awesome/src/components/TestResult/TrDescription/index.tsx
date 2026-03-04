@@ -14,7 +14,7 @@ export type TrDescriptionProps = {
 const MIN_HEIGHT = 120;
 
 export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, descriptionHtml }) => {
-  const descriptionId = id != null ? `${id}-description` : null;
+  const descriptionId = id !== null ? `${id}-description` : null;
   const isOpen = descriptionId == null || !collapsedTrees.value.has(descriptionId);
   const [blobUrl, setBlobUrl] = useState("");
   const [height, setHeight] = useState(MIN_HEIGHT);
@@ -61,7 +61,7 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
         <MetadataButton
           title="Description"
           setIsOpen={() => {
-            if (descriptionId != null) {
+            if (descriptionId !== null) {
               toggleTree(descriptionId);
             }
           }}

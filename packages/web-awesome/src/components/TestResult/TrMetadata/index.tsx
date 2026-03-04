@@ -17,18 +17,18 @@ export type TrMetadataProps = {
 export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResult }) => {
   const { t } = useI18n("ui");
   const { labels, groupedLabels } = testResult ?? {};
-  const labelsId = id != null ? `${id}-labels` : null;
-  const labelsShowAllId = id != null ? `${id}-labels-showAll` : null;
+  const labelsId = id !== null ? `${id}-labels` : null;
+  const labelsShowAllId = id !== null ? `${id}-labels-showAll` : null;
   const isOpened = labelsId == null || !collapsedTrees.value.has(labelsId);
   const entries = groupedLabels ? Object.entries(groupedLabels) : [];
   const totalCount = entries.length;
-  const showAll = labelsShowAllId != null && collapsedTrees.value.has(labelsShowAllId);
+  const showAll = labelsShowAllId !== null && collapsedTrees.value.has(labelsShowAllId);
   const visibleEntries =
     totalCount <= VISIBLE_LABELS_LIMIT ? entries : showAll ? entries : entries.slice(0, VISIBLE_LABELS_LIMIT);
   const groupedLabelsVisible = Object.fromEntries(visibleEntries);
 
   const handleToggleShowAll = () => {
-    if (labelsShowAllId != null) {
+    if (labelsShowAllId !== null) {
       toggleTree(labelsShowAllId);
     }
   };
@@ -38,7 +38,7 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
       <MetadataButton
         isOpened={isOpened}
         setIsOpen={() => {
-          if (labelsId != null) {
+          if (labelsId !== null) {
             toggleTree(labelsId);
           }
         }}

@@ -24,11 +24,11 @@ type StepComponentProps = FunctionalComponent<{
 }>;
 
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
-  const stepsId = id != null ? `${id}-steps` : null;
+  const stepsId = id !== null ? `${id}-steps` : null;
   const isOpened = stepsId == null || !collapsedTrees.value.has(stepsId);
 
   const handleClick = () => {
-    if (stepsId != null) {
+    if (stepsId !== null) {
       toggleTree(stepsId);
     }
   };
@@ -39,7 +39,7 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
       <TrDropdown
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
-        setIsOpen={() => stepsId != null && toggleTree(stepsId)}
+        setIsOpen={() => stepsId !== null && toggleTree(stepsId)}
         counter={steps?.length}
         title={t("body")}
       />

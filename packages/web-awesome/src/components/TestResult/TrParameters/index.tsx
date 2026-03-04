@@ -16,12 +16,12 @@ export type TrParametersProps = {
 
 export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, parameters }) => {
   const { t } = useI18n("ui");
-  const parametersId = id != null ? `${id}-parameters` : null;
-  const parametersShowAllId = id != null ? `${id}-parameters-showAll` : null;
+  const parametersId = id !== null ? `${id}-parameters` : null;
+  const parametersShowAllId = id !== null ? `${id}-parameters-showAll` : null;
   const isOpened = parametersId == null || !collapsedTrees.value.has(parametersId);
   const list = parameters ?? [];
   const totalCount = list.length;
-  const showAll = parametersShowAllId != null && collapsedTrees.value.has(parametersShowAllId);
+  const showAll = parametersShowAllId !== null && collapsedTrees.value.has(parametersShowAllId);
   const visibleList =
     totalCount <= PARAMETERS_VISIBLE_LIMIT ? list : showAll ? list : list.slice(0, PARAMETERS_VISIBLE_LIMIT);
 
@@ -30,7 +30,7 @@ export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, param
       <MetadataButton
         isOpened={isOpened}
         setIsOpen={() => {
-          if (parametersId != null) {
+          if (parametersId !== null) {
             toggleTree(parametersId);
           }
         }}
@@ -49,7 +49,7 @@ export const TrParameters: FunctionalComponent<TrParametersProps> = ({ id, param
                 size="s"
                 text={showAll ? t("showLess") : t("showMore")}
                 onClick={() => {
-                  if (parametersShowAllId != null) {
+                  if (parametersShowAllId !== null) {
                     toggleTree(parametersShowAllId);
                   }
                 }}

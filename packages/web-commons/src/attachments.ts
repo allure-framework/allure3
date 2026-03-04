@@ -209,7 +209,11 @@ const HIGHLIGHT_TYPES = new Set([
   "application/json",
 ]);
 
-const extname = (str: string) => str.match(/(\.\S+)$/)?.[0];
+export const extname = (str: string): string | undefined => {
+  const i = str.lastIndexOf(".");
+  if (i <= 0 || i === str.length - 1) return undefined;
+  return str.slice(i);
+};
 
 export const isSyntaxHighlightSupported = (payload?: {
   contentType?: string;
