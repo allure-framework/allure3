@@ -1,5 +1,6 @@
 import { Code, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { computed, useComputed } from "@preact/signals";
+import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
@@ -100,6 +101,54 @@ const Controls = (props: { currentId: string }) => {
 
 export const TrNavigation = (props: Props) => {
   const { testResult } = props;
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        !testResult?.id ||
+        (event.target as HTMLElement)?.tagName === "INPUT" ||
+        (event.target as HTMLElement)?.tagName === "TEXTAREA" ||
+        (event.target as HTMLElement)?.isContentEditable ||
+        (event.key !== "ArrowUp" && event.key !== "ArrowDown") ||
+        !(event.ctrlKey || event.metaKey)
+      ) {
+        return;
+      }
+
+      const navData = testResultNavStore.value.data;
+      if (!navData || navData.length === 0) {
+        return;
+      }
+
+      const currentId = testResult.id;
+      const currentIndex = navData.indexOf(currentId);
+
+      if (currentIndex === -1) {
+        return;
+      }
+
+      switch (event.key) {
+        case "ArrowUp":
+          if (currentIndex > 0) {
+            event.preventDefault();
+            navigateToTestResult({ testResultId: navData[currentIndex - 1], tab: trCurrentTab.value });
+          }
+          break;
+        case "ArrowDown":
+          if (currentIndex < navData.length - 1) {
+            event.preventDefault();
+            navigateToTestResult({ testResultId: navData[currentIndex + 1], tab: trCurrentTab.value });
+          }
+          break;
+      }
+    };
+
+    globalThis.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      globalThis.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [testResult?.id]);
 
   if (!testResult?.id) {
     return null;

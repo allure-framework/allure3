@@ -17,11 +17,11 @@ import { currentEnvironment, environmentsStore, fetchEnvironments } from "@/stor
 import { fetchEnvInfo } from "@/stores/envInfo";
 import { fetchGlobals } from "@/stores/globals";
 import { isLayoutLoading, layoutStore } from "@/stores/layout";
-import { fetchTestResult, fetchTestResultNav, testResultNavStore } from "@/stores/testResults";
+import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
 import { fetchQualityGateResults } from "./stores/qualityGate";
-import { navigateToTestResult, rootTabRoute, testResultRoute } from "./stores/router";
+import { rootTabRoute, testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
 import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
@@ -89,55 +89,6 @@ const App = () => {
 
   useEffect(() => {
     fetchTreeFiltersData();
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        !isTestResultRoute.value ||
-        !currentTrId.value ||
-        (event.target as HTMLElement)?.tagName === "INPUT" ||
-        (event.target as HTMLElement)?.tagName === "TEXTAREA" ||
-        (event.target as HTMLElement)?.isContentEditable ||
-        (event.key !== "ArrowUp" && event.key !== "ArrowDown") ||
-        !(event.ctrlKey || event.metaKey)
-      ) {
-        return;
-      }
-
-      const navData = testResultNavStore.value.data;
-      if (!navData || navData.length === 0) {
-        return;
-      }
-
-      const currentId = currentTrId.value;
-      const currentIndex = navData.indexOf(currentId);
-
-      if (currentIndex === -1) {
-        return;
-      }
-
-      switch (event.key) {
-        case "ArrowUp":
-          if (currentIndex > 0) {
-            event.preventDefault();
-            navigateToTestResult({ testResultId: navData[currentIndex - 1] });
-          }
-          break;
-        case "ArrowDown":
-          if (currentIndex < navData.length - 1) {
-            event.preventDefault();
-            navigateToTestResult({ testResultId: navData[currentIndex + 1] });
-          }
-          break;
-      }
-    };
-
-    globalThis.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      globalThis.removeEventListener("keydown", handleKeyDown);
-    };
   }, []);
 
   return (
