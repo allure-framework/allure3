@@ -68,7 +68,7 @@ export const TrAttachment: FunctionComponent<{
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType);
-  const isPreviewable = isPreviewableContentType(link.contentType) && HAS_PREVIEW_COMPONENT.has(componentType ?? "");
+  const isPreviewable = HAS_PREVIEW_COMPONENT.has(componentType ?? "");
   const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
   const isSyntaxHighlightable = isSyntaxHighlightSupported({
     contentType: link.contentType,

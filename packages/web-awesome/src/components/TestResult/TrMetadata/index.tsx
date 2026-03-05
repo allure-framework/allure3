@@ -19,12 +19,10 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
   const { labels, groupedLabels } = testResult ?? {};
   const labelsId = id !== null ? `${id}-labels` : null;
   const labelsShowAllId = id !== null ? `${id}-labels-showAll` : null;
-  const isOpened = labelsId == null || !collapsedTrees.value.has(labelsId);
+  const isOpened = !collapsedTrees.value.has(labelsId);
   const entries = groupedLabels ? Object.entries(groupedLabels) : [];
-  const totalCount = entries.length;
-  const showAll = labelsShowAllId !== null && collapsedTrees.value.has(labelsShowAllId);
-  const visibleEntries =
-    totalCount <= VISIBLE_LABELS_LIMIT ? entries : showAll ? entries : entries.slice(0, VISIBLE_LABELS_LIMIT);
+  const showAll = collapsedTrees.value.has(labelsShowAllId);
+  const visibleEntries = showAll ? entries : entries.slice(0, VISIBLE_LABELS_LIMIT);
   const groupedLabelsVisible = Object.fromEntries(visibleEntries);
 
   const handleToggleShowAll = () => {
@@ -50,7 +48,7 @@ export const TrMetadata: FunctionalComponent<TrMetadataProps> = ({ id, testResul
         {isOpened && (
           <>
             <TrMetadataList groupedLabels={groupedLabelsVisible} />
-            {totalCount > VISIBLE_LABELS_LIMIT && (
+            {entries.length > VISIBLE_LABELS_LIMIT && (
               <Button
                 style="ghost"
                 size="s"

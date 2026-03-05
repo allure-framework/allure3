@@ -25,7 +25,7 @@ type StepComponentProps = FunctionalComponent<{
 
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
   const stepsId = id !== null ? `${id}-steps` : null;
-  const isOpened = stepsId == null || !collapsedTrees.value.has(stepsId);
+  const isOpened = !collapsedTrees.value.has(stepsId);
 
   const handleClick = () => {
     if (stepsId !== null) {
