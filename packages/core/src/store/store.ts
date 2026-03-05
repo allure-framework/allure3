@@ -101,21 +101,15 @@ const hidePreviousAttemptByEnvironment = (
   }
 };
 
-const coerceRestoredEnvironmentName = (name: unknown): string => {
+const normalizeEnvironmentNameForStore = (name: unknown, options: { source: string; fallback?: string }): string => {
   const validationResult = validateEnvironmentName(name);
 
   if (!validationResult.valid) {
-    return DEFAULT_ENVIRONMENT;
-  }
+    if (options.fallback !== undefined) {
+      return options.fallback;
+    }
 
-  return validationResult.normalized;
-};
-
-const normalizeEnvironmentQueryOrThrow = (env: string, source: string): string => {
-  const validationResult = validateEnvironmentName(env);
-
-  if (!validationResult.valid) {
-    throw new Error(`Invalid ${source} ${JSON.stringify(env)}: ${validationResult.reason}`);
+    throw new Error(`Invalid ${options.source} ${JSON.stringify(name)}: ${validationResult.reason}`);
   }
 
   return validationResult.normalized;
@@ -127,18 +121,13 @@ const environmentKeyForTestResultIndexing = (
   environmentsConfig: EnvironmentsConfig,
 ): string => {
   if (typeof testResult.environment === "string") {
-    return coerceRestoredEnvironmentName(testResult.environment);
+    return normalizeEnvironmentNameForStore(testResult.environment, {
+      source: "environment",
+      fallback: DEFAULT_ENVIRONMENT,
+    });
   }
 
   return forcedEnvironment ?? matchEnvironment(environmentsConfig, testResult);
-};
-
-const environmentKeyForQualityGateResultIndexing = (environment: string | undefined): string => {
-  if (environment === undefined) {
-    return DEFAULT_ENVIRONMENT;
-  }
-
-  return coerceRestoredEnvironmentName(environment);
 };
 
 export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
@@ -333,7 +322,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const resultsByEnv = createDictionary<QualityGateValidationResult[]>();
 
     for (const result of this.#qualityGateResults) {
-      const environment = environmentKeyForQualityGateResultIndexing(result.environment);
+      const environment = normalizeEnvironmentNameForStore(result.environment, {
+        source: "environment",
+        fallback: DEFAULT_ENVIRONMENT,
+      });
 
       if (!resultsByEnv[environment]) {
         resultsByEnv[environment] = [];
@@ -574,7 +566,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPointsByEnvironment(environment: string): Promise<HistoryDataPoint[]> {
-    const normalizedEnvironment = normalizeEnvironmentQueryOrThrow(environment, "environment");
+    const normalizedEnvironment = normalizeEnvironmentNameForStore(environment, {
+      source: "environment",
+    });
 
     return this.#historyPoints.reduce((result, dp) => {
       const filteredTestResults: HistoryTestResult[] = [];
@@ -582,7 +576,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       for (const tr of Object.values(dp.testResults)) {
         const hasLabels = tr.labels && tr.labels.length > 0;
         const trEnvironment =
-          (typeof tr.environment === "string" ? coerceRestoredEnvironmentName(tr.environment) : undefined) ??
+          (typeof tr.environment === "string"
+            ? normalizeEnvironmentNameForStore(tr.environment, {
+                source: "environment",
+                fallback: DEFAULT_ENVIRONMENT,
+              })
+            : undefined) ??
           (hasLabels ? matchEnvironment(this.#environmentsConfig, tr as Pick<TestResult, "labels">) : undefined);
 
         if (trEnvironment === normalizedEnvironment) {
@@ -823,7 +822,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       includeHidden: boolean;
     } = { includeHidden: false },
   ) {
-    const normalizedEnv = normalizeEnvironmentQueryOrThrow(env, "environment");
+    const normalizedEnv = normalizeEnvironmentNameForStore(env, {
+      source: "environment",
+    });
     const trs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
@@ -889,7 +890,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async envVariables(env: string) {
-    const normalizedEnv = normalizeEnvironmentQueryOrThrow(env, "environment");
+    const normalizedEnv = normalizeEnvironmentNameForStore(env, {
+      source: "environment",
+    });
 
     return {
       ...this.#reportVariables,
@@ -964,7 +967,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       qualityGateResults = [],
     } = stateDump;
     const normalizedEnvironments = environments.map((environmentName) =>
-      coerceRestoredEnvironmentName(environmentName),
+      normalizeEnvironmentNameForStore(environmentName, {
+        source: "environment",
+        fallback: DEFAULT_ENVIRONMENT,
+      }),
     );
     updateMapWithRecord(this.#testResults, testResults);
     updateMapWithRecord(this.#attachments, attachments);
