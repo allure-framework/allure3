@@ -4,5 +4,6 @@ export type * from "./qualityGate.js";
 export * from "./store.js";
 export type * from "./resultFile.js";
 export * from "./utils/misc.js";
+export * from "./utils/historyIds.js";
 export * from "./utils/tree.js";
 export * from "./utils/summary.js";

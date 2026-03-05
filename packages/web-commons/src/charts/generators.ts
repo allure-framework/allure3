@@ -6,8 +6,7 @@ import {
 } from "@allurereport/charts-api";
 import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
-import { type AllureStore } from "@allurereport/plugin-api";
-
+import { type AllureStore, getFallbackHistoryId } from "@allurereport/plugin-api";
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";
@@ -20,6 +19,81 @@ import { generateTestingPyramidChart } from "./generateTestingPyramidChart.js";
 import { generateTrSeveritiesChart } from "./generateTrSeveritiesChart.js";
 import { generateHeatMapChart } from "./heatMap.js";
 import { generateTreeMapChart } from "./treeMap.js";
+
+const buildFallbackHistoryAliases = (testResults: TestResult[]): Map<string, string> => {
+  const aliases = new Map<string, string>();
+  const ambiguousAliases = new Set<string>();
+
+  for (const testResult of testResults) {
+    if (!testResult.historyId) {
+      continue;
+    }
+
+    const fallbackHistoryId = getFallbackHistoryId(testResult);
+
+    if (!fallbackHistoryId || fallbackHistoryId === testResult.historyId) {
+      continue;
+    }
+
+    const existingAlias = aliases.get(fallbackHistoryId);
+
+    if (existingAlias && existingAlias !== testResult.historyId) {
+      aliases.delete(fallbackHistoryId);
+      ambiguousAliases.add(fallbackHistoryId);
+      continue;
+    }
+
+    if (!ambiguousAliases.has(fallbackHistoryId)) {
+      aliases.set(fallbackHistoryId, testResult.historyId);
+    }
+  }
+
+  return aliases;
+};
+
+const normalizeHistoryDataPointsByAliases = (
+  historyDataPoints: HistoryDataPoint[],
+  aliases: Map<string, string>,
+): HistoryDataPoint[] => {
+  if (aliases.size === 0) {
+    return historyDataPoints;
+  }
+
+  return historyDataPoints.map((historyDataPoint) => {
+    let testResults = historyDataPoint.testResults;
+    let changed = false;
+
+    for (const [legacyHistoryId, primaryHistoryId] of aliases) {
+      if (!Object.prototype.hasOwnProperty.call(testResults, legacyHistoryId)) {
+        continue;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(testResults, primaryHistoryId)) {
+        continue;
+      }
+
+      if (!changed) {
+        testResults = { ...testResults };
+        changed = true;
+      }
+
+      testResults[primaryHistoryId] = {
+        ...testResults[legacyHistoryId],
+        historyId: primaryHistoryId,
+      };
+      delete testResults[legacyHistoryId];
+    }
+
+    if (!changed) {
+      return historyDataPoint;
+    }
+
+    return {
+      ...historyDataPoint,
+      testResults,
+    };
+  });
+};
 
 const generateChartData = async (props: {
   env?: string;
@@ -95,11 +169,15 @@ const generateChartData = async (props: {
     await getHistoryDataPoints(),
     await getTrs(),
     await getStatistic(),
-  ]).then(([historyDataPoints, testResults, statistic]) => ({
-    historyDataPoints,
-    testResults,
-    statistic,
-  }));
+  ]).then(([historyDataPoints, testResults, statistic]) => {
+    const fallbackHistoryAliases = buildFallbackHistoryAliases(testResults);
+
+    return {
+      historyDataPoints: normalizeHistoryDataPointsByAliases(historyDataPoints, fallbackHistoryAliases),
+      testResults,
+      statistic,
+    };
+  });
 
   for (const chartOption of chartsOptions) {
     const chartId = generateUuid();

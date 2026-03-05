@@ -11,6 +11,28 @@ import MarkdownIt from "markdown-it";
 const md = new MarkdownIt();
 const markdownToHtml = (value?: string): string | undefined => (value ? md.render(value) : undefined);
 
+const shouldHideLabel = (labelName: string, matchers: readonly (string | RegExp)[]): boolean => {
+  if (labelName.startsWith("_")) {
+    return true;
+  }
+
+  return matchers.some((matcher) => {
+    if (typeof matcher === "string") {
+      return matcher === labelName;
+    }
+
+    if (matcher.global || matcher.sticky) {
+      matcher.lastIndex = 0;
+    }
+
+    return matcher.test(labelName);
+  });
+};
+
+const filterLabels = (labels: TestLabel[], hideLabels: readonly (string | RegExp)[] = []): TestLabel[] => {
+  return labels.filter(({ name }) => !shouldHideLabel(name, hideLabels));
+};
+
 const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   return labels.reduce<Record<string, string[]>>((acc, { name, value }: TestLabel) => {
     acc[name] = acc[name] || [];
@@ -23,7 +45,14 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, createDictionary<string[]>());
 };
 
-export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
+export const convertTestResult = (
+  tr: TestResult,
+  options: {
+    hideLabels?: readonly (string | RegExp)[];
+  } = {},
+): AwesomeTestResult => {
+  const labels = filterLabels(tr.labels, options.hideLabels);
+
   return {
     id: tr.id,
     name: tr.name,
@@ -37,8 +66,8 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     muted: tr.muted,
     known: tr.known,
     hidden: tr.hidden,
-    labels: tr.labels,
-    groupedLabels: mapLabelsByName(tr.labels),
+    labels,
+    groupedLabels: mapLabelsByName(labels),
     parameters: tr.parameters,
     links: tr.links,
     steps: tr.steps,

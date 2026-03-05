@@ -153,6 +153,7 @@ The **Awesome** plugin offers several customizable options:
 - **`singleFile`** *(boolean)*: If set to `true`, generates the report as a single standalone HTML file.
 - **`reportName`** *(string)*: Overrides the default report name.
 - **`open`** *(boolean)*: Automatically opens the report after generation if enabled.
+- **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in Awesome report data and UI. Labels with names starting with `_` are hidden by default.
 - **`reportLanguage`** *(string)*: Sets the UI language of the report. Supported languages include:
 
   `az`, `br`, `de`, `en`, `es`, `fr`, `he`, `ja`, `kr`, `nl`, `pl`, `ru`, `sv`, `tr`, `zh`.
@@ -272,4 +273,3 @@ You can also use `allurerc.json` or `allurerc.yaml` files as a declarative way t
 
 - [GitHub Actions](https://github.com/marketplace/actions/allure-report-official)
 - [Azure DevOps](https://marketplace.visualstudio.com/items?itemName=qameta.allure-azure-pipelines)
-

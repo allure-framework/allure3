@@ -1,14 +1,26 @@
-import { filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
-import { type QualityGateRule } from "@allurereport/plugin-api";
+import { type TestResult, filterSuccessful, filterUnsuccessful } from "@allurereport/core-api";
+import { type QualityGateRule, getHistoryIdCandidates } from "@allurereport/plugin-api";
 import { bold } from "yoctocolors";
+
+const filterUnknownByKnownIssues = (trs: TestResult[], knownIssueHistoryIds: ReadonlySet<string>): TestResult[] => {
+  return trs.filter((tr) => {
+    const historyIdCandidates = getHistoryIdCandidates(tr);
+
+    if (historyIdCandidates.length === 0) {
+      return true;
+    }
+
+    return historyIdCandidates.every((historyId) => !knownIssueHistoryIds.has(historyId));
+  });
+};
 
 export const maxFailuresRule: QualityGateRule<number> = {
   rule: "maxFailures",
   message: ({ actual, expected }) =>
     `The number of failed tests ${bold(String(actual))} exceeds the allowed threshold value ${bold(String(expected))}`,
   validate: async ({ trs, knownIssues, expected, state }) => {
-    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
-    const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
+    const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
     const failedTrs = unknown.filter(filterUnsuccessful);
     const actual = failedTrs.length + (state.getResult() ?? 0);
 
@@ -42,8 +54,8 @@ export const successRateRule: QualityGateRule<number> = {
   message: ({ actual, expected }) =>
     `Success rate ${bold(String(actual))} is less, than expected ${bold(String(expected))}`,
   validate: async ({ trs, knownIssues, expected }) => {
-    const knownIssuesHistoryIds = knownIssues.map(({ historyId }) => historyId);
-    const unknown = trs.filter((tr) => !tr.historyId || !knownIssuesHistoryIds.includes(tr.historyId));
+    const knownIssuesHistoryIds = new Set(knownIssues.map(({ historyId }) => historyId));
+    const unknown = filterUnknownByKnownIssues(trs, knownIssuesHistoryIds);
     const passedTrs = unknown.filter(filterSuccessful);
     const rate = passedTrs.length === 0 ? 0 : passedTrs.length / unknown.length;
 

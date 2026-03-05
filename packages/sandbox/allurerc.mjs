@@ -148,8 +148,10 @@ export default defineConfig({
       options: {
         reportName: "HelloWorld",
         singleFile: false,
+        theme: "light",
         reportLanguage: "en",
         open: false,
+        hideLabels: ["owner"],
         charts: chartLayout,
         publish: true,
       },
