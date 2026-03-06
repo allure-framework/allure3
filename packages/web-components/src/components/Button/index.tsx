@@ -1,8 +1,10 @@
 import { clsx } from "clsx";
 import type { ComponentChild } from "preact";
+
 import { Spinner } from "@/components/Spinner";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 type BaseBtnProps = {

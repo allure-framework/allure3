@@ -1,6 +1,9 @@
 import { View } from "backbone.marionette";
+
 import { className } from "@/decorators/index.js";
+
 import template from "./LinksView.hbs";
+
 import "./styles.scss";
 
 @className("pane__section")

@@ -4,13 +4,13 @@
   "description": "The static files for Allure Classic Report",
   "keywords": [
     "allure",
-    "testing",
+    "html",
     "report",
-    "html"
+    "testing"
   ],
-  "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
   "type": "module",
   "types": "./types.d.ts",
   "scripts": {
@@ -22,14 +22,10 @@
     "build:prod:multi": "webpack --mode production",
     "build:dev:single": "SINGLE_FILE_MODE=1 webpack --mode development",
     "build:dev:multi": "webpack --mode development",
-    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run"
+    "lint": "oxlint --import-plugin src test features stories",
+    "test": "vitest run",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
-  "browserslist": [
-    "last 1 version",
-    "> 1%",
-    "IE 11"
-  ],
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
     "@allurereport/core-api": "workspace:*",
@@ -49,18 +45,13 @@
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-typescript": "^7.27.1",
-    "@eslint/js": "^9.10.0",
     "@floating-ui/dom": "^1.6.12",
-    "@stylistic/eslint-plugin": "^2.6.1",
     "@types/babel__core": "^7.20.5",
     "@types/d3-shape": "^3.1.6",
-    "@types/eslint": "^8.56.11",
     "@types/md5": "^2.3.5",
     "@types/node": "^20.17.9",
     "@types/prismjs": "^1.26.5",
     "@types/underscore": "^1",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
     "allure-vitest": "^3.3.3",
@@ -68,19 +59,6 @@
     "babel-loader": "^9.2.1",
     "babel-plugin-prismjs": "^2.1.0",
     "css-loader": "^7.1.2",
-    "eslint": "^8.57.0",
-    "eslint-config-preact": "^1.5.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-compat": "^6.0.1",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^50.0.0",
-    "eslint-plugin-jsx-a11y": "^6.10.0",
-    "eslint-plugin-n": "^17.10.1",
-    "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-preact": "^0.1.0",
-    "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-react": "^7.36.1",
-    "eslint-plugin-react-hooks": "^4.6.2",
     "file-loader": "^6.2.0",
     "filesize": "^10.1.6",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
@@ -96,12 +74,16 @@
     "style-loader": "^4.0.0",
     "svg-sprite-loader": "^6.0.11",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.6.0",
     "underscore": "^1.13.7",
     "vitest": "^2.1.9",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.2.2",
     "webpack-manifest-plugin": "^5.0.0"
-  }
+  },
+  "browserslist": [
+    "last 1 version",
+    "> 1%",
+    "IE 11"
+  ]
 }

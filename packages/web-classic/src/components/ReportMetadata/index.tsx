@@ -2,10 +2,12 @@ import type { EnvironmentItem } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { envInfoStore } from "@/stores/envInfo";
+
 import * as styles from "./styles.scss";
 
 export interface MetadataItem extends EnvironmentItem {

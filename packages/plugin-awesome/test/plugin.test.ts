@@ -1,6 +1,7 @@
 import type { Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
+
 import AwesomePlugin from "../src/index.js";
 
 // duplicated the code from core to avoid circular dependency

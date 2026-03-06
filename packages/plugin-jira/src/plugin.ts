@@ -2,6 +2,7 @@ import type { Statistic } from "@allurereport/core-api";
 import { DEFAULT_ENVIRONMENT, getWorstStatus, statusesList } from "@allurereport/core-api";
 import type { AllureStore, Plugin, PluginContext } from "@allurereport/plugin-api";
 import axios, { isAxiosError } from "axios";
+
 import { isJiraIssueKey, prepareTestResults, trimCiInfoLabel, trimName } from "./helpers.js";
 import type {
   ClearPayload,

@@ -2,12 +2,14 @@ import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 const typeMap = {
   before: TrStep,

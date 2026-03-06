@@ -1,12 +1,14 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import CsvPlugin from "@allurereport/plugin-csv";
-import { run } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
 import { join } from "node:path";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import CsvPlugin from "@allurereport/plugin-csv";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CsvCommand } from "../../src/commands/csv.js";
 
 const fixtures = {

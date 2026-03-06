@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { extension } from "../src/utils.js";
 
 describe("extension", () => {

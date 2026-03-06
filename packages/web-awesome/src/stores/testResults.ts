@@ -1,5 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
+
 import { type AwesomeTestResult } from "../../types";
 import { type StoreSignalState } from "./types";
 

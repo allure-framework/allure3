@@ -7,8 +7,10 @@ import { scaleLinear } from "d3-scale";
 import { select as d3Select } from "d3-selection";
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import styles from "./styles.scss";
+
 import { minPositive, useStateRef } from "./utils.js";
+
+import styles from "./styles.scss";
 
 type DurationRangeProps = {
   width?: number;

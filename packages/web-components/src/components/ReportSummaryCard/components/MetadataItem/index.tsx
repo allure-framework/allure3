@@ -1,6 +1,8 @@
 import { clsx } from "clsx";
 import type { FunctionalComponent } from "preact";
+
 import { Text } from "../../../Typography";
+
 import styles from "./styles.scss";
 
 export type MetadataProps = {

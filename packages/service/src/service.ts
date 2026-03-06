@@ -1,7 +1,9 @@
-import { type HistoryDataPoint } from "@allurereport/core-api";
-import { type Config } from "@allurereport/plugin-api";
 import { readFile } from "node:fs/promises";
 import { join as joinPosix } from "node:path/posix";
+
+import { type HistoryDataPoint } from "@allurereport/core-api";
+import { type Config } from "@allurereport/plugin-api";
+
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
 
 const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB

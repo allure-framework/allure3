@@ -7,6 +7,7 @@ import {
   createPluginSummary,
   preciseTreeLabels,
 } from "@allurereport/plugin-api";
+
 import { convertTestResult } from "./converters.js";
 import {
   generateAttachmentsData,

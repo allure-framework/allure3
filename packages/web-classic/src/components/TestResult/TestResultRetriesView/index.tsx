@@ -1,8 +1,10 @@
 import type { FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
-import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
+
 import { TestResultRetriesItem } from "@/components/TestResult/TestResultRetriesView/TestResultRetriesItem";
 import { useI18n } from "@/stores";
+
+import * as styles from "@/components/TestResult/TestResultHistory/styles.scss";
 
 export const TestResultRetriesView: FunctionalComponent<{ testResult: ClassicTestResult }> = ({ testResult }) => {
   const { retries } = testResult ?? {};

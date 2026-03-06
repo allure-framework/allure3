@@ -1,5 +1,6 @@
 import WidgetsGridView from "@/components/widgets-grid/WidgetsGridView.js";
 import AppLayout from "@/layouts/application/AppLayout.js";
+
 import GraphCollection from "./GraphCollection.js";
 
 export default class GraphLayout extends AppLayout {

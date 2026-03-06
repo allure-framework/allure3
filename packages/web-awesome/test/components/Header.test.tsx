@@ -2,6 +2,7 @@ import * as webCommons from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Header } from "@/components/Header";
 import { CiInfo } from "@/components/Header/CiInfo";
 import type * as routerModule from "@/stores/router";

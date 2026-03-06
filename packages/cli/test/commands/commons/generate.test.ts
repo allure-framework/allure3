@@ -1,9 +1,11 @@
+import { exit } from "node:process";
+
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport, readConfig } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { glob } from "glob";
-import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { generate } from "../../../src/commands/commons/generate.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";

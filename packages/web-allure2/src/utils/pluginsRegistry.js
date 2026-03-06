@@ -2,6 +2,7 @@ import { notFound, showView } from "@/app.js";
 import WidgetsModel from "@/data/widgets/WidgetsModel.js";
 import translate from "@/helpers/t.js";
 import router from "@/router.js";
+
 import { addTranslation } from "./translation.js";
 
 class AllurePluginsRegistry {

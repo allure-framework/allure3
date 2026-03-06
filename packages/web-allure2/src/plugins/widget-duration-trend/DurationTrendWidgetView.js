@@ -2,10 +2,13 @@ import { View } from "backbone.marionette";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear, scaleOrdinal } from "d3-scale";
 import { last } from "underscore";
+
 import TrendChartView from "@/components/graph-trend-chart/TrendChartView.js";
 import { className, regions } from "@/decorators/index.js";
 import duration from "@/helpers/duration.js";
+
 import template from "./DurationTrendWidgetView.hbs";
+
 import "./styles.scss";
 
 @regions({

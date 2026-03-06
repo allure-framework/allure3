@@ -1,10 +1,13 @@
 import $ from "jquery";
+
 import PopoverView from "@/components/popover/PopoverView.js";
 import { className, on } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
 import settings from "@/utils/settings.js";
 import i18next, { LANGUAGES } from "@/utils/translation.js";
+
 import template from "./LanguageSelectView.hbs";
+
 import "./styles.scss";
 
 @className("language-select popover")

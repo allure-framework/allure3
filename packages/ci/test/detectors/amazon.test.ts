@@ -1,4 +1,5 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { amazon, getPipelineName, isBatchBuild, parseArnValues } from "../../src/detectors/amazon.js";
 import { getEnv } from "../../src/utils.js";
 

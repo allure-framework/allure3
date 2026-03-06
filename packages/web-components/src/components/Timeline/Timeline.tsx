@@ -12,16 +12,16 @@ import { transition as d3Transition } from "d3-transition";
 import type { FunctionComponent } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "preact/hooks";
+
 import { REDUCE_MOTION } from "../Charts/config.js";
 import { useTooltip } from "../Charts/hooks/useTooltip.js";
 import { DurationRange } from "./DurationRange.js";
 import { GroupTooltip } from "./GroupTooltip.js";
+import { useDurationRange } from "./hooks/useDurationRange.js";
 import { useWidth } from "./ResponsiveWrapper/context.js";
 import { ResponsiveWrapper } from "./ResponsiveWrapper/index.js";
 import { SegmentTooltip } from "./SegmentTooltip.js";
 import { TimeOverview } from "./TimeOverview.js";
-import { useDurationRange } from "./hooks/useDurationRange.js";
-import styles from "./styles.scss";
 import type { FlatDataItem, TimelineChartData, TimelineData, TimelineDataGroup } from "./types.js";
 import type { ZoomX, ZoomY } from "./utils.js";
 import {
@@ -35,6 +35,8 @@ import {
   toTimelineData,
   useStateRef,
 } from "./utils.js";
+
+import styles from "./styles.scss";
 
 // @see https://github.com/d3/d3-selection/issues/185
 d3Select.prototype.transition = d3Transition as any;

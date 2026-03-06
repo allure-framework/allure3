@@ -1,6 +1,8 @@
 import { DropdownButton, Menu, SvgIcon, allureIcons } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores";
 import { availableSections, currentSection, setSection } from "@/stores/sections";
+
 import * as styles from "./styles.scss";
 
 export type SectionItem = {

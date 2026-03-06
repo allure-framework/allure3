@@ -1,4 +1,5 @@
 import { type AllureChartsStoreData, ChartType, type CurrentStatusChartOptions } from "@allurereport/charts-api";
+
 import type { CurrentStatusChartData } from "./types.js";
 
 export const generateCurrentStatusChart = (

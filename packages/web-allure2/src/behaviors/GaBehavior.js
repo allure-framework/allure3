@@ -1,4 +1,5 @@
 import { Behavior } from "backbone.marionette";
+
 import { on } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
 

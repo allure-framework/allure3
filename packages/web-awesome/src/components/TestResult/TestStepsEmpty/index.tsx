@@ -1,5 +1,7 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 const TrStepsEmpty = () => {

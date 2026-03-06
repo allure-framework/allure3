@@ -1,6 +1,9 @@
 import { View } from "backbone.marionette";
+
 import { options } from "@/decorators/index.js";
+
 import template from "./LoaderView.hbs";
+
 import "./styles.scss";
 
 @options({

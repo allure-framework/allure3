@@ -1,4 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
+
 import type { ChartDatum } from "./types";
 
 export const PIE_PADDING = 8;

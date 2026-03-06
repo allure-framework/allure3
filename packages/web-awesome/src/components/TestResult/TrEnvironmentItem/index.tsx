@@ -3,11 +3,14 @@ import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcon
 import cx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { navigateToTestResult, openInNewTab } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
+
 import type { AwesomeTestResult } from "../../../../types";
+
 import * as styles from "./styles.scss";
 
 export const TrEnvironmentItem: FunctionalComponent<{

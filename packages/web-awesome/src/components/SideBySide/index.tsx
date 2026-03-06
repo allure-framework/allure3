@@ -1,6 +1,7 @@
 import type { JSX } from "preact";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import Split from "split.js";
+
 import * as styles from "./styles.scss";
 
 const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) => {

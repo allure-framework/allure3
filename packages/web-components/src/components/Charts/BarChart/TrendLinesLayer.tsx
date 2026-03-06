@@ -6,6 +6,7 @@ import { regressionLinear } from "d3-regression";
 import { line } from "d3-shape";
 import { toNumber } from "lodash";
 import { useId, useMemo } from "preact/hooks";
+
 import type { LegendItemValue } from "../Legend/LegendItem/types";
 
 const STROKE_WIDTH = 2;

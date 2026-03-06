@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+
+import type { CategoriesConfig } from "../../src/index.js";
 import {
   DEFAULT_ERROR_CATEGORIES,
   extractErrorMatchingData,
@@ -6,7 +8,6 @@ import {
   matchCategoryMatcher,
   normalizeCategoriesConfig,
 } from "../../src/index.js";
-import type { CategoriesConfig } from "../../src/index.js";
 import type { TestLabel } from "../../src/metadata.js";
 import type { TestResult, TestStatus } from "../../src/model.js";
 

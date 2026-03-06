@@ -2,8 +2,10 @@ import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/c
 import { TreeHeader } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren, FC } from "preact/compat";
+
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 type GroupTreeItemProps = CategoryNodeProps & {

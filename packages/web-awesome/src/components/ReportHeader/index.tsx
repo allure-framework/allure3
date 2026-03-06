@@ -1,11 +1,13 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { Heading, Loadable, Text, TooltipWrapper } from "@allurereport/web-components";
 import type { AwesomeReportOptions } from "types";
+
 import { ReportHeaderLogo } from "@/components/ReportHeader/ReportHeaderLogo";
 import { ReportHeaderPie } from "@/components/ReportHeader/ReportHeaderPie";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { currentLocaleIso, useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
+
 import * as styles from "./styles.scss";
 
 export const ReportHeader = () => {

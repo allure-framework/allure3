@@ -3,6 +3,7 @@ import { formatDuration } from "@allurereport/core-api";
 import { getPieChartValues } from "@allurereport/web-commons";
 import { capitalize } from "lodash";
 import { useMemo } from "preact/hooks";
+
 import { SuccessRatePieChart } from "../Charts/SuccessRatePieChart";
 import { IconLabel } from "../IconLabel";
 import { StatusLabel } from "../StatusLabel";
@@ -10,6 +11,7 @@ import { allureIcons } from "../SvgIcon";
 import { Code, Heading, Text } from "../Typography";
 import { MetadataItem, MetadataTestType } from "./components/MetadataItem";
 import type { I18nProp, ReportSummary } from "./model";
+
 import styles from "./styles.scss";
 
 export type ReportSummaryCardProps = {

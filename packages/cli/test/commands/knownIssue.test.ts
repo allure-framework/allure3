@@ -1,8 +1,10 @@
-import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { KnownIssueCommand } from "../../src/commands/knownIssue.js";
 
 const fixtures = {

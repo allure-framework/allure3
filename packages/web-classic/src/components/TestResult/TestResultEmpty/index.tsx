@@ -1,7 +1,9 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
-import * as baseStyles from "@/components/BaseLayout/styles.scss";
+
 import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
+
 import * as styles from "./styles.scss";
+import * as baseStyles from "@/components/BaseLayout/styles.scss";
 
 const TestResultThumb = () => {
   return (

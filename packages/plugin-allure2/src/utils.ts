@@ -1,4 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
+
 import type { Allure2Status, Allure2TestResult, GroupTime } from "./model.js";
 import { statisticKeys } from "./model.js";
 import type { TreeGroup, TreeLeaf } from "./tree.js";

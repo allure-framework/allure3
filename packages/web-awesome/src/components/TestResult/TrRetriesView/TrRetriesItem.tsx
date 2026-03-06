@@ -3,11 +3,13 @@ import { ArrowButton, IconButton, Text, TreeItemIcon, allureIcons } from "@allur
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { TrError } from "@/components/TestResult/TrError";
-import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { timestampToDate } from "@/utils/time";
+
+import * as styles from "@/components/TestResult/TrRetriesView/styles.scss";
 
 export type TrRetriesItemProps = {
   testResultItem: AwesomeTestResult;

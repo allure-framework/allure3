@@ -10,9 +10,11 @@ import { SvgIcon, Text, TreeItemIcon, allureIcons } from "@allurereport/web-comp
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";
+
 import { GroupTreeItem } from "@/components/Categories/GroupTreeItem";
 import { TrStatus } from "@/components/TestResult/TrStatus";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 type LabelTreeItemProps = CategoryNodeProps & {

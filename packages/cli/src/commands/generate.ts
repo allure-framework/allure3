@@ -1,7 +1,9 @@
+import { cwd as processCwd } from "node:process";
+
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
-import { cwd as processCwd } from "node:process";
+
 import { generate } from "./commons/generate.js";
 
 export class GenerateCommand extends Command {

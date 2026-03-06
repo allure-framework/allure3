@@ -5,7 +5,9 @@ import { toNumber } from "lodash";
 import { createContext, createElement } from "preact";
 import { createPortal } from "preact/compat";
 import { useCallback, useContext, useId, useMemo } from "preact/hooks";
+
 import { useTooltip } from "@/components/Charts/hooks/useTooltip";
+
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import { useBarChartState } from "./context.js";
 

@@ -2,8 +2,10 @@ import { type HistoryTestResult, capitalize } from "@allurereport/core-api";
 import { SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
+
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
+
 import * as styles from "./styles.scss";
 
 const TestResultPrevStatus: FunctionalComponent<{ item: HistoryTestResult }> = ({ item }) => {

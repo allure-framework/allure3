@@ -3,6 +3,7 @@ import { BufferResultFile } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
 import type { Mock, Mocked } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 import { AllureServiceClientMock } from "./utils.js";

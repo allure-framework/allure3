@@ -13,6 +13,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartDataType, ChartMode, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { HistoryDataPoint } from "@allurereport/core-api";
+
 import { severityTrendDataAccessor } from "./accessors/severityTrendAccessor.js";
 import { statusTrendDataAccessor } from "./accessors/statusTrendAccessor.js";
 import { createEmptySeries, normalizeStatistic } from "./chart-utils.js";

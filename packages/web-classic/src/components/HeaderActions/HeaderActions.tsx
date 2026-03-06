@@ -1,11 +1,14 @@
 import { capitalize, statusesList } from "@allurereport/core-api";
 import { Counter, Loadable, SearchBox } from "@allurereport/web-components";
+
 import { SortBy } from "@/components/HeaderActions/SortBy";
 import { Tab } from "@/components/Tabs";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
 import { setTreeQuery, treeFiltersStore } from "@/stores/tree";
+
 import { Filters } from "./Filters";
+
 import * as styles from "./styles.scss";
 
 const Search = () => {

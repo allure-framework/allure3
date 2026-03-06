@@ -1,7 +1,3 @@
-/**
- * Utilities for working with AQL
- */
-import { AqlOperation, AqlOperationAliases } from "../model.js";
 import type {
   AqlArrayConditionExpression,
   AqlBinaryExpression,
@@ -13,6 +9,10 @@ import type {
   AqlParserConfig,
   AqlValue,
 } from "../model.js";
+/**
+ * Utilities for working with AQL
+ */
+import { AqlOperation, AqlOperationAliases } from "../model.js";
 
 /**
  * Checks if AQL is empty or includes all records.

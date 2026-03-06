@@ -2,8 +2,10 @@ import { type TestStatus, formatDuration } from "@allurereport/core-api";
 import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionComponent } from "preact";
+
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { navigateTo, route } from "@/stores/router";
+
 import * as styles from "./styles.scss";
 
 interface TreeItemProps {

@@ -3,7 +3,9 @@ import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
 import { useMemo, useRef } from "preact/hooks";
 import type { Options } from "sortablejs";
+
 import { useSortable } from "./hooks";
+
 import styles from "./styles.scss";
 
 export type GridKind = "default" | "swap";

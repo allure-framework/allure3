@@ -1,9 +1,11 @@
+import { exit } from "node:process";
+
 import type { FullConfig } from "@allurereport/core";
 import { AllureReport } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { glob } from "glob";
-import { exit } from "node:process";
 import { red } from "yoctocolors";
+
 import { logError } from "../../utils/logs.js";
 
 export const generate = async (params: { cwd: string; config: FullConfig; resultsDir: string; dump?: string[] }) => {

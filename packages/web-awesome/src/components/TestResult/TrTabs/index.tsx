@@ -1,4 +1,5 @@
 import { type ComponentChildren } from "preact";
+
 import { NavTab, NavTabs, NavTabsList } from "@/components/NavTabs";
 import { navigateToTestResultTab } from "@/stores/router";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";

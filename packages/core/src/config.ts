@@ -1,9 +1,11 @@
-import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
 import * as console from "node:console";
 import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
+
+import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
+
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";

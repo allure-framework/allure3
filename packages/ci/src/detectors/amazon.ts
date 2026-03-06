@@ -1,4 +1,5 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
+
 import { getEnv, getReponameFromRepoUrl } from "../utils.js";
 
 const AMAZON_REGEXP = /^arn:aws:codebuild:([^:]+):([\d]+):(?:build|build-batch)\/([^:]+):([\da-f-]+)$/;

@@ -4,10 +4,12 @@ import { ArrowButton, IconButton, Text, TooltipWrapper, TreeItemIcon, allureIcon
 import { type FunctionalComponent } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import type { AwesomeReportOptions } from "types";
+
 import { TrError } from "@/components/TestResult/TrError";
-import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 import { useI18n } from "@/stores";
 import { timestampToDate } from "@/utils/time";
+
+import * as styles from "@/components/TestResult/TrHistory/styles.scss";
 
 type Props = {
   historyTr: HistoryTestResult;

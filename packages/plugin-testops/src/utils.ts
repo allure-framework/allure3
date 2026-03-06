@@ -1,5 +1,7 @@
-import type { TestStepResult } from "@allurereport/core-api";
 import { env } from "node:process";
+
+import type { TestStepResult } from "@allurereport/core-api";
+
 import type { TestopsPluginOptions } from "./model.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {

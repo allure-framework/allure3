@@ -1,3 +1,5 @@
+import { extname } from "node:path";
+
 /* eslint max-lines: off */
 import {
   type AllureHistory,
@@ -44,7 +46,7 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
-import { extname } from "node:path";
+
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";

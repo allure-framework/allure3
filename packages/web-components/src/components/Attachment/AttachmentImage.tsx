@@ -1,5 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
+
 import type { AttachmentProps } from "./model";
+
 import styles from "./styles.scss";
 
 export const AttachmentImage = (props: AttachmentProps) => {

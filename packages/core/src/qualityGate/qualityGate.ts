@@ -1,6 +1,7 @@
 import { DEFAULT_ENVIRONMENT, type KnownTestFailure, type TestError, type TestResult } from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { gray, red } from "yoctocolors";
+
 import { qualityGateDefaultRules } from "./rules.js";
 
 /**

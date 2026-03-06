@@ -1,10 +1,12 @@
 import { history } from "backbone";
 import { Application, Behaviors } from "backbone.marionette";
+
 import * as behaviors from "./behaviors/index.js";
 import translate from "./helpers/t.js";
 import { ErrorLayout } from "./layouts/error/ErrorLayout.js";
 import TestResultLayout from "./layouts/testresult/TestResultLayout.js";
 import router from "./router.js";
+
 import "./styles.scss";
 import i18next, { initTranslations } from "./utils/translation.js";
 

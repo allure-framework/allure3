@@ -2,6 +2,7 @@ import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, feature, parameter } from "allure-js-commons";
 import { QualityGatesPage } from "test/pageObjects/QualityGates.js";
+
 import { CommonPage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig } from "../utils/mocks.js";

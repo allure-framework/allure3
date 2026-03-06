@@ -1,18 +1,20 @@
 import type { TreeMapNode } from "@allurereport/charts-api";
-import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
 import type { ComputedNode } from "@nivo/treemap";
+import { ResponsiveTreeMap as ResponsiveTreeMapChart } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
 import type { ReactNode } from "preact/compat";
 import { useCallback, useMemo } from "preact/hooks";
-import { EmptyDataStub } from "../EmptyDataStub/index.js";
+
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config.js";
+import { EmptyDataStub } from "../EmptyDataStub/index.js";
+import { defaultTreeChartConfig } from "./config.js";
 import { TreeMapNodeComponent } from "./Node.js";
 import { TreeMapLegend } from "./TreeMapLegend/index.js";
 import { TreeMapTooltip } from "./TreeMapTooltip/TreeMapTooltip.js";
-import { defaultTreeChartConfig } from "./config.js";
-import styles from "./styles.scss";
 import type { TreeMapChartProps } from "./types.js";
 import { createCustomParentLabelControl } from "./utils.js";
+
+import styles from "./styles.scss";
 
 export const TreeMapChart: FunctionalComponent<
   TreeMapChartProps & {

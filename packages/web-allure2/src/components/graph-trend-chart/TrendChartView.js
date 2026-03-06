@@ -3,9 +3,11 @@ import { scaleLinear, scalePoint } from "d3-scale";
 import { scaleOrdinal } from "d3-scale";
 import { schemeCategory10 } from "d3-scale-chromatic";
 import { area, line, stack } from "d3-shape";
+
 import BaseChartView from "@/components/graph-base/BaseChartView.js";
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import translate from "@/helpers/t.js";
+
 import "./styles.scss";
 import trendTooltip from "./trend-tooltip.hbs";
 

@@ -1,12 +1,14 @@
-import { readConfig } from "@allurereport/core";
-import { serve } from "@allurereport/static-server";
-import { run } from "clipanion";
-import { glob } from "glob";
 import { existsSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import { readConfig } from "@allurereport/core";
+import { serve } from "@allurereport/static-server";
+import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { generate } from "../../src/commands/commons/generate.js";
 import { OpenCommand } from "../../src/commands/open.js";
 

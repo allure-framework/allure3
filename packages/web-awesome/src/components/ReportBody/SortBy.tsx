@@ -1,8 +1,10 @@
 import { DropdownButton, Link, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
+
 import { useI18n } from "@/stores/locale";
 import { type SortByDirection, type SortByField, type SortBy as TSortBy, setSortBy, sortBy } from "@/stores/treeSort";
+
 import * as styles from "./styles.scss";
 
 const BtnWrapper = ({ children }: { children: ComponentChildren }) => {

@@ -1,6 +1,8 @@
 import { ChartType } from "@allurereport/charts-api";
 import type { FunctionalComponent } from "preact";
+
 import { useTheme } from "@/components/ThemeProvider/index.js";
+
 import { Widget } from "../../Widget/index.js";
 import { TreeMapChart } from "../TreeMapChart/index.js";
 import { useCoverageDiffColors, useCoverageDiffTextColors, useSuccessRateDistributionColors } from "./hooks.js";

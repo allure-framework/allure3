@@ -4,6 +4,7 @@ import type {
   EnvironmentsConfig,
   ReportVariables,
 } from "@allurereport/core-api";
+
 import type { PluginDescriptor } from "./plugin.js";
 import type { QualityGateConfig } from "./qualityGate.js";
 

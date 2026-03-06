@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+
 import styles from "./styles.scss";
 
 export const AttachmentEmpty = ({ children }: { children: ComponentChildren }) => {

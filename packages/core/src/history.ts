@@ -1,9 +1,11 @@
-import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
 import { once } from "node:events";
 import { type FileHandle, mkdir, open } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
 import { pipeline } from "node:stream/promises";
+
+import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
+
 import { isFileNotFoundError } from "./utils/misc.js";
 
 const createHistoryItems = (testResults: TestResult[]) => {

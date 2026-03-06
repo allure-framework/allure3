@@ -1,4 +1,5 @@
 import { Modal, type ModalTranslations } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores";
 import { isModalOpen, modalData } from "@/stores/modal";
 

@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
+
 /* eslint max-lines: 0 */
 import type { ResultFile } from "@allurereport/plugin-api";
-import { BufferResultFile, ensureObject, isDefined, isObject } from "@allurereport/reader-api";
 import type {
   RawStep,
   RawTestAttachment,
@@ -11,7 +12,8 @@ import type {
   ShallowKnown,
   Unknown,
 } from "@allurereport/reader-api";
-import { randomUUID } from "node:crypto";
+import { BufferResultFile, ensureObject, isDefined, isObject } from "@allurereport/reader-api";
+
 import type { AllureApiCall } from "../../model.js";
 import {
   DEFAULT_BUNDLE_NAME,

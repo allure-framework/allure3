@@ -1,5 +1,6 @@
-import { isDefined } from "@allurereport/reader-api";
 import type { RawTestStatus } from "@allurereport/reader-api";
+import { isDefined } from "@allurereport/reader-api";
+
 import type { Suite } from "./model.js";
 
 /**

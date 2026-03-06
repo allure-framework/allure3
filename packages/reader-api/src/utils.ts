@@ -1,5 +1,6 @@
-import { extension as extensionFromContentType, lookup } from "mime-types";
 import { extname } from "node:path";
+
+import { extension as extensionFromContentType, lookup } from "mime-types";
 
 export const extension = (fileName: string, contentType?: string) => {
   const ext = extname(fileName);

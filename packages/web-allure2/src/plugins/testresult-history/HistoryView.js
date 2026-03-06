@@ -1,6 +1,9 @@
 import { View } from "backbone.marionette";
+
 import { className } from "@/decorators/index.js";
+
 import template from "./HistoryView.hbs";
+
 import "./styles.scss";
 
 function formatNumber(n) {

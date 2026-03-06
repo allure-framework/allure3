@@ -1,4 +1,5 @@
 import { SafeString } from "handlebars/runtime.js";
+
 import allureLogo from "@/assets/icons/allure-logo.svg";
 import bamboo from "@/assets/icons/bamboo.svg";
 import bitbucket from "@/assets/icons/bitbucket.svg";
@@ -49,6 +50,7 @@ import timeline from "@/assets/icons/timeline.svg";
 import tree from "@/assets/icons/tree.svg";
 import txt from "@/assets/icons/txt.svg";
 import unknown from "@/assets/icons/unknown.svg";
+
 import translate from "./t.js";
 
 const icons = {

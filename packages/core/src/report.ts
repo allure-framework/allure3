@@ -1,3 +1,12 @@
+import console from "node:console";
+import { randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
+import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
+import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
+import { promisify } from "node:util";
+
 /* eslint max-lines: 0 */
 import { detect } from "@allurereport/ci";
 import type {
@@ -24,17 +33,10 @@ import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import ZipReadStream from "node-stream-zip";
-import console from "node:console";
-import { randomUUID } from "node:crypto";
-import { EventEmitter } from "node:events";
-import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
-import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
-import { promisify } from "node:util";
 import pLimit from "p-limit";
 import ProgressBar from "progress";
 import ZipWriteStream from "zip-stream";
+
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";

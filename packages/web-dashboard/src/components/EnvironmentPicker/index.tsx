@@ -1,6 +1,8 @@
 import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+
 import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
+
 import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

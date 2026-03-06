@@ -1,10 +1,12 @@
-import type { HistoryDataPoint } from "@allurereport/core-api";
 import { constants } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import { appendFile, open, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
+
+import type { HistoryDataPoint } from "@allurereport/core-api";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
 import { AllureLocalHistory } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 

@@ -2,8 +2,10 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
+
 import * as styles from "./styles.scss";
 
 export type TrMetadataProps = {
@@ -24,7 +26,9 @@ export const TrPwTraces: FunctionalComponent<TrMetadataProps> = ({ pwTraces }) =
       />
       {isOpened && (
         <div className={styles["tr-metadata-wrapper"]}>
-          {pwTraces?.map((pw, index) => <TrAttachment stepIndex={index + 1} item={pw} key={pw.link.id} />)}
+          {pwTraces?.map((pw, index) => (
+            <TrAttachment stepIndex={index + 1} item={pw} key={pw.link.id} />
+          ))}
         </div>
       )}
     </div>

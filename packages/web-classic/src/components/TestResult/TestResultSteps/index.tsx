@@ -2,10 +2,12 @@ import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ClassicTestResult, ClassicTestStepResult } from "types";
+
 import { TestResultDropdown } from "@/components/TestResult/TestResultDropdown";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStep } from "@/components/TestResult/TestResultSteps/testResultStep";
 import { useI18n } from "@/stores/locale";
+
 import * as styles from "./styles.scss";
 
 const typeMap = {

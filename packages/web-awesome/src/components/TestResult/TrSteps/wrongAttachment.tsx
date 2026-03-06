@@ -1,5 +1,6 @@
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 export const EmptyComponent = () => {
   const { t } = useI18n("errors");

@@ -5,8 +5,10 @@ import type { FunctionalComponent, VNode } from "preact";
 import { useEffect } from "preact/hooks";
 import Prism from "prismjs";
 import type { ClassicTestResult } from "types";
+
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
 import { attachmentType, downloadAttachment, openAttachmentInNewTab } from "@/utils/attachments";
+
 import * as styles from "./styles.scss";
 
 export const isModalOpen = signal(false);

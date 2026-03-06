@@ -1,6 +1,7 @@
 import { type Statistic } from "@allurereport/core-api";
 import type { Status } from "global";
 import type { ComponentChildren, FunctionComponent } from "preact";
+
 import { TreeSection } from "./TreeSection";
 import { TreeStatusBar } from "./TreeStatusBar";
 

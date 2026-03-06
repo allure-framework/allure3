@@ -1,6 +1,6 @@
 import type { FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
-import * as styles from "@/components/BaseLayout/styles.scss";
+
 import { TestResultDescription } from "@/components/TestResult/TestResultDescription";
 import { TestResultError } from "@/components/TestResult/TestResultError";
 import { TestResultLinks } from "@/components/TestResult/TestResultLinks";
@@ -9,6 +9,8 @@ import { TestResultParameters } from "@/components/TestResult/TestResultParamete
 import { TestResultSetup } from "@/components/TestResult/TestResultSetup";
 import { TestResultSteps } from "@/components/TestResult/TestResultSteps";
 import { TestResultTeardown } from "@/components/TestResult/TestResultTeardown";
+
+import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TestResultOverviewProps = {
   testResult?: ClassicTestResult;

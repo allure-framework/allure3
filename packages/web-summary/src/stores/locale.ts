@@ -1,6 +1,7 @@
 import { getLocaleDateTimeOverride } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import i18next, { type TOptions } from "i18next";
+
 import { DEFAULT_LOCALE, LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 
 const namespaces = ["empty", "summary", "ui"];

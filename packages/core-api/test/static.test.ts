@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { createReportDataScript } from "../src/static.js";
 
 describe("createReportDataScript", () => {

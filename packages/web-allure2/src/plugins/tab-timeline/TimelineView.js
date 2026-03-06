@@ -3,6 +3,7 @@ import { brushX } from "d3-brush";
 import { drag } from "d3-drag";
 import { scaleLinear } from "d3-scale";
 import { select } from "d3-selection";
+
 import BaseChartView from "@/components/graph-base/BaseChartView.js";
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import getComparator from "@/data/tree/comparator.js";
@@ -11,7 +12,9 @@ import { className } from "@/decorators/index.js";
 import duration from "@/helpers/duration.js";
 import translate from "@/helpers/t.js";
 import escape from "@/utils/escape.js";
+
 import template from "./TimelineView.hbs";
+
 import "./styles.scss";
 
 const BRUSH_HEIGHT = 20;

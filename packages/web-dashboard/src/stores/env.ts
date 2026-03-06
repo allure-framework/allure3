@@ -1,5 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
+
 import type { StoreSignalState } from "@/stores/types";
 
 const loadFromLocalStorage = <T>(key: string, defaultValue?: T): T => {

@@ -1,6 +1,9 @@
 import { View } from "backbone.marionette";
+
 import { className } from "@/decorators/index.js";
+
 import template from "./ErrorSplashView.hbs";
+
 import "./styles.scss";
 
 @className("error-splash")

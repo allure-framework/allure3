@@ -11,7 +11,9 @@ import {
   ordinal,
   reverse,
 } from "@allurereport/core-api";
+
 import type { SortBy } from "@/stores/treeSort";
+
 import type { AwesomeRecursiveTree, AwesomeTree, AwesomeTreeGroup, AwesomeTreeLeaf } from "../../types";
 
 const leafComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<TreeLeaf<AwesomeTreeLeaf>> => {

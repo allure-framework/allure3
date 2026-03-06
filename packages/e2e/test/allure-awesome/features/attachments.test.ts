@@ -1,8 +1,10 @@
-import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
 import { readFile } from "node:fs/promises";
 import { dirname as pathDirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { expect, test } from "@playwright/test";
+import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 

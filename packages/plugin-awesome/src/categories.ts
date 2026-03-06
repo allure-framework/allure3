@@ -18,6 +18,7 @@ import {
 } from "@allurereport/core-api";
 import { md5 } from "@allurereport/plugin-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
+
 import type { AwesomeDataWriter } from "./writer.js";
 
 type GroupLevel = {

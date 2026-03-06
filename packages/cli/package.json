@@ -4,32 +4,32 @@
   "description": "Allure Commandline Tool",
   "keywords": [
     "allure",
-    "testing",
-    "report"
+    "report",
+    "testing"
   ],
-  "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "bin": "./cli.js",
+  "files": [
+    "./dist"
+  ],
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./rules": "./dist/rules.js",
     "./qualityGate": "./dist/qualityGate.js"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "bin": "./cli.js",
-  "files": [
-    "./dist"
-  ],
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
-    "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
-    "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
     "start": "node ./cli.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "oxlint --import-plugin src test features stories",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
@@ -60,24 +60,13 @@
     "yoctocolors": "^2.1.1"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.6.1",
     "@types/adm-zip": "^0",
-    "@types/eslint": "^8.56.11",
     "@types/lodash.omit": "^4.5.9",
     "@types/node": "^20.17.9",
     "@types/prompts": "^2",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
     "allure-vitest": "^3.3.3",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^50.0.0",
-    "eslint-plugin-n": "^17.10.1",
-    "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-prefer-arrow": "^1.2.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
     "vitest": "^2.1.9"

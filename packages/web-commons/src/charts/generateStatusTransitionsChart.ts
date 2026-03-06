@@ -7,6 +7,7 @@ import {
 } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatusTransition } from "@allurereport/core-api";
 import { htrsByTr } from "@allurereport/core-api";
+
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 type TrWithStatusAndTransition = Pick<TestResult, "status" | "transition" | "start">;

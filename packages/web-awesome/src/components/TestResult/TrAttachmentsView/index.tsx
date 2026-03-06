@@ -2,8 +2,10 @@ import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import cx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
+
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 export type TrAttachmentViewProps = {

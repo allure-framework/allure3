@@ -2,13 +2,15 @@ import { type TestResult, formatDuration } from "@allurereport/core-api";
 import { IconButton, Text, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { ArrowButton } from "@/components/ArrowButton";
 import { TestResultError } from "@/components/TestResult/TestResultError";
-import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { useI18n } from "@/stores";
 import { navigateTo } from "@/utils/navigate";
 import { timestampToDate } from "@/utils/time";
+
+import * as styles from "@/components/TestResult/TestResultRetriesView/styles.scss";
 
 export type TrRetriesItemProps = {
   testResultItem: TestResult;

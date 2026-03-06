@@ -1,6 +1,7 @@
 import { sanitize } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
+
 import styles from "./styles.scss";
 
 const isDarkTheme = (): boolean => {

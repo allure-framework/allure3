@@ -2,9 +2,11 @@ import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-com
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";
+
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 import { createRecursiveTree, isRecursiveTreeEmpty } from "@/utils/treeFilters";
+
 import { treeFilters } from "./treeFilters/store";
 import { sortBy } from "./treeSort";
 

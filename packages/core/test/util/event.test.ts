@@ -1,6 +1,8 @@
 import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
+
 import { describe, expect, it, vi } from "vitest";
+
 import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max);

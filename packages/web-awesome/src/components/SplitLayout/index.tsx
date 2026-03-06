@@ -2,6 +2,7 @@ import { Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+
 import MainReport from "@/components/MainReport";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
@@ -10,6 +11,7 @@ import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
 import { treeStore } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 const MainReportWrapper = () => {

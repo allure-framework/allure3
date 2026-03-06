@@ -1,5 +1,6 @@
 import { Behavior } from "backbone.marionette";
 import { escapeExpression as escape } from "handlebars/runtime.js";
+
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import { on } from "@/decorators/index.js";
 

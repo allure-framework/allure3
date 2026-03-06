@@ -1,6 +1,8 @@
-import type { TestResult } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
+
+import type { TestResult } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
+
 import { createTreeByTitlePath } from "../src/utils/tree.js";
 
 const itResult = (args: Partial<TestResult> & { titlePath: string[] }): TestResult => ({

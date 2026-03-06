@@ -1,9 +1,12 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { Loadable } from "@allurereport/web-components";
+
 import { TrAttachmentView } from "@/components/TestResult/TrAttachmentsView";
 import { useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
+
 import { AwesomeTestResult } from "../../../types";
+
 import * as styles from "./styles.scss";
 
 export const ReportGlobalAttachments = () => {

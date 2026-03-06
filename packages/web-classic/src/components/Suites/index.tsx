@@ -1,5 +1,6 @@
 import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
+
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import SideBySide from "@/components/SideBySide";
 import TestResult from "@/components/TestResult";
@@ -8,6 +9,7 @@ import { fetchStats, useI18n } from "@/stores";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 import { fetchTreeData, treeStore } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 const Suites = () => {

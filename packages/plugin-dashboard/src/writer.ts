@@ -1,7 +1,8 @@
-import type { ReportFiles } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
+
+import type { ReportFiles } from "@allurereport/plugin-api";
 
 export type ReportFile = {
   name: string;

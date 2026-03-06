@@ -1,8 +1,10 @@
-import { readConfig } from "@allurereport/core";
-import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import * as console from "node:console";
 import { exit } from "node:process";
+
+import { readConfig } from "@allurereport/core";
+import { AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { WhoamiCommand } from "../../src/commands/whoami.js";
 import { logError } from "../../src/utils/logs.js";
 import { AllureServiceClientMock } from "../utils.js";

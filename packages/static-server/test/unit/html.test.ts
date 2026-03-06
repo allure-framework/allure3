@@ -1,9 +1,11 @@
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { layer } from "allure-js-commons";
 import axios, { type AxiosError } from "axios";
 import getPort from "get-port";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
+
 import { type AllureStaticServer, serve } from "../../src/index.js";
 
 const baseDir = dirname(fileURLToPath(import.meta.url));

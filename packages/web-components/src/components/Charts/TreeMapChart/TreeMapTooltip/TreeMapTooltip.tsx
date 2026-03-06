@@ -2,6 +2,7 @@ import type { TreeMapNode } from "@allurereport/charts-api";
 import type { ComputedNode, DefaultTreeMapDatum } from "@nivo/treemap";
 import type { FunctionalComponent } from "preact";
 import type { ReactNode } from "preact/compat";
+
 import { ChartTooltip } from "../../ChartTooltip";
 import { LegendItem } from "../../Legend/LegendItem";
 

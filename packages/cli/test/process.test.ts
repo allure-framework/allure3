@@ -4,7 +4,9 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { platform } from "node:process";
+
 import { describe, expect, it } from "vitest";
+
 import { stopProcessTree } from "../src/utils/process.js";
 
 const spinProcessTreeScript = `

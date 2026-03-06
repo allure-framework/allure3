@@ -4,6 +4,7 @@ import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it, vi } from "vitest";
+
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {

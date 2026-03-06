@@ -1,9 +1,11 @@
+import * as console from "node:console";
+import { exit } from "node:process";
+
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import { run } from "clipanion";
 import { glob } from "glob";
-import * as console from "node:console";
-import { exit } from "node:process";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { QualityGateCommand } from "../../src/commands/qualityGate.js";
 import { AllureReportMock } from "../utils.js";
 

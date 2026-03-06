@@ -1,5 +1,6 @@
 import type { ResultFile } from "@allurereport/plugin-api";
 import type { RawStep, RawTestStatus, RawTestStepResult, Unknown } from "@allurereport/reader-api";
+
 import type { AllureApiCall } from "../../model.js";
 import type { ParsingOptions } from "../model.js";
 import type { XcString } from "./xcModel.js";

@@ -5,6 +5,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
+
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 const getStats = (testResults: TestResult[]) => {

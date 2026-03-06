@@ -1,10 +1,11 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import { default as AwesomePlugin, type AwesomePluginOptions } from "@allurereport/plugin-awesome";
-import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
 import process, { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import { default as AwesomePlugin, type AwesomePluginOptions } from "@allurereport/plugin-awesome";
+import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 export class AwesomeCommand extends Command {

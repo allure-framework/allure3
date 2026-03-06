@@ -1,6 +1,6 @@
 import type { FunctionComponent, FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
-import * as styles from "@/components/BaseLayout/styles.scss";
+
 import { TestResultAttachmentView } from "@/components/TestResult/TestResultAttachmentsView";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
 import TestResultHistoryView from "@/components/TestResult/TestResultHistory";
@@ -8,6 +8,8 @@ import { TestResultInfo } from "@/components/TestResult/TestResultInfo";
 import { TestResultOverview } from "@/components/TestResult/TestResultOverview";
 import { TestResultRetriesView } from "@/components/TestResult/TestResultRetriesView";
 import { TestResultTabs, useTestResultTabsContext } from "@/components/TestResult/TestResultTabs";
+
+import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TestResultViewProps = {
   testResult?: ClassicTestResult;
