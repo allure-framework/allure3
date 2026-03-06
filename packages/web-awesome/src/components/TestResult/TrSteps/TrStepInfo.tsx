@@ -6,6 +6,7 @@ import {
 } from "@allurereport/core-api";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
+
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 const countErrorStatuses = (step: TestStepResult): Record<string, number> => {

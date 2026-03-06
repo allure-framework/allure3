@@ -2,7 +2,9 @@ import bem from "b_";
 import { View } from "backbone";
 import $ from "jquery";
 import { defaults } from "underscore";
+
 import { className } from "@/decorators/index.js";
+
 import "./styles.scss";
 
 export const POSITION = {

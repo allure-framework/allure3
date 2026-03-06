@@ -1,7 +1,9 @@
+import { readdir } from "node:fs/promises";
+
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
-import { readdir } from "node:fs/promises";
+
 import { AwesomePluginWithoutSummary, type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
 test.describe("output", () => {

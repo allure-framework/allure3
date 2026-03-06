@@ -19,7 +19,9 @@ import {
 } from "@allurereport/web-components";
 import { createPortal } from "preact/compat";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+
 import { useI18n } from "@/stores/locale";
+
 import * as styles from "./styles.scss";
 
 const FilterBtn = (props: {

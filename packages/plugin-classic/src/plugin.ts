@@ -7,6 +7,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+
 import {
   generateAttachmentsFiles,
   generateEnvironmentJson,

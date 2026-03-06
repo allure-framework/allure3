@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
+
 import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 

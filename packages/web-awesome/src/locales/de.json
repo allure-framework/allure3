@@ -153,6 +153,8 @@
     "at": "bei",
     "variables": "Variablen",
     "openPwTrace": "Playwright Trace öffnen",
+    "pwTracePopupBlocked": "Der Browser hat das Öffnen des Playwright Trace Viewer blockiert.",
+    "pwTracePopupBlockedHint": "Erlaube Pop-ups und versuche es erneut.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, mit Exit-Code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, mit Exit-Code {{actual}} (ursprünglich {{original}})"
   },

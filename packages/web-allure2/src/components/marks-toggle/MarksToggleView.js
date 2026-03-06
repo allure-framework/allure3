@@ -1,9 +1,12 @@
 import { View } from "backbone.marionette";
+
 import { className, on } from "@/decorators/index.js";
 import translate from "@/helpers/t.js";
 import gtag from "@/utils/gtag.js";
 import { values } from "@/utils/marks.js";
+
 import template from "./MarksToggleView.hbs";
+
 import "./styles.scss";
 
 @className("marks-toggle")

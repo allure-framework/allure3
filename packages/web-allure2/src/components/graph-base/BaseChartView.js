@@ -1,7 +1,9 @@
 import { View } from "backbone";
 import { axisBottom, axisLeft } from "d3-axis";
 import { select } from "d3-selection";
+
 import template from "./BaseChartView.hbs";
+
 import "./styles.scss";
 
 export default class BaseChartView extends View {

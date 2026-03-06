@@ -1,10 +1,12 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import type { AttachmentData, AttachmentType } from "@allurereport/web-commons";
+import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import { batch, useSignal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 import { useCallback, useEffect } from "preact/hooks";
+
 import { Spinner } from "@/components/Spinner";
+
 import { IconButton } from "../Button";
 import { EmptyView } from "../EmptyView";
 import { allureIcons } from "../SvgIcon";
@@ -14,6 +16,7 @@ import { AttachmentImageDiff } from "./AttachmentImageDiff";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
 import type { AttachmentProps, I18nProp } from "./model";
+
 import styles from "./styles.scss";
 
 const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProps) => ComponentChildren) | null> = {

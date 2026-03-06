@@ -2,6 +2,7 @@ import { interpolate } from "d3-interpolate";
 import { select } from "d3-selection";
 import { arc, pie } from "d3-shape";
 import { omit } from "underscore";
+
 import BaseChartView from "@/components/graph-base/BaseChartView.js";
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import { on } from "@/decorators/index.js";

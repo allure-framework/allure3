@@ -4,32 +4,32 @@
   "description": "Minimalistic web-server for serving static files",
   "keywords": [
     "allure",
-    "testing",
-    "web",
     "http",
-    "server"
+    "server",
+    "testing",
+    "web"
   ],
-  "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
-  "type": "module",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "repository": "https://github.com/allure-framework/allure3",
   "files": [
     "dist"
   ],
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "build": "run clean && tsc --project ./tsconfig.json",
     "clean": "rimraf ./dist",
     "pretest": "rimraf ./out",
     "test": "run-p 'test:*'",
     "test:unit": "vitest run",
-    "eslint": "eslint ./src/**/*.{js,jsx,ts,tsx}",
-    "eslint:format": "eslint --fix ./src/**/*.{js,jsx,ts,tsx}",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lint": "oxlint --import-plugin src test features stories",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/directory-watcher": "workspace:*",
@@ -37,24 +37,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "@stylistic/eslint-plugin": "^2.6.1",
-    "@types/eslint": "^8.56.11",
     "@types/node": "^20.17.9",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.3.3",
     "allure-playwright": "^3.3.3",
     "allure-vitest": "^3.3.3",
     "axios": "^1.13.5",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^50.0.0",
-    "eslint-plugin-n": "^17.10.1",
-    "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-prefer-arrow": "^1.2.3",
     "get-port": "^7.1.0",
     "npm-run-all2": "^7.0.1",
     "rimraf": "^6.0.1",

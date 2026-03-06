@@ -1,7 +1,9 @@
 import { Button, Menu } from "@allurereport/web-components";
+
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";
 import { LANG_LOCALE, type LangLocale } from "@/translations/constants";
+
 import * as styles from "./styles.scss";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

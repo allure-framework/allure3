@@ -4,11 +4,13 @@ import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allu
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 const { lineImagesImage, lineFilesFileAttachment2, playwrightLogo } = allureIcons;
 

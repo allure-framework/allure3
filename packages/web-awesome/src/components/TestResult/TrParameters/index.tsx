@@ -1,10 +1,12 @@
 import { Button } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
+
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 const PARAMETERS_VISIBLE_LIMIT = 8;

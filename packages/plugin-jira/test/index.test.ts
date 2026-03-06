@@ -2,6 +2,7 @@ import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import axios from "axios";
 import { describe, expect, it, vi } from "vitest";
+
 import type { JiraPluginOptions } from "../src/plugin.js";
 import { JiraPlugin } from "../src/plugin.js";
 

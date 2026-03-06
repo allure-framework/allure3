@@ -1,4 +1,5 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
+
 import { getEnv, parseURLPath } from "../utils.js";
 
 export const getBuildNumber = (): string => getEnv("CIRCLE_BUILD_NUM");

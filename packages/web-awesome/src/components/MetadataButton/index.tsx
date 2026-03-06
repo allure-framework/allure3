@@ -1,6 +1,7 @@
 import { ArrowButton, Counter, Text } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
+
 import * as styles from "./styles.scss";
 
 interface MetadataButtonProps {

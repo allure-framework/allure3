@@ -1,4 +1,5 @@
 import type { TestStatusTransition } from "@allurereport/core-api";
+
 import { allureIcons } from "@/components/SvgIcon";
 import type { TagSkin } from "@/components/Tag";
 

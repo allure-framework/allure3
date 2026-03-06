@@ -2,12 +2,14 @@ import { type Statistic, capitalize, statusesList } from "@allurereport/core-api
 import { Loadable } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import type { FunctionComponent } from "preact";
+
 import MetadataItem, { type MetadataProps } from "@/components/ReportMetadata/MetadataItem";
 import { MetadataTestType } from "@/components/ReportMetadata/MetadataTestType";
 import { MetadataWithIcon } from "@/components/ReportMetadata/MetadataWithIcon";
-import * as styles from "@/components/ReportMetadata/styles.scss";
 import { statsStore } from "@/stores";
 import { useI18n } from "@/stores/locale";
+
+import * as styles from "@/components/ReportMetadata/styles.scss";
 
 export const MetadataSummary: FunctionComponent = () => {
   const { t } = useI18n("statuses");

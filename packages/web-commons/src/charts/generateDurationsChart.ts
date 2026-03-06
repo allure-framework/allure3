@@ -5,6 +5,7 @@ import {
   type DurationsChartOptions,
 } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
+
 import { createHashStorage } from "./utils.js";
 
 type EnrichedTr = Omit<TestResult, "duration"> & {

@@ -1,5 +1,6 @@
 import { Heading, Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/compat";
+
 import { HeaderActions } from "@/components/HeaderActions/HeaderActions";
 import { PackagesList } from "@/components/Packages/PackagesList";
 import SideBySide from "@/components/SideBySide";
@@ -8,6 +9,7 @@ import { useI18n } from "@/stores";
 import { fetchPackagesData } from "@/stores/packages";
 import { route } from "@/stores/router";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
+
 import * as styles from "./styles.scss";
 
 const Packages = () => {

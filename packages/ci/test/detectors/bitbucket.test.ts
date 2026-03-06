@@ -1,4 +1,5 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { bitbucket, getJobURL } from "../../src/detectors/bitbucket.js";
 import { getEnv } from "../../src/utils.js";
 

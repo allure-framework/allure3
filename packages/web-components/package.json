@@ -4,18 +4,24 @@
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",
-    "testing",
+    "components",
     "design system",
-    "components"
+    "testing"
   ],
-  "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
       "style": "./dist/index.css"
     },
     "./index.css": "./dist/index.css",
@@ -25,19 +31,14 @@
     },
     "./mixins.scss": "./dist/mixins.scss"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "rimraf ./dist && rollup -c",
     "build:watch": "rollup -c -w",
     "build:ds": "storybook build",
     "dev:ds": "storybook dev -p 6006",
-    "lint": "eslint --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run"
+    "lint": "oxlint --import-plugin src test features stories",
+    "test": "vitest run",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
   },
   "dependencies": {
     "@allurereport/charts-api": "workspace:*",
@@ -83,7 +84,6 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-typescript": "^7.27.1",
     "@chromatic-com/storybook": "^3.2.3",
-    "@eslint/js": "^9.10.0",
     "@nivo/axes": "^0.99.0",
     "@nivo/legends": "^0.99.0",
     "@nivo/scales": "^0.99.0",
@@ -107,7 +107,6 @@
     "@storybook/test": "^8.6.17",
     "@storybook/theming": "^8.6.17",
     "@storybook/types": "^8.6.17",
-    "@stylistic/eslint-plugin": "^2.6.1",
     "@svgr/rollup": "^8.1.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
@@ -122,14 +121,11 @@
     "@types/d3-shape": "^3.1.6",
     "@types/d3-tip": "^0",
     "@types/d3-transition": "^3",
-    "@types/eslint": "^8.56.11",
     "@types/lodash": "^4",
     "@types/md5": "^2.3.5",
     "@types/node": "^20.17.9",
     "@types/prismjs": "^1.26.5",
     "@types/sortablejs": "^1.15.8",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/runner": "^2.1.9",
     "@vitest/snapshot": "^2.1.9",
     "allure-js-commons": "^3.3.3",
@@ -139,20 +135,6 @@
     "babel-plugin-prismjs": "^2.1.0",
     "clsx": "^2.1.1",
     "css-loader": "^7.1.2",
-    "eslint": "^8.57.0",
-    "eslint-config-preact": "^1.5.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-compat": "^6.0.1",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^50.0.0",
-    "eslint-plugin-jsx-a11y": "^6.10.0",
-    "eslint-plugin-n": "^17.10.1",
-    "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-preact": "^0.1.0",
-    "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-react": "^7.36.1",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-storybook": "^0.11.1",
     "globals": "^15.9.0",
     "html-webpack-plugin": "^5.6.3",
     "jsdom": "^26.0.0",
@@ -175,7 +157,6 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.6.0",
     "vitest": "^2.1.9"
   }
 }

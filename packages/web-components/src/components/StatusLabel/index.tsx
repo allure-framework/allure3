@@ -1,8 +1,10 @@
 import type { TestStatus } from "@allurereport/core-api";
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
+
 import { TreeItemIcon } from "../Tree";
 import { Text } from "../Typography";
+
 import styles from "./styles.scss";
 
 export type StatusLabelProps = {

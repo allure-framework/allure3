@@ -1,8 +1,9 @@
+import { realpath } from "node:fs/promises";
+import process, { exit } from "node:process";
+
 import { getPluginInstance, readConfig } from "@allurereport/core";
 import JiraPlugin from "@allurereport/plugin-jira";
 import { Command, Option, UsageError } from "clipanion";
-import { realpath } from "node:fs/promises";
-import process, { exit } from "node:process";
 import { green, red } from "yoctocolors";
 
 abstract class BaseJiraCommand extends Command {

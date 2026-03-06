@@ -1,9 +1,11 @@
 import { useEffect } from "preact/hooks";
+
 import Modal from "@/components/Modal";
 import SideNav from "@/components/SideNav/SideNav";
 import { fetchStats } from "@/stores";
 import { route } from "@/stores/router";
 import { testResultStore } from "@/stores/testResults";
+
 import * as styles from "./styles.scss";
 
 export const BaseLayout = ({ children }) => {

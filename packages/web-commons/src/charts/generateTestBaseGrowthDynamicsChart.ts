@@ -6,6 +6,7 @@ import type {
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { htrsByTr, statusesList } from "@allurereport/core-api";
+
 import { limitHistoryDataPoints } from "./chart-utils.js";
 
 type DataItem = TestBaseGrowthDynamicsChartData["data"][number];

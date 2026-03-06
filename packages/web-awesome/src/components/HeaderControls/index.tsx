@@ -1,6 +1,7 @@
 import { themeStore, toggleUserTheme } from "@allurereport/web-commons";
 import { LanguagePicker, ThemeButton } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
+
 import { EnvironmentPicker } from "@/components/EnvironmentPicker";
 import ToggleLayout from "@/components/ToggleLayout";
 import { currentLocale, setLocale } from "@/stores/locale";

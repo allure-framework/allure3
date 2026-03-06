@@ -4,7 +4,6 @@
   "exclude": ["./src/**/*.test.ts"],
   "compilerOptions": {
     "outDir": "./dist",
-    "baseUrl": "./",
     "declaration": true,
     "sourceMap": true,
     "removeComments": false,

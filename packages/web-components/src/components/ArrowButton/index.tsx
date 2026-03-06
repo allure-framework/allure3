@@ -1,6 +1,8 @@
 import { clsx } from "clsx";
 import type { FunctionalComponent, JSX } from "preact";
+
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
+
 import styles from "./styles.scss";
 
 export interface ArrowButtonProps {

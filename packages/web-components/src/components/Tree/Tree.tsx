@@ -3,8 +3,11 @@ import cx from "clsx";
 import type { RecursiveTree, Status } from "global";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { TreeItem } from "@/components/Tree/TreeItem";
+
 import { TreeHeader } from "./TreeHeader";
+
 import styles from "./styles.scss";
 
 interface TreeProps {

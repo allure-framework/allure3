@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
+
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 export type TagSkin =

@@ -4,10 +4,12 @@ import { Button, Code, IconButton, Text, TooltipWrapper, allureIcons } from "@al
 import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
 import { copyToClipboard } from "@/utils/copyToClipboard";
+
 import * as styles from "./styles.scss";
 
 const TrErrorTrace = ({ trace }: { trace: string }) => {

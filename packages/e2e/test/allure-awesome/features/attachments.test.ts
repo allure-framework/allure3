@@ -1,8 +1,10 @@
-import { expect, test } from "@playwright/test";
-import { Stage, Status, label } from "allure-js-commons";
 import { readFile } from "node:fs/promises";
 import { dirname as pathDirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { expect, test } from "@playwright/test";
+import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 
@@ -400,6 +402,81 @@ test.describe("attachments", () => {
       await expect(testResultPage.videoAttachmentContentLocator).toHaveCount(1);
 
       await testResultPage.attachScreenshot();
+    });
+  });
+
+  test.describe("playwright trace attachment", () => {
+    test.beforeEach(async ({ page }) => {
+      const playwrightTraceAttachment = await readFile(resolve(dirname, "../../fixtures/playwright-trace.zip"));
+
+      bootstrap = await bootstrapReport({
+        reportConfig: {
+          name: "Allure report with Playwright trace attachment",
+          appendHistory: true,
+          knownIssuesPath: undefined,
+        },
+        testResults: [
+          {
+            name: "foo",
+            fullName: "sample.test.js#test with playwright trace attachment",
+            historyId: "",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: Date.now(),
+            stop: Date.now() + 1000,
+            steps: [
+              {
+                name: "bar",
+                status: Status.PASSED,
+                stage: Stage.FINISHED,
+                parameters: [],
+                steps: [],
+                statusDetails: {},
+                attachments: [
+                  {
+                    source: "trace.zip",
+                    type: "application/vnd.allure.playwright-trace",
+                    name: "trace",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        attachments: [
+          {
+            source: "trace.zip",
+            content: playwrightTraceAttachment,
+          },
+        ],
+      });
+
+      await page.goto(bootstrap.url);
+    });
+
+    test("opens Playwright Trace in a new tab", async ({ page }) => {
+      await treePage.clickNthLeaf(0);
+      await testResultPage.toggleStepByTitle("bar");
+
+      const popupPromise = page
+        .context()
+        .waitForEvent("page", { timeout: 3_000 })
+        .catch(() => null);
+
+      await testResultPage.testResultAttachmentLocator
+        .filter({ has: page.getByText("trace", { exact: true }) })
+        .getByRole("button")
+        .nth(0)
+        .click();
+
+      const popup = await popupPromise;
+
+      if (popup) {
+        await popup.waitForURL(/https:\/\/trace\.playwright\.dev\/next\//, { timeout: 5_000 });
+        return;
+      }
+
+      await expect(page.getByText("Playwright Trace Viewer | trace.zip", { exact: true })).toBeVisible();
     });
   });
 });

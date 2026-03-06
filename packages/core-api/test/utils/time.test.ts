@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { formatDuration } from "../../src/index.js";
 
 const randomInt = (max: number = 1000, min: number = 0): number => {

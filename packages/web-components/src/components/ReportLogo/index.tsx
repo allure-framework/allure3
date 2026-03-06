@@ -1,5 +1,7 @@
 import { clsx } from "clsx";
+
 import { SvgIcon, allureIcons } from "../../";
+
 import styles from "./styles.scss";
 
 export const ReportLogo = (props: { className?: string; logo?: string }) => {

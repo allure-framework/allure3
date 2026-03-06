@@ -1,4 +1,5 @@
 import { Model } from "backbone";
+
 import TestResultView from "@/components/testresult/TestResultView.js";
 import TestResultModel from "@/data/testresult/TestResultModel.js";
 import AppLayout from "@/layouts/application/AppLayout.js";

@@ -1,4 +1,5 @@
 import type { AxisProps } from "@nivo/axes";
+
 import type { HeatMapLegendConfig } from "./types";
 
 // Named constants for default values

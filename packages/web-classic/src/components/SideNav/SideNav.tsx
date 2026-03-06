@@ -2,10 +2,12 @@ import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import { h } from "preact";
 import { useState } from "preact/hooks";
+
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { useI18n } from "@/stores";
 import { activeTab } from "@/stores/router";
 import { navigateTo } from "@/utils/navigate";
+
 import * as styles from "./styles.scss";
 
 const tabs = [

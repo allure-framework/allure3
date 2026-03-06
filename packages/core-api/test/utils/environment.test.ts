@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import type { EnvironmentsConfig } from "../../src/index.js";
 import type { TestResult } from "../../src/model.js";
 import { matchEnvironment } from "../../src/utils/environment.js";

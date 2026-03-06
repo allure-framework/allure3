@@ -1,3 +1,8 @@
+import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { basename, join } from "node:path";
+
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
 import {
@@ -11,10 +16,7 @@ import { type AllureStore, type PluginContext, type ReportFiles } from "@allurer
 import { generateCharts } from "@allurereport/web-commons";
 import type { DashboardReportOptions } from "@allurereport/web-dashboard";
 import Handlebars from "handlebars";
-import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+
 import type { DashboardOptions, DashboardPluginOptions, TemplateManifest } from "./model.js";
 import type { DashboardDataWriter, ReportFile } from "./writer.js";
 

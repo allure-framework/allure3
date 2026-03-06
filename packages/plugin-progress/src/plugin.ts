@@ -1,7 +1,9 @@
-import type { AllureStore, Plugin, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import * as process from "node:process";
 import type { WriteStream } from "node:tty";
+
+import type { AllureStore, Plugin, PluginContext, RealtimeSubscriber } from "@allurereport/plugin-api";
 import { green, red, yellow } from "yoctocolors";
+
 import { Terminal } from "./terminal.js";
 
 export class ProgressPlugin implements Plugin {

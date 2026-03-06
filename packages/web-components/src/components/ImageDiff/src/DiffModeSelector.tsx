@@ -1,8 +1,11 @@
 import { For } from "@preact/signals/utils";
+
 import { Tab, Tabs, TabsList } from "@/components/Tabs";
+
 import { useImageDiffContext } from "./hooks.js";
 import { useI18n } from "./i18n.js";
 import type { DiffMode } from "./model.js";
+
 import styles from "./styles.scss";
 
 const defaultI18n: Record<DiffMode, string> = {

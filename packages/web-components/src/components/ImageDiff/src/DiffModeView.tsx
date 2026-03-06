@@ -2,14 +2,17 @@ import { useComputed, useSignal } from "@preact/signals";
 import { capitalize } from "lodash";
 import type { ComponentChild } from "preact";
 import { useRef } from "preact/hooks";
+
 import { DropdownButton } from "@/components/Button";
 import { Menu } from "@/components/Menu";
 import { Tag } from "@/components/Tag";
-import { Image } from "./Image.js";
+
 import { useImageDiffContext } from "./hooks.js";
 import { useI18n } from "./i18n.js";
-import styles from "./styles.scss";
+import { Image } from "./Image.js";
 import { calculateSingleImageSize } from "./utils.js";
+
+import styles from "./styles.scss";
 
 const ViewSelector = (props: {
   options: ("diff" | "actual" | "expected")[] | readonly ("diff" | "actual" | "expected")[];

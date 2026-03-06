@@ -1,5 +1,6 @@
 import { label } from "allure-js-commons";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+
 import * as helpers from "../../../src/stores/url/helpers.js";
 import { currentUrlSignal, getParamValue, getParamValues, hasParam } from "../../../src/stores/url/store.js";
 

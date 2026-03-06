@@ -1,4 +1,17 @@
+import { randomUUID } from "node:crypto";
+
 import type { ResultFile } from "@allurereport/plugin-api";
+import type {
+  RawStep,
+  RawTestAttachment,
+  RawTestLabel,
+  RawTestParameter,
+  RawTestResult,
+  RawTestStatus,
+  RawTestStepResult,
+  ShallowKnown,
+  Unknown,
+} from "@allurereport/reader-api";
 import {
   ensureArray,
   ensureArrayWithItems,
@@ -12,18 +25,7 @@ import {
   isObject,
   isString,
 } from "@allurereport/reader-api";
-import type {
-  RawStep,
-  RawTestAttachment,
-  RawTestLabel,
-  RawTestParameter,
-  RawTestResult,
-  RawTestStatus,
-  RawTestStepResult,
-  ShallowKnown,
-  Unknown,
-} from "@allurereport/reader-api";
-import { randomUUID } from "node:crypto";
+
 import type { TestDetailsRunData, TestRunCoordinates, TestRunSelector } from "../model.js";
 import {
   DEFAULT_BUNDLE_NAME,
@@ -37,8 +39,8 @@ import {
 import { getTestActivities, getTestDetails, getTests } from "./cli.js";
 import type { AttachmentFileFactory, ParsingState } from "./model.js";
 import { XcresultParser } from "./model.js";
-import { XcTestNodeTypeValues, XcTestResultValues } from "./xcModel.js";
 import type { XcActivityNode, XcAttachment, XcDevice, XcTestNode, XcTestResult, XcTestRunArgument } from "./xcModel.js";
+import { XcTestNodeTypeValues, XcTestResultValues } from "./xcModel.js";
 
 const DURATION_PATTERN = /\d+\.\d+/;
 const ATTACHMENT_NAME_INFIX_PATTERN = /_\d+_[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12}/g;
@@ -215,9 +217,11 @@ const convertXcActivitiesToAllureSteps = async (
     }
 
     const stepAttachments = (ensureArrayWithItems(attachments, isObject) ?? [])
-      .map<
-        { potentialNames: Set<string>; uuid: string; xcName: string } | undefined
-      >(({ name, uuid }) => (isString(name) && isString(uuid) ? { potentialNames: getPotentialFileNamesFromXcSuggestedName(name), uuid, xcName: name } : undefined))
+      .map<{ potentialNames: Set<string>; uuid: string; xcName: string } | undefined>(({ name, uuid }) =>
+        isString(name) && isString(uuid)
+          ? { potentialNames: getPotentialFileNamesFromXcSuggestedName(name), uuid, xcName: name }
+          : undefined,
+      )
       .filter((entry) => typeof entry !== "undefined");
 
     const { steps: substeps, attachmentFiles: substepAttachmentFiles } = await convertXcActivitiesToAllureSteps(

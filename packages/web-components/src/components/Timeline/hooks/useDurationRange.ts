@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+
 import type { TimelineData } from "../types.js";
 
 export const useDurationRange = (data: TimelineData) => {

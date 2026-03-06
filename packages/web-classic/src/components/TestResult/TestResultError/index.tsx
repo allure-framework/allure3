@@ -1,8 +1,10 @@
 import { Code, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
+
 import * as styles from "./styles.scss";
 
 const TestResultErrorTrace = ({ trace }: { trace: string }) => {

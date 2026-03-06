@@ -1,12 +1,13 @@
-import { ResponsiveLine } from "@nivo/line";
 import type { Point } from "@nivo/line";
+import { ResponsiveLine } from "@nivo/line";
 import type { FunctionalComponent } from "preact";
 import { useCallback, useMemo } from "preact/hooks";
+
 import { EmptyDataStub } from "../EmptyDataStub";
 import { defaultTrendChartAxisBottomConfig, defaultTrendChartConfig } from "./config";
 import { nivoTheme } from "./theme";
-import { TrendChartKind } from "./types";
 import type { MeshTrendChartProps, Slice, SlicesTrendChartProps, TrendChartProps } from "./types";
+import { TrendChartKind } from "./types";
 import { getKindConfig } from "./utils";
 
 export const TrendChart: FunctionalComponent<TrendChartProps> = ({

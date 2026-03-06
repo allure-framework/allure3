@@ -2,6 +2,7 @@ import type { AllureChartsStoreData, StatusDynamicsChartOptions } from "@allurer
 import { ChartType, DEFAULT_CHART_HISTORY_LIMIT } from "@allurereport/charts-api";
 import type { Statistic } from "@allurereport/core-api";
 import { emptyStatistic, incrementStatistic, statusesList } from "@allurereport/core-api";
+
 import { limitHistoryDataPoints } from "./chart-utils.js";
 import type { StatusDynamicsChartData } from "./types.js";
 

@@ -1,10 +1,11 @@
+import * as console from "node:console";
+import { realpath } from "node:fs/promises";
+import { exit, cwd as processCwd } from "node:process";
+
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
 import type { TestResult } from "@allurereport/core-api";
 import { Command, Option } from "clipanion";
 import { glob } from "glob";
-import * as console from "node:console";
-import { realpath } from "node:fs/promises";
-import { exit, cwd as processCwd } from "node:process";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
 

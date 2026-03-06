@@ -1,13 +1,15 @@
 import type { DefaultTestStepResult } from "@allurereport/core-api";
 import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
+
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
 import { TrError } from "@/components/TestResult/TrError";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { TrStepInfo } from "@/components/TestResult/TrSteps/TrStepInfo";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 export const TrStepParameters = (props: { parameters: DefaultTestStepResult["parameters"] }) => {
   const { parameters } = props;

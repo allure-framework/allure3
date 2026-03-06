@@ -3,6 +3,7 @@ import { ChartType } from "@allurereport/charts-api";
 import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
+
 import { generateAllCharts } from "../src/generators.js";
 import type { AwesomeDataWriter } from "../src/writer.js";
 

@@ -1,5 +1,6 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { type FunctionalComponent } from "preact";
+
 import * as styles from "./styles.scss";
 
 export type EmptyPlaceholderProps = {

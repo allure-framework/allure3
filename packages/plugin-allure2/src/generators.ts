@@ -1,3 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { basename, join } from "node:path";
+
 import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
 import {
   createBaseUrlScript,
@@ -9,9 +13,7 @@ import {
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import type { Allure2ReportOptions } from "@allurereport/web-allure2";
 import Handlebars from "handlebars";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+
 import type {
   Allure2Category,
   Allure2ExecutorInfo,

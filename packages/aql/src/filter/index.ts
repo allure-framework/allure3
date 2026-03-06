@@ -1,7 +1,3 @@
-/**
- * AQL filter implementation for filtering objects
- */
-import { AqlLogicalOperator, AqlOperation, AqlOperationAliases } from "../model.js";
 import type {
   AqlAccessor,
   AqlArrayConditionExpression,
@@ -15,6 +11,10 @@ import type {
   AqlParserConfig,
   AqlValue,
 } from "../model.js";
+/**
+ * AQL filter implementation for filtering objects
+ */
+import { AqlLogicalOperator, AqlOperation, AqlOperationAliases } from "../model.js";
 import { parseAql } from "../parser/index.js";
 
 type FilterContext = Map<string, any> | Record<string, any>;

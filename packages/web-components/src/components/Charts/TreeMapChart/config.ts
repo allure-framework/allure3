@@ -1,4 +1,5 @@
 import type { DefaultTreeMapDatum } from "@nivo/treemap";
+
 import type { ResponsiveTreeChartProps } from "./types.js";
 
 export const defaultTreeChartConfig: Partial<ResponsiveTreeChartProps<DefaultTreeMapDatum>> = {

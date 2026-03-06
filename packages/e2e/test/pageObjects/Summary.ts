@@ -1,4 +1,5 @@
 import { type Locator, type Page } from "@playwright/test";
+
 import { PageObject } from "./pageObject.js";
 
 export class SummaryPage extends PageObject {

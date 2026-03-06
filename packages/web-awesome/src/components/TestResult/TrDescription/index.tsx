@@ -2,8 +2,10 @@ import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore 
 import type { FunctionalComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 export type TrDescriptionProps = {

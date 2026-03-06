@@ -1,7 +1,9 @@
-import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
-import type { AllureStore } from "@allurereport/plugin-api";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+
+import type { KnownTestFailure, TestStatus } from "@allurereport/core-api";
+import type { AllureStore } from "@allurereport/plugin-api";
+
 import { isFileNotFoundError } from "./utils/misc.js";
 
 const failedStatuses: Set<TestStatus> = new Set(["failed", "broken"]);

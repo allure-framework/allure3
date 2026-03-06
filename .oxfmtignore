@@ -1,0 +1,7 @@
+packages/*/src/assets/data/test-results/**
+**/*.hbs
+**/dist/**
+out/**
+allure-report/**
+node_modules/**
+.yarn/**

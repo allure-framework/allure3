@@ -1,6 +1,8 @@
 import type { TestStatus } from "@allurereport/core-api";
 import { clsx } from "clsx";
+
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 type Props = {

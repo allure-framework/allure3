@@ -2,17 +2,19 @@ import type { AxisTickProps } from "@nivo/axes";
 import { type BarCustomLayerProps, type BarDatum, type ComputedDatum, ResponsiveBar } from "@nivo/bar";
 import type { CartesianMarkerProps } from "@nivo/core";
 import { useMemo } from "preact/hooks";
+
+import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { Legends } from "../Legend";
 import { formatNumber } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";
-import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
 import { BarChartTooltip } from "./BarChartTooltip";
 import { BottomAxisLine } from "./BottomAxisLine";
+import { BarChartStateProvider } from "./context";
 import { BarChartBars, BarChartItemHoverLayer } from "./Layers";
 import { TrendLinesLayer } from "./TrendLinesLayer";
-import { BarChartStateProvider } from "./context";
-import styles from "./styles.scss";
 import { computeVerticalAxisMargin, isEmptyChart } from "./utils";
+
+import styles from "./styles.scss";
 
 type BarChartProps<T extends BarDatum> = {
   data: T[];

@@ -3,9 +3,10 @@
 
 "theme:build":
   - ".editorconfig"
-  - ".eslintrc.js"
+  - ".oxlintrc.json"
+  - ".oxfmtrc.jsonc"
+  - ".oxfmtignore"
   - ".gitignore"
-  - ".prettierrc"
   - "package.json"
   - "tsconfig.json"
   - ".husky/**"

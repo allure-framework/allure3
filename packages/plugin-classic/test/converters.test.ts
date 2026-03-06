@@ -1,5 +1,6 @@
 import type { TestResult } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
+
 import { convertTestResult } from "../src/converters.js";
 
 const createTestResult = (overrides: Partial<TestResult> = {}): TestResult => {

@@ -1,6 +1,7 @@
 import type { TrendDataAccessor, TrendStats } from "@allurereport/charts-api";
 import type { HistoryTestResult, SeverityLevel, TestResult } from "@allurereport/core-api";
 import { severityLabelName, severityLevels } from "@allurereport/core-api";
+
 import { createEmptyStats } from "../chart-utils.js";
 
 type SeverityTrendStats = TrendStats<SeverityLevel>;

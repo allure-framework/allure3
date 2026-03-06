@@ -3,10 +3,12 @@ import { Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
 import { testEnvGroupsStore } from "@/stores/env";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
+
 import * as styles from "./styles.scss";
 
 export const TrEnvironmentSection: FunctionalComponent<{

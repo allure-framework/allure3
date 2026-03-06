@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { parseProperties } from "../src/properties.js";
 
 const data = `allure.test.run.id=2a54c4d7-7d79-4615-b80d-ffc1107016a1

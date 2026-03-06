@@ -1,6 +1,7 @@
 import { ReportLogoFull, Text } from "@allurereport/web-components";
 import cx from "clsx";
 import { type FunctionalComponent } from "preact";
+
 import * as styles from "./styles.scss";
 
 export type FooterProps = {

@@ -1,3 +1,10 @@
+import * as console from "node:console";
+import { randomUUID } from "node:crypto";
+import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import process, { exit } from "node:process";
+
 import {
   AllureReport,
   QualityGateState,
@@ -18,13 +25,8 @@ import { BufferResultFile, PathResultFile } from "@allurereport/reader-api";
 import { KnownError } from "@allurereport/service";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
-import * as console from "node:console";
-import { randomUUID } from "node:crypto";
-import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
-import process, { exit } from "node:process";
 import { red } from "yoctocolors";
+
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
 import { stopProcessTree } from "../utils/process.js";

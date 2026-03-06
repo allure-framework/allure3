@@ -1,4 +1,5 @@
 import type { ComputedNodeWithoutStyles, DefaultTreeMapDatum } from "@nivo/treemap";
+
 import type { ParentLabelControlOptions } from "./types";
 
 export const DEFAULT_PARENT_SKIP_SIZE = 48;

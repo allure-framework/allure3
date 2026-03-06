@@ -1,5 +1,6 @@
 import { type HistoryDataPoint } from "@allurereport/core-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { AllureRemoteHistory } from "../src/history.js";
 import { type AllureServiceClient } from "../src/service.js";
 import { KnownError } from "../src/utils/http.js";

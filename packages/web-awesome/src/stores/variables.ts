@@ -1,5 +1,6 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
+
 import type { StoreSignalState } from "@/stores/types";
 
 export type Variables = Record<string, any>;

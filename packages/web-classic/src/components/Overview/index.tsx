@@ -15,8 +15,10 @@ import {
 } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+
 import { useI18n } from "@/stores";
 import { chartsStore, fetchChartsData } from "@/stores/charts";
+
 import * as styles from "./Overview.module.scss";
 
 const getChartWidgetByType = (

@@ -1,6 +1,7 @@
 import { sanitize } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
 import { useEffect, useState } from "preact/hooks";
+
 import * as styles from "./styles.scss";
 
 // TODO: use proper type here

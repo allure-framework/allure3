@@ -1,4 +1,5 @@
 import { SafeString } from "handlebars/runtime.js";
+
 import allureIcon from "./allure-icon.js";
 
 export default function () {

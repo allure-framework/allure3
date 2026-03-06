@@ -1,11 +1,13 @@
 import type { ComponentChild } from "preact";
 import { useRef, useState } from "preact/hooks";
+
 import searchIcon from "@/assets/svg/line-general-search-md.svg";
 import closeIcon from "@/assets/svg/line-general-x-close.svg";
 import { IconButton } from "@/components/Button";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+
 import styles from "./styles.scss";
 
 type Props = {

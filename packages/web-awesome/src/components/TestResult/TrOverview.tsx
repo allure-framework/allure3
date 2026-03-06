@@ -1,6 +1,6 @@
 import type { FunctionalComponent } from "preact";
 import type { AwesomeTestResult } from "types";
-import * as styles from "@/components/BaseLayout/styles.scss";
+
 import TestStepsEmpty from "@/components/TestResult/TestStepsEmpty";
 import { TrDescription } from "@/components/TestResult/TrDescription";
 import { TrError } from "@/components/TestResult/TrError";
@@ -12,6 +12,8 @@ import { TrSetup } from "@/components/TestResult/TrSetup";
 import { TrSteps } from "@/components/TestResult/TrSteps";
 import { TrTeardown } from "@/components/TestResult/TrTeardown";
 import { currentTrId } from "@/stores/testResult";
+
+import * as styles from "@/components/BaseLayout/styles.scss";
 
 export type TrOverviewProps = {
   testResult?: AwesomeTestResult;

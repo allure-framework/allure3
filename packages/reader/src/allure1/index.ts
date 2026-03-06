@@ -1,3 +1,5 @@
+import * as console from "node:console";
+
 import type {
   RawStep,
   RawTestAttachment,
@@ -10,7 +12,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
-import * as console from "node:console";
+
 import { ensureInt, ensureString } from "../utils.js";
 import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
@@ -99,11 +101,11 @@ const parseRootElement = async (visitor: ResultsVisitor, xml: Record<string, any
 
 const parseTestSuite = async (visitor: ResultsVisitor, testSuite: Record<string, any>): Promise<boolean> => {
   const {
-    "name": testSuiteName,
-    "title": testSuiteTitle,
-    "description": descriptionElement,
+    name: testSuiteName,
+    title: testSuiteTitle,
+    description: descriptionElement,
     "test-cases": testCases,
-    "labels": labelsElement,
+    labels: labelsElement,
   } = testSuite;
   if (!isStringAnyRecord(testCases)) {
     return false;

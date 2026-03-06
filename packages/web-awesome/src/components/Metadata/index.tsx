@@ -2,12 +2,14 @@ import { Button, ButtonLink, Menu, Text, allureIcons } from "@allurereport/web-c
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import type { MetadataProps } from "@/components/ReportMetadata";
 import { useI18n } from "@/stores/locale";
 import { getTagsFilterUrl } from "@/stores/treeFilters/utils";
 import { copyToClipboard } from "@/utils/copyToClipboard";
 import { parseOwnerAddress } from "@/utils/ownerAddress";
+
 import * as styles from "./styles.scss";
 
 export const MetadataList: FunctionalComponent<MetadataProps & { columns?: number }> = ({

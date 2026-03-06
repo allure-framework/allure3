@@ -1,9 +1,11 @@
+import { existsSync, lstatSync } from "fs";
+import path from "node:path";
+
 /* eslint max-lines: 0, @typescript-eslint/unbound-method: 0 */
 import type { RawTestAttachment, RawTestLabel, RawTestResult, RawTestStepResult } from "@allurereport/reader-api";
 import { step } from "allure-js-commons";
-import { existsSync, lstatSync } from "fs";
-import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
+
 import { IS_MAC } from "../src/xcresult/bundle.js";
 import { readXcResultBundle } from "../src/xcresult/index.js";
 import { attachResultDir, buildResourcePath, mockVisitor } from "./utils.js";

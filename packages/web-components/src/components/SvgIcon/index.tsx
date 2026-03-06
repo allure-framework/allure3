@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import type { SVGAttributes } from "preact";
+
 import amazon from "@/assets/svg/amazon.svg";
 import arrowsChevronDown from "@/assets/svg/arrows-chevron-down.svg";
 import azure from "@/assets/svg/azure.svg";
@@ -81,6 +82,7 @@ import spinner from "@/assets/svg/spinner.svg";
 import testNew from "@/assets/svg/test-new.svg";
 import viewOff from "@/assets/svg/view-off.svg";
 import view from "@/assets/svg/view.svg";
+
 import styles from "./styles.scss";
 
 export const allureIcons = {

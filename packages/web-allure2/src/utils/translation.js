@@ -1,4 +1,5 @@
 import i18next from "i18next";
+
 import gtag from "./gtag.js";
 import settings from "./settings.js";
 

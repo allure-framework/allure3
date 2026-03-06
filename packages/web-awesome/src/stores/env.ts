@@ -1,6 +1,7 @@
 import { type TestEnvGroup } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { effect, signal } from "@preact/signals";
+
 import type { StoreSignalState } from "@/stores/types";
 import { loadFromLocalStorage } from "@/utils/loadFromLocalStorage";
 

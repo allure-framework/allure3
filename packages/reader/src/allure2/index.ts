@@ -1,3 +1,6 @@
+import * as console from "node:console";
+import { randomUUID } from "node:crypto";
+
 import { notNull } from "@allurereport/core-api";
 import type {
   RawFixtureResult,
@@ -12,8 +15,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
-import * as console from "node:console";
-import { randomUUID } from "node:crypto";
+
 import type { Category, ExecutorInfo } from "../model.js";
 import { parseProperties } from "../properties.js";
 import { ensureBoolean, ensureInt, ensureString } from "../utils.js";

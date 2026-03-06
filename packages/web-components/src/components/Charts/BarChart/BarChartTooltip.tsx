@@ -1,4 +1,5 @@
 import type { BarDatum } from "@nivo/bar";
+
 import { ChartTooltip } from "../ChartTooltip";
 import { LegendItem, isPresent } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";

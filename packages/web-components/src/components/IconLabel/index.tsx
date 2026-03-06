@@ -1,8 +1,10 @@
 import cx from "clsx";
 import type { FunctionalComponent } from "preact";
+
 import { SvgIcon } from "../SvgIcon";
 import { TooltipWrapper } from "../Tooltip";
 import { Text } from "../Typography";
+
 import styles from "./styles.scss";
 
 type Props = {

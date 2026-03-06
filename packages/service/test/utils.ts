@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+
 import { type HttpClient } from "../src/utils/http.js";
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions

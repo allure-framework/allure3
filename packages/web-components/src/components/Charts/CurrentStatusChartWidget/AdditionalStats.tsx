@@ -1,9 +1,12 @@
 import type { Statistic } from "@allurereport/core-api";
+
 import IconLabel from "@/components/IconLabel";
 import { allureIcons } from "@/components/SvgIcon";
+
 import { ADD_STATS_KEYS } from "./constants";
-import styles from "./styles.scss";
 import type { I18nProp } from "./types";
+
+import styles from "./styles.scss";
 
 type Props = { stats: Statistic; i18n: I18nProp; layout: "vertical" | "horizontal" };
 

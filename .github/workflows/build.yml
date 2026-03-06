@@ -28,9 +28,11 @@ jobs:
       - name: Build the project
         run: yarn build
       - name: Lint Project
-        run: yarn eslint
+        run: yarn lint
       - name: Check formatting
-        run: yarn prettier:check
+        run: yarn format:check
+      - name: Type-aware lint
+        run: yarn lint:type
 
   test:
     needs: lint

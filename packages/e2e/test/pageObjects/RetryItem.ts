@@ -1,5 +1,5 @@
-import type { TestResultPage } from "./TestResult.js";
 import { PageObject } from "./pageObject.js";
+import type { TestResultPage } from "./TestResult.js";
 
 /**
  * A test fixture to validate retries.

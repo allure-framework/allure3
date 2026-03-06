@@ -11,6 +11,7 @@ import {
   findByLabelName,
 } from "@allurereport/core-api";
 import { emptyStatistic } from "@allurereport/core-api";
+
 import { md5 } from "./misc.js";
 
 const addLeaf = (node: WithChildren, nodeId: string) => {

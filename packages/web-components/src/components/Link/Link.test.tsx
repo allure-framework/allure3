@@ -1,5 +1,6 @@
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
 import { Link } from "./index";
 
 describe("Link component", () => {

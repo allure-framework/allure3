@@ -1,6 +1,7 @@
 import type { TreeMapDataAccessor, TreeMapNode } from "@allurereport/charts-api";
 import type { TestResult, TreeGroup, TreeLeaf } from "@allurereport/core-api";
 import { createTreeByLabels, md5 } from "@allurereport/plugin-api";
+
 import { isChildrenLeavesOnly } from "../chart-utils.js";
 import { convertTreeDataToTreeMapNode, transformTreeMapNode } from "../treeMap.js";
 import { behaviorLabels, filterTestsWithBehaviorLabels } from "./utils/behavior.js";

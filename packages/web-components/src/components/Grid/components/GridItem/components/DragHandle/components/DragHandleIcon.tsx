@@ -1,4 +1,5 @@
 import type { FunctionComponent } from "preact";
+
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 
 export interface DragHandleIconProps {

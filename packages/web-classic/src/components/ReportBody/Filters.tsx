@@ -1,8 +1,10 @@
 import { Button, allureIcons } from "@allurereport/web-components";
 import { Menu } from "@allurereport/web-components";
 import { Toggle } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores/locale";
 import { setTreeFilter, treeFiltersStore } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 export const Filters = () => {

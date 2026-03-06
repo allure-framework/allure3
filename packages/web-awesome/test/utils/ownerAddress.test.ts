@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { parseOwnerAddress } from "../../src/utils/ownerAddress.js";
 
 describe("utils > ownerAddress", () => {

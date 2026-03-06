@@ -3,7 +3,9 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
+
 import type { AwesomeReportOptions } from "../../../../types";
+
 import * as styles from "./styles.scss";
 
 interface CiInfoProps {

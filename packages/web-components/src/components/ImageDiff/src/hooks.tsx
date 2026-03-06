@@ -2,8 +2,9 @@ import { batch, useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import type { ComponentChildren } from "preact";
 import { createContext } from "preact";
 import { useContext, useEffect } from "preact/hooks";
-import { useDimensions } from "./Wrapper.js";
+
 import type { DiffMode, ImageDiff } from "./model.js";
+import { useDimensions } from "./Wrapper.js";
 
 const diffModesFromDiff = (diff: ImageDiff) => {
   const modes: DiffMode[] = [];

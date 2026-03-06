@@ -4,6 +4,7 @@ import type {
   HeatMapChartOptions,
   HeatMapDataAccessor,
 } from "@allurereport/charts-api";
+
 import { problemsDistributionHeatMapAccessor } from "./accessors/problemsDistributionHeatMap.js";
 
 export const generateHeatMapChartGeneric = <T extends Record<string, unknown>>(

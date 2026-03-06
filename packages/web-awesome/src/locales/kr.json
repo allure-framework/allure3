@@ -153,6 +153,8 @@
     "at": "에서",
     "variables": "변수",
     "openPwTrace": "Playwright Trace 열기",
+    "pwTracePopupBlocked": "브라우저가 Playwright Trace Viewer 열기를 차단했습니다.",
+    "pwTracePopupBlockedHint": "팝업을 허용한 뒤 다시 시도하세요.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, 종료 코드 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, 종료 코드 {{actual}} (원본 {{original}})"
   },

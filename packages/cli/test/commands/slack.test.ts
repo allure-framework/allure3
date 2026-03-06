@@ -1,9 +1,11 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import SlackPlugin from "@allurereport/plugin-slack";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import SlackPlugin from "@allurereport/plugin-slack";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { SlackCommand } from "../../src/commands/slack.js";
 
 const fixtures = {

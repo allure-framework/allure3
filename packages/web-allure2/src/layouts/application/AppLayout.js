@@ -1,8 +1,11 @@
 import { View } from "backbone.marionette";
+
 import ErrorSplashView from "@/components/error-splash/ErrorSplashView.js";
 import SideNav from "@/components/side-nav/SideNavView.js";
 import { behavior, className, regions } from "@/decorators/index.js";
+
 import template from "./AppLayout.hbs";
+
 import "./styles.scss";
 
 @className("app")

@@ -1,7 +1,10 @@
 import { View } from "backbone.marionette";
+
 import PieChartView from "@/components/graph-pie-chart/PieChartView.js";
 import { regions } from "@/decorators/index.js";
+
 import template from "./SummaryWidgetView.hbs";
+
 import "./styles.scss";
 
 @regions({

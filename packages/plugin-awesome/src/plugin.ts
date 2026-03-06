@@ -7,6 +7,7 @@ import {
   createPluginSummary,
 } from "@allurereport/plugin-api";
 import { preciseTreeLabels } from "@allurereport/plugin-api";
+
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
 import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";

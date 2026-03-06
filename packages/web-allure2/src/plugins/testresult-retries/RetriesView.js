@@ -1,8 +1,11 @@
 import { View } from "backbone.marionette";
 import $ from "jquery";
+
 import { className, on } from "@/decorators/index.js";
 import router from "@/router.js";
+
 import template from "./RetriesView.hbs";
+
 import "./styles.scss";
 
 @className("test-result-retries")

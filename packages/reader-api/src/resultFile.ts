@@ -1,5 +1,3 @@
-import type { ResultFile } from "@allurereport/plugin-api";
-import { lookup } from "mime-types";
 import {
   ReadStream,
   closeSync,
@@ -10,10 +8,14 @@ import {
   readSync,
   statSync,
 } from "node:fs";
-import "node:fs/promises";
 import { basename } from "node:path";
 import type { Readable } from "node:stream";
+import "node:fs/promises";
 import { pipeline } from "node:stream/promises";
+
+import type { ResultFile } from "@allurereport/plugin-api";
+import { lookup } from "mime-types";
+
 import { detectContentType } from "./detect.js";
 import { extension } from "./utils.js";
 
