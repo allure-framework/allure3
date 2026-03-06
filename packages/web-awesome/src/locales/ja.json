@@ -153,6 +153,8 @@
     "at": "時",
     "variables": "変数",
     "openPwTrace": "Playwright Traceを開く",
+    "pwTracePopupBlocked": "ブラウザーが Playwright Trace Viewer の表示をブロックしました。",
+    "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
   },

@@ -153,6 +153,8 @@
     "at": "在",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace",
+    "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
+    "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
   },
