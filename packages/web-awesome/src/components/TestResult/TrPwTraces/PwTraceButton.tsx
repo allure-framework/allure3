@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { fetchFromUrl } from "@allurereport/web-commons";
 import { Button, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+
 import { openPlaywrightTraceInNewTab } from "@/components/TestResult/TrPwTraces/openPwTraceInNewTab";
 import { useI18n } from "@/stores";
 import { closeModal, openModal } from "@/stores/modal";
