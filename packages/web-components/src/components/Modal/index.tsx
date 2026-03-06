@@ -9,11 +9,13 @@ import { clsx } from "clsx";
 import type { VNode } from "preact";
 import { cloneElement } from "preact/compat";
 import { useEffect, useMemo, useState } from "preact/hooks";
+
 import { Button, IconButton } from "@/components/Button";
 import Gallery from "@/components/Modal/Gallery";
 import { allureIcons } from "@/components/SvgIcon";
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Heading } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 export type ModalGalleryProps = {
