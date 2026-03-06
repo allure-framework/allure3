@@ -58,7 +58,7 @@ test.describe("tags", () => {
     await expect(treePage.getLeafByTitle(testWithoutTagName)).toBeVisible();
 
     // Click on test with tag to open test result page
-    await treePage.getLeafByTitle(testWithTagName).click();
+    await treePage.openTestResultByTitle(testWithTagName);
 
     const testResultPage = new TestResultPage(page);
 

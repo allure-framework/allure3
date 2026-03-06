@@ -1,7 +1,6 @@
-import type { DefaultTestStepResult, TestStepResult } from "@allurereport/core-api";
+import type { DefaultTestStepResult } from "@allurereport/core-api";
 import { ArrowButton, Code, Text, TreeItemIcon, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
-import { useState } from "preact/hooks";
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
 import { TrError } from "@/components/TestResult/TrError";
@@ -46,32 +45,21 @@ export const TrStepsContent = (props: { item: DefaultTestStepResult }) => {
   );
 };
 
-const hasFailedStep = (step: TestStepResult): boolean => {
-  if (step.type !== "step") {
-    return false;
-  }
-
-  return step.status !== "passed" || step.steps.some(hasFailedStep);
-};
-
 export const TrStep: FunctionComponent<{
   item: DefaultTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  const haveFailedSteps = hasFailedStep(item);
-  const isEarlyOpened = collapsedTrees.value.has(item.stepId) ? false : Boolean(haveFailedSteps);
-  const [isOpened, setIsOpen] = useState(isEarlyOpened || false);
   const hasContent = Boolean(item?.steps?.length || item?.parameters?.length || item?.message || item?.trace);
+  const isOpened = !collapsedTrees.value.has(item.stepId);
 
   const handleClick = () => {
-    setIsOpen(!isOpened);
     toggleTree(item.stepId);
   };
 
   return (
     <div data-testid={"test-result-step"} className={styles["test-result-step"]}>
-      <div className={styles["test-result-step-header"]} onClick={handleClick}>
+      <div data-testid={"test-result-step-header"} className={styles["test-result-step-header"]} onClick={handleClick}>
         {!hasContent ? (
           <div className={styles["test-result-strut"]} />
         ) : (

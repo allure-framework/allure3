@@ -209,6 +209,32 @@ export class TreePage extends CommonPage {
     await this.getLeafByTitle(title).nth(0).click();
   }
 
+  private async waitForOpenedTestResult(expectedId?: string) {
+    if (expectedId) {
+      await this.page.waitForURL((url) => {
+        const hash = url.hash || "";
+        return hash === `#${expectedId}` || hash.startsWith(`#${expectedId}/`);
+      });
+    } else {
+      await this.page.waitForURL((url) => /^#[^/]+(\/|$)/.test(url.hash || ""));
+    }
+    await this.page.getByTestId("test-result-info-title").waitFor({ state: "visible" });
+  }
+
+  async openTestResultByTitle(title: string) {
+    const leaf = this.getLeafByTitle(title).first();
+    const leafId = await leaf.getAttribute("id");
+    await leaf.click();
+    await this.waitForOpenedTestResult(leafId ?? undefined);
+  }
+
+  async openTestResultByNthLeaf(n: number) {
+    const leaf = this.leafLocator.nth(n);
+    const leafId = await leaf.getAttribute("id");
+    await leaf.click();
+    await this.waitForOpenedTestResult(leafId ?? undefined);
+  }
+
   async clickRandomLeaf() {
     // wait before any leaf appear
     await this.leafLocator.nth(0).waitFor({ state: "visible" });

@@ -1,4 +1,4 @@
-import { type Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
 import { CommonPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
@@ -163,33 +163,29 @@ test.describe("environments", () => {
     await expect(treePage.leafLocator).toHaveCount(2);
   });
 
-  test("should render statistics for all environments by default", async ({ page }) => {
+  test("should render statistics for all environments by default", async () => {
     const total = await treePage.getMetadataValue("total");
     const passed = await treePage.getMetadataValue("passed");
-
-    await page.pause();
 
     expect(passed).toEqual("4");
     expect(total).toEqual("4");
   });
 
   test("shouldn't render any environment for test result which doesn't match any environment", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
     const envItems = page.getByTestId("test-result-env-item");
     const envTab = page.getByText("Environments");
 
-    await treeLeaves.nth(0).click();
+    await treePage.openTestResultByNthLeaf(0);
     await envTab.click();
 
     await expect(envItems).toHaveCount(0);
   });
 
   test("should render a matched environment for test result", async ({ page }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
     const envItems = page.getByTestId("test-result-env-item");
     const envTab = page.getByText("Environments");
 
-    await treeLeaves.nth(1).click();
+    await treePage.openTestResultByNthLeaf(1);
     await expect(envTab).toContainText("1");
     await envTab.click();
     await expect(envItems).toHaveCount(1);
@@ -204,12 +200,11 @@ test.describe("environments", () => {
   });
 
   test("should render several environments for test result", async ({ page, context }) => {
-    const treeLeaves = page.getByTestId("tree-leaf");
     const envItems = page.getByTestId("test-result-env-item");
     const envTab = page.getByText("Environments");
 
     await commonPage.selectEnv("bar");
-    await treeLeaves.nth(0).click();
+    await treePage.openTestResultByNthLeaf(0);
     await expect(envTab).toContainText("2");
     await envTab.click();
     await expect(envItems).toHaveCount(2);
@@ -237,12 +232,12 @@ test.describe("environments", () => {
     const treeLeaves = page.getByTestId("tree-leaf");
     const navCounter = page.getByTestId("test-result-nav-current");
 
-    await treeLeaves.nth(0).click();
+    await treePage.openTestResultByNthLeaf(0);
     await expect(navCounter).toHaveText("1/4");
     await page.goto(bootstrap.url);
     await commonPage.selectEnv("bar");
     await expect(treeLeaves).toHaveCount(1);
-    await treeLeaves.nth(0).click();
+    await treePage.openTestResultByNthLeaf(0);
     await expect(navCounter).toHaveText("1/1");
   });
 
