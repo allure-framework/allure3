@@ -1,6 +1,7 @@
 import { reportDataUrl } from "@allurereport/web-commons";
 import { Collection } from "backbone";
 import { findWhere, flatten } from "underscore";
+
 import { values } from "@/utils/statuses.js";
 
 function updateTime(timeA, timeB, field, operation) {

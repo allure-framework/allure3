@@ -1,0 +1,16 @@
+{
+  "plugins": ["typescript", "react", "import", "jsdoc", "jsx-a11y", "node"],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "**/.yarn/**",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/.pnp.*",
+    "**/allure-report/**",
+    "packages/*/src/assets/data/test-results/**"
+  ]
+}

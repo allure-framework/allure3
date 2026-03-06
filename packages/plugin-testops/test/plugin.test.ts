@@ -1,10 +1,12 @@
+import { env } from "node:process";
+
 /* eslint max-lines: off */
 import { detect } from "@allurereport/ci";
 import type { AttachmentLink, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
-import { env } from "node:process";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { TestopsPluginOptions } from "../src/model.js";
 import { TestopsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils.js";

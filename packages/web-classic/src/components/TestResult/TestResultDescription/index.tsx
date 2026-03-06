@@ -2,7 +2,9 @@ import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore 
 import type { FunctionalComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { ClassicTestResult } from "types";
+
 import { MetadataButton } from "@/components/MetadataButton";
+
 import * as styles from "./styles.scss";
 
 export type TestResultDescriptionProps = {

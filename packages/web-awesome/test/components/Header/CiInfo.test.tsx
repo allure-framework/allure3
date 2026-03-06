@@ -3,6 +3,7 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { cleanup, render, screen } from "@testing-library/preact";
 import { h } from "preact";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CiInfo } from "@/components/Header/CiInfo";
 
 const fixtures = {

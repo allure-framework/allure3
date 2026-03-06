@@ -1,4 +1,5 @@
 import { Behavior } from "backbone.marionette";
+
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import { on } from "@/decorators/index.js";
 import translate from "@/helpers/t.js";

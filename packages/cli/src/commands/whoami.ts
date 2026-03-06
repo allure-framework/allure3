@@ -1,9 +1,11 @@
+import * as console from "node:console";
+import { exit } from "node:process";
+
 import { readConfig } from "@allurereport/core";
 import { AllureServiceClient, KnownError } from "@allurereport/service";
 import { Command, Option } from "clipanion";
-import * as console from "node:console";
-import { exit } from "node:process";
 import { green, red } from "yoctocolors";
+
 import { logError } from "../utils/logs.js";
 
 export class WhoamiCommand extends Command {

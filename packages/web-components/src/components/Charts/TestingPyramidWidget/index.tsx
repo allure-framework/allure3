@@ -6,7 +6,9 @@ import { type PartialTheme, useTheme } from "@nivo/theming";
 import { animated, useSpring } from "@react-spring/web";
 import type { JSX } from "preact";
 import { useMemo } from "preact/hooks";
+
 import { Widget } from "@/components/Widget";
+
 import { EmptyDataStub } from "../EmptyDataStub";
 
 const chartTheme: PartialTheme = {

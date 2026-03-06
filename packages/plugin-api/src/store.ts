@@ -11,6 +11,7 @@ import type {
   TestFixtureResult,
   TestResult,
 } from "@allurereport/core-api";
+
 import type { ExitCode } from "./plugin.js";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";

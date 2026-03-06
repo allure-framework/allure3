@@ -1,4 +1,5 @@
 import { computed } from "@preact/signals";
+
 import { fetchPieChartData, pieChartStore } from "@/stores/chart";
 import { fetchTrendData, trendStore } from "@/stores/trend";
 

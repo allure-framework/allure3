@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+
 import styles from "./styles.scss";
 
 type Props = {

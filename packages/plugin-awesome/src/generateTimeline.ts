@@ -1,5 +1,6 @@
 import type { TestResult } from "@allurereport/core-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
+
 import type { AwesomeOptions } from "./model.js";
 
 type Writer = {

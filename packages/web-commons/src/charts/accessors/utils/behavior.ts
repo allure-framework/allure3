@@ -1,4 +1,5 @@
 import type { HistoryTestResult, TestResult } from "@allurereport/core-api";
+
 import { hasLabels } from "../../chart-utils.js";
 
 // Behavior label types

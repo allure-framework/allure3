@@ -1,5 +1,6 @@
 import { histogram, max } from "d3-array";
 import { scaleLinear, scaleSqrt } from "d3-scale";
+
 import BaseChartView from "@/components/graph-base/BaseChartView.js";
 import PopoverView from "@/components/popover/PopoverView.js";
 import duration from "@/helpers/duration.js";

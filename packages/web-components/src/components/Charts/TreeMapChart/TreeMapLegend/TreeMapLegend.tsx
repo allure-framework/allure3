@@ -1,8 +1,11 @@
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
+
 import { Text } from "@/components/Typography";
-import styles from "./styles.scss";
+
 import type { TreeMapLegendProps } from "./types.js";
+
+import styles from "./styles.scss";
 
 export const TreeMapLegend: FunctionalComponent<TreeMapLegendProps> = ({
   minValue,

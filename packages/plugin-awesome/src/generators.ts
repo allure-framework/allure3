@@ -1,3 +1,8 @@
+import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { basename, join } from "node:path";
+
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
@@ -47,10 +52,7 @@ import type {
 } from "@allurereport/web-awesome";
 import { generateCharts, getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
-import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { AwesomeOptions, TemplateManifest } from "./model.js";
 import type { AwesomeDataWriter, ReportFile } from "./writer.js";

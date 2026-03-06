@@ -1,5 +1,6 @@
 import { Loadable, PageLoader } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
+
 import TestResult from "@/components/TestResult";
 import TestResultEmpty from "@/components/TestResult/TestResultEmpty";
 import { route } from "@/stores/router";

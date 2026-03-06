@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { feature, parameter } from "allure-js-commons";
+
 import { GlobalsPage, TestResultPage } from "../../pageObjects";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig } from "../utils/mocks.js";

@@ -1,5 +1,6 @@
 import type { DefaultTestStepResult, TestResult } from "@allurereport/core-api";
 import { type MockedFunction, describe, expect, it, vi } from "vitest";
+
 import {
   hasResultFailedSteps,
   isFailedResult,

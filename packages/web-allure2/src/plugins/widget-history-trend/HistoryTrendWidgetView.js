@@ -1,9 +1,12 @@
 import { View } from "backbone.marionette";
 import { scaleOrdinal } from "d3-scale";
+
 import TrendChartView from "@/components/graph-trend-chart/TrendChartView.js";
 import { className, regions } from "@/decorators/index.js";
 import { values } from "@/utils/statuses.js";
+
 import template from "./HistoryTrendWidgetView.hbs";
+
 import "./styles.scss";
 
 @regions({

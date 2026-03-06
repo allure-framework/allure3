@@ -1,6 +1,8 @@
-import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { randomUUID } from "node:crypto";
+
+import { type TestResult, type TreeData, compareBy, nullsLast, ordinal } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
+
 import {
   byLabels,
   createTreeByLabels,

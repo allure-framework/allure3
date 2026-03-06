@@ -1,6 +1,8 @@
 import { Text } from "@allurereport/web-components";
 import { type ComponentChildren } from "preact";
+
 import { currentTab, setCurrentTab } from "@/stores/tabs";
+
 import * as styles from "./styles.scss";
 
 export const Tabs = (props: { children: ComponentChildren; initialTab?: string }) => {

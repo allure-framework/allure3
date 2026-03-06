@@ -1,4 +1,5 @@
 import type { FunctionalComponent } from "preact";
+
 import styles from "./styles.scss";
 
 export const LegendIndicator: FunctionalComponent<{ color: string; border?: string }> = (props) => {

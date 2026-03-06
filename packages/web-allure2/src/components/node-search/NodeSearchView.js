@@ -1,7 +1,10 @@
 import { View } from "backbone.marionette";
+
 import { className, on } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
+
 import template from "./NodeSearchView.hbs";
+
 import "./styles.scss";
 
 export const SEARCH_QUERY_KEY = "searchQuery";

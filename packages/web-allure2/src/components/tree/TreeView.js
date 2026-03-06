@@ -1,11 +1,14 @@
 import { View } from "backbone.marionette";
+
 import { SEARCH_QUERY_KEY } from "@/components/node-search/NodeSearchView.js";
 import getComparator from "@/data/tree/comparator.js";
 import { byCriteria, byMark, byStatuses, mix } from "@/data/tree/filter.js";
 import { behavior, className, on } from "@/decorators/index.js";
 import router from "@/router.js";
 import hotkeys from "@/utils/hotkeys.js";
+
 import template from "./TreeView.hbs";
+
 import "./styles.scss";
 
 @className("tree")

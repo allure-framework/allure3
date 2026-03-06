@@ -1,4 +1,5 @@
 import type { CiDescriptor } from "@allurereport/core-api";
+
 import { amazon } from "./detectors/amazon.js";
 import { azure } from "./detectors/azure.js";
 import { bitbucket } from "./detectors/bitbucket.js";

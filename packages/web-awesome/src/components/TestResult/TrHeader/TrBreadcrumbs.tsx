@@ -1,8 +1,10 @@
 import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { AwesomeTestResult } from "types";
-import * as styles from "@/components/TestResult/TrHeader/styles.scss";
+
 import { navigateToRoot } from "@/stores/router";
+
+import * as styles from "@/components/TestResult/TrHeader/styles.scss";
 
 interface TrBreadcrumbs {
   testResult?: AwesomeTestResult;

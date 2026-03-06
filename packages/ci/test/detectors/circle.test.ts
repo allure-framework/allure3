@@ -1,4 +1,5 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { circle, getBuildNumber, getJobRunURL } from "../../src/detectors/circle.js";
 import { getEnv, parseURLPath } from "../../src/utils.js";
 

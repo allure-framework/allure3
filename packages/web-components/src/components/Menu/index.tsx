@@ -3,9 +3,11 @@ import { clsx } from "clsx";
 import { type ComponentChildren, type FunctionalComponent, type VNode, createContext } from "preact";
 import { createPortal } from "preact/compat";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
+
 import check from "@/assets/svg/line-general-check.svg";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 type MenuContextT = {

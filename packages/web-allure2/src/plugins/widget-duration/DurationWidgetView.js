@@ -1,6 +1,8 @@
 import { View } from "backbone.marionette";
+
 import DurationChartView from "@/components/graph-duration-chart/DurationChartView.js";
 import { className, regions } from "@/decorators/index.js";
+
 import template from "./DurationWidgetView.hbs";
 
 @className("duration-widget")

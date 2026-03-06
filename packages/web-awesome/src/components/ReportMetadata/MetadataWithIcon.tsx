@@ -1,6 +1,8 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
+
 import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";
+
 import * as styles from "./styles.scss";
 
 const icons: Record<string, string> = {

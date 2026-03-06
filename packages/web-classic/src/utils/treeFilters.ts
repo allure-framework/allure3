@@ -11,7 +11,9 @@ import {
   ordinal,
   reverse,
 } from "@allurereport/core-api";
+
 import type { TreeFiltersState, TreeSortBy } from "@/stores/tree";
+
 import type { ClassicRecursiveTree, ClassicTree, ClassicTreeGroup, ClassicTreeLeaf } from "../../types";
 
 export const isIncluded = (leaf: TreeLeaf<ClassicTreeLeaf>, filterOptions: TreeFiltersState) => {

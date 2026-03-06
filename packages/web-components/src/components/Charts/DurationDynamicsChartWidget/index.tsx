@@ -1,9 +1,11 @@
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
+
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
 import { Widget } from "@/components/Widget";
+
 import { BarChart } from "../BarChart/BarChart.js";
 import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import type { Props } from "./types.js";

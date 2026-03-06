@@ -1,7 +1,9 @@
 import { Text } from "@allurereport/web-components";
 import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
+
 import type { MetadataProps } from "@/components/ReportMetadata/MetadataItem";
+
 import * as styles from "@/components/ReportMetadata/styles.scss";
 
 export const MetadataTestType: FunctionComponent<MetadataProps> = ({ status, count }) => {

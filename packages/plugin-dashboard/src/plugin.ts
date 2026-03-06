@@ -5,6 +5,7 @@ import {
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
+
 import { generateAllCharts, generateEnvirontmentsList, generateStaticFiles } from "./generators.js";
 import type { DashboardPluginOptions } from "./model.js";
 import { type DashboardDataWriter, InMemoryDashboardDataWriter, ReportFileDashboardDataWriter } from "./writer.js";

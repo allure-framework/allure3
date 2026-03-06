@@ -2,6 +2,7 @@ import type { EnvironmentItem } from "@allurereport/core-api";
 import { Button, Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
@@ -10,6 +11,7 @@ import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
+
 import * as styles from "./styles.scss";
 
 const REPORT_VISIBLE_LIMIT = 8;

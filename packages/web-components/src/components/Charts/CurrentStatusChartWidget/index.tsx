@@ -4,17 +4,20 @@ import type { PieCustomLayerProps, PieTooltipProps } from "@nivo/pie";
 import { Pie } from "@nivo/pie";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
+
 import { Widget } from "@/components/Widget";
+
 import { DimensionsProvider } from "../../DimensionsProvider";
 import { ChartTooltip } from "../ChartTooltip";
-import { LegendItem } from "../Legend/LegendItem";
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config";
+import { LegendItem } from "../Legend/LegendItem";
 import { AdditionalStats } from "./AdditionalStats";
 import { ADD_STATS_KEYS, EMPTY_ARC, GAP, MAX_ADDITIONAL_STATS_WIDTH, MAX_PIE_WIDTH, PIE_PADDING } from "./constants";
 import { CenteredMetric } from "./parts";
-import styles from "./styles.scss";
 import type { ChartDatum, Props } from "./types";
 import { toChartData } from "./utils";
+
+import styles from "./styles.scss";
 
 const noop = (key: string) => key;
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { createDictionary } from "../../src/index.js";
 
 describe("createDictionary", () => {

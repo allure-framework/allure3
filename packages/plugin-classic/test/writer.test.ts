@@ -1,5 +1,6 @@
 import type { ResultFile } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
+
 import { InMemoryReportDataWriter } from "../src/writer.js";
 
 describe("InMemoryReportDataWriter", () => {

@@ -1,9 +1,11 @@
-import { test } from "@playwright/test";
-import { layer } from "allure-js-commons";
-import getPort from "get-port";
 import { rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { test } from "@playwright/test";
+import { layer } from "allure-js-commons";
+import getPort from "get-port";
+
 import { type AllureStaticServer, serve } from "../../src/index.js";
 
 const baseDir = dirname(fileURLToPath(import.meta.url));

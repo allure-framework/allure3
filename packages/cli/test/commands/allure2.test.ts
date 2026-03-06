@@ -1,10 +1,12 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import Allure2Plugin from "@allurereport/plugin-allure2";
-import { run } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import Allure2Plugin from "@allurereport/plugin-allure2";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Allure2Command } from "../../src/commands/allure2.js";
 
 const fixtures = {

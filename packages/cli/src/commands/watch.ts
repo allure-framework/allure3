@@ -1,3 +1,9 @@
+import * as console from "node:console";
+import { existsSync } from "node:fs";
+import { rm } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import process, { exit } from "node:process";
+
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
@@ -6,11 +12,6 @@ import ServerReloadPlugin from "@allurereport/plugin-server-reload";
 import { PathResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
-import * as console from "node:console";
-import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import process, { exit } from "node:process";
 import { red } from "yoctocolors";
 
 export class WatchCommand extends Command {

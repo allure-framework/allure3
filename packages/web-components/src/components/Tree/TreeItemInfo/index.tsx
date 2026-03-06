@@ -1,11 +1,14 @@
 import { type TestStatusTransition, formatDuration } from "@allurereport/core-api";
 import type { FunctionComponent } from "preact";
+
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Text } from "@/components/Typography";
+
 import { TreeItemRetries } from "../TreeItemRetries";
-import styles from "./styles.scss";
 import { transitionToIcon } from "./utils";
+
+import styles from "./styles.scss";
 
 export interface TreeItemInfoProps {
   duration?: number;

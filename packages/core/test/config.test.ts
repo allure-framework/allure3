@@ -1,8 +1,10 @@
-import type { Config } from "@allurereport/plugin-api";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+
+import type { Config } from "@allurereport/plugin-api";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { FullConfig } from "../src/api.js";
 import {
   findConfig,

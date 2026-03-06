@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useRef } from "preact/hooks";
+
 import * as styles from "./styles.scss";
 
 interface PwTraceProps {

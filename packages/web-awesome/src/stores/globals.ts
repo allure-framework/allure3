@@ -1,6 +1,7 @@
 import { type PluginGlobals } from "@allurereport/plugin-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
+
 import { type StoreSignalState } from "./types";
 
 export const globalsStore = signal<StoreSignalState<PluginGlobals>>({

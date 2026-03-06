@@ -1,7 +1,9 @@
 import type { ComponentChildren, FunctionComponent } from "preact";
+
 import { ArrowButton } from "@/components/ArrowButton";
 import { SvgIcon } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 interface TreeSectionProps {

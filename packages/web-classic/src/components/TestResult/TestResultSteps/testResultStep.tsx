@@ -2,13 +2,15 @@ import type { DefaultTestStepResult } from "@allurereport/core-api";
 import { Code, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { ArrowButton } from "@/components/ArrowButton";
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
-import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { TestResultAttachment } from "@/components/TestResult/TestResultSteps/testResultAttachment";
 import { TestResultStepInfo } from "@/components/TestResult/TestResultSteps/testResultStepInfo";
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
+
+import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 export const TestResultStepParameters = (props: { parameters: DefaultTestStepResult["parameters"] }) => {
   const { parameters } = props;

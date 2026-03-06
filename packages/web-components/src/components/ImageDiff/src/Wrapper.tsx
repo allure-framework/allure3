@@ -1,6 +1,8 @@
 import { type ComponentChildren, createContext } from "preact";
 import { useContext } from "preact/hooks";
+
 import { DimensionsProvider } from "@/components/DimensionsProvider";
+
 import styles from "./styles.scss";
 
 type Dimensions = {

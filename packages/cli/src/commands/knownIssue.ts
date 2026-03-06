@@ -1,9 +1,10 @@
-import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
-import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { exit } from "node:process";
+
+import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
+import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
 export class KnownIssueCommand extends Command {

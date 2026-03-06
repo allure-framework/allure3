@@ -19,8 +19,9 @@ type BaseTreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode> = Om
 > &
   ParentLabelControlOptions;
 
-export interface TreeMapChartProps<Datum extends DefaultTreeMapDatum = TreeMapNode>
-  extends BaseTreeMapChartProps<Datum> {
+export interface TreeMapChartProps<
+  Datum extends DefaultTreeMapDatum = TreeMapNode,
+> extends BaseTreeMapChartProps<Datum> {
   width?: CSSProperties["width"];
   height?: CSSProperties["height"];
   rootAriaLabel?: string;

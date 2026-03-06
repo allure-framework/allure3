@@ -2,8 +2,10 @@ import { Button, Code, CodeViewer } from "@allurereport/web-components";
 import type { Change } from "diff";
 import { diffChars, diffLines, diffWords } from "diff";
 import { useState } from "preact/hooks";
-import * as styles from "@/components/TestResult/TrError/styles.scss";
+
 import { useI18n } from "@/stores";
+
+import * as styles from "@/components/TestResult/TrError/styles.scss";
 
 const diffFunctions = {
   chars: diffChars,

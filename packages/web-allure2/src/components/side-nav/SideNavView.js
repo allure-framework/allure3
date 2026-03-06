@@ -1,6 +1,7 @@
 import { View } from "backbone.marionette";
 import { escapeExpression as escape } from "handlebars/runtime.js";
 import { findWhere } from "underscore";
+
 import LanguageSelectView from "@/components/language-select/LanguageSelectView.js";
 import TooltipView from "@/components/tooltip/TooltipView.js";
 import { className, on } from "@/decorators/index.js";
@@ -8,7 +9,9 @@ import router from "@/router.js";
 import pluginsRegistry from "@/utils/pluginsRegistry.js";
 import settings from "@/utils/settings.js";
 import { LANGUAGES } from "@/utils/translation.js";
+
 import template from "./SideNavView.hbs";
+
 import "./styles.scss";
 
 @className("side-nav")

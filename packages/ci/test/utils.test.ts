@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { parseURLPath } from "../src/utils.js";
 
 describe("utils", () => {

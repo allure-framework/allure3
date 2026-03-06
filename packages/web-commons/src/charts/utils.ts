@@ -15,6 +15,7 @@ import { ChartType } from "@allurereport/charts-api";
 import { interpolateRgb } from "d3-interpolate";
 import { scaleLinear } from "d3-scale";
 import { nanoid } from "nanoid";
+
 import { resolveCSSVarColor, statusColors } from "./colors.js";
 import type {
   ChartsData,

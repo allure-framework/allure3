@@ -1,4 +1,5 @@
 import { computed, signal } from "@preact/signals-core";
+
 import { getReportOptions } from "../../data.js";
 import { persistSignal, restoreSignal } from "../persister/index.js";
 import { STORAGE_KEY, THEME_AUTO, THEME_DARK, THEME_LIGHT } from "./constants.js";

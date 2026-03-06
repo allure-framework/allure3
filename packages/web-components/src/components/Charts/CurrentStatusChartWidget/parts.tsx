@@ -1,8 +1,10 @@
 import type { PieCustomLayerProps } from "@nivo/pie";
 import { useMemo } from "preact/hooks";
-import styles from "./styles.scss";
+
 import type { ChartDatum, I18nProp } from "./types";
 import { formatDescriptionToFitWidth, formatPercentageToFitWidth, formatTotalToFitWidth, getPercentOf } from "./utils";
+
+import styles from "./styles.scss";
 
 export const CenteredMetric = ({
   metric,

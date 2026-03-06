@@ -1,5 +1,6 @@
 import { extension } from "mime-types";
 import { describe, expect, it } from "vitest";
+
 import { BufferResultFile, PathResultFile } from "../src/index.js";
 import { buildResourcePath, readResource, resources } from "./utils.js";
 

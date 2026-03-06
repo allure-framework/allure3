@@ -5,10 +5,12 @@ import cx from "clsx";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+
 import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { isModalOpen, openModal } from "@/stores/modal";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 interface TrAttachmentInfo {
   item?: AttachmentTestStepResult;

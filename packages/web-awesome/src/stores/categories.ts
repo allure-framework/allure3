@@ -1,6 +1,7 @@
 import type { TestCategories } from "@allurereport/core-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
+
 import type { StoreSignalState } from "@/stores/types";
 
 export const categoriesStore = signal<StoreSignalState<TestCategories>>({

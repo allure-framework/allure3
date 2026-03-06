@@ -1,13 +1,14 @@
 import { EmptyView } from "@/components/EmptyView";
 import { Spinner } from "@/components/Spinner";
 import { allureIcons } from "@/components/SvgIcon";
+
 import { DiffModeSelector } from "./src/DiffModeSelector";
 import { DiffModeView } from "./src/DiffModeView";
-import { Wrapper } from "./src/Wrapper";
 import { ImageDiffProvider, useImageDiffContext } from "./src/hooks";
 import type { I18nProp } from "./src/i18n";
 import { I18nProvider, useI18n } from "./src/i18n";
 import type { ImageDiff as TImageDiff } from "./src/model";
+import { Wrapper } from "./src/Wrapper";
 
 type Props = {
   diff: TImageDiff;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import type { TestStatus } from "../../src/model.js";
 import { getWorstStatus, statusToPriority } from "../../src/utils/status.js";
 

@@ -1,5 +1,6 @@
 import { getReportOptions } from "@allurereport/web-commons";
 import { computed, effect } from "@preact/signals";
+
 import type { AwesomeReportOptions } from "../../types.js";
 import { navigateToRoot, navigateToSection, sectionRoute } from "./router";
 

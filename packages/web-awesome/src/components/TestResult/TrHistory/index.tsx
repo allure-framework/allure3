@@ -1,8 +1,10 @@
 import { EmptyView } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
+
 import { type AwesomeTestResult } from "@/../types";
 import { TrHistoryItem } from "@/components/TestResult/TrHistory/TrHistoryItem";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 export type TrHistoryViewProps = {

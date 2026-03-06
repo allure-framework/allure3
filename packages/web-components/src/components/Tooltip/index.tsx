@@ -3,7 +3,9 @@ import { autoUpdate, computePosition, flip, offset, shift } from "@floating-ui/d
 import type { FunctionalComponent, VNode } from "preact";
 import type { MutableRefObject } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
+
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 interface TooltipWrapperProps {

@@ -1,7 +1,10 @@
 import { View } from "backbone.marionette";
 import $ from "jquery";
+
 import { className, on, regions } from "@/decorators/index.js";
+
 import template from "./ModalView.hbs";
+
 import "./styles.scss";
 
 @className("modal")

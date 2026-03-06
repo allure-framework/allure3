@@ -1,6 +1,7 @@
 import { md5 } from "@allurereport/plugin-api";
 import { attachment, issue, step } from "allure-js-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { StateData } from "../../src/store/convert.js";
 import { testResultRawToState } from "../../src/store/convert.js";
 

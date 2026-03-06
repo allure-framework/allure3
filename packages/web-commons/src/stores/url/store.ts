@@ -1,4 +1,5 @@
 import { computed, signal } from "@preact/signals-core";
+
 import { getCurrentUrl, goTo, searchParamsToParams, subscribeToUrlChange } from "./helpers.js";
 
 export const currentUrlSignal = signal<string>(getCurrentUrl());

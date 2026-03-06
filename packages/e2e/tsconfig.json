@@ -11,7 +11,9 @@
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "baseUrl": ".",
+    "paths": {
+      "test/*": ["./test/*"]
+    },
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true

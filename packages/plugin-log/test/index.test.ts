@@ -2,6 +2,7 @@
 import type { TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { LogPlugin } from "../src/plugin.js";
 import { printSummary, printTest } from "../src/utils.js";
 

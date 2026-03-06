@@ -1,3 +1,6 @@
+import * as console from "node:console";
+import { randomUUID } from "node:crypto";
+
 import type {
   RawTestAttachment,
   RawTestLabel,
@@ -7,8 +10,7 @@ import type {
 } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { XMLParser } from "fast-xml-parser";
-import * as console from "node:console";
-import { randomUUID } from "node:crypto";
+
 import { ensureString } from "../utils.js";
 import { isEmptyElement, isStringAnyRecord, isStringAnyRecordArray } from "../xml-utils.js";
 
@@ -129,11 +131,11 @@ const parseTestCase = async (
   isAggregated: boolean,
 ) => {
   const {
-    "name": nameAttribute,
+    name: nameAttribute,
     failure,
     error,
     skipped,
-    "classname": classNameAttribute,
+    classname: classNameAttribute,
     time,
     "system-out": systemOutAttribute,
     "system-err": systemErrAttribute,

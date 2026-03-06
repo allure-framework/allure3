@@ -8,6 +8,7 @@ import type {
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
+
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 import type { AllureStore } from "./store.js";

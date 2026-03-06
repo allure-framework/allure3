@@ -1,5 +1,6 @@
 import type { HeatMapDatum, TooltipProps } from "@nivo/heatmap";
 import { useMemo } from "preact/hooks";
+
 import { ChartTooltip } from "../ChartTooltip";
 import { LegendItem } from "../Legend/LegendItem";
 

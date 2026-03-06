@@ -1,8 +1,10 @@
-import { type TestResult } from "@allurereport/core-api";
-import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+
+import { type TestResult } from "@allurereport/core-api";
+import { type AllureStore, type PluginContext, type ReportFiles } from "@allurereport/plugin-api";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { CsvPlugin } from "../src/plugin.js";
 
 vi.mock("node:fs/promises");

@@ -1,6 +1,7 @@
 import type { ComponentChild, FunctionalComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import Split from "split.js";
+
 import * as styles from "./styles.scss";
 
 interface SideBySideProps {

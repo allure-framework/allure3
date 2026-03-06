@@ -1,8 +1,10 @@
 import type { CategoryNode, CategoryNodeProps, Statistic } from "@allurereport/core-api";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";
+
 import { GroupTreeItem } from "@/components/Categories/GroupTreeItem";
 import { TrSeverity } from "@/components/TestResult/TrSeverity";
+
 import * as styles from "./styles.scss";
 
 type SeverityTreeItemProps = CategoryNodeProps & {

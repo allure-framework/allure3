@@ -1,6 +1,7 @@
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
+
 import { type StoreSignalState } from "./types";
 
 export const qualityGateStore = signal<StoreSignalState<Record<string, QualityGateValidationResult[]>>>({

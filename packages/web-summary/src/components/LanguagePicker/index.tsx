@@ -1,4 +1,5 @@
 import { DropdownButton, Menu } from "@allurereport/web-components";
+
 import { LANG_LOCALE, type LangLocale } from "@/i18n/constants";
 import { currentLocale } from "@/stores";
 import { setLocale } from "@/stores/locale";

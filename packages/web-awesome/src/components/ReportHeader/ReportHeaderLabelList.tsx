@@ -1,4 +1,5 @@
 import { Label } from "@allurereport/web-components";
+
 import * as styles from "@/components/ReportHeader/styles.scss";
 
 export const ReportHeaderLabelList = () => {

@@ -1,7 +1,9 @@
-import { joinPosixPath } from "@allurereport/core-api";
-import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+
+import { joinPosixPath } from "@allurereport/core-api";
+import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
+
 import type { Allure2TestResult } from "./model.js";
 
 export interface ReportFile {

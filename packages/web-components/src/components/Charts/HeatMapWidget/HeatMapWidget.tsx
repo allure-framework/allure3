@@ -1,4 +1,5 @@
 import type { FunctionalComponent } from "preact";
+
 import { Widget } from "../../Widget/index.js";
 import { HeatMap } from "../HeatMap/index.js";
 import type { HeatMapWidgetProps } from "./types.js";

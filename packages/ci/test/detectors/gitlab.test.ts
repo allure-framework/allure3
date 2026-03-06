@@ -1,4 +1,5 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { gitlab } from "../../src/detectors/gitlab.js";
 import { getEnv } from "../../src/utils.js";
 

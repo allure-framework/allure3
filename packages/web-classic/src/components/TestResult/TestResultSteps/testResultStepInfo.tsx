@@ -1,5 +1,6 @@
 import { type DefaultTestStepResult, formatDuration } from "@allurereport/core-api";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+
 import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 export const TestResultStepInfo = (props: { item: DefaultTestStepResult }) => {

@@ -1,7 +1,9 @@
 import { Loadable } from "@allurereport/web-components";
+
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { globalsStore } from "@/stores/globals";
+
 import * as styles from "./styles.scss";
 
 export const ReportGlobalErrors = () => {

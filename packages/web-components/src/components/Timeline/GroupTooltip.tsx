@@ -1,8 +1,10 @@
 import { formatDuration } from "@allurereport/core-api";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
-import styles from "./styles.scss";
+
 import type { FlatDataItem } from "./types";
+
+import styles from "./styles.scss";
 
 export const GroupTooltip: FunctionalComponent<{
   segments: FlatDataItem[];

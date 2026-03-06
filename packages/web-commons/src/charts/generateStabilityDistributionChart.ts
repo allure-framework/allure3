@@ -5,6 +5,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
 import type { TestResult, TestStatus } from "@allurereport/core-api";
+
 import { createHashStorage, createMapWithDefault } from "./utils.js";
 
 const DEFAULT_THRESHOLD = 90;

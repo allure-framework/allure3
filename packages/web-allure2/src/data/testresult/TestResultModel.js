@@ -1,6 +1,7 @@
 import { reportDataUrl } from "@allurereport/web-commons";
 import { Model } from "backbone";
 import { findWhere } from "underscore";
+
 import { makeArray } from "@/utils/arrays.js";
 
 function collectAttachments({ steps, attachments }) {

@@ -1,7 +1,8 @@
 import type { ScaleSymlogSpec } from "@nivo/scales";
+
 import { SYMLOG_SCALE_CONSTANT } from "./constants";
-import { TrendChartKind } from "./types";
 import type { Serie, SymlogScaleOptions, TrendChartKindConfig } from "./types";
+import { TrendChartKind } from "./types";
 
 export const getKindConfig = (kind: TrendChartKind): TrendChartKindConfig => {
   switch (kind) {

@@ -1,11 +1,14 @@
 import { ReportSummaryCard } from "@allurereport/web-components";
+
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
+
 import "@/assets/scss/index.scss";
 import { EmptyPlaceholder } from "@/components/EmptyPlaceholder";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getLocale, useI18n, waitForI18next } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 const getSummaries = () => {

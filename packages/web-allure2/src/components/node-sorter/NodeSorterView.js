@@ -1,6 +1,9 @@
 import { View } from "backbone.marionette";
+
 import { className, on } from "@/decorators/index.js";
+
 import template from "./NodeSorterView.hbs";
+
 import "./styles.scss";
 
 const AVAILABLE_SORTERS = ["sorter.order", "sorter.name", "sorter.duration", "sorter.status"];

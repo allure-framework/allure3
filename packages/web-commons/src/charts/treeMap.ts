@@ -7,6 +7,7 @@ import type {
 } from "@allurereport/charts-api";
 import { ChartType } from "@allurereport/charts-api";
 import type { TreeData, TreeGroup, TreeLeaf, WithChildren } from "@allurereport/core-api";
+
 import { coverageDiffTreeMapAccessor } from "./accessors/coverageDiffTreeMapAccessor.js";
 import { successRateDistributionTreeMapAccessor } from "./accessors/successRateDistributionTreeMapAccessor.js";
 

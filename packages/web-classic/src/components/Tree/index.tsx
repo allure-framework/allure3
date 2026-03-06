@@ -1,10 +1,12 @@
 import { Button, Loadable, PageLoader, Text } from "@allurereport/web-components";
 import { useEffect } from "preact/hooks";
 import type { ClassicStatus } from "types";
+
 import Tree from "@/components/Tree/Tree";
 import { useI18n } from "@/stores/locale";
 import { currentTab } from "@/stores/tabs";
 import { clearTreeFilters, filteredTree, noTests, noTestsFound, setTreeStatus, treeStore } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 export const TreeList = () => {

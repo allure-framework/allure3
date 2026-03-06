@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+
 import { loadReportData } from "../src/data.js";
 
 describe("loadReportData", () => {

@@ -1,5 +1,7 @@
 import { Loadable, SuccessRatePieChart } from "@allurereport/web-components";
+
 import { pieChartStore } from "@/stores/chart";
+
 import * as styles from "./styles.scss";
 
 export const ReportHeaderPie = () => (

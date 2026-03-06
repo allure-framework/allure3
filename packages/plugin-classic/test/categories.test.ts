@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { matchCategories } from "../src/categories.js";
 
 describe("categories", () => {

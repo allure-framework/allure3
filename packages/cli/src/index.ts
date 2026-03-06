@@ -1,6 +1,8 @@
-import { Builtins, Cli } from "clipanion";
 import { readFileSync } from "node:fs";
 import { argv } from "node:process";
+
+import { Builtins, Cli } from "clipanion";
+
 import {
   Allure2Command,
   AwesomeCommand,

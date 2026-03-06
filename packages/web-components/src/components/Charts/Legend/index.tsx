@@ -1,5 +1,6 @@
 import { LegendItem } from "./LegendItem";
 import type { LegendItemValue } from "./LegendItem/types";
+
 import styles from "./styles.scss";
 
 export const Legends = <T extends Record<string, number | string>>(props: {

@@ -1,4 +1,5 @@
 import { View } from "backbone.marionette";
+
 import template from "./WidgetStatusView.hbs";
 
 export default class WidgetStatusView extends View {

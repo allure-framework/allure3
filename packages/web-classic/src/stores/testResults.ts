@@ -1,6 +1,7 @@
 import { fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 import { type ClassicTestResult } from "types";
+
 import { type StoreSignalState } from "./types";
 
 export type TestResultsStoreState = Record<string, ClassicTestResult>;
