@@ -2,9 +2,9 @@
   "summary": {
     "status": {
       "passed": "ناجح",
-      "failed": "فاشل",
+      "failed": "فشل",
       "broken": "معطل",
-      "skipped": "تم تخطيه",
+      "skipped": "تم تجاوزه",
       "unknown": "غير معروف"
     },
     "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
@@ -14,12 +14,12 @@
       "new_zero": "لا توجد اختبارات جديدة",
       "new_one": "{{count}} اختبار جديد",
       "new_other": "{{count}} اختبارات جديدة",
-      "flaky_zero": "لا توجد اختبارات متقلبة",
-      "flaky_one": "{{count}} اختبار متقلب",
-      "flaky_other": "{{count}} اختبارات متقلبة",
-      "retry_zero": "لا توجد اختبارات مُعادة",
-      "retry_one": "{{count}} اختبار مُعاد",
-      "retry_other": "{{count}} اختبارات مُعادة"
+      "flaky_zero": "لا توجد اختبارات غير مستقرة",
+      "flaky_one": "{{count}} اختبار غير مستقر",
+      "flaky_other": "{{count}} اختبارات غير مستقرة",
+      "retry_zero": "لا توجد اختبارات مُعاد محاولتها",
+      "retry_one": "{{count}} اختبار مُعاد محاولته",
+      "retry_other": "{{count}} اختبارات مُعاد محاولتها"
     }
   },
   "ui": {
