@@ -1,5 +1,6 @@
 import { DropdownButton, Menu, SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
 import { useEffect, useRef, useState } from "preact/hooks";
+
 import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 

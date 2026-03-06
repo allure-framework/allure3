@@ -47,6 +47,7 @@ import type {
   ReaderContext,
   ResultsVisitor,
 } from "@allurereport/reader-api";
+
 import { normalizeEnvironmentDescriptorMap } from "../utils/environment.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";

@@ -2,6 +2,7 @@ import { ArrowButton, Counter, Text, TooltipWrapper } from "@allurereport/web-co
 import clsx from "clsx";
 import type { ComponentChildren, FunctionalComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+
 import * as styles from "./styles.scss";
 
 interface MetadataButtonProps {

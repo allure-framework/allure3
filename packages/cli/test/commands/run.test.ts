@@ -1,5 +1,6 @@
 import { UsageError } from "clipanion";
 import { describe, expect, it } from "vitest";
+
 import { RunCommand } from "../../src/commands/run.js";
 
 describe("run command", () => {
