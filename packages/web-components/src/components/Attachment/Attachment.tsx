@@ -38,11 +38,12 @@ const previewComponentsByAttachmentType: Record<string, any> = {
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
   previewable?: boolean;
+  highlightCode?: boolean;
   i18n?: I18nProp;
 }
 
 export const Attachment = (props: AttachmentTestStepResultProps) => {
-  const { item, previewable, i18n } = props;
+  const { item, previewable, highlightCode = true, i18n } = props;
   const {
     link: { contentType, id, ext },
   } = item;
@@ -112,5 +113,14 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     return null;
   }
 
-  return <CurrentComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
+  const isCodeComponent = CurrentComponent === AttachmentCode;
+
+  return (
+    <CurrentComponent
+      attachment={attachment.value}
+      item={item}
+      i18n={i18nProp}
+      {...(isCodeComponent ? { highlight: highlightCode } : {})}
+    />
+  );
 };

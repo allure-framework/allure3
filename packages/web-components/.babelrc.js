@@ -28,6 +28,7 @@ export default {
           "typescript",
           "csv",
           "json",
+          "markdown",
           "java",
           "csharp",
           "kotlin",

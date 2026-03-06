@@ -47,10 +47,19 @@
 
 .modal-data-component {
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow: hidden;
   pointer-events: all;
-  height: inherit;
-  max-height: inherit;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  :global(pre[class*="language-"]),
+  :global(pre.attachment-code-plain) {
+    background: var(--bg-base-secondary);
+    min-height: 100%;
+    flex: 1 1 auto;
+  }
 }
 
 .modal-image {
@@ -71,6 +80,10 @@
   gap: 8px;
   margin-left: auto;
   align-items: center;
+}
+
+.syntax-highlight-off {
+  opacity: 0.5;
 }
 
 .modal-data {

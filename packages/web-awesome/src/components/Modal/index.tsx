@@ -8,6 +8,7 @@ export const ModalComponent = () => {
   const translations: ModalTranslations = {
     tooltipDownload: t("downloadAttachment"),
     tooltipPreview: t("previewAttachment"),
+    tooltipSyntaxHighlight: t("syntaxHighlight"),
     openInNewTabButton: t("openInNewTab"),
   };
 

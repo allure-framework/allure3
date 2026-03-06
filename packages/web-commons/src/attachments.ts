@@ -120,6 +120,135 @@ export type AttachmentType =
   | "archive"
   | "image-diff";
 
+export const PREVIEWABLE_CONTENT_TYPES = [
+  "text/html",
+  "text/csv",
+  "text/markdown",
+  "text/tab-separated-values",
+  "text/uri-list",
+] as const;
+
+export const isPreviewableContentType = (type?: string): boolean =>
+  !!type && (PREVIEWABLE_CONTENT_TYPES as readonly string[]).includes(type);
+
+const HIGHLIGHT_EXTS = new Set([
+  "js",
+  "mjs",
+  "cjs",
+  "jsx",
+  "ts",
+  "mts",
+  "cts",
+  "tsx",
+  "json",
+  "html",
+  "htm",
+  "xml",
+  "css",
+  "csv",
+  "tsv",
+  "md",
+  "markdown",
+  "yaml",
+  "yml",
+  "java",
+  "py",
+  "rb",
+  "go",
+  "php",
+  "sql",
+  "kt",
+  "swift",
+  "rs",
+  "c",
+  "cpp",
+  "cs",
+  "scala",
+  "dart",
+  "lua",
+  "haskell",
+  "r",
+  "perl",
+]);
+
+const NO_HIGHLIGHT_TYPES = new Set(["text/plain", "text/*", "text/uri-list"]);
+
+const HIGHLIGHT_TYPES = new Set([
+  "text/markdown",
+  "text/html",
+  "text/csv",
+  "text/tab-separated-values",
+  "text/xml",
+  "text/json",
+  "text/yaml",
+  "text/javascript",
+  "text/typescript",
+  "text/ruby",
+  "text/python",
+  "text/php",
+  "text/java",
+  "text/csharp",
+  "text/cpp",
+  "text/c",
+  "text/go",
+  "text/rust",
+  "text/swift",
+  "text/kotlin",
+  "text/scala",
+  "text/perl",
+  "text/r",
+  "text/dart",
+  "text/lua",
+  "text/haskell",
+  "text/sql",
+  "text/x-yaml",
+  "text/css",
+  "application/yaml",
+  "application/x-yaml",
+  "application/xml",
+  "application/json",
+]);
+
+export const extname = (str: string): string | undefined => {
+  const i = str.lastIndexOf(".");
+  if (i <= 0 || i === str.length - 1) return undefined;
+  return str.slice(i);
+};
+
+export const isSyntaxHighlightSupported = (payload?: {
+  contentType?: string;
+  ext?: string;
+  name?: string;
+  originalFileName?: string;
+}): boolean => {
+  if (!payload) {
+    return false;
+  }
+
+  const contentType = payload.contentType?.toLowerCase();
+  let ext: string | undefined;
+  for (const part of [payload.ext, payload.name, payload.originalFileName]) {
+    if (!part) {
+      continue;
+    }
+    const withDot = extname(part);
+    const normalized = (withDot ?? part.replace(/^\./, "")).toLowerCase();
+    const single = normalized.includes(".") ? normalized.split(".").pop() : normalized;
+    if (single) {
+      ext = single;
+      break;
+    }
+  }
+
+  if (contentType && NO_HIGHLIGHT_TYPES.has(contentType)) {
+    return false;
+  }
+  if (contentType && HIGHLIGHT_TYPES.has(contentType)) {
+    return true;
+  }
+  return !!ext && HIGHLIGHT_EXTS.has(ext);
+};
+
 export const attachmentType = (type?: string): AttachmentType | null => {
   switch (type) {
     case "image/bmp":

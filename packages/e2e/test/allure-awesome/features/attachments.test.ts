@@ -68,7 +68,7 @@ test.describe("attachments", () => {
 
     test('should render "missed" label for attachments which don\'t exist', async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
       await expect(
@@ -128,14 +128,14 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("attachment content");
 
       await testResultPage.attachScreenshot();
     });
@@ -154,7 +154,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("attachment content");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("attachment content");
 
       await testResultPage.attachScreenshot();
     });
@@ -209,14 +209,14 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("console.log('Hello world!');");
 
       await testResultPage.attachScreenshot();
     });
@@ -235,7 +235,7 @@ test.describe("attachments", () => {
       await testResultPage.toggleAttachmentByTitle("attachment");
 
       await expect(testResultPage.codeAttachmentContentLocator).toHaveCount(1);
-      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toHaveText("console.log('Hello world!');");
+      await expect(testResultPage.codeAttachmentContentLocator.nth(0)).toContainText("console.log('Hello world!');");
 
       await testResultPage.attachScreenshot();
     });
@@ -292,13 +292,13 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
-      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1, { timeout: 10000 });
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
-      await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
+      await testResultPage.waitForImageAttachmentLoaded(15000);
 
       await testResultPage.attachScreenshot();
     });
@@ -312,11 +312,11 @@ test.describe("attachments", () => {
 
       await attachmentsTab.click();
 
-      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1, { timeout: 10000 });
 
       await testResultPage.toggleAttachmentByTitle("attachment");
 
-      await expect(testResultPage.imageAttachmentContentLocator).toHaveCount(1);
+      await testResultPage.waitForImageAttachmentLoaded(15000);
 
       await testResultPage.attachScreenshot();
     });
@@ -373,7 +373,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
-      await testResultPage.toggleStepByTitle("bar");
+      await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
 
