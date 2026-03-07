@@ -1,7 +1,6 @@
-import { ArrowButton, Counter, Text, TooltipWrapper } from "@allurereport/web-components";
+import { ArrowButton, Counter, Text, TooltipWrapper, useElementTruncation } from "@allurereport/web-components";
 import clsx from "clsx";
 import type { ComponentChildren, FunctionalComponent } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
 
 import * as styles from "./styles.scss";
 
@@ -23,36 +22,9 @@ export const MetadataButton: FunctionalComponent<MetadataButtonProps> = ({
   truncateTitle = false,
   ...rest
 }) => {
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isTitleTruncated, setIsTitleTruncated] = useState(false);
-
-  useEffect(() => {
-    if (!truncateTitle) {
-      setIsTitleTruncated(false);
-      return;
-    }
-
-    const element = titleRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const syncOverflow = () => {
-      setIsTitleTruncated(element.scrollWidth > element.clientWidth);
-    };
-
-    syncOverflow();
-
-    if (typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const observer = new ResizeObserver(syncOverflow);
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, [title, truncateTitle]);
+  const { ref: titleRef, isTruncated: isTitleTruncated } = useElementTruncation<HTMLSpanElement>([title], {
+    observeResize: truncateTitle,
+  });
 
   const titleNode = (
     <Text size={"m"} bold className={clsx(truncateTitle && styles["report-metadata-title-container"])}>

@@ -1,4 +1,12 @@
-import { DropdownButton, Menu, SvgIcon, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import {
+  DropdownButton,
+  Menu,
+  SvgIcon,
+  Text,
+  TooltipWrapper,
+  allureIcons,
+  useElementTruncation,
+} from "@allurereport/web-components";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { useI18n } from "@/stores";
@@ -40,31 +48,9 @@ export const EnvironmentPicker = () => {
   const { t } = useI18n("environments");
   const environment = currentEnvironment.value;
   const selectedEnvironmentLabel = environment || t("all");
-  const selectedTextRef = useRef<HTMLSpanElement>(null);
-  const [isSelectedValueTruncated, setIsSelectedValueTruncated] = useState(false);
-
-  useEffect(() => {
-    const element = selectedTextRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const syncOverflow = () => {
-      setIsSelectedValueTruncated(isOverflowing(element));
-    };
-
-    syncOverflow();
-
-    if (typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const observer = new ResizeObserver(syncOverflow);
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  });
+  const { ref: selectedTextRef, isTruncated: isSelectedValueTruncated } = useElementTruncation<HTMLSpanElement>([
+    selectedEnvironmentLabel,
+  ]);
 
   const handleSelect = (selectedOption: string) => {
     setCurrentEnvironment(selectedOption);
@@ -102,7 +88,11 @@ export const EnvironmentPicker = () => {
             return button;
           }
 
-          return <TooltipWrapper tooltipText={selectedEnvironmentLabel}>{button}</TooltipWrapper>;
+          return (
+            <TooltipWrapper tooltipText={selectedEnvironmentLabel} data-testid="environment-picker-selected-tooltip">
+              {button}
+            </TooltipWrapper>
+          );
         }}
       >
         <Menu.Section>
