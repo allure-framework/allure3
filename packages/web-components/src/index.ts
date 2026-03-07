@@ -7,6 +7,7 @@ export { Spinner } from "./components/Spinner";
 export { SvgIcon } from "./components/SvgIcon";
 export { Text, Code, Heading } from "./components/Typography";
 export { TooltipWrapper, Tooltip, useTooltip } from "./components/Tooltip";
+export { useElementTruncation } from "./hooks/useElementTruncation";
 export { Loadable } from "./components/Loadable";
 export { PageLoader } from "./components/PageLoader";
 export { SearchBox } from "./components/SearchBox";

@@ -197,4 +197,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 8px 0 6px;
+  min-width: 0;
+  gap: 8px;
+
+  > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  > :last-child {
+    flex: 0 0 auto;
+  }
 }

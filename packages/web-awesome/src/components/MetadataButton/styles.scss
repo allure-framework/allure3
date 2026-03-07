@@ -12,6 +12,7 @@
   background: none;
   padding: 0;
   width: max-content;
+  text-align: left;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -48,9 +49,28 @@
   }
 }
 
+.report-metadata-header-truncated {
+  width: 100%;
+  min-width: 0;
+}
+
+.report-metadata-title-container {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .report-metadata-header-opened {
   .report-metadata-header-arrow {
     transform: rotate(0);
     opacity: 0;
   }
+}
+
+.report-metadata-title-truncated {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

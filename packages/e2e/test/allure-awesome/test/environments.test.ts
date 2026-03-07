@@ -72,6 +72,8 @@ const fixtures = {
   ],
 };
 
+const longUnicodeEnv = "я".repeat(64);
+
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
 
@@ -101,9 +103,30 @@ test.beforeEach(async ({ page, browserName }) => {
           },
           matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
         },
+        [longUnicodeEnv]: {
+          variables: {
+            env_variable: longUnicodeEnv,
+          },
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === longUnicodeEnv),
+        },
       },
     },
-    testResults: fixtures.testResults,
+    testResults: fixtures.testResults.concat({
+      name: "3 sample passed test with long unicode env",
+      fullName: "sample.js#3 sample passed test with long unicode env",
+      historyId: "4",
+      testCaseId: "4",
+      status: Status.PASSED,
+      stage: Stage.FINISHED,
+      start: now + 4000,
+      stop: now + 5000,
+      labels: [
+        {
+          name: "env",
+          value: longUnicodeEnv,
+        },
+      ],
+    }),
   });
 
   await page.goto(bootstrap.url);
@@ -168,8 +191,8 @@ test.describe("environments", () => {
     const total = await treePage.getMetadataValue("total");
     const passed = await treePage.getMetadataValue("passed");
 
-    expect(passed).toEqual("4");
-    expect(total).toEqual("4");
+    expect(passed).toEqual("5");
+    expect(total).toEqual("5");
   });
 
   test("shouldn't render any environment for test result which doesn't match any environment", async ({ page }) => {
@@ -234,7 +257,7 @@ test.describe("environments", () => {
     const navCounter = page.getByTestId("test-result-nav-current");
 
     await treePage.openTestResultByNthLeaf(0);
-    await expect(navCounter).toHaveText("1/4");
+    await expect(navCounter).toHaveText("1/5");
     await page.goto(bootstrap.url);
     await commonPage.selectEnv("bar");
     await expect(treeLeaves).toHaveCount(1);
