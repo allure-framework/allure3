@@ -1,5 +1,10 @@
 /* eslint-disable max-lines */
-import type { AllureHistory, AttachmentLinkLinked, HistoryDataPoint } from "@allurereport/core-api";
+import {
+  type AllureHistory,
+  type AttachmentLinkLinked,
+  type HistoryDataPoint,
+  fallbackTestCaseIdLabelName,
+} from "@allurereport/core-api";
 import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
@@ -359,6 +364,28 @@ describe("allNewTestResults", () => {
     expect(result).toEqual([]);
   });
 
+  it("should return empty array for migrated test when history exists only for fallback testCaseId", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const store = new DefaultAllureStore({
+      history: new AllureTestHistory([createHistoryDataPoint([fallbackHistoryId])]),
+    });
+
+    await store.readHistory();
+    await store.visitTestResult(
+      {
+        name: "tr1",
+        testId: "new-test-case-id",
+        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
+      },
+      { readerId },
+    );
+
+    const result = await store.allNewTestResults();
+
+    expect(result).toEqual([]);
+  });
+
   it("should return test result when it is not in history", async () => {
     const store = new DefaultAllureStore({
       history: new AllureTestHistory([createHistoryDataPoint(["other-history-id"])]),
@@ -407,6 +434,30 @@ describe("allNewTestResults", () => {
 
     expect(noMatch).toEqual([]);
     expect(match).toEqual([expect.objectContaining({ name: "tr1" })]);
+  });
+});
+
+describe("unknownFailedTestResults", () => {
+  it("should treat migrated failed test as known when known issue contains fallback historyId", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const store = new DefaultAllureStore({
+      known: [{ historyId: fallbackHistoryId }],
+    });
+
+    await store.visitTestResult(
+      {
+        name: "failed test",
+        testId: "new-test-case-id",
+        status: "failed",
+        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
+      },
+      { readerId },
+    );
+
+    const unknownFailed = await store.unknownFailedTestResults();
+
+    expect(unknownFailed).toEqual([]);
   });
 });
 
@@ -1513,6 +1564,54 @@ describe("history", () => {
       expect.objectContaining({
         id: "some-id",
         name: "some-name",
+        status: "passed",
+      }),
+    ]);
+  });
+
+  it("should return history for migrated test result using fallback testCaseId label", async () => {
+    const testId = "new-test-id";
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const history = [
+      {
+        uuid: "hp1",
+        name: "Allure Report",
+        timestamp: 123,
+        testResults: {
+          [fallbackHistoryId]: {
+            id: "legacy-id",
+            name: "legacy-name",
+            status: "passed",
+          },
+        },
+        knownTestCaseIds: [],
+        metrics: {},
+      },
+    ] as unknown as HistoryDataPoint[];
+    const testHistory = new AllureTestHistory(history);
+    const store = new DefaultAllureStore({
+      history: testHistory,
+    });
+
+    await store.readHistory();
+
+    await store.visitTestResult(
+      {
+        name: "test result 1",
+        testId,
+        labels: [{ name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId }],
+      },
+      { readerId },
+    );
+
+    const [tr] = await store.allTestResults();
+    const historyTestResults = await store.historyByTrId(tr.id);
+
+    expect(historyTestResults).toEqual([
+      expect.objectContaining({
+        id: "legacy-id",
+        name: "legacy-name",
         status: "passed",
       }),
     ]);

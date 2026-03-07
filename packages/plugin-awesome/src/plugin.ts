@@ -38,7 +38,7 @@ export class AwesomePlugin implements Plugin {
   constructor(readonly options: AwesomePluginOptions = {}) {}
 
   #generate = async (context: PluginContext, store: AllureStore) => {
-    const { singleFile, groupBy = [], filter, appendTitlePath } = this.options ?? {};
+    const { singleFile, groupBy = [], filter, appendTitlePath, hideLabels } = this.options ?? {};
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
     const reportEnvironments = await store.allEnvironments();
@@ -64,7 +64,7 @@ export class AwesomePlugin implements Plugin {
     });
     await generateAllCharts(this.#writer!, store, this.options, context);
 
-    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs);
+    const convertedTrs = await generateTestResults(this.#writer!, store, allTrs, { hideLabels });
 
     applyCategoriesToTestResults(convertedTrs, categories);
     await generateCategories(this.#writer!, {

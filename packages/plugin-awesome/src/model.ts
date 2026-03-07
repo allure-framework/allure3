@@ -13,6 +13,7 @@ export type AwesomeOptions = {
   ci?: CiDescriptor;
   filter?: (testResult: TestResult) => boolean;
   charts?: ChartOptions[];
+  hideLabels?: (string | RegExp)[];
   timeline?: {
     minDuration?: number;
   };

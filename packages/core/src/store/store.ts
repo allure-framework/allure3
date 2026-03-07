@@ -21,7 +21,6 @@ import {
   compareBy,
   createDictionary,
   getWorstStatus,
-  htrsByTr,
   matchEnvironment,
   nullsLast,
   ordinal,
@@ -36,6 +35,7 @@ import {
   type RealtimeSubscriber,
   type ResultFile,
   type TestResultFilter,
+  getHistoryIdCandidates,
   md5,
 } from "@allurereport/plugin-api";
 import type {
@@ -564,7 +564,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         continue;
       }
 
-      if (!tr.historyId || !historicalIds.has(tr.historyId)) {
+      const historyIdCandidates = getHistoryIdCandidates(tr);
+
+      if (historyIdCandidates.length === 0 || historyIdCandidates.every((historyId) => !historicalIds.has(historyId))) {
         newTrs.push(tr);
       }
     }
@@ -623,7 +625,38 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return undefined;
     }
 
-    return htrsByTr(this.#historyPoints, tr);
+    const historyIdCandidates = getHistoryIdCandidates(tr);
+
+    if (historyIdCandidates.length === 0) {
+      return [];
+    }
+
+    return this.#historyPoints.reduce((acc, dp) => {
+      for (const historyId of historyIdCandidates) {
+        const htr = dp.testResults[historyId];
+
+        if (!htr) {
+          continue;
+        }
+
+        if (dp.url) {
+          const url = new URL(dp.url);
+
+          url.hash = tr.id;
+
+          acc.push({
+            ...htr,
+            url: url.toString(),
+          });
+        } else {
+          acc.push(htr);
+        }
+
+        break;
+      }
+
+      return acc;
+    }, [] as HistoryTestResult[]);
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
@@ -665,9 +698,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return failedTestResults;
     }
 
-    const knownHistoryIds = this.#known.map((ktf) => ktf.historyId);
+    const knownHistoryIds = new Set(this.#known.map((ktf) => ktf.historyId));
 
-    return failedTestResults.filter(({ historyId }) => historyId && !knownHistoryIds.includes(historyId));
+    return failedTestResults.filter((tr) => {
+      const historyIdCandidates = getHistoryIdCandidates(tr);
+
+      return (
+        historyIdCandidates.length > 0 && historyIdCandidates.every((historyId) => !knownHistoryIds.has(historyId))
+      );
+    });
   }
 
   async testResultsByLabel(labelName: string): Promise<{ _: TestResult[]; [x: string]: TestResult[] }> {

@@ -134,13 +134,20 @@ const createBreadcrumbs = (convertedTr: AwesomeTestResult) => {
   }, [] as string[][]);
 };
 
-export const generateTestResults = async (writer: AwesomeDataWriter, store: AllureStore, trs: TestResult[]) => {
+export const generateTestResults = async (
+  writer: AwesomeDataWriter,
+  store: AllureStore,
+  trs: TestResult[],
+  options: {
+    hideLabels?: readonly (string | RegExp)[];
+  } = {},
+) => {
   let convertedTrs: AwesomeTestResult[] = [];
 
   for (const tr of trs) {
     const trFixtures = await store.fixturesByTrId(tr.id);
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr);
+    const convertedTr: AwesomeTestResult = convertTestResult(tr, { hideLabels: options.hideLabels });
 
     convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
