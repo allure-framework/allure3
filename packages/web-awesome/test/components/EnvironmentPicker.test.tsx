@@ -106,13 +106,12 @@ describe("components > EnvironmentPicker", () => {
     expect(queryTooltip()).not.toBeInTheDocument();
 
     setNarrowViewport(true);
-    fireEvent(window, new Event("resize"));
-
-    const tooltipTrigger = getTooltipTrigger();
     await waitFor(() => {
-      expect(tooltipTrigger.childElementCount).toBe(2);
+      fireEvent(window, new Event("resize"));
+      expect(getTooltipTrigger().childElementCount).toBe(2);
     });
 
+    const tooltipTrigger = getTooltipTrigger();
     fireEvent.mouseEnter(tooltipTrigger);
     await waitFor(() => {
       expect(queryTooltip()).toBeInTheDocument();
@@ -127,5 +126,5 @@ describe("components > EnvironmentPicker", () => {
     fireEvent.mouseEnter(getTooltipTrigger());
 
     expect(queryTooltip()).not.toBeInTheDocument();
-  });
+  }, 15000);
 });

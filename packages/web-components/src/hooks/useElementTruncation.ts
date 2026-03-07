@@ -5,8 +5,7 @@ type UseElementTruncationOptions = {
 };
 
 const isElementTruncated = (element: HTMLElement) => {
-  const isElementOverflowing =
-    element.scrollWidth > element.clientWidth || element.scrollHeight > element.clientHeight;
+  const isElementOverflowing = element.scrollWidth > element.clientWidth || element.scrollHeight > element.clientHeight;
   const parentElement = element.parentElement;
   const isParentOverflowing =
     !!parentElement &&
