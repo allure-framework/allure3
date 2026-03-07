@@ -8,6 +8,7 @@ import {
 } from "@allurereport/core-api";
 import { type AllureStore, md5 } from "@allurereport/plugin-api";
 import { describe, expect, it } from "vitest";
+
 import { generateCharts } from "../../src/charts/generators.js";
 
 const baseTestResult: Pick<

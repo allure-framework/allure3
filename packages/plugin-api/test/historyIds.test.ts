@@ -1,5 +1,6 @@
 import { type TestParameter, fallbackTestCaseIdLabelName } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
+
 import { getFallbackHistoryId, getHistoryIdCandidates, md5, stringifyHistoryParams } from "../src/index.js";
 
 describe("historyIds", () => {

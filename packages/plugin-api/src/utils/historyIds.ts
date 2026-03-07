@@ -4,6 +4,7 @@ import {
   fallbackTestCaseIdLabelName,
   findLastByLabelName,
 } from "@allurereport/core-api";
+
 import { md5 } from "./misc.js";
 
 type TestResultLike = {
