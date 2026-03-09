@@ -2,17 +2,22 @@ import { proseStyles, resolveCssVarDeclarations, sanitizeIframeHtml, themeStore 
 import type { FunctionalComponent } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { MetadataButton } from "@/components/MetadataButton";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 export type TrDescriptionProps = {
+  id?: string;
   descriptionHtml: AwesomeTestResult["descriptionHtml"];
 };
 
 const MIN_HEIGHT = 120;
 
-export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ descriptionHtml }) => {
-  const [isOpen, setIsOpen] = useState(true);
+export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, descriptionHtml }) => {
+  const descriptionId = id !== null ? `${id}-description` : null;
+  const isOpen = !collapsedTrees.value.has(descriptionId);
   const [blobUrl, setBlobUrl] = useState("");
   const [height, setHeight] = useState(MIN_HEIGHT);
   const currentTheme = themeStore.value.current;
@@ -55,7 +60,15 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ descrip
   return (
     <div className={styles["test-result-description"]} data-testid="test-result-description">
       <div className={styles["test-result-description-wrapper"]}>
-        <MetadataButton title="Description" setIsOpen={setIsOpen} isOpened={isOpen} />
+        <MetadataButton
+          title="Description"
+          setIsOpen={() => {
+            if (descriptionId !== null) {
+              toggleTree(descriptionId);
+            }
+          }}
+          isOpened={isOpen}
+        />
         {isOpen && (
           <div className={styles["test-result-description-text"]}>
             {blobUrl && (

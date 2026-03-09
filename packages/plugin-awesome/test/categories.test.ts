@@ -2,6 +2,7 @@
 import type { CategoryDefinition } from "@allurereport/core-api";
 import type { AwesomeTestResult } from "@allurereport/web-awesome";
 import { describe, expect, it, vi } from "vitest";
+
 import { applyCategoriesToTestResults, generateCategories } from "../src/categories.js";
 import type { AwesomeDataWriter } from "../src/writer.js";
 

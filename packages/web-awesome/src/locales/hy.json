@@ -153,6 +153,8 @@
     "at": "է",
     "variables": "Փոփոխականներ",
     "openPwTrace": "Բացել Playwright Trace",
+    "pwTracePopupBlocked": "Բրաուզերը արգելափակեց Playwright Trace Viewer-ի բացումը։",
+    "pwTracePopupBlockedHint": "Թույլատրեք բացվող պատուհանները և կրկին փորձեք։",
     "finishedAtOriginal": "{{formattedCreatedAt}}, ելքի կոդ {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, ելքի կոդ {{actual}} (սկզբնական {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Հաջորդ թեստի արդյունքը",
     "prevTR": "Նախորդ թեստի արդյունքը",
     "downloadAttachment": "Ներբեռնել կցորդը",
+    "previewAttachment": "Նախադիտում",
+    "viewCode": "Ցուցադրել կոդ",
+    "syntaxHighlight": "Շարահյուսության ընդգծում",
     "backto": "Վերադառնալ",
     "clipboard": "Պատճենել սեղմատախտակին",
     "clipboardError": "Սխալ. Հավանաբար ձեր զննարկիչը չի աջակցում այս գործառույթին",

@@ -1,6 +1,8 @@
-import type { PluginSummary } from "@allurereport/plugin-api";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+
+import type { PluginSummary } from "@allurereport/plugin-api";
+
 import { generateSummaryStaticFiles } from "./generators.js";
 
 /**

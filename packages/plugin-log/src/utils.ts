@@ -1,7 +1,9 @@
+import console from "node:console";
+
 import type { DefaultTestStepResult, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
 import { isStep } from "@allurereport/core-api";
-import console from "node:console";
 import { gray, green, red, yellow } from "yoctocolors";
+
 import type { LogPluginOptions } from "./model.js";
 
 export type PrintFunctionOptions = Pick<LogPluginOptions, "allSteps" | "groupBy" | "withTrace">;

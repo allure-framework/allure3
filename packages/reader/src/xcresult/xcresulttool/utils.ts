@@ -1,8 +1,10 @@
-import { BufferResultFile } from "@allurereport/reader-api";
 import console from "node:console";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+
+import { BufferResultFile } from "@allurereport/reader-api";
+
 import { exportAttachments } from "./cli.js";
 import type { AttachmentFileFactory } from "./model.js";
 

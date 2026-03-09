@@ -1,4 +1,5 @@
 import { SafeString } from "handlebars/runtime.js";
+
 import { values } from "@/utils/statuses.js";
 
 export default function (statistic) {

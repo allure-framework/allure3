@@ -1,6 +1,7 @@
 import type { FunctionalComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useDebounce } from "use-debounce";
+
 import { WidthProvider } from "./context.js";
 
 const noop = () => {};

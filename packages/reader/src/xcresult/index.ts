@@ -1,5 +1,7 @@
-import type { ResultsVisitor } from "@allurereport/reader-api";
 import console from "node:console";
+
+import type { ResultsVisitor } from "@allurereport/reader-api";
+
 import { IS_MAC, XCRESULTTOOL_MISSING_MESSAGE, isXcResultBundle } from "./bundle.js";
 import { version } from "./xcresulttool/cli.js";
 import LegacyApiParser from "./xcresulttool/legacy/index.js";

@@ -1,8 +1,11 @@
-import type { Config } from "@allurereport/plugin-api";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+
+import { MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
+import type { Config } from "@allurereport/plugin-api";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { FullConfig } from "../src/api.js";
 import {
   findConfig,
@@ -237,6 +240,15 @@ describe("resolveConfig", () => {
     expect(resolved.name).toEqual(fixture.name);
   });
 
+  it("should return provided environment name", async () => {
+    const fixture = {
+      environment: "staging",
+    };
+    const resolved = await resolveConfig(fixture);
+
+    expect(resolved.environment).toEqual("staging");
+  });
+
   it("should allow to override given report name", async () => {
     const fixture = {
       name: "Allure",
@@ -331,6 +343,90 @@ describe("resolveConfig", () => {
     await expect(resolveConfig(fixture)).rejects.toThrow(
       "The provided Allure config contains unsupported fields: unsupportedField",
     );
+  });
+
+  it("should throw an error for invalid forced environment name", async () => {
+    await expect(resolveConfig({ environment: "" })).rejects.toThrow(
+      "The provided Allure config contains invalid environment names: environment: name must not be empty",
+    );
+  });
+
+  it("should throw an error for invalid forced environment control characters", async () => {
+    await expect(resolveConfig({ environment: "foo\nbar" })).rejects.toThrow(
+      "The provided Allure config contains invalid environment names: environment: name must not contain control characters",
+    );
+  });
+
+  it("should throw an error for invalid environment config key with control characters", async () => {
+    await expect(
+      resolveConfig({
+        environments: {
+          "foo\r\nbar": {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environment names: environments["foo\\r\\nbar"]: name must not contain control characters',
+    );
+  });
+
+  it("should accept environment config key with slash", async () => {
+    await expect(
+      resolveConfig({
+        environments: {
+          "foo/bar": {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("should normalize environment values and keys", async () => {
+    const resolved = await resolveConfig({
+      environment: " default ",
+      environments: {
+        " foo ": {
+          matcher: () => true,
+        },
+      },
+    });
+
+    expect(resolved.environment).toBe("default");
+    expect(Object.keys(resolved.environments)).toEqual(["foo"]);
+  });
+
+  it("should throw an actionable error for normalized key collisions", async () => {
+    await expect(
+      resolveConfig({
+        environments: {
+          "foo": {
+            matcher: () => true,
+          },
+          " foo ": {
+            matcher: () => false,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environment names: config.environments: normalized key "foo" is produced by original keys ["foo"," foo "]',
+    );
+  });
+
+  it("should accept environment names with max allowed length", async () => {
+    const validBoundaryName = "a".repeat(MAX_ENVIRONMENT_NAME_LENGTH);
+
+    await expect(
+      resolveConfig({
+        environment: validBoundaryName,
+        environments: {
+          [validBoundaryName]: {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
   });
 });
 

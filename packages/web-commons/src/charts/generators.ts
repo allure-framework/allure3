@@ -7,6 +7,7 @@ import {
 import type { HistoryDataPoint, Statistic, TestResult } from "@allurereport/core-api";
 import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import { type AllureStore } from "@allurereport/plugin-api";
+
 import { generateCurrentStatusChart } from "./generateCurrentStatusChart.js";
 import { generateDurationDynamicsChart } from "./generateDurationDynamicsChart.js";
 import { generateDurationsChart } from "./generateDurationsChart.js";

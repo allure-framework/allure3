@@ -3,9 +3,11 @@ import { IconButton, TooltipWrapper, TreeHeader, allureIcons } from "@allurerepo
 import clsx from "clsx";
 import type { ComponentChildren } from "preact";
 import type { FC } from "preact/compat";
+
 import { createCategoriesStickyStyle } from "@/components/Categories/sticky";
 import { useI18n } from "@/stores/locale";
 import { copyToClipboard } from "@/utils/copyToClipboard";
+
 import * as styles from "./styles.scss";
 
 type HistoryTreeItemProps = CategoryNodeProps & {

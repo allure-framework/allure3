@@ -1,13 +1,16 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType } from "@allurereport/web-commons";
+import { attachmentType, isPreviewableContentType, isSyntaxHighlightSupported } from "@allurereport/web-commons";
 import { ArrowButton, Attachment, Code, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
+
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 const { lineImagesImage, lineFilesFileAttachment2, playwrightLogo } = allureIcons;
 
@@ -51,17 +54,30 @@ const iconMap: Record<string, string> = {
   "application/vnd.allure.playwright-trace": playwrightLogo,
 };
 
+const HAS_PREVIEW_COMPONENT = new Set(["html"]);
+
 export const TrAttachment: FunctionComponent<{
   item: AttachmentTestStepResult;
   stepIndex?: number;
   className?: string;
 }> = ({ item, stepIndex }) => {
-  const [isOpened, setIsOpen] = useState(false);
+  const attachmentTreeId = item.link?.id !== null ? `attachment-${item.link.id}` : null;
+  const isOpened = !collapsedTrees.value.has(attachmentTreeId);
+  const [showPreview, setShowPreview] = useState(false);
+  const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
   const { link } = item;
   const { missed } = link;
   const componentType = attachmentType(link.contentType);
   const isValidComponentType = !["archive", null].includes(componentType);
+  const isPreviewable = HAS_PREVIEW_COMPONENT.has(componentType ?? "");
+  const isCodeView = (componentType === "code" || componentType === "text") && (!isPreviewable || !showPreview);
+  const isSyntaxHighlightable = isSyntaxHighlightSupported({
+    contentType: link.contentType,
+    ext: link.ext,
+    name: link.name,
+    originalFileName: link.originalFileName,
+  });
 
   const expandAttachment = (event: Event) => {
     event.stopPropagation();
@@ -83,7 +99,9 @@ export const TrAttachment: FunctionComponent<{
         })}
         onClick={(e) => {
           e.stopPropagation();
-          setIsOpen((prev) => !prev);
+          if (attachmentTreeId !== null) {
+            toggleTree(attachmentTreeId);
+          }
         }}
       >
         {isValidComponentType ? <ArrowButton isOpened={isOpened} /> : <div className={styles["test-result-strut"]} />}
@@ -105,13 +123,27 @@ export const TrAttachment: FunctionComponent<{
           </Text>
         )}
         <div>
-          <TrAttachmentInfo item={item} shouldExpand={isValidComponentType} />
+          <TrAttachmentInfo
+            item={item}
+            shouldExpand={isValidComponentType}
+            isPreviewable={isPreviewable}
+            showPreview={showPreview}
+            onPreviewToggle={isPreviewable ? () => setShowPreview((p) => !p) : undefined}
+            isCodeView={isCodeView && isSyntaxHighlightable}
+            highlightCode={highlightCode}
+            onHighlightToggle={isCodeView && isSyntaxHighlightable ? () => setHighlightCode((h) => !h) : undefined}
+          />
         </div>
       </div>
       {isOpened && isValidComponentType && (
         <div className={styles["test-result-attachment-content-wrapper"]}>
           <div className={styles["test-result-attachment-content"]} role={"button"} onClick={expandAttachment}>
-            <Attachment item={item} i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }} />
+            <Attachment
+              item={item}
+              previewable={showPreview}
+              highlightCode={highlightCode}
+              i18n={{ imageDiff: (key: string) => tAttachments(`imageDiff.${key}`) }}
+            />
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { spawnSync } from "node:child_process";
 import { basename } from "node:path";
+
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
 
 export const local: CiDescriptor = {
   type: CiType.Local,

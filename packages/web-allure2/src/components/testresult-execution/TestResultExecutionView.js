@@ -1,11 +1,14 @@
 import { Model } from "backbone";
 import { View } from "backbone.marionette";
 import $ from "jquery";
+
 import AttachmentView from "@/components/attachment/AttachmentView.js";
 import { className, on } from "@/decorators/index.js";
 import router from "@/router.js";
 import { makeArray } from "@/utils/arrays.js";
+
 import template from "./TestResultExecutionView.hbs";
+
 import "./styles.scss";
 
 @className("test-result-execution")

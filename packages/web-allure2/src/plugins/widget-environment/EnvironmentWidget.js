@@ -1,5 +1,7 @@
 import { View } from "backbone.marionette";
+
 import { on } from "@/decorators/index.js";
+
 import template from "./EnvironmentWidget.hbs";
 
 export default class EnvironmentWidget extends View {

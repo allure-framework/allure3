@@ -1,7 +1,10 @@
 import type { PieChartValues } from "@allurereport/charts-api";
 import cx from "clsx";
+
 import { Heading } from "@/components/Typography";
+
 import { getColorFromStatus } from "../utils";
+
 import styles from "./styles.scss";
 
 type SuccessRatePieChartProps = PieChartValues & {

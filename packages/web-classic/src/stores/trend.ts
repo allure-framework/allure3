@@ -1,6 +1,7 @@
-import { createCharts, fetchReportJsonData } from "@allurereport/web-commons";
 import type { ChartsData, ChartsResponse, UIChartsData } from "@allurereport/web-commons";
+import { createCharts, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
+
 import type { StoreSignalState } from "@/stores/types";
 
 export const trendStore = signal<StoreSignalState<UIChartsData>>({

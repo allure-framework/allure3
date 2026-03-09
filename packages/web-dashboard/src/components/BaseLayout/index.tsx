@@ -1,6 +1,8 @@
 import type { FC } from "preact/compat";
+
 import { Footer } from "@/components/Footer";
 import MainReport from "@/components/MainReport";
+
 import * as styles from "./styles.scss";
 
 export type BaseLayoutProps = {};

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "preact/hooks";
+
 import { getColorScale } from "../utils";
 
 export const useCoverageDiffColors = (theme: string = "light") => {

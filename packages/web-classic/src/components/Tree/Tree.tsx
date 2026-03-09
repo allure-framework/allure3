@@ -3,9 +3,12 @@ import cx from "clsx";
 import type { FunctionComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { ClassicRecursiveTree, ClassicStatus } from "types";
+
 import TreeItem from "@/components/Tree/TreeItem";
 import { route } from "@/stores/router";
+
 import TreeHeader from "./TreeHeader";
+
 import * as styles from "./styles.scss";
 
 interface TreeProps {

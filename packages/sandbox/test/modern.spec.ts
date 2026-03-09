@@ -1,6 +1,9 @@
 import { description, descriptionHtml, label } from "allure-js-commons";
 import { expect, it } from "vitest";
 
+const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
+const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+
 it("sample passed test", async () => {
   await label("env", "foo");
   expect(true).toBe(true);
@@ -55,6 +58,16 @@ it("sample test with markdown description", async () => {
 
 it("sample test with descriptionHtml", async () => {
   await descriptionHtml("<p>Custom <strong>HTML</strong> description.</p>");
+  expect(true).toBe(true);
+});
+
+it("sample test with max-length environment name (64 chars)", async () => {
+  await label("env", MAX_ENV_NAME_64);
+  expect(true).toBe(true);
+});
+
+it("sample test with max-length unicode environment name (64 chars)", async () => {
+  await label("env", MAX_ENV_NAME_64_UNICODE);
   expect(true).toBe(true);
 });
 

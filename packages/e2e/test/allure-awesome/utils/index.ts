@@ -1,6 +1,7 @@
 import type { TestError } from "@allurereport/core-api";
 import type { ExitCode } from "@allurereport/plugin-api";
 import AwesomePlugin, { type AwesomePluginOptions } from "@allurereport/plugin-awesome";
+
 import type { ReportConfig } from "../../types.js";
 import {
   type GeneratorParams,

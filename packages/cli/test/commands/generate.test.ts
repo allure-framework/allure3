@@ -1,8 +1,10 @@
+import { join } from "node:path";
+
 import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { run } from "clipanion";
-import { join } from "node:path";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { generate } from "../../src/commands/commons/generate.js";
 import { GenerateCommand } from "../../src/commands/generate.js";
 

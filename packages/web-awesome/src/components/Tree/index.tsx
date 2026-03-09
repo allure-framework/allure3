@@ -1,5 +1,6 @@
 import { Button, Loadable, PageLoader, Text, Tree, TreeStatusBar } from "@allurereport/web-components";
 import { useMemo } from "preact/hooks";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
@@ -9,6 +10,7 @@ import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, filteredTree, noTests, noTestsFound, toggleTree, treeStore } from "@/stores/tree";
 import { clearTreeFilters, treeStatus } from "@/stores/treeFilters/store";
 import { createTreeLocalizer } from "@/utils/tree";
+
 import * as styles from "./styles.scss";
 
 const treeNavigateTo = (id: string) => {
@@ -132,6 +134,8 @@ export const TreeList = () => {
                       isOpened={isOpened}
                       setIsOpen={toggleEnv}
                       title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      titleTooltipText={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      truncateTitle
                       counter={total}
                       data-testid={"tree-section-env-button"}
                     />

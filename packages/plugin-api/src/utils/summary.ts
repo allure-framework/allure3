@@ -1,4 +1,5 @@
 import { type AllureHistory, type CiDescriptor, type TestResult, getWorstStatus } from "@allurereport/core-api";
+
 import type { PluginSummary, SummaryTestResult } from "../plugin.js";
 import type { AllureStore } from "../store.js";
 

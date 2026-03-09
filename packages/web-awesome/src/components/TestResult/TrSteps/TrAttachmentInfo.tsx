@@ -1,20 +1,38 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { downloadAttachment } from "@allurereport/web-commons";
 import { Attachment, IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web-components";
+import cx from "clsx";
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+
 import { PwTraceButton } from "@/components/TestResult/TrPwTraces/PwTraceButton";
-import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { isModalOpen, openModal } from "@/stores/modal";
+
+import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
 interface TrAttachmentInfo {
   item?: AttachmentTestStepResult;
   shouldExpand?: boolean;
+  isPreviewable?: boolean;
+  showPreview?: boolean;
+  onPreviewToggle?: () => void;
+  isCodeView?: boolean;
+  highlightCode?: boolean;
+  onHighlightToggle?: () => void;
 }
 
-export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, shouldExpand }) => {
+export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({
+  item,
+  shouldExpand,
+  isPreviewable,
+  showPreview,
+  onPreviewToggle,
+  isCodeView,
+  highlightCode = true,
+  onHighlightToggle,
+}) => {
   const { t: tooltip } = useI18n("controls");
   const { t: tAttachments } = useI18n("attachments");
   const { id, ext, contentType } = item.link;
@@ -62,6 +80,36 @@ export const TrAttachmentInfo: FunctionalComponent<TrAttachmentInfo> = ({ item, 
       {Boolean(contentSize) && <Text size={"s"}>{contentSize}</Text>}
       <div className={styles["item-buttons"]}>
         {isPwTrace && <PwTraceButton link={item.link} />}
+        {isPreviewable && onPreviewToggle && (
+          <TooltipWrapper tooltipText={tooltip(showPreview ? "viewCode" : "previewAttachment")}>
+            <IconButton
+              className={styles["item-button"]}
+              style={"ghost"}
+              size={"s"}
+              iconSize={"s"}
+              icon={showPreview ? allureIcons.viewOff : allureIcons.view}
+              onClick={(e: Event) => {
+                e.stopPropagation();
+                onPreviewToggle();
+              }}
+            />
+          </TooltipWrapper>
+        )}
+        {isCodeView && onHighlightToggle && (
+          <TooltipWrapper tooltipText={tooltip("syntaxHighlight")}>
+            <IconButton
+              className={cx(styles["item-button"], !highlightCode && styles["item-button-syntax-off"])}
+              style={"ghost"}
+              size={"s"}
+              iconSize={"s"}
+              icon={allureIcons.lineDevCodeSquare}
+              onClick={(e: Event) => {
+                e.stopPropagation();
+                onHighlightToggle();
+              }}
+            />
+          </TooltipWrapper>
+        )}
         {shouldExpand && (
           <TooltipWrapper tooltipText={tooltip("expand")}>
             <IconButton

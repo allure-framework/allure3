@@ -153,6 +153,8 @@
     "at": "在",
     "variables": "变量",
     "openPwTrace": "打开 Playwright Trace",
+    "pwTracePopupBlocked": "浏览器阻止了打开 Playwright Trace Viewer。",
+    "pwTracePopupBlockedHint": "请允许弹出窗口后重试。",
     "finishedAtOriginal": "{{formattedCreatedAt}}，退出代码 {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}，退出代码 {{actual}}（原始 {{original}}）"
   },
@@ -161,6 +163,9 @@
     "nextTR": "下一个测试结果",
     "prevTR": "上一个测试结果",
     "downloadAttachment": "下载附件",
+    "previewAttachment": "预览",
+    "viewCode": "查看代码",
+    "syntaxHighlight": "语法高亮",
     "backto": "返回",
     "clipboard": "复制到剪贴板",
     "clipboardError": "无法复制到剪贴板。可能是浏览器不支持此功能",

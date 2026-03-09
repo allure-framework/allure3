@@ -1,3 +1,7 @@
+import console from "node:console";
+import type { EventEmitter } from "node:events";
+import { setTimeout } from "node:timers/promises";
+
 import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
@@ -7,9 +11,6 @@ import type {
   RealtimeSubscriber as RealtimeSubscriberType,
   ResultFile,
 } from "@allurereport/plugin-api";
-import console from "node:console";
-import type { EventEmitter } from "node:events";
-import { setTimeout } from "node:timers/promises";
 
 export enum RealtimeEvents {
   TestResult = "testResult",

@@ -1,7 +1,9 @@
 import { PageLoader } from "@allurereport/web-components";
+
 import "@allurereport/web-components/index.css";
 import { render } from "preact";
 import { useEffect, useMemo } from "preact/compat";
+
 import "@/assets/scss/index.scss";
 import { BaseLayout } from "@/components/BaseLayout";
 import Behaviors from "@/components/Behaviors";

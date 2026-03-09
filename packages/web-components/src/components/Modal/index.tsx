@@ -1,15 +1,21 @@
 import type { AttachmentLinkExpected, AttachmentTestStepResult } from "@allurereport/core-api";
-import { downloadAttachment, openAttachmentInNewTab } from "@allurereport/web-commons";
+import {
+  downloadAttachment,
+  isPreviewableContentType,
+  isSyntaxHighlightSupported,
+  openAttachmentInNewTab,
+} from "@allurereport/web-commons";
 import { clsx } from "clsx";
 import type { VNode } from "preact";
 import { cloneElement } from "preact/compat";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import Prism from "prismjs";
+
 import { Button, IconButton } from "@/components/Button";
 import Gallery from "@/components/Modal/Gallery";
 import { allureIcons } from "@/components/SvgIcon";
 import { TooltipWrapper } from "@/components/Tooltip";
 import { Heading } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 export type ModalGalleryProps = {
@@ -28,6 +34,7 @@ export interface ModalDataProps<T = any> {
 
 export interface ModalTranslations {
   tooltipPreview: string;
+  tooltipSyntaxHighlight?: string;
   tooltipDownload: string;
   openInNewTabButton: string;
 }
@@ -39,29 +46,52 @@ export interface ModalTranslationsProps {
 export const Modal = ({
   data,
   isModalOpen,
-  preview,
+  preview: initialPreview,
   component,
   attachments,
   closeModal,
   translations,
   title,
 }: ModalDataProps & ModalTranslationsProps) => {
-  const { tooltipPreview, tooltipDownload, openInNewTabButton } = translations;
+  const { tooltipPreview, tooltipSyntaxHighlight, tooltipDownload, openInNewTabButton } = translations;
   const { link } = data || {};
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [preview, setPreview] = useState(!!initialPreview);
+  const [highlightCode, setHighlightCode] = useState(true);
 
   const isImageAttachment = link?.contentType?.startsWith("image");
-  const isHtmlAttachment = link?.contentType === "text/html";
+  const isPreviewableAttachment = isPreviewableContentType(link?.contentType);
+  const isCodeView =
+    !isImageAttachment && !link?.contentType?.startsWith("video") && (isPreviewableAttachment ? !preview : true);
+  const isSyntaxHighlightable = isSyntaxHighlightSupported({
+    contentType: link?.contentType,
+    ext: link?.ext,
+    name: link?.name,
+    originalFileName: link?.originalFileName,
+  });
   const isAttachment = link?.id && link?.ext && link?.contentType;
   const attachmentName = link?.name || (link?.id && link?.ext && `${link.id}${link.ext}`) || "";
   const modalName = title || attachmentName;
-  const WrappedComponent = useMemo(() => {
-    return component && cloneElement(component, { data, isFullScreen });
-  }, [component, data, isFullScreen]);
 
   useEffect(() => {
-    Prism.highlightAll();
-  }, []);
+    if (isModalOpen) {
+      setPreview(!!initialPreview);
+      setHighlightCode(true);
+    }
+  }, [isModalOpen, initialPreview]);
+
+  const WrappedComponent = useMemo(() => {
+    return (
+      component &&
+      cloneElement(component, {
+        data,
+        isFullScreen,
+        previewable: preview,
+        highlightCode,
+      })
+    );
+  }, [component, data, isFullScreen, preview, highlightCode]);
+
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = "hidden";
@@ -106,13 +136,26 @@ export const Modal = ({
                   text={openInNewTabButton}
                 />
               )}
-              {isHtmlAttachment && (
+              {isPreviewableAttachment && (
                 <TooltipWrapper tooltipText={tooltipPreview}>
                   <IconButton
                     style={"outline"}
                     size={"m"}
                     iconSize={"s"}
                     icon={preview ? allureIcons.viewOff : allureIcons.view}
+                    onClick={() => setPreview(!preview)}
+                  />
+                </TooltipWrapper>
+              )}
+              {isCodeView && isSyntaxHighlightable && (
+                <TooltipWrapper tooltipText={tooltipSyntaxHighlight ?? "Syntax highlighting"}>
+                  <IconButton
+                    className={clsx(!highlightCode && styles["syntax-highlight-off"])}
+                    style={"outline"}
+                    size={"m"}
+                    iconSize={"s"}
+                    icon={allureIcons.lineDevCodeSquare}
+                    onClick={() => setHighlightCode(!highlightCode)}
                   />
                 </TooltipWrapper>
               )}

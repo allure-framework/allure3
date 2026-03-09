@@ -1,6 +1,8 @@
 import { allureIcons } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores";
 import type { AwesomeBooleanField, AwesomeFieldFilter } from "@/stores/treeFilters/model";
+
 import { BooleanFieldFilter } from "./BaseFilters";
 
 type RetryOrFlakyFilter = AwesomeFieldFilter & {

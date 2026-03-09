@@ -1,10 +1,12 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
 import { Spinner, SvgIcon, allureIcons } from "@allurereport/web-components";
+
 import "@allurereport/web-components/index.css";
 import { computed, useSignalEffect } from "@preact/signals";
 import clsx from "clsx";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
+
 import "@/assets/scss/index.scss";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -20,12 +22,14 @@ import { isLayoutLoading, layoutStore } from "@/stores/layout";
 import { fetchTestResult, fetchTestResultNav } from "@/stores/testResults";
 import { fetchEnvTreesData } from "@/stores/tree";
 import { isMac } from "@/utils/isMac";
+
 import { fetchQualityGateResults } from "./stores/qualityGate";
 import { rootTabRoute, testResultRoute } from "./stores/router";
 import { currentSection } from "./stores/sections";
 import { currentTrId } from "./stores/testResult";
 import { fetchTreeFiltersData } from "./stores/treeFilters/actions";
 import { migrateFilterParam } from "./stores/treeFilters/utils";
+
 import * as styles from "./styles.scss";
 
 const Loader = () => {

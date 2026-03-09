@@ -2,9 +2,11 @@ import { IconButton, SvgIcon, Text, allureIcons } from "@allurereport/web-compon
 import clsx from "clsx";
 import type { FunctionalComponent } from "preact";
 import type { ClassicTestResult } from "types";
+
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { ThemeButton } from "@/components/ThemeButton/ThemeButton";
 import { navigateTo } from "@/index";
+
 import * as styles from "./styles.scss";
 
 export type TestResultHeaderProps = {

@@ -1,6 +1,7 @@
+import console from "node:console";
+
 import { watch as chokidarWatch } from "chokidar";
 import type { EventName } from "chokidar/handler.js";
-import console from "node:console";
 
 /**
  * Setup file system watcher for a given directory (includes subdirectories and all nested files)

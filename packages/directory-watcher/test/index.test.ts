@@ -1,7 +1,9 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import watchDirectory from "../src/index.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));

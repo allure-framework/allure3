@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"],
+      "types": ["./types"]
     },
     "jsx": "preserve",
     "jsxFactory": "h",

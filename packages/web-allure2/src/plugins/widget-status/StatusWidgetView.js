@@ -1,7 +1,9 @@
 import { Model } from "backbone";
 import { View } from "backbone.marionette";
+
 import PieChartView from "@/components/graph-pie-chart/PieChartView.js";
 import { className, regions } from "@/decorators/index.js";
+
 import template from "./StatusWidgetView.hbs";
 
 @className("status-widget")

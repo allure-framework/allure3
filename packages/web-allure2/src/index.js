@@ -1,8 +1,11 @@
 import { ensureReportDataReady } from "@allurereport/web-commons";
+
 import "highlight.js/styles/github-gist.css";
 import $ from "jquery";
+
 import "normalize-css/normalize.css";
 import { App } from "./app.js";
+
 import "./blocks/arrow/styles.scss";
 import "./blocks/executor-icon/styles.scss";
 import "./blocks/pane/styles.scss";

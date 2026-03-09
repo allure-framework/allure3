@@ -22,9 +22,11 @@ import {
 } from "@allurereport/web-components";
 import { computed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+
 import { dashboardStore, fetchDashboardData } from "@/stores/dashboard";
 import { currentEnvironment, fetchEnvironments } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
+
 import * as styles from "./styles.scss";
 
 const currentTheme = computed(() => themeStore.value.current);

@@ -2,8 +2,10 @@ import type { TestStatus } from "@allurereport/core-api";
 import { capitalize } from "@allurereport/core-api";
 import { Text } from "@allurereport/web-components";
 import clsx from "clsx";
+
 import TreeItemIcon from "@/components/Tree/TreeItemIcon";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 export const TestResultStatus = ({ status }: { status: TestStatus }) => {

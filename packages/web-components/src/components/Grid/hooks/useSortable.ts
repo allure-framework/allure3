@@ -1,7 +1,8 @@
 import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
-import Sortable, { Swap } from "sortablejs";
 import type { Options } from "sortablejs";
+import Sortable, { Swap } from "sortablejs";
+
 import { DEFAULT_ANIMATION_DURATION, DEFAULT_DRAG_ENABLED_CLASSNAME, DEFAULT_HANDLE_CLASSNAME } from "../constants";
 
 // Mount the Swap plugin to enable swap animation functionality.

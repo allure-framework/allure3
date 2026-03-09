@@ -1,4 +1,5 @@
 import { IconButton, allureIcons } from "@allurereport/web-components";
+
 import { isSplitMode, toggleLayout } from "@/stores/layout";
 
 const ToggleLayout = () => {

@@ -1,10 +1,12 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import AwesomePlugin from "@allurereport/plugin-awesome";
-import { run } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import AwesomePlugin from "@allurereport/plugin-awesome";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { AwesomeCommand } from "../../src/commands/awesome.js";
 
 const fixtures = {

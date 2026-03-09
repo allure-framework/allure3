@@ -1,6 +1,7 @@
 import type { KnownTestFailure, TestResult, TestStatus } from "@allurereport/core-api";
 import type { QualityGateRuleState } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   allTestsContainEnvRule,
   environmentsTestedRule,

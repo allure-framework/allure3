@@ -1,5 +1,7 @@
 import type { FunctionalComponent } from "preact";
+
 import { Heading } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 interface WidgetProps {

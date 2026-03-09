@@ -1,6 +1,8 @@
 import { View } from "backbone.marionette";
+
 import SeverityChartView from "@/components/graph-severity-chart/SeverityChartView.js";
 import { className, regions } from "@/decorators/index.js";
+
 import template from "./SeverityWidgetView.hbs";
 
 @className("severity-widget")

@@ -1,4 +1,5 @@
 import { ReportLogoFull, Text } from "@allurereport/web-components";
+
 import * as styles from "./styles.scss";
 
 export const FooterLogo = () => {

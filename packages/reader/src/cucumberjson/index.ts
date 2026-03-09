@@ -1,3 +1,6 @@
+import * as console from "node:console";
+import { randomUUID } from "node:crypto";
+
 import type {
   RawTestAttachment,
   RawTestLabel,
@@ -8,8 +11,7 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
-import * as console from "node:console";
-import { randomUUID } from "node:crypto";
+
 import { ensureArray, ensureInt, ensureString, isArray, isNonNullObject, isString } from "../utils.js";
 import type {
   CucumberDatatableRow,

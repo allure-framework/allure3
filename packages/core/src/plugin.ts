@@ -1,7 +1,8 @@
-import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { join as joinPosix } from "node:path/posix";
+
+import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 
 export class DefaultPluginState implements PluginState {
   readonly #state: Record<string, any>;

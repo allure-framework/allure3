@@ -1,9 +1,12 @@
 import { View } from "backbone.marionette";
+
 import { className, on } from "@/decorators/index.js";
 import translate from "@/helpers/t.js";
 import gtag from "@/utils/gtag.js";
 import { values } from "@/utils/statuses.js";
+
 import template from "./StatusToggleView.hbs";
+
 import "./styles.scss";
 
 @className("status-toggle")

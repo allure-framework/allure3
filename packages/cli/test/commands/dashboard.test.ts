@@ -1,10 +1,12 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import DashboardPlugin from "@allurereport/plugin-dashboard";
-import { run } from "clipanion";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import DashboardPlugin from "@allurereport/plugin-dashboard";
+import { run } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { DashboardCommand } from "../../src/commands/dashboard.js";
 
 const fixtures = {

@@ -2,6 +2,7 @@ import type { TestStatus, TestStatusTransition } from "@allurereport/core-api";
 import { getParamValue, getParamValues } from "@allurereport/web-commons";
 import { computed, signal } from "@preact/signals";
 import type { AwesomeStatus } from "types";
+
 import {
   setCategoriesFilter,
   setFlakyFilter,

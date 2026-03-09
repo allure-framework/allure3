@@ -1,5 +1,7 @@
-import { type CiDescriptor, CiType } from "@allurereport/core-api";
 import { join } from "node:path/posix";
+
+import { type CiDescriptor, CiType } from "@allurereport/core-api";
+
 import { getEnv } from "../utils.js";
 
 const pullRequestSuffixRe = /\/merge$/;

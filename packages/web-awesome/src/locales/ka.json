@@ -153,6 +153,8 @@
     "at": "ზე",
     "variables": "ცვლადები",
     "openPwTrace": "გახსენი Playwright Trace",
+    "pwTracePopupBlocked": "ბრაუზერმა დაბლოკა Playwright Trace Viewer-ის გახსნა.",
+    "pwTracePopupBlockedHint": "დაუშვით ამომხტარი ფანჯრები და ხელახლა სცადეთ.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, გამოსვლის კოდით {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, გამოსვლის კოდით {{actual}} (თავდაპირველი {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "შემდეგი ტესტის შედეგი",
     "prevTR": "წინა ტესტის შედეგი",
     "downloadAttachment": "დანართის ჩამოტვირთვა",
+    "previewAttachment": "წინასწარი ნახვა",
+    "viewCode": "კოდის ჩვენება",
+    "syntaxHighlight": "სინტაქსის მონიშვნა",
     "backto": "უკან დაბრუნება",
     "clipboard": "კოპირება ბუფერში",
     "clipboardError": "ბუფერში კოპირება ვერ მოხერხდა. შესაძლოა, ფუნქცია არ იყოს მხარდაჭერილი თქვენს ბრაუზერში",

@@ -2,11 +2,13 @@ import { DEFAULT_ENVIRONMENT } from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
 import { Loadable, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import { useState } from "preact/hooks";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { qualityGateStore } from "@/stores/qualityGate";
+
 import * as styles from "./styles.scss";
 
 const QualityGateResultsList = ({ results }: { results: QualityGateValidationResult[] }) => (
@@ -85,6 +87,8 @@ export const ReportQualityGateResults = () => {
                     isOpened={isOpened}
                     setIsOpen={toggleEnv}
                     title={`${tEnvironments("environment", { count: 1 })}: "${env}"`}
+                    titleTooltipText={env}
+                    truncateTitle
                     counter={envResults.length}
                     data-testid={"quality-gate-results-section-env-button"}
                   />

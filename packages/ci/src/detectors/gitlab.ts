@@ -1,4 +1,5 @@
 import { type CiDescriptor, CiType } from "@allurereport/core-api";
+
 import { getEnv } from "../utils.js";
 
 export const gitlab: CiDescriptor = {

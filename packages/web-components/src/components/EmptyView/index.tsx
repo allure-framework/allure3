@@ -1,7 +1,9 @@
 import clsx from "clsx";
 import type { ComponentChildren, FunctionalComponent } from "preact";
+
 import { SvgIcon, type SvgIconProps } from "../SvgIcon";
 import { Text } from "../Typography";
+
 import styles from "./styles.scss";
 
 type Size = "s" | "m" | "xs";

@@ -1,8 +1,11 @@
 import clsx from "clsx";
+
 import { Text } from "@/components/Typography";
+
 import { LegendIndicator } from "../LegendIndicator";
-import styles from "./styles.scss";
 import type { LegendItemProps } from "./types";
+
+import styles from "./styles.scss";
 
 export const isPresent = (value: number | string | undefined): value is number | string => {
   return (typeof value === "number" && !Number.isNaN(value)) || (typeof value === "string" && !!value);

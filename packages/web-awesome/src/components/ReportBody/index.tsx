@@ -1,14 +1,17 @@
 import { capitalize, statusesList } from "@allurereport/core-api";
 import { Counter, Loadable } from "@allurereport/web-components";
+
 import { reportStatsStore, statsByEnvStore } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { setTreeStatus, treeStatus } from "@/stores/treeFilters/store";
+
 import { ReportTab, ReportTabsList } from "../ReportTabs";
 import { TreeList } from "../Tree";
+import { ReportContentProvider } from "./context";
 import { HeaderActions } from "./HeaderActions";
 import { SortBy } from "./SortBy";
-import { ReportContentProvider } from "./context";
+
 import * as styles from "./styles.scss";
 
 const ALL_TAB = "total";

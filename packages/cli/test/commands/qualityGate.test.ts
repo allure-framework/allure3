@@ -1,9 +1,11 @@
-import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { run } from "clipanion";
-import { glob } from "glob";
 import * as console from "node:console";
 import { exit } from "node:process";
+
+import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import { UsageError, run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { QualityGateCommand } from "../../src/commands/qualityGate.js";
 import { AllureReportMock } from "../utils.js";
 
@@ -241,5 +243,14 @@ describe("quality-gate command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       knownIssuesPath: undefined,
     });
+  });
+
+  it("should fail with usage error for invalid --environment value", async () => {
+    const command = new QualityGateCommand();
+
+    command.environment = "foo\nbar";
+
+    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+    expect(readConfig).not.toHaveBeenCalled();
   });
 });

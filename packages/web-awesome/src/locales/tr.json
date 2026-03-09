@@ -153,6 +153,8 @@
     "at": "tarihinde",
     "variables": "Değişkenler",
     "openPwTrace": "Playwright Trace Aç",
+    "pwTracePopupBlocked": "Tarayıcı Playwright Trace Viewer’ın açılmasını engelledi.",
+    "pwTracePopupBlockedHint": "Açılır pencerelere izin verip tekrar deneyin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıkış kodu {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıkış kodu {{actual}} (orijinal {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Sonraki test sonucu",
     "prevTR": "Önceki test sonucu",
     "downloadAttachment": "Eki indir",
+    "previewAttachment": "Önizleme",
+    "viewCode": "Kodu görüntüle",
+    "syntaxHighlight": "Sözdizimi vurgulama",
     "backto": "Geri dön",
     "clipboard": "Panoya kopyala",
     "clipboardError": "Değer panoya kopyalanamıyor. Bu özellik tarayıcınız tarafından desteklenmiyor olabilir",

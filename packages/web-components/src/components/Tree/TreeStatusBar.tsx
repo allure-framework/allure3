@@ -2,6 +2,7 @@ import { type Statistic, statusesList } from "@allurereport/core-api";
 import { clsx } from "clsx";
 import type { Status } from "global";
 import { type FunctionalComponent } from "preact";
+
 import styles from "./styles.scss";
 
 interface TreeStatusBarProps {

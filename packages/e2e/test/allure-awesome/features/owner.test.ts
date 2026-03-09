@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig, makeTestResult, makeTestResultNames } from "../utils/mocks.js";
@@ -52,7 +53,7 @@ test.describe("owner label (RFC 2822)", () => {
     const treePage = new TreePage(page);
 
     await expect(treePage.getLeafByTitle(testWithOwnerName)).toBeVisible();
-    await treePage.getLeafByTitle(testWithOwnerName).click();
+    await treePage.openTestResultByTitle(testWithOwnerName);
 
     const testResultPage = new TestResultPage(page);
     await expect(testResultPage.titleLocator).toHaveText(testWithOwnerName);
@@ -70,7 +71,7 @@ test.describe("owner label (RFC 2822)", () => {
     await page.goto(bootstrap.url);
     const treePage = new TreePage(page);
     const testResultPage = new TestResultPage(page);
-    await treePage.getLeafByTitle(testWithOwnerName).click();
+    await treePage.openTestResultByTitle(testWithOwnerName);
 
     await expect(testResultPage.titleLocator).toHaveText(testWithOwnerName);
 
@@ -84,7 +85,7 @@ test.describe("owner label (RFC 2822)", () => {
     await page.goto(bootstrap.url);
     const treePage = new TreePage(page);
     const testResultPage = new TestResultPage(page);
-    await treePage.getLeafByTitle(testWithOwnerName).click();
+    await treePage.openTestResultByTitle(testWithOwnerName);
 
     await expect(testResultPage.titleLocator).toHaveText(testWithOwnerName);
 
@@ -98,7 +99,7 @@ test.describe("owner label (RFC 2822)", () => {
     await page.goto(bootstrap.url);
     const treePage = new TreePage(page);
     const testResultPage = new TestResultPage(page);
-    await treePage.getLeafByTitle(testWithOwnerName).click();
+    await treePage.openTestResultByTitle(testWithOwnerName);
 
     await expect(testResultPage.titleLocator).toHaveText(testWithOwnerName);
 
@@ -112,7 +113,7 @@ test.describe("owner label (RFC 2822)", () => {
     await page.goto(bootstrap.url);
     const treePage = new TreePage(page);
     const testResultPage = new TestResultPage(page);
-    await treePage.getLeafByTitle(testWithOwnerName).click();
+    await treePage.openTestResultByTitle(testWithOwnerName);
 
     await expect(testResultPage.titleLocator).toHaveText(testWithOwnerName);
 

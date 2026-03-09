@@ -1,15 +1,20 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
-import { Loadable } from "@allurereport/web-components";
+import { Button, Loadable } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
+
 import { MetadataList } from "@/components/Metadata";
 import { MetadataButton } from "@/components/MetadataButton";
 import { MetadataSummary } from "@/components/ReportMetadata/MetadataSummary";
 import { reportStatsStore, statsByEnvStore, useI18n } from "@/stores";
 import { currentEnvironment } from "@/stores/env";
 import { envInfoStore } from "@/stores/envInfo";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
 import { fetchVariables, variables } from "@/stores/variables";
+
 import * as styles from "./styles.scss";
+
+const REPORT_VISIBLE_LIMIT = 8;
 
 export interface MetadataItem extends EnvironmentItem {
   value?: string;
@@ -29,39 +34,78 @@ export type MetadataVariablesProps = {
 };
 
 const Metadata: FunctionalComponent<MetadataProps> = ({ envInfo = [] }) => {
-  const [isOpened, setIsOpen] = useState(true);
-  const convertedEnvInfo = envInfo.map((env) => {
-    return { ...env, value: env.values.join(", ") };
-  });
+  const envKey = currentEnvironment.value ?? "default";
+  const sectionId = `report-${envKey}-metadata`;
+  const showAllId = `report-${envKey}-metadata-showAll`;
+  const isOpened = !collapsedTrees.value.has(sectionId);
+  const showAll = collapsedTrees.value.has(showAllId);
+  const list = envInfo.map((env) => ({ ...env, value: env.values.join(", ") }));
+  const totalCount = list.length;
+  const visibleList = totalCount <= REPORT_VISIBLE_LIMIT ? list : showAll ? list : list.slice(0, REPORT_VISIBLE_LIMIT);
+  const { t } = useI18n("ui");
 
   return (
     <div class={styles["report-metadata"]}>
-      <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} title={"Metadata"} counter={envInfo.length} />
-      {isOpened && <MetadataList envInfo={convertedEnvInfo} />}
+      <MetadataButton
+        isOpened={isOpened}
+        setIsOpen={() => toggleTree(sectionId)}
+        title={t("metadata")}
+        counter={envInfo.length}
+      />
+      {isOpened && (
+        <>
+          <MetadataList envInfo={visibleList} />
+          {totalCount > REPORT_VISIBLE_LIMIT && (
+            <Button
+              style="ghost"
+              size="s"
+              text={showAll ? t("showLess") : t("showMore")}
+              onClick={() => toggleTree(showAllId)}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
 
 const MetadataVariables: FunctionalComponent<MetadataVariablesProps> = (props) => {
   const { t } = useI18n("ui");
-  const [isOpened, setIsOpen] = useState(true);
-  const convertedEnvInfo = Object.entries(props.variables).map(([key, value]) => {
-    return {
-      name: key,
-      value,
-    } as MetadataItem;
-  });
+  const envKey = currentEnvironment.value ?? "default";
+  const sectionId = `report-${envKey}-variables`;
+  const showAllId = `report-${envKey}-variables-showAll`;
+  const isOpened = !collapsedTrees.value.has(sectionId);
+  const showAll = collapsedTrees.value.has(showAllId);
+  const fullList = Object.entries(props.variables).map(([key, value]) => ({
+    name: key,
+    value,
+  })) as MetadataItem[];
+  const totalCount = fullList.length;
+  const visibleList =
+    totalCount <= REPORT_VISIBLE_LIMIT ? fullList : showAll ? fullList : fullList.slice(0, REPORT_VISIBLE_LIMIT);
 
   return (
     <div class={styles["report-metadata"]} data-testid={"report-variables"}>
       <MetadataButton
         isOpened={isOpened}
-        setIsOpen={setIsOpen}
+        setIsOpen={() => toggleTree(sectionId)}
         title={t("variables")}
         counter={Object.keys(props.variables).length}
         data-testid={"report-variables-button"}
       />
-      {isOpened && <MetadataList envInfo={convertedEnvInfo} />}
+      {isOpened && (
+        <>
+          <MetadataList envInfo={visibleList} />
+          {totalCount > REPORT_VISIBLE_LIMIT && (
+            <Button
+              style="ghost"
+              size="s"
+              text={showAll ? t("showLess") : t("showMore")}
+              onClick={() => toggleTree(showAllId)}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };

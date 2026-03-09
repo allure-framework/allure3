@@ -1,6 +1,7 @@
 import { Counter, Loadable } from "@allurereport/web-components";
 import clsx from "clsx";
 import { useEffect } from "preact/hooks";
+
 import { NavTab, NavTabs, NavTabsList, useNavTabsContext } from "@/components/NavTabs";
 import { ReportBody } from "@/components/ReportBody";
 import { ReportCategories } from "@/components/ReportCategories";
@@ -22,7 +23,9 @@ import {
   rootTabRoute,
 } from "@/stores/router";
 import { currentTrId, trCurrentTab } from "@/stores/testResult";
+
 import { ReportQualityGateResults } from "../ReportQualityGateResults";
+
 import * as styles from "./styles.scss";
 
 export enum ReportRootTab {

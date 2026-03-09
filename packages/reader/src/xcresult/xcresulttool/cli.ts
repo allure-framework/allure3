@@ -1,10 +1,12 @@
+import console from "node:console";
+
 import {
   collectCliToolStdoutText,
   invokeCliTool,
   invokeJsonCliTool,
   invokeStdoutCliTool,
 } from "@allurereport/reader-api";
-import console from "node:console";
+
 import type { XcActivities, XcTestDetails, XcTests } from "./xcModel.js";
 
 export const xcrunJson = async <T>(utilityName: string, ...args: readonly string[]) => {

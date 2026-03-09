@@ -2,12 +2,14 @@ import type { BarDatum } from "@nivo/bar";
 import { take, truncate } from "lodash";
 import type { FunctionalComponent } from "preact";
 import { useMemo } from "preact/hooks";
+
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
 import { Widget } from "@/components/Widget";
+
 import { BarChart } from "../BarChart/BarChart.js";
-import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import { CHART_THEME } from "../config.js";
+import type { LegendItemValue } from "../Legend/LegendItem/types.js";
 import type { Props } from "./types.js";
 
 const MAX_STABILITY_RATE = 100;

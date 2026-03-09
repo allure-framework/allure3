@@ -1,9 +1,10 @@
-import AdmZip from "adm-zip";
-import { Command, Option } from "clipanion";
 import * as console from "node:console";
 import * as fs from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { basename, resolve } from "node:path";
+
+import AdmZip from "adm-zip";
+import { Command, Option } from "clipanion";
 import { green, red } from "yoctocolors";
 
 export class ResultsUnpackCommand extends Command {

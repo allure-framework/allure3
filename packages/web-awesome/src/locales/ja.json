@@ -153,6 +153,8 @@
     "at": "時",
     "variables": "変数",
     "openPwTrace": "Playwright Traceを開く",
+    "pwTracePopupBlocked": "ブラウザーが Playwright Trace Viewer の表示をブロックしました。",
+    "pwTracePopupBlockedHint": "ポップアップを許可して再試行してください。",
     "finishedAtOriginal": "{{formattedCreatedAt}}、終了コード{{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}、終了コード{{actual}}（元{{original}}）"
   },
@@ -161,6 +163,9 @@
     "nextTR": "次のテスト結果",
     "prevTR": "前のテスト結果",
     "downloadAttachment": "添付ファイルをダウンロード",
+    "previewAttachment": "プレビュー",
+    "viewCode": "コードを表示",
+    "syntaxHighlight": "シンタックスハイライト",
     "backto": "戻る",
     "clipboard": "クリップボードにコピー",
     "clipboardError": "エラー。この機能はお使いのブラウザでサポートされていない可能性があります",

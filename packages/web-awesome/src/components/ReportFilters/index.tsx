@@ -1,4 +1,5 @@
 import { For } from "@preact/signals/utils";
+
 import type { AwesomeFilter } from "@/stores/treeFilters/model";
 import { setTreeFilter, treeQuickFilters } from "@/stores/treeFilters/store";
 import {
@@ -8,11 +9,13 @@ import {
   isTagFilter,
   isTransitionFilter,
 } from "@/stores/treeFilters/utils";
+
 import { BooleanFieldFilter } from "./BaseFilters";
 import { CategoriesFilter } from "./CategoriesFilter";
 import { RetryFlakyFilter } from "./RetryFlaky";
 import { TagsFilter } from "./TagsFilter";
 import { TransitionFilter } from "./TransitionFilter";
+
 import * as styles from "./styles.scss";
 
 const Filter = (props: { filter: AwesomeFilter; onChange: (filter: AwesomeFilter) => void }) => {

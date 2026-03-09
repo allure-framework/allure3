@@ -1,5 +1,6 @@
 import { Model } from "backbone";
 import { View } from "backbone.marionette";
+
 import MarksToggleView from "@/components/marks-toggle/MarksToggleView.js";
 import NodeSearchView from "@/components/node-search/NodeSearchView.js";
 import NodeSorterView from "@/components/node-sorter/NodeSorterView.js";
@@ -8,7 +9,9 @@ import TreeView from "@/components/tree/TreeView.js";
 import { behavior, className, on, regions } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
 import { getSettingsForTreePlugin } from "@/utils/settingsFactory.js";
+
 import template from "./TreeViewContainer.hbs";
+
 import "./styles.scss";
 
 @className("tree")

@@ -1,4 +1,5 @@
 import { DEFAULT_ENVIRONMENT, type TestParameter, type TestResult } from "@allurereport/core-api";
+
 import { type ForgePluginTestResult } from "./types.js";
 
 /**

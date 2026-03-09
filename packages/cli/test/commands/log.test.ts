@@ -1,9 +1,11 @@
-import { AllureReport, readConfig } from "@allurereport/core";
-import LogPlugin from "@allurereport/plugin-log";
 import * as console from "node:console";
 import { existsSync } from "node:fs";
 import { exit } from "node:process";
+
+import { AllureReport, readConfig } from "@allurereport/core";
+import LogPlugin from "@allurereport/plugin-log";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { LogCommand } from "../../src/commands/log.js";
 
 const fixtures = {

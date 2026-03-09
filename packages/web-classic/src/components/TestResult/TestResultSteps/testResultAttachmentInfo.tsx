@@ -3,11 +3,13 @@ import { IconButton, Text, TooltipWrapper, allureIcons } from "@allurereport/web
 import { filesize } from "filesize";
 import type { FunctionalComponent } from "preact";
 import { useEffect } from "preact/hooks";
+
 import { isModalOpen, openModal } from "@/components/Modal";
 import { Attachment } from "@/components/TestResult/TestResultSteps/attachment";
-import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 import { useI18n } from "@/stores";
 import { downloadAttachment } from "@/utils/attachments";
+
+import * as styles from "@/components/TestResult/TestResultSteps/styles.scss";
 
 interface TestResultAttachmentInfoProps {
   item?: AttachmentTestStepResult;

@@ -1,6 +1,7 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import cx from "clsx";
 import type { FunctionalComponent } from "preact";
+
 import styles from "./styles.scss";
 
 export interface ModalThumbProps {

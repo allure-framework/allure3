@@ -1,3 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { basename, join } from "node:path";
+
 import {
   type AttachmentLink,
   type EnvironmentItem,
@@ -33,9 +37,7 @@ import type {
 } from "@allurereport/web-classic";
 import { getPieChartValues } from "@allurereport/web-commons";
 import Handlebars from "handlebars";
-import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+
 import { matchCategories } from "./categories.js";
 import { convertFixtureResult, convertTestResult } from "./converters.js";
 import type { ClassicCategory, ClassicOptions, TemplateManifest } from "./model.js";

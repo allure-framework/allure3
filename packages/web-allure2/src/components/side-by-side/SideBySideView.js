@@ -1,9 +1,12 @@
 import { View } from "backbone.marionette";
 import split from "split.js";
+
 import { className, regions } from "@/decorators/index.js";
 import gtag from "@/utils/gtag.js";
 import settings from "@/utils/settings.js";
+
 import template from "./SideBySideView.hbs";
+
 import "./styles.scss";
 
 @className("side-by-side")

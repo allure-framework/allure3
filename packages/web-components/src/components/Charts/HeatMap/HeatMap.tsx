@@ -1,12 +1,13 @@
 import { ResponsiveHeatMap } from "@nivo/heatmap";
 import type { FunctionalComponent } from "preact";
 import { useCallback, useMemo } from "preact/hooks";
+
 import { useTheme } from "@/components/ThemeProvider/index.js";
-import { EmptyDataStub } from "../EmptyDataStub/index.js";
+
 import { CHART_MOTION_CONFIG, CHART_THEME, REDUCE_MOTION } from "../config.js";
+import { EmptyDataStub } from "../EmptyDataStub/index.js";
 import { getColorScale } from "../utils.js";
 import { Cell } from "./Cell.js";
-import { HeatMapTooltip } from "./Tooltip.js";
 import {
   DEFAULT_HEAT_MAP_EMPTY_ARIA_LABEL,
   DEFAULT_HEAT_MAP_EMPTY_LABEL,
@@ -21,8 +22,10 @@ import {
   defaultHeatMapLegendConfig,
   defaultHeatMapMarginConfig,
 } from "./config.js";
-import styles from "./styles.scss";
+import { HeatMapTooltip } from "./Tooltip.js";
 import type { HeatMapProps } from "./types.js";
+
+import styles from "./styles.scss";
 
 const useGetColor = (currentTheme: string = "light") => {
   const scale = useMemo(() => {

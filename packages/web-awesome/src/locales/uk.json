@@ -153,6 +153,8 @@
     "at": "в",
     "variables": "Змінні",
     "openPwTrace": "Відкрити Playwright Trace",
+    "pwTracePopupBlocked": "Браузер заблокував відкриття Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Дозвольте спливні вікна та повторіть спробу.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, з кодом виходу {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, з кодом виходу {{actual}} (первісний {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Наступний тест",
     "prevTR": "Попередній тест",
     "downloadAttachment": "Завантажити вкладення",
+    "previewAttachment": "Попередній перегляд",
+    "viewCode": "Показати код",
+    "syntaxHighlight": "Підсвітка синтаксису",
     "backto": "Повернутися на",
     "clipboard": "Скопіювати в буфер обміну",
     "clipboardError": "Помилка. Швидше за все ваш браузер не підтримує дану функціональність",

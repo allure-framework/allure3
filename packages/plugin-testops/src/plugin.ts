@@ -1,3 +1,5 @@
+import { env } from "node:process";
+
 import { detect } from "@allurereport/ci";
 import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
@@ -8,8 +10,8 @@ import {
   type PluginSummary,
   createPluginSummary,
 } from "@allurereport/plugin-api";
-import { env } from "node:process";
 import ProgressBar from "progress";
+
 import { TestOpsClient } from "./client.js";
 import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";

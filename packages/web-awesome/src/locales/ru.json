@@ -153,6 +153,8 @@
     "at": "в",
     "variables": "Переменные",
     "openPwTrace": "Открыть Playwright Trace",
+    "pwTracePopupBlocked": "Браузер заблокировал открытие Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Разрешите всплывающие окна и повторите попытку.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, с кодом выхода {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, с кодом выхода {{actual}} (первоначальный {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Следующий тест",
     "prevTR": "Предыдущий тест",
     "downloadAttachment": "Загрузить вложение",
+    "previewAttachment": "Превью",
+    "viewCode": "Показать код",
+    "syntaxHighlight": "Подсветка синтаксиса",
     "backto": "Вернуться на",
     "clipboard": "Скопировать в буфер обмена",
     "clipboardError": "Ошибка. Скорее всего ваш браузер не поддерживает данную функциональность",

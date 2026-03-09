@@ -2,7 +2,9 @@ import { getReportOptions } from "@allurereport/web-commons";
 import { Text } from "@allurereport/web-components";
 import { useEffect, useState } from "preact/hooks";
 import type { ClassicReportOptions } from "types";
+
 import { currentLocaleIso } from "@/stores";
+
 import * as styles from "./styles.scss";
 
 export const FooterVersion = () => {

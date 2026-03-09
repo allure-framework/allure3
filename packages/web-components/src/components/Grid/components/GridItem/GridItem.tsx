@@ -1,8 +1,10 @@
 import { clsx } from "clsx";
 import type { FunctionComponent } from "preact";
 import type { HTMLAttributes } from "preact/compat";
+
 import { DEFAULT_DRAG_ENABLED_CLASSNAME } from "../../constants";
 import { DragHandle } from "./components";
+
 import styles from "./styles.scss";
 
 export interface GridItemProps extends HTMLAttributes<HTMLDivElement> {

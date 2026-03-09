@@ -1,5 +1,6 @@
 import type { FunctionalComponent } from "preact";
 import type { CSSProperties } from "preact/compat";
+
 import styles from "./styles.scss";
 
 export interface EmptyDataStubProps {

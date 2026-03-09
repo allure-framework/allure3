@@ -1,4 +1,5 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { drone, getJobRunUID, getJobRunURL } from "../../src/detectors/drone.js";
 import { getEnv } from "../../src/utils.js";
 

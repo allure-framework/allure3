@@ -1,4 +1,5 @@
 import { type Locator, type Page } from "@playwright/test";
+
 import { CommonPage } from "./Common.js";
 import { LinkFixture } from "./LinkFixture.js";
 import { RetryItemFixture } from "./RetryItem.js";
@@ -144,7 +145,25 @@ export class TestResultPage extends CommonPage {
       has: this.page.getByText(title, { exact: true }),
     });
 
-    await locator.nth(0).getByTestId("test-result-step-arrow-button").click();
+    await locator.nth(0).waitFor({ state: "visible" });
+    await locator.nth(0).getByTestId("test-result-step-header").click();
+  }
+
+  async expandStepByTitle(title: string) {
+    const locator = this.stepLocator.filter({
+      has: this.page.getByText(title, { exact: true }),
+    });
+    const step = locator.first();
+    const content = step.getByTestId("test-result-step-content");
+
+    await step.waitFor({ state: "visible", timeout: 10000 });
+    const isOpened = await content.isVisible().catch(() => false);
+    if (isOpened) {
+      return;
+    }
+
+    await step.getByTestId("test-result-step-header").click();
+    await content.waitFor({ state: "visible", timeout: 10000 });
   }
 
   async toggleAttachmentByTitle(title: string) {
@@ -152,7 +171,28 @@ export class TestResultPage extends CommonPage {
       has: this.page.getByText(title, { exact: true }),
     });
 
-    await locator.click();
+    await locator.first().waitFor({ state: "visible", timeout: 10000 });
+    await locator.first().click();
+  }
+
+  async waitForImageAttachmentLoaded(timeout = 15000) {
+    const image = this.imageAttachmentContentLocator.first().locator("img");
+    await image.waitFor({ state: "visible", timeout });
+    const imageHandle = await image.elementHandle();
+    if (!imageHandle) {
+      throw new Error("Image element is not available");
+    }
+    await this.page.waitForFunction(
+      (el: unknown) => {
+        if (!el || typeof el !== "object") {
+          return false;
+        }
+        const candidate = el as { complete?: boolean; naturalWidth?: number };
+        return Boolean(candidate.complete) && (candidate.naturalWidth ?? 0) > 0;
+      },
+      imageHandle,
+      { timeout },
+    );
   }
 
   async toggleLinkSection() {

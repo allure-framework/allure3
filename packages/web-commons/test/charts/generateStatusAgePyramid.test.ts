@@ -1,7 +1,8 @@
-import { ChartType } from "@allurereport/charts-api";
 import type { AllureChartsStoreData } from "@allurereport/charts-api";
+import { ChartType } from "@allurereport/charts-api";
 import type { HistoryDataPoint, HistoryTestResult, TestResult, TestStatus } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
+
 import { generateStatusAgePyramid } from "../../src/charts/generateStatusAgePyramid.js";
 
 const baseTestResult: Pick<

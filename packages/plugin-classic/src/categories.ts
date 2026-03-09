@@ -1,4 +1,5 @@
 import type { TestStatus } from "@allurereport/core-api";
+
 import type { ClassicCategory } from "./model.js";
 
 const productDefects: ClassicCategory = {

@@ -1,6 +1,8 @@
 import { computed } from "@preact/signals";
+
 import { useI18n } from "@/stores";
 import { treeCategories } from "@/stores/treeFilters/store";
+
 import type { AwesomeArrayFieldFilter } from "../../stores/treeFilters/model";
 import { ArrayFieldFilter } from "./BaseFilters";
 

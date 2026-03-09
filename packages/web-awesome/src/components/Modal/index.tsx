@@ -1,4 +1,5 @@
 import { Modal, type ModalTranslations } from "@allurereport/web-components";
+
 import { useI18n } from "@/stores";
 import { isModalOpen, modalData } from "@/stores/modal";
 
@@ -8,6 +9,7 @@ export const ModalComponent = () => {
   const translations: ModalTranslations = {
     tooltipDownload: t("downloadAttachment"),
     tooltipPreview: t("previewAttachment"),
+    tooltipSyntaxHighlight: t("syntaxHighlight"),
     openInNewTabButton: t("openInNewTab"),
   };
 

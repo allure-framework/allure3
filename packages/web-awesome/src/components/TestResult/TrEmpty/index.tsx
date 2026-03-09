@@ -1,8 +1,10 @@
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
-import * as baseStyles from "@/components/BaseLayout/styles.scss";
+
 import { TrInfo } from "@/components/TestResult/TrInfo";
 import { useI18n } from "@/stores";
+
 import * as styles from "./styles.scss";
+import * as baseStyles from "@/components/BaseLayout/styles.scss";
 
 const TrThumb = () => {
   const { t } = useI18n("empty");

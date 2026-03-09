@@ -1,5 +1,6 @@
 import { type Axis, axisBottom, axisLeft, axisTop } from "d3-axis";
 import { useEffect, useRef, useState } from "preact/hooks";
+
 import type { TimelineChartData, TimelineData } from "./types";
 
 export const stringToNanoIdWithSalt = (input: string, salt: string): string => {

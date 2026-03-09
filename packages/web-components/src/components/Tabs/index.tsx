@@ -2,7 +2,9 @@ import type { Signal } from "@preact/signals";
 import { useComputed, useSignal } from "@preact/signals";
 import { type ComponentChildren, createContext } from "preact";
 import { useCallback, useContext } from "preact/hooks";
+
 import { Text } from "../Typography";
+
 import styles from "./styles.scss";
 
 type TabsContextT = {

@@ -4,9 +4,9 @@
   "private": true,
   "description": "Allure framework TypeScript implementation",
   "keywords": [],
-  "repository": "https://github.com/allure-framework/allure3",
   "license": "Apache-2.0",
   "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
   "workspaces": [
     "packages/*"
   ],
@@ -14,24 +14,30 @@
     "archive": "yarn allure archive",
     "build": "yarn workspaces foreach -Avvpt run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
-    "eslint": "yarn workspaces foreach -Avvpt run eslint",
-    "eslint:format": "yarn workspaces foreach -Avvpt run eslint:format",
-    "format": "yarn eslint:format && yarn prettier:format",
+    "format": "yarn format:write",
     "lint-staged": "lint-staged",
     "prepare": "husky",
-    "prettier:check": "prettier --check './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' '!./packages/*/src/assets/data/test-results/**/*' package.json ./packages/*/package.json",
-    "prettier:format": "prettier --write './packages/*/{src,test,features}/**/*.{json,js,ts,tsx}' '!./packages/*/src/assets/data/test-results/**/*' package.json ./packages/*/package.json",
     "report": "yarn allure generate --config=./allurerc.mjs",
-    "test": "yarn workspaces foreach -Avvp --exclude sandbox run test"
+    "test": "yarn workspaces foreach -Avvp --exclude sandbox run test",
+    "lint": "yarn workspaces foreach -Avvt run lint",
+    "lint:fix": "yarn workspaces foreach -Avvt run lint:fix",
+    "lint:type": "yarn oxlint --type-aware --import-plugin packages",
+    "verify": "yarn format:check && yarn lint && yarn lint:type --quiet",
+    "format:check": "node ./scripts/run-oxfmt.cjs --check",
+    "format:write": "node ./scripts/run-oxfmt.cjs --write"
   },
-  "lint-staged": {
-    "packages/*/{src,test,features}/**/*.{js,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "**/package.json": [
-      "prettier --write"
-    ]
+  "devDependencies": {
+    "@types/node": "^20.17.9",
+    "allure": "workspace:*",
+    "babel-plugin-prismjs": "^2.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "oxfmt": "0.36.0",
+    "oxlint": "1.51.0",
+    "oxlint-tsgolint": "0.16.0",
+    "rimraf": "^6.0.1",
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.3"
   },
   "resolutions": {
     "@isaacs/brace-expansion@npm:^5.0.0": "5.0.1",
@@ -72,37 +78,14 @@
     "vite": "^5.4.17",
     "webpack": "^5.105.0"
   },
-  "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.6.1",
-    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/eslint": "^8.56.11",
-    "@types/node": "^20.17.9",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "allure": "workspace:*",
-    "babel-plugin-prismjs": "^2.1.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsdoc": "^50.0.0",
-    "eslint-plugin-n": "^17.10.1",
-    "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-prefer-arrow": "^1.2.3",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "^2.5.2",
-    "rimraf": "^6.0.1",
-    "tslib": "^2.7.0",
-    "typescript": "^5.6.3"
-  },
-  "dependenciesMeta": {
-    "@trivago/prettier-plugin-sort-imports@4.3.0": {
-      "unplugged": true
-    },
-    "prettier-plugin-packagejson@2.4.9": {
-      "unplugged": true
-    }
+  "lint-staged": {
+    "packages/*/{src,test,features}/**/*.{js,ts,tsx}": [
+      "oxlint --fix",
+      "oxfmt --write"
+    ],
+    "**/package.json": [
+      "oxfmt --write"
+    ]
   },
   "packageManager": "yarn@4.5.1"
 }

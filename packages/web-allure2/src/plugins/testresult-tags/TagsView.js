@@ -1,5 +1,7 @@
 import { View } from "backbone.marionette";
+
 import { className } from "@/decorators/index.js";
+
 import template from "./TagsView.hbs";
 
 @className("pane__section")

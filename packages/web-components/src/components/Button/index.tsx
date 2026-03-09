@@ -1,8 +1,11 @@
 import { clsx } from "clsx";
 import type { ComponentChild } from "preact";
+import type { Ref } from "preact";
+
 import { Spinner } from "@/components/Spinner";
 import { SvgIcon, allureIcons } from "@/components/SvgIcon";
 import { Text } from "@/components/Typography";
+
 import styles from "./styles.scss";
 
 type BaseBtnProps = {
@@ -110,6 +113,8 @@ type BaseBtnProps = {
   leadingSlot?: ComponentChild;
   trailingSlot?: ComponentChild;
   isLink?: boolean;
+  isTextTruncated?: boolean;
+  textRef?: Ref<HTMLSpanElement>;
 };
 
 const BaseBtn = (props: BaseBtnProps) => {
@@ -136,7 +141,9 @@ const BaseBtn = (props: BaseBtnProps) => {
     trailingSlot,
     rounded,
     isLink = false,
+    isTextTruncated = false,
     iconColor = "primary",
+    textRef,
     ...rest
   } = props;
   const isButtonDisabled = isDisabled || isPending;
@@ -154,6 +161,7 @@ const BaseBtn = (props: BaseBtnProps) => {
       action === "danger" && styles.danger,
       action === "positive" && styles.positive,
       isPending && styles.pending,
+      isTextTruncated && styles.textTruncatedButton,
       fullWidth && styles.fullWidth,
       !isButtonDisabled && isActive && styles.active,
       className,
@@ -169,7 +177,11 @@ const BaseBtn = (props: BaseBtnProps) => {
     <Text type="ui" size={size === "s" ? "s" : "m"} bold className={styles.content}>
       {icon && <SvgIcon size="s" className={isIconButton ? styles.contentIcon : styles.leadingIcon} id={icon} />}
       {leadingSlot && <div className={styles.leadingSlot}>{leadingSlot}</div>}
-      {!isIconButton && <span className={styles.text}>{text}</span>}
+      {!isIconButton && (
+        <span ref={textRef} className={clsx(styles.text, isTextTruncated && styles.textTruncated)}>
+          {text}
+        </span>
+      )}
       {trailingSlot && <div className={styles.trailingSlot}>{trailingSlot}</div>}
       {isDropdownButton && <SvgIcon id={allureIcons.lineArrowsChevronDown} size="s" className={styles.dropdownIcon} />}
       <span className={styles.spinner} aria-hidden={!isPending}>

@@ -1,6 +1,7 @@
 import type { TestResult, TestStatus } from "@allurereport/core-api";
 import type { QualityGateConfig, QualityGateRule, QualityGateValidationResult } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
+
 import {
   QualityGate,
   QualityGateState,

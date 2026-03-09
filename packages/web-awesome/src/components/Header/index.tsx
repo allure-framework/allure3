@@ -1,13 +1,16 @@
 import { computed } from "@preact/signals";
 import type { ClassValue } from "clsx";
 import clsx from "clsx";
+
 import { HeaderControls } from "@/components/HeaderControls";
 import { SectionPicker } from "@/components/SectionPicker";
 import { TrBreadcrumbs } from "@/components/TestResult/TrHeader/TrBreadcrumbs";
 import { rootTabRoute, testResultRoute } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { testResultStore } from "@/stores/testResults";
+
 import { CiInfo } from "./CiInfo";
+
 import * as styles from "./styles.scss";
 
 interface HeaderProps {

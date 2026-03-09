@@ -153,6 +153,8 @@
     "at": "at",
     "variables": "Variables",
     "openPwTrace": "Open Playwright Trace",
+    "pwTracePopupBlocked": "Browser blocked opening Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Allow popups and retry.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, with exit code {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, with exit code {{actual}} (original {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Next Test result",
     "prevTR": "Previous Test result",
     "downloadAttachment": "Download attachment",
+    "previewAttachment": "Preview",
+    "viewCode": "View code",
+    "syntaxHighlight": "Syntax highlighting",
     "backto": "Back to",
     "clipboard": "Copy to clipboard",
     "clipboardError": "Can not copy value to clipboard. Seems like this feature is not supported for your browser",

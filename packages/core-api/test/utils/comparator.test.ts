@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import type { Statistic, TestStatus } from "../../src/index.js";
 import { nullsDefault, nullsFirst, nullsLast } from "../../src/index.js";
 import { alphabetically, byName, byStatistic, byStatus, ordinal } from "../../src/index.js";

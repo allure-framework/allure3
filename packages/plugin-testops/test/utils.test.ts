@@ -1,5 +1,6 @@
 import type { TestStepResult } from "@allurereport/core-api";
 import { beforeEach, describe, expect, it } from "vitest";
+
 import { resolvePluginOptions, unwrapStepsAttachments } from "../src/utils.js";
 
 describe("unwrapStepsAttachments", () => {

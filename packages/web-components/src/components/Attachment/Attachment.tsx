@@ -1,10 +1,12 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
-import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import type { AttachmentData, AttachmentType } from "@allurereport/web-commons";
+import { attachmentType, fetchAttachment } from "@allurereport/web-commons";
 import { batch, useSignal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 import { useCallback, useEffect } from "preact/hooks";
+
 import { Spinner } from "@/components/Spinner";
+
 import { IconButton } from "../Button";
 import { EmptyView } from "../EmptyView";
 import { allureIcons } from "../SvgIcon";
@@ -14,6 +16,7 @@ import { AttachmentImageDiff } from "./AttachmentImageDiff";
 import { AttachmentVideo } from "./AttachmentVideo";
 import { HtmlPreview } from "./HtmlPreview";
 import type { AttachmentProps, I18nProp } from "./model";
+
 import styles from "./styles.scss";
 
 const componentsByAttachmentType: Record<AttachmentType, ((props: AttachmentProps) => ComponentChildren) | null> = {
@@ -38,11 +41,12 @@ const previewComponentsByAttachmentType: Record<string, any> = {
 export interface AttachmentTestStepResultProps {
   item: AttachmentTestStepResult;
   previewable?: boolean;
+  highlightCode?: boolean;
   i18n?: I18nProp;
 }
 
 export const Attachment = (props: AttachmentTestStepResultProps) => {
-  const { item, previewable, i18n } = props;
+  const { item, previewable, highlightCode = true, i18n } = props;
   const {
     link: { contentType, id, ext },
   } = item;
@@ -112,5 +116,14 @@ export const Attachment = (props: AttachmentTestStepResultProps) => {
     return null;
   }
 
-  return <CurrentComponent attachment={attachment.value} item={item} i18n={i18nProp} />;
+  const isCodeComponent = CurrentComponent === AttachmentCode;
+
+  return (
+    <CurrentComponent
+      attachment={attachment.value}
+      item={item}
+      i18n={i18nProp}
+      {...(isCodeComponent ? { highlight: highlightCode } : {})}
+    />
+  );
 };

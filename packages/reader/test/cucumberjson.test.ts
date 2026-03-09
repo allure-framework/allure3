@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { describe, expect, it } from "vitest";
+
 import { cucumberjson } from "../src/index.js";
 import { readResults } from "./utils.js";
 

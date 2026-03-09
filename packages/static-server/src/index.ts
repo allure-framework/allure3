@@ -1,11 +1,13 @@
-import watchDirectory from "@allurereport/directory-watcher";
 import * as console from "node:console";
 import { type Stats, createReadStream } from "node:fs";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { type ServerResponse, createServer } from "node:http";
 import { basename, extname, join, resolve } from "node:path";
 import { cwd } from "node:process";
+
+import watchDirectory from "@allurereport/directory-watcher";
 import openUrl from "open";
+
 import { TYPES_BY_EXTENSION, identity, injectLiveReloadScript } from "./utils.js";
 
 export type AllureStaticServer = {

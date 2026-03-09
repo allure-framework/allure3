@@ -1,4 +1,5 @@
 import { type Statistic, type TestStatus, statusesList } from "@allurereport/core-api";
+
 import { getColorFromStatus } from "../utils";
 import type { ChartData, I18nProp } from "./types";
 

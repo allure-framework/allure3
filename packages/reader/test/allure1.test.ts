@@ -1,6 +1,8 @@
 /* eslint @typescript-eslint/unbound-method: 0, max-lines: 0 */
 import { randomUUID } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
+
 import { allure1 } from "../src/index.js";
 import { mockVisitor, readResourceAsResultFile, readResults } from "./utils.js";
 

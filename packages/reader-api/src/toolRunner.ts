@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+
 import type { Unknown } from "./validation.js";
 
 const LINE_SPLIT_PATTERN = /\r\n|\r|\n/;

@@ -3,6 +3,7 @@ import { md5 } from "@allurereport/plugin-api";
 import { faker } from "@faker-js/faker";
 import { Stage, Status, type TestResult } from "allure-js-commons";
 import _times from "lodash.times";
+
 import type { ReportConfig } from "../../types.js";
 
 export type ItemMaker<T> = (index: number, params: T) => Partial<T>;

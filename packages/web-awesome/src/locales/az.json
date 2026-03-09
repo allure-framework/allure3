@@ -153,6 +153,8 @@
     "at": "tarixində",
     "variables": "Dəyişənlər",
     "openPwTrace": "Playwright Trace-i aç",
+    "pwTracePopupBlocked": "Brauzer Playwright Trace Viewer-i açmağı blokladı.",
+    "pwTracePopupBlockedHint": "Pop-uplara icazə verin və yenidən cəhd edin.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, çıxış kodu {{original}} ilə",
     "finishedAtBoth": "{{formattedCreatedAt}}, çıxış kodu {{actual}} ilə (ilkin {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Növbəti test nəticəsi",
     "prevTR": "Əvvəlki test nəticəsi",
     "downloadAttachment": "Qoşmanı yüklə",
+    "previewAttachment": "Önizləmə",
+    "viewCode": "Kodu göstər",
+    "syntaxHighlight": "Sintaksis vurğulama",
     "backto": "Geri dön",
     "clipboard": "Mübadilə buferinə kopyala",
     "clipboardError": "Dəyər kopyalana bilmir. Brauzeriniz bu funksiyanı dəstəkləmir",

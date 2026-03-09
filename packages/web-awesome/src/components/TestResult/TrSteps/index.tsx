@@ -1,12 +1,13 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 import type { AwesomeTestResult, AwesomeTestStepResult } from "types";
+
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
 import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 const typeMap = {
@@ -25,13 +26,13 @@ type StepComponentProps = FunctionalComponent<{
 }>;
 
 export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
-  const stepsId = `${id}-steps`;
-  const isEarlyCollapsed = Boolean(!collapsedTrees.value.has(stepsId));
-  const [isOpened, setIsOpen] = useState<boolean>(isEarlyCollapsed);
+  const stepsId = id !== null ? `${id}-steps` : null;
+  const isOpened = !collapsedTrees.value.has(stepsId);
 
   const handleClick = () => {
-    setIsOpen(!isOpened);
-    toggleTree(stepsId);
+    if (stepsId !== null) {
+      toggleTree(stepsId);
+    }
   };
 
   const { t } = useI18n("execution");
@@ -40,7 +41,7 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
       <TrDropdown
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
-        setIsOpen={handleClick}
+        setIsOpen={() => stepsId !== null && toggleTree(stepsId)}
         counter={steps?.length}
         title={t("body")}
       />

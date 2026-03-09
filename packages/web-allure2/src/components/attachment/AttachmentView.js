@@ -1,11 +1,14 @@
 import { reportDataUrl } from "@allurereport/web-commons";
 import { $ } from "backbone";
 import { View } from "backbone.marionette";
+
 import { behavior, className, on, regions } from "@/decorators/index.js";
 import router from "@/router.js";
 import attachmentType from "@/utils/attachmentType.js";
 import highlight from "@/utils/highlight.js";
+
 import template from "./AttachmentView.hbs";
+
 import "./styles.scss";
 
 @className("attachment")

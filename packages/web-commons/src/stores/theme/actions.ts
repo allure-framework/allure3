@@ -1,4 +1,5 @@
 import { effect } from "@preact/signals-core";
+
 import { SELECTED_THEMES, THEME_DARK, THEME_LIGHT } from "./constants.js";
 import { currentTheme, preferredTheme, userTheme } from "./store.js";
 import type { UserTheme } from "./types.js";

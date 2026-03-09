@@ -1,10 +1,11 @@
-import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import type { TestResult } from "@allurereport/core-api";
-import { Command, Option } from "clipanion";
-import { glob } from "glob";
 import * as console from "node:console";
 import { realpath } from "node:fs/promises";
 import { exit, cwd as processCwd } from "node:process";
+
+import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
+import { type TestResult, validateEnvironmentName } from "@allurereport/core-api";
+import { Command, Option, UsageError } from "clipanion";
+import { glob } from "glob";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
 
@@ -65,9 +66,23 @@ export class QualityGateCommand extends Command {
   });
 
   async execute() {
+    let normalizedEnvironment = this.environment;
+
+    if (typeof this.environment === "string") {
+      const envValidationResult = validateEnvironmentName(this.environment);
+
+      if (!envValidationResult.valid) {
+        throw new UsageError(
+          `Invalid --environment value ${JSON.stringify(this.environment)}: ${envValidationResult.reason}`,
+        );
+      }
+
+      normalizedEnvironment = envValidationResult.normalized;
+    }
+
     const cwd = await realpath(this.cwd ?? processCwd());
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
-    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath, environment } = this;
+    const { maxFailures, minTestsCount, successRate, fastFail, knownIssues: knownIssuesPath } = this;
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath,
     });
@@ -138,7 +153,7 @@ export class QualityGateCommand extends Command {
       const notHiddenTrs = (trs as TestResult[]).filter((tr) => !tr.hidden);
       const { results, fastFailed } = await allureReport.validate({
         trs: notHiddenTrs,
-        environment,
+        environment: normalizedEnvironment,
         knownIssues,
         state,
       });
@@ -165,7 +180,7 @@ export class QualityGateCommand extends Command {
     const validationResults = await allureReport.validate({
       trs: allTrs,
       knownIssues,
-      environment,
+      environment: normalizedEnvironment,
     });
 
     if (validationResults.results.length === 0) {

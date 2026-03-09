@@ -2,9 +2,11 @@ import type { Statistic } from "@allurereport/core-api";
 import { statusesList } from "@allurereport/core-api";
 import type { BarDatum } from "@nivo/bar";
 import type { FunctionalComponent } from "preact";
+
 import { EmptyView } from "@/components/EmptyView";
 import { allureIcons } from "@/components/SvgIcon";
 import { Widget } from "@/components/Widget";
+
 import { BarChart } from "../BarChart/BarChart";
 import { formatNumber } from "../Legend/LegendItem";
 import type { LegendItemValue } from "../Legend/LegendItem/types";

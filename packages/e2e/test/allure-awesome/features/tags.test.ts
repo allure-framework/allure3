@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";
 import { makeReportConfig, makeTestResult, makeTestResultNames } from "../utils/mocks.js";
@@ -58,7 +59,7 @@ test.describe("tags", () => {
     await expect(treePage.getLeafByTitle(testWithoutTagName)).toBeVisible();
 
     // Click on test with tag to open test result page
-    await treePage.getLeafByTitle(testWithTagName).click();
+    await treePage.openTestResultByTitle(testWithTagName);
 
     const testResultPage = new TestResultPage(page);
 

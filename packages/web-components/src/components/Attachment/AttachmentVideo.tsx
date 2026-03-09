@@ -1,5 +1,7 @@
 import { Spinner } from "@/components/Spinner";
+
 import type { AttachmentProps } from "./model";
+
 import styles from "./styles.scss";
 
 export const AttachmentVideo = ({ attachment, item }: AttachmentProps) => {

@@ -1,9 +1,11 @@
 import type { AttachmentTestStepResult } from "@allurereport/core-api";
 import { attachmentType } from "@allurereport/web-commons";
 import type { FunctionalComponent } from "preact";
+
 import { Attachment } from "@/components/Attachment";
-import ModalThumb from "@/components/Modal/Thumb";
 import type { ModalGalleryProps } from "@/components/Modal/index";
+import ModalThumb from "@/components/Modal/Thumb";
+
 import styles from "./styles.scss";
 
 const Gallery: FunctionalComponent<ModalGalleryProps> = ({ attachments = [] }) => {

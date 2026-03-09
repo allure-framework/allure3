@@ -2,6 +2,7 @@ import type { CategoryNode, CategoryNodeProps, TestCategories } from "@allurerep
 import { IconButton, TreeItem, allureIcons } from "@allurereport/web-components";
 import type { FC } from "preact/compat";
 import { useState } from "preact/hooks";
+
 import { CategoryHeaderItem } from "@/components/Categories/CategoryHeaderItem";
 import { GroupTreeItem } from "@/components/Categories/GroupTreeItem";
 import { HistoryTreeItem } from "@/components/Categories/HistoryTreeItem";
@@ -13,6 +14,7 @@ import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
 
 type CategoryTreeItemProps = CategoryNodeProps & {

@@ -1,6 +1,7 @@
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { type ReportBootstrap, bootstrapReport } from "../../utils/index.js";
 
@@ -205,7 +206,7 @@ test.describe("allure-awesome", () => {
     test("test result fullname copies to clipboard", async ({ browserName, page, context }) => {
       test.skip(browserName !== "chromium", "Only chromium supports clipboard API");
 
-      await treePage.clickNthLeaf(0);
+      await treePage.openTestResultByNthLeaf(0);
       await context.grantPermissions(["clipboard-read", "clipboard-write"]);
       await testResultPage.copyFullname();
 
@@ -243,7 +244,7 @@ test.describe("allure-awesome", () => {
       const homepageLink = testResultPage.getLink(0);
       const docsLink = testResultPage.getLink(1);
 
-      await treePage.clickLeafByTitle("0 sample passed test");
+      await treePage.openTestResultByTitle("0 sample passed test");
       await expect(testResultPage.linksLocator).toBeVisible();
 
       // Collapse

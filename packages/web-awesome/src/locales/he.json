@@ -153,6 +153,8 @@
     "at": "ב-",
     "variables": "משתנים",
     "openPwTrace": "פתח Playwright Trace",
+    "pwTracePopupBlocked": "הדפדפן חסם את פתיחת Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "אפשר חלונות קופצים ונסה שוב.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, עם קוד יציאה {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, עם קוד יציאה {{actual}} (מקורי {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "תוצאת בדיקה הבאה",
     "prevTR": "תוצאת בדיקה קודמת",
     "downloadAttachment": "הורד קובץ מצורף",
+    "previewAttachment": "תצוגה מקדימה",
+    "viewCode": "הצג קוד",
+    "syntaxHighlight": "הדגשת תחביר",
     "backto": "חזור ל",
     "clipboard": "העתק ללוח",
     "clipboardError": "לא ניתן להעתיק ללוח. ייתכן שהתכונה לא נתמכת בדפדפן שלך",

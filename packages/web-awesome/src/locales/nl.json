@@ -153,6 +153,8 @@
     "at": "om",
     "variables": "Variabelen",
     "openPwTrace": "Open Playwright Trace",
+    "pwTracePopupBlocked": "De browser heeft het openen van Playwright Trace Viewer geblokkeerd.",
+    "pwTracePopupBlockedHint": "Sta pop-ups toe en probeer het opnieuw.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, met exitcode {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, met exitcode {{actual}} (oorspronkelijk {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Volgende testresultaat",
     "prevTR": "Vorige testresultaat",
     "downloadAttachment": "Bijlage downloaden",
+    "previewAttachment": "Voorvertoning",
+    "viewCode": "Code bekijken",
+    "syntaxHighlight": "Syntaxmarkering",
     "backto": "Terug naar",
     "clipboard": "Kopiëren naar klembord",
     "clipboardError": "Kan waarde niet naar klembord kopiëren. Mogelijk wordt deze functie niet ondersteund door uw browser",

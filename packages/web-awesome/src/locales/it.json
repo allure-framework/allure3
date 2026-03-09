@@ -153,6 +153,8 @@
     "at": "a",
     "variables": "Variabili",
     "openPwTrace": "Apri Playwright Trace",
+    "pwTracePopupBlocked": "Il browser ha bloccato l'apertura di Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Consenti i popup e riprova.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, con codice di uscita {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, con codice di uscita {{actual}} (originale {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Risultato del test successivo",
     "prevTR": "Risultato del test precedente",
     "downloadAttachment": "Scarica allegato",
+    "previewAttachment": "Anteprima",
+    "viewCode": "Visualizza codice",
+    "syntaxHighlight": "Evidenziazione sintassi",
     "backto": "Torna a",
     "clipboard": "Copia negli appunti",
     "clipboardError": "Errore. Sembra che questa funzionalità non sia supportata dal tuo browser",

@@ -1,12 +1,57 @@
-import { DropdownButton, Menu, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import {
+  DropdownButton,
+  Menu,
+  SvgIcon,
+  Text,
+  TooltipWrapper,
+  allureIcons,
+  useElementTruncation,
+} from "@allurereport/web-components";
+import { useEffect, useRef, useState } from "preact/hooks";
+
 import { useI18n } from "@/stores";
 import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
+
 import * as styles from "./styles.scss";
+
+const isOverflowing = (element: HTMLElement) => element.scrollWidth > element.clientWidth;
+
+const EnvironmentMenuItemText = ({ value }: { value: string }) => {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const element = textRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    setIsTruncated(isOverflowing(element));
+  }, [value]);
+
+  const textNode = (
+    <span ref={textRef} className={styles["environment-picker-item-text"]}>
+      {value}
+    </span>
+  );
+
+  if (!isTruncated) {
+    return textNode;
+  }
+
+  return <TooltipWrapper tooltipText={value}>{textNode}</TooltipWrapper>;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 export const EnvironmentPicker = () => {
   const { t } = useI18n("environments");
   const environment = currentEnvironment.value;
+  const selectedEnvironmentLabel = environment || t("all");
+  const { ref: selectedTextRef, isTruncated: isSelectedValueTruncated } = useElementTruncation<HTMLSpanElement>([
+    selectedEnvironmentLabel,
+  ]);
+
   const handleSelect = (selectedOption: string) => {
     setCurrentEnvironment(selectedOption);
   };
@@ -24,16 +69,31 @@ export const EnvironmentPicker = () => {
       </Text>
       <Menu
         size="s"
-        menuTrigger={({ isOpened, onClick }) => (
-          <DropdownButton
-            style="ghost"
-            size="s"
-            text={environment || t("all")}
-            isExpanded={isOpened}
-            data-testid={"environment-picker-button"}
-            onClick={onClick}
-          />
-        )}
+        menuTrigger={({ isOpened, onClick }) => {
+          const button = (
+            <DropdownButton
+              style="ghost"
+              size="s"
+              text={selectedEnvironmentLabel}
+              textRef={selectedTextRef}
+              isExpanded={isOpened}
+              isTextTruncated
+              className={styles["environment-picker-button"]}
+              data-testid={"environment-picker-button"}
+              onClick={onClick}
+            />
+          );
+
+          if (isOpened || !isSelectedValueTruncated) {
+            return button;
+          }
+
+          return (
+            <TooltipWrapper tooltipText={selectedEnvironmentLabel} data-testid="environment-picker-selected-tooltip">
+              {button}
+            </TooltipWrapper>
+          );
+        }}
       >
         <Menu.Section>
           <Menu.ItemWithCheckmark
@@ -50,7 +110,7 @@ export const EnvironmentPicker = () => {
               key={env}
               isChecked={env === environment}
             >
-              {env}
+              <EnvironmentMenuItemText value={env} />
             </Menu.ItemWithCheckmark>
           ))}
         </Menu.Section>

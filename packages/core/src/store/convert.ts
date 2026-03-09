@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import type {
   AttachmentLink,
   AttachmentLinkExpected,
@@ -26,7 +28,6 @@ import type {
   ReaderContext,
 } from "@allurereport/reader-api";
 import { extension, lookupContentType } from "@allurereport/reader-api";
-import { randomUUID } from "node:crypto";
 
 const defaultStatus: TestStatus = "unknown";
 

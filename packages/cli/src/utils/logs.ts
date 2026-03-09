@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+
 import { red } from "yoctocolors";
 
 const LOGS_DIRECTORY = join(homedir(), ".allure", "logs");

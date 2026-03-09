@@ -1,8 +1,11 @@
 import { View } from "backbone.marionette";
+
 import TestResultExecutionView from "@/components/testresult-execution/TestResultExecutionView.js";
 import { className, regions } from "@/decorators/index.js";
 import pluginsRegistry from "@/utils/pluginsRegistry.js";
+
 import template from "./TestResultOverviewView.hbs";
+
 import "./styles.scss";
 
 @className("test-result-overview")

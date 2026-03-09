@@ -1,4 +1,5 @@
 import { Stage, Status, label } from "allure-js-commons";
+
 import { TestResultPage, TreePage } from "../../pageObjects/index.js";
 import { expect, test } from "../../playwright.js";
 import { type ReportBootstrap, bootstrapReport } from "../utils/index.js";

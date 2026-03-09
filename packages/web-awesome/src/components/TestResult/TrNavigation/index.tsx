@@ -2,11 +2,13 @@ import { Code, IconButton, TooltipWrapper, allureIcons } from "@allurereport/web
 import { computed, useComputed } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { useI18n } from "@/stores";
 import { navigateToTestResult } from "@/stores/router";
 import { trCurrentTab } from "@/stores/testResult";
 import { testResultNavStore } from "@/stores/testResults";
 import { copyToClipboard } from "@/utils/copyToClipboard";
+
 import * as styles from "./styles.scss";
 
 type Props = {

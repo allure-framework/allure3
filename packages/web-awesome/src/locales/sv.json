@@ -153,6 +153,8 @@
     "at": "vid",
     "variables": "Variabler",
     "openPwTrace": "Öppna Playwright Trace",
+    "pwTracePopupBlocked": "Webbläsaren blockerade öppning av Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Tillåt popup-fönster och försök igen.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, med avslutningskod {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, med avslutningskod {{actual}} (ursprunglig {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Nästa testresultat",
     "prevTR": "Föregående testresultat",
     "downloadAttachment": "Ladda ner bilaga",
+    "previewAttachment": "Förhandsgranska",
+    "viewCode": "Visa kod",
+    "syntaxHighlight": "Syntaxmarkering",
     "backto": "Tillbaka till",
     "clipboard": "Kopiera till urklipp",
     "clipboardError": "Kan inte kopiera värde till urklipp. Det verkar som om den här funktionen inte stöds av din webbläsare",

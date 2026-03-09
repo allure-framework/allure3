@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { createRecursiveTree, filterLeaves } from "../../src/utils/treeFilters.js";
 import type { AwesomeTestResult } from "../../types.js";
 

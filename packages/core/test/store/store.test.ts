@@ -4,6 +4,7 @@ import { type AllureStoreDump, md5 } from "@allurereport/plugin-api";
 import type { RawGlobals, RawTestAttachment, RawTestResult } from "@allurereport/reader-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { describe, expect, it, vi } from "vitest";
+
 import { DefaultAllureStore, mapToObject, updateMapWithRecord } from "../../src/store/store.js";
 
 class AllureTestHistory implements AllureHistory {
@@ -1682,6 +1683,58 @@ describe("history", () => {
 });
 
 describe("environments", () => {
+  it("should reject invalid forced environment name in constructor", () => {
+    expect(() => new DefaultAllureStore({ environment: "" })).toThrow(
+      'Invalid store constructor environment "": name must not be empty',
+    );
+  });
+
+  it("should reject invalid environment config key in constructor", () => {
+    expect(
+      () =>
+        new DefaultAllureStore({
+          environmentsConfig: {
+            "foo\nbar": {
+              matcher: () => true,
+            },
+          },
+        }),
+    ).toThrow(
+      'Invalid store constructor environmentsConfig["foo\\nbar"] "foo\\nbar": name must not contain control characters',
+    );
+  });
+
+  it("should accept environment config key with slash in constructor", () => {
+    expect(
+      () =>
+        new DefaultAllureStore({
+          environmentsConfig: {
+            "foo/bar": {
+              matcher: () => true,
+            },
+          },
+        }),
+    ).not.toThrow();
+  });
+
+  it("should throw actionable error for normalized key collisions in constructor", () => {
+    expect(
+      () =>
+        new DefaultAllureStore({
+          environmentsConfig: {
+            "foo": {
+              matcher: () => true,
+            },
+            " foo ": {
+              matcher: () => false,
+            },
+          },
+        }),
+    ).toThrow(
+      'store constructor environmentsConfig: normalized key "foo" is produced by original keys ["foo"," foo "]',
+    );
+  });
+
   it("should set environment to test result on visit when they are specified", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
@@ -1797,6 +1850,11 @@ describe("environments", () => {
       }),
     ]);
     expect(await store.testResultsByEnvironment("default")).toEqual([
+      expect.objectContaining({
+        name: rawTr2.name,
+      }),
+    ]);
+    expect(await store.testResultsByEnvironment("  default  ")).toEqual([
       expect.objectContaining({
         name: rawTr2.name,
       }),
@@ -2648,6 +2706,122 @@ describe("dump state", () => {
     expect(results).toHaveLength(2);
     expect(results).toContainEqual(initialResult);
     expect(results).toContainEqual(dumpResult);
+  });
+
+  it("should degrade invalid restored test result environment names for indexing only", async () => {
+    const dump = {
+      testResults: {
+        "invalid-env-result": {
+          id: "invalid-env-result",
+          name: "invalid env result",
+          status: "passed",
+          environment: "foo\rbar",
+        },
+        "legacy-env-result": {
+          id: "legacy-env-result",
+          name: "legacy env result",
+          status: "passed",
+          environment: "legacyEnv",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["legacyEnv"],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const byDefault = await store.testResultsByEnvironment("default");
+    const byLegacyEnv = await store.testResultsByEnvironment("legacyEnv");
+    const allResults = await store.allTestResults();
+
+    expect(byDefault).toEqual([
+      expect.objectContaining({
+        id: "invalid-env-result",
+      }),
+    ]);
+    expect(byLegacyEnv).toEqual([
+      expect.objectContaining({
+        id: "legacy-env-result",
+      }),
+    ]);
+    expect(allResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "invalid-env-result",
+          environment: "foo\rbar",
+        }),
+        expect.objectContaining({
+          id: "legacy-env-result",
+          environment: "legacyEnv",
+        }),
+      ]),
+    );
+  });
+
+  it("should degrade invalid restored quality gate result environment names to default", async () => {
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: ["legacyEnv"],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [
+        {
+          rule: "maxFailures",
+          success: false,
+          message: "invalid env",
+          environment: "foo\nbar",
+        },
+        {
+          rule: "maxFailures",
+          success: false,
+          message: "legacy env",
+          environment: "legacyEnv",
+        },
+      ],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {});
+
+    const resultsByEnv = await store.qualityGateResultsByEnv();
+
+    expect(resultsByEnv.default).toEqual([
+      expect.objectContaining({
+        message: "invalid env",
+      }),
+    ]);
+    expect(resultsByEnv.legacyEnv).toEqual([
+      expect.objectContaining({
+        message: "legacy env",
+      }),
+    ]);
   });
 
   it("should merge two dumps with different envs", async () => {

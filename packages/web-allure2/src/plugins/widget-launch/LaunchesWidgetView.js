@@ -1,4 +1,5 @@
 import { View } from "backbone.marionette";
+
 import template from "./LaunchesWidgetView.hbs";
 
 class LaunchesWidgetView extends View {

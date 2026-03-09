@@ -1,10 +1,14 @@
-import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
+import { Button, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
+
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
+import { collapsedTrees, toggleTree } from "@/stores/tree";
+
 import * as styles from "./styles.scss";
+
+const VISIBLE_LINKS_LIMIT = 8;
 
 interface TrLinkProps {
   name: string;
@@ -35,21 +39,52 @@ const TrLink: FunctionalComponent<{
 };
 
 export type TrLinksProps = {
+  id?: string;
   links: AwesomeTestResult["links"];
 };
 
-export const TrLinks: FunctionalComponent<TrLinksProps> = ({ links }) => {
-  const [isOpened, setIsOpen] = useState(true);
+export const TrLinks: FunctionalComponent<TrLinksProps> = ({ id, links }) => {
   const { t } = useI18n("ui");
-  const linkMap = links.map((link, index) => {
+  const linksId = id !== null ? `${id}-links` : null;
+  const linksShowAllId = id !== null ? `${id}-links-showAll` : null;
+  const isOpened = !collapsedTrees.value.has(linksId);
+  const showAll = collapsedTrees.value.has(linksShowAllId);
+  const visibleLinks =
+    links.length <= VISIBLE_LINKS_LIMIT ? links : showAll ? links : links.slice(0, VISIBLE_LINKS_LIMIT);
+  const linkMap = visibleLinks.map((link, index) => {
     return <TrLink link={link as TrLinkProps} key={index} />;
   });
 
   return (
     <div className={styles["test-result-links"]} data-testid="test-result-meta-links">
       <div className={styles["test-result-links-wrapper"]}>
-        <MetadataButton isOpened={isOpened} setIsOpen={setIsOpen} counter={links.length} title={t("links")} />
-        {isOpened && <div className={styles["test-result-links-list"]}>{linkMap}</div>}
+        <MetadataButton
+          isOpened={isOpened}
+          setIsOpen={() => {
+            if (linksId !== null) {
+              toggleTree(linksId);
+            }
+          }}
+          counter={links.length}
+          title={t("links")}
+        />
+        {isOpened && (
+          <>
+            <div className={styles["test-result-links-list"]}>{linkMap}</div>
+            {links.length > VISIBLE_LINKS_LIMIT && (
+              <Button
+                style="ghost"
+                size="s"
+                text={showAll ? t("showLess") : t("showMore")}
+                onClick={() => {
+                  if (linksShowAllId !== null) {
+                    toggleTree(linksShowAllId);
+                  }
+                }}
+              />
+            )}
+          </>
+        )}
       </div>
     </div>
   );

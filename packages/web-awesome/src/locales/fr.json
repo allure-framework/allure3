@@ -153,6 +153,8 @@
     "at": "à",
     "variables": "Variables",
     "openPwTrace": "Ouvrir Playwright Trace",
+    "pwTracePopupBlocked": "Le navigateur a bloqué l’ouverture de Playwright Trace Viewer.",
+    "pwTracePopupBlockedHint": "Autorisez les pop-ups et réessayez.",
     "finishedAtOriginal": "{{formattedCreatedAt}}, avec le code de sortie {{original}}",
     "finishedAtBoth": "{{formattedCreatedAt}}, avec le code de sortie {{actual}} (original {{original}})"
   },
@@ -161,6 +163,9 @@
     "nextTR": "Résultat de test suivant",
     "prevTR": "Résultat de test précédent",
     "downloadAttachment": "Télécharger la pièce jointe",
+    "previewAttachment": "Aperçu",
+    "viewCode": "Voir le code",
+    "syntaxHighlight": "Coloration syntaxique",
     "backto": "Retour à",
     "clipboard": "Copier dans le presse-papier",
     "clipboardError": "Erreur. Il semble que cette fonctionnalité ne soit pas prise en charge par votre navigateur",
