@@ -87,6 +87,8 @@ export const ReportQualityGateResults = () => {
                     isOpened={isOpened}
                     setIsOpen={toggleEnv}
                     title={`${tEnvironments("environment", { count: 1 })}: "${env}"`}
+                    titleTooltipText={env}
+                    truncateTitle
                     counter={envResults.length}
                     data-testid={"quality-gate-results-section-env-button"}
                   />

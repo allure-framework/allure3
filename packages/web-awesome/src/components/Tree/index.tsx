@@ -134,6 +134,8 @@ export const TreeList = () => {
                       isOpened={isOpened}
                       setIsOpen={toggleEnv}
                       title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      titleTooltipText={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      truncateTitle
                       counter={total}
                       data-testid={"tree-section-env-button"}
                     />

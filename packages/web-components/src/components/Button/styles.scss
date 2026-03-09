@@ -55,6 +55,10 @@
     max-width: 100%;
   }
 
+  &.textTruncatedButton {
+    min-width: 0;
+  }
+
   &:disabled .contentIcon,
   &:disabled .leadingIcon,
   &:disabled .dropdownIcon {
@@ -648,6 +652,11 @@
   user-select: none;
 }
 
+.textTruncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pending .text,
 .pending .leadingIcon,
 .pending .dropdownIcon,
@@ -663,6 +672,7 @@
   position: relative;
   user-select: none;
   gap: var(--allure-btn-gap);
+  min-width: 0;
 }
 
 .leadingSlot {

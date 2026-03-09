@@ -64,18 +64,18 @@
     "collapse": "طي",
     "expand": "توسيع",
     "fullscreen": "ملء الشاشة",
-    "language": "تغيير اللغة"
+    "language": "اللغة"
   },
   "errors": {
     "missedAttachment": "المرفق غير موجود",
     "notFound": "غير موجود"
   },
   "marks": {
-    "flaky": "متقلب",
+    "flaky": "غير مستقر",
     "newBroken": "معطل جديد",
-    "newFailed": "فاشل جديد",
+    "newFailed": "فشل جديد",
     "newPassed": "ناجح جديد",
-    "retriesStatusChange": "تغيرت الحالة بعد الإعادة"
+    "retriesStatusChange": "تغير الحالة بعد الإعادة"
   },
   "sorter": {
     "duration": "المدة",
@@ -85,9 +85,9 @@
   },
   "status": {
     "broken": "معطل",
-    "failed": "فاشل",
+    "failed": "فشل",
     "passed": "ناجح",
-    "skipped": "تم تخطيه",
+    "skipped": "تم تجاوزه",
     "unknown": "غير معروف"
   },
   "tab": {
@@ -120,13 +120,13 @@
       "name": "المدة"
     },
     "execution": {
-      "body": "جسم الاختبار",
+      "body": "محتوى الاختبار",
       "downloadAttachment": {
         "tooltip": "فتح المرفق في علامة تبويب جديدة"
       },
       "name": "التنفيذ",
-      "setup": "الإعداد",
-      "teardown": "التفكيك"
+      "setup": "تجهيز",
+      "teardown": "تنظيف"
     },
     "history": {
       "empty": "لا تتوفر معلومات عن السجل.",
@@ -148,14 +148,14 @@
       "name": "المعاملات"
     },
     "retries": {
-      "empty": "لا تتوفر معلومات عن إعادات الاختبار",
-      "name": "الإعادات",
+      "empty": "لا تتوفر معلومات عن محاولات إعادة الاختبار",
+      "name": "محاولات الإعادة",
       "time": "{{date}} في {{time}}"
     },
     "severity": {
       "name": "الخطورة",
-      "blocker": "حاجب",
-      "critical": "حرج",
+      "blocker": "مانع",
+      "critical": "خطورة عالية",
       "normal": "عادي",
       "minor": "ثانوي",
       "trivial": "بسيط"
@@ -203,7 +203,7 @@
       "name": "عمليات الإطلاق"
     },
     "retryTrend": {
-      "name": "اتجاه الإعادات"
+      "name": "اتجاه محاولات الإعادة"
     },
     "suites": {
       "name": "مجموعات الاختبار"
