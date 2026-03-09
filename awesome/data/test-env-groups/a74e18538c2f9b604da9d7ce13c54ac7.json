@@ -1,0 +1,1 @@
+{"id":"a74e18538c2f9b604da9d7ce13c54ac7","fullName":"test/utils/environment.test.ts#assertValidEnvironmentName throws with source details","name":"throws with source details","status":"passed","testResultsByEnv":{"windows-latest":"e01dcc0faea530a7c09388cc8755d99b","ubuntu-latest":"a61fbf1549112d4dff4a4a5dfaf64152","macos-latest":"c0fa7a6b9e6d3666888a530cb681bc6f"}}
