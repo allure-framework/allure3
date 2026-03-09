@@ -1,19 +1,19 @@
 {
   "statuses": {
     "passed": "ناجح",
-    "failed": "فاشل",
+    "failed": "فشل",
     "broken": "معطل",
-    "skipped": "تم تخطيه",
+    "skipped": "تم تجاوزه",
     "unknown": "غير معروف",
     "total": "الإجمالي",
-    "flakyTests": "متقلب",
+    "flakyTests": "غير مستقر",
     "newTests": "جديد",
-    "retryTests": "إعادة"
+    "retryTests": "إعادة محاولة"
   },
   "testSummary": {
     "all": "كل الاختبارات",
-    "flaky": "اختبار متقلب",
-    "retry": "اختبار مُعاد",
+    "flaky": "اختبار غير مستقر",
+    "retry": "اختبار مُعاد محاولته",
     "new": "اختبار جديد"
   },
   "tabs": {
@@ -26,8 +26,8 @@
   "filters": {
     "more-filters": "فلاتر إضافية",
     "enable-filter": "تفعيل فلتر \"{{filter}}\"",
-    "flaky": "متقلب",
-    "retry": "إعادة",
+    "flaky": "غير مستقر",
+    "retry": "إعادة محاولة",
     "new": "جديد"
   },
   "sort-by": {
@@ -66,31 +66,31 @@
     "clear-filters": "مسح الفلاتر",
     "no-attachments-results": "لا تتوفر معلومات عن المرفقات",
     "no-history-results": "لا تتوفر معلومات عن السجل",
-    "no-retries-results": "لا تتوفر معلومات عن الإعادات"
+    "no-retries-results": "لا تتوفر معلومات عن محاولات الإعادة"
   },
   "severity": {
-    "blocker": "حاجب",
-    "critical": "حرج",
+    "blocker": "مانع",
+    "critical": "خطورة عالية",
     "normal": "عادي",
     "minor": "ثانوي",
     "trivial": "بسيط"
   },
   "execution": {
     "name": "التنفيذ",
-    "body": "جسم الاختبار",
-    "setup": "الإعداد",
-    "teardown": "التفكيك"
+    "body": "محتوى الاختبار",
+    "setup": "تجهيز",
+    "teardown": "تنظيف"
   },
   "ui": {
     "labels": "التصنيفات",
-    "metadata": "البيانات الوصفية",
+    "metadata": "بيانات وصفية",
     "parameters": "المعاملات",
     "description": "الوصف",
     "links": "الروابط",
     "overview": "نظرة عامة",
     "history": "السجل",
     "attachments": "المرفقات",
-    "retries": "الإعادات",
+    "retries": "محاولات الإعادة",
     "error": "خطأ",
     "goToStep": "انتقل إلى الخطوة",
     "showLess": "عرض أقل",
@@ -111,7 +111,7 @@
     "collapse": "طي",
     "expand": "توسيع",
     "fullscreen": "ملء الشاشة",
-    "language": "تغيير اللغة",
+    "language": "اللغة",
     "openInNewTab": "فتح في علامة تبويب جديدة"
   },
   "errors": {

@@ -1,9 +1,9 @@
 {
   "statuses": {
     "passed": "ناجح",
-    "failed": "فاشل",
+    "failed": "فشل",
     "broken": "معطل",
-    "skipped": "تم تخطيه",
+    "skipped": "تم تجاوزه",
     "unknown": "غير معروف",
     "total": "الإجمالي"
   },
@@ -12,8 +12,8 @@
     "no-history-results": "لا تتوفر معلومات عن السجل"
   },
   "severity": {
-    "blocker": "حاجب",
-    "critical": "حرج",
+    "blocker": "مانع",
+    "critical": "خطورة عالية",
     "normal": "عادي",
     "minor": "ثانوي",
     "trivial": "بسيط"
@@ -47,16 +47,16 @@
         "new_zero": "لا توجد اختبارات جديدة",
         "new_one": "{{count}} اختبار جديد",
         "new_other": "{{count}} اختبارات جديدة",
-        "flaky_zero": "لا توجد اختبارات متقلبة",
-        "flaky_one": "{{count}} اختبار متقلب",
-        "flaky_other": "{{count}} اختبارات متقلبة",
-        "retries_zero": "لا توجد اختبارات مُعادة",
-        "retries_one": "{{count}} اختبار مُعاد",
-        "retries_other": "{{count}} اختبارات مُعادة"
+        "flaky_zero": "لا توجد اختبارات غير مستقرة",
+        "flaky_one": "{{count}} اختبار غير مستقر",
+        "flaky_other": "{{count}} اختبارات غير مستقرة",
+        "retries_zero": "لا توجد اختبارات مُعاد محاولتها",
+        "retries_one": "{{count}} اختبار مُعاد محاولته",
+        "retries_other": "{{count}} اختبارات مُعاد محاولتها"
       }
     },
     "statusDynamics": {
-      "title": "ديناميكيات الحالة",
+      "title": "تطورات الحالة",
       "status": {
         "passed": "$t(statuses:passed, capitalize)",
         "failed": "$t(statuses:failed, capitalize)",
@@ -124,7 +124,7 @@
       }
     },
     "testBaseGrowthDynamics": {
-      "title": "ديناميكيات نمو قاعدة الاختبارات",
+      "title": "نمو قاعدة الاختبارات",
       "status": {
         "newpassed": "جديد $t(statuses:passed)",
         "newfailed": "جديد $t(statuses:failed)",
@@ -191,7 +191,7 @@
       }
     },
     "durationDynamics": {
-      "title": "ديناميكيات المدة",
+      "title": "تطورات المدة",
       "durations": {
         "sequential": "المدة التسلسلية",
         "duration": "مدة الاختبار",
@@ -215,13 +215,13 @@
   "transitions": {
     "description": {
       "new": "أول ظهور لنتيجة الاختبار هذه في التقرير",
-      "fixed": "اختبار كان \"فاشلاً\" أو \"معطلاً\" سابقاً وأصبح الآن \"ناجحاً\"",
-      "regressed": "اختبار كان \"ناجحاً\" أو \"معطلاً\" سابقاً وأصبح الآن \"فاشلاً\"",
-      "malfunctioned": "اختبار كان \"ناجحاً\" أو \"فاشلاً\" سابقاً وأصبح الآن \"معطلاً\""
+      "fixed": "اختبار كان \"فشل\" أو \"معطل\" سابقاً وأصبح الآن \"ناجح\"",
+      "regressed": "اختبار كان \"ناجح\" أو \"معطل\" سابقاً وأصبح الآن \"فشل\"",
+      "malfunctioned": "اختبار كان \"ناجح\" أو \"فشل\" سابقاً وأصبح الآن \"معطل\""
     },
     "new": "جديد",
-    "fixed": "تم إصلاحه",
+    "fixed": "تم الإصلاح",
     "regressed": "تراجع",
-    "malfunctioned": "خلل"
+    "malfunctioned": "خلل وظيفي"
   }
 }
