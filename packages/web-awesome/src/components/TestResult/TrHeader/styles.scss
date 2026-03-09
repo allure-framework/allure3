@@ -42,6 +42,7 @@
   margin-left: auto;
   display: flex;
   gap: 4px;
+  min-width: 0;
 }
 .test-result-breadcrumb-arrow {
   transform: rotate(-90deg);
