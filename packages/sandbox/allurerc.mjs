@@ -140,41 +140,41 @@ export default defineConfig({
         reportLanguage: "en",
       },
     },
-    classic: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-      },
-    },
-    awesome: {
-      options: {
-        reportName: "HelloWorld",
-        singleFile: false,
-        reportLanguage: "en",
-        open: false,
-        charts: chartLayout,
-        publish: true,
-      },
-    },
-    dashboard: {
-      options: {
-        singleFile: false,
-        reportName: "HelloWorld-Dashboard",
-        reportLanguage: "en",
-        layout: defaultChartsConfig,
-      },
-    },
-    csv: {
-      options: {
-        fileName: "allure-report.csv",
-      },
-    },
-    log: {
-      options: {
-        groupBy: "none",
-      },
-    },
+    // classic: {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //   },
+    // },
+    // awesome: {
+    //   options: {
+    //     reportName: "HelloWorld",
+    //     singleFile: false,
+    //     reportLanguage: "en",
+    //     open: false,
+    //     charts: chartLayout,
+    //     publish: true,
+    //   },
+    // },
+    // dashboard: {
+    //   options: {
+    //     singleFile: false,
+    //     reportName: "HelloWorld-Dashboard",
+    //     reportLanguage: "en",
+    //     layout: defaultChartsConfig,
+    //   },
+    // },
+    // csv: {
+    //   options: {
+    //     fileName: "allure-report.csv",
+    //   },
+    // },
+    // log: {
+    //   options: {
+    //     groupBy: "none",
+    //   },
+    // },
   },
   variables: {
     env_variable: "unknown",

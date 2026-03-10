@@ -1,4 +1,5 @@
 packages/*/src/assets/data/test-results/**
+packages/plugin-allure2/static/**
 **/*.hbs
 **/dist/**
 out/**

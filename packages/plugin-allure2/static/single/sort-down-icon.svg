@@ -1,0 +1,8 @@
+export default {
+      id: "sort-down-icon--inline-usage",
+      viewBox: "0 0 512 512",
+      url: __webpack_public_path__ + "/Users/epszaw/Code/Work/qameta/allure3/packages/web-allure2/src/blocks/table/sort-down-icon.svg",
+      toString: function () {
+        return this.url;
+      }
+    }

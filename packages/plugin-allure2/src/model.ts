@@ -156,6 +156,7 @@ export type Allure2Options = {
   reportName?: string;
   singleFile?: boolean;
   reportLanguage?: string;
+  createdAt?: number;
 };
 
 export type Allure2PluginOptions = Allure2Options;

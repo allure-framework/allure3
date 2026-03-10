@@ -1,0 +1,8 @@
+export default {
+      id: "checkmark--inline-usage",
+      viewBox: "0 0 14 15",
+      url: __webpack_public_path__ + "/Users/epszaw/Code/Work/qameta/allure3/packages/web-allure2/src/components/language-select/checkmark.svg",
+      toString: function () {
+        return this.url;
+      }
+    }
