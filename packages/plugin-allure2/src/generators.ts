@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { AttachmentLink, HistoryDataPoint, Statistic } from "@allurereport/core-api";
 import {
@@ -11,9 +11,10 @@ import {
   createStylesLinkTag,
 } from "@allurereport/core-api";
 import type { ReportFiles, ResultFile } from "@allurereport/plugin-api";
-import type { Allure2ReportOptions } from "@allurereport/web-allure2";
+import { findUp } from "find-up";
 import Handlebars from "handlebars";
 
+import type { Allure2Options } from "./model.js";
 import type {
   Allure2Category,
   Allure2ExecutorInfo,
@@ -27,8 +28,6 @@ import type { Classifier, TreeLayer } from "./tree.js";
 import { byLabels, collapseTree, createTree, createWidget } from "./tree.js";
 import { updateStatistic, updateTime } from "./utils.js";
 import type { Allure2DataWriter, ReportFile } from "./writer.js";
-
-const require = createRequire(import.meta.url);
 
 export type TemplateManifest = Record<string, string>;
 
@@ -72,13 +71,22 @@ const template = `<!DOCTYPE html>
 </html>
 `;
 
-export const readTemplateManifest = async (singleFileMode?: boolean): Promise<TemplateManifest> => {
-  const templateManifestSource = require.resolve(
-    `@allurereport/web-allure2/dist/${singleFileMode ? "single" : "multi"}/manifest.json`,
-  );
-  const templateManifest = await readFile(templateManifestSource, { encoding: "utf-8" });
+export const getPackageRoot = async (): Promise<string> => {
+  const packageJsonPath = await findUp("package.json", {
+    cwd: dirname(fileURLToPath(import.meta.url)),
+  });
 
-  return JSON.parse(templateManifest);
+  return dirname(packageJsonPath!);
+};
+
+export const readTemplateManifest = async (
+  packageRoot: string,
+  singleFileMode?: boolean,
+): Promise<TemplateManifest> => {
+  const templateManifestPath = join(packageRoot, "static", singleFileMode ? "single" : "multi", "manifest.json");
+  const templateManifest = await readFile(templateManifestPath, { encoding: "utf-8" });
+
+  return JSON.parse(templateManifest) as TemplateManifest;
 };
 
 export const readManifestEntry = async (options: {
@@ -87,9 +95,10 @@ export const readManifestEntry = async (options: {
   mimeType: string;
   reportFiles: ReportFiles;
   inserter: (content: string) => string;
+  packageRoot: string;
 }) => {
-  const { fileName, singleFile, mimeType, inserter, reportFiles } = options;
-  const filePath = require.resolve(join("@allurereport/web-allure2/dist", singleFile ? "single" : "multi", fileName));
+  const { fileName, singleFile, mimeType, inserter, reportFiles, packageRoot } = options;
+  const filePath = join(packageRoot, "static", singleFile ? "single" : "multi", fileName);
   const scriptContentBuffer = await readFile(filePath);
 
   if (singleFile) {
@@ -110,15 +119,15 @@ export const generateStaticFiles = async (payload: {
   reportDataFiles: ReportFile[];
   reportUuid: string;
 }) => {
+  const packageRoot = await getPackageRoot();
   const { reportName, reportLanguage, singleFile, reportFiles, reportDataFiles, reportUuid, allureVersion } = payload;
   const compile = Handlebars.compile(template);
-  const manifest = await readTemplateManifest(singleFile);
+  const manifest = await readTemplateManifest(packageRoot, singleFile);
   const headTags: string[] = [];
   const bodyTags: string[] = [];
 
   for (const key in manifest) {
     const fileName = manifest[key];
-    const filePath = require.resolve(join("@allurereport/web-allure2/dist", singleFile ? "single" : "multi", fileName));
 
     if (key === "favicon.ico") {
       const tag = await readManifestEntry({
@@ -127,6 +136,7 @@ export const generateStaticFiles = async (payload: {
         reportFiles,
         inserter: createFaviconLinkTag,
         mimeType: "image/x-icon",
+        packageRoot,
       });
 
       headTags.push(tag);
@@ -140,6 +150,7 @@ export const generateStaticFiles = async (payload: {
         reportFiles,
         inserter: createStylesLinkTag,
         mimeType: "text/css",
+        packageRoot,
       });
 
       headTags.push(tag);
@@ -153,6 +164,7 @@ export const generateStaticFiles = async (payload: {
         reportFiles,
         inserter: createScriptTag,
         mimeType: "text/javascript",
+        packageRoot,
       });
 
       bodyTags.push(tag);
@@ -164,12 +176,13 @@ export const generateStaticFiles = async (payload: {
       continue;
     }
 
+    const filePath = join(packageRoot, "static", singleFile ? "single" : "multi", fileName);
     const fileContent = await readFile(filePath);
 
     await reportFiles.addFile(basename(filePath), fileContent);
   }
 
-  const reportOptions: Allure2ReportOptions = {
+  const reportOptions: Allure2Options = {
     reportName: reportName ?? "Allure Report",
     reportLanguage: reportLanguage ?? "en",
     createdAt: Date.now(),
