@@ -163,6 +163,36 @@ export class TestOpsClient {
     this.#session = data;
   }
 
+  async createEnvironments(params: { environments: string[]; onProgress?: () => void }) {
+    if (!this.#session) {
+      throw new Error("Session isn't created! Call createSession first");
+    }
+
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    for (const env of params.environments) {
+      await this.#client.post(
+        "/api/launch/named-env",
+        {
+          launchId: this.#launch.id,
+          externalId: env,
+          // TODO: complete once https://github.com/allure-framework/allure3/pull/536 will be done
+          name: env,
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${this.#oauthToken}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      params?.onProgress?.();
+    }
+  }
+
   async uploadTestResults(params: {
     trs: TestResult[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;
