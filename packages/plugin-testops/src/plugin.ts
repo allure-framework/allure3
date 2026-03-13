@@ -92,21 +92,6 @@ export class TestopsPlugin implements Plugin {
 
     await this.#client!.createSession(env);
 
-    if (newEnvironments.length > 0) {
-      const environmentsProgressBar = new ProgressBar("Creating detected environments [:bar] :current/:total", {
-        total: newEnvironments.length,
-        width: 20,
-      });
-
-      environmentsProgressBar.render();
-
-      // TODO: complete the upload logic here
-      await this.#client?.createEnvironments({
-        environments: newEnvironments,
-        onProgress: () => environmentsProgressBar.tick(),
-      });
-    }
-
     const trsProgressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
       total: allTrsWithAttachments.length,
       width: 20,

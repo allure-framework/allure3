@@ -5,7 +5,7 @@ import FormData from "form-data";
 import chunk from "lodash.chunk";
 import pLimit from "p-limit";
 
-import type { TestOpsLaunch, TestOpsSession } from "./model.js";
+import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
 
 export class TestOpsClient {
   #accessToken: string;
@@ -16,6 +16,7 @@ export class TestOpsClient {
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
+  #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: { baseUrl: string; projectId: string; accessToken: string; limit?: number }) {
     if (!params.accessToken) {
@@ -163,7 +164,7 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  async createEnvironments(params: { environments: string[]; onProgress?: () => void }) {
+  async createNamedEnvs(environments: string[]) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -172,25 +173,27 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    for (const env of params.environments) {
-      await this.#client.post(
-        "/api/launch/named-env",
-        {
-          launchId: this.#launch.id,
+    const { data } = await this.#client.post<TestOpsNamedEnv[]>(
+      "/api/launch/named-env/bulk",
+      {
+        launchId: this.#launch.id,
+        items: environments.map((env) => ({
           externalId: env,
           // TODO: complete once https://github.com/allure-framework/allure3/pull/536 will be done
           name: env,
+        })),
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${this.#oauthToken}`,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Authorization": `Bearer ${this.#oauthToken}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      },
+    );
 
-      params?.onProgress?.();
-    }
+    data.forEach((env) => {
+      this.#namedEnvsIdsByEnv.set(env.externalId, env);
+    });
   }
 
   async uploadTestResults(params: {
@@ -209,15 +212,37 @@ export class TestOpsClient {
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
+        const chunkEnvs: Set<string> = new Set();
+
+        for (const tr of trsChunk) {
+          if (tr.environment && !this.#namedEnvsIdsByEnv.has(tr.environment)) {
+            chunkEnvs.add(tr.environment);
+          }
+        }
+
+        // small optimization to prevent creating named environments on every test result processing
+        if (chunkEnvs.size > 0) {
+          await this.createNamedEnvs(Array.from(chunkEnvs));
+        }
+
         const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
           "/api/upload/test-result",
           {
             testSessionId: this.#session!.id,
-            results: trsChunk.map((tr) => ({
-              ...tr,
-              // need to assign uuid explicitly because it's not provided by default
-              uuid: tr.id,
-            })),
+            results: trsChunk.map((tr) => {
+              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
+
+              return {
+                ...tr,
+                // need to assign uuid explicitly because it's not provided by default
+                uuid: tr.id,
+                namedEnv: namedEnv
+                  ? {
+                      id: namedEnv.id,
+                    }
+                  : undefined,
+              };
+            }),
           },
           {
             headers: {

@@ -3,7 +3,7 @@ import FormData from "form-data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TestOpsClient } from "../src/client.js";
-import type { TestOpsLaunch } from "../src/model.js";
+import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
 import { AxiosMock, BASE_URL } from "./utils.js";
 
 const fixtures = {
@@ -420,6 +420,93 @@ describe("testops http client", () => {
     });
   });
 
+  describe("createNamedEnvs", () => {
+    it("should throw an error when session hasn't been created before", async () => {
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow(
+        "Session isn't created! Call createSession first",
+      );
+    });
+
+    it("should throw an error when launch hasn't been created before", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow();
+    });
+
+    it("should post environments to /api/launch/named-env/bulk", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.createNamedEnvs(["chrome", "firefox"]);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/named-env/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { externalId: "chrome", name: "chrome" },
+            { externalId: "firefox", name: "firefox" },
+          ],
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${fixtures.ouathToken}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    });
+  });
+
   describe("uploadTestResults", () => {
     it("should throw an error when session hasn't been initialized before", async () => {
       const client = new TestOpsClient({
@@ -541,6 +628,190 @@ describe("testops http client", () => {
       });
 
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
+    });
+
+    it("should create named environments for test results with environment field", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: fixtures.testOpsResults.slice(0, 2) } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const trsWithEnv = [
+        { ...fixtures.testResults[0], environment: "chrome" } as TestResult,
+        { ...fixtures.testResults[1], environment: "firefox" } as TestResult,
+      ];
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: trsWithEnv,
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/named-env/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { externalId: "chrome", name: "chrome" },
+            { externalId: "firefox", name: "firefox" },
+          ],
+        },
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${fixtures.ouathToken}`,
+          }),
+        }),
+      );
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/test-result",
+        expect.objectContaining({
+          results: expect.arrayContaining([
+            expect.objectContaining({ uuid: "0-0-0-0", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", namedEnv: { id: 11 } }),
+          ]),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("should not create named environments when test results have no environment", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: fixtures.testOpsResults } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: fixtures.testResults,
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const namedEnvCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/launch/named-env/bulk");
+
+      expect(namedEnvCalls).toHaveLength(0);
+    });
+
+    it("should not re-create named environments that were already created", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [fixtures.testOpsResults[0]] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [{ ...fixtures.testResults[0], environment: "chrome" } as TestResult],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      vi.clearAllMocks();
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [fixtures.testOpsResults[1]] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      await client.uploadTestResults({
+        trs: [{ ...fixtures.testResults[1], environment: "chrome" } as TestResult],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const namedEnvCalls = AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/launch/named-env/bulk");
+
+      expect(namedEnvCalls).toHaveLength(0);
     });
 
     it("should resolve fixtures and upload them", async () => {
