@@ -14,8 +14,8 @@ import ProgressBar from "progress";
 
 import { TestOpsClient } from "./client.js";
 import type { TestopsPluginOptions } from "./model.js";
-import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 import { toUploadCategory } from "./uploadCategory.js";
+import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 const LOG_PREFIX = "\x1b[92m[plugin-testops]\x1b[0m ";
 
@@ -132,7 +132,15 @@ export class TestopsPlugin implements Plugin {
     if (launchId != null) {
       const byExternalId = new Map<string, string>();
       for (const tr of allTrsWithAttachments) {
-        const cat = (tr as { category?: { externalId: string; name?: string; grouping?: { key?: string; value?: string; name?: string }[] } }).category;
+        const cat = (
+          tr as {
+            category?: {
+              externalId: string;
+              name?: string;
+              grouping?: { key?: string; value?: string; name?: string }[];
+            };
+          }
+        ).category;
         if (cat?.externalId) {
           byExternalId.set(
             cat.externalId,
@@ -150,12 +158,14 @@ export class TestopsPlugin implements Plugin {
             if (cat?.externalId) {
               const id = idByExternalId.get(cat.externalId);
               if (id != null) {
-                (tr as { category: { externalId: string; grouping?: unknown[]; id?: number } }).category = { ...cat, id };
+                (tr as { category: { externalId: string; grouping?: unknown[]; id?: number } }).category = {
+                  ...cat,
+                  id,
+                };
               }
             }
           }
-        } catch (err) {
-        }
+        } catch (err) {}
       }
     }
 
@@ -262,8 +272,7 @@ export class TestopsPlugin implements Plugin {
     if (launchId != null) {
       try {
         await this.#client.closeLaunch(launchId);
-      } catch (err) {
-      }
+      } catch (err) {}
     }
     // eslint-disable-next-line no-console
     console.info(`${LOG_PREFIX}Upload finished. Launch:`, this.#client.launchUrl);

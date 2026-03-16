@@ -532,10 +532,9 @@ describe("testops plugin", () => {
 
         await plugin.start(context, store);
 
-        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(
-          123,
-          [{ externalId: "Product errors", name: "Product errors" }],
-        );
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "Product errors", name: "Product errors" },
+        ]);
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
           expect.objectContaining({
             trs: [
@@ -599,18 +598,14 @@ describe("testops plugin", () => {
       it("should use tr.categories when present (e.g. from awesome plugin)", async () => {
         const trWithCategories = {
           ...fixtures.testResults[0],
-          categories: [
-            { name: "Product errors", grouping: [{ key: "owner", value: "alice", name: "owner: alice" }] },
-          ],
+          categories: [{ name: "Product errors", grouping: [{ key: "owner", value: "alice", name: "owner: alice" }] }],
         };
         AllureStoreMock.prototype.allTestResults.mockResolvedValue([trWithCategories]);
         AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
-          { id: 2, externalId: "cat-1" },
-        ]);
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "cat-1" }]);
 
         await plugin.start({} as PluginContext, store);
 

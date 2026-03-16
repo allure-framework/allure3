@@ -109,16 +109,12 @@ export class TestOpsClient {
     console.info(`${LOG_PREFIX}Creating ${items.length} launch categor(ies)…`);
     // eslint-disable-next-line no-console
     console.info(`${LOG_PREFIX}POST /api/launch/category/bulk request:`, JSON.stringify(body, null, 2));
-    const { data } = await this.#client.post<{ id: number; externalId: string }[]>(
-      "/api/launch/category/bulk",
-      body,
-      {
-        headers: {
-          "Authorization": `Bearer ${this.#oauthToken}`,
-          "Content-Type": "application/json",
-        },
+    const { data } = await this.#client.post<{ id: number; externalId: string }[]>("/api/launch/category/bulk", body, {
+      headers: {
+        "Authorization": `Bearer ${this.#oauthToken}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
     return Array.isArray(data) ? data : [];
   }
 
