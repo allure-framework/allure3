@@ -17,12 +17,12 @@ export const createFaviconLinkTag = (src: string) => {
 export const createBaseUrlScript = () => {
   return `
     <script>
-      const { origin, pathname } = window.location; 
+      const { origin, pathname } = window.location;
       const url = new URL(pathname, origin);
       const baseEl = document.createElement("base");
-      
+
       baseEl.href = url.toString();
-      
+
       window.document.head.appendChild(baseEl);
     </script>
   `;

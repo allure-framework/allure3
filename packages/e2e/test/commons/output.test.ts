@@ -181,8 +181,20 @@ test.describe("output", () => {
     expect(reportTwoAttachmentFiles).toHaveLength(1);
     expect(reportOneAttachmentFiles[0]).toBe(reportTwoAttachmentFiles[0]);
 
-    const reportOneAttachmentPath = resolve(bootstrap.reportDir, "awesome1", "data", "attachments", reportOneAttachmentFiles[0]);
-    const reportTwoAttachmentPath = resolve(bootstrap.reportDir, "awesome2", "data", "attachments", reportTwoAttachmentFiles[0]);
+    const reportOneAttachmentPath = resolve(
+      bootstrap.reportDir,
+      "awesome1",
+      "data",
+      "attachments",
+      reportOneAttachmentFiles[0],
+    );
+    const reportTwoAttachmentPath = resolve(
+      bootstrap.reportDir,
+      "awesome2",
+      "data",
+      "attachments",
+      reportTwoAttachmentFiles[0],
+    );
 
     expect(await readFile(reportOneAttachmentPath, "utf8")).toBe("global-shared-content");
     expect(await readFile(reportTwoAttachmentPath, "utf8")).toBe("global-shared-content");
