@@ -173,4 +173,24 @@ describe("awesome command", () => {
       historyPath: undefined,
     });
   });
+
+  it("should pass single-file mode to the awesome plugin", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(AwesomeCommand, ["awesome", "--single-file", "./allure-results"]);
+
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "awesome",
+            options: expect.objectContaining({
+              singleFile: true,
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
 });

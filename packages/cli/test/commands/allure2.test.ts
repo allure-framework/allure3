@@ -167,4 +167,24 @@ describe("allure2 command", () => {
       historyPath: undefined,
     });
   });
+
+  it("should pass single-file mode to the allure2 plugin", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(Allure2Command, ["allure2", "--single-file", "./allure-results"]);
+
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "allure2",
+            options: expect.objectContaining({
+              singleFile: true,
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
 });

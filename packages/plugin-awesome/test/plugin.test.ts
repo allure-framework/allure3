@@ -302,6 +302,11 @@ describe("plugin", () => {
 
       expect(indexHtml).toContain("widgets/default/tree.json");
       expect(indexHtml).toContain("widgets/default/nav.json");
+      expect(indexHtml).toContain("window.allureReportData[");
+      expect(indexHtml).not.toContain('src="main.js"');
+      expect(indexHtml).not.toContain('href="main.css"');
+      expect(indexHtml).not.toContain("widgets\\\\default\\\\tree.json");
+      expect(indexHtml).not.toContain("widgets\\\\default\\\\nav.json");
       expect(indexHtml).not.toContain("widgets/default\\\\tree.json");
       expect(indexHtml).not.toContain("widgets/default\\\\nav.json");
     });

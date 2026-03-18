@@ -168,4 +168,24 @@ describe("classic command", () => {
       historyPath: undefined,
     });
   });
+
+  it("should pass single-file mode to the classic plugin", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    (readConfig as Mock).mockResolvedValueOnce({});
+
+    await run(ClassicCommand, ["classic", "--single-file", "./allure-results"]);
+
+    expect(AllureReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          expect.objectContaining({
+            id: "classic",
+            options: expect.objectContaining({
+              singleFile: true,
+            }),
+          }),
+        ]),
+      }),
+    );
+  });
 });
