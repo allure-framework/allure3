@@ -397,6 +397,8 @@ export class TestOpsClient {
   async #uploadFixturesForResult(testOpsResultId: number, fixtures: unknown[]): Promise<void> {
     if (fixtures.length === 0) return;
 
-    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, { fixtures });
+    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
+      fixtures,
+    });
   }
 }

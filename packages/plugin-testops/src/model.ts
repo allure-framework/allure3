@@ -13,6 +13,13 @@ export type UploadCategory = {
   grouping?: UploadCategoryGrouping[];
 };
 
+export type TestResultWithCategories = Pick<
+  TestResult,
+  "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
+> & {
+  categories?: { name: string; grouping?: UploadCategoryGrouping[] }[];
+};
+
 export type TestResultWithUploadCategory = TestResult & {
   category?: UploadCategory & { id?: number };
 };

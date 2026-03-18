@@ -1,14 +1,7 @@
 import type { CategoryDefinition, CategoryGroupSelector, TestResult } from "@allurereport/core-api";
 import { EMPTY_VALUE, extractErrorMatchingData, findLastByLabelName, matchCategory } from "@allurereport/core-api";
 
-import type { UploadCategory } from "./model.js";
-
-type TrWithCategories = Pick<
-  TestResult,
-  "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
-> & {
-  categories?: { name: string; grouping?: { key: string; value?: string; name?: string }[] }[];
-};
+import type { TestResultWithCategories, UploadCategory } from "./model.js";
 
 const formatGroupName = (key: string, value: string) => `${key}: ${value === EMPTY_VALUE ? `No ${key}` : value}`;
 
@@ -68,7 +61,7 @@ const buildGrouping = (
   return category.groupBy.map((sel) => groupValue(sel, tr));
 };
 
-const fromContext = (tr: TrWithCategories, categories: CategoryDefinition[]): UploadCategory | undefined => {
+const fromContext = (tr: TestResultWithCategories, categories: CategoryDefinition[]): UploadCategory | undefined => {
   if (!categories.length) {
     return undefined;
   }
@@ -84,7 +77,7 @@ const fromContext = (tr: TrWithCategories, categories: CategoryDefinition[]): Up
 };
 
 export const toUploadCategory = (
-  tr: TrWithCategories,
+  tr: TestResultWithCategories,
   contextCategories: CategoryDefinition[],
 ): UploadCategory | undefined => {
   const c = tr.categories?.[0];
