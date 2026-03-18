@@ -113,7 +113,7 @@ jobs:
       - name: Generate report
         run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
       - name: Allure Report Official
-        uses: allure-framework/allure-action@v0
+        uses: allure-framework/allure-action@41bde8f6c5d6ac8d86c75d64665b96a3d58fd978
         with:
           report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
