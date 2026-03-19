@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "status": {
+      "passed": "通過",
+      "failed": "失敗",
+      "broken": "損壞",
+      "skipped": "跳過",
+      "unknown": "未知"
+    },
+    "createdAt": "{{createdAt, timestamp_long_no_seconds}}",
+    "total": "總計",
+    "in": "在",
+    "metadata": {
+      "new_zero": "沒有新的測試",
+      "new_one": "{{count}} 個新的測試",
+      "new_other": "{{count}} 個新的測試",
+      "flaky_zero": "沒有不穩定的測試",
+      "flaky_one": "{{count}} 個不穩定的測試",
+      "flaky_other": "{{count}} 個不穩定的測試",
+      "retry_zero": "沒有重跑的測試",
+      "retry_one": "{{count}} 個重跑的測試",
+      "retry_other": "{{count}} 個重跑的測試"
+    }
+  },
+  "ui": {
+    "at": "於"
+  },
+  "empty": {
+    "no-reports": "未找到報告"
+  }
+}

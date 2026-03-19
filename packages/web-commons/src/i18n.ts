@@ -20,6 +20,7 @@ export const AVAILABLE_LOCALES = [
   "sv",
   "tr",
   "zh",
+  "zh-TW",
 ] as const;
 
 export const DEFAULT_LOCALE = "en";
@@ -192,5 +193,10 @@ export const LANG_LOCALE: Record<
     short: "Zh",
     full: "中文",
     iso: "zh-CN",
+  },
+  "zh-TW": {
+    short: "Zh-TW",
+    full: "繁體中文",
+    iso: "zh-TW",
   },
 };
