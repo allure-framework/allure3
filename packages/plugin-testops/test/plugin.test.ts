@@ -87,6 +87,7 @@ const fixtures = {
 beforeEach(() => {
   vi.clearAllMocks();
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
+  AllureStoreMock.prototype.allEnvironments.mockResolvedValue([]);
 });
 
 describe("testops plugin", () => {
@@ -436,6 +437,18 @@ describe("testops plugin", () => {
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
+    });
+
+    it("should call allEnvironments from the store during upload", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allEnvironments.mockResolvedValue(["chrome", "firefox"]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.allEnvironments).toHaveBeenCalled();
     });
   });
 

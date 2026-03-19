@@ -5,7 +5,7 @@ import FormData from "form-data";
 import chunk from "lodash.chunk";
 import pLimit from "p-limit";
 
-import type { TestOpsLaunch, TestOpsSession } from "./model.js";
+import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
 
 export class TestOpsClient {
   #accessToken: string;
@@ -16,6 +16,7 @@ export class TestOpsClient {
   #session?: TestOpsSession;
   #uploadInProgress: boolean = false;
   #uploadLimit: number = 1;
+  #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
   constructor(params: { baseUrl: string; projectId: string; accessToken: string; limit?: number }) {
     if (!params.accessToken) {
@@ -39,6 +40,14 @@ export class TestOpsClient {
     this.#client = axios.create({
       baseURL: params.baseUrl,
       validateStatus: (status) => status >= 200 && status < 400,
+    });
+
+    this.#client.interceptors.request.use((config) => {
+      if (this.#oauthToken) {
+        config.headers.Authorization = `Bearer ${this.#oauthToken}`;
+      }
+
+      return config;
     });
 
     if (params.limit) {
@@ -71,30 +80,22 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    await this.#client.post<any>(
-      "/api/upload/start",
-      {
-        projectId: this.#projectId,
-        ci: {
-          name: ci.type,
-        },
-        job: {
-          name: ci.jobUid,
-          uid: ci.jobUid,
-        },
-        jobRun: {
-          uid: ci.jobRunUid,
-        },
-        launch: {
-          id: this.#launch.id,
-        },
+    await this.#client.post<any>("/api/upload/start", {
+      projectId: this.#projectId,
+      ci: {
+        name: ci.type,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
+      job: {
+        name: ci.jobUid,
+        uid: ci.jobUid,
       },
-    );
+      jobRun: {
+        uid: ci.jobRunUid,
+      },
+      launch: {
+        id: this.#launch.id,
+      },
+    });
 
     this.#uploadInProgress = true;
   }
@@ -104,40 +105,24 @@ export class TestOpsClient {
       throw new Error("Upload isn't started! Call startUpload first");
     }
 
-    await this.#client.post(
-      "/api/upload/stop",
-      {
-        jobRunUid: ci.jobRunUid,
-        jobUid: ci.jobUid,
-        projectId: this.#projectId,
-        status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
+    await this.#client.post("/api/upload/stop", {
+      jobRunUid: ci.jobRunUid,
+      jobUid: ci.jobUid,
+      projectId: this.#projectId,
+      status,
+    });
 
     this.#uploadInProgress = false;
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {
-    const { data } = await this.#client.post<TestOpsLaunch>(
-      "/api/launch",
-      {
-        name: launchName,
-        projectId: this.#projectId,
-        autoclose: true,
-        external: true,
-        tags: launchTags.map((tag) => ({ name: tag })),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
+    const { data } = await this.#client.post<TestOpsLaunch>("/api/launch", {
+      name: launchName,
+      projectId: this.#projectId,
+      autoclose: true,
+      external: true,
+      tags: launchTags.map((tag) => ({ name: tag })),
+    });
 
     this.#launch = data;
   }
@@ -147,20 +132,43 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<TestOpsSession>(
-      "/api/upload/session?manual=true",
+    const { data } = await this.#client.post<TestOpsSession>("/api/upload/session?manual=true", {
+      launchId: this.#launch.id,
+      environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
+    });
+
+    this.#session = data;
+  }
+
+  async createNamedEnvs(environments: string[]) {
+    if (!this.#session) {
+      throw new Error("Session isn't created! Call createSession first");
+    }
+
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    const { data } = await this.#client.post<TestOpsNamedEnv[]>(
+      "/api/launch/named-env/bulk",
       {
         launchId: this.#launch.id,
-        environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
+        items: environments.map((env) => ({
+          externalId: env,
+          // TODO: complete once https://github.com/allure-framework/allure3/pull/536 will be done
+          name: env,
+        })),
       },
       {
         headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
+          "Content-Type": "application/json",
         },
       },
     );
 
-    this.#session = data;
+    data.forEach((env) => {
+      this.#namedEnvsIdsByEnv.set(env.externalId, env);
+    });
   }
 
   async uploadTestResults(params: {
@@ -179,19 +187,40 @@ export class TestOpsClient {
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
+        const chunkEnvs: Set<string> = new Set();
+
+        for (const tr of trsChunk) {
+          if (tr.environment && !this.#namedEnvsIdsByEnv.has(tr.environment)) {
+            chunkEnvs.add(tr.environment);
+          }
+        }
+
+        // small optimization to prevent creating named environments on every test result processing
+        if (chunkEnvs.size > 0) {
+          await this.createNamedEnvs(Array.from(chunkEnvs));
+        }
+
         const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
           "/api/upload/test-result",
           {
             testSessionId: this.#session!.id,
-            results: trsChunk.map((tr) => ({
-              ...tr,
-              // need to assign uuid explicitly because it's not provided by default
-              uuid: tr.id,
-            })),
+            results: trsChunk.map((tr) => {
+              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
+
+              return {
+                ...tr,
+                // need to assign uuid explicitly because it's not provided by default
+                uuid: tr.id,
+                namedEnv: namedEnv
+                  ? {
+                      id: namedEnv.id,
+                    }
+                  : undefined,
+              };
+            }),
           },
           {
             headers: {
-              "Authorization": `Bearer ${this.#oauthToken}`,
               "Content-Type": "application/json",
             },
           },
@@ -223,7 +252,6 @@ export class TestOpsClient {
                     });
                     await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
                       headers: {
-                        Authorization: `Bearer ${this.#oauthToken}`,
                         ...formData.getHeaders(),
                       },
                     });
@@ -232,17 +260,9 @@ export class TestOpsClient {
               }
 
               if (fixtures.length > 0) {
-                await this.#client.post(
-                  `/api/upload/test-result/${trTestOpsId}/test-fixture-result`,
-                  {
-                    fixtures,
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${this.#oauthToken}`,
-                    },
-                  },
-                );
+                await this.#client.post(`/api/upload/test-result/${trTestOpsId}/test-fixture-result`, {
+                  fixtures,
+                });
               }
 
               onProgress?.();

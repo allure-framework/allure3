@@ -39,3 +39,11 @@ export type TestOpsLaunch = {
 export type TestResultWithAttachments = TestResult & {
   attachments: AttachmentLink[];
 };
+
+export type TestOpsNamedEnv = {
+  id: number;
+  name: string;
+  externalId: string;
+  jobRunId: number;
+  launchId: number;
+};

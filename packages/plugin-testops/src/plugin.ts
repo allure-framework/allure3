@@ -22,6 +22,7 @@ export class TestopsPlugin implements Plugin {
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
+  #createdEnvironments: string[] = [];
 
   constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
@@ -62,6 +63,7 @@ export class TestopsPlugin implements Plugin {
 
   async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
     const { issueNewToken = true } = options ?? {};
+    const newEnvironments = (await store.allEnvironments()).filter((env) => !this.#createdEnvironments.includes(env));
     const allTrs = await store.allTestResults();
     const trsToUpload = allTrs.filter((tr) => {
       const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
@@ -88,17 +90,18 @@ export class TestopsPlugin implements Plugin {
       await this.#client!.issueOauthToken();
     }
 
-    const progressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
+    await this.#client!.createSession(env);
+
+    const trsProgressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
       total: allTrsWithAttachments.length,
       width: 20,
     });
 
-    progressBar.render();
+    trsProgressBar.render();
 
-    await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
-      onProgress: () => progressBar.tick(),
+      onProgress: () => trsProgressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
 
