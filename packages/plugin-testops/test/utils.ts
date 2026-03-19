@@ -33,5 +33,10 @@ export const AxiosMock = {
   defaults: {
     baseURL: BASE_URL,
   },
+  interceptors: {
+    request: {
+      use: vi.fn(),
+    },
+  },
   post: vi.fn(),
 };

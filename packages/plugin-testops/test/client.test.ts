@@ -196,21 +196,13 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.startUpload(fixtures.ci);
 
-      expect(AxiosMock.post).toHaveBeenCalledWith(
-        "/api/upload/start",
-        {
-          projectId: fixtures.projectId,
-          ci: { name: fixtures.ci.type },
-          job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
-          jobRun: { uid: fixtures.ci.jobRunUid },
-          launch: { id: fixtures.launch.id },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          },
-        },
-      );
+      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/start", {
+        projectId: fixtures.projectId,
+        ci: { name: fixtures.ci.type },
+        job: { name: fixtures.ci.jobUid, uid: fixtures.ci.jobUid },
+        jobRun: { uid: fixtures.ci.jobRunUid },
+        launch: { id: fixtures.launch.id },
+      });
     });
   });
 
@@ -266,20 +258,12 @@ describe("testops http client", () => {
       await client.startUpload(fixtures.ci);
       await client.stopUpload(fixtures.ci, fixtures.uploadStatus);
 
-      expect(AxiosMock.post).toHaveBeenCalledWith(
-        "/api/upload/stop",
-        {
-          jobRunUid: fixtures.ci.jobRunUid,
-          jobUid: fixtures.ci.jobUid,
-          projectId: fixtures.projectId,
-          status: fixtures.uploadStatus,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          },
-        },
-      );
+      expect(AxiosMock.post).toHaveBeenCalledWith("/api/upload/stop", {
+        jobRunUid: fixtures.ci.jobRunUid,
+        jobUid: fixtures.ci.jobUid,
+        projectId: fixtures.projectId,
+        status: fixtures.uploadStatus,
+      });
     });
   });
 
@@ -304,22 +288,13 @@ describe("testops http client", () => {
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(2);
       expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(
-        2,
-        "/api/launch",
-        {
-          name: fixtures.launchName,
-          projectId: fixtures.projectId,
-          autoclose: true,
-          external: true,
-          tags: fixtures.launchTags.map((tag) => ({ name: tag })),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          },
-        },
-      );
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", {
+        name: fixtures.launchName,
+        projectId: fixtures.projectId,
+        autoclose: true,
+        external: true,
+        tags: fixtures.launchTags.map((tag) => ({ name: tag })),
+      });
     });
   });
 
@@ -360,20 +335,11 @@ describe("testops http client", () => {
 
       expect(AxiosMock.post).toHaveBeenCalledTimes(3);
       expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", expect.anything(), expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(
-        3,
-        "/api/upload/session?manual=true",
-        {
-          launchId: fixtures.launch.id,
-          environment: [],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          },
-        },
-      );
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", expect.anything());
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(3, "/api/upload/session?manual=true", {
+        launchId: fixtures.launch.id,
+        environment: [],
+      });
     });
 
     it("should pass environment variables as key-value pairs to the session", async () => {
@@ -400,23 +366,14 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession(environment);
 
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(
-        3,
-        "/api/upload/session?manual=true",
-        {
-          launchId: fixtures.launch.id,
-          environment: [
-            { key: "NODE_ENV", value: "test" },
-            { key: "CI", value: "true" },
-            { key: "BUILD_NUMBER", value: "42" },
-          ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          },
-        },
-      );
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(3, "/api/upload/session?manual=true", {
+        launchId: fixtures.launch.id,
+        environment: [
+          { key: "NODE_ENV", value: "test" },
+          { key: "CI", value: "true" },
+          { key: "BUILD_NUMBER", value: "42" },
+        ],
+      });
     });
   });
 
@@ -499,7 +456,6 @@ describe("testops http client", () => {
         },
         {
           headers: {
-            "Authorization": `Bearer ${fixtures.ouathToken}`,
             "Content-Type": "application/json",
           },
         },
@@ -689,11 +645,11 @@ describe("testops http client", () => {
             { externalId: "firefox", name: "firefox" },
           ],
         },
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: `Bearer ${fixtures.ouathToken}`,
-          }),
-        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
@@ -864,7 +820,6 @@ describe("testops http client", () => {
       expect(AxiosMock.post).toHaveBeenCalledWith(
         `/api/upload/test-result/${fixtures.testOpsResults[0].id}/test-fixture-result`,
         { fixtures: fixtures.fixtures },
-        expect.anything(),
       );
     });
   });

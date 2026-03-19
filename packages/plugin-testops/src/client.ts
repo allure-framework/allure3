@@ -42,6 +42,14 @@ export class TestOpsClient {
       validateStatus: (status) => status >= 200 && status < 400,
     });
 
+    this.#client.interceptors.request.use((config) => {
+      if (this.#oauthToken) {
+        config.headers.Authorization = `Bearer ${this.#oauthToken}`;
+      }
+
+      return config;
+    });
+
     if (params.limit) {
       this.#uploadLimit = params.limit;
     }
@@ -72,30 +80,22 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    await this.#client.post<any>(
-      "/api/upload/start",
-      {
-        projectId: this.#projectId,
-        ci: {
-          name: ci.type,
-        },
-        job: {
-          name: ci.jobUid,
-          uid: ci.jobUid,
-        },
-        jobRun: {
-          uid: ci.jobRunUid,
-        },
-        launch: {
-          id: this.#launch.id,
-        },
+    await this.#client.post<any>("/api/upload/start", {
+      projectId: this.#projectId,
+      ci: {
+        name: ci.type,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
+      job: {
+        name: ci.jobUid,
+        uid: ci.jobUid,
       },
-    );
+      jobRun: {
+        uid: ci.jobRunUid,
+      },
+      launch: {
+        id: this.#launch.id,
+      },
+    });
 
     this.#uploadInProgress = true;
   }
@@ -105,40 +105,24 @@ export class TestOpsClient {
       throw new Error("Upload isn't started! Call startUpload first");
     }
 
-    await this.#client.post(
-      "/api/upload/stop",
-      {
-        jobRunUid: ci.jobRunUid,
-        jobUid: ci.jobUid,
-        projectId: this.#projectId,
-        status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
+    await this.#client.post("/api/upload/stop", {
+      jobRunUid: ci.jobRunUid,
+      jobUid: ci.jobUid,
+      projectId: this.#projectId,
+      status,
+    });
 
     this.#uploadInProgress = false;
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {
-    const { data } = await this.#client.post<TestOpsLaunch>(
-      "/api/launch",
-      {
-        name: launchName,
-        projectId: this.#projectId,
-        autoclose: true,
-        external: true,
-        tags: launchTags.map((tag) => ({ name: tag })),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
+    const { data } = await this.#client.post<TestOpsLaunch>("/api/launch", {
+      name: launchName,
+      projectId: this.#projectId,
+      autoclose: true,
+      external: true,
+      tags: launchTags.map((tag) => ({ name: tag })),
+    });
 
     this.#launch = data;
   }
@@ -148,18 +132,10 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<TestOpsSession>(
-      "/api/upload/session?manual=true",
-      {
-        launchId: this.#launch.id,
-        environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
+    const { data } = await this.#client.post<TestOpsSession>("/api/upload/session?manual=true", {
+      launchId: this.#launch.id,
+      environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
+    });
 
     this.#session = data;
   }
@@ -185,7 +161,6 @@ export class TestOpsClient {
       },
       {
         headers: {
-          "Authorization": `Bearer ${this.#oauthToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -246,7 +221,6 @@ export class TestOpsClient {
           },
           {
             headers: {
-              "Authorization": `Bearer ${this.#oauthToken}`,
               "Content-Type": "application/json",
             },
           },
@@ -278,7 +252,6 @@ export class TestOpsClient {
                     });
                     await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
                       headers: {
-                        Authorization: `Bearer ${this.#oauthToken}`,
                         ...formData.getHeaders(),
                       },
                     });
@@ -287,17 +260,9 @@ export class TestOpsClient {
               }
 
               if (fixtures.length > 0) {
-                await this.#client.post(
-                  `/api/upload/test-result/${trTestOpsId}/test-fixture-result`,
-                  {
-                    fixtures,
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${this.#oauthToken}`,
-                    },
-                  },
-                );
+                await this.#client.post(`/api/upload/test-result/${trTestOpsId}/test-fixture-result`, {
+                  fixtures,
+                });
               }
 
               onProgress?.();
