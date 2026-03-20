@@ -1,5 +1,10 @@
-import type { KnownTestFailure, TestResult, TestStatus } from "@allurereport/core-api";
-import type { QualityGateRuleState } from "@allurereport/plugin-api";
+import {
+  type KnownTestFailure,
+  type TestResult,
+  type TestStatus,
+  fallbackTestCaseIdLabelName,
+} from "@allurereport/core-api";
+import { type QualityGateRuleState, md5 } from "@allurereport/plugin-api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -17,6 +22,8 @@ const createTestResult = (
   historyId?: string,
   duration?: number,
   environment?: string,
+  labels: TestResult["labels"] = [],
+  parameters: TestResult["parameters"] = [],
 ) =>
   ({
     id,
@@ -29,8 +36,8 @@ const createTestResult = (
     muted: false,
     known: false,
     hidden: false,
-    labels: [],
-    parameters: [],
+    labels,
+    parameters,
     links: [],
     steps: [],
     sourceMetadata: { readerId: "", metadata: {} },
@@ -101,6 +108,26 @@ describe("maxFailuresRule", () => {
 
     expect(result.success).toBe(true);
     expect(result.actual).toBe(1);
+  });
+
+  it("should filter out known issues by fallback history alias", async () => {
+    const fallbackTestCaseId = md5("legacy-test-case-id");
+    const fallbackHistoryId = `${fallbackTestCaseId}.${md5("")}`;
+    const testResults: TestResult[] = [
+      createTestResult("1", "failed", "new-history-id", undefined, undefined, [
+        { name: fallbackTestCaseIdLabelName, value: fallbackTestCaseId },
+      ]),
+    ];
+
+    const result = await maxFailuresRule.validate({
+      trs: testResults,
+      expected: 0,
+      knownIssues: [{ historyId: fallbackHistoryId }] as KnownTestFailure[],
+      state,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.actual).toBe(0);
   });
 });
 

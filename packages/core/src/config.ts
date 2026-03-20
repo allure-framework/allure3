@@ -19,6 +19,7 @@ export interface ConfigOverride {
   output?: Config["output"];
   open?: Config["open"];
   port?: Config["port"];
+  hideLabels?: Config["hideLabels"];
   historyPath?: Config["historyPath"];
   historyLimit?: Config["historyLimit"];
   knownIssuesPath?: Config["knownIssuesPath"];
@@ -92,6 +93,7 @@ export const validateConfig = (config: Config) => {
     "output",
     "open",
     "port",
+    "hideLabels",
     "historyPath",
     "historyLimit",
     "knownIssuesPath",
@@ -196,6 +198,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
   const port = override.port ?? config.port ?? undefined;
+  const hideLabels = override.hideLabels ?? config.hideLabels;
   const historyPath = override.historyPath ?? config.historyPath;
   const historyLimit = override.historyLimit ?? config.historyLimit;
   const appendHistory = config.appendHistory ?? true;
@@ -204,14 +207,15 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
   const environments = normalizedEnvironments;
+  const configuredPlugins = override.plugins ?? config.plugins;
   const plugins =
-    Object.keys(override?.plugins ?? config?.plugins ?? {}).length === 0
+    Object.keys(configuredPlugins ?? {}).length === 0
       ? {
           awesome: {
             options: {},
           },
         }
-      : config.plugins!;
+      : configuredPlugins!;
   const pluginInstances = await resolvePlugins(plugins);
 
   return {
@@ -219,6 +223,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     output,
     open,
     port,
+    hideLabels,
     knownIssuesPath,
     known,
     environment,

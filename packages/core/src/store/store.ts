@@ -20,12 +20,13 @@ import {
   type TestResult,
   compareBy,
   createDictionary,
+  getHistoryIdCandidates,
   getWorstStatus,
-  htrsByTr,
   matchEnvironment,
   nullsLast,
   ordinal,
   reverse,
+  selectHistoryTestResults,
   validateEnvironmentName,
 } from "@allurereport/core-api";
 import {
@@ -638,7 +639,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         continue;
       }
 
-      if (!tr.historyId || !historicalIds.has(tr.historyId)) {
+      const historyIdCandidates = getHistoryIdCandidates(tr);
+
+      if (historyIdCandidates.length === 0 || historyIdCandidates.every((historyId) => !historicalIds.has(historyId))) {
         newTrs.push(tr);
       }
     }
@@ -697,7 +700,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return undefined;
     }
 
-    return htrsByTr(this.#historyPoints, tr);
+    const historyIdCandidates = getHistoryIdCandidates(tr);
+
+    if (historyIdCandidates.length === 0) {
+      return [];
+    }
+
+    return selectHistoryTestResults(this.#historyPoints, historyIdCandidates);
   }
 
   async historyByTrId(trId: string): Promise<HistoryTestResult[] | undefined> {
@@ -739,9 +748,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       return failedTestResults;
     }
 
-    const knownHistoryIds = this.#known.map((ktf) => ktf.historyId);
+    const knownHistoryIds = new Set(this.#known.map((ktf) => ktf.historyId));
 
-    return failedTestResults.filter(({ historyId }) => historyId && !knownHistoryIds.includes(historyId));
+    return failedTestResults.filter((tr) => {
+      const historyIdCandidates = getHistoryIdCandidates(tr);
+
+      return (
+        historyIdCandidates.length > 0 && historyIdCandidates.every((historyId) => !knownHistoryIds.has(historyId))
+      );
+    });
   }
 
   async testResultsByLabel(labelName: string): Promise<{ _: TestResult[]; [x: string]: TestResult[] }> {

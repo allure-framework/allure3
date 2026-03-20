@@ -82,6 +82,29 @@ describe("AllureRemoteHistory", () => {
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
+    it("should normalize nested history test result url from datapoint url", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({
+        history: [
+          {
+            ...fixtures.historyDataPoint,
+            url: fixtures.url,
+            testResults: {
+              primary: {
+                id: "history-id",
+                name: "history-name",
+                status: "passed",
+                url: "",
+              },
+            },
+          },
+        ],
+      });
+
+      const [historyPoint] = await history.readHistory();
+
+      expect(historyPoint.testResults.primary.url).toBe(fixtures.url);
+    });
+
     it("should return resolved history data with a limit set in the constructor", async () => {
       history = new AllureRemoteHistory({
         allureServiceClient: serviceClient,

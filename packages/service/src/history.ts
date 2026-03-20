@@ -1,4 +1,4 @@
-import type { AllureHistory } from "@allurereport/core-api";
+import { type AllureHistory, normalizeHistoryDataPointUrls } from "@allurereport/core-api";
 
 import type { AllureServiceClient } from "./service.js";
 import { KnownError } from "./utils/http.js";
@@ -15,7 +15,7 @@ export class AllureRemoteHistory implements AllureHistory {
         limit,
       });
 
-      return res;
+      return res?.map(normalizeHistoryDataPointUrls);
     } catch (err) {
       if (err instanceof KnownError && err.status === 404) {
         return [];

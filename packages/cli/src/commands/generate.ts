@@ -66,13 +66,19 @@ export class GenerateCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  hideLabels = Option.Array("--hide-labels", {
+    description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
+    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
     const config = await readConfig(cwd, this.config, {
       name: this.reportName,
       output: this.output,
       open: this.open,
       port: this.port,
+      hideLabels,
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
 

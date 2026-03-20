@@ -113,6 +113,7 @@ export default defineConfig({
   name: "Allure Report",
   output: "./allure-report",
   historyPath: "./history.jsonl",
+  hideLabels: ["owner"],
   qualityGate: {
     rules: [
       {
@@ -151,6 +152,7 @@ export default defineConfig({
       options: {
         reportName: "HelloWorld",
         singleFile: false,
+        theme: "light",
         reportLanguage: "en",
         open: false,
         charts: chartLayout,

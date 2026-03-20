@@ -50,6 +50,12 @@ For example, if you're using `npm` as your test runner, the command would be:
 npx allure run -- npm test
 ```
 
+To hide specific labels use `--hide-labels` option:
+
+```bash
+npx allure run --hide-labels=owner --hide-labels=tag -- npm test
+```
+
 To successfully generate a report, ensure that your test setup outputs results into an `allure-results` directory, which is automatically detected by Allure 3. This directory can be placed at any nested level within your project (e.g., `out/tests/allure-results`), provided it retains the correct name.
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
@@ -121,6 +127,7 @@ import { defineConfig } from "allure";
 export default defineConfig({
   name: "Allure Report Example",
   output: "./out/allure-report",
+  hideLabels: ["owner", /^_/],
   plugins: {
     awesome: {
       options: {
@@ -140,6 +147,7 @@ The configuration file allows you to fine-tune report generation. Key options in
 
 - **`name`**: Specifies the report’s display name.
 - **`output`**: Defines the directory where the report will be saved.
+- **`hideLabels`** *(`(string | RegExp)[]`)*: Hides matching labels by name in report data. Currently, only Allure Awesome report respects the option. Labels with names starting with `_` are hidden by default.
 - **`plugins`**: Enables and configures plugins, with each supporting various options.
 
 ### Awesome Plugin Options

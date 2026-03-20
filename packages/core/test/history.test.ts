@@ -4,10 +4,10 @@ import { appendFile, open, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path/posix";
 
-import type { HistoryDataPoint } from "@allurereport/core-api";
+import type { HistoryDataPoint, TestCase, TestResult } from "@allurereport/core-api";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AllureLocalHistory } from "../src/history.js";
+import { AllureLocalHistory, createHistory } from "../src/history.js";
 import { getDataPath } from "./utils.js";
 
 describe("AllureLocalHistory", () => {
@@ -24,6 +24,40 @@ describe("AllureLocalHistory", () => {
       const history = new AllureLocalHistory({ historyPath });
 
       expect(await history.readHistory()).toEqual([]);
+    });
+
+    it("should normalize nested history test result url from datapoint url", async () => {
+      const historyPath = join(tmpdir(), randomUUID());
+
+      try {
+        await writeFile(
+          historyPath,
+          `${JSON.stringify({
+            uuid: "1",
+            name: "Entry 1",
+            timestamp: 1,
+            knownTestCaseIds: [],
+            metrics: {},
+            url: "https://service.allurereport.org/report/1",
+            testResults: {
+              primary: {
+                id: "history-id",
+                name: "history-name",
+                status: "passed",
+                url: "",
+              },
+            },
+          })}\n`,
+          "utf-8",
+        );
+
+        const history = new AllureLocalHistory({ historyPath });
+        const [historyPoint] = await history.readHistory();
+
+        expect(historyPoint.testResults.primary.url).toBe("https://service.allurereport.org/report/1");
+      } finally {
+        await rm(historyPath, { force: true });
+      }
     });
 
     describe("a single-entry file", () => {
@@ -507,5 +541,26 @@ describe("AllureLocalHistory", () => {
         expect.objectContaining({ name: "New entry" }),
       ]);
     });
+  });
+});
+
+describe("createHistory", () => {
+  it("should set nested history test result url from remote url", () => {
+    const remoteUrl = "https://service.allurereport.org/report/1";
+    const testCases = [{ id: "test-case-id" }] as TestCase[];
+    const testResults = [
+      {
+        id: "test-result-id",
+        name: "test result",
+        historyId: "history-id",
+        status: "passed",
+        labels: [],
+      } as TestResult,
+    ];
+
+    const history = createHistory("report-id", "Report", testCases, testResults, remoteUrl);
+
+    expect(history.url).toBe(remoteUrl);
+    expect(history.testResults["history-id"].url).toBe(remoteUrl);
   });
 });

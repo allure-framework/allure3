@@ -13,6 +13,7 @@ export interface Config {
   output?: string;
   open?: boolean;
   port?: string;
+  hideLabels?: (string | RegExp)[];
   historyPath?: string;
   historyLimit?: number;
   knownIssuesPath?: string;

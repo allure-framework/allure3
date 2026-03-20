@@ -38,6 +38,7 @@ export interface PluginContext {
   allureVersion: string;
   reportUuid: string;
   reportName: string;
+  hideLabels?: (string | RegExp)[];
   reportFiles: ReportFiles;
   reportUrl?: string;
   output: string;

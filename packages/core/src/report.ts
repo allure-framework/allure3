@@ -59,6 +59,7 @@ export class AllureReport {
   readonly #realtimeSubscriber: RealtimeSubscriber;
   readonly #realtimeDispatcher: RealtimeEventsDispatcher;
   readonly #realTime: any;
+  readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
   readonly #allureServiceClient: AllureServiceClient | undefined;
@@ -88,6 +89,7 @@ export class AllureReport {
       environment,
       environments,
       output,
+      hideLabels,
       qualityGate,
       dump,
       categories,
@@ -109,6 +111,7 @@ export class AllureReport {
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
     this.#realTime = realTime;
     this.#dump = dump;
+    this.#hideLabels = hideLabels;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -723,6 +726,7 @@ export class AllureReport {
         allureVersion: version,
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
+        hideLabels: this.#hideLabels,
         state: pluginState,
         reportFiles: pluginFiles,
         reportUrl: this.reportUrl,
