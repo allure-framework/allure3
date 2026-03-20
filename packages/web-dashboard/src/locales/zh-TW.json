@@ -1,0 +1,227 @@
+{
+  "statuses": {
+    "passed": "通過",
+    "failed": "失敗",
+    "broken": "損壞",
+    "skipped": "跳過",
+    "unknown": "未知",
+    "total": "總計"
+  },
+  "empty": {
+    "no-results": "無結果",
+    "no-history-results": "無歷史資訊"
+  },
+  "severity": {
+    "blocker": "阻礙",
+    "critical": "嚴重",
+    "normal": "正常",
+    "minor": "次要",
+    "trivial": "輕微"
+  },
+  "environments": {
+    "environment_one": "環境",
+    "environment_other": "環境",
+    "all": "全部"
+  },
+  "charts": {
+    "trend": {
+      "title": "趨勢圖表: {{type}}",
+      "type": {
+        "status": "狀態",
+        "severity": "嚴重程度"
+      }
+    },
+    "currentStatus": {
+      "title": "當前狀態",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "percentage": "{{percentage}}%",
+      "of": "共 {{total}}",
+      "total": "{{total}}",
+      "tests": {
+        "new_zero": "沒有新的測試",
+        "new_one": "{{count}} 個新的測試",
+        "new_other": "{{count}} 個新的測試",
+        "flaky_zero": "沒有不穩定的測試",
+        "flaky_one": "{{count}} 個不穩定的測試",
+        "flaky_other": "{{count}} 個不穩定的測試",
+        "retries_zero": "沒有重跑的測試",
+        "retries_one": "{{count}} 個重跑的測試",
+        "retries_other": "{{count}} 個重跑的測試"
+      }
+    },
+    "statusDynamics": {
+      "title": "狀態趨勢",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的報告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusTransitions": {
+      "title": "狀態轉變",
+      "legend": {
+        "trend": "修復率"
+      },
+      "transitions": {
+        "new": "$t(transitions:new, capitalize)",
+        "fixed": "$t(transitions:fixed, capitalize)",
+        "regressed": "$t(transitions:regressed, capitalize)",
+        "malfunctioned": "$t(transitions:malfunctioned, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的報告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "durations": {
+      "title": "按{{groupBy}}的持續時間直方圖",
+      "title_none": "持續時間直方圖",
+      "no-results": "$t(empty:no-results)",
+      "groupBy": {
+        "none": "無",
+        "layer": "層"
+      },
+      "ticks": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "tooltips": {
+        "durationRange": "{{from, format_duration}} - {{to, format_duration}}"
+      },
+      "legend": {
+        "value": "{{value}}",
+        "total": "測試數量"
+      }
+    },
+    "stabilityDistribution": {
+      "title": "穩定性分佈",
+      "no-results": "$t(empty:no-results)",
+      "legend": {
+        "stabilityRate": "穩定率"
+      }
+    },
+    "testBaseGrowthDynamics": {
+      "title": "測試增長趨勢",
+      "status": {
+        "newpassed": "新增 $t(statuses:passed)",
+        "newfailed": "新增 $t(statuses:failed)",
+        "newbroken": "新增 $t(statuses:broken)",
+        "newskipped": "新增 $t(statuses:skipped)",
+        "newunknown": "新增 $t(statuses:unknown)",
+        "removedpassed": "移除 $t(statuses:passed)",
+        "removedfailed": "移除 $t(statuses:failed)",
+        "removedbroken": "移除 $t(statuses:broken)",
+        "removedskipped": "移除 $t(statuses:skipped)",
+        "removedunknown": "移除 $t(statuses:unknown)"
+      },
+      "legend": {
+        "trend": "增長趨勢"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "報告來自 {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "statusAgePyramid": {
+      "title": "狀態分布金字塔",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "no-history": "$t(empty:no-history-results)",
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "報告來自 {{timestamp, timestamp_long_no_seconds}}"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      }
+    },
+    "trSeverities": {
+      "title": "按嚴重程度的測試結果",
+      "no-results": "$t(empty:no-results)",
+      "status": {
+        "passed": "$t(statuses:passed, capitalize)",
+        "failed": "$t(statuses:failed, capitalize)",
+        "broken": "$t(statuses:broken, capitalize)",
+        "skipped": "$t(statuses:skipped, capitalize)",
+        "unknown": "$t(statuses:unknown, capitalize)"
+      },
+      "severity": {
+        "blocker": "$t(severity:blocker, capitalize)",
+        "critical": "$t(severity:critical, capitalize)",
+        "normal": "$t(severity:normal, capitalize)",
+        "minor": "$t(severity:minor, capitalize)",
+        "trivial": "$t(severity:trivial, capitalize)",
+        "unset": "無嚴重程度"
+      }
+    },
+    "durationDynamics": {
+      "title": "執行時間趨勢",
+      "durations": {
+        "sequential": "順序持續時間",
+        "duration": "測試持續時間",
+        "speedup": "加速"
+      },
+      "no-results": "$t(empty:no-results)",
+      "tooltips": {
+        "current": "最新報告 ({{timestamp, timestamp_long_no_seconds}})",
+        "history": "{{timestamp, timestamp_long_no_seconds}} 的報告"
+      },
+      "ticks": {
+        "current": "最新",
+        "history": "{{timestamp, timestamp_date}}"
+      },
+      "legend": {
+        "duration": "{{duration, format_duration}}",
+        "speedup": "{{speedup}}x"
+      }
+    }
+  },
+  "transitions": {
+    "description": {
+      "new": "此測試結果在報告中的首次出現",
+      "fixed": "之前「失敗」或「損壞」的測試現在「通過」了",
+      "regressed": "之前「通過」或「損壞」的測試現在「失敗」了",
+      "malfunctioned": "之前「通過」或「失敗」的測試現在「損壞」了"
+    },
+    "new": "新的",
+    "fixed": "已修復",
+    "regressed": "已回歸",
+    "malfunctioned": "已損壞"
+  }
+}
