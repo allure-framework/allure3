@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { type FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 
+import { hasErrorDiff } from "@/components/TestResult/bodyItems";
 import { TrDiff } from "@/components/TestResult/TrError/TrDiff";
 import { useI18n } from "@/stores/locale";
 import { openModal } from "@/stores/modal";
@@ -36,29 +37,28 @@ const TrErrorTrace = ({ trace }: { trace: string }) => {
   );
 };
 
-export const TrError: FunctionalComponent<TestError & { className?: string; status?: TestStatus }> = ({
-  className,
-  message = "",
-  trace,
-  actual,
-  expected,
-  status,
-  ...rest
-}) => {
+export const TrError: FunctionalComponent<
+  TestError & { className?: string; status?: TestStatus; showMessage?: boolean }
+> = ({ className, message = "", trace, actual, expected, status, showMessage = true, ...rest }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n("ui");
   const { t: tooltip } = useI18n("controls");
   const { t: empty } = useI18n("empty");
+  const hasTrace = Boolean(trace?.length);
+  const hasDiff = hasErrorDiff({ actual, expected });
   const openDiff = () =>
     openModal({
       title: tooltip("comparison"),
       data: { actual, expected },
       component: <TrDiff actual={actual} expected={expected} />,
     });
-  const sanitizedMessage = ansiToHTML(message, {
-    fg: "var(--on-text-primary)",
-    colors: {},
-  });
+  const sanitizedMessage =
+    showMessage && message
+      ? ansiToHTML(message, {
+          fg: "var(--on-text-primary)",
+          colors: {},
+        })
+      : "";
 
   return (
     <div
@@ -66,7 +66,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
       className={clsx(styles["test-result-error"], styles[`tr-status-${status}`], className)}
       {...rest}
     >
-      {message ? (
+      {showMessage && message ? (
         <>
           <div data-testid="test-result-error-header" className={styles["test-result-error-header"]}>
             <Text
@@ -95,10 +95,10 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
             </Code>
           </div>
         </>
-      ) : (
+      ) : showMessage ? (
         empty("no-message-provided")
-      )}
-      {Boolean(actual && actual !== "undefined" && expected && expected !== "undefined") && (
+      ) : null}
+      {hasDiff && (
         <Button
           style={"flat"}
           data-testId={"test-result-diff-button"}
@@ -107,7 +107,7 @@ export const TrError: FunctionalComponent<TestError & { className?: string; stat
           onClick={openDiff}
         />
       )}
-      {isOpen && Boolean(trace?.length) && <TrErrorTrace trace={trace} />}
+      {(isOpen || !showMessage) && hasTrace && <TrErrorTrace trace={trace} />}
     </div>
   );
 };

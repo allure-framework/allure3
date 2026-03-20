@@ -1,39 +1,22 @@
 import { allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult, AwesomeTestStepResult } from "types";
 
+import type { TrBodyItem } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
-import { TrAttachment } from "@/components/TestResult/TrSteps/TrAttachment";
-import { TrStep } from "@/components/TestResult/TrSteps/TrStep";
+import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
 
 import * as styles from "./styles.scss";
 
-const typeMap = {
-  step: TrStep,
-  attachment: TrAttachment,
-} as const;
-
 export type TrStepsProps = {
-  steps: AwesomeTestResult["steps"];
+  bodyItems: TrBodyItem[];
   id?: string;
 };
 
-type StepComponentProps = FunctionalComponent<{
-  item?: AwesomeTestStepResult;
-  stepIndex?: number;
-}>;
-
-export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
+export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) => {
   const stepsId = id !== null ? `${id}-steps` : null;
   const isOpened = !collapsedTrees.value.has(stepsId);
-
-  const handleClick = () => {
-    if (stepsId !== null) {
-      toggleTree(stepsId);
-    }
-  };
 
   const { t } = useI18n("execution");
   return (
@@ -42,16 +25,12 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ steps, id }) => {
         icon={allureIcons.lineHelpersPlayCircle}
         isOpened={isOpened}
         setIsOpen={() => stepsId !== null && toggleTree(stepsId)}
-        counter={steps?.length}
+        counter={bodyItems.length}
         title={t("body")}
       />
       {isOpened && (
-        <div className={styles["test-result-steps-root"]}>
-          {steps?.map((item: AwesomeTestStepResult, index) => {
-            const { type } = item;
-            const StepComponent: StepComponentProps = typeMap[type];
-            return StepComponent ? <StepComponent item={item} stepIndex={index + 1} key={index} /> : null;
-          })}
+        <div data-testid="test-result-steps-root" className={styles["test-result-steps-root"]}>
+          <TrBodyItems bodyItems={bodyItems} />
         </div>
       )}
     </div>
