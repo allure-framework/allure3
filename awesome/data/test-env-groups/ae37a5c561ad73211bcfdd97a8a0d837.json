@@ -1,0 +1,1 @@
+{"id":"ae37a5c561ad73211bcfdd97a8a0d837","fullName":"test/config.test.ts#resolveConfig should allow to override top-level hideLabels","name":"should allow to override top-level hideLabels","status":"passed","testResultsByEnv":{"windows-latest":"c38c890fad398574f5cbc7907f74cc88","ubuntu-latest":"7724c2206e8681757c8e049156d5f406","macos-latest":"b32df88975a49e163f05b08104391a75"}}

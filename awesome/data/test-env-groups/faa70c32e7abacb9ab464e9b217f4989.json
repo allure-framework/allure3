@@ -1,0 +1,1 @@
+{"id":"faa70c32e7abacb9ab464e9b217f4989","fullName":"test/config.test.ts#readConfig should read top-level hideLabels from js config","name":"should read top-level hideLabels from js config","status":"passed","testResultsByEnv":{"windows-latest":"f8ec1f55a36a3005fdaa1d336e10870e","ubuntu-latest":"c239d3a278b0ba2476730294543e29bb","macos-latest":"b1a1dac77b8c432b3e3edd37a9e871de"}}
