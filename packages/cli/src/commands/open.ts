@@ -40,8 +40,13 @@ export class OpenCommand extends Command {
     description: "The working directory for the command to run (default: current working directory)",
   });
 
+  hideLabels = Option.Array("--hide-labels", {
+    description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
   async execute() {
     const cwd = this.cwd ?? processCwd();
+    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
     const targetFullPath = join(cwd, this.resultsDir ?? "allure-report");
     const summaryFiles = existsSync(targetFullPath)
       ? await glob(join(targetFullPath, "**", "summary.json"), {
@@ -69,6 +74,7 @@ export class OpenCommand extends Command {
       const config = await readConfig(cwd, this.config, {
         port: this.port,
         output: tmpDir,
+        hideLabels,
       });
 
       await generate({

@@ -20,6 +20,7 @@ export interface FullConfig {
   output: string;
   open: boolean;
   port: string | undefined;
+  hideLabels?: (string | RegExp)[];
   historyPath?: string;
   historyLimit?: number;
   knownIssuesPath: string;

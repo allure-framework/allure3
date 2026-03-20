@@ -4,6 +4,7 @@ import {
   type TestResult,
   type TestStepResult,
   createDictionary,
+  shouldHideLabel,
 } from "@allurereport/core-api";
 import type { AwesomeFixtureResult, AwesomeTestResult, AwesomeTestStepResult } from "@allurereport/web-awesome";
 import MarkdownIt from "markdown-it";
@@ -23,7 +24,14 @@ const mapLabelsByName = (labels: TestLabel[]): Record<string, string[]> => {
   }, createDictionary<string[]>());
 };
 
-export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
+export const convertTestResult = (
+  tr: TestResult,
+  options: {
+    hideLabels?: readonly (string | RegExp)[];
+  } = {},
+): AwesomeTestResult => {
+  const labels = tr.labels.filter(({ name }) => !shouldHideLabel(name, options.hideLabels));
+
   return {
     id: tr.id,
     name: tr.name,
@@ -37,8 +45,8 @@ export const convertTestResult = (tr: TestResult): AwesomeTestResult => {
     muted: tr.muted,
     known: tr.known,
     hidden: tr.hidden,
-    labels: tr.labels,
-    groupedLabels: mapLabelsByName(tr.labels),
+    labels,
+    groupedLabels: mapLabelsByName(labels),
     parameters: tr.parameters,
     links: tr.links,
     steps: tr.steps,

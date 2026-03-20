@@ -77,6 +77,7 @@ describe("open command", () => {
     expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
       port: expect.any(Object),
       output: fixtures.tmpDir,
+      hideLabels: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -221,6 +222,7 @@ describe("open command", () => {
     expect(readConfig).toHaveBeenCalledWith(".", fixtures.configPath, {
       port: expect.any(Object),
       output: fixtures.tmpDir,
+      hideLabels: undefined,
     });
   });
 
@@ -244,6 +246,7 @@ describe("open command", () => {
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       port: fixtures.port,
       output: fixtures.tmpDir,
+      hideLabels: undefined,
     });
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -279,6 +282,7 @@ describe("open command", () => {
     expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, expect.any(Object), {
       port: expect.any(Object),
       output: fixtures.tmpDir,
+      hideLabels: undefined,
     });
     expect(glob).toHaveBeenCalledWith(
       join(fixtures.cwd, fixtures.resultsDir, "**", "summary.json"),
@@ -377,6 +381,40 @@ describe("open command", () => {
     expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
       port: expect.any(Object),
       output: fixtures.tmpDir,
+      hideLabels: undefined,
     });
+  });
+
+  it("should pass hideLabels override when generating a temporary report", async () => {
+    const fixtures = {
+      resultsDir: "allure-results",
+      tmpDir: "/tmp/allure-report-abc123",
+    };
+
+    (existsSync as Mock).mockReturnValue(true);
+    (tmpdir as Mock).mockReturnValue("/tmp");
+    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({
+      output: fixtures.tmpDir,
+      hideLabels: ["owner", "tag"],
+    });
+    (generate as Mock).mockResolvedValue(undefined);
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--hide-labels", "owner", "--hide-labels", "tag", fixtures.resultsDir]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      port: undefined,
+      output: fixtures.tmpDir,
+      hideLabels: ["owner", "tag"],
+    });
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          hideLabels: ["owner", "tag"],
+        }),
+      }),
+    );
   });
 });

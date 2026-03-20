@@ -1,7 +1,41 @@
-import type { AllureHistory } from "@allurereport/core-api";
+import type { AllureHistory, HistoryDataPoint } from "@allurereport/core-api";
 
 import type { AllureServiceClient } from "./service.js";
 import { KnownError } from "./utils/http.js";
+
+const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => {
+  const { url } = historyDataPoint;
+
+  if (!url) {
+    return historyDataPoint;
+  }
+
+  let testResults = historyDataPoint.testResults;
+
+  for (const [historyId, historyTestResult] of Object.entries(historyDataPoint.testResults)) {
+    if (historyTestResult.url) {
+      continue;
+    }
+
+    if (testResults === historyDataPoint.testResults) {
+      testResults = { ...historyDataPoint.testResults };
+    }
+
+    testResults[historyId] = {
+      ...historyTestResult,
+      url,
+    };
+  }
+
+  if (testResults === historyDataPoint.testResults) {
+    return historyDataPoint;
+  }
+
+  return {
+    ...historyDataPoint,
+    testResults,
+  };
+};
 
 export class AllureRemoteHistory implements AllureHistory {
   constructor(readonly params: { allureServiceClient: AllureServiceClient; limit?: number; branch?: string }) {}
@@ -15,7 +49,7 @@ export class AllureRemoteHistory implements AllureHistory {
         limit,
       });
 
-      return res;
+      return res?.map(normalizeHistoryDataPointUrls);
     } catch (err) {
       if (err instanceof KnownError && err.status === 404) {
         return [];

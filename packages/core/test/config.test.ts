@@ -249,6 +249,27 @@ describe("resolveConfig", () => {
     expect(resolved.environment).toEqual("staging");
   });
 
+  it("should keep top-level hideLabels in resolved config", async () => {
+    const resolved = await resolveConfig({
+      hideLabels: ["owner", /^tag/],
+    });
+
+    expect(resolved.hideLabels).toEqual(["owner", /^tag/]);
+  });
+
+  it("should allow to override top-level hideLabels", async () => {
+    const resolved = await resolveConfig(
+      {
+        hideLabels: ["owner"],
+      },
+      {
+        hideLabels: ["tag"],
+      },
+    );
+
+    expect(resolved.hideLabels).toEqual(["tag"]);
+  });
+
   it("should allow to override given report name", async () => {
     const fixture = {
       name: "Allure",
@@ -645,5 +666,15 @@ describe("readConfig", () => {
     const config = await readConfig(fixturesDir, configName);
 
     expect(config).toEqual(expect.objectContaining({ name: "Foo" }));
+  });
+
+  it("should read top-level hideLabels from js config", async () => {
+    const configName = "config.mjs";
+    const configContent = 'export default { hideLabels: ["owner"] };';
+    await writeFile(join(fixturesDir, configName), configContent, "utf-8");
+
+    const config = await readConfig(fixturesDir, configName);
+
+    expect(config).toEqual(expect.objectContaining({ hideLabels: ["owner"] }));
   });
 });

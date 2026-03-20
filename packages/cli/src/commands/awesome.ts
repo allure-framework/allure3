@@ -70,6 +70,10 @@ export class AwesomeCommand extends Command {
     description: "Group test results by labels. The labels should be separated by commas",
   });
 
+  hideLabels = Option.Array("--hide-labels", {
+    description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
   async execute() {
     if (!existsSync(this.resultsDir)) {
       console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
@@ -79,6 +83,14 @@ export class AwesomeCommand extends Command {
 
     const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
+    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
+    const config = await readConfig(cwd, this.config, {
+      output: this.output,
+      name: this.reportName,
+      knownIssuesPath: this.knownIssues,
+      historyPath: this.historyPath,
+      hideLabels,
+    });
     const defaultAwesomeOptions = {
       singleFile: this.singleFile ?? false,
       logo: this.logo,
@@ -86,12 +98,6 @@ export class AwesomeCommand extends Command {
       reportLanguage: this.reportLanguage,
       groupBy: this.groupBy?.split?.(",") ?? ["parentSuite", "suite", "subSuite"],
     } as AwesomePluginOptions;
-    const config = await readConfig(cwd, this.config, {
-      output: this.output,
-      name: this.reportName,
-      knownIssuesPath: this.knownIssues,
-      historyPath: this.historyPath,
-    });
 
     config.plugins = [
       {

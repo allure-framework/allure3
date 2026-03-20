@@ -283,6 +283,10 @@ export class RunCommand extends Command {
     description: "Limits the number of history entries to keep (default: unlimited)",
   });
 
+  hideLabels = Option.Array("--hide-labels", {
+    description: "Hide labels by exact name in generated reports. Repeat the option for multiple labels",
+  });
+
   commandToRun = Option.Rest();
 
   get logs() {
@@ -325,6 +329,7 @@ export class RunCommand extends Command {
     const command = args[0];
     const commandArgs = args.slice(1);
     const cwd = await realpath(this.cwd ?? process.cwd());
+    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
 
     console.log(`${command} ${commandArgs.join(" ")}`);
 
@@ -334,6 +339,7 @@ export class RunCommand extends Command {
       name: this.reportName,
       open: this.open,
       port: this.port,
+      hideLabels,
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
     const resolvedEnvironment = normalizedEnvironment ?? config.environment;

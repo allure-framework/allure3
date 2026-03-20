@@ -156,6 +156,7 @@ describe("awesome command", () => {
       output: "bar",
       knownIssuesPath: "baz",
       historyPath: "qux",
+      hideLabels: undefined,
     });
   });
 
@@ -171,6 +172,41 @@ describe("awesome command", () => {
       output: undefined,
       knownIssuesPath: undefined,
       historyPath: undefined,
+      hideLabels: undefined,
     });
+  });
+
+  it("should pass hideLabels from CLI to awesome plugin options", async () => {
+    (existsSync as Mock).mockReturnValueOnce(true);
+    const config = {
+      hideLabels: ["owner", "tag"],
+    };
+    (readConfig as Mock).mockResolvedValueOnce(config);
+
+    await run(AwesomeCommand, ["awesome", "--hide-labels", "owner", "--hide-labels", "tag", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      output: undefined,
+      name: undefined,
+      knownIssuesPath: undefined,
+      historyPath: undefined,
+      hideLabels: ["owner", "tag"],
+    });
+    const reportConfig = (AllureReport as Mock).mock.calls[0]?.[0];
+
+    expect(reportConfig.plugins).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "awesome",
+          options: {
+            singleFile: false,
+            logo: undefined,
+            theme: undefined,
+            reportLanguage: undefined,
+            groupBy: ["parentSuite", "suite", "subSuite"],
+          },
+        }),
+      ]),
+    );
   });
 });

@@ -8,7 +8,41 @@ import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, Test
 
 import { isFileNotFoundError } from "./utils/misc.js";
 
-const createHistoryItems = (testResults: TestResult[]) => {
+const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => {
+  const { url } = historyDataPoint;
+
+  if (!url) {
+    return historyDataPoint;
+  }
+
+  let testResults = historyDataPoint.testResults;
+
+  for (const [historyId, historyTestResult] of Object.entries(historyDataPoint.testResults)) {
+    if (historyTestResult.url) {
+      continue;
+    }
+
+    if (testResults === historyDataPoint.testResults) {
+      testResults = { ...historyDataPoint.testResults };
+    }
+
+    testResults[historyId] = {
+      ...historyTestResult,
+      url,
+    };
+  }
+
+  if (testResults === historyDataPoint.testResults) {
+    return historyDataPoint;
+  }
+
+  return {
+    ...historyDataPoint,
+    testResults,
+  };
+};
+
+const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
     .filter((tr) => tr.historyId)
     .map(
@@ -37,7 +71,7 @@ const createHistoryItems = (testResults: TestResult[]) => {
           stop,
           duration,
           labels,
-          url: "",
+          url: remoteUrl,
           historyId: historyId!,
           reportLinks: [],
         } as HistoryTestResult;
@@ -67,7 +101,7 @@ export const createHistory = (
     name: reportName,
     timestamp: new Date().getTime(),
     knownTestCaseIds,
-    testResults: createHistoryItems(testResults),
+    testResults: createHistoryItems(testResults, remoteUrl),
     metrics: {},
     url: remoteUrl,
   };
@@ -103,7 +137,7 @@ export class AllureLocalHistory implements AllureHistory {
         .createInterface({ input: stream, terminal: false, crlfDelay: Infinity })
         .on("line", (line) => {
           if (line && line.trim().length) {
-            const historyEntry = JSON.parse(line);
+            const historyEntry = normalizeHistoryDataPointUrls(JSON.parse(line));
 
             historyPoints.push(historyEntry);
           }
@@ -120,6 +154,7 @@ export class AllureLocalHistory implements AllureHistory {
   }
 
   async appendHistory(data: HistoryDataPoint) {
+    const normalizedData = normalizeHistoryDataPointUrls(data);
     const fullPath = path.resolve(this.params.historyPath);
     const parentDir = path.dirname(fullPath);
     const { limit } = this.params;
@@ -149,7 +184,7 @@ export class AllureLocalHistory implements AllureHistory {
       }
 
       // append a new entry; the total number is up to `limit`.
-      const sources = [JSON.stringify(data), Buffer.from([0x0a])];
+      const sources = [JSON.stringify(normalizedData), Buffer.from([0x0a])];
 
       await pipeline(sources, dst);
 
@@ -161,7 +196,7 @@ export class AllureLocalHistory implements AllureHistory {
 
       // in case when limit is undefined – the history is unlimited, so we need to add the point too
       if (limit !== 0) {
-        this.#cachedHistory.push(data);
+        this.#cachedHistory.push(normalizedData);
       }
 
       if (limit) {

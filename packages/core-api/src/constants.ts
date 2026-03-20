@@ -6,6 +6,7 @@ export const statusesList: readonly TestStatus[] = ["failed", "broken", "passed"
 export const severityLevels: readonly SeverityLevel[] = ["blocker", "critical", "normal", "minor", "trivial"];
 
 export const severityLabelName = "severity";
+export const fallbackTestCaseIdLabelName = "_fallbackTestCaseId";
 
 export const unsuccessfulStatuses = new Set<TestStatus>(["failed", "broken"]);
 

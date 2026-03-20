@@ -165,6 +165,8 @@ describe("generate command", () => {
       name: fixtures.name,
       open: undefined,
       port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -193,6 +195,8 @@ describe("generate command", () => {
       name: undefined,
       open: undefined,
       port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -222,6 +226,8 @@ describe("generate command", () => {
       name: undefined,
       open: undefined,
       port: undefined,
+      hideLabels: undefined,
+      historyLimit: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -369,5 +375,31 @@ describe("generate command", () => {
 
     await expect(command.execute()).rejects.toThrow("Serve failed");
     expect(generate).toHaveBeenCalled();
+  });
+
+  it("should pass hideLabels override to readConfig and use normalized config", async () => {
+    (readConfig as Mock).mockResolvedValue({
+      open: false,
+      hideLabels: ["owner", "tag"],
+    });
+    (generate as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "--hide-labels", "owner", "--hide-labels", "tag", "./allure-results"]);
+
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      name: undefined,
+      output: undefined,
+      open: undefined,
+      port: undefined,
+      hideLabels: ["owner", "tag"],
+      historyLimit: undefined,
+    });
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          hideLabels: ["owner", "tag"],
+        }),
+      }),
+    );
   });
 });
