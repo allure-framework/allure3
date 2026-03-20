@@ -7,6 +7,7 @@ import {
   filterUnknownByKnownIssues,
   getFallbackHistoryId,
   getHistoryIdCandidates,
+  normalizeHistoryDataPointUrls,
   selectHistoryTestResults,
   stringifyHistoryParams,
 } from "../../src/utils/history.js";
@@ -159,5 +160,30 @@ describe("history utils", () => {
 
     expect(selectedHistoryTestResult).toBe(historyTestResult);
     expect(selectedHistoryTestResult.url).toBe("https://history");
+  });
+
+  it("should normalize nested history urls from datapoint url when needed", () => {
+    const historyTestResult = { id: "primary", name: "primary", status: "passed", url: "" };
+    const historyDataPoint = {
+      uuid: "first",
+      name: "Entry 1",
+      timestamp: 1,
+      knownTestCaseIds: [],
+      metrics: {},
+      url: "https://history",
+      testResults: {
+        primary: historyTestResult,
+      },
+    };
+
+    expect(normalizeHistoryDataPointUrls(historyDataPoint)).toEqual({
+      ...historyDataPoint,
+      testResults: {
+        primary: {
+          ...historyTestResult,
+          url: "https://history",
+        },
+      },
+    });
   });
 });

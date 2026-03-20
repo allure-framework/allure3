@@ -4,43 +4,16 @@ import path from "node:path";
 import readline from "node:readline/promises";
 import { pipeline } from "node:stream/promises";
 
-import type { AllureHistory, HistoryDataPoint, HistoryTestResult, TestCase, TestResult } from "@allurereport/core-api";
+import {
+  type AllureHistory,
+  type HistoryDataPoint,
+  type HistoryTestResult,
+  normalizeHistoryDataPointUrls,
+  type TestCase,
+  type TestResult,
+} from "@allurereport/core-api";
 
 import { isFileNotFoundError } from "./utils/misc.js";
-
-const normalizeHistoryDataPointUrls = (historyDataPoint: HistoryDataPoint): HistoryDataPoint => {
-  const { url } = historyDataPoint;
-
-  if (!url) {
-    return historyDataPoint;
-  }
-
-  let testResults = historyDataPoint.testResults;
-
-  for (const [historyId, historyTestResult] of Object.entries(historyDataPoint.testResults)) {
-    if (historyTestResult.url) {
-      continue;
-    }
-
-    if (testResults === historyDataPoint.testResults) {
-      testResults = { ...historyDataPoint.testResults };
-    }
-
-    testResults[historyId] = {
-      ...historyTestResult,
-      url,
-    };
-  }
-
-  if (testResults === historyDataPoint.testResults) {
-    return historyDataPoint;
-  }
-
-  return {
-    ...historyDataPoint,
-    testResults,
-  };
-};
 
 const createHistoryItems = (testResults: TestResult[], remoteUrl: string) => {
   return testResults
