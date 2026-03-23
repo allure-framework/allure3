@@ -1,4 +1,11 @@
-import type { AttachmentLink, CiDescriptor, TestResult, TestStatus, TestStepResult } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  TestError,
+  TestResult,
+  TestStatus,
+  TestStepResult,
+} from "@allurereport/core-api";
 import FormData from "form-data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -460,6 +467,194 @@ describe("testops http client", () => {
           },
         },
       );
+    });
+  });
+
+  describe("uploadGlobalAttachments", () => {
+    it("should throw an error when session hasn't been created before", async () => {
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(
+        async () =>
+          await client.uploadGlobalAttachments({
+            attachments: [],
+            attachmentsResolver: () => Promise.resolve(null),
+          }),
+      ).rejects.toThrow("Session isn't created! Call createSession first");
+    });
+
+    it("should throw an error when launch hasn't been created before", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(
+        async () =>
+          await client.uploadGlobalAttachments({
+            attachments: [],
+            attachmentsResolver: () => Promise.resolve(null),
+          }),
+      ).rejects.toThrow();
+    });
+
+    it("should upload attachments to /api/launch/attachment", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockImplementation(async (attachmentLink: AttachmentLink) => ({
+        originalFileName: attachmentLink.name,
+        contentType: attachmentLink.contentType,
+        content: Buffer.from("test content"),
+      }));
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(attachmentsResolver).toHaveBeenCalledTimes(1);
+      expect(attachmentsResolver).toHaveBeenCalledWith(attachments[0]);
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/attachment?launchId=${fixtures.launch.id}`,
+        expect.any(FormData),
+      );
+    });
+
+    it("should skip attachments when resolver returns null", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
+      const attachmentsResolver = vi.fn().mockResolvedValue(null);
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadGlobalAttachments({ attachments, attachmentsResolver });
+
+      expect(attachmentsResolver).toHaveBeenCalledTimes(1);
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        `/api/launch/attachment?launchId=${fixtures.launch.id}`,
+        expect.any(FormData),
+      );
+    });
+  });
+
+  describe("uploadGlobalErrors", () => {
+    it("should throw an error when session hasn't been created before", async () => {
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(async () => await client.uploadGlobalErrors([])).rejects.toThrow(
+        "Session isn't created! Call createSession first",
+      );
+    });
+
+    it("should throw an error when launch hasn't been created before", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await expect(async () => await client.uploadGlobalErrors([])).rejects.toThrow();
+    });
+
+    it("should post errors to /api/launch/error/bulk", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+      const errors = [{ message: "Something went wrong" } as TestError, { message: "Another error" } as TestError];
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadGlobalErrors(errors);
+
+      expect(AxiosMock.post).toHaveBeenCalledWith("/api/launch/error/bulk", {
+        launchId: fixtures.launch.id,
+        items: errors,
+      });
     });
   });
 

@@ -88,6 +88,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
   AllureStoreMock.prototype.allEnvironments.mockResolvedValue([]);
+  AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
+  AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
 });
 
 describe("testops plugin", () => {
@@ -439,16 +441,59 @@ describe("testops plugin", () => {
       });
     });
 
-    it("should call allEnvironments from the store during upload", async () => {
+    it("should upload global attachments when they exist", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
-      AllureStoreMock.prototype.allEnvironments.mockResolvedValue(["chrome", "firefox"]);
+      AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.start({} as PluginContext, store);
 
-      expect(AllureStoreMock.prototype.allEnvironments).toHaveBeenCalled();
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith({
+        attachments: fixtures.attachments,
+        attachmentsResolver: expect.any(Function),
+      });
+    });
+
+    it("should not upload global attachments when they are empty", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalAttachments).not.toHaveBeenCalled();
+    });
+
+    it("should upload global errors when they exist", async () => {
+      const globalErrors = [{ message: "Something went wrong" }];
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue(globalErrors);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledTimes(1);
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors);
+    });
+
+    it("should not upload global errors when they are empty", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
     });
   });
 

@@ -1,4 +1,4 @@
-import { description, descriptionHtml, label } from "allure-js-commons";
+import { globalAttachment, description, descriptionHtml, label, step } from "allure-js-commons";
 import { expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
@@ -193,7 +193,7 @@ function example() {
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC" alt="Small base64 test image" width="200" height="200">
       <figcaption>&lt;figcaption&gt; - Base64 data URI image (small embedded image)</figcaption>
     </figure>
-    
+
     <figure>
       <img src="https://allurereport.org/svg/logo-report-sign.svg" alt="External image from allurereport.org" width="200">
       <figcaption>&lt;figcaption&gt; - External URL image from allurereport.org (https://)</figcaption>
@@ -266,4 +266,10 @@ it("sample 100x100 description table test", async () => {
   `);
 
   expect(true).toBe(true);
+});
+
+it("should create global attachment", async () => {
+  await step("attaching global attachment", async () => {
+    await globalAttachment("global.txt", new Buffer("global content"), "text/plain");
+  });
 });
