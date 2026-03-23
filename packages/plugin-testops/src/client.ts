@@ -15,11 +15,15 @@ type TrWithCategory = TestResult & {
 
 const toUploadResultPayload = (tr: TrWithCategory): Record<string, unknown> => {
   const payload: Record<string, unknown> = { ...tr, uuid: tr.id };
-  if (tr.category != null) {
+  if (tr.category !== undefined && tr.category !== null) {
     payload.category = {
       externalId: tr.category.externalId,
       ...(tr.category.grouping && tr.category.grouping.length > 0 && { grouping: tr.category.grouping }),
     };
+  }
+  if (tr.error !== undefined && tr.error !== null) {
+    if (tr.error.message !== undefined && tr.error.message !== null) payload.message = tr.error.message;
+    if (tr.error.trace !== undefined && tr.error.trace !== null) payload.trace = tr.error.trace;
   }
   return payload;
 };

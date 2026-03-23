@@ -129,7 +129,7 @@ export class TestopsPlugin implements Plugin {
     trsProgressBar.render();
 
     const launchId = this.#client!.launchId;
-    if (launchId != null) {
+    if (launchId !== undefined && launchId !== null) {
       const byExternalId = new Map<string, string>();
       for (const tr of allTrsWithAttachments) {
         const cat = (
@@ -150,14 +150,17 @@ export class TestopsPlugin implements Plugin {
       }
       if (byExternalId.size > 0) {
         try {
-          const bulkItems = [...byExternalId.entries()].map(([externalId, name]) => ({ externalId, name }));
+          const bulkItems = [...byExternalId.entries()].map(([externalId, name]) => ({
+            externalId,
+            name,
+          }));
           const created = await this.#client!.createLaunchCategoriesBulk(launchId, bulkItems);
           const idByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
           for (const tr of allTrsWithAttachments) {
             const cat = (tr as { category?: { externalId: string; grouping?: unknown[]; id?: number } }).category;
             if (cat?.externalId) {
               const id = idByExternalId.get(cat.externalId);
-              if (id != null) {
+              if (id !== undefined && id !== null) {
                 (tr as { category: { externalId: string; grouping?: unknown[]; id?: number } }).category = {
                   ...cat,
                   id,
@@ -269,7 +272,7 @@ export class TestopsPlugin implements Plugin {
     await this.#upload(store, { context: _context });
     await this.#stopUpload(worstStatus || "unknown");
     const launchId = this.#client.launchId;
-    if (launchId != null) {
+    if (launchId !== undefined && launchId !== null) {
       try {
         await this.#client.closeLaunch(launchId);
       } catch (err) {}
