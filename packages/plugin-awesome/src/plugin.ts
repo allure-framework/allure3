@@ -9,7 +9,6 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
-import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
@@ -42,20 +41,25 @@ export class AwesomePlugin implements Plugin {
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const reportEnvironments = await store.allEnvironments();
+    const reportEnvironments = await store.allEnvironmentIdentities();
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeHidden: true, filter });
     const statistics = await store.testsStatistic(filter);
-    const environments = await store.allEnvironments();
+    const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
-    const qualityGateResults = await store.qualityGateResultsByEnv();
+    const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
 
     for (const env of environments) {
-      envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
+      const envTrIds = new Set((await store.testResultsByEnvironmentId(env.id)).map(({ id }) => id));
+
+      envStatistics.set(
+        env.id,
+        await store.testsStatistic((testResult) => envTrIds.has(testResult.id) && (filter ? filter(testResult) : true)),
+      );
     }
 
     await generateStatistic(this.#writer!, {
@@ -72,13 +76,13 @@ export class AwesomePlugin implements Plugin {
       tests: convertedTrs,
       categories,
       environmentCount: environments.length,
-      environments,
+      environments: environments.map(({ name }) => name),
       defaultEnvironment: "default",
       selectedEnvironmentCount: environments.length,
     });
     const hasGroupBy = groupBy.length > 0;
 
-    await generateTimeline(this.#writer!, convertedTrs, this.options);
+    await generateTimeline(this.#writer!, allTrs, this.options);
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
@@ -91,19 +95,22 @@ export class AwesomePlugin implements Plugin {
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
     for (const reportEnvironment of reportEnvironments) {
-      const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
+      const envTrIds = new Set(
+        (await store.testResultsByEnvironmentId(reportEnvironment.id, { includeHidden: true })).map(({ id }) => id),
+      );
+      const envConvertedTrs = convertedTrs.filter(({ id }) => envTrIds.has(id));
 
-      await generateTree(this.#writer!, joinPosixPath(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
+      await generateTree(this.#writer!, joinPosixPath(reportEnvironment.id, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
-      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment, "nav.json"));
+      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,
         environmentCount: 1,
         defaultEnvironment: "default",
         selectedEnvironmentCount: 1,
-        filename: joinPosixPath(reportEnvironment, "categories.json"),
+        filename: joinPosixPath(reportEnvironment.id, "categories.json"),
       });
     }
 

@@ -3,7 +3,7 @@ import { useMemo } from "preact/hooks";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { reportStatsStore, statsByEnvStore } from "@/stores";
-import { collapsedEnvironments, currentEnvironment, environmentsStore } from "@/stores/env";
+import { collapsedEnvironments, currentEnvironment, environmentNameById, environmentsStore } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 import { navigateToTestResult } from "@/stores/router";
 import { currentTrId } from "@/stores/testResult";
@@ -133,8 +133,8 @@ export const TreeList = () => {
                     <MetadataButton
                       isOpened={isOpened}
                       setIsOpen={toggleEnv}
-                      title={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
-                      titleTooltipText={`${tEnvironments("environment", { count: 1 })}: "${key}"`}
+                      title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(key)}"`}
+                      titleTooltipText={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(key)}"`}
                       truncateTitle
                       counter={total}
                       data-testid={"tree-section-env-button"}

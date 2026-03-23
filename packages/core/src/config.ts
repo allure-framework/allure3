@@ -10,7 +10,11 @@ import { parse } from "yaml";
 import type { FullConfig, PluginInstance } from "./api.js";
 import { readKnownIssues } from "./known.js";
 import { FileSystemReportFiles } from "./plugin.js";
-import { normalizeEnvironmentDescriptorMap } from "./utils/environment.js";
+import {
+  environmentIdentityById,
+  environmentIdentityByName,
+  normalizeEnvironmentDescriptorMap,
+} from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
 
@@ -88,7 +92,7 @@ export const findConfig = async (cwd: string, configPath?: string) => {
  * @param config
  */
 export const validateConfig = (config: Config) => {
-  const supportedFields: (keyof Config)[] = [
+  const supportedFields = [
     "name",
     "output",
     "open",
@@ -106,8 +110,10 @@ export const validateConfig = (config: Config) => {
     "qualityGate",
     "allureService",
     "categories",
-  ];
-  const unsupportedFields = Object.keys(config).filter((key) => !supportedFields.includes(key as keyof Config));
+  ] as const;
+  const unsupportedFields = Object.keys(config).filter(
+    (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
+  );
 
   return {
     valid: unsupportedFields.length === 0,
@@ -163,6 +169,41 @@ export const loadJsConfig = async (configPath: string): Promise<Config> => {
   return (await import(normalizeImportPath(configPath))).default;
 };
 
+const resolveConfigEnvironments = (config: Config) => {
+  const errors: string[] = [];
+  const { normalized: environments, errors: environmentErrors } = normalizeEnvironmentDescriptorMap(
+    config.environments ?? {},
+    "config.environments",
+  );
+  let environment: string | undefined;
+
+  errors.push(...environmentErrors);
+
+  if (config.environment !== undefined) {
+    const environmentResult = validateEnvironmentName(config.environment);
+
+    if (!environmentResult.valid) {
+      errors.push(`environment: ${environmentResult.reason}`);
+    } else {
+      const normalizedEnvironment = environmentResult.normalized;
+
+      environment =
+        environmentIdentityById(environments, normalizedEnvironment)?.id ??
+        environmentIdentityByName(environments, normalizedEnvironment)?.id ??
+        normalizedEnvironment;
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`The provided Allure config contains invalid environments: ${errors.join("; ")}`);
+  }
+
+  return {
+    environments,
+    environment,
+  };
+};
+
 export const resolveConfig = async (config: Config, override: ConfigOverride = {}): Promise<FullConfig> => {
   const validationResult = validateConfig(config);
 
@@ -170,30 +211,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
   }
 
-  const environmentValidationErrors: string[] = [];
-  let environment: string | undefined;
-
-  if (config.environment !== undefined) {
-    const envValidationResult = validateEnvironmentName(config.environment);
-
-    if (!envValidationResult.valid) {
-      environmentValidationErrors.push(`environment: ${envValidationResult.reason}`);
-    } else {
-      environment = envValidationResult.normalized;
-    }
-  }
-
-  const { normalized: normalizedEnvironments, errors: normalizedEnvironmentsErrors } =
-    normalizeEnvironmentDescriptorMap(config.environments ?? {}, "config.environments", {
-      formatInvalidError: (originalKey, reason) => `environments[${JSON.stringify(originalKey)}]: ${reason}`,
-    });
-  environmentValidationErrors.push(...normalizedEnvironmentsErrors);
-
-  if (environmentValidationErrors.length > 0) {
-    throw new Error(
-      `The provided Allure config contains invalid environment names: ${environmentValidationErrors.join("; ")}`,
-    );
-  }
+  const { environments, environment } = resolveConfigEnvironments(config);
 
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
@@ -206,7 +224,6 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const output = resolve(override.output ?? config.output ?? "./allure-report");
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
-  const environments = normalizedEnvironments;
   const configuredPlugins = override.plugins ?? config.plugins;
   const plugins =
     Object.keys(configuredPlugins ?? {}).length === 0

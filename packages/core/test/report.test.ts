@@ -1,4 +1,5 @@
-import type { Plugin } from "@allurereport/plugin-api";
+import type { TestResult } from "@allurereport/core-api";
+import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
 import type { Mock, Mocked } from "vitest";
@@ -248,5 +249,55 @@ describe("report", () => {
         jobHref: undefined,
       },
     ]);
+  });
+
+  it("should resolve configured environment ids to display names for quality gate results", async () => {
+    const mockRule: QualityGateRule<number> = {
+      rule: "mockRule",
+      message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
+      validate: vi.fn().mockResolvedValue({
+        success: false,
+        actual: 5,
+        expected: 3,
+      }),
+    };
+    const config = await resolveConfig({
+      name: "Allure Report",
+      environment: "qa",
+      environments: {
+        qa: {
+          name: "QA",
+          matcher: () => true,
+        },
+      },
+      qualityGate: {
+        rules: [{ mockRule: 3 }],
+        use: [mockRule],
+      },
+    });
+
+    const allureReport = new AllureReport(config);
+    const { results } = await allureReport.validate({
+      trs: [
+        {
+          id: "1",
+          name: "Test 1",
+          status: "failed",
+        } as TestResult,
+      ],
+      knownIssues: [],
+      environment: config.environment,
+    });
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        environment: "QA",
+      }),
+    ]);
+    expect(mockRule.validate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        environment: "QA",
+      }),
+    );
   });
 });

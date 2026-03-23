@@ -64,13 +64,20 @@ const createStore = (params: {
     historyDataPointsByEnvironment,
     statistic,
   } = params;
+  const environmentIdentities = (environments ?? [DEFAULT_ENVIRONMENT]).map((environment) => ({
+    id: environment,
+    name: environment,
+  }));
 
   return {
     allEnvironments: async () => environments ?? [DEFAULT_ENVIRONMENT],
+    allEnvironmentIdentities: async () => environmentIdentities,
     allTestResults: async () => testResults,
     testResultsByEnvironment: async (env: string) => testResultsByEnvironment?.[env] ?? [],
+    testResultsByEnvironmentId: async (envId: string) => testResultsByEnvironment?.[envId] ?? [],
     allHistoryDataPoints: async () => historyDataPoints,
     allHistoryDataPointsByEnvironment: async (env: string) => historyDataPointsByEnvironment?.[env] ?? [],
+    allHistoryDataPointsByEnvironmentId: async (envId: string) => historyDataPointsByEnvironment?.[envId] ?? [],
     testsStatistic: async () => statistic ?? { total: testResults.length, failed: testResults.length },
   } as unknown as AllureStore;
 };

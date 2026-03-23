@@ -81,11 +81,14 @@ describe("components > EnvironmentPicker", () => {
     const controls = setElementSizeMocks();
     setNarrowViewport = controls.setNarrowViewport;
     restoreElementSizeMocks = controls.restore;
-    currentEnvironment.value = longEnvironmentName;
+    currentEnvironment.value = "long-environment";
     environmentsStore.value = {
       loading: false,
       error: undefined,
-      data: ["default", longEnvironmentName],
+      data: [
+        { id: "default", name: "default" },
+        { id: "long-environment", name: longEnvironmentName },
+      ],
     };
   });
 

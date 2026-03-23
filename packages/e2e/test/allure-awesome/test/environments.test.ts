@@ -73,6 +73,7 @@ const fixtures = {
 };
 
 const longUnicodeEnv = "я".repeat(64);
+const longUnicodeEnvId = "long_unicode_env";
 
 test.beforeEach(async ({ page, browserName }) => {
   await label("env", browserName);
@@ -103,7 +104,8 @@ test.beforeEach(async ({ page, browserName }) => {
           },
           matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
         },
-        [longUnicodeEnv]: {
+        [longUnicodeEnvId]: {
+          name: longUnicodeEnv,
           variables: {
             env_variable: longUnicodeEnv,
           },

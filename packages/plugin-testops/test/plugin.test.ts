@@ -2,7 +2,7 @@ import { env } from "node:process";
 
 /* eslint max-lines: off */
 import { detect } from "@allurereport/ci";
-import type { AttachmentLink, CiDescriptor, TestResult } from "@allurereport/core-api";
+import { type AttachmentLink, type CiDescriptor, type TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -334,7 +334,7 @@ describe("testops plugin", () => {
       await plugin.start({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
+        trs: fixtures.testResults.slice(0, 1).map((testResult) => ({ testResult })),
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -352,14 +352,16 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: [
           {
-            ...fixtures.testResults[1],
-            steps: [
-              {
-                ...fixtures.testResults[1].steps[0],
-                // @ts-expect-error
-                attachment: fixtures.testResults[1].steps[0].link,
-              },
-            ],
+            testResult: {
+              ...fixtures.testResults[1],
+              steps: [
+                {
+                  ...fixtures.testResults[1].steps[0],
+                  // @ts-expect-error
+                  attachment: fixtures.testResults[1].steps[0].link,
+                },
+              ],
+            },
           },
         ],
         onProgress: expect.any(Function),
@@ -434,13 +436,12 @@ describe("testops plugin", () => {
       await plugin.start({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
+        trs: [{ testResult: fixtures.testResults[0] }],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
       });
     });
-
     it("should upload global attachments when they exist", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
@@ -600,7 +601,7 @@ describe("testops plugin", () => {
       await plugin.update({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
+        trs: fixtures.testResults.slice(0, 1).map((testResult) => ({ testResult })),
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -637,7 +638,9 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
         expect.objectContaining({
-          trs: expect.arrayContaining([expect.objectContaining({ id: firstResult[0].id })]),
+          trs: expect.arrayContaining([
+            expect.objectContaining({ testResult: expect.objectContaining({ id: firstResult[0].id }) }),
+          ]),
         }),
       );
 
@@ -649,7 +652,9 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
         expect.objectContaining({
-          trs: expect.arrayContaining([expect.objectContaining({ id: allResults[1].id })]),
+          trs: expect.arrayContaining([
+            expect.objectContaining({ testResult: expect.objectContaining({ id: allResults[1].id }) }),
+          ]),
         }),
       );
     });
@@ -690,14 +695,16 @@ describe("testops plugin", () => {
         expect.objectContaining({
           trs: [
             {
-              ...fixtures.testResults[1],
-              steps: [
-                {
-                  ...fixtures.testResults[1].steps[0],
-                  // @ts-expect-error
-                  attachment: fixtures.testResults[1].steps[0].link,
-                },
-              ],
+              testResult: {
+                ...fixtures.testResults[1],
+                steps: [
+                  {
+                    ...fixtures.testResults[1].steps[0],
+                    // @ts-expect-error
+                    attachment: fixtures.testResults[1].steps[0].link,
+                  },
+                ],
+              },
             },
           ],
         }),
@@ -782,7 +789,7 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
+        trs: fixtures.testResults.slice(0, 1).map((testResult) => ({ testResult })),
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -822,7 +829,7 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
+        trs: [{ testResult: fixtures.testResults[0] }],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),

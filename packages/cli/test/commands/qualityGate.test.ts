@@ -2,7 +2,7 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { UsageError, run } from "clipanion";
+import { run } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -250,7 +250,34 @@ describe("quality-gate command", () => {
 
     command.environment = "foo\nbar";
 
-    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+    await expect(command.execute()).rejects.toThrow("Invalid --environment value");
     expect(readConfig).not.toHaveBeenCalled();
+  });
+
+  it("should pass resolved environment identity into AllureReport", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+      environments: {
+        prod_env: {
+          name: "Production",
+        },
+      },
+    });
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+    AllureReportMock.prototype.hasQualityGate = true;
+
+    const command = new QualityGateCommand();
+
+    command.cwd = fixtures.cwd;
+    command.resultsDir = undefined;
+    command.environmentName = "Production";
+
+    await command.execute();
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        environment: "prod_env",
+      }),
+    );
   });
 });

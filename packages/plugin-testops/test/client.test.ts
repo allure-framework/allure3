@@ -1,6 +1,7 @@
 import type {
   AttachmentLink,
   CiDescriptor,
+  EnvironmentIdentity,
   TestError,
   TestResult,
   TestStatus,
@@ -12,6 +13,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
 import { AxiosMock, BASE_URL } from "./utils.js";
+
+type UploadableTestResult = {
+  testResult: TestResult;
+  namedEnvironment?: EnvironmentIdentity;
+};
 
 const fixtures = {
   accessToken: "test",
@@ -45,6 +51,9 @@ const fixtures = {
   ],
   fixtures: [{ name: "before hook" } as TestStepResult, { name: "after hook" } as TestStepResult],
 };
+
+const uploadItem = (testResult: TestResult, namedEnvironment?: EnvironmentIdentity): UploadableTestResult =>
+  namedEnvironment ? { testResult, namedEnvironment } : { testResult };
 
 vi.mock("axios", async () => {
   const utils = await import("./utils.js");
@@ -392,7 +401,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow(
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "chrome" }])).rejects.toThrow(
         "Session isn't created! Call createSession first",
       );
     });
@@ -412,7 +421,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow();
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "chrome" }])).rejects.toThrow();
     });
 
     it("should post environments to /api/launch/named-env/bulk", async () => {
@@ -450,15 +459,18 @@ describe("testops http client", () => {
       await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
-      await client.createNamedEnvs(["chrome", "firefox"]);
+      await client.createNamedEnvs([
+        { id: "chrome", name: "Chrome" },
+        { id: "firefox", name: "Firefox" },
+      ]);
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
         "/api/launch/named-env/bulk",
         {
           launchId: fixtures.launch.id,
           items: [
-            { externalId: "chrome", name: "chrome" },
-            { externalId: "firefox", name: "firefox" },
+            { externalId: "chrome", name: "Chrome" },
+            { externalId: "firefox", name: "Firefox" },
           ],
         },
         {
@@ -715,7 +727,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults,
+        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
         attachmentsResolver,
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -773,7 +785,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults,
+        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
         attachmentsResolver: () => Promise.resolve(fixtures.attachments),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -781,10 +793,10 @@ describe("testops http client", () => {
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
     });
 
-    it("should create named environments for test results with environment field", async () => {
+    it("should create named environments for test results with environment ids and display names", async () => {
       const namedEnvs: TestOpsNamedEnv[] = [
-        { id: 10, name: "chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
-        { id: 11, name: "firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 10, name: "Chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "Firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
@@ -811,9 +823,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const trsWithEnv = [
-        { ...fixtures.testResults[0], environment: "chrome" } as TestResult,
-        { ...fixtures.testResults[1], environment: "firefox" } as TestResult,
+      const trsWithEnv: UploadableTestResult[] = [
+        uploadItem({ ...fixtures.testResults[0], environment: "Chrome" }, { id: "chrome", name: "Chrome" }),
+        uploadItem({ ...fixtures.testResults[1], environment: "Firefox" }, { id: "firefox", name: "Firefox" }),
       ];
 
       const client = new TestOpsClient({
@@ -836,8 +848,86 @@ describe("testops http client", () => {
         {
           launchId: fixtures.launch.id,
           items: [
-            { externalId: "chrome", name: "chrome" },
-            { externalId: "firefox", name: "firefox" },
+            { externalId: "chrome", name: "Chrome" },
+            { externalId: "firefox", name: "Firefox" },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/test-result",
+        expect.objectContaining({
+          results: expect.arrayContaining([
+            expect.objectContaining({ uuid: "0-0-0-0", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", namedEnv: { id: 11 } }),
+          ]),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("should create distinct named environments for different env ids sharing one display name", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "QA", externalId: "qa_a", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "QA", externalId: "qa_b", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session?manual=true") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: fixtures.testOpsResults.slice(0, 2) } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const trsWithSharedDisplayName: UploadableTestResult[] = [
+        uploadItem({ ...fixtures.testResults[0], environment: "QA" }, { id: "qa_a", name: "QA" }),
+        uploadItem({ ...fixtures.testResults[1], environment: "QA" }, { id: "qa_b", name: "QA" }),
+      ];
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: trsWithSharedDisplayName,
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/named-env/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { externalId: "qa_a", name: "QA" },
+            { externalId: "qa_b", name: "QA" },
           ],
         },
         {
@@ -890,7 +980,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults,
+        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -939,7 +1029,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: [{ ...fixtures.testResults[0], environment: "chrome" } as TestResult],
+        trs: [uploadItem({ ...fixtures.testResults[0], environment: "Chrome" }, { id: "chrome", name: "Chrome" })],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -955,7 +1045,7 @@ describe("testops http client", () => {
       });
 
       await client.uploadTestResults({
-        trs: [{ ...fixtures.testResults[1], environment: "chrome" } as TestResult],
+        trs: [uploadItem({ ...fixtures.testResults[1], environment: "Chrome" }, { id: "chrome", name: "Chrome" })],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -1003,7 +1093,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults,
+        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver,
       });

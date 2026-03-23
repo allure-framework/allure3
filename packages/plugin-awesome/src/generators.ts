@@ -6,6 +6,7 @@ import { basename, join } from "node:path";
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
+  type EnvironmentIdentity,
   type EnvironmentItem,
   type Statistic,
   type TestEnvGroup,
@@ -380,21 +381,21 @@ export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: En
 };
 
 export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const environments = await store.allEnvironments();
+  const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("environments.json", environments);
 };
 
 export const generateVariables = async (writer: AwesomeDataWriter, store: AllureStore) => {
   const reportVariables = await store.allVariables();
-  const environments = await store.allEnvironments();
+  const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("variables.json", reportVariables);
 
   for (const env of environments) {
-    const envVariables = await store.envVariables(env);
+    const envVariables = await store.envVariablesByEnvironmentId(env.id);
 
-    await writer.writeWidget(joinPosixPath(env, "variables.json"), envVariables);
+    await writer.writeWidget(joinPosixPath(env.id, "variables.json"), envVariables);
   }
 };
 
@@ -403,7 +404,7 @@ export const generateStatistic = async (
   data: {
     stats: Statistic;
     statsByEnv: Map<string, Statistic>;
-    envs: string[];
+    envs: EnvironmentIdentity[];
   },
 ) => {
   const { stats, statsByEnv, envs } = data;
@@ -412,14 +413,14 @@ export const generateStatistic = async (
   await writer.writeWidget("pie_chart.json", getPieChartValues(stats));
 
   for (const env of envs) {
-    const envStats = statsByEnv.get(env);
+    const envStats = statsByEnv.get(env.id);
 
     if (!envStats) {
       continue;
     }
 
-    await writer.writeWidget(joinPosixPath(env, "statistic.json"), envStats);
-    await writer.writeWidget(joinPosixPath(env, "pie_chart.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env.id, "statistic.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), envStats);
   }
 };
 

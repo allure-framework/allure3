@@ -117,15 +117,6 @@ describe("run command", () => {
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
   });
 
-  it("should fail with usage error for newline in --environment", async () => {
-    const command = new RunCommand();
-
-    command.commandToRun = ["--", "echo", "hi"];
-    command.environment = "foo\nbar";
-
-    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
-  });
-
   it("should pass hideLabels override to readConfig and apply normalized value to default awesome plugin", async () => {
     const { AllureReportMock } = await import("../utils.js");
 

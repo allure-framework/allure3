@@ -3,7 +3,7 @@ import { computed } from "@preact/signals";
 import { useEffect, useMemo } from "preact/hooks";
 
 import { useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentNameById } from "@/stores/env";
 import type { TimlineTr } from "@/stores/timeline";
 import { fetchTimelineData, timelineStore } from "@/stores/timeline";
 
@@ -13,6 +13,14 @@ const getHosts = (tests: TimlineTr[]) => [...new Set(tests.map((test) => test.ho
 
 const filterTestsByHost = (tests: TimlineTr[], host: string) => tests.filter((test) => test.host === host);
 
+const matchesSelectedEnvironment = (test: TimlineTr, environmentId: string) => {
+  if (test.environmentName !== undefined) {
+    return test.environment === environmentId;
+  }
+
+  return test.environment === environmentNameById(environmentId);
+};
+
 const currentTimelineData = computed(() => {
   const tests = timelineStore.value.data ?? [];
   if (!tests.length) {
@@ -20,7 +28,7 @@ const currentTimelineData = computed(() => {
   }
 
   if (currentEnvironment.value) {
-    const testsToEnv = tests.filter((test) => test.environment === currentEnvironment.value);
+    const testsToEnv = tests.filter((test) => matchesSelectedEnvironment(test, currentEnvironment.value));
     const hostsByEnv = getHosts(testsToEnv);
 
     return hostsByEnv.map((host) => ({

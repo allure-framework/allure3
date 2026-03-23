@@ -6,7 +6,7 @@ import { useState } from "preact/hooks";
 import { MetadataButton } from "@/components/MetadataButton";
 import { TrError } from "@/components/TestResult/TrError";
 import { useI18n } from "@/stores";
-import { currentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentNameById } from "@/stores/env";
 import { qualityGateStore } from "@/stores/qualityGate";
 
 import * as styles from "./styles.scss";
@@ -86,8 +86,8 @@ export const ReportQualityGateResults = () => {
                   <MetadataButton
                     isOpened={isOpened}
                     setIsOpen={toggleEnv}
-                    title={`${tEnvironments("environment", { count: 1 })}: "${env}"`}
-                    titleTooltipText={env}
+                    title={`${tEnvironments("environment", { count: 1 })}: "${environmentNameById(env)}"`}
+                    titleTooltipText={environmentNameById(env)}
                     truncateTitle
                     counter={envResults.length}
                     data-testid={"quality-gate-results-section-env-button"}

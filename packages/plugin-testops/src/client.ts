@@ -1,4 +1,11 @@
-import type { CiDescriptor, TestResult, TestStatus, TestError, AttachmentLink } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  EnvironmentIdentity,
+  TestError,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import FormData from "form-data";
@@ -6,6 +13,11 @@ import chunk from "lodash.chunk";
 import pLimit from "p-limit";
 
 import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
+
+type UploadableTestResult = {
+  testResult: TestResult;
+  namedEnvironment?: EnvironmentIdentity;
+};
 
 export class TestOpsClient {
   #accessToken: string;
@@ -140,7 +152,7 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  async createNamedEnvs(environments: string[]) {
+  async createNamedEnvs(environments: Array<{ id: string; name: string }>) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -153,10 +165,9 @@ export class TestOpsClient {
       "/api/launch/named-env/bulk",
       {
         launchId: this.#launch.id,
-        items: environments.map((env) => ({
-          externalId: env,
-          // TODO: complete once https://github.com/allure-framework/allure3/pull/536 will be done
-          name: env,
+        items: environments.map(({ id, name }) => ({
+          externalId: id,
+          name,
         })),
       },
       {
@@ -217,7 +228,7 @@ export class TestOpsClient {
   }
 
   async uploadTestResults(params: {
-    trs: TestResult[];
+    trs: UploadableTestResult[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
     onProgress?: () => void;
@@ -232,30 +243,32 @@ export class TestOpsClient {
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
-        const chunkEnvs: Set<string> = new Set();
+        const chunkEnvs = new Map<string, { id: string; name: string }>();
 
         for (const tr of trsChunk) {
-          if (tr.environment && !this.#namedEnvsIdsByEnv.has(tr.environment)) {
-            chunkEnvs.add(tr.environment);
+          const namedEnvironment = tr.namedEnvironment;
+
+          if (namedEnvironment && !this.#namedEnvsIdsByEnv.has(namedEnvironment.id)) {
+            chunkEnvs.set(namedEnvironment.id, namedEnvironment);
           }
         }
 
         // small optimization to prevent creating named environments on every test result processing
         if (chunkEnvs.size > 0) {
-          await this.createNamedEnvs(Array.from(chunkEnvs));
+          await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
 
         const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
           "/api/upload/test-result",
           {
             testSessionId: this.#session!.id,
-            results: trsChunk.map((tr) => {
-              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
+            results: trsChunk.map(({ testResult, namedEnvironment }) => {
+              const namedEnv = namedEnvironment ? this.#namedEnvsIdsByEnv.get(namedEnvironment.id) : undefined;
 
               return {
-                ...tr,
+                ...testResult,
                 // need to assign uuid explicitly because it's not provided by default
-                uuid: tr.id,
+                uuid: testResult.id,
                 namedEnv: namedEnv
                   ? {
                       id: namedEnv.id,
@@ -276,11 +289,11 @@ export class TestOpsClient {
         );
 
         await Promise.all(
-          trsChunk.map((tr) =>
+          trsChunk.map(({ testResult }) =>
             uploadLimitFn(async () => {
-              const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
-              const attachments = await attachmentsResolver(tr);
-              const fixtures = await fixturesResolver(tr);
+              const trTestOpsId = trsTestOpsIdsByUuid[testResult.id];
+              const attachments = await attachmentsResolver(testResult);
+              const fixtures = await fixturesResolver(testResult);
 
               if (attachments.length > 0) {
                 const attachmentsChunks = chunk(attachments, 100);

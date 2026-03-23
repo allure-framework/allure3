@@ -6,7 +6,7 @@ import type { AwesomeTestResult } from "types";
 
 import { TrEnvironmentItem } from "@/components/TestResult/TrEnvironmentItem";
 import { useI18n } from "@/stores";
-import { testEnvGroupsStore } from "@/stores/env";
+import { environmentNameById, testEnvGroupsStore } from "@/stores/env";
 import { fetchTestResult, testResultStore } from "@/stores/testResults";
 
 import * as styles from "./styles.scss";
@@ -52,7 +52,11 @@ export const TrEnvironmentsView: FunctionalComponent<{
               {envs.map(([env, trId]) => {
                 return (
                   <li key={`${env}-${trId}`}>
-                    <TrEnvironmentSection env={env} testResultId={trId} activeTestResultId={testResult.id} />
+                    <TrEnvironmentSection
+                      env={environmentNameById(env)}
+                      testResultId={trId}
+                      activeTestResultId={testResult.id}
+                    />
                   </li>
                 );
               })}

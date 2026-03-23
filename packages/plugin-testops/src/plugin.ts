@@ -1,8 +1,13 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
-import { getWorstStatus } from "@allurereport/core-api";
+import {
+  getWorstStatus,
+  type CiDescriptor,
+  type EnvironmentIdentity,
+  type TestResult,
+  type TestStatus,
+} from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -16,13 +21,17 @@ import { TestOpsClient } from "./client.js";
 import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
+type UploadableTestResult = {
+  testResult: TestResult;
+  namedEnvironment?: EnvironmentIdentity;
+};
+
 export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
-  #createdEnvironments: string[] = [];
 
   constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
@@ -86,6 +95,22 @@ export class TestopsPlugin implements Plugin {
         steps: unwrapStepsAttachments(tr.steps),
       };
     });
+    const trIdsToUpload = new Set(trsToUpload.map(({ id }) => id));
+    const environmentIdentitiesByTrId = new Map<string, EnvironmentIdentity>();
+
+    // Config only tells us which display name belongs to an env id. The named-env upload path
+    // also needs the resolved per-test env assignment, and only the store/runtime layer knows it.
+    for (const environmentIdentity of await store.allEnvironmentIdentities()) {
+      const envTestResults = await store.testResultsByEnvironmentId(environmentIdentity.id);
+
+      for (const testResult of envTestResults) {
+        if (!trIdsToUpload.has(testResult.id)) {
+          continue;
+        }
+
+        environmentIdentitiesByTrId.set(testResult.id, environmentIdentity);
+      }
+    }
 
     if (issueNewToken) {
       await this.#client!.issueOauthToken();
@@ -120,8 +145,14 @@ export class TestopsPlugin implements Plugin {
 
     trsProgressBar.render();
 
+    const uploadableTrs: UploadableTestResult[] = allTrsWithAttachments.map((tr) => {
+      const namedEnvironment = environmentIdentitiesByTrId.get(tr.id);
+
+      return namedEnvironment ? { testResult: tr, namedEnvironment } : { testResult: tr };
+    });
+
     await this.#client!.uploadTestResults({
-      trs: allTrsWithAttachments,
+      trs: uploadableTrs,
       onProgress: () => trsProgressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
@@ -131,8 +162,7 @@ export class TestopsPlugin implements Plugin {
             const content = await store.attachmentContentById(attachment.id);
 
             return {
-              // @ts-expect-error
-              originalFileName: attachmentLink.name || attachmentLink.originalFileName,
+              originalFileName: attachment.originalFileName,
               contentType: attachment.contentType,
               content: await content?.readContent(async (s) => s),
             };

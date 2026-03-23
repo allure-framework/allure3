@@ -1,5 +1,4 @@
 import type { TestResult } from "@allurereport/core-api";
-import type { AwesomeTestResult } from "@allurereport/web-awesome";
 
 import type { AwesomeOptions } from "./model.js";
 
@@ -13,15 +12,20 @@ type TimlineTr = Pick<
   TestResult,
   "id" | "name" | "status" | "hidden" | "environment" | "start" | "stop" | "duration" | "historyId"
 > & {
+  environmentName?: string;
   host: string;
   thread: string;
+};
+
+type TimelineSourceTestResult = TestResult & {
+  environmentId?: string;
 };
 
 const DEFAULT_TIMELINE_OPTIONS = {
   minDuration: DEFAULT_MIN_DURATION,
 } as const;
 
-export const generateTimeline = async (writer: Writer, trs: AwesomeTestResult[], options: AwesomeOptions) => {
+export const generateTimeline = async (writer: Writer, trs: TimelineSourceTestResult[], options: AwesomeOptions) => {
   const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
   const { minDuration = DEFAULT_MIN_DURATION } = timeline;
 
@@ -41,7 +45,8 @@ export const generateTimeline = async (writer: Writer, trs: AwesomeTestResult[],
       continue;
     }
 
-    const { host, thread } = test.groupedLabels;
+    const host = test.labels?.find(({ name }) => name === "host")?.value;
+    const thread = test.labels?.find(({ name }) => name === "thread")?.value;
 
     if (!host?.length || !thread?.length) {
       continue;
@@ -53,9 +58,10 @@ export const generateTimeline = async (writer: Writer, trs: AwesomeTestResult[],
       name: test.name,
       status: test.status,
       hidden: test.hidden,
-      host: host[0],
-      thread: thread[0],
-      environment: test.environment,
+      host,
+      thread,
+      environment: test.environmentId ?? test.environment,
+      environmentName: test.environment,
       start: test.start,
       duration,
     });
