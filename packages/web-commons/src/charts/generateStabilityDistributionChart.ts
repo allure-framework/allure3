@@ -235,6 +235,10 @@ export const generateStabilityDistributionChart = (props: {
       continue;
     }
 
+    if (!isSignificantStatus(tr.status)) {
+      continue;
+    }
+
     if (skipStatuses.has(tr.status)) {
       continue;
     }
