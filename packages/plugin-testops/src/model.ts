@@ -1,5 +1,18 @@
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 
+export type UploadCategoryGrouping = {
+  key: string;
+  value?: string;
+  name?: string;
+  type?: string;
+};
+
+export type UploadCategory = {
+  externalId: string;
+  name?: string;
+  grouping?: UploadCategoryGrouping[];
+};
+
 export type TestopsUploaderOptions = {
   endpoint: string;
   accessToken: string;

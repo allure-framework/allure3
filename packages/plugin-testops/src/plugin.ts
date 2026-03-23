@@ -15,6 +15,9 @@ import ProgressBar from "progress";
 import { TestOpsClient } from "./client.js";
 import type { TestopsPluginOptions } from "./model.js";
 import { resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
+import { toUploadCategory } from "./uploadCategory.js";
+
+const LOG_PREFIX = "\x1b[92m[plugin-testops]\x1b[0m ";
 
 export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
@@ -43,17 +46,17 @@ export class TestopsPlugin implements Plugin {
 
     if (!accessToken) {
       // eslint-disable-next-line no-console
-      console.warn("TestOps access token is missing. Please provide a valid access token in the plugin options.");
+      console.warn(`${LOG_PREFIX}Access token is missing. Please provide a valid access token in the plugin options.`);
     }
 
     if (!endpoint) {
       // eslint-disable-next-line no-console
-      console.warn("TestOps endpoint is missing. Please provide a valid endpoint in the plugin options.");
+      console.warn(`${LOG_PREFIX}Endpoint is missing. Please provide a valid endpoint in the plugin options.`);
     }
 
     if (!projectId) {
       // eslint-disable-next-line no-console
-      console.warn("TestOps project ID is missing. Please provide a valid project ID in the plugin options.");
+      console.warn(`${LOG_PREFIX}Project ID is missing. Please provide a valid project ID in the plugin options.`);
     }
   }
 
@@ -61,8 +64,10 @@ export class TestopsPlugin implements Plugin {
     return this.#ci && this.#ci.type !== "local";
   }
 
-  async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
+  async #upload(store: AllureStore, options?: { issueNewToken?: boolean; context?: PluginContext }) {
     const { issueNewToken = true } = options ?? {};
+    const newEnvironments = (await store.allEnvironments()).filter((env) => !this.#createdEnvironments.includes(env));
+    const contextCategories = options?.context?.categories ?? [];
     const allTrs = await store.allTestResults();
     const allGlobalErrors = await store.allGlobalErrors();
     const allGlobalAttachments = await store.allGlobalAttachments();
@@ -77,14 +82,17 @@ export class TestopsPlugin implements Plugin {
     });
 
     if (trsToUpload.length === 0) {
+      // eslint-disable-next-line no-console
+      console.info(`${LOG_PREFIX}No new test results to upload`);
       return;
     }
 
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Preparing to upload ${trsToUpload.length} test result(s)`);
     const allTrsWithAttachments = trsToUpload.map((tr) => {
-      return {
-        ...tr,
-        steps: unwrapStepsAttachments(tr.steps),
-      };
+      const base = { ...tr, steps: unwrapStepsAttachments(tr.steps) };
+      const category = toUploadCategory(tr, contextCategories);
+      return category ? { ...base, category } : base;
     });
 
     if (issueNewToken) {
@@ -120,6 +128,38 @@ export class TestopsPlugin implements Plugin {
 
     trsProgressBar.render();
 
+    const launchId = this.#client!.launchId;
+    if (launchId != null) {
+      const byExternalId = new Map<string, string>();
+      for (const tr of allTrsWithAttachments) {
+        const cat = (tr as { category?: { externalId: string; name?: string; grouping?: { key?: string; value?: string; name?: string }[] } }).category;
+        if (cat?.externalId) {
+          byExternalId.set(
+            cat.externalId,
+            cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId,
+          );
+        }
+      }
+      if (byExternalId.size > 0) {
+        try {
+          const bulkItems = [...byExternalId.entries()].map(([externalId, name]) => ({ externalId, name }));
+          const created = await this.#client!.createLaunchCategoriesBulk(launchId, bulkItems);
+          const idByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
+          for (const tr of allTrsWithAttachments) {
+            const cat = (tr as { category?: { externalId: string; grouping?: unknown[]; id?: number } }).category;
+            if (cat?.externalId) {
+              const id = idByExternalId.get(cat.externalId);
+              if (id != null) {
+                (tr as { category: { externalId: string; grouping?: unknown[]; id?: number } }).category = { ...cat, id };
+              }
+            }
+          }
+        } catch (err) {
+        }
+      }
+    }
+
+    await this.#client!.createSession(env);
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
       onProgress: () => trsProgressBar.tick(),
@@ -153,6 +193,9 @@ export class TestopsPlugin implements Plugin {
 
     // prevent duplicated test results upload
     this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
+    this.#createdEnvironments.push(...newEnvironments);
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Successfully uploaded ${allTrsWithAttachments.length} test result(s)`);
   }
 
   async #startUpload() {
@@ -183,11 +226,12 @@ export class TestopsPlugin implements Plugin {
       return;
     }
 
-    await this.#startUpload();
-    await this.#upload(store, { issueNewToken: false });
-
     // eslint-disable-next-line no-console
-    console.info(`TestOps launch has been created: ${this.#client.launchUrl}`);
+    console.info(`${LOG_PREFIX}Starting upload…`);
+    await this.#startUpload();
+    await this.#upload(store, { issueNewToken: false, context: _context });
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Launch: ${this.#client.launchUrl}`);
   }
 
   async update(_context: PluginContext, store: AllureStore) {
@@ -195,7 +239,9 @@ export class TestopsPlugin implements Plugin {
       return;
     }
 
-    await this.#upload(store);
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Updating (uploading new results)…`);
+    await this.#upload(store, { context: _context });
   }
 
   async done(_context: PluginContext, store: AllureStore) {
@@ -208,8 +254,19 @@ export class TestopsPlugin implements Plugin {
     );
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
-    await this.#upload(store);
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Finalizing upload…`);
+    await this.#upload(store, { context: _context });
     await this.#stopUpload(worstStatus || "unknown");
+    const launchId = this.#client.launchId;
+    if (launchId != null) {
+      try {
+        await this.#client.closeLaunch(launchId);
+      } catch (err) {
+      }
+    }
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Upload finished. Launch:`, this.#client.launchUrl);
   }
 
   async info(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined> {

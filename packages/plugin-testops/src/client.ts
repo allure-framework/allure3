@@ -7,6 +7,23 @@ import pLimit from "p-limit";
 
 import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
 
+const LOG_PREFIX = "\x1b[92m[plugin-testops]\x1b[0m ";
+
+type TrWithCategory = TestResult & {
+  category?: { externalId: string; grouping?: { key: string; value?: string; name?: string }[] };
+};
+
+const toUploadResultPayload = (tr: TrWithCategory): Record<string, unknown> => {
+  const payload: Record<string, unknown> = { ...tr, uuid: tr.id };
+  if (tr.category != null) {
+    payload.category = {
+      externalId: tr.category.externalId,
+      ...(tr.category.grouping && tr.category.grouping.length > 0 && { grouping: tr.category.grouping }),
+    };
+  }
+  return payload;
+};
+
 export class TestOpsClient {
   #accessToken: string;
   #projectId: string;
@@ -63,7 +80,54 @@ export class TestOpsClient {
     return new URL(`launch/${this.#launch.id}`, this.#client.defaults.baseURL).toString();
   }
 
+  get launchId() {
+    return this.#launch?.id;
+  }
+
+  async closeLaunch(launchId: number): Promise<void> {
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Closing launch…`);
+    await this.#client.post(`/api/launch/${launchId}/close`, undefined, {
+      headers: {
+        Authorization: `Bearer ${this.#oauthToken}`,
+      },
+    });
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Launch closed`);
+  }
+
+  async createLaunchCategoriesBulk(
+    launchId: number,
+    items: { externalId: string; name: string }[],
+  ): Promise<{ id: number; externalId: string }[]> {
+    if (items.length === 0) {
+      return [];
+    }
+
+    const body = { launchId, items: items.slice(0, 1000) };
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Creating ${items.length} launch categor(ies)…`);
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}POST /api/launch/category/bulk request:`, JSON.stringify(body, null, 2));
+    const { data } = await this.#client.post<{ id: number; externalId: string }[]>(
+      "/api/launch/category/bulk",
+      body,
+      {
+        headers: {
+          "Authorization": `Bearer ${this.#oauthToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return Array.isArray(data) ? data : [];
+  }
+
   async issueOauthToken() {
+    const base = this.#client.defaults.baseURL;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Endpoint: ${base}`);
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Issuing OAuth token…`);
     const formData = new FormData();
 
     formData.append("grant_type", "apitoken");
@@ -73,6 +137,8 @@ export class TestOpsClient {
     const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
 
     this.#oauthToken = data.access_token as string;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}OAuth token received`);
   }
 
   async startUpload(ci: CiDescriptor) {
@@ -84,6 +150,25 @@ export class TestOpsClient {
       projectId: this.#projectId,
       ci: {
         name: ci.type,
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Starting CI upload (${ci.type})…`);
+    await this.#client.post<any>(
+      "/api/upload/start",
+      {
+        projectId: this.#projectId,
+        ci: {
+          name: ci.type,
+        },
+        job: {
+          name: ci.jobUid,
+          uid: ci.jobUid,
+        },
+        jobRun: {
+          uid: ci.jobRunUid,
+        },
+        launch: {
+          id: this.#launch.id,
+        },
       },
       job: {
         name: ci.jobUid,
@@ -98,6 +183,8 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = true;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}CI upload started`);
   }
 
   async stopUpload(ci: CiDescriptor, status: TestStatus) {
@@ -113,6 +200,8 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = false;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}CI upload stopped (status: ${status})`);
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {
@@ -123,8 +212,27 @@ export class TestOpsClient {
       external: true,
       tags: launchTags.map((tag) => ({ name: tag })),
     });
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Creating launch…`);
+    const { data } = await this.#client.post<TestOpsLaunch>(
+      "/api/launch",
+      {
+        name: launchName,
+        projectId: this.#projectId,
+        autoclose: true,
+        external: true,
+        tags: launchTags.map((tag) => ({ name: tag })),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.#oauthToken}`,
+        },
+      },
+    );
 
     this.#launch = data;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Launch created: id=${data.id}`);
   }
 
   async createSession(environment: Record<string, any> = {}) {
@@ -169,6 +277,9 @@ export class TestOpsClient {
     data.forEach((env) => {
       this.#namedEnvsIdsByEnv.set(env.externalId, env);
     });
+    this.#session = data;
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Upload session created: id=${data.id}`);
   }
 
   async uploadGlobalAttachments(params: {
@@ -223,7 +334,7 @@ export class TestOpsClient {
     onProgress?: () => void;
   }) {
     if (!this.#session) {
-      throw new Error("Session isn't created! Call createSession first");
+      throw new Error(`${LOG_PREFIX}Session isn't created! Call createSession first`);
     }
 
     const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
@@ -263,6 +374,7 @@ export class TestOpsClient {
                   : undefined,
               };
             }),
+            results: trsChunk.map((tr) => toUploadResultPayload(tr)),
           },
           {
             headers: {
@@ -316,5 +428,7 @@ export class TestOpsClient {
         );
       }),
     );
+    // eslint-disable-next-line no-console
+    console.info(`${LOG_PREFIX}Test results upload completed`);
   }
 }

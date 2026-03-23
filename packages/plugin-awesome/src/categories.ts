@@ -278,6 +278,13 @@ export const generateCategories = async (
       parentId = levelId;
     }
 
+    tr.categories = [
+      {
+        name: matchedCategory.name,
+        grouping: levels.map((l) => ({ key: l.key, value: l.value, name: l.name })),
+      },
+    ];
+
     duplicateChecker({
       id: tr.id,
       type: "tr",
