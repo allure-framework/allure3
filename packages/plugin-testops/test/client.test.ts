@@ -64,19 +64,34 @@ describe("testops http client", () => {
   describe("constructor", () => {
     it("should throw an error when accessToken is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: "", projectId: fixtures.projectId, baseUrl: fixtures.endpoint }),
+        () =>
+          new TestOpsClient({
+            accessToken: "",
+            projectId: fixtures.projectId,
+            baseUrl: fixtures.endpoint,
+          }),
       ).toThrow();
     });
 
     it("should throw an error when projectId is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: fixtures.accessToken, projectId: "", baseUrl: fixtures.endpoint }),
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: "",
+            baseUrl: fixtures.endpoint,
+          }),
       ).toThrow();
     });
 
     it("should throw an error when baseUrl is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: fixtures.accessToken, projectId: fixtures.projectId, baseUrl: "" }),
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: fixtures.projectId,
+            baseUrl: "",
+          }),
       ).toThrow();
     });
 

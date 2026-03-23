@@ -53,6 +53,6 @@ export const resolvePluginOptions = (options: TestopsPluginOptions): Omit<Testop
     accessToken: accessToken || "",
     endpoint: endpoint || "",
     projectId: projectId || "",
-    autocloseLaunch: autocloseLaunch ?? true,
+    ...(autocloseLaunch !== undefined ? { autocloseLaunch } : {}),
   };
 };
