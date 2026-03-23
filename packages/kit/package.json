@@ -1,0 +1,53 @@
+{
+  "name": "@allurereport/kit",
+  "version": "3.3.1",
+  "description": "Allure Kit — CLI tool for bootstrapping and managing Allure 3 in your project",
+  "keywords": [
+    "allure",
+    "allure-kit",
+    "cli",
+    "report",
+    "setup",
+    "testing"
+  ],
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "bin": {
+    "allure-kit": "./cli.js"
+  },
+  "files": [
+    "./dist",
+    "./cli.js"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json && node ./build.mjs",
+    "clean": "rimraf ./dist",
+    "test": "rimraf ./out && vitest run",
+    "lint": "oxlint --import-plugin src test",
+    "lint:fix": "oxlint --import-plugin --fix src test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.9",
+    "@types/prompts": "^2",
+    "@vitest/runner": "^2.1.9",
+    "@vitest/snapshot": "^2.1.9",
+    "allure-vitest": "^3.3.3",
+    "clipanion": "^4.0.0-rc.4",
+    "esbuild": "^0.25.0",
+    "prompts": "^2.4.2",
+    "rimraf": "^6.0.1",
+    "typanion": "^3.14.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9",
+    "yaml": "^2.8.1",
+    "yoctocolors": "^2.1.1"
+  }
+}
