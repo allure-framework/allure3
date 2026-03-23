@@ -1,30 +1,38 @@
-import type { CiDescriptor, TestResult, TestStatus, TestError, AttachmentLink } from "@allurereport/core-api";
+import type { AttachmentLink, CiDescriptor, TestError, TestResult, TestStatus } from "@allurereport/core-api";
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import FormData from "form-data";
 import chunk from "lodash.chunk";
 import pLimit from "p-limit";
 
-import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
+import type {
+  AttachmentForUpload,
+  LaunchCategoryBulkItem,
+  LaunchCategoryBulkResult,
+  TestOpsClientParams,
+  TestOpsLaunch,
+  TestOpsNamedEnv,
+  TestOpsSession,
+  TestResultWithUploadCategory,
+  UploadTestResultsParams,
+} from "./model.js";
+import { log } from "./utils.js";
 
-const LOG_PREFIX = "\x1b[92m[plugin-testops]\x1b[0m ";
-
-type TrWithCategory = TestResult & {
-  category?: { externalId: string; grouping?: { key: string; value?: string; name?: string }[] };
-};
-
-const toUploadResultPayload = (tr: TrWithCategory): Record<string, unknown> => {
+const toUploadResultPayload = (tr: TestResultWithUploadCategory): Record<string, unknown> => {
   const payload: Record<string, unknown> = { ...tr, uuid: tr.id };
+
   if (tr.category !== undefined && tr.category !== null) {
     payload.category = {
       externalId: tr.category.externalId,
       ...(tr.category.grouping && tr.category.grouping.length > 0 && { grouping: tr.category.grouping }),
     };
   }
+
   if (tr.error !== undefined && tr.error !== null) {
     if (tr.error.message !== undefined && tr.error.message !== null) payload.message = tr.error.message;
     if (tr.error.trace !== undefined && tr.error.trace !== null) payload.trace = tr.error.trace;
   }
+
   return payload;
 };
 
@@ -39,7 +47,7 @@ export class TestOpsClient {
   #uploadLimit: number = 1;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
-  constructor(params: { baseUrl: string; projectId: string; accessToken: string; limit?: number }) {
+  constructor(params: TestOpsClientParams) {
     if (!params.accessToken) {
       throw new Error("accessToken is required");
     }
@@ -62,12 +70,11 @@ export class TestOpsClient {
       baseURL: params.baseUrl,
       validateStatus: (status) => status >= 200 && status < 400,
     });
-
     this.#client.interceptors.request.use((config) => {
       if (this.#oauthToken) {
-        config.headers.Authorization = `Bearer ${this.#oauthToken}`;
+        config.headers = config.headers ?? {};
+        (config.headers as any).Authorization = `Bearer ${this.#oauthToken}`;
       }
-
       return config;
     });
 
@@ -89,45 +96,46 @@ export class TestOpsClient {
   }
 
   async closeLaunch(launchId: number): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Closing launch…`);
-    await this.#client.post(`/api/launch/${launchId}/close`, undefined, {
-      headers: {
-        Authorization: `Bearer ${this.#oauthToken}`,
-      },
-    });
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Launch closed`);
+    log("Closing launch…");
+    await this.#client.post(`/api/launch/${launchId}/close`);
+    log("Launch closed");
   }
 
   async createLaunchCategoriesBulk(
     launchId: number,
-    items: { externalId: string; name: string }[],
-  ): Promise<{ id: number; externalId: string }[]> {
+    items: LaunchCategoryBulkItem[],
+  ): Promise<LaunchCategoryBulkResult[]> {
     if (items.length === 0) {
       return [];
     }
 
-    const body = { launchId, items: items.slice(0, 1000) };
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Creating ${items.length} launch categor(ies)…`);
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}POST /api/launch/category/bulk request:`, JSON.stringify(body, null, 2));
-    const { data } = await this.#client.post<{ id: number; externalId: string }[]>("/api/launch/category/bulk", body, {
-      headers: {
-        "Authorization": `Bearer ${this.#oauthToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-    return Array.isArray(data) ? data : [];
+    const maxBulkItems = 1000;
+    const itemChunks = chunk(items, maxBulkItems);
+    const results: LaunchCategoryBulkResult[] = [];
+
+    log(`Creating ${items.length} launch categories in ${itemChunks.length} request(s)…`);
+    for (let i = 0; i < itemChunks.length; i += 1) {
+      const chunkItems = itemChunks[i]!;
+      const body = { launchId, items: chunkItems };
+      log(
+        `POST /api/launch/category/bulk request (${i + 1}/${itemChunks.length}, items: ${chunkItems.length})`,
+        JSON.stringify(body, null, 2),
+      );
+      const { data } = await this.#client.post<LaunchCategoryBulkResult[]>("/api/launch/category/bulk", body, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (Array.isArray(data)) {
+        results.push(...data);
+      }
+    }
+
+    return results;
   }
 
   async issueOauthToken() {
     const base = this.#client.defaults.baseURL;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Endpoint: ${base}`);
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Issuing OAuth token…`);
+    log(`Endpoint: ${base}`);
+    log("Issuing OAuth token…");
     const formData = new FormData();
 
     formData.append("grant_type", "apitoken");
@@ -137,8 +145,7 @@ export class TestOpsClient {
     const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
 
     this.#oauthToken = data.access_token as string;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}OAuth token received`);
+    log("OAuth token received");
   }
 
   async startUpload(ci: CiDescriptor) {
@@ -146,29 +153,11 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    log(`Starting CI upload (${ci.type})…`);
     await this.#client.post<any>("/api/upload/start", {
       projectId: this.#projectId,
       ci: {
         name: ci.type,
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Starting CI upload (${ci.type})…`);
-    await this.#client.post<any>(
-      "/api/upload/start",
-      {
-        projectId: this.#projectId,
-        ci: {
-          name: ci.type,
-        },
-        job: {
-          name: ci.jobUid,
-          uid: ci.jobUid,
-        },
-        jobRun: {
-          uid: ci.jobRunUid,
-        },
-        launch: {
-          id: this.#launch.id,
-        },
       },
       job: {
         name: ci.jobUid,
@@ -183,8 +172,7 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = true;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}CI upload started`);
+    log("CI upload started");
   }
 
   async stopUpload(ci: CiDescriptor, status: TestStatus) {
@@ -200,11 +188,11 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = false;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}CI upload stopped (status: ${status})`);
+    log(`CI upload stopped (status: ${status})`);
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {
+    log("Creating launch…");
     const { data } = await this.#client.post<TestOpsLaunch>("/api/launch", {
       name: launchName,
       projectId: this.#projectId,
@@ -212,27 +200,9 @@ export class TestOpsClient {
       external: true,
       tags: launchTags.map((tag) => ({ name: tag })),
     });
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Creating launch…`);
-    const { data } = await this.#client.post<TestOpsLaunch>(
-      "/api/launch",
-      {
-        name: launchName,
-        projectId: this.#projectId,
-        autoclose: true,
-        external: true,
-        tags: launchTags.map((tag) => ({ name: tag })),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.#oauthToken}`,
-        },
-      },
-    );
 
     this.#launch = data;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Launch created: id=${data.id}`);
+    log(`Launch created: id=${data.id}`);
   }
 
   async createSession(environment: Record<string, any> = {}) {
@@ -277,14 +247,11 @@ export class TestOpsClient {
     data.forEach((env) => {
       this.#namedEnvsIdsByEnv.set(env.externalId, env);
     });
-    this.#session = data;
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Upload session created: id=${data.id}`);
   }
 
   async uploadGlobalAttachments(params: {
     attachments: AttachmentLink[];
-    attachmentsResolver: (attachment: AttachmentLink) => Promise<any>;
+    attachmentsResolver: (attachment: AttachmentLink) => Promise<AttachmentForUpload | undefined>;
   }) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
@@ -329,106 +296,107 @@ export class TestOpsClient {
 
   async uploadTestResults(params: {
     trs: TestResult[];
-    attachmentsResolver: (tr: TestResult) => Promise<any>;
-    fixturesResolver: (tr: TestResult) => Promise<any>;
+    attachmentsResolver: UploadTestResultsParams["attachmentsResolver"];
+    fixturesResolver: UploadTestResultsParams["fixturesResolver"];
     onProgress?: () => void;
   }) {
     if (!this.#session) {
-      throw new Error(`${LOG_PREFIX}Session isn't created! Call createSession first`);
+      throw new Error("Session isn't created! Call createSession first");
     }
 
     const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, 100);
     const uploadLimitFn = pLimit(this.#uploadLimit);
 
-    await Promise.all(
-      trsChunks.map(async (trsChunk) => {
-        const chunkEnvs: Set<string> = new Set();
+    for (const trsChunk of trsChunks) {
+      const resultIdsByUuid = await this.#postTestResultsChunk(trsChunk);
+      await this.#uploadChunkAttachmentsAndFixtures(
+        trsChunk,
+        resultIdsByUuid,
+        attachmentsResolver,
+        fixturesResolver,
+        uploadLimitFn,
+        onProgress,
+      );
+    }
 
-        for (const tr of trsChunk) {
-          if (tr.environment && !this.#namedEnvsIdsByEnv.has(tr.environment)) {
-            chunkEnvs.add(tr.environment);
-          }
-        }
+    log("Test results upload completed");
+  }
+  async #postTestResultsChunk(trsChunk: TestResult[]): Promise<Record<string, number>> {
+    const missingNamedEnvironments: Set<string> = new Set();
+    for (const testResult of trsChunk) {
+      if (testResult.environment && !this.#namedEnvsIdsByEnv.has(testResult.environment)) {
+        missingNamedEnvironments.add(testResult.environment);
+      }
+    }
 
-        // small optimization to prevent creating named environments on every test result processing
-        if (chunkEnvs.size > 0) {
-          await this.createNamedEnvs(Array.from(chunkEnvs));
-        }
+    if (missingNamedEnvironments.size > 0) {
+      await this.createNamedEnvs(Array.from(missingNamedEnvironments));
+    }
 
-        const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
-          "/api/upload/test-result",
-          {
-            testSessionId: this.#session!.id,
-            results: trsChunk.map((tr) => {
-              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
-
-              return {
-                ...tr,
-                // need to assign uuid explicitly because it's not provided by default
-                uuid: tr.id,
-                namedEnv: namedEnv
-                  ? {
-                      id: namedEnv.id,
-                    }
-                  : undefined,
-              };
-            }),
-            results: trsChunk.map((tr) => toUploadResultPayload(tr)),
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        const trsTestOpsIdsByUuid: Record<string, number> = data.results.reduce(
-          (acc, { id, uuid }) => ({ ...acc, [uuid]: id }),
-          {},
-        );
-
-        await Promise.all(
-          trsChunk.map((tr) =>
-            uploadLimitFn(async () => {
-              const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
-              const attachments = await attachmentsResolver(tr);
-              const fixtures = await fixturesResolver(tr);
-
-              if (attachments.length > 0) {
-                const attachmentsChunks = chunk(attachments, 100);
-
-                await Promise.all(
-                  attachmentsChunks.map(async (attachmentsChunk) => {
-                    const formData = new FormData();
-
-                    attachmentsChunk.forEach((attachment: any) => {
-                      formData.append("file", attachment.content, {
-                        filename: attachment.originalFileName,
-                        contentType: attachment.contentType,
-                      });
-                    });
-                    await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
-                      headers: {
-                        ...formData.getHeaders(),
-                      },
-                    });
-                  }),
-                );
-              }
-
-              if (fixtures.length > 0) {
-                await this.#client.post(`/api/upload/test-result/${trTestOpsId}/test-fixture-result`, {
-                  fixtures,
-                });
-              }
-
-              onProgress?.();
-            }),
-          ),
-        );
-      }),
+    const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
+      "/api/upload/test-result",
+      {
+        testSessionId: this.#session!.id,
+        results: trsChunk.map((testResult) => {
+          const namedEnvironment = testResult.environment
+            ? this.#namedEnvsIdsByEnv.get(testResult.environment)
+            : undefined;
+          return toUploadResultPayload({
+            ...(testResult as TestResultWithUploadCategory),
+            ...(namedEnvironment ? { namedEnv: { id: namedEnvironment.id } } : {}),
+          });
+        }),
+      },
+      { headers: { "Content-Type": "application/json" } },
     );
-    // eslint-disable-next-line no-console
-    console.info(`${LOG_PREFIX}Test results upload completed`);
+    return (data.results ?? []).reduce((acc, { id, uuid }) => ({ ...acc, [uuid]: id }), {} as Record<string, number>);
+  }
+
+  async #uploadChunkAttachmentsAndFixtures(
+    trsChunk: TestResult[],
+    resultIdsByUuid: Record<string, number>,
+    attachmentsResolver: UploadTestResultsParams["attachmentsResolver"],
+    fixturesResolver: UploadTestResultsParams["fixturesResolver"],
+    uploadLimitFn: (fn: () => Promise<void>) => Promise<void>,
+    onProgress?: () => void,
+  ): Promise<void> {
+    await Promise.all(
+      trsChunk.map((tr) =>
+        uploadLimitFn(async () => {
+          const testOpsId = resultIdsByUuid[tr.id];
+          const attachments = await attachmentsResolver(tr);
+          const fixtures = await fixturesResolver(tr);
+
+          await this.#uploadAttachmentsForResult(testOpsId, attachments);
+          await this.#uploadFixturesForResult(testOpsId, fixtures);
+          onProgress?.();
+        }),
+      ),
+    );
+  }
+
+  async #uploadAttachmentsForResult(testOpsResultId: number, attachments: AttachmentForUpload[]): Promise<void> {
+    if (attachments.length === 0) return;
+
+    const attachmentsChunks = chunk(attachments, 100);
+    for (const attachmentsChunk of attachmentsChunks) {
+      const formData = new FormData();
+      for (const att of attachmentsChunk) {
+        formData.append("file", att.content, {
+          filename: att.originalFileName,
+          contentType: att.contentType,
+        });
+      }
+      await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, formData, {
+        headers: formData.getHeaders(),
+      });
+    }
+  }
+
+  async #uploadFixturesForResult(testOpsResultId: number, fixtures: unknown[]): Promise<void> {
+    if (fixtures.length === 0) return;
+
+    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, { fixtures });
   }
 }

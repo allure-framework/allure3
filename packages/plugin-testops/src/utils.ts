@@ -4,6 +4,13 @@ import type { TestStepResult } from "@allurereport/core-api";
 
 import type { TestopsPluginOptions } from "./model.js";
 
+const LOG_PREFIX = "\x1b[92m[plugin-testops]\x1b[0m ";
+
+export const log = (...args: unknown[]): void => {
+  // eslint-disable-next-line no-console
+  console.info(LOG_PREFIX, ...args);
+};
+
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
   return steps.map((step) => {
     if (step.type === "attachment") {
@@ -32,6 +39,7 @@ export const resolvePluginOptions = (options: TestopsPluginOptions): Omit<Testop
     projectId = ALLURE_PROJECT_ID,
     launchTags = ALLURE_LAUNCH_TAGS,
     launchName = ALLURE_LAUNCH_NAME,
+    autocloseLaunch,
   } = options;
   const tags = !launchTags
     ? []
@@ -45,5 +53,6 @@ export const resolvePluginOptions = (options: TestopsPluginOptions): Omit<Testop
     accessToken: accessToken || "",
     endpoint: endpoint || "",
     projectId: projectId || "",
+    autocloseLaunch: autocloseLaunch ?? true,
   };
 };

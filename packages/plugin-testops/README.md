@@ -51,13 +51,14 @@ export default defineConfig({
 
 The plugin accepts the following options:
 
-| Option           | Description                                     | Type    | Default                 |
-|------------------|-------------------------------------------------|---------|-------------------------|
-| `launchName`     | Name of the report which will be assigned to the new launch                              | `string` | `Allure Report`         |
-| `launchTags`     | Tags to be assigned to the new launch                              | `string[]` | `[]`         |
-| `accessToken`    | Access token for TestOps API                    | `string` | `undefined`             |
-| `endpoint`       | TestOps API endpoint                            | `string` | `undefined` |
-| `projectId`      | TestOps project ID                              | `string` | `undefined`             |
+| Option             | Description                                                                 | Type      | Default         |
+|--------------------|-----------------------------------------------------------------------------|-----------|-----------------|
+| `launchName`       | Name of the report which will be assigned to the new launch                 | `string`  | `Allure Report` |
+| `launchTags`       | Tags to be assigned to the new launch                                      | `string[]`| `[]`            |
+| `accessToken`      | Access token for TestOps API                                               | `string`  | `undefined`     |
+| `endpoint`         | TestOps API endpoint                                                       | `string`  | `undefined`     |
+| `projectId`        | TestOps project ID                                                         | `string`  | `undefined`     |
+| `autocloseLaunch`  | When `true` (default), the launch is closed automatically when the plugin finishes; set to `false` to keep the launch open | `boolean` | `true`          |
 
 ### Using options from environment variables
 
