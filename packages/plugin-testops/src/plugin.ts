@@ -23,11 +23,7 @@ import { toUploadCategory } from "./uploadCategory.js";
 import { log, resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
-  cat.name ??
-  cat.grouping?.[0]?.name ??
-  cat.grouping?.[0]?.value ??
-  cat.grouping?.[0]?.key ??
-  cat.externalId;
+  cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
 
 export class TestopsPlugin implements Plugin {
   #ci?: CiDescriptor;
@@ -39,8 +35,7 @@ export class TestopsPlugin implements Plugin {
   #autocloseLaunch: boolean;
 
   constructor(readonly options: TestopsPluginOptions) {
-    const { accessToken, endpoint, projectId, launchName, launchTags, autocloseLaunch } =
-      resolvePluginOptions(options);
+    const { accessToken, endpoint, projectId, launchName, launchTags, autocloseLaunch } = resolvePluginOptions(options);
 
     this.#ci = detect();
 
@@ -74,14 +69,9 @@ export class TestopsPlugin implements Plugin {
     return this.#ci && this.#ci.type !== "local";
   }
 
-  async #upload(
-    store: AllureStore,
-    options?: { issueNewToken?: boolean; context?: PluginContext },
-  ) {
+  async #upload(store: AllureStore, options?: { issueNewToken?: boolean; context?: PluginContext }) {
     const { issueNewToken = true } = options ?? {};
-    const newEnvironments = (await store.allEnvironments()).filter(
-      (env) => !this.#createdEnvironments.includes(env),
-    );
+    const newEnvironments = (await store.allEnvironments()).filter((env) => !this.#createdEnvironments.includes(env));
     const contextCategories = options?.context?.categories ?? [];
     const allGlobalErrors = await store.allGlobalErrors();
     const allGlobalAttachments = await store.allGlobalAttachments();
@@ -133,9 +123,7 @@ export class TestopsPlugin implements Plugin {
 
     trsProgressBar.render();
     await this.#syncLaunchCategories(allTrsWithAttachments);
-    await this.#client!.uploadTestResults(
-      this.#buildUploadParams(store, allTrsWithAttachments, trsProgressBar),
-    );
+    await this.#client!.uploadTestResults(this.#buildUploadParams(store, allTrsWithAttachments, trsProgressBar));
 
     this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
     this.#createdEnvironments.push(...newEnvironments);
