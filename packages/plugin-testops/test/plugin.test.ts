@@ -598,7 +598,12 @@ describe("testops plugin", () => {
       it("should use tr.categories when present (e.g. from awesome plugin)", async () => {
         const trWithCategories = {
           ...fixtures.testResults[0],
-          categories: [{ name: "Product errors", grouping: [{ key: "owner", value: "alice", name: "owner: alice" }] }],
+          categories: [
+            {
+              name: "Product errors",
+              grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+            },
+          ],
         };
         AllureStoreMock.prototype.allTestResults.mockResolvedValue([trWithCategories]);
         AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
@@ -1046,7 +1051,11 @@ describe("testops plugin", () => {
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 2, passed: 1, failed: 1 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 2,
+        passed: 1,
+        failed: 1,
+      });
 
       const result = await plugin.info({} as PluginContext, store);
 
@@ -1071,7 +1080,11 @@ describe("testops plugin", () => {
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 1, passed: 1, failed: 0 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 1,
+        passed: 1,
+        failed: 0,
+      });
 
       await plugin.info({} as PluginContext, store);
 
