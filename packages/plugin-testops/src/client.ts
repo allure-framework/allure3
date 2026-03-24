@@ -1,4 +1,4 @@
-import type { CiDescriptor, TestResult, TestStatus } from "@allurereport/core-api";
+import type { CiDescriptor, TestResult, TestStatus, TestError, AttachmentLink } from "@allurereport/core-api";
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import FormData from "form-data";
@@ -168,6 +168,51 @@ export class TestOpsClient {
 
     data.forEach((env) => {
       this.#namedEnvsIdsByEnv.set(env.externalId, env);
+    });
+  }
+
+  async uploadGlobalAttachments(params: {
+    attachments: AttachmentLink[];
+    attachmentsResolver: (attachment: AttachmentLink) => Promise<any>;
+  }) {
+    if (!this.#session) {
+      throw new Error("Session isn't created! Call createSession first");
+    }
+
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    const formData = new FormData();
+
+    for (const attachmentLink of params.attachments) {
+      const attachment = await params.attachmentsResolver(attachmentLink);
+
+      if (!attachment) {
+        continue;
+      }
+
+      formData.append("file", attachment.content, {
+        filename: attachment.originalFileName,
+        contentType: attachment.contentType,
+      });
+    }
+
+    await this.#client.post(`/api/launch/attachment?launchId=${this.#launch.id}`, formData);
+  }
+
+  async uploadGlobalErrors(errors: TestError[]) {
+    if (!this.#session) {
+      throw new Error("Session isn't created! Call createSession first");
+    }
+
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    await this.#client.post("/api/launch/error/bulk", {
+      launchId: this.#launch.id,
+      items: errors,
     });
   }
 

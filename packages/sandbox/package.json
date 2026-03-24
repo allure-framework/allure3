@@ -21,12 +21,13 @@
     "@allurereport/plugin-csv": "workspace:*",
     "@allurereport/plugin-testops": "workspace:*",
     "@types/node": "^20.17.9",
-    "@vitest/runner": "^2.1.9",
+    "@vitest/runner": "^4.0.18",
     "allure": "workspace:*",
-    "allure-js-commons": "^3.3.3",
-    "allure-vitest": "^3.3.3",
+    "allure-js-commons": "^3.6.0",
+    "allure-vitest": "^3.6.0",
     "rimraf": "^6.0.1",
-    "vitest": "^2.1.9"
+    "vite": "^6.4.1",
+    "vitest": "^4.0.18"
   },
   "packageManager": "yarn@4.3.1"
 }

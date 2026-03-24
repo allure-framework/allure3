@@ -75,7 +75,8 @@
     "serialize-javascript@npm:^6.0.1": "7.0.3",
     "serialize-javascript@npm:^6.0.2": "7.0.3",
     "tar": "^7.5.8",
-    "vite": "^5.4.17",
+    "vite@npm:^5.4.17": "^5.4.17",
+    "vite@npm:^6.4.1": "^6.4.1",
     "webpack": "^5.105.0"
   },
   "lint-staged": {

@@ -63,8 +63,9 @@ export class TestopsPlugin implements Plugin {
 
   async #upload(store: AllureStore, options?: { issueNewToken: boolean }) {
     const { issueNewToken = true } = options ?? {};
-    const newEnvironments = (await store.allEnvironments()).filter((env) => !this.#createdEnvironments.includes(env));
     const allTrs = await store.allTestResults();
+    const allGlobalErrors = await store.allGlobalErrors();
+    const allGlobalAttachments = await store.allGlobalAttachments();
     const trsToUpload = allTrs.filter((tr) => {
       const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
 
@@ -92,6 +93,26 @@ export class TestopsPlugin implements Plugin {
 
     await this.#client!.createSession(env);
 
+    if (allGlobalAttachments.length > 0) {
+      await this.#client!.uploadGlobalAttachments({
+        attachments: allGlobalAttachments,
+        attachmentsResolver: async (attachmentLink) => {
+          const content = await store.attachmentContentById(attachmentLink.id);
+
+          return {
+            // @ts-expect-error
+            originalFileName: attachmentLink.name || attachmentLink.originalFileName,
+            contentType: attachmentLink.contentType,
+            content: await content?.readContent(async (s) => s),
+          };
+        },
+      });
+    }
+
+    if (allGlobalErrors.length > 0) {
+      await this.#client!.uploadGlobalErrors(allGlobalErrors);
+    }
+
     const trsProgressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
       total: allTrsWithAttachments.length,
       width: 20,
@@ -110,7 +131,8 @@ export class TestopsPlugin implements Plugin {
             const content = await store.attachmentContentById(attachment.id);
 
             return {
-              originalFileName: attachment.originalFileName,
+              // @ts-expect-error
+              originalFileName: attachmentLink.name || attachmentLink.originalFileName,
               contentType: attachment.contentType,
               content: await content?.readContent(async (s) => s),
             };
