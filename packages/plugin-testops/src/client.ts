@@ -212,7 +212,10 @@ export class TestOpsClient {
 
     const { data } = await this.#client.post<TestOpsSession>("/api/upload/session?manual=true", {
       launchId: this.#launch.id,
-      environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
+      environment: Object.entries(environment).map(([key, value]) => ({
+        key,
+        value: String(value),
+      })),
     });
 
     this.#session = data;

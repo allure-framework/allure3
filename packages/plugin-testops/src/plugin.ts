@@ -138,6 +138,7 @@ export class TestopsPlugin implements Plugin {
     );
 
     this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
+    this.#createdEnvironments.push(...newEnvironments);
     log(`Successfully uploaded ${allTrsWithAttachments.length} test result(s)`);
   }
 
@@ -191,10 +192,7 @@ export class TestopsPlugin implements Plugin {
     return map;
   }
 
-  #assignCreatedCategoryIds(
-    trs: TestResultWithUploadCategory[],
-    idByExternalId: Map<string, number>,
-  ): void {
+  #assignCreatedCategoryIds(trs: TestResultWithUploadCategory[], idByExternalId: Map<string, number>): void {
     for (const tr of trs) {
       const cat = tr.category;
       if (cat?.externalId) {
