@@ -59,13 +59,17 @@ vi.mock("@allurereport/core-api", () => {
             continue;
           }
           if (matcher.message !== undefined) {
-            const re = matcher.message instanceof RegExp ? matcher.message : new RegExp(String(matcher.message));
+            const re =
+              matcher.message instanceof RegExp
+                ? matcher.message
+                : new RegExp(String(matcher.message));
             if (!re.test(data.message ?? "")) {
               continue;
             }
           }
           if (matcher.trace !== undefined) {
-            const re = matcher.trace instanceof RegExp ? matcher.trace : new RegExp(String(matcher.trace));
+            const re =
+              matcher.trace instanceof RegExp ? matcher.trace : new RegExp(String(matcher.trace));
             if (!re.test(data.trace ?? "")) {
               continue;
             }
@@ -94,7 +98,10 @@ vi.mock("@allurereport/core-api", () => {
     return undefined;
   };
 
-  const buildEnvironmentSortOrder = (environments: string[] = [], defaultEnvironment = "default") => {
+  const buildEnvironmentSortOrder = (
+    environments: string[] = [],
+    defaultEnvironment = "default",
+  ) => {
     const orderMap = new Map<string, number>();
     let rank = 0;
 
@@ -150,8 +157,8 @@ const mkWriter = () => {
   return { writer, written };
 };
 
-const mkCategory = (partial: Partial<CategoryDefinition> = {}): CategoryDefinition =>
-  ({
+const mkCategory = (partial: Partial<CategoryDefinition> = {}): CategoryDefinition => {
+  const category = {
     name: "Failed",
     matchers: [{ statuses: ["failed"] }],
     groupBy: [],
@@ -161,7 +168,13 @@ const mkCategory = (partial: Partial<CategoryDefinition> = {}): CategoryDefiniti
     hide: false,
     index: 0,
     ...partial,
-  }) as unknown as CategoryDefinition;
+  };
+
+  return {
+    ...category,
+    id: partial.id ?? category.name,
+  } as unknown as CategoryDefinition;
+};
 
 const mkTest = (partial: Partial<AwesomeTestResult> = {}): AwesomeTestResult =>
   ({
@@ -198,7 +211,22 @@ describe("applyCategoriesToTestResults", () => {
 
     applyCategoriesToTestResults(tests, categories);
 
-    expect(tests[0].categories).toEqual([{ name: "Failures" }]);
+    expect(tests[0].categories).toEqual([{ id: "Failures", name: "Failures" }]);
+  });
+
+  it("should attach matched category id to test result when configured explicitly", () => {
+    const tests = [mkTest({ status: "failed" as any })];
+    const categories = [
+      mkCategory({
+        id: "integration.failures",
+        name: "Failures",
+        matchers: [{ statuses: ["failed"] }],
+      }),
+    ];
+
+    applyCategoriesToTestResults(tests, categories);
+
+    expect(tests[0].categories).toEqual([{ id: "integration.failures", name: "Failures" }]);
   });
 });
 
@@ -243,12 +271,43 @@ describe("generateCategories", () => {
     expect(store.nodes.h).toBeUndefined();
   });
 
+  it("should build category node ids from stable category id instead of category name", async () => {
+    const { writer, written } = mkWriter();
+    const categories: CategoryDefinition[] = [
+      mkCategory({
+        id: "integration.failed",
+        name: "Failed v2",
+        matchers: [{ statuses: ["failed"] }],
+        index: 0,
+      }),
+    ];
+    const tests: AwesomeTestResult[] = [mkTest({ id: "t1", status: "failed" as any })];
+
+    await generateCategories(writer, {
+      tests,
+      categories,
+      environmentCount: 1,
+      environments: ["prod"],
+      defaultEnvironment: "default",
+      selectedEnvironmentCount: 1,
+    });
+
+    const store = written[0].data as any;
+    expect(store.roots).toEqual(["cat:h(integration.failed)"]);
+    expect(store.nodes["cat:h(integration.failed)"].name).toBe("Failed v2");
+  });
+
   it("should skip hidden categories (hide=true) even when matched", async () => {
     const { writer, written } = mkWriter();
 
     const categories: CategoryDefinition[] = [
       mkCategory({ name: "HiddenCat", hide: true, matchers: [{ statuses: ["failed"] }], index: 0 }),
-      mkCategory({ name: "VisibleCat", hide: false, matchers: [{ statuses: ["broken"] }], index: 1 }),
+      mkCategory({
+        name: "VisibleCat",
+        hide: false,
+        matchers: [{ statuses: ["broken"] }],
+        index: 1,
+      }),
     ];
 
     const tests: AwesomeTestResult[] = [
@@ -337,7 +396,10 @@ describe("generateCategories", () => {
     expect(hasMessageBoom).toBe(true);
 
     const hasNoTransition = Object.values(store.nodes).some(
-      (node: any) => node.type === "group" && node.key === "transition" && node.name === "transition: No transition",
+      (node: any) =>
+        node.type === "group" &&
+        node.key === "transition" &&
+        node.name === "transition: No transition",
     );
     expect(hasNoTransition).toBe(true);
   });
@@ -356,9 +418,27 @@ describe("generateCategories", () => {
     ];
 
     const tests: AwesomeTestResult[] = [
-      mkTest({ id: "t1", name: "Original", status: "failed" as any, environment: "prod", historyId: "H1" }),
-      mkTest({ id: "t2", name: "Original", status: "failed" as any, environment: "staging", historyId: "H1" }),
-      mkTest({ id: "t3", name: "Original", status: "failed" as any, environment: "   ", historyId: "H1" }),
+      mkTest({
+        id: "t1",
+        name: "Original",
+        status: "failed" as any,
+        environment: "prod",
+        historyId: "H1",
+      }),
+      mkTest({
+        id: "t2",
+        name: "Original",
+        status: "failed" as any,
+        environment: "staging",
+        historyId: "H1",
+      }),
+      mkTest({
+        id: "t3",
+        name: "Original",
+        status: "failed" as any,
+        environment: "   ",
+        historyId: "H1",
+      }),
     ];
 
     await generateCategories(writer, {
@@ -396,7 +476,13 @@ describe("generateCategories", () => {
     ];
 
     const tests: AwesomeTestResult[] = [
-      mkTest({ id: "t1", name: "Original Name", status: "failed" as any, environment: "prod", historyId: "H1" }),
+      mkTest({
+        id: "t1",
+        name: "Original Name",
+        status: "failed" as any,
+        environment: "prod",
+        historyId: "H1",
+      }),
     ];
 
     await generateCategories(writer, {
@@ -432,7 +518,13 @@ describe("generateCategories", () => {
     ];
 
     const tests: AwesomeTestResult[] = [
-      mkTest({ id: "t1", name: "Original Name", status: "failed" as any, environment: "prod", historyId: "H1" }),
+      mkTest({
+        id: "t1",
+        name: "Original Name",
+        status: "failed" as any,
+        environment: "prod",
+        historyId: "H1",
+      }),
     ];
 
     await generateCategories(writer, {
@@ -475,7 +567,13 @@ describe("generateCategories", () => {
     ];
 
     const tests: AwesomeTestResult[] = [
-      mkTest({ id: "t1", name: "Original Name", status: "failed" as any, environment: "prod", historyId: "H1" }),
+      mkTest({
+        id: "t1",
+        name: "Original Name",
+        status: "failed" as any,
+        environment: "prod",
+        historyId: "H1",
+      }),
     ];
 
     await generateCategories(writer, {
@@ -517,8 +615,20 @@ describe("generateCategories", () => {
     ];
 
     const tests: AwesomeTestResult[] = [
-      mkTest({ id: "t1", name: "Original", status: "failed" as any, environment: "prod", historyId: "H1" }),
-      mkTest({ id: "t2", name: "Original", status: "failed" as any, environment: "   ", historyId: "H1" }),
+      mkTest({
+        id: "t1",
+        name: "Original",
+        status: "failed" as any,
+        environment: "prod",
+        historyId: "H1",
+      }),
+      mkTest({
+        id: "t2",
+        name: "Original",
+        status: "failed" as any,
+        environment: "   ",
+        historyId: "H1",
+      }),
     ];
 
     await generateCategories(writer, {

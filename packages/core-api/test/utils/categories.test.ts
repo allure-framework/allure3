@@ -61,6 +61,7 @@ describe("normalizeCategoriesConfig", () => {
     };
     const normalized = normalizeCategoriesConfig(cfg);
     expect(normalized[0].name).toBe("Custom");
+    expect(normalized[0].id).toBe("Custom");
   });
 
   it("merges rules with the same name by concatenating matchers", () => {
@@ -71,6 +72,36 @@ describe("normalizeCategoriesConfig", () => {
     const normalized = normalizeCategoriesConfig(cfg);
     const same = normalized.find((r) => r.name === "Same")!;
     expect(same.matchers).toHaveLength(2);
+  });
+
+  it("uses explicit id for normalized category identity", () => {
+    const normalized = normalizeCategoriesConfig([
+      { id: "integration.products", name: "Product errors", matchers: { statuses: ["failed"] } },
+    ]);
+    const category = normalized.find((rule) => rule.id === "integration.products");
+
+    expect(category).toBeDefined();
+    expect(category?.name).toBe("Product errors");
+  });
+
+  it("merges rules by id when names are different", () => {
+    const normalized = normalizeCategoriesConfig([
+      { id: "integration.failed", name: "Failures (old)", matchers: { statuses: ["failed"] } },
+      { id: "integration.failed", name: "Failures (new)", matchers: { statuses: ["broken"] } },
+    ]);
+    const category = normalized.find((rule) => rule.id === "integration.failed")!;
+
+    expect(category.name).toBe("Failures (old)");
+    expect(category.matchers).toHaveLength(2);
+  });
+
+  it("throws on normalized id collisions from different source ids", () => {
+    expect(() =>
+      normalizeCategoriesConfig([
+        { id: " same-id ", name: "One", matchers: { statuses: ["failed"] } },
+        { id: "same-id", name: "Two", matchers: { statuses: ["broken"] } },
+      ]),
+    ).toThrow(/normalized id/);
   });
 
   it("throws when rule is not an object", () => {

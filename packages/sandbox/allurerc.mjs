@@ -46,6 +46,7 @@ const chartLayout = [
 
 const comboRules = [
   {
+    id: "sandbox.layer-severity-message-envgroup",
     name: "Layer / Severity+Layer / Msg / EnvGroup",
     matchers: { labels: { layer: /.+/ } },
     groupBy: ["severity", { label: "layer" }],
@@ -53,6 +54,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.owner-message",
     name: "Owner / Owner / Msg",
     matchers: { labels: { owner: /.+/ } },
     groupBy: ["owner"],
@@ -60,6 +62,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.feature-status-envgroup",
     name: "Feature / Status / EnvGroup",
     matchers: { labels: { feature: /.+/ } },
     groupBy: ["status"],
@@ -67,6 +70,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.story-transition-environment",
     name: "Story / Transition+Env",
     matchers: { labels: { story: /.+/ } },
     groupBy: ["transition", "environment"],
@@ -74,6 +78,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.transitions-transition-environment-envgroup",
     name: "Transitions / Transition+EnvGroup",
     matchers: { transitions: ["new", "fixed", "regressed", "malfunctioned"] },
     groupBy: ["transition", "environment"],
@@ -81,6 +86,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.flaky-message",
     name: "Flaky / Flaky / Msg",
     matchers: { flaky: true },
     groupBy: ["flaky"],
@@ -88,6 +94,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.non-flaky-message",
     name: "Non-flaky / Flaky / Msg",
     matchers: { flaky: false },
     groupBy: ["flaky"],
@@ -95,6 +102,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.feature-story-envgroup",
     name: "Feature+Story / EnvGroup",
     matchers: { labels: { feature: /.+/, story: /.+/ } },
     groupBy: [{ label: "feature" }, { label: "story" }],
@@ -102,6 +110,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.env-label-environment-message",
     name: "Env label / Environment / Msg",
     matchers: { labels: { env: /.+/ } },
     groupBy: ["environment"],

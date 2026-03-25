@@ -85,6 +85,7 @@ export type CategoryGroupCustomSelector = {
 export type CategoryGroupSelector = CategoryGroupBuiltInSelector | CategoryGroupCustomSelector;
 
 export type CategoryRule = {
+  id?: string;
   name: string;
   matchers?: CategoryMatcher;
   groupBy?: readonly CategoryGroupSelector[];
@@ -104,6 +105,7 @@ export type CategoriesStore = {
 };
 
 export interface CategoryDefinition extends Pick<CategoryRule, "name" | "expand" | "hide" | "groupEnvironments"> {
+  id: string;
   matchers: Matcher[];
   groupBy: CategoryGroupSelector[];
   groupByMessage: boolean;
@@ -157,6 +159,36 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> =>
 const toRegExp = (v: string | RegExp): RegExp => (v instanceof RegExp ? v : new RegExp(v));
 
 const isMatcherArray = (value: CategoryMatcher): value is readonly Matcher[] => Array.isArray(value);
+const hasControlChars = (value: string): boolean => {
+  for (let index = 0; index < value.length; index++) {
+    const code = value.charCodeAt(index);
+
+    if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const normalizeCategoryId = (id: unknown): { valid: true; normalized: string } | { valid: false; reason: string } => {
+  if (typeof id !== "string") {
+    return { valid: false, reason: "id must be a string" };
+  }
+
+  const normalized = id.trim();
+
+  if (normalized.length === 0) {
+    return { valid: false, reason: "id must not be empty" };
+  }
+
+  if (hasControlChars(normalized)) {
+    return { valid: false, reason: "id must not contain control characters" };
+  }
+
+  return { valid: true, normalized };
+};
+
 const normalizeMatchers = (rule: CategoryRule, index: number): Matcher[] => {
   const compatKeysUsed =
     rule.matchedStatuses !== undefined ||
@@ -212,6 +244,7 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
 
   const normalized: CategoryDefinition[] = [];
   const seen = new Map<string, CategoryDefinition>();
+  const sourceIdsByNormalizedId = new Map<string, Set<string>>();
 
   const applyRule = (rule: CategoryRule, index: number) => {
     if (!isPlainObject(rule)) {
@@ -221,8 +254,17 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
       throw new Error(`categories[${index}].name must be non-empty string`);
     }
 
+    const idValidationResult = normalizeCategoryId(rule.id ?? rule.name);
+    if (!idValidationResult.valid) {
+      throw new Error(`categories[${index}].id ${idValidationResult.reason}`);
+    }
+    const normalizedId = idValidationResult.normalized;
+    const sourceIds = sourceIdsByNormalizedId.get(normalizedId) ?? new Set<string>();
+    sourceIds.add(rule.id ?? rule.name);
+    sourceIdsByNormalizedId.set(normalizedId, sourceIds);
+
     const matchers = normalizeMatchers(rule, index);
-    const existing = seen.get(rule.name);
+    const existing = seen.get(normalizedId);
     if (existing) {
       existing.matchers.push(...matchers);
       return;
@@ -252,6 +294,7 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
     }
 
     const norm: CategoryDefinition = {
+      id: normalizedId,
       name: rule.name,
       matchers,
       groupBy,
@@ -261,12 +304,22 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
       hide: rule.hide ?? false,
       index,
     };
-    seen.set(rule.name, norm);
+    seen.set(normalizedId, norm);
     normalized.push(norm);
   };
 
   rules.forEach(applyRule);
   DEFAULT_ERROR_CATEGORIES.forEach((rule, index) => applyRule(rule, rules.length + index));
+
+  sourceIdsByNormalizedId.forEach((sourceIds, normalizedId) => {
+    if (sourceIds.size <= 1) {
+      return;
+    }
+
+    throw new Error(
+      `categories: normalized id ${JSON.stringify(normalizedId)} is produced by source ids [${Array.from(sourceIds).map((id) => JSON.stringify(id)).join(",")}]`,
+    );
+  });
 
   return normalized;
 };
