@@ -1,11 +1,66 @@
 import type { AttachmentLink, TestResult } from "@allurereport/core-api";
 
+export type UploadCategoryGrouping = {
+  key: string;
+  value?: string;
+  name?: string;
+  type?: string;
+};
+
+export type UploadCategory = {
+  externalId: string;
+  name?: string;
+  grouping?: UploadCategoryGrouping[];
+};
+
+export type TestResultWithCategories = Pick<
+  TestResult,
+  "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
+> & {
+  categories?: { name: string; grouping?: UploadCategoryGrouping[] }[];
+};
+
+export type TestResultWithUploadCategory = TestResult & {
+  category?: UploadCategory & { id?: number };
+};
+
+export type LaunchCategoryBulkItem = {
+  externalId: string;
+  name: string;
+};
+
+export type LaunchCategoryBulkResult = {
+  id: number;
+  externalId: string;
+};
+
+export type TestOpsClientParams = {
+  baseUrl: string;
+  projectId: string;
+  accessToken: string;
+  limit?: number;
+};
+
+export type AttachmentForUpload = {
+  originalFileName: string;
+  contentType: string;
+  content: Buffer | Blob | NodeJS.ReadableStream;
+};
+
+export type UploadTestResultsParams = {
+  trs: TestResult[];
+  attachmentsResolver: (tr: TestResult) => Promise<AttachmentForUpload[]>;
+  fixturesResolver: (tr: TestResult) => Promise<unknown[]>;
+  onProgress?: () => void;
+};
+
 export type TestopsUploaderOptions = {
   endpoint: string;
   accessToken: string;
   projectId: string;
   launchName: string;
   launchTags: string[];
+  autocloseLaunch?: boolean;
   filter?: (testResult: TestResult) => boolean;
   limit?: number;
 };

@@ -2,7 +2,7 @@ import { env } from "node:process";
 
 /* eslint max-lines: off */
 import { detect } from "@allurereport/ci";
-import type { AttachmentLink, CiDescriptor, TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -495,6 +495,173 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
     });
+
+    it("should call allEnvironments from the store during upload", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allEnvironments.mockResolvedValue(["chrome", "firefox"]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.allEnvironments).toHaveBeenCalled();
+    });
+
+    describe("categories", () => {
+      const categoryProductErrors: CategoryDefinition = {
+        name: "Product errors",
+        matchers: [{ statuses: ["failed"] }],
+        groupBy: [],
+        groupByMessage: false,
+        index: 0,
+      };
+
+      it("should call createLaunchCategoriesBulk and attach category from context.categories when tr matches", async () => {
+        const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "product-errors" },
+        ]);
+
+        const context = { categories: [categoryProductErrors] } as PluginContext;
+
+        await plugin.start(context, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "Product errors", name: "Product errors" },
+        ]);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                id: failedTr.id,
+                category: expect.objectContaining({
+                  externalId: "Product errors",
+                  name: "Product errors",
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should attach category with grouping when context.categories has groupBy", async () => {
+        const categoryWithGroupBy: CategoryDefinition = {
+          ...categoryProductErrors,
+          name: "Layer / Severity",
+          groupBy: ["severity", "layer"],
+        };
+        const failedTr = {
+          ...fixtures.testResults[0],
+          status: "failed" as const,
+          labels: [
+            { name: "severity", value: "critical" },
+            { name: "layer", value: "api" },
+          ],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "Layer / Severity" },
+        ]);
+
+        const context = { categories: [categoryWithGroupBy] } as PluginContext;
+
+        await plugin.start(context, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                category: expect.objectContaining({
+                  externalId: "Layer / Severity",
+                  name: "Layer / Severity",
+                  grouping: [
+                    { key: "severity", value: "critical", name: "severity: critical" },
+                    { key: "layer", value: "api", name: "layer: api" },
+                  ],
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should use tr.categories when present (e.g. from awesome plugin)", async () => {
+        const trWithCategories = {
+          ...fixtures.testResults[0],
+          categories: [
+            {
+              name: "Product errors",
+              grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+            },
+          ],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([trWithCategories]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "cat-1" }]);
+
+        await plugin.start({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "Product errors", name: "Product errors" },
+        ]);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                category: expect.objectContaining({
+                  externalId: "Product errors",
+                  name: "Product errors",
+                  grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should not call createLaunchCategoriesBulk when no test results have categories", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        await plugin.start({ categories: [categoryProductErrors] } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [expect.not.objectContaining({ category: expect.anything() })],
+          }),
+        );
+      });
+
+      it("should continue upload when createLaunchCategoriesBulk fails", async () => {
+        const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockRejectedValue(new Error("Network error"));
+
+        await plugin.start({ categories: [categoryProductErrors] } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe("when client is not initialized", () => {
@@ -800,6 +967,19 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
     });
 
+    it("should call closeLaunch when launchId is set", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      TestOpsClientMock.prototype.launchId = 123;
+
+      await plugin.done({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.closeLaunch).toHaveBeenCalledWith(123);
+    });
+
     it("should apply filter when uploading test results", async () => {
       const filter = (tr: any) => tr.id === "0-0-0-0";
 
@@ -871,7 +1051,11 @@ describe("testops plugin", () => {
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 2, passed: 1, failed: 1 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 2,
+        passed: 1,
+        failed: 1,
+      });
 
       const result = await plugin.info({} as PluginContext, store);
 
@@ -896,7 +1080,11 @@ describe("testops plugin", () => {
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 1, passed: 1, failed: 0 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 1,
+        passed: 1,
+        failed: 0,
+      });
 
       await plugin.info({} as PluginContext, store);
 

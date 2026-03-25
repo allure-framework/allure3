@@ -14,8 +14,11 @@ TestOpsClientMock.prototype = {
   uploadGlobalAttachments: vi.fn(),
   uploadGlobalErrors: vi.fn(),
   launchUrl: undefined,
+  launchId: 123,
   startUpload: vi.fn(),
   stopUpload: vi.fn(),
+  createLaunchCategoriesBulk: vi.fn().mockResolvedValue([]),
+  closeLaunch: vi.fn(),
 };
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions

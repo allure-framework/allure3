@@ -177,6 +177,15 @@ export default defineConfig({
         groupBy: "none",
       },
     },
+    testops: {
+      options: {
+        endpoint: "http://localhost:8080",
+        projectId: "1",
+        accessToken: "09177f17-f2ac-4387-b244-2b2765bce8b0",
+        launchName: "Sandbox",
+        launchTags: ["sandbox", "local"],
+      },
+    },
   },
   variables: {
     env_variable: "unknown",
