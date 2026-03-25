@@ -11,30 +11,6 @@ import {
   type TestResult,
 } from "@allurereport/core-api";
 
-const normalizeEnvironmentValue = (
-  value: unknown,
-  sourcePath: string,
-  label: "id" | "name",
-  options?: {
-    strictId?: boolean;
-  },
-): { ok: true; normalized: string } | { ok: false; error: string } => {
-  const validationResult =
-    label === "id" && options?.strictId ? validateEnvironmentId(value) : validateEnvironmentName(value);
-
-  if (!validationResult.valid) {
-    return {
-      ok: false,
-      error: `${sourcePath}: ${validationResult.reason}`,
-    };
-  }
-
-  return {
-    ok: true,
-    normalized: validationResult.normalized,
-  };
-};
-
 const createIdentity = (id: string, descriptor?: Pick<EnvironmentDescriptor, "name">): EnvironmentIdentity => ({
   id,
   name: descriptor?.name ?? id,
@@ -59,23 +35,17 @@ export const normalizeEnvironmentDescriptorMap = (
   const errors: string[] = [];
 
   Object.entries(input).forEach(([environmentId, environmentDescriptor]) => {
-    const idResult = normalizeEnvironmentValue(environmentId, `${sourcePath}[${JSON.stringify(environmentId)}]`, "id", {
-      strictId: true,
-    });
+    const idResult = validateEnvironmentId(environmentId);
 
-    if (!idResult.ok) {
-      errors.push(idResult.error);
+    if (!idResult.valid) {
+      errors.push(`${sourcePath}[${JSON.stringify(environmentId)}]: ${idResult.reason}`);
       return;
     }
 
-    const nameResult = normalizeEnvironmentValue(
-      environmentDescriptor.name ?? environmentId,
-      `${sourcePath}[${JSON.stringify(environmentId)}]`,
-      "name",
-    );
+    const nameResult = validateEnvironmentName(environmentDescriptor.name ?? environmentId);
 
-    if (!nameResult.ok) {
-      errors.push(nameResult.error);
+    if (!nameResult.valid) {
+      errors.push(`${sourcePath}[${JSON.stringify(environmentId)}]: ${nameResult.reason}`);
       return;
     }
 
@@ -156,52 +126,6 @@ export const environmentIdentityByName = (
   return undefined;
 };
 
-const normalizeStoredEnvironmentName = (environmentName: unknown): string | undefined => {
-  const result = validateEnvironmentName(environmentName);
-
-  return result.valid ? result.normalized : undefined;
-};
-
-const normalizeRuntimeEnvironmentKey = (
-  environmentKey: unknown,
-): { ok: true; normalized: string } | { ok: false; reason: string } => {
-  const idResult = validateEnvironmentId(environmentKey);
-
-  if (idResult.valid) {
-    return {
-      ok: true,
-      normalized: idResult.normalized,
-    };
-  }
-
-  const nameResult = validateEnvironmentName(environmentKey);
-
-  if (nameResult.valid) {
-    return {
-      ok: true,
-      normalized: nameResult.normalized,
-    };
-  }
-
-  return {
-    ok: false,
-    reason: nameResult.reason,
-  };
-};
-
-export const assertValidRuntimeEnvironmentKey = (
-  environmentKey: unknown,
-  source: string = "environment key",
-): string => {
-  const result = normalizeRuntimeEnvironmentKey(environmentKey);
-
-  if (!result.ok) {
-    throw new Error(`Invalid ${source} ${JSON.stringify(environmentKey)}: ${result.reason}`);
-  }
-
-  return result.normalized;
-};
-
 export const resolveStoredEnvironmentIdentity = (
   params: {
     environment?: unknown;
@@ -224,17 +148,20 @@ export const resolveStoredEnvironmentIdentity = (
         return configuredIdentity;
       }
 
+      const storedNameResult = validateEnvironmentName(params.environmentName ?? params.environment);
+
       return {
         id: idResult.normalized,
-        name: normalizeStoredEnvironmentName(params.environmentName ?? params.environment) ?? idResult.normalized,
+        name: storedNameResult.valid ? storedNameResult.normalized : idResult.normalized,
       };
     }
 
-    const normalizedName = normalizeStoredEnvironmentName(params.environment);
+    const environmentNameResult = validateEnvironmentName(params.environment);
 
-    if (normalizedName) {
+    if (environmentNameResult.valid) {
       return (
-        environmentIdentityByName(environmentsConfig, normalizedName) ?? compatibilityIdentityFromName(normalizedName)
+        environmentIdentityByName(environmentsConfig, environmentNameResult.normalized) ??
+        compatibilityIdentityFromName(environmentNameResult.normalized)
       );
     }
   }
@@ -242,11 +169,12 @@ export const resolveStoredEnvironmentIdentity = (
   const storedEnvironmentName = params.environmentName ?? params.environment;
 
   if (storedEnvironmentName !== undefined) {
-    const normalizedName = normalizeStoredEnvironmentName(storedEnvironmentName);
+    const storedEnvironmentNameResult = validateEnvironmentName(storedEnvironmentName);
 
-    if (normalizedName) {
+    if (storedEnvironmentNameResult.valid) {
       return (
-        environmentIdentityByName(environmentsConfig, normalizedName) ?? compatibilityIdentityFromName(normalizedName)
+        environmentIdentityByName(environmentsConfig, storedEnvironmentNameResult.normalized) ??
+        compatibilityIdentityFromName(storedEnvironmentNameResult.normalized)
       );
     }
   }
@@ -270,10 +198,10 @@ export const resolveEnvironmentIdentity = (
   let identityFromEnvironment: EnvironmentIdentity | undefined;
   let identityFromName: EnvironmentIdentity | undefined;
   if (params.environment !== undefined) {
-    const environmentResult = normalizeEnvironmentValue(params.environment, sourcePath, "name");
+    const environmentResult = validateEnvironmentName(params.environment);
 
-    if (!environmentResult.ok) {
-      errors.push(`${sourcePath}: environment ${environmentResult.error.split(": ").slice(1).join(": ")}`);
+    if (!environmentResult.valid) {
+      errors.push(`${sourcePath}: environment ${environmentResult.reason}`);
     } else {
       const normalizedEnvironment = environmentResult.normalized;
 
@@ -286,10 +214,10 @@ export const resolveEnvironmentIdentity = (
   }
 
   if (params.environmentName !== undefined) {
-    const environmentNameResult = normalizeEnvironmentValue(params.environmentName, sourcePath, "name");
+    const environmentNameResult = validateEnvironmentName(params.environmentName);
 
-    if (!environmentNameResult.ok) {
-      errors.push(`${sourcePath}: environmentName ${environmentNameResult.error.split(": ").slice(1).join(": ")}`);
+    if (!environmentNameResult.valid) {
+      errors.push(`${sourcePath}: environmentName ${environmentNameResult.reason}`);
     } else {
       identityFromName = environmentIdentityByName(environmentsConfig, environmentNameResult.normalized) ?? {
         id: environmentNameResult.normalized,

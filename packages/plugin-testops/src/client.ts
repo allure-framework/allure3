@@ -14,11 +14,6 @@ import pLimit from "p-limit";
 
 import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
 
-type UploadableTestResult = {
-  testResult: TestResult;
-  namedEnvironment?: EnvironmentIdentity;
-};
-
 export class TestOpsClient {
   #accessToken: string;
   #projectId: string;
@@ -152,7 +147,7 @@ export class TestOpsClient {
     this.#session = data;
   }
 
-  async createNamedEnvs(environments: Array<{ id: string; name: string }>) {
+  async createNamedEnvs(environments: EnvironmentIdentity[]) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -228,7 +223,8 @@ export class TestOpsClient {
   }
 
   async uploadTestResults(params: {
-    trs: UploadableTestResult[];
+    trs: TestResult[];
+    envNamesById: Record<string, string>;
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
     onProgress?: () => void;
@@ -237,19 +233,22 @@ export class TestOpsClient {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, envNamesById, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, 100);
     const uploadLimitFn = pLimit(this.#uploadLimit);
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
-        const chunkEnvs = new Map<string, { id: string; name: string }>();
+        const chunkEnvs = new Map<string, EnvironmentIdentity>();
 
         for (const tr of trsChunk) {
-          const namedEnvironment = tr.namedEnvironment;
+          const environmentId = tr.environment;
 
-          if (namedEnvironment && !this.#namedEnvsIdsByEnv.has(namedEnvironment.id)) {
-            chunkEnvs.set(namedEnvironment.id, namedEnvironment);
+          if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
+            chunkEnvs.set(environmentId, {
+              id: environmentId,
+              name: envNamesById[environmentId] ?? environmentId,
+            });
           }
         }
 
@@ -262,13 +261,13 @@ export class TestOpsClient {
           "/api/upload/test-result",
           {
             testSessionId: this.#session!.id,
-            results: trsChunk.map(({ testResult, namedEnvironment }) => {
-              const namedEnv = namedEnvironment ? this.#namedEnvsIdsByEnv.get(namedEnvironment.id) : undefined;
+            results: trsChunk.map((tr) => {
+              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
 
               return {
-                ...testResult,
+                ...tr,
                 // need to assign uuid explicitly because it's not provided by default
-                uuid: testResult.id,
+                uuid: tr.id,
                 namedEnv: namedEnv
                   ? {
                       id: namedEnv.id,
@@ -289,11 +288,11 @@ export class TestOpsClient {
         );
 
         await Promise.all(
-          trsChunk.map(({ testResult }) =>
+          trsChunk.map((tr) =>
             uploadLimitFn(async () => {
-              const trTestOpsId = trsTestOpsIdsByUuid[testResult.id];
-              const attachments = await attachmentsResolver(testResult);
-              const fixtures = await fixturesResolver(testResult);
+              const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
+              const attachments = await attachmentsResolver(tr);
+              const fixtures = await fixturesResolver(tr);
 
               if (attachments.length > 0) {
                 const attachmentsChunks = chunk(attachments, 100);

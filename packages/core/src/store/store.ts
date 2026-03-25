@@ -51,7 +51,6 @@ import type {
 } from "@allurereport/reader-api";
 
 import {
-  assertValidRuntimeEnvironmentKey,
   defaultEnvironmentIdentity,
   environmentIdentityById,
   normalizeEnvironmentDescriptorMap,
@@ -673,7 +672,15 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPointsByEnvironmentId(environmentId: string): Promise<HistoryDataPoint[]> {
-    const normalizedEnvironmentId = assertValidRuntimeEnvironmentKey(environmentId, "environmentId");
+    const normalizedEnvironmentIdValidation = validateEnvironmentName(environmentId);
+
+    if (!normalizedEnvironmentIdValidation.valid) {
+      throw new Error(
+        `Invalid environmentId ${JSON.stringify(environmentId)}: ${normalizedEnvironmentIdValidation.reason}`,
+      );
+    }
+
+    const normalizedEnvironmentId = normalizedEnvironmentIdValidation.normalized;
 
     return this.#historyPoints.reduce((result, dp) => {
       const filteredTestResults: HistoryTestResult[] = [];
@@ -958,7 +965,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       includeHidden?: boolean;
     } = { includeHidden: false },
   ) {
-    const normalizedEnvId = assertValidRuntimeEnvironmentKey(envId, "environmentId");
+    const normalizedEnvIdValidation = validateEnvironmentName(envId);
+
+    if (!normalizedEnvIdValidation.valid) {
+      throw new Error(`Invalid environmentId ${JSON.stringify(envId)}: ${normalizedEnvIdValidation.reason}`);
+    }
+
+    const normalizedEnvId = normalizedEnvIdValidation.normalized;
     const trs: TestResult[] = [];
 
     for (const [, tr] of this.#testResults) {
@@ -1047,7 +1060,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async envVariablesByEnvironmentId(envId: string) {
-    const normalizedEnvId = assertValidRuntimeEnvironmentKey(envId, "environmentId");
+    const normalizedEnvIdValidation = validateEnvironmentName(envId);
+
+    if (!normalizedEnvIdValidation.valid) {
+      throw new Error(`Invalid environmentId ${JSON.stringify(envId)}: ${normalizedEnvIdValidation.reason}`);
+    }
+
+    const normalizedEnvId = normalizedEnvIdValidation.normalized;
     const envDescriptor = Object.prototype.hasOwnProperty.call(this.#environmentsConfig, normalizedEnvId)
       ? this.#environmentsConfig[normalizedEnvId]
       : undefined;
@@ -1122,6 +1141,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
+      indexLatestEnvTestResultByHistoryId = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
@@ -1158,28 +1178,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachmentContents, attachmentsContents);
 
     this.#addEnvironments(normalizedEnvironments);
-    this.#addEnvironments(
-      Object.values(testResults)
-        .map((testResult) =>
-          this.#resolveStoredEnvironmentIdentity({
-            environment:
-              (testResult as TestResult & { environmentId?: string }).environmentId ?? testResult.environment,
-            environmentName: testResult.environment,
-            labels: testResult.labels,
-          }),
-        )
-        .filter(Boolean) as EnvironmentIdentity[],
-    );
-    this.#addEnvironments(
-      qualityGateResults
-        .map((result) =>
-          this.#resolveStoredEnvironmentIdentity({
-            environmentName: result.environment,
-            labels: [],
-          }),
-        )
-        .filter(Boolean) as EnvironmentIdentity[],
-    );
     this.#globalAttachmentIds.push(...globalAttachmentIds);
     this.#globalErrors.push(...globalErrors);
 
@@ -1274,21 +1272,65 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-    this.indexLatestEnvTestResultByHistoryId.clear();
     this.#environments.forEach(({ id }) => {
-      this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
+      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
+        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
+      }
     });
 
-    Array.from(this.#testResults.values()).forEach((tr) => {
-      const normalizedEnvironment =
-        this.#resolveStoredEnvironmentIdentity({
-          environment: (tr as TestResult & { environmentId?: string }).environmentId ?? tr.environment,
-          environmentName: tr.environment,
-          labels: tr.labels,
-        })?.id ?? DEFAULT_ENVIRONMENT;
+    const latestAttemptsEntries = Object.entries(indexLatestEnvTestResultByHistoryId);
+    const hasNestedLatestAttempts = latestAttemptsEntries.some(
+      ([, value]) => typeof value === "object" && value !== null,
+    );
 
-      hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironment);
-    });
+    if (hasNestedLatestAttempts) {
+      latestAttemptsEntries.forEach(([environmentId, historyIds]) => {
+        const environmentIdValidation = validateEnvironmentName(environmentId);
+
+        if (!environmentIdValidation.valid || typeof historyIds !== "object" || historyIds === null) {
+          return;
+        }
+
+        const normalizedEnvironmentId = environmentIdValidation.normalized;
+
+        if (!this.indexLatestEnvTestResultByHistoryId.has(normalizedEnvironmentId)) {
+          this.indexLatestEnvTestResultByHistoryId.set(normalizedEnvironmentId, new Map());
+        }
+
+        Object.values(historyIds as Record<string, string>).forEach((trId) => {
+          const tr = this.#testResults.get(trId);
+
+          if (!tr) {
+            return;
+          }
+
+          hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironmentId);
+        });
+      });
+    } else {
+      Object.entries(indexLatestEnvTestResultByHistoryId as Record<string, string>).forEach(
+        ([historyId, latestTrId]) => {
+          const candidateTrIds = indexTestResultByHistoryId[historyId] ?? [latestTrId];
+
+          candidateTrIds.forEach((trId) => {
+            const tr = this.#testResults.get(trId);
+
+            if (!tr) {
+              return;
+            }
+
+            const normalizedEnvironment =
+              this.#resolveStoredEnvironmentIdentity({
+                environment: (tr as TestResult & { environmentId?: string }).environmentId ?? tr.environment,
+                environmentName: tr.environment,
+                labels: tr.labels,
+              })?.id ?? DEFAULT_ENVIRONMENT;
+
+            hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironment);
+          });
+        },
+      );
+    }
 
     this.#qualityGateResults.push(...qualityGateResults);
   }

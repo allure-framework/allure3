@@ -1,11 +1,22 @@
 import type { EnvironmentsConfig } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
 
-import { assertValidRuntimeEnvironmentKey, resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
+import { resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
 
 describe("environment runtime resolution", () => {
-  it("should keep compatibility runtime keys with slashes unchanged", () => {
-    expect(assertValidRuntimeEnvironmentKey("foo/bar", "environmentId")).toBe("foo/bar");
+  it("should resolve compatibility runtime keys with slashes unchanged", () => {
+    expect(
+      resolveStoredEnvironmentIdentity(
+        {
+          environment: "foo/bar",
+          labels: [],
+        },
+        {},
+      ),
+    ).toEqual({
+      id: "foo/bar",
+      name: "foo/bar",
+    });
   });
 
   it("should prefer configured display name for a known environment id", () => {

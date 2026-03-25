@@ -183,7 +183,7 @@ const resolveConfigEnvironments = (config: Config) => {
     const environmentResult = validateEnvironmentName(config.environment);
 
     if (!environmentResult.valid) {
-      errors.push(`environment: ${environmentResult.reason}`);
+      errors.push(`environment ${environmentResult.reason}`);
     } else {
       const normalizedEnvironment = environmentResult.normalized;
 

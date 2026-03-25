@@ -388,17 +388,17 @@ describe("resolveConfig", () => {
 
   it("should throw an error for invalid forced environment name", async () => {
     await expect(resolveConfig({ environment: "" })).rejects.toThrow(
-      "The provided Allure config contains invalid environments: environment: name must not be empty",
+      "The provided Allure config contains invalid environments: environment name must not be empty",
     );
   });
 
   it("should throw an error for invalid forced environment control characters", async () => {
     await expect(resolveConfig({ environment: "foo\nbar" })).rejects.toThrow(
-      "The provided Allure config contains invalid environments: environment: name must not contain control characters",
+      "The provided Allure config contains invalid environments: environment name must not contain control characters",
     );
   });
 
-  it("should throw an error for invalid environment config key with control characters", async () => {
+  it("should throw an error for invalid environment id with control characters", async () => {
     await expect(
       resolveConfig({
         environments: {
@@ -440,7 +440,7 @@ describe("resolveConfig", () => {
     expect(Object.keys(resolved.environments)).toEqual(["foo"]);
   });
 
-  it("should resolve configured environment ids through the public environment field", async () => {
+  it("should accept environment ID in the public environment field", async () => {
     const resolved = await resolveConfig({
       environment: "qa_env",
       environments: {
@@ -456,7 +456,7 @@ describe("resolveConfig", () => {
     expect(resolved.environments?.qa_env?.name).toBe("QA Env");
   });
 
-  it("should resolve configured environment display names through the public environment field", async () => {
+  it("should resolve environment display name to environment ID in the public environment field", async () => {
     const resolved = await resolveConfig({
       environment: " QA Env ",
       environments: {

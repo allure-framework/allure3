@@ -24,7 +24,6 @@ export const AllureStoreMock = vi.fn(function () {});
 AllureStoreMock.prototype = {
   allTestResults: vi.fn(),
   allNewTestResults: vi.fn(),
-  allEnvironments: vi.fn(),
   allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
   allGlobalErrors: vi.fn().mockResolvedValue([]),
   allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -32,7 +31,6 @@ AllureStoreMock.prototype = {
   attachmentContentById: vi.fn(),
   fixturesByTrId: vi.fn(),
   metadataByKey: vi.fn(),
-  testResultsByEnvironmentId: vi.fn().mockResolvedValue([]),
   testsStatistic: vi.fn(),
 };
 

@@ -1,7 +1,6 @@
 import type {
   AttachmentLink,
   CiDescriptor,
-  EnvironmentIdentity,
   TestError,
   TestResult,
   TestStatus,
@@ -13,11 +12,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestOpsClient } from "../src/client.js";
 import type { TestOpsLaunch, TestOpsNamedEnv } from "../src/model.js";
 import { AxiosMock, BASE_URL } from "./utils.js";
-
-type UploadableTestResult = {
-  testResult: TestResult;
-  namedEnvironment?: EnvironmentIdentity;
-};
 
 const fixtures = {
   accessToken: "test",
@@ -51,9 +45,6 @@ const fixtures = {
   ],
   fixtures: [{ name: "before hook" } as TestStepResult, { name: "after hook" } as TestStepResult],
 };
-
-const uploadItem = (testResult: TestResult, namedEnvironment?: EnvironmentIdentity): UploadableTestResult =>
-  namedEnvironment ? { testResult, namedEnvironment } : { testResult };
 
 vi.mock("axios", async () => {
   const utils = await import("./utils.js");
@@ -682,6 +673,7 @@ describe("testops http client", () => {
         async () =>
           await client.uploadTestResults({
             trs: [],
+            envNamesById: {},
             attachmentsResolver: () => Promise.resolve([]),
             fixturesResolver: () => Promise.resolve([]),
           }),
@@ -727,7 +719,8 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
+        trs: fixtures.testResults,
+        envNamesById: {},
         attachmentsResolver,
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -785,7 +778,8 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
+        trs: fixtures.testResults,
+        envNamesById: {},
         attachmentsResolver: () => Promise.resolve(fixtures.attachments),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -823,9 +817,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const trsWithEnv: UploadableTestResult[] = [
-        uploadItem({ ...fixtures.testResults[0], environment: "Chrome" }, { id: "chrome", name: "Chrome" }),
-        uploadItem({ ...fixtures.testResults[1], environment: "Firefox" }, { id: "firefox", name: "Firefox" }),
+      const trsWithEnv: TestResult[] = [
+        { ...fixtures.testResults[0], environment: "chrome" },
+        { ...fixtures.testResults[1], environment: "firefox" },
       ];
 
       const client = new TestOpsClient({
@@ -839,6 +833,10 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: trsWithEnv,
+        envNamesById: {
+          chrome: "Chrome",
+          firefox: "Firefox",
+        },
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -901,9 +899,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const trsWithSharedDisplayName: UploadableTestResult[] = [
-        uploadItem({ ...fixtures.testResults[0], environment: "QA" }, { id: "qa_a", name: "QA" }),
-        uploadItem({ ...fixtures.testResults[1], environment: "QA" }, { id: "qa_b", name: "QA" }),
+      const trsWithSharedDisplayName: TestResult[] = [
+        { ...fixtures.testResults[0], environment: "qa_a" },
+        { ...fixtures.testResults[1], environment: "qa_b" },
       ];
 
       const client = new TestOpsClient({
@@ -917,6 +915,10 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: trsWithSharedDisplayName,
+        envNamesById: {
+          qa_a: "QA",
+          qa_b: "QA",
+        },
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -980,7 +982,8 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
+        trs: fixtures.testResults,
+        envNamesById: {},
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -1029,7 +1032,10 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: [uploadItem({ ...fixtures.testResults[0], environment: "Chrome" }, { id: "chrome", name: "Chrome" })],
+        trs: [{ ...fixtures.testResults[0], environment: "chrome" }],
+        envNamesById: {
+          chrome: "Chrome",
+        },
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -1045,7 +1051,10 @@ describe("testops http client", () => {
       });
 
       await client.uploadTestResults({
-        trs: [uploadItem({ ...fixtures.testResults[1], environment: "Chrome" }, { id: "chrome", name: "Chrome" })],
+        trs: [{ ...fixtures.testResults[1], environment: "chrome" }],
+        envNamesById: {
+          chrome: "Chrome",
+        },
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -1093,7 +1102,8 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: fixtures.testResults.map((testResult) => uploadItem(testResult)),
+        trs: fixtures.testResults,
+        envNamesById: {},
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver,
       });
