@@ -59,17 +59,13 @@ vi.mock("@allurereport/core-api", () => {
             continue;
           }
           if (matcher.message !== undefined) {
-            const re =
-              matcher.message instanceof RegExp
-                ? matcher.message
-                : new RegExp(String(matcher.message));
+            const re = matcher.message instanceof RegExp ? matcher.message : new RegExp(String(matcher.message));
             if (!re.test(data.message ?? "")) {
               continue;
             }
           }
           if (matcher.trace !== undefined) {
-            const re =
-              matcher.trace instanceof RegExp ? matcher.trace : new RegExp(String(matcher.trace));
+            const re = matcher.trace instanceof RegExp ? matcher.trace : new RegExp(String(matcher.trace));
             if (!re.test(data.trace ?? "")) {
               continue;
             }
@@ -98,10 +94,7 @@ vi.mock("@allurereport/core-api", () => {
     return undefined;
   };
 
-  const buildEnvironmentSortOrder = (
-    environments: string[] = [],
-    defaultEnvironment = "default",
-  ) => {
+  const buildEnvironmentSortOrder = (environments: string[] = [], defaultEnvironment = "default") => {
     const orderMap = new Map<string, number>();
     let rank = 0;
 
@@ -396,10 +389,7 @@ describe("generateCategories", () => {
     expect(hasMessageBoom).toBe(true);
 
     const hasNoTransition = Object.values(store.nodes).some(
-      (node: any) =>
-        node.type === "group" &&
-        node.key === "transition" &&
-        node.name === "transition: No transition",
+      (node: any) => node.type === "group" && node.key === "transition" && node.name === "transition: No transition",
     );
     expect(hasNoTransition).toBe(true);
   });

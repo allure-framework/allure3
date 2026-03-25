@@ -317,7 +317,9 @@ export const normalizeCategoriesConfig = (cfg?: CategoriesConfig): CategoryDefin
     }
 
     throw new Error(
-      `categories: normalized id ${JSON.stringify(normalizedId)} is produced by source ids [${Array.from(sourceIds).map((id) => JSON.stringify(id)).join(",")}]`,
+      `categories: normalized id ${JSON.stringify(normalizedId)} is produced by source ids [${Array.from(sourceIds)
+        .map((id) => JSON.stringify(id))
+        .join(",")}]`,
     );
   });
 
