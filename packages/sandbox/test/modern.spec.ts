@@ -269,7 +269,9 @@ it("sample 100x100 description table test", async () => {
 });
 
 it("should create global attachment", async () => {
+  await globalAttachment("global-1.txt", new Buffer("global content 1"), "text/plain");
+
   await step("attaching global attachment", async () => {
-    await globalAttachment("global.txt", new Buffer("global content"), "text/plain");
+    await globalAttachment("global-2.txt", new Buffer("global content 2"), "text/plain");
   });
 });

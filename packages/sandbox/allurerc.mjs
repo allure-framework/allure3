@@ -179,13 +179,11 @@ export default defineConfig({
     },
     testops: {
       options: {
+        accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
+        projectId: "770",
         endpoint: "http://localhost:8080",
-        projectId: "1",
-        accessToken: "09177f17-f2ac-4387-b244-2b2765bce8b0",
-        launchName: "Sandbox",
-        launchTags: ["sandbox", "local"],
-      },
-    },
+      }
+    }
   },
   variables: {
     env_variable: "unknown",
