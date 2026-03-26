@@ -19,7 +19,7 @@ export type TestResultWithCategories = Pick<
   TestResult,
   "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
 > & {
-  categories?: { name: string; grouping?: UploadCategoryGrouping[] }[];
+  categories?: { id?: string; name: string; grouping?: UploadCategoryGrouping[] }[];
 };
 
 export interface TestOpsPluginTestResult extends TestResult {
