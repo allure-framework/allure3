@@ -126,16 +126,7 @@ describe("toUploadCategory", () => {
       environment: "prod",
     });
     const category = mkCategory({
-      groupBy: [
-        "status",
-        "severity",
-        "owner",
-        "layer",
-        "flaky",
-        "transition",
-        "environment",
-        { label: "team" },
-      ],
+      groupBy: ["status", "severity", "owner", "layer", "flaky", "transition", "environment", { label: "team" }],
     });
 
     expect(toUploadCategory(tr, [category])).toEqual({

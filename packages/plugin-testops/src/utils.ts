@@ -1,6 +1,5 @@
 import { env } from "node:process";
 
-import type { TestStepResult } from "@allurereport/core-api";
 import { AllureStore } from "@allurereport/plugin-api";
 import type { CategoryDefinition, CategoryGroupSelector, TestResult, TestStepResult } from "@allurereport/core-api";
 import { EMPTY_VALUE, extractErrorMatchingData, findLastByLabelName, matchCategory } from "@allurereport/core-api";
