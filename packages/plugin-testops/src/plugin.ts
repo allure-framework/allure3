@@ -97,14 +97,15 @@ export class TestopsPlugin implements Plugin {
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
           const body = content ? await content.readContent(async (stream) => stream) : undefined;
-          const originalFileName = attachmentLink.originalFileName;
+          // @ts-expect-error
+          const attachmentName = attachmentLink.name || attachmentLink.originalFileName;
 
-          if (originalFileName === undefined || body === undefined) {
+          if (attachmentName === undefined || body === undefined) {
             return undefined;
           }
 
           return {
-            originalFileName,
+            originalFileName: attachmentName,
             contentType: attachmentLink.contentType ?? "application/octet-stream",
             content: body,
           };
@@ -206,11 +207,16 @@ export class TestopsPlugin implements Plugin {
           attachments.map(async (attachment) => {
             const content = await store.attachmentContentById(attachment.id);
             const body = content ? await content.readContent(async (s) => s) : undefined;
-            const name = attachment.originalFileName ?? attachment.name;
+            // @ts-expect-error
+            const attachmentName = attachment.name || attachment.originalFileName;
             const type = attachment.contentType ?? "application/octet-stream";
-            if (name === undefined || body === undefined) return null;
+
+            if (attachmentName === undefined || body === undefined) {
+              return undefined;
+            }
+
             return {
-              originalFileName: name,
+              originalFileName: attachmentName,
               contentType: type,
               content: body,
             };
