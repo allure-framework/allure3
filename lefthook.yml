@@ -1,0 +1,31 @@
+pre-commit:
+  parallel: false
+  jobs:
+    - name: Lint code
+      glob:
+        - "packages/**/*.js"
+        - "packages/**/*.ts"
+        - "packages/**/*.tsx"
+      run: "yarn -s oxlint --fix {staged_files}"
+      stage_fixed: true
+      exclude:
+        - "packages/*/dist/**/*"
+        - "packages/*/out/**/*"
+        - "packages/*/allure-report/**/*"
+        - "packages/*/node_modules/**/*"
+    - name: Format code
+      glob:
+        - "packages/**/*.js"
+        - "packages/**/*.ts"
+        - "packages/**/*.tsx"
+      exclude:
+        - "packages/*/dist/**/*"
+        - "packages/*/out/**/*"
+        - "packages/*/allure-report/**/*"
+        - "packages/*/node_modules/**/*"
+      run: "yarn -s oxfmt --write {staged_files}"
+      stage_fixed: true
+    - name: Format package.json(s)
+      glob: "**/package.json"
+      run: "yarn -s oxfmt --write {staged_files}"
+      stage_fixed: true
