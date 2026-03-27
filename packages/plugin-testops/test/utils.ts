@@ -22,6 +22,7 @@ TestOpsClientMock.prototype = {
   stopUpload: vi.fn(),
   createLaunchCategoriesBulk: vi.fn().mockResolvedValue([]),
   closeLaunch: vi.fn(),
+  getNamedEnvFor: vi.fn().mockReturnValue(undefined),
 };
 
 export const AllureStoreMock = vi.fn(function () {});

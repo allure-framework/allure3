@@ -4,7 +4,6 @@ import { detect } from "@allurereport/ci";
 import type { CategoryDefinition, CiDescriptor, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
-import { isAxiosError } from "axios";
 import { uniqBy, stubTrue } from "lodash-es";
 import { bold } from "yoctocolors";
 
@@ -89,9 +88,8 @@ export class TestOpsPlugin implements Plugin {
   async #uploadNamedEnvs(store: AllureStore) {
     const envs = await store.allEnvironments();
 
-    // @TODO: USE IDS HERE
     // Filter out envs that already have been uploaded this session
-    const envsToUpload = envs.filter((env) => !this.#client.namedEnvs.some((namedEnv) => namedEnv.externalId === env));
+    const envsToUpload = envs.filter((env) => !this.#client.getNamedEnvFor(env));
 
     if (envsToUpload.length === 0) {
       this.#logger.verbose("No named environments to upload");
@@ -115,12 +113,9 @@ export class TestOpsPlugin implements Plugin {
       if (error instanceof Error) {
         if (this.#client.isTestOpsClientError(error)) {
           this.#logger.error(`Failed to upload named environments: ${error.response.data.message}`);
+          this.#logger.debug(error.response?.data);
         } else {
           this.#logger.error(`Failed to upload named environments: ${error.message}`);
-        }
-
-        if (isAxiosError(error)) {
-          this.#logger.debug(error.response?.data);
         }
       } else {
         this.#logger.error("Failed to upload named environments");
@@ -154,16 +149,11 @@ export class TestOpsPlugin implements Plugin {
     } catch (error) {
       progressBar.terminate();
 
-      if (error instanceof Error) {
-        if (this.#client.isTestOpsClientError(error)) {
-          this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
-        } else {
-          this.#logger.error(`Failed to upload quality gate results: ${error.message}`);
-        }
-
-        if (isAxiosError(error)) {
-          this.#logger.debug(error.response?.data);
-        }
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload quality gate results: ${error.message}`);
       } else {
         this.#logger.error("Failed to upload quality gate results");
       }
@@ -190,16 +180,11 @@ export class TestOpsPlugin implements Plugin {
     } catch (error) {
       progressBar.terminate();
 
-      if (error instanceof Error) {
-        if (this.#client.isTestOpsClientError(error)) {
-          this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
-        } else {
-          this.#logger.error(`Failed to upload global errors: ${error.message}`);
-        }
-
-        if (isAxiosError(error)) {
-          this.#logger.debug(error.response?.data);
-        }
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload global errors: ${error.message}`);
       } else {
         this.#logger.error("Failed to upload global errors");
       }
@@ -223,8 +208,8 @@ export class TestOpsPlugin implements Plugin {
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
           const body = await content?.readContent(async (stream) => stream);
-          // @ts-expect-error - don't know
-          const attachmentName = attachmentLink.name ?? attachmentLink.originalFileName;
+          // @ts-expect-error - FIXME
+          const attachmentName = attachmentLink.name || attachmentLink.originalFileName;
 
           if (attachmentName === undefined || body === undefined) {
             return undefined;
@@ -245,16 +230,11 @@ export class TestOpsPlugin implements Plugin {
     } catch (error) {
       progressBar.terminate();
 
-      if (error instanceof Error) {
-        if (this.#client.isTestOpsClientError(error)) {
-          this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
-        } else {
-          this.#logger.error(`Failed to upload global attachments: ${error.message}`);
-        }
-
-        if (isAxiosError(error)) {
-          this.#logger.debug(error.response?.data);
-        }
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload global attachments: ${error.message}`);
       } else {
         this.#logger.error("Failed to upload global attachments");
       }

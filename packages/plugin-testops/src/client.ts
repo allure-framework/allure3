@@ -1,8 +1,8 @@
-import { ClientRequest } from "http";
+import type { ClientRequest } from "http";
 
 import type { AttachmentLink, CiDescriptor, TestError, TestResult, TestStatus } from "@allurereport/core-api";
-import { QualityGateValidationResult } from "@allurereport/plugin-api";
-import axios, { AxiosError, AxiosInstance } from "axios";
+import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import axios, { AxiosError, isAxiosError, type AxiosInstance } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
@@ -12,7 +12,6 @@ import { Logger } from "./logger.js";
 import type {
   AttachmentForUpload,
   AttachmentsResolver,
-  TestOpsPluginTestResult,
   FixtureResolver,
   LaunchCategoryBulkItem,
   LaunchCategoryBulkResult,
@@ -20,6 +19,7 @@ import type {
   TestOpsLaunch,
   TestOpsLaunchQualityGate,
   TestOpsNamedEnv,
+  TestOpsPluginTestResult,
   TestOpsSession,
 } from "./model.js";
 
@@ -73,15 +73,17 @@ export class TestOpsClient {
 
     this.#accessToken = params.accessToken;
     this.#projectId = params.projectId;
+
     this.#client = axios.create({
       baseURL: params.baseUrl,
       validateStatus: (status) => status >= 200 && status < 400,
     });
+
     this.#client.interceptors.request.use((config) => {
       if (this.#oauthToken) {
-        config.headers = config.headers ?? {};
-        (config.headers as any).Authorization = `Bearer ${this.#oauthToken}`;
+        config.headers.set("Authorization", `Bearer ${this.#oauthToken}`);
       }
+
       return config;
     });
 
@@ -92,7 +94,7 @@ export class TestOpsClient {
 
   isTestOpsClientError(error: unknown): error is TestOpsClientError {
     return (
-      error instanceof AxiosError &&
+      isAxiosError(error) &&
       typeof error.response?.data.status === "number" &&
       typeof error.response?.data.message === "string"
     );
@@ -266,9 +268,9 @@ export class TestOpsClient {
     return this.#namedEnvsIdsByEnv.values();
   }
 
-  #getNamedEnv(cb: (env: TestOpsNamedEnv) => boolean) {
+  getNamedEnvFor(id: string) {
     for (const [, env] of this.#namedEnvsIdsByEnv) {
-      if (cb(env)) {
+      if (env.externalId === id) {
         return env;
       }
     }
@@ -310,7 +312,7 @@ export class TestOpsClient {
     data.forEach((env) => {
       this.#namedEnvsIdsByEnv.set(env.externalId, {
         ...env,
-        // @TODO: CHANGE TO IDS
+        // @TODO: CHANGE TO NAMES
         name: environments.find((e) => e === env.externalId)!,
       });
     });
@@ -353,6 +355,7 @@ export class TestOpsClient {
         onProgress?.(percent, total);
       },
       params: { launchId: this.#launch.id },
+      headers: formData.getHeaders(),
     });
   }
 
@@ -439,10 +442,7 @@ export class TestOpsClient {
             uuid: testResult.id,
           };
 
-          const namedEnvironment =
-            !!testResult.environment &&
-            // @TODO: USE IDS HERE
-            this.#getNamedEnv((env) => env.externalId === testResult.environment);
+          const namedEnvironment = !!testResult.environment && this.getNamedEnvFor(testResult.environment);
 
           if (namedEnvironment) {
             extendedTestResult.namedEnv = { id: namedEnvironment.id };
@@ -569,16 +569,13 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    // @TODO: USE IDS HERE
-    const getNamedEnvForEnv = (envName: string) => this.#getNamedEnv((env) => env.externalId === envName);
-
     const items: Omit<TestOpsLaunchQualityGate, "id" | "launchId">[] = results.map((result) => {
       const item: Omit<TestOpsLaunchQualityGate, "id" | "launchId"> = {
         name: result.rule,
         message: result.message,
       };
 
-      const namedEnvId = !!result.environment && getNamedEnvForEnv(result.environment!)?.id;
+      const namedEnvId = !!result.environment && this.getNamedEnvFor(result.environment!)?.id;
 
       if (typeof namedEnvId === "number") {
         item.namedEnvId = namedEnvId;

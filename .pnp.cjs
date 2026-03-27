@@ -622,7 +622,7 @@ const RAW_RUNTIME_STATE =
           ["@allurereport/plugin-api", "workspace:packages/plugin-api"],\
           ["@allurereport/reader-api", "workspace:packages/reader-api"],\
           ["@types/d3-shape", "npm:3.1.6"],\
-          ["@types/lodash.chunk", "npm:4.2.9"],\
+          ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/node", "npm:20.17.9"],\
           ["@types/progress", "npm:2.0.7"],\
           ["@vitest/runner", "npm:2.1.9"],\
@@ -630,12 +630,13 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
           ["axios", "npm:1.13.5"],\
           ["form-data", "npm:4.0.5"],\
-          ["lodash.chunk", "npm:4.2.0"],\
+          ["lodash-es", "npm:4.17.23"],\
           ["p-limit", "npm:7.3.0"],\
           ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
-          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"]\
+          ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"],\
+          ["yoctocolors", "npm:2.1.2"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -10613,11 +10614,11 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["@types/lodash.chunk", [\
-      ["npm:4.2.9", {\
-        "packageLocation": "./.yarn/cache/@types-lodash.chunk-npm-4.2.9-3da38b857b-ccffe7273a.zip/node_modules/@types/lodash.chunk/",\
+    ["@types/lodash-es", [\
+      ["npm:4.17.12", {\
+        "packageLocation": "./.yarn/cache/@types-lodash-es-npm-4.17.12-87dce3f795-56b9a43334.zip/node_modules/@types/lodash-es/",\
         "packageDependencies": [\
-          ["@types/lodash.chunk", "npm:4.2.9"],\
+          ["@types/lodash-es", "npm:4.17.12"],\
           ["@types/lodash", "npm:4.17.10"]\
         ],\
         "linkType": "HARD"\
@@ -18658,20 +18659,20 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["lodash-es", [\
+      ["npm:4.17.23", {\
+        "packageLocation": "./.yarn/cache/lodash-es-npm-4.17.23-b4279789e6-1feae200df.zip/node_modules/lodash-es/",\
+        "packageDependencies": [\
+          ["lodash-es", "npm:4.17.23"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["lodash.camelcase", [\
       ["npm:4.3.0", {\
         "packageLocation": "./.yarn/cache/lodash.camelcase-npm-4.3.0-bf268e3bf0-c301cc3793.zip/node_modules/lodash.camelcase/",\
         "packageDependencies": [\
           ["lodash.camelcase", "npm:4.3.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["lodash.chunk", [\
-      ["npm:4.2.0", {\
-        "packageLocation": "./.yarn/cache/lodash.chunk-npm-4.2.0-a54ef4d7dd-3b6639fda1.zip/node_modules/lodash.chunk/",\
-        "packageDependencies": [\
-          ["lodash.chunk", "npm:4.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -26598,6 +26599,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/yoctocolors-npm-2.1.1-b7d3fb8a79-563fbec88b.zip/node_modules/yoctocolors/",\
         "packageDependencies": [\
           ["yoctocolors", "npm:2.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.1.2", {\
+        "packageLocation": "./.yarn/cache/yoctocolors-npm-2.1.2-ba5f016605-6ee42d665a.zip/node_modules/yoctocolors/",\
+        "packageDependencies": [\
+          ["yoctocolors", "npm:2.1.2"]\
         ],\
         "linkType": "HARD"\
       }]\

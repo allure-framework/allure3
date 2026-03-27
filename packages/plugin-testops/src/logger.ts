@@ -27,10 +27,6 @@ function getLogLevelFromEnv(): LogLevel {
     return env.ALLURE_LOG_LEVEL as LogLevel;
   }
 
-  if (env.CI) {
-    return "info";
-  }
-
   if (env.NODE_ENV === "development") {
     return "debug";
   }
