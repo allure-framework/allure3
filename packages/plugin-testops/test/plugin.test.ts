@@ -7,14 +7,15 @@ import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { TestopsPluginOptions } from "../src/model.js";
-import { TestopsPlugin } from "../src/plugin.js";
+import type { TestOpsPluginOptions } from "../src/model.js";
+import { TestOpsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("@allurereport/ci", () => ({
   detect: vi.fn(),
 }));
+
 vi.mock("../src/client.js", async () => {
   const utils = await import("./utils.js");
 
@@ -22,6 +23,7 @@ vi.mock("../src/client.js", async () => {
     TestOpsClient: utils.TestOpsClientMock,
   };
 });
+
 vi.mock("../src/utils.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
@@ -85,6 +87,7 @@ const fixtures = {
 };
 
 beforeEach(() => {
+  vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
   vi.clearAllMocks();
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
   AllureStoreMock.prototype.allEnvironments.mockResolvedValue([]);
@@ -93,7 +96,7 @@ beforeEach(() => {
 });
 
 describe("testops plugin", () => {
-  let plugin: TestopsPlugin;
+  let plugin: TestOpsPlugin;
   let store: AllureStore;
 
   describe("constructor", () => {
@@ -110,9 +113,9 @@ describe("testops plugin", () => {
         accessToken: fixtures.accessToken,
         endpoint: fixtures.endpoint,
         projectId: fixtures.projectId,
-      } as TestopsPluginOptions;
+      } as TestOpsPluginOptions;
 
-      new TestopsPlugin(options);
+      new TestOpsPlugin(options);
 
       expect(resolvePluginOptions).toHaveBeenCalledWith(options);
     });
@@ -126,9 +129,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -141,9 +144,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -156,9 +159,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -171,9 +174,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).toHaveBeenCalledWith({
         baseUrl: fixtures.endpoint,
         accessToken: fixtures.accessToken,
@@ -194,7 +197,7 @@ describe("testops plugin", () => {
           launchTags: fixtures.launchTags,
         });
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         expect(plugin.ciMode).toBe(true);
       });
@@ -216,7 +219,7 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -236,7 +239,7 @@ describe("testops plugin", () => {
           launchTags: fixtures.launchTags,
         });
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         expect(plugin.ciMode).toBe(false);
       });
@@ -258,7 +261,7 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -275,7 +278,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -302,7 +305,7 @@ describe("testops plugin", () => {
         launchTags: fixtures.launchTags,
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
@@ -383,7 +386,9 @@ describe("testops plugin", () => {
     });
 
     it("should call attachmentsResolver for each test result", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -398,7 +403,9 @@ describe("testops plugin", () => {
     });
 
     it("should call fixturesResolver for each test result", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -424,9 +431,11 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -442,7 +451,9 @@ describe("testops plugin", () => {
     });
 
     it("should upload global attachments when they exist", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -454,6 +465,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith({
         attachments: fixtures.attachments,
         attachmentsResolver: expect.any(Function),
+        onProgress: expect.any(Function),
       });
     });
 
@@ -481,11 +493,13 @@ describe("testops plugin", () => {
       await plugin.start({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledTimes(1);
-      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors);
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
     });
 
     it("should not upload global errors when they are empty", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -674,10 +688,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -699,10 +715,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
 
       await plugin.update({} as PluginContext, store);
 
@@ -719,10 +737,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
 
       await plugin.done({} as PluginContext, store);
 
@@ -741,7 +761,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -775,7 +795,9 @@ describe("testops plugin", () => {
     });
 
     it("should not re-upload test results that were already uploaded", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -844,9 +866,11 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -885,7 +909,7 @@ describe("testops plugin", () => {
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.done({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -906,7 +930,7 @@ describe("testops plugin", () => {
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.done({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -923,7 +947,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -992,9 +1016,11 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -1020,7 +1046,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -1033,7 +1059,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       const result = await plugin.info({} as PluginContext, store);
 
       expect(result).toBeUndefined();
@@ -1075,7 +1101,7 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);

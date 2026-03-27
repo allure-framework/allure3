@@ -10,5 +10,8 @@
   "oxc.enable": true,
   "oxc.typeAware": true,
   "eslint.enable": false,
-  "typescript.experimental.useTsgo": false
+  "typescript.experimental.useTsgo": false,
+  "oxc.path.oxfmt": ".vscode/oxfmt.sh",
+  "oxc.path.oxlint": ".vscode/oxlint.sh",
+  "oxc.enable.oxlint": true
 }

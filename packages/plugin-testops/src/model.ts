@@ -1,4 +1,6 @@
-import type { AttachmentLink, TestResult } from "@allurereport/core-api";
+import type { Readable } from "node:stream";
+
+import type { AttachmentLink, TestFixtureResult, TestResult } from "@allurereport/core-api";
 
 export type UploadCategoryGrouping = {
   key: string;
@@ -20,9 +22,14 @@ export type TestResultWithCategories = Pick<
   categories?: { name: string; grouping?: UploadCategoryGrouping[] }[];
 };
 
-export type TestResultWithUploadCategory = TestResult & {
+export interface TestOpsPluginTestResult extends TestResult {
   category?: UploadCategory & { id?: number };
-};
+  namedEnv?: {
+    id: number;
+  };
+  message?: string;
+  trace?: string;
+}
 
 export type LaunchCategoryBulkItem = {
   externalId: string;
@@ -44,17 +51,13 @@ export type TestOpsClientParams = {
 export type AttachmentForUpload = {
   originalFileName: string;
   contentType: string;
-  content: Buffer | Blob | NodeJS.ReadableStream;
+  content: Buffer | Blob | ReadableStream | Readable;
 };
 
-export type UploadTestResultsParams = {
-  trs: TestResult[];
-  attachmentsResolver: (tr: TestResult) => Promise<AttachmentForUpload[]>;
-  fixturesResolver: (tr: TestResult) => Promise<unknown[]>;
-  onProgress?: () => void;
-};
+export type FixtureResolver = (tr: TestResult) => Promise<TestOpsFixtureResult[]>;
+export type AttachmentsResolver = (tr: TestResult) => Promise<AttachmentForUpload[] | AttachmentForUpload>;
 
-export type TestopsUploaderOptions = {
+export type TestOpsUploaderOptions = {
   endpoint: string;
   accessToken: string;
   projectId: string;
@@ -65,9 +68,13 @@ export type TestopsUploaderOptions = {
   limit?: number;
 };
 
+export interface TestOpsFixtureResult extends Omit<TestFixtureResult, "type"> {
+  type: "BEFORE" | "AFTER";
+}
+
 export type TemplateManifest = Record<string, string>;
 
-export type TestopsPluginOptions = TestopsUploaderOptions;
+export type TestOpsPluginOptions = TestOpsUploaderOptions;
 
 export type TestOpsSession = {
   id: number;
@@ -91,14 +98,23 @@ export type TestOpsLaunch = {
   lastModifiedDate: number;
 };
 
-export type TestResultWithAttachments = TestResult & {
+export interface TestResultWithAttachments extends TestResult {
   attachments: AttachmentLink[];
-};
+}
 
 export type TestOpsNamedEnv = {
   id: number;
   name: string;
   externalId: string;
-  jobRunId: number;
+  jobRunId?: number;
+  launchId?: number;
+};
+
+export type TestOpsLaunchQualityGate = {
+  id: number;
   launchId: number;
+  jobRunId?: number;
+  namedEnvId?: number;
+  name: string;
+  message?: string;
 };
