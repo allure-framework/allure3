@@ -15,8 +15,6 @@
     "build": "yarn workspaces foreach -Avvpt run build",
     "clean": "yarn workspaces foreach -Avvpt run clean",
     "format": "yarn format:write",
-    "lint-staged": "lint-staged",
-    "prepare": "husky",
     "report": "yarn allure generate --config=./allurerc.mjs",
     "test": "yarn workspaces foreach -Avvp --exclude sandbox run test",
     "lint": "yarn workspaces foreach -Avvt run lint",
@@ -30,8 +28,7 @@
     "@types/node": "^20.17.9",
     "allure": "workspace:*",
     "babel-plugin-prismjs": "^2.1.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.2.10",
+    "lefthook": "^2.1.4",
     "oxfmt": "0.36.0",
     "oxlint": "1.51.0",
     "oxlint-tsgolint": "0.16.0",
@@ -78,15 +75,6 @@
     "vite@npm:^5.4.17": "^5.4.17",
     "vite@npm:^6.4.1": "^6.4.1",
     "webpack": "^5.105.0"
-  },
-  "lint-staged": {
-    "packages/*/{src,test,features}/**/*.{js,ts,tsx}": [
-      "oxlint --fix",
-      "oxfmt --write"
-    ],
-    "**/package.json": [
-      "oxfmt --write"
-    ]
   },
   "packageManager": "yarn@4.5.1"
 }
