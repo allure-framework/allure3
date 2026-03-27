@@ -1,47 +1,56 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import type { CiDescriptor, TestStatus } from "@allurereport/core-api";
+import type { CategoryDefinition, CiDescriptor, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
-import {
-  type AllureStore,
-  type Plugin,
-  type PluginContext,
-  type PluginSummary,
-  createPluginSummary,
-} from "@allurereport/plugin-api";
-import ProgressBar from "progress";
+import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
+import { uniqBy, stubTrue } from "lodash-es";
+import { bold } from "yoctocolors";
 
 import { TestOpsClient } from "./client.js";
-import type {
-  TestResultWithUploadCategory,
-  TestopsPluginOptions,
-  UploadCategory,
-  UploadTestResultsParams,
-} from "./model.js";
+import { Logger } from "./logger.js";
+import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
 import { toUploadCategory } from "./uploadCategory.js";
-import { log, resolvePluginOptions, unwrapStepsAttachments } from "./utils.js";
+import {
+  attachmentsResolverFactory,
+  fixturesResolverFactory,
+  resolvePluginOptions,
+  unwrapStepsAttachments,
+} from "./utils.js";
 
 const categoryDisplayName = (cat: UploadCategory): string =>
   cat.name ?? cat.grouping?.[0]?.name ?? cat.grouping?.[0]?.value ?? cat.grouping?.[0]?.key ?? cat.externalId;
 
-export class TestopsPlugin implements Plugin {
+export class TestOpsPlugin implements Plugin {
+  #logger = new Logger("TestOpsPlugin");
   #ci?: CiDescriptor;
-  #client?: TestOpsClient;
+  // @ts-expect-error - if client is not initialized it will not be used
+  #client: TestOpsClient;
+  /**
+   * If the plugin is enabled
+   */
+  #enabled: boolean = false;
   #launchName: string = "";
   #launchTags: string[] = [];
   #uploadedTestResultsIds: string[] = [];
-  #createdEnvironments: string[] = [];
   #autocloseLaunch: boolean;
 
-  constructor(readonly options: TestopsPluginOptions) {
-    const { accessToken, endpoint, projectId, launchName, launchTags, autocloseLaunch } = resolvePluginOptions(options);
+  constructor(readonly options: TestOpsPluginOptions) {
+    const {
+      accessToken,
+      endpoint,
+      projectId,
+      launchName,
+      launchTags,
+      autocloseLaunch = true,
+    } = resolvePluginOptions(options);
 
     this.#ci = detect();
 
     // don't initialize the client when some options are missing
     // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
+      this.#enabled = true;
       this.#client = new TestOpsClient({
         baseUrl: endpoint,
         accessToken,
@@ -50,18 +59,25 @@ export class TestopsPlugin implements Plugin {
       this.#launchName = launchName;
       this.#launchTags = launchTags;
     }
-    this.#autocloseLaunch = autocloseLaunch ?? true;
+
+    this.#autocloseLaunch = autocloseLaunch;
 
     if (!accessToken) {
-      log("Access token is missing. Please provide a valid access token in the plugin options.");
+      this.#logger.warn(
+        `Allure TestOps ${bold("access token")} is missing. Please provide a valid access token in the plugin options.`,
+      );
     }
 
     if (!endpoint) {
-      log("Endpoint is missing. Please provide a valid endpoint in the plugin options.");
+      this.#logger.warn(
+        `Allure TestOps ${bold("endpoint")} is missing. Please provide a valid endpoint in the plugin options.`,
+      );
     }
 
     if (!projectId) {
-      log("Project ID is missing. Please provide a valid project ID in the plugin options.");
+      this.#logger.warn(
+        `Allure TestOps ${bold("project ID")} is missing. Please provide a valid project ID in the plugin options.`,
+      );
     }
   }
 
@@ -69,35 +85,130 @@ export class TestopsPlugin implements Plugin {
     return this.#ci && this.#ci.type !== "local";
   }
 
-  async #upload(store: AllureStore, options?: { issueNewToken?: boolean; context?: PluginContext }) {
-    const { issueNewToken = true } = options ?? {};
-    const newEnvironments = (await store.allEnvironments()).filter((env) => !this.#createdEnvironments.includes(env));
-    const contextCategories = options?.context?.categories ?? [];
-    const allGlobalErrors = await store.allGlobalErrors();
-    const allGlobalAttachments = await store.allGlobalAttachments();
+  async #uploadNamedEnvs(store: AllureStore) {
+    const envs = await store.allEnvironments();
 
-    const trsToUpload = await this.#trsToUpload(store);
-    if (trsToUpload.length === 0) {
-      log("No new test results to upload");
+    // Filter out envs that already have been uploaded this session
+    const envsToUpload = envs.filter((env) => !this.#client.getNamedEnvFor(env));
+
+    if (envsToUpload.length === 0) {
+      this.#logger.verbose("No named environments to upload");
       return;
     }
 
-    log(`Preparing to upload ${trsToUpload.length} test result(s)`);
-    const allTrsWithAttachments = this.#enrichWithCategories(trsToUpload, contextCategories);
+    const progressBar = this.#logger.progressBar("Uploading named environments");
 
-    if (issueNewToken) {
-      await this.#client!.issueOauthToken();
+    try {
+      progressBar.update(0);
+      await this.#client.createNamedEnvs(envsToUpload, (percent, total) => {
+        progressBar.update(percent / total);
+      });
+      progressBar.update(1);
+      progressBar.terminate();
+      this.#logger.debug("Named environments uploaded");
+      this.#logger.debug(Array.from(this.#client.namedEnvs));
+    } catch (error) {
+      progressBar.terminate();
+
+      if (error instanceof Error) {
+        if (this.#client.isTestOpsClientError(error)) {
+          this.#logger.error(`Failed to upload named environments: ${error.response.data.message}`);
+          this.#logger.debug(error.response?.data);
+        } else {
+          this.#logger.error(`Failed to upload named environments: ${error.message}`);
+        }
+      } else {
+        this.#logger.error("Failed to upload named environments");
+      }
+    }
+  }
+
+  async #uploadQualityGateResults(store: AllureStore) {
+    const results = await store.qualityGateResults();
+    const uniqueResults = uniqBy(
+      // Leave only failed ones
+      results.filter(({ success }) => !success),
+      // TestOps is against duplicates, uniqueness is by rule and environment and launch id
+      ({ rule, environment }) => `${rule}-${environment}`,
+    );
+
+    if (uniqueResults.length === 0) {
+      this.#logger.verbose("No quality gate results to upload");
+      return;
     }
 
-    await this.#client!.createSession(env);
+    const progressBar = this.#logger.progressBar("Uploading quality gate results");
 
-    if (allGlobalAttachments.length > 0) {
-      await this.#client!.uploadGlobalAttachments({
-        attachments: allGlobalAttachments,
+    try {
+      progressBar.update(0);
+      await this.#client.uploadQualityGateResults(uniqueResults, (percent, total) => {
+        progressBar.update(percent / total);
+      });
+      progressBar.update(1);
+      progressBar.terminate();
+    } catch (error) {
+      progressBar.terminate();
+
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload quality gate results: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload quality gate results: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to upload quality gate results");
+      }
+    }
+  }
+
+  async #uploadGlobalErrors(store: AllureStore) {
+    const results = await store.allGlobalErrors();
+
+    if (results.length === 0) {
+      this.#logger.verbose("No global errors to upload");
+      return;
+    }
+
+    const progressBar = this.#logger.progressBar("Uploading global errors");
+
+    try {
+      progressBar.update(0);
+      await this.#client.uploadGlobalErrors(results, (percent, total) => {
+        progressBar.update(percent / total);
+      });
+      progressBar.update(1);
+      progressBar.terminate();
+    } catch (error) {
+      progressBar.terminate();
+
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload global errors: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload global errors: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to upload global errors");
+      }
+    }
+  }
+
+  async #uploadGlobalAttachments(store: AllureStore) {
+    const attachments = await store.allGlobalAttachments();
+
+    if (attachments.length === 0) {
+      this.#logger.debug("No global attachments to upload");
+      return;
+    }
+
+    const progressBar = this.#logger.progressBar("Uploading global attachments");
+
+    try {
+      progressBar.update(0);
+      await this.#client.uploadGlobalAttachments({
+        attachments,
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
-          const body = content ? await content.readContent(async (stream) => stream) : undefined;
-          // @ts-expect-error
+          const body = await content?.readContent(async (stream) => stream);
+          // @ts-expect-error - FIXME
           const attachmentName = attachmentLink.name || attachmentLink.originalFileName;
 
           if (attachmentName === undefined || body === undefined) {
@@ -110,136 +221,186 @@ export class TestopsPlugin implements Plugin {
             content: body,
           };
         },
+        onProgress: (percent, total) => {
+          progressBar.update(percent / total);
+        },
       });
+      progressBar.update(1);
+      progressBar.terminate();
+    } catch (error) {
+      progressBar.terminate();
+
+      if (this.#client.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload global attachments: ${error.response.data.message}`);
+        this.#logger.debug(error.response?.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload global attachments: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to upload global attachments");
+      }
     }
-
-    if (allGlobalErrors.length > 0) {
-      await this.#client!.uploadGlobalErrors(allGlobalErrors);
-    }
-
-    const trsProgressBar = new ProgressBar("Uploading test results [:bar] :current/:total", {
-      total: allTrsWithAttachments.length,
-      width: 20,
-    });
-
-    trsProgressBar.render();
-    await this.#syncLaunchCategories(allTrsWithAttachments);
-    await this.#client!.uploadTestResults(this.#buildUploadParams(store, allTrsWithAttachments, trsProgressBar));
-
-    this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
-    this.#createdEnvironments.push(...newEnvironments);
-    log(`Successfully uploaded ${allTrsWithAttachments.length} test result(s)`);
   }
 
-  async #trsToUpload(store: AllureStore): Promise<TestResultWithUploadCategory[]> {
-    const allTrs = await store.allTestResults();
-    return allTrs.filter((tr) => {
-      const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
-      return this.options.filter ? this.options.filter(tr) && !uploaded : !uploaded;
-    }) as TestResultWithUploadCategory[];
+  async #uploadTestResults(store: AllureStore, trsToUpload: TestOpsPluginTestResult[]) {
+    const totalCount = trsToUpload.length;
+
+    this.#logger.info(
+      `Preparing to upload ${bold(totalCount.toString())} ${totalCount > 1 ? "test results" : "test result"}`,
+    );
+
+    const trsProgressBar = this.#logger.progressBarCounter("Uploading test results", totalCount);
+
+    const uploadedTrs = await this.#client.uploadTestResults({
+      attachmentsResolver: attachmentsResolverFactory(store),
+      fixturesResolver: fixturesResolverFactory(store),
+      trs: trsToUpload,
+      onProgress: () => trsProgressBar.tick(),
+    });
+
+    this.#uploadedTestResultsIds.push(...uploadedTrs.map((tr) => tr.id));
+
+    const uploadedCount = uploadedTrs.length;
+
+    trsProgressBar.update(uploadedCount / totalCount);
+    trsProgressBar.terminate();
+
+    if (uploadedCount === 0) {
+      this.#logger.warn("No test results were uploaded");
+      return;
+    }
+
+    this.#logger.info(`Uploaded ${uploadedCount} ${uploadedCount > 1 ? "test results" : "test result"}`);
+  }
+
+  async #upload(
+    store: AllureStore,
+    options = {} as { issueNewToken?: boolean; context?: PluginContext; stage: "start" | "update" | "done" },
+  ) {
+    const { issueNewToken = true, context, stage } = options;
+
+    const trsToUpload = await this.#trsToUpload(store);
+
+    if (trsToUpload.length === 0) {
+      if (stage == "update") {
+        this.#logger.info("No new test results to upload");
+      }
+
+      if (stage === "done") {
+        this.#logger.info("No test results to upload");
+      }
+
+      return;
+    }
+
+    if (issueNewToken) {
+      this.#logger.verbose("Issuing new OAuth token");
+      await this.#client.issueOauthToken();
+    }
+
+    await this.#client.createSession(env);
+
+    await this.#uploadNamedEnvs(store);
+    await this.#uploadGlobalAttachments(store);
+    await this.#uploadGlobalErrors(store);
+    await this.#uploadQualityGateResults(store);
+
+    const trsEnrichedWithCategories = this.#enrichWithCategories(trsToUpload, context?.categories ?? []);
+    await this.#syncLaunchCategories(trsEnrichedWithCategories);
+
+    await this.#uploadTestResults(store, trsEnrichedWithCategories);
+  }
+
+  async #trsToUpload(store: AllureStore) {
+    const filter = this.options.filter ?? stubTrue;
+
+    const filteredTrs = await store.allTestResults({
+      filter: (tr) => {
+        const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
+
+        if (uploaded) {
+          return false;
+        }
+
+        return filter(tr);
+      },
+      includeHidden: false,
+    });
+
+    return filteredTrs;
   }
 
   #enrichWithCategories(
-    trs: TestResultWithUploadCategory[],
-    contextCategories: PluginContext["categories"],
-  ): TestResultWithUploadCategory[] {
+    trs: TestOpsPluginTestResult[],
+    contextCategories: CategoryDefinition[],
+  ): TestOpsPluginTestResult[] {
     return trs.map((tr) => {
       const base = { ...tr, steps: unwrapStepsAttachments(tr.steps) };
       const category = toUploadCategory(tr, contextCategories ?? []);
-      return category ? { ...base, category } : base;
+
+      if (category) {
+        base.category = category;
+      }
+
+      return base;
     });
   }
 
-  async #syncLaunchCategories(trs: TestResultWithUploadCategory[]): Promise<void> {
-    const launchId = this.#client!.launchId;
-    if (launchId === undefined || launchId === null) return;
-
+  async #syncLaunchCategories(trs: TestOpsPluginTestResult[]): Promise<void> {
     const categoryNamesByExternalId = this.#collectCategoryNamesByExternalId(trs);
-    if (categoryNamesByExternalId.size === 0) return;
+
+    if (categoryNamesByExternalId.size === 0) {
+      return;
+    }
+
+    const bulkItems: { externalId: string; name: string }[] = [];
+
+    for (const [externalId, name] of categoryNamesByExternalId) {
+      bulkItems.push({ externalId, name });
+    }
+
+    const launchId = this.#client.launchId;
 
     try {
-      const bulkItems = [...categoryNamesByExternalId.entries()].map(([externalId, name]) => ({
-        externalId,
-        name,
-      }));
-      const created = await this.#client!.createLaunchCategoriesBulk(launchId, bulkItems);
+      const created = await this.#client.createLaunchCategoriesBulk(launchId!, bulkItems);
       const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
+
       this.#assignCreatedCategoryIds(trs, categoryIdByExternalId);
     } catch {
       // ignore
     }
   }
 
-  #collectCategoryNamesByExternalId(trs: TestResultWithUploadCategory[]): Map<string, string> {
+  #collectCategoryNamesByExternalId(trs: TestOpsPluginTestResult[]): Map<string, string> {
     const map = new Map<string, string>();
+
     for (const tr of trs) {
       const cat = tr.category;
+
       if (cat?.externalId) {
         map.set(cat.externalId, categoryDisplayName(cat));
       }
     }
+
     return map;
   }
 
-  #assignCreatedCategoryIds(trs: TestResultWithUploadCategory[], idByExternalId: Map<string, number>): void {
+  #assignCreatedCategoryIds(trs: TestOpsPluginTestResult[], idByExternalId: Map<string, number>): void {
     for (const tr of trs) {
       const cat = tr.category;
-      if (cat?.externalId) {
-        const id = idByExternalId.get(cat.externalId);
-        if (id !== undefined && id !== null) {
-          tr.category = { ...cat, id };
-        }
+
+      if (!cat?.externalId) {
+        continue;
+      }
+
+      const id = idByExternalId.get(cat.externalId);
+
+      if (typeof id === "number") {
+        tr.category = { ...cat, id };
       }
     }
   }
 
-  #buildUploadParams(
-    store: AllureStore,
-    trs: TestResultWithUploadCategory[],
-    progressBar: ProgressBar,
-  ): UploadTestResultsParams {
-    return {
-      trs,
-      onProgress: () => progressBar.tick(),
-      attachmentsResolver: async (tr) => {
-        const attachments = await store.attachmentsByTrId(tr.id);
-        const resolved = await Promise.all(
-          attachments.map(async (attachment) => {
-            const content = await store.attachmentContentById(attachment.id);
-            const body = content ? await content.readContent(async (s) => s) : undefined;
-            // @ts-expect-error
-            const attachmentName = attachment.name || attachment.originalFileName;
-            const type = attachment.contentType ?? "application/octet-stream";
-
-            if (attachmentName === undefined || body === undefined) {
-              return undefined;
-            }
-
-            return {
-              originalFileName: attachmentName,
-              contentType: type,
-              content: body,
-            };
-          }),
-        );
-        return resolved.filter((a): a is NonNullable<typeof a> => a !== null);
-      },
-      fixturesResolver: async (tr) => {
-        const fxts = await store.fixturesByTrId(tr.id);
-        return fxts.map((fxt) => ({
-          ...fxt,
-          type: fxt.type.toUpperCase(),
-          steps: unwrapStepsAttachments(fxt.steps),
-        }));
-      },
-    };
-  }
-
   async #startUpload() {
-    if (!this.#client) {
-      return;
-    }
-
     await this.#client.issueOauthToken();
     await this.#client.createLaunch(this.#launchName, this.#launchTags);
 
@@ -251,75 +412,97 @@ export class TestopsPlugin implements Plugin {
   }
 
   async #stopUpload(status: TestStatus) {
-    if (!this.ciMode || !this.#client) {
+    if (!this.ciMode) {
       return;
     }
 
     await this.#client.stopUpload(this.#ci!, status);
   }
 
-  async start(_context: PluginContext, store: AllureStore) {
-    if (!this.#client) {
+  async start(context: PluginContext, store: AllureStore) {
+    if (!this.#enabled) {
       return;
     }
 
-    log("Starting upload…");
+    this.#logger.verbose("Starting upload…");
+
     await this.#startUpload();
-    await this.#upload(store, { issueNewToken: false, context: _context });
-    log(`Launch: ${this.#client.launchUrl}`);
+    await this.#upload(store, { issueNewToken: false, context, stage: "start" });
+
+    this.#logger.info(`Allure TestOps Launch: ${this.#client.launchUrl}`);
   }
 
-  async update(_context: PluginContext, store: AllureStore) {
-    if (!this.#client) {
+  async update(context: PluginContext, store: AllureStore) {
+    if (!this.#enabled) {
       return;
     }
 
-    log("Updating (uploading new results)…");
-    await this.#upload(store, { context: _context });
+    this.#logger.verbose("Updating (uploading new results)…");
+
+    await this.#upload(store, { context, stage: "update" });
   }
 
-  async done(_context: PluginContext, store: AllureStore) {
-    if (!this.#client) {
+  async done(context: PluginContext, store: AllureStore) {
+    if (!this.#enabled) {
       return;
     }
 
-    const allTrs = (await store.allTestResults()).filter((tr) =>
-      this.options.filter ? this.options.filter(tr) : true,
-    );
+    const allTrs = await store.allTestResults({ filter: this.options.filter, includeHidden: false });
+
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 
-    log("Finalizing upload…");
-    await this.#upload(store, { context: _context });
+    this.#logger.verbose("Finalizing upload…");
+
+    await this.#upload(store, { context, stage: "done" });
     await this.#stopUpload(worstStatus || "unknown");
-    if (this.#autocloseLaunch) {
-      const launchId = this.#client.launchId;
-      if (launchId !== undefined && launchId !== null) {
-        try {
-          await this.#client.closeLaunch(launchId);
-        } catch (err) {}
+
+    const launchId = this.#client.launchId;
+
+    if (typeof launchId !== "number") {
+      return;
+    }
+
+    if (!this.#autocloseLaunch) {
+      this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#client.launchUrl}`);
+      return;
+    }
+
+    try {
+      await this.#client.closeLaunch(launchId);
+    } catch (err) {
+      if (err instanceof Error) {
+        this.#logger.debug(`Failed to close launch: ${err.message}`);
+      } else {
+        this.#logger.debug("Failed to close launch");
       }
     }
-    log("Upload finished. Launch:", this.#client.launchUrl);
+
+    this.#logger.info(`Upload finished. Allure TestOps Launch: ${this.#client.launchUrl}`);
   }
 
-  async info(context: PluginContext, store: AllureStore): Promise<PluginSummary | undefined> {
-    if (!this.#client?.launchUrl) {
+  async info(context: PluginContext, store: AllureStore) {
+    if (!this.#enabled) {
       return undefined;
     }
 
-    return {
-      ...(await createPluginSummary({
-        name: this.#launchName,
-        plugin: "TestOps",
-        meta: {
-          reportId: context.reportUuid,
-        },
-        filter: this.options.filter,
-        history: context.history,
-        ci: context.ci,
-        store,
-      })),
-      remoteHref: this.#client.launchUrl,
-    };
+    if (!this.#client.launchUrl) {
+      return undefined;
+    }
+
+    const summary = await createPluginSummary({
+      name: this.#launchName,
+      plugin: "TestOps",
+      meta: {
+        reportId: context.reportUuid,
+      },
+      filter: this.options.filter,
+      history: context.history,
+      ci: context.ci,
+      store,
+    });
+
+    summary.remoteHref = this.#client.launchUrl;
+
+    return summary;
   }
 }

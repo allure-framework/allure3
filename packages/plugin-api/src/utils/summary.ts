@@ -28,7 +28,8 @@ export const createPluginSummary = async (params: {
   const duration = allTrs.reduce((acc, { duration: trDuration = 0 }) => acc + trDuration, 0);
   const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
   const createdAt = allTrs.reduce((acc, { stop }) => Math.max(acc, stop || 0), 0);
-  const summary: PluginSummary = {
+
+  return {
     stats: await store.testsStatistic(filter),
     status: worstStatus ?? "passed",
     newTests: newTrs.map(convertToSummaryTestResult),
@@ -40,6 +41,4 @@ export const createPluginSummary = async (params: {
     plugin,
     meta,
   };
-
-  return summary;
 };

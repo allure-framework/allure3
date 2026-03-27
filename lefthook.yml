@@ -6,7 +6,7 @@ pre-commit:
         - "packages/**/*.js"
         - "packages/**/*.ts"
         - "packages/**/*.tsx"
-      run: "yarn -s oxlint --fix {staged_files}"
+      run: "yarn oxlint --fix {staged_files}"
       stage_fixed: true
       exclude:
         - "packages/*/dist/**/*"
@@ -23,9 +23,9 @@ pre-commit:
         - "packages/*/out/**/*"
         - "packages/*/allure-report/**/*"
         - "packages/*/node_modules/**/*"
-      run: "yarn -s oxfmt --write {staged_files}"
+      run: "yarn oxfmt --write {staged_files}"
       stage_fixed: true
     - name: Format package.json(s)
       glob: "**/package.json"
-      run: "yarn -s oxfmt --write {staged_files}"
+      run: "yarn oxfmt --write {staged_files}"
       stage_fixed: true

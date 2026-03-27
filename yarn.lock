@@ -380,7 +380,7 @@ __metadata:
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/reader-api": "workspace:*"
     "@types/d3-shape": "npm:^3.1.6"
-    "@types/lodash.chunk": "npm:^4"
+    "@types/lodash-es": "npm:^4"
     "@types/node": "npm:^20.17.9"
     "@types/progress": "npm:^2"
     "@vitest/runner": "npm:^2.1.9"
@@ -388,12 +388,13 @@ __metadata:
     allure-vitest: "npm:^3.3.3"
     axios: "npm:^1.13.5"
     form-data: "npm:^4.0.5"
-    lodash.chunk: "npm:^4.2.0"
+    lodash-es: "npm:^4"
     p-limit: "npm:^7.3.0"
     progress: "npm:^2.0.3"
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.6.3"
     vitest: "npm:^2.1.9"
+    yoctocolors: "npm:^2"
   languageName: unknown
   linkType: soft
 
@@ -7008,12 +7009,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.chunk@npm:^4":
-  version: 4.2.9
-  resolution: "@types/lodash.chunk@npm:4.2.9"
+"@types/lodash-es@npm:^4":
+  version: 4.17.12
+  resolution: "@types/lodash-es@npm:4.17.12"
   dependencies:
     "@types/lodash": "npm:*"
-  checksum: 10/ccffe7273a0941655d5b988baeffa8f7d4d19a8b43ed728ff4e616013506efe85914ba99d4ec299e0106506e1bca3923b065eabb0aa5f1e4b18f68e790ae6b88
+  checksum: 10/56b9a433348b11c31051c6fa9028540a033a08fb80b400c589d740446c19444d73b217cf1471d4036448ef686a83e8cf2a35d1fadcb3f2105f26701f94aebb07
   languageName: node
   linkType: hard
 
@@ -13408,17 +13409,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash-es@npm:^4":
+  version: 4.17.23
+  resolution: "lodash-es@npm:4.17.23"
+  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
+  languageName: node
+  linkType: hard
+
 "lodash.camelcase@npm:^4.3.0":
   version: 4.3.0
   resolution: "lodash.camelcase@npm:4.3.0"
   checksum: 10/c301cc379310441dc73cd6cebeb91fb254bea74e6ad3027f9346fc43b4174385153df420ffa521654e502fd34c40ef69ca4e7d40ee7129a99e06f306032bfc65
-  languageName: node
-  linkType: hard
-
-"lodash.chunk@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "lodash.chunk@npm:4.2.0"
-  checksum: 10/3b6639fda107a0d8c3996090eeb7ad0f05063e6a1f4692a01335e7c1990030d3274c3164d78159f24928d86eb0943ad326b0a4a2da706c250c4d3166ddd8ed0e
   languageName: node
   linkType: hard
 
@@ -19218,6 +19219,13 @@ __metadata:
   version: 1.2.1
   resolution: "yocto-queue@npm:1.2.1"
   checksum: 10/0843d6c2c0558e5c06e98edf9c17942f25c769e21b519303a5c2adefd5b738c9b2054204dc856ac0cd9d134b1bc27d928ce84fd23c9e2423b7e013d5a6f50577
+  languageName: node
+  linkType: hard
+
+"yoctocolors@npm:^2":
+  version: 2.1.2
+  resolution: "yoctocolors@npm:2.1.2"
+  checksum: 10/6ee42d665a4cc161c7de3f015b2a65d6c65d2808bfe3b99e228bd2b1b784ef1e54d1907415c025fc12b400f26f372bfc1b71966c6c738d998325ca422eb39363
   languageName: node
   linkType: hard
 
