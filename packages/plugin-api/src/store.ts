@@ -46,6 +46,7 @@ export interface AllureStore {
   attachmentContentById: (attachmentId: string) => Promise<ResultFile | undefined>;
   metadataByKey: <T>(key: string) => Promise<T | undefined>;
   testResultsByTcId: (tcId: string) => Promise<TestResult[]>;
+  environmentIdByTrId: (trId: string) => Promise<string | undefined>;
   attachmentsByTrId: (trId: string) => Promise<AttachmentLink[]>;
   retriesByTr: (tr: TestResult) => Promise<TestResult[]>;
   retriesByTrId: (trId: string) => Promise<TestResult[]>;

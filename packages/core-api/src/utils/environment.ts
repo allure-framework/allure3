@@ -1,5 +1,5 @@
-import type { EnvironmentIdentity, EnvironmentsConfig } from "../environment.js";
-import type { TestEnvGroup, TestResult } from "../model.js";
+import type { EnvironmentIdentity } from "../environment.js";
+import type { TestEnvGroup } from "../model.js";
 
 export const DEFAULT_ENVIRONMENT = "default";
 export const MAX_ENVIRONMENT_NAME_LENGTH = 64;
@@ -95,31 +95,6 @@ export const formatNormalizedEnvironmentCollision = (
 ): string =>
   `${sourcePath}: normalized key ${JSON.stringify(normalized)} is produced by original keys [${originalKeys.map((key) => JSON.stringify(key)).join(",")}]`;
 
-const findMatchedEnvironmentIdentity = (
-  envConfig: EnvironmentsConfig,
-  tr: Pick<TestResult, "labels">,
-): EnvironmentIdentity | undefined => {
-  const match = Object.entries(envConfig).find(([, { matcher }]) => matcher({ labels: tr.labels }));
-
-  if (!match) {
-    return undefined;
-  }
-
-  const [id, descriptor] = match;
-
-  return {
-    id,
-    name: descriptor.name ?? id,
-  };
-};
-
-export const matchEnvironmentIdentity = (
-  envConfig: EnvironmentsConfig,
-  tr: Pick<TestResult, "labels">,
-): EnvironmentIdentity => {
-  return findMatchedEnvironmentIdentity(envConfig, tr) ?? DEFAULT_ENVIRONMENT_IDENTITY;
-};
-
 /**
  * Returns env count in the given group
  * Returns 0 if there is no envs in the group or the only one is default (shouldn't be rendered in the report)
@@ -127,7 +102,7 @@ export const matchEnvironmentIdentity = (
  */
 export const getRealEnvsCount = (group: TestEnvGroup): number => {
   const { testResultsByEnv = {} } = group ?? {};
-  const envsCount = Object.keys(testResultsByEnv).length ?? 0;
+  const envsCount = Object.keys(testResultsByEnv).length;
 
   if (envsCount <= 1 && DEFAULT_ENVIRONMENT in testResultsByEnv) {
     return 0;

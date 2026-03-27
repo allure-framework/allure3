@@ -1,61 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { EnvironmentsConfig } from "../../src/index.js";
-import type { TestResult } from "../../src/model.js";
 import {
   MAX_ENVIRONMENT_ID_LENGTH,
   MAX_ENVIRONMENT_NAME_LENGTH,
   assertValidEnvironmentName,
   formatNormalizedEnvironmentCollision,
-  matchEnvironmentIdentity,
   validateEnvironmentId,
   validateEnvironmentName,
 } from "../../src/utils/environment.js";
-
-const fixtures = {
-  envConfig: {
-    foo: {
-      variables: {
-        foo: "bar",
-      },
-      matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "foo" && value === "bar"),
-    },
-  } as EnvironmentsConfig,
-};
-
-describe("matchEnvironmentIdentity", () => {
-  it("should return matched environment identity", () => {
-    const result = matchEnvironmentIdentity(fixtures.envConfig, {
-      labels: [
-        {
-          name: "foo",
-          value: "bar",
-        },
-      ],
-    } as TestResult);
-
-    expect(result).toEqual({
-      id: Object.keys(fixtures.envConfig)[0],
-      name: Object.keys(fixtures.envConfig)[0],
-    });
-  });
-
-  it("should return default identity when no environment is matched", () => {
-    const result = matchEnvironmentIdentity(fixtures.envConfig, {
-      labels: [
-        {
-          name: "foo",
-          value: "baz",
-        },
-      ],
-    } as TestResult);
-
-    expect(result).toEqual({
-      id: "default",
-      name: "default",
-    });
-  });
-});
 
 describe("validateEnvironmentName", () => {
   it("accepts valid names and returns normalized value", () => {

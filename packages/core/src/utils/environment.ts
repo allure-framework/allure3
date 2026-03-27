@@ -2,7 +2,6 @@ import {
   DEFAULT_ENVIRONMENT,
   DEFAULT_ENVIRONMENT_IDENTITY,
   formatNormalizedEnvironmentCollision,
-  matchEnvironmentIdentity,
   validateEnvironmentId,
   validateEnvironmentName,
   type EnvironmentDescriptor,
@@ -16,7 +15,7 @@ const createIdentity = (id: string, descriptor?: Pick<EnvironmentDescriptor, "na
   name: descriptor?.name ?? id,
 });
 const compatibilityIdentityFromName = (normalizedName: string): EnvironmentIdentity =>
-  normalizedName === DEFAULT_ENVIRONMENT ? defaultEnvironmentIdentity() : { id: normalizedName, name: normalizedName };
+  normalizedName === DEFAULT_ENVIRONMENT ? DEFAULT_ENVIRONMENT_IDENTITY : { id: normalizedName, name: normalizedName };
 
 export type NormalizedEnvironmentsResult = {
   normalized: EnvironmentsConfig;
@@ -118,7 +117,7 @@ export const environmentIdentityByName = (
   environmentName: string,
 ): EnvironmentIdentity | undefined => {
   for (const [id, descriptor] of Object.entries(environmentsConfig)) {
-    if ((descriptor.name ?? id) === environmentName) {
+    if ((descriptor?.name ?? id) === environmentName) {
       return createIdentity(id, descriptor);
     }
   }
@@ -140,41 +139,37 @@ export const resolveStoredEnvironmentIdentity = (
 ): EnvironmentIdentity | undefined => {
   if (params.environment !== undefined) {
     const idResult = validateEnvironmentId(params.environment);
-
     if (idResult.valid) {
-      const configuredIdentity = environmentIdentityById(environmentsConfig, idResult.normalized);
-
-      if (configuredIdentity) {
-        return configuredIdentity;
+      const byId = environmentIdentityById(environmentsConfig, idResult.normalized);
+      if (byId) {
+        return byId;
       }
-
-      const storedNameResult = validateEnvironmentName(params.environmentName ?? params.environment);
-
+      const byName = environmentIdentityByName(environmentsConfig, idResult.normalized);
+      if (byName) {
+        return byName;
+      }
+      const nameResult = validateEnvironmentName(params.environmentName ?? params.environment);
       return {
         id: idResult.normalized,
-        name: storedNameResult.valid ? storedNameResult.normalized : idResult.normalized,
+        name: nameResult.valid ? nameResult.normalized : idResult.normalized,
       };
     }
 
-    const environmentNameResult = validateEnvironmentName(params.environment);
-
-    if (environmentNameResult.valid) {
+    const nameResult = validateEnvironmentName(params.environment);
+    if (nameResult.valid) {
       return (
-        environmentIdentityByName(environmentsConfig, environmentNameResult.normalized) ??
-        compatibilityIdentityFromName(environmentNameResult.normalized)
+        environmentIdentityByName(environmentsConfig, nameResult.normalized) ??
+        compatibilityIdentityFromName(nameResult.normalized)
       );
     }
   }
 
-  const storedEnvironmentName = params.environmentName ?? params.environment;
-
-  if (storedEnvironmentName !== undefined) {
-    const storedEnvironmentNameResult = validateEnvironmentName(storedEnvironmentName);
-
-    if (storedEnvironmentNameResult.valid) {
+  if (params.environmentName !== undefined) {
+    const nameResult = validateEnvironmentName(params.environmentName);
+    if (nameResult.valid) {
       return (
-        environmentIdentityByName(environmentsConfig, storedEnvironmentNameResult.normalized) ??
-        compatibilityIdentityFromName(storedEnvironmentNameResult.normalized)
+        environmentIdentityByName(environmentsConfig, nameResult.normalized) ??
+        compatibilityIdentityFromName(nameResult.normalized)
       );
     }
   }
@@ -183,7 +178,19 @@ export const resolveStoredEnvironmentIdentity = (
     return undefined;
   }
 
-  return options?.forcedEnvironment ?? matchEnvironmentIdentity(environmentsConfig, { labels: params.labels ?? [] });
+  if (options?.forcedEnvironment) {
+    return options.forcedEnvironment;
+  }
+
+  const match = Object.entries(environmentsConfig).find(([, { matcher }]) => matcher({ labels: params.labels ?? [] }));
+
+  if (!match) {
+    return DEFAULT_ENVIRONMENT_IDENTITY;
+  }
+
+  const [id, descriptor] = match;
+
+  return { id, name: descriptor.name ?? id };
 };
 
 export const resolveEnvironmentIdentity = (
@@ -198,7 +205,7 @@ export const resolveEnvironmentIdentity = (
   let identityFromEnvironment: EnvironmentIdentity | undefined;
   let identityFromName: EnvironmentIdentity | undefined;
   if (params.environment !== undefined) {
-    const environmentResult = validateEnvironmentName(params.environment);
+    const environmentResult = validateEnvironmentId(params.environment);
 
     if (!environmentResult.valid) {
       errors.push(`${sourcePath}: environment ${environmentResult.reason}`);
@@ -237,7 +244,3 @@ export const resolveEnvironmentIdentity = (
     errors,
   };
 };
-
-export const defaultEnvironmentIdentity = (): EnvironmentIdentity => ({
-  ...DEFAULT_ENVIRONMENT_IDENTITY,
-});

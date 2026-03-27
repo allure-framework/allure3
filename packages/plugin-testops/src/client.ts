@@ -224,7 +224,7 @@ export class TestOpsClient {
 
   async uploadTestResults(params: {
     trs: TestResult[];
-    envNamesById: Record<string, string>;
+    environments: EnvironmentIdentity[];
     attachmentsResolver: (tr: TestResult) => Promise<any>;
     fixturesResolver: (tr: TestResult) => Promise<any>;
     onProgress?: () => void;
@@ -233,9 +233,10 @@ export class TestOpsClient {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, envNamesById, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, 100);
     const uploadLimitFn = pLimit(this.#uploadLimit);
+    const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 
     await Promise.all(
       trsChunks.map(async (trsChunk) => {
@@ -247,12 +248,11 @@ export class TestOpsClient {
           if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
             chunkEnvs.set(environmentId, {
               id: environmentId,
-              name: envNamesById[environmentId] ?? environmentId,
+              name: envNamesById.get(environmentId) ?? environmentId,
             });
           }
         }
 
-        // small optimization to prevent creating named environments on every test result processing
         if (chunkEnvs.size > 0) {
           await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
@@ -266,7 +266,6 @@ export class TestOpsClient {
 
               return {
                 ...tr,
-                // need to assign uuid explicitly because it's not provided by default
                 uuid: tr.id,
                 namedEnv: namedEnv
                   ? {
@@ -282,10 +281,11 @@ export class TestOpsClient {
             },
           },
         );
-        const trsTestOpsIdsByUuid: Record<string, number> = data.results.reduce(
-          (acc, { id, uuid }) => ({ ...acc, [uuid]: id }),
-          {},
-        );
+        const trsTestOpsIdsByUuid: Record<string, number> = {};
+
+        data.results.forEach(({ id, uuid }) => {
+          trsTestOpsIdsByUuid[uuid] = id;
+        });
 
         await Promise.all(
           trsChunk.map((tr) =>

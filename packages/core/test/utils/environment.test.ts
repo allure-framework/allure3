@@ -1,9 +1,23 @@
 import type { EnvironmentsConfig } from "@allurereport/core-api";
 import { describe, expect, it } from "vitest";
 
-import { resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
+import { resolveEnvironmentIdentity, resolveStoredEnvironmentIdentity } from "../../src/utils/environment.js";
 
 describe("environment runtime resolution", () => {
+  it("should reject invalid environment ids in public environment resolution", () => {
+    expect(
+      resolveEnvironmentIdentity(
+        {
+          environment: "foo/bar",
+        },
+        {},
+        "config",
+      ),
+    ).toEqual({
+      errors: ["config: environment id must contain only latin letters, digits, underscores, and hyphens"],
+    });
+  });
+
   it("should resolve compatibility runtime keys with slashes unchanged", () => {
     expect(
       resolveStoredEnvironmentIdentity(
@@ -39,6 +53,28 @@ describe("environment runtime resolution", () => {
     ).toEqual({
       id: "qa",
       name: "New QA",
+    });
+  });
+
+  it("should resolve id-shaped stored display names through configured names", () => {
+    const environmentsConfig: EnvironmentsConfig = {
+      qa: {
+        name: "QA",
+        matcher: () => false,
+      },
+    };
+
+    expect(
+      resolveStoredEnvironmentIdentity(
+        {
+          environment: "QA",
+          labels: [],
+        },
+        environmentsConfig,
+      ),
+    ).toEqual({
+      id: "qa",
+      name: "QA",
     });
   });
 

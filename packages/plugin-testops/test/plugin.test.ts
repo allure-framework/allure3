@@ -89,6 +89,8 @@ beforeEach(() => {
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
   AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
   AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
+  AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
+  AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue(undefined);
 });
 
 describe("testops plugin", () => {
@@ -326,6 +328,7 @@ describe("testops plugin", () => {
 
     it("should upload all test results from the store", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -334,7 +337,31 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
-        envNamesById: {},
+        environments: [],
+        onProgress: expect.any(Function),
+        attachmentsResolver: expect.any(Function),
+        fixturesResolver: expect.any(Function),
+      });
+    });
+
+    it("should rewrite display-facing environments to environment ids only in upload payload", async () => {
+      const qaResult = {
+        ...fixtures.testResults[0],
+        environment: "QA",
+      } as TestResult;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([qaResult]);
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([{ id: "qa", name: "QA" }]);
+      AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue("qa");
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
+        trs: [{ ...qaResult, environment: "qa", steps: qaResult.steps }],
+        environments: [{ id: "qa", name: "QA" }],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -362,7 +389,7 @@ describe("testops plugin", () => {
             ],
           },
         ],
-        envNamesById: {},
+        environments: [],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -436,7 +463,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: [fixtures.testResults[0]],
-        envNamesById: {},
+        environments: [],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -602,7 +629,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
-        envNamesById: {},
+        environments: [],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -785,7 +812,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: fixtures.testResults.slice(0, 1),
-        envNamesById: {},
+        environments: [],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),
@@ -826,7 +853,7 @@ describe("testops plugin", () => {
 
       expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
         trs: [fixtures.testResults[0]],
-        envNamesById: {},
+        environments: [],
         onProgress: expect.any(Function),
         attachmentsResolver: expect.any(Function),
         fixturesResolver: expect.any(Function),

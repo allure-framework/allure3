@@ -64,7 +64,9 @@ describe("generateAllCharts", () => {
         .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
       allAttachments: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue(testResults),
+      testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
       testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+      environmentIdByTrId: vi.fn().mockResolvedValue("default"),
       testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
       allTestEnvGroups: vi.fn().mockResolvedValue([]),
       allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -80,6 +82,7 @@ describe("generateAllCharts", () => {
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       attachmentContentById: vi.fn().mockResolvedValue(undefined),
@@ -130,11 +133,6 @@ describe("generateAllCharts", () => {
       environment: "QA",
     };
     const testResults = [qaATestResult, qaBTestResult];
-    const testResultsByEnvironmentId = {
-      qa_a: [qaATestResult],
-      qa_b: [qaBTestResult],
-    } satisfies Record<string, TestResult[]>;
-
     const writtenWidgets = new Map<string, unknown>();
     const writer: AwesomeDataWriter = {
       writeData: vi.fn().mockResolvedValue(undefined),
@@ -154,9 +152,13 @@ describe("generateAllCharts", () => {
       ] satisfies EnvironmentIdentity[]),
       allAttachments: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue(testResults),
-      testResultsByEnvironmentId: vi.fn(
-        async (environmentId: string) => testResultsByEnvironmentId[environmentId] ?? [],
-      ),
+      testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
+      testResultsByEnvironmentId: vi
+        .fn()
+        .mockImplementation(async (environmentId: string) =>
+          environmentId === "qa_a" ? [qaATestResult] : environmentId === "qa_b" ? [qaBTestResult] : [],
+        ),
+      environmentIdByTrId: vi.fn().mockImplementation(async (trId: string) => (trId === "tr-qa-a" ? "qa_a" : "qa_b")),
       testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
       allTestEnvGroups: vi.fn().mockResolvedValue([]),
       allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -172,6 +174,7 @@ describe("generateAllCharts", () => {
       envVariables: vi.fn().mockResolvedValue([]),
       envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
       allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       attachmentContentById: vi.fn().mockResolvedValue(undefined),

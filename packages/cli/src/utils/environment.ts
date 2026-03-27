@@ -1,4 +1,4 @@
-import type { FullConfig } from "@allurereport/core";
+import { environmentIdentityById, environmentIdentityByName, type FullConfig } from "@allurereport/core";
 import type { EnvironmentIdentity } from "@allurereport/core-api";
 import { validateEnvironmentId, validateEnvironmentName } from "@allurereport/core-api";
 import { Option, UsageError } from "clipanion";
@@ -12,26 +12,6 @@ const environmentNameOptionDescription =
 type CommandEnvironmentOptions = {
   environment?: string;
   environmentName?: string;
-};
-
-const environmentIdentityById = (
-  config: Pick<FullConfig, "environments">,
-  environmentId: string,
-): EnvironmentIdentity | undefined => {
-  if (!Object.prototype.hasOwnProperty.call(config.environments ?? {}, environmentId)) {
-    return undefined;
-  }
-
-  const descriptor = config.environments?.[environmentId];
-
-  if (!descriptor) {
-    return undefined;
-  }
-
-  return {
-    id: environmentId,
-    name: descriptor.name ?? environmentId,
-  };
 };
 
 export const environmentOption = () =>
@@ -49,7 +29,7 @@ const resolveEnvironmentByName = (
   environmentName: string,
   source: string,
 ): EnvironmentIdentity => {
-  const identity = environmentIdentityByName(config, environmentName);
+  const identity = environmentIdentityByName(config.environments ?? {}, environmentName);
 
   if (!identity) {
     throw new UsageError(
@@ -60,28 +40,14 @@ const resolveEnvironmentByName = (
   return identity;
 };
 
-const environmentIdentityByName = (
-  config: Pick<FullConfig, "environments">,
-  environmentName: string,
-): EnvironmentIdentity | undefined => {
-  for (const [environmentId, descriptor] of Object.entries(config.environments ?? {})) {
-    if ((descriptor.name ?? environmentId) === environmentName) {
-      return {
-        id: environmentId,
-        name: descriptor.name ?? environmentId,
-      };
-    }
-  }
-};
-
 const resolveConfigEnvironment = (config: Pick<FullConfig, "environment" | "environments">) => {
   if (config.environment === undefined) {
     return undefined;
   }
 
   return (
-    environmentIdentityById(config, config.environment) ??
-    environmentIdentityByName(config, config.environment) ?? {
+    environmentIdentityById(config.environments ?? {}, config.environment) ??
+    environmentIdentityByName(config.environments ?? {}, config.environment) ?? {
       id: config.environment,
       name: config.environment,
     }
@@ -96,7 +62,7 @@ export const resolveCommandEnvironment = (
   const { environment, environmentName } = normalizeCommandEnvironmentOptions(options);
   const identityFromId =
     environment !== undefined
-      ? (environmentIdentityById(config, environment) ?? { id: environment, name: environment })
+      ? (environmentIdentityById(config.environments ?? {}, environment) ?? { id: environment, name: environment })
       : undefined;
   const identityFromName =
     environmentName !== undefined ? resolveEnvironmentByName(config, environmentName, source) : undefined;

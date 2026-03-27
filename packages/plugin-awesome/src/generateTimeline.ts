@@ -8,28 +8,29 @@ type Writer = {
 
 const DEFAULT_MIN_DURATION = 1;
 
-type TimlineTr = Pick<
+type TimelineTr = Pick<
   TestResult,
-  "id" | "name" | "status" | "hidden" | "environment" | "start" | "stop" | "duration" | "historyId"
+  "id" | "name" | "status" | "hidden" | "environment" | "start" | "duration" | "historyId"
 > & {
   environmentName?: string;
   host: string;
   thread: string;
 };
 
-type TimelineSourceTestResult = TestResult & {
-  environmentId?: string;
-};
-
 const DEFAULT_TIMELINE_OPTIONS = {
   minDuration: DEFAULT_MIN_DURATION,
 } as const;
 
-export const generateTimeline = async (writer: Writer, trs: TimelineSourceTestResult[], options: AwesomeOptions) => {
+export const generateTimeline = async (
+  writer: Writer,
+  trs: TestResult[],
+  options: AwesomeOptions,
+  environmentIdByTrId: Map<string, string>,
+) => {
   const { timeline = DEFAULT_TIMELINE_OPTIONS } = options;
   const { minDuration = DEFAULT_MIN_DURATION } = timeline;
 
-  const result: TimlineTr[] = [];
+  const result: TimelineTr[] = [];
 
   for (const test of trs) {
     const hasStart = Number.isInteger(test.start);
@@ -60,7 +61,7 @@ export const generateTimeline = async (writer: Writer, trs: TimelineSourceTestRe
       hidden: test.hidden,
       host,
       thread,
-      environment: test.environmentId ?? test.environment,
+      environment: environmentIdByTrId.get(test.id) ?? test.environment,
       environmentName: test.environment,
       start: test.start,
       duration,

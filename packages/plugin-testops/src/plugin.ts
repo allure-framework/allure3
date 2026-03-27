@@ -1,7 +1,7 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import { getWorstStatus, type CiDescriptor, type TestResult, type TestStatus } from "@allurereport/core-api";
+import { getWorstStatus, type CiDescriptor, type TestStatus } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -20,15 +20,13 @@ export class TestopsPlugin implements Plugin {
   #client?: TestOpsClient;
   #launchName: string = "";
   #launchTags: string[] = [];
-  #uploadedTestResultsIds: string[] = [];
+  #uploadedTestResultsIds: Set<string> = new Set();
 
   constructor(readonly options: TestopsPluginOptions) {
     const { accessToken, endpoint, projectId, launchName, launchTags } = resolvePluginOptions(options);
 
     this.#ci = detect();
 
-    // don't initialize the client when some options are missing
-    // we can' throw an error here because it would break the report execution flow
     if ([accessToken, endpoint, projectId].every(Boolean)) {
       this.#client = new TestOpsClient({
         baseUrl: endpoint,
@@ -65,7 +63,7 @@ export class TestopsPlugin implements Plugin {
     const allGlobalErrors = await store.allGlobalErrors();
     const allGlobalAttachments = await store.allGlobalAttachments();
     const trsToUpload = allTrs.filter((tr) => {
-      const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
+      const uploaded = this.#uploadedTestResultsIds.has(tr.id);
 
       if (this.options.filter) {
         return this.options.filter(tr) && !uploaded;
@@ -78,30 +76,19 @@ export class TestopsPlugin implements Plugin {
       return;
     }
 
-    const envNamesById: Record<string, string> = {};
-    const envIdByName = new Map<string, string>();
+    const environments = await store.allEnvironmentIdentities();
 
-    for (const { id, name } of await store.allEnvironmentIdentities()) {
-      envNamesById[id] = name;
-      envIdByName.set(name, id);
-    }
+    const allTrsWithAttachments = await Promise.all(
+      trsToUpload.map(async (tr) => {
+        const environmentId = await store.environmentIdByTrId(tr.id);
 
-    const allTrsWithAttachments = trsToUpload.map((tr) => {
-      const trWithEnvironmentId = tr as TestResult & { environmentId?: string };
-      const environmentId =
-        trWithEnvironmentId.environmentId ??
-        (tr.environment ? (envIdByName.get(tr.environment) ?? tr.environment) : undefined);
-
-      if (environmentId) {
-        envNamesById[environmentId] ??= tr.environment ?? environmentId;
-      }
-
-      return {
-        ...tr,
-        environment: environmentId,
-        steps: unwrapStepsAttachments(tr.steps),
-      };
-    });
+        return {
+          ...tr,
+          ...(environmentId ? { environment: environmentId } : {}),
+          steps: unwrapStepsAttachments(tr.steps),
+        };
+      }),
+    );
 
     if (issueNewToken) {
       await this.#client!.issueOauthToken();
@@ -114,10 +101,13 @@ export class TestopsPlugin implements Plugin {
         attachments: allGlobalAttachments,
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
+          const originalFileName =
+            "name" in attachmentLink && typeof attachmentLink.name === "string"
+              ? attachmentLink.name
+              : attachmentLink.originalFileName;
 
           return {
-            // @ts-expect-error
-            originalFileName: attachmentLink.name || attachmentLink.originalFileName,
+            originalFileName,
             contentType: attachmentLink.contentType,
             content: await content?.readContent(async (s) => s),
           };
@@ -138,7 +128,7 @@ export class TestopsPlugin implements Plugin {
 
     await this.#client!.uploadTestResults({
       trs: allTrsWithAttachments,
-      envNamesById,
+      environments,
       onProgress: () => trsProgressBar.tick(),
       attachmentsResolver: async (tr) => {
         const attachments = await store.attachmentsByTrId(tr.id);
@@ -160,15 +150,15 @@ export class TestopsPlugin implements Plugin {
 
         return fxts.map((fxt) => ({
           ...fxt,
-          // testops accepts AFTER or BEFORE types
           type: fxt.type.toUpperCase(),
           steps: unwrapStepsAttachments(fxt.steps),
         }));
       },
     });
 
-    // prevent duplicated test results upload
-    this.#uploadedTestResultsIds.push(...allTrsWithAttachments.map((tr) => tr.id));
+    allTrsWithAttachments.forEach((tr) => {
+      this.#uploadedTestResultsIds.add(tr.id);
+    });
   }
 
   async #startUpload() {
