@@ -29,6 +29,11 @@ export interface TestOpsPluginTestResult extends TestResult {
   };
   message?: string;
   trace?: string;
+  /**
+   * The id of the test result in the Allure Report
+   * Used to match the test result from TestOps with the report's one
+   */
+  uuid?: string;
 }
 
 export type LaunchCategoryBulkItem = {

@@ -398,11 +398,11 @@ export class TestOpsClient {
 
     try {
       for (const trsChunk of trsChunks) {
-        const resultIdsByUuid = await this.#postTestResultsChunk(trsChunk);
+        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
         await this.#uploadChunkAttachmentsAndFixtures(
           trsChunk,
-          resultIdsByUuid,
+          reportIdsToTestOpsIds,
           attachmentsResolver,
           fixturesResolver,
           uploadLimitFn,
@@ -433,7 +433,11 @@ export class TestOpsClient {
       {
         testSessionId: this.#session!.id,
         results: trsChunk.map((testResult) => {
-          const extendedTestResult: TestOpsPluginTestResult = { ...testResult };
+          const extendedTestResult: TestOpsPluginTestResult = {
+            ...testResult,
+            // pass the report id to TestOps to be able to match the test result with the report
+            uuid: testResult.id,
+          };
 
           const namedEnvironment =
             !!testResult.environment &&
@@ -475,12 +479,19 @@ export class TestOpsClient {
       { headers: { "Content-Type": "application/json" } },
     );
 
-    return (data.results ?? []).reduce((acc, { id, uuid }) => ({ ...acc, [uuid]: id }), {} as Record<string, number>);
+    const reportIdsToTestOpsIds: Record<string, number> = {};
+
+    for (const { id, uuid } of data.results ?? []) {
+      // "uuid" here is the test result id that was passed to TestOps by us
+      reportIdsToTestOpsIds[uuid] = id;
+    }
+
+    return reportIdsToTestOpsIds;
   }
 
   async #uploadChunkAttachmentsAndFixtures(
     trsChunk: TestOpsPluginTestResult[],
-    resultIdsByUuid: Record<string, number>,
+    reportIdsToTestOpsIds: Record<string, number>,
     attachmentsResolver: AttachmentsResolver,
     fixturesResolver: FixtureResolver,
     uploadLimitFn: (fn: () => Promise<void>) => Promise<void>,
@@ -489,7 +500,7 @@ export class TestOpsClient {
     await Promise.all(
       trsChunk.map((tr) =>
         uploadLimitFn(async () => {
-          const testOpsId = resultIdsByUuid[tr.id];
+          const testOpsId = reportIdsToTestOpsIds[tr.id];
           const attachments = await attachmentsResolver(tr);
           const fixtures = await fixturesResolver(tr);
 
