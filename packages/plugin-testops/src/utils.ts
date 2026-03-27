@@ -66,7 +66,8 @@ export function attachmentsResolverFactory(store: AllureStore) {
       attachments.map(async (attachment) => {
         const content = await store.attachmentContentById(attachment.id);
         const body = await content?.readContent(async (s) => s);
-        const name = attachment.originalFileName ?? attachment.name;
+        // @ts-expect-error don't know why
+        const name = attachment.name || attachment.originalFileName;
 
         if (name === undefined || body === undefined) {
           return undefined;
