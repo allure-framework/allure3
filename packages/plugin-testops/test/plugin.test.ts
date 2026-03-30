@@ -524,6 +524,7 @@ describe("testops plugin", () => {
 
     describe("categories", () => {
       const categoryProductErrors: CategoryDefinition = {
+        id: "product-errors",
         name: "Product errors",
         matchers: [{ statuses: ["failed"] }],
         groupBy: [],
@@ -547,7 +548,7 @@ describe("testops plugin", () => {
         await plugin.start(context, store);
 
         expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
-          { externalId: "Product errors", name: "Product errors" },
+          { externalId: "product-errors", name: "Product errors" },
         ]);
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -555,7 +556,7 @@ describe("testops plugin", () => {
               expect.objectContaining({
                 id: failedTr.id,
                 category: expect.objectContaining({
-                  externalId: "Product errors",
+                  externalId: "product-errors",
                   name: "Product errors",
                 }),
               }),
@@ -567,12 +568,17 @@ describe("testops plugin", () => {
       it("should attach category with grouping when context.categories has groupBy", async () => {
         const categoryWithGroupBy: CategoryDefinition = {
           ...categoryProductErrors,
+          id: "layer-severity",
           name: "Layer / Severity",
           groupBy: ["severity", "layer"],
+          groupByMessage: true,
+          groupEnvironments: true,
         };
         const failedTr = {
           ...fixtures.testResults[0],
           status: "failed" as const,
+          environment: "foo",
+          error: { message: "boom from testops" },
           labels: [
             { name: "severity", value: "critical" },
             { name: "layer", value: "api" },
@@ -584,7 +590,7 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
         TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
-          { id: 1, externalId: "Layer / Severity" },
+          { id: 1, externalId: "layer-severity" },
         ]);
 
         const context = { categories: [categoryWithGroupBy] } as PluginContext;
@@ -596,11 +602,18 @@ describe("testops plugin", () => {
             trs: [
               expect.objectContaining({
                 category: expect.objectContaining({
-                  externalId: "Layer / Severity",
+                  externalId: "layer-severity",
                   name: "Layer / Severity",
                   grouping: [
                     { key: "severity", value: "critical", name: "severity: critical" },
                     { key: "layer", value: "api", name: "layer: api" },
+                    {
+                      key: "message",
+                      value: "boom from testops",
+                      name: "message: boom from testops",
+                    },
+                    { key: "historyId", value: failedTr.id, name: failedTr.id },
+                    { key: "environment", value: "foo", name: "environment: foo" },
                   ],
                 }),
               }),
@@ -614,6 +627,7 @@ describe("testops plugin", () => {
           ...fixtures.testResults[0],
           categories: [
             {
+              id: "product-errors",
               name: "Product errors",
               grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
             },
@@ -629,14 +643,14 @@ describe("testops plugin", () => {
         await plugin.start({} as PluginContext, store);
 
         expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
-          { externalId: "Product errors", name: "Product errors" },
+          { externalId: "product-errors", name: "Product errors" },
         ]);
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
           expect.objectContaining({
             trs: [
               expect.objectContaining({
                 category: expect.objectContaining({
-                  externalId: "Product errors",
+                  externalId: "product-errors",
                   name: "Product errors",
                   grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
                 }),
@@ -644,6 +658,85 @@ describe("testops plugin", () => {
             ],
           }),
         );
+      });
+
+      it("should keep deep grouping payload from tr.categories as-is", async () => {
+        const trWithDeepCategories = {
+          ...fixtures.testResults[0],
+          categories: [
+            {
+              id: "deep-cat",
+              name: "Deep category",
+              grouping: [
+                { key: "severity", value: "critical", name: "severity: critical" },
+                { key: "layer", value: "api", name: "layer: api" },
+                { key: "message", value: "assert failed", name: "message: assert failed" },
+                { key: "historyId", value: "hist-1", name: "my flaky test" },
+                { key: "environment", value: "prod", name: "environment: prod" },
+              ],
+            },
+          ],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([trWithDeepCategories]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "deep-cat" }]);
+
+        await plugin.start({} as PluginContext, store);
+
+        const uploadCall = TestOpsClientMock.prototype.uploadTestResults.mock.calls[0][0];
+        expect(uploadCall.trs[0].category).toEqual({
+          id: 2,
+          externalId: "deep-cat",
+          name: "Deep category",
+          grouping: [
+            { key: "severity", value: "critical", name: "severity: critical" },
+            { key: "layer", value: "api", name: "layer: api" },
+            { key: "message", value: "assert failed", name: "message: assert failed" },
+            { key: "historyId", value: "hist-1", name: "my flaky test" },
+            { key: "environment", value: "prod", name: "environment: prod" },
+          ],
+        });
+      });
+
+      it("should include historyId but not duplicate environment when groupBy already has environment", async () => {
+        const categoryWithEnvironmentGroup: CategoryDefinition = {
+          ...categoryProductErrors,
+          id: "env-in-group-by",
+          name: "Environment first",
+          groupBy: ["environment", "severity"],
+          groupByMessage: true,
+          groupEnvironments: true,
+        };
+        const failedTr = {
+          ...fixtures.testResults[0],
+          status: "failed" as const,
+          historyId: "history-123",
+          name: "broken test name",
+          environment: "stage",
+          error: { message: "boom" },
+          labels: [{ name: "severity", value: "critical" }],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "env-in-group-by" },
+        ]);
+
+        await plugin.start({ categories: [categoryWithEnvironmentGroup] } as PluginContext, store);
+
+        const uploadCall = TestOpsClientMock.prototype.uploadTestResults.mock.calls[0][0];
+        expect(uploadCall.trs[0].category?.grouping).toEqual([
+          { key: "environment", value: "stage", name: "environment: stage" },
+          { key: "severity", value: "critical", name: "severity: critical" },
+          { key: "message", value: "boom", name: "message: boom" },
+          { key: "historyId", value: "history-123", name: "broken test name" },
+        ]);
       });
 
       it("should not call createLaunchCategoriesBulk when no test results have categories", async () => {
