@@ -35,7 +35,7 @@ const xmlParser = new XMLParser({
   removeNSPrefix: true,
   allowBooleanAttributes: true,
   processEntities: false,
-  isArray: (tagName, jPath) => arrayTags.has(jPath),
+  isArray: (tagName, jPath) => arrayTags.has(jPath.toString()),
 });
 
 const readerId = "junit";
