@@ -192,6 +192,14 @@ describe("getPluginId", () => {
   });
 });
 
+class ModuleNotFoundError extends Error {
+  constructor() {
+    super("Module not found");
+  }
+
+  code = "ERR_MODULE_NOT_FOUND";
+}
+
 describe("resolvePlugin", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -202,7 +210,7 @@ describe("resolvePlugin", () => {
 
     (importWrapper as unknown as MockInstance).mockImplementation((path: string) => {
       if (path.startsWith("@allurereport")) {
-        throw new Error("not found");
+        throw new ModuleNotFoundError();
       }
 
       return { default: fixture };
@@ -217,7 +225,7 @@ describe("resolvePlugin", () => {
   });
 
   it("throws an error when plugin can't be resolved", async () => {
-    (importWrapper as unknown as MockInstance).mockRejectedValue(new Error("an error"));
+    (importWrapper as unknown as MockInstance).mockRejectedValue(new ModuleNotFoundError());
 
     await expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
   });

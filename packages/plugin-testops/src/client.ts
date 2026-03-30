@@ -1,3 +1,5 @@
+import type { ClientRequest } from "http";
+
 import type {
   AttachmentLink,
   CiDescriptor,
@@ -6,15 +8,49 @@ import type {
   TestResult,
   TestStatus,
 } from "@allurereport/core-api";
-import type { AxiosInstance } from "axios";
-import axios from "axios";
+import type { QualityGateValidationResult } from "@allurereport/plugin-api";
+import axios, { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
 import FormData from "form-data";
-import chunk from "lodash.chunk";
+import { chunk } from "lodash-es";
 import pLimit from "p-limit";
+import { bold } from "yoctocolors";
 
-import type { TestOpsLaunch, TestOpsNamedEnv, TestOpsSession } from "./model.js";
+import { Logger } from "./logger.js";
+import type {
+  AttachmentForUpload,
+  AttachmentsResolver,
+  FixtureResolver,
+  LaunchCategoryBulkItem,
+  LaunchCategoryBulkResult,
+  TestOpsClientParams,
+  TestOpsLaunch,
+  TestOpsLaunchQualityGate,
+  TestOpsNamedEnv,
+  TestOpsPluginTestResult,
+  TestOpsSession,
+} from "./model.js";
+
+class TestOpsClientError extends AxiosError<{
+  message: string;
+  timestamp: number;
+  status: number;
+}> {
+  // @ts-expect-error this is for types
+  response: AxiosResponse<{
+    message: string;
+    timestamp: number;
+    status: number;
+  }>;
+
+  // @ts-expect-error this is for types
+  request: ClientRequest;
+}
+
+const CHUNK_SIZE = 100;
+const BULK_UPLOAD_CHUNK_SIZE = 1000;
 
 export class TestOpsClient {
+  #logger = new Logger("TestOpsClient");
   #accessToken: string;
   #projectId: string;
   #oauthToken: string = "";
@@ -25,7 +61,7 @@ export class TestOpsClient {
   #uploadLimit: number = 1;
   #namedEnvsIdsByEnv: Map<string, TestOpsNamedEnv> = new Map();
 
-  constructor(params: { baseUrl: string; projectId: string; accessToken: string; limit?: number }) {
+  constructor(params: TestOpsClientParams) {
     if (!params.accessToken) {
       throw new Error("accessToken is required");
     }
@@ -44,6 +80,7 @@ export class TestOpsClient {
 
     this.#accessToken = params.accessToken;
     this.#projectId = params.projectId;
+
     this.#client = axios.create({
       baseURL: params.baseUrl,
       validateStatus: (status) => status >= 200 && status < 400,
@@ -51,7 +88,7 @@ export class TestOpsClient {
 
     this.#client.interceptors.request.use((config) => {
       if (this.#oauthToken) {
-        config.headers.Authorization = `Bearer ${this.#oauthToken}`;
+        config.headers.set("Authorization", `Bearer ${this.#oauthToken}`);
       }
 
       return config;
@@ -62,6 +99,14 @@ export class TestOpsClient {
     }
   }
 
+  isTestOpsClientError(error: unknown): error is TestOpsClientError {
+    return (
+      isAxiosError(error) &&
+      typeof error.response?.data.status === "number" &&
+      typeof error.response?.data.message === "string"
+    );
+  }
+
   get launchUrl() {
     if (!this.#launch) {
       return undefined;
@@ -70,7 +115,69 @@ export class TestOpsClient {
     return new URL(`launch/${this.#launch.id}`, this.#client.defaults.baseURL).toString();
   }
 
+  get launchId() {
+    return this.#launch?.id;
+  }
+
+  async closeLaunch(launchId: number): Promise<void> {
+    this.#logger.verbose("Closing launch…");
+    await this.#client.post(`/api/launch/${launchId}/close`);
+    this.#logger.verbose("Launch closed");
+  }
+
+  async createLaunchCategoriesBulk(
+    launchId: number,
+    items: LaunchCategoryBulkItem[],
+  ): Promise<LaunchCategoryBulkResult[]> {
+    if (items.length === 0) {
+      return [];
+    }
+
+    const results: LaunchCategoryBulkResult[] = [];
+
+    const uploadChunk = async (chunk: LaunchCategoryBulkItem[], currentRequestIndex: number, totalChunks: number) => {
+      const body = { launchId, items: chunk };
+
+      if (totalChunks === 1) {
+        this.#logger.debug(`POST /api/launch/category/bulk request (items: ${chunk.length})`);
+      } else {
+        this.#logger.debug(
+          `POST /api/launch/category/bulk request (${currentRequestIndex + 1}/${totalChunks}, items: ${chunk.length})`,
+        );
+      }
+
+      this.#logger.debug(body);
+
+      const { data } = await this.#client.post<LaunchCategoryBulkResult[]>("/api/launch/category/bulk", body, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (Array.isArray(data)) {
+        results.push(...data);
+      }
+    };
+
+    if (items.length <= BULK_UPLOAD_CHUNK_SIZE) {
+      this.#logger.verbose(`Creating ${bold(items.length.toString())} launch categories…`);
+      await uploadChunk(items, 0, 1);
+    } else {
+      const chunks = chunk(items, BULK_UPLOAD_CHUNK_SIZE);
+      this.#logger.verbose(
+        `Creating ${bold(items.length.toString())} launch categories in ${bold(chunks.length.toString())} request(s)…`,
+      );
+
+      for (let i = 0; i < chunks.length; i += 1) {
+        await uploadChunk(chunks[i], i, chunks.length);
+      }
+    }
+
+    return results;
+  }
+
   async issueOauthToken() {
+    const base = this.#client.defaults.baseURL;
+    this.#logger.debug(`Endpoint: ${base}`);
+    this.#logger.verbose("Issuing OAuth token…");
     const formData = new FormData();
 
     formData.append("grant_type", "apitoken");
@@ -80,6 +187,7 @@ export class TestOpsClient {
     const { data } = await this.#client.post("/api/uaa/oauth/token", formData);
 
     this.#oauthToken = data.access_token as string;
+    this.#logger.verbose("OAuth token received");
   }
 
   async startUpload(ci: CiDescriptor) {
@@ -87,6 +195,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
+    this.#logger.verbose(`Starting CI upload (${ci.type})…`);
     await this.#client.post<any>("/api/upload/start", {
       projectId: this.#projectId,
       ci: {
@@ -105,6 +214,7 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = true;
+    this.#logger.verbose("CI upload started");
   }
 
   async stopUpload(ci: CiDescriptor, status: TestStatus) {
@@ -120,9 +230,11 @@ export class TestOpsClient {
     });
 
     this.#uploadInProgress = false;
+    this.#logger.verbose(`CI upload stopped (status: ${status})`);
   }
 
   async createLaunch(launchName: string, launchTags: string[]) {
+    this.#logger.verbose("Creating launch…");
     const { data } = await this.#client.post<TestOpsLaunch>("/api/launch", {
       name: launchName,
       projectId: this.#projectId,
@@ -132,6 +244,7 @@ export class TestOpsClient {
     });
 
     this.#launch = data;
+    this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
   }
 
   async createSession(environment: Record<string, any> = {}) {
@@ -139,15 +252,40 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<TestOpsSession>("/api/upload/session?manual=true", {
-      launchId: this.#launch.id,
-      environment: Object.entries(environment).map(([key, value]) => ({ key, value: String(value) })),
-    });
+    const { data } = await this.#client.post<TestOpsSession>(
+      "/api/upload/session",
+      {
+        launchId: this.#launch.id,
+        environment: Object.entries(environment).map(([key, value]) => ({
+          key,
+          value: String(value),
+        })),
+      },
+      {
+        params: {
+          manual: "true",
+        },
+      },
+    );
 
     this.#session = data;
   }
 
-  async createNamedEnvs(environments: EnvironmentIdentity[]) {
+  get namedEnvs() {
+    return this.#namedEnvsIdsByEnv.values();
+  }
+
+  getNamedEnvFor(id: string) {
+    for (const [, env] of this.#namedEnvsIdsByEnv) {
+      if (env.externalId === id) {
+        return env;
+      }
+    }
+
+    return undefined;
+  }
+
+  async createNamedEnvs(environments: EnvironmentIdentity[], onProgress?: (percent: number, total: number) => void) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -156,7 +294,7 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    const { data } = await this.#client.post<TestOpsNamedEnv[]>(
+    const { data } = await this.#client.post<Pick<TestOpsNamedEnv, "id" | "externalId">[]>(
       "/api/launch/named-env/bulk",
       {
         launchId: this.#launch.id,
@@ -169,18 +307,31 @@ export class TestOpsClient {
         headers: {
           "Content-Type": "application/json",
         },
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
       },
     );
 
+    const namesById = new Map(environments.map(({ id, name }) => [id, name]));
+
     data.forEach((env) => {
-      this.#namedEnvsIdsByEnv.set(env.externalId, env);
+      this.#namedEnvsIdsByEnv.set(env.externalId, {
+        ...env,
+        name: namesById.get(env.externalId) ?? env.externalId,
+      });
     });
   }
 
   async uploadGlobalAttachments(params: {
     attachments: AttachmentLink[];
-    attachmentsResolver: (attachment: AttachmentLink) => Promise<any>;
+    attachmentsResolver: (attachment: AttachmentLink) => Promise<AttachmentForUpload | undefined>;
+    onProgress?: (percent: number, total: number) => void;
   }) {
+    const { attachments, attachmentsResolver, onProgress } = params;
+
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -191,8 +342,8 @@ export class TestOpsClient {
 
     const formData = new FormData();
 
-    for (const attachmentLink of params.attachments) {
-      const attachment = await params.attachmentsResolver(attachmentLink);
+    for (const attachmentLink of attachments) {
+      const attachment = await attachmentsResolver(attachmentLink);
 
       if (!attachment) {
         continue;
@@ -204,10 +355,18 @@ export class TestOpsClient {
       });
     }
 
-    await this.#client.post(`/api/launch/attachment?launchId=${this.#launch.id}`, formData);
+    await this.#client.post("/api/launch/attachment", formData, {
+      onUploadProgress(progressEvent) {
+        const total = progressEvent.total ?? 100;
+        const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+        onProgress?.(percent, total);
+      },
+      params: { launchId: this.#launch.id },
+      headers: formData.getHeaders(),
+    });
   }
 
-  async uploadGlobalErrors(errors: TestError[]) {
+  async uploadGlobalErrors(errors: TestError[], onProgress?: (percent: number, total: number) => void) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -216,17 +375,27 @@ export class TestOpsClient {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
 
-    await this.#client.post("/api/launch/error/bulk", {
-      launchId: this.#launch.id,
-      items: errors,
-    });
+    await this.#client.post(
+      "/api/launch/error/bulk",
+      {
+        launchId: this.#launch.id,
+        items: errors,
+      },
+      {
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
+      },
+    );
   }
 
   async uploadTestResults(params: {
-    trs: TestResult[];
+    trs: TestOpsPluginTestResult[];
     environments: EnvironmentIdentity[];
-    attachmentsResolver: (tr: TestResult) => Promise<any>;
-    fixturesResolver: (tr: TestResult) => Promise<any>;
+    attachmentsResolver: AttachmentsResolver;
+    fixturesResolver: FixtureResolver;
     onProgress?: () => void;
   }) {
     if (!this.#session) {
@@ -234,12 +403,13 @@ export class TestOpsClient {
     }
 
     const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
-    const trsChunks = chunk(trs, 100);
+    const trsChunks = chunk(trs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
+    const uploadedTrs: TestResult[] = [];
     const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 
-    await Promise.all(
-      trsChunks.map(async (trsChunk) => {
+    try {
+      for (const trsChunk of trsChunks) {
         const chunkEnvs = new Map<string, EnvironmentIdentity>();
 
         for (const tr of trsChunk) {
@@ -257,76 +427,202 @@ export class TestOpsClient {
           await this.createNamedEnvs(Array.from(chunkEnvs.values()));
         }
 
-        const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
-          "/api/upload/test-result",
-          {
-            testSessionId: this.#session!.id,
-            results: trsChunk.map((tr) => {
-              const namedEnv = tr.environment ? this.#namedEnvsIdsByEnv.get(tr.environment) : undefined;
+        const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
-              return {
-                ...tr,
-                uuid: tr.id,
-                namedEnv: namedEnv
-                  ? {
-                      id: namedEnv.id,
-                    }
-                  : undefined,
-              };
-            }),
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
+        await this.#uploadChunkAttachmentsAndFixtures(
+          trsChunk,
+          reportIdsToTestOpsIds,
+          attachmentsResolver,
+          fixturesResolver,
+          uploadLimitFn,
+          onProgress,
         );
-        const trsTestOpsIdsByUuid: Record<string, number> = {};
 
-        data.results.forEach(({ id, uuid }) => {
-          trsTestOpsIdsByUuid[uuid] = id;
+        uploadedTrs.push(...trsChunk);
+      }
+
+      this.#logger.verbose("Test results upload completed");
+    } catch (error) {
+      if (this.isTestOpsClientError(error)) {
+        this.#logger.error(`Failed to upload test results: ${error.response?.data.message}`);
+        this.#logger.debug(error.response.data);
+      } else if (error instanceof Error) {
+        this.#logger.error(`Failed to upload test results: ${error.message}`);
+      } else {
+        this.#logger.error("Failed to upload test results");
+      }
+    }
+
+    return uploadedTrs;
+  }
+
+  async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[]): Promise<Record<string, number>> {
+    const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
+      "/api/upload/test-result",
+      {
+        testSessionId: this.#session!.id,
+        results: trsChunk.map((testResult) => {
+          const extendedTestResult: TestOpsPluginTestResult = {
+            ...testResult,
+            // pass the report id to TestOps to be able to match the test result with the report
+            uuid: testResult.id,
+          };
+
+          const namedEnvironment = !!testResult.environment && this.getNamedEnvFor(testResult.environment);
+
+          if (namedEnvironment) {
+            extendedTestResult.namedEnv = { id: namedEnvironment.id };
+          }
+
+          if (
+            typeof extendedTestResult.category?.externalId === "string" ||
+            typeof extendedTestResult.category?.externalId === "number"
+          ) {
+            const category = extendedTestResult.category;
+
+            extendedTestResult.category = {
+              externalId: category.externalId,
+            };
+
+            if (category.grouping && category.grouping.length > 0) {
+              extendedTestResult.category.grouping = category.grouping;
+            }
+          }
+
+          const error = extendedTestResult.error;
+
+          if (typeof error?.message === "string") {
+            extendedTestResult.message = error.message;
+          }
+
+          if (typeof error?.trace === "string") {
+            extendedTestResult.trace = error.trace;
+          }
+
+          return extendedTestResult;
+        }),
+      },
+      { headers: { "Content-Type": "application/json" } },
+    );
+
+    const reportIdsToTestOpsIds: Record<string, number> = {};
+
+    for (const { id, uuid } of data.results ?? []) {
+      // "uuid" here is the test result id that was passed to TestOps by us
+      reportIdsToTestOpsIds[uuid] = id;
+    }
+
+    return reportIdsToTestOpsIds;
+  }
+
+  async #uploadChunkAttachmentsAndFixtures(
+    trsChunk: TestOpsPluginTestResult[],
+    reportIdsToTestOpsIds: Record<string, number>,
+    attachmentsResolver: AttachmentsResolver,
+    fixturesResolver: FixtureResolver,
+    uploadLimitFn: (fn: () => Promise<void>) => Promise<void>,
+    onProgress?: () => void,
+  ): Promise<void> {
+    await Promise.all(
+      trsChunk.map((tr) =>
+        uploadLimitFn(async () => {
+          const testOpsId = reportIdsToTestOpsIds[tr.id];
+          const attachments = await attachmentsResolver(tr);
+          const fixtures = await fixturesResolver(tr);
+
+          await this.#uploadAttachmentsForResult(testOpsId, attachments as AttachmentForUpload[]);
+          await this.#uploadFixturesForResult(testOpsId, fixtures);
+          onProgress?.();
+        }),
+      ),
+    );
+  }
+
+  async #uploadAttachmentsForResult(testOpsResultId: number, attachments: AttachmentForUpload[]): Promise<void> {
+    if (attachments.length === 0) {
+      return;
+    }
+
+    const attachmentsChunks = chunk(attachments, 100);
+
+    for (const attachmentsChunk of attachmentsChunks) {
+      const formData = new FormData();
+
+      for (const att of attachmentsChunk) {
+        formData.append("file", att.content, {
+          filename: att.originalFileName,
+          contentType: att.contentType,
         });
+      }
 
-        await Promise.all(
-          trsChunk.map((tr) =>
-            uploadLimitFn(async () => {
-              const trTestOpsId = trsTestOpsIdsByUuid[tr.id];
-              const attachments = await attachmentsResolver(tr);
-              const fixtures = await fixturesResolver(tr);
+      try {
+        await this.#client.post(`/api/upload/test-result/${testOpsResultId}/attachment`, formData, {
+          headers: formData.getHeaders(),
+        });
+      } catch (error) {
+        if (this.isTestOpsClientError(error)) {
+          this.#logger.error(
+            `Failed to upload attachments for result ${testOpsResultId}: ${error.response?.data.message}`,
+          );
+        } else if (error instanceof Error) {
+          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}: ${error.message}`);
+        } else {
+          this.#logger.error(`Failed to upload attachments for result ${testOpsResultId}`);
+        }
 
-              if (attachments.length > 0) {
-                const attachmentsChunks = chunk(attachments, 100);
+        this.#logger.inspect(formData);
+      }
+    }
+  }
 
-                await Promise.all(
-                  attachmentsChunks.map(async (attachmentsChunk) => {
-                    const formData = new FormData();
+  async #uploadFixturesForResult(testOpsResultId: number, fixtures: unknown[]): Promise<void> {
+    if (fixtures.length === 0) return;
 
-                    attachmentsChunk.forEach((attachment: any) => {
-                      formData.append("file", attachment.content, {
-                        filename: attachment.originalFileName,
-                        contentType: attachment.contentType,
-                      });
-                    });
-                    await this.#client.post(`/api/upload/test-result/${trTestOpsId}/attachment`, formData, {
-                      headers: {
-                        ...formData.getHeaders(),
-                      },
-                    });
-                  }),
-                );
-              }
+    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
+      fixtures,
+    });
+  }
 
-              if (fixtures.length > 0) {
-                await this.#client.post(`/api/upload/test-result/${trTestOpsId}/test-fixture-result`, {
-                  fixtures,
-                });
-              }
+  async uploadQualityGateResults(
+    results: QualityGateValidationResult[],
+    onProgress?: (percent: number, total: number) => void,
+  ) {
+    if (!this.#session) {
+      throw new Error("Session isn't created! Call createSession first");
+    }
 
-              onProgress?.();
-            }),
-          ),
-        );
-      }),
+    if (!this.#launch) {
+      throw new Error("Launch isn't created! Call createLaunch first");
+    }
+
+    const items: Omit<TestOpsLaunchQualityGate, "id" | "launchId">[] = results.map((result) => {
+      const item: Omit<TestOpsLaunchQualityGate, "id" | "launchId"> = {
+        name: result.rule,
+        message: result.message,
+      };
+
+      const namedEnvId = !!result.environment && this.getNamedEnvFor(result.environment!)?.id;
+
+      if (typeof namedEnvId === "number") {
+        item.namedEnvId = namedEnvId;
+      }
+
+      return item;
+    });
+
+    await this.#client.post(
+      "/api/launch/quality-gate/bulk",
+      {
+        launchId: this.#launch.id,
+        items,
+      },
+      {
+        onUploadProgress(progressEvent) {
+          const total = progressEvent.total ?? 100;
+          const percent = total > 0 ? Math.min(100, Math.max(0, (progressEvent.loaded / total) * 100)) : 0;
+          onProgress?.(percent, total);
+        },
+      },
     );
   }
 }

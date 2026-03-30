@@ -2,19 +2,20 @@ import { env } from "node:process";
 
 /* eslint max-lines: off */
 import { detect } from "@allurereport/ci";
-import { type AttachmentLink, type CiDescriptor, type TestResult } from "@allurereport/core-api";
+import type { AttachmentLink, CategoryDefinition, CiDescriptor, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { TestopsPluginOptions } from "../src/model.js";
-import { TestopsPlugin } from "../src/plugin.js";
+import type { TestOpsPluginOptions } from "../src/model.js";
+import { TestOpsPlugin } from "../src/plugin.js";
 import { resolvePluginOptions } from "../src/utils.js";
 import { AllureStoreMock, TestOpsClientMock } from "./utils.js";
 
 vi.mock("@allurereport/ci", () => ({
   detect: vi.fn(),
 }));
+
 vi.mock("../src/client.js", async () => {
   const utils = await import("./utils.js");
 
@@ -22,6 +23,7 @@ vi.mock("../src/client.js", async () => {
     TestOpsClient: utils.TestOpsClientMock,
   };
 });
+
 vi.mock("../src/utils.js", async (importOriginal) => {
   return {
     ...(await importOriginal()),
@@ -85,16 +87,17 @@ const fixtures = {
 };
 
 beforeEach(() => {
+  vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
   vi.clearAllMocks();
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
-  AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
-  AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
   AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
   AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue(undefined);
+  AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
+  AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
 });
 
 describe("testops plugin", () => {
-  let plugin: TestopsPlugin;
+  let plugin: TestOpsPlugin;
   let store: AllureStore;
 
   describe("constructor", () => {
@@ -111,9 +114,9 @@ describe("testops plugin", () => {
         accessToken: fixtures.accessToken,
         endpoint: fixtures.endpoint,
         projectId: fixtures.projectId,
-      } as TestopsPluginOptions;
+      } as TestOpsPluginOptions;
 
-      new TestopsPlugin(options);
+      new TestOpsPlugin(options);
 
       expect(resolvePluginOptions).toHaveBeenCalledWith(options);
     });
@@ -127,9 +130,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -142,9 +145,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -157,9 +160,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).not.toHaveBeenCalled();
     });
 
@@ -172,9 +175,9 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
-      expect(plugin).toBeInstanceOf(TestopsPlugin);
+      expect(plugin).toBeInstanceOf(TestOpsPlugin);
       expect(TestOpsClientMock).toHaveBeenCalledWith({
         baseUrl: fixtures.endpoint,
         accessToken: fixtures.accessToken,
@@ -195,7 +198,7 @@ describe("testops plugin", () => {
           launchTags: fixtures.launchTags,
         });
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         expect(plugin.ciMode).toBe(true);
       });
@@ -217,7 +220,7 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -237,7 +240,7 @@ describe("testops plugin", () => {
           launchTags: fixtures.launchTags,
         });
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         expect(plugin.ciMode).toBe(false);
       });
@@ -259,7 +262,7 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.start({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -276,7 +279,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -303,7 +306,7 @@ describe("testops plugin", () => {
         launchTags: fixtures.launchTags,
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
@@ -328,44 +331,21 @@ describe("testops plugin", () => {
 
     it("should upload all test results from the store", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
-      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
-    });
-
-    it("should rewrite display-facing environments to environment ids only in upload payload", async () => {
-      const qaResult = {
-        ...fixtures.testResults[0],
-        environment: "QA",
-      } as TestResult;
-
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue([qaResult]);
-      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([{ id: "qa", name: "QA" }]);
-      AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue("qa");
-      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
-      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
-      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
-
-      await plugin.start({} as PluginContext, store);
-
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [{ ...qaResult, environment: "qa", steps: qaResult.steps }],
-        environments: [{ id: "qa", name: "QA" }],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should map linked steps attachments before upload test results", async () => {
@@ -376,24 +356,26 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [
-          {
-            ...fixtures.testResults[1],
-            steps: [
-              {
-                ...fixtures.testResults[1].steps[0],
-                // @ts-expect-error
-                attachment: fixtures.testResults[1].steps[0].link,
-              },
-            ],
-          },
-        ],
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [
+            {
+              ...fixtures.testResults[1],
+              steps: [
+                {
+                  ...fixtures.testResults[1].steps[0],
+                  // @ts-expect-error
+                  attachment: fixtures.testResults[1].steps[0].link,
+                },
+              ],
+            },
+          ],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not upload test results when store is empty", async () => {
@@ -411,7 +393,9 @@ describe("testops plugin", () => {
     });
 
     it("should call attachmentsResolver for each test result", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -426,7 +410,9 @@ describe("testops plugin", () => {
     });
 
     it("should call fixturesResolver for each test result", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -452,25 +438,32 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [fixtures.testResults[0]],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
+
     it("should upload global attachments when they exist", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue(fixtures.attachments);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -482,6 +475,7 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalAttachments).toHaveBeenCalledWith({
         attachments: fixtures.attachments,
         attachmentsResolver: expect.any(Function),
+        onProgress: expect.any(Function),
       });
     });
 
@@ -509,11 +503,13 @@ describe("testops plugin", () => {
       await plugin.start({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledTimes(1);
-      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors);
+      expect(TestOpsClientMock.prototype.uploadGlobalErrors).toHaveBeenCalledWith(globalErrors, expect.any(Function));
     });
 
     it("should not upload global errors when they are empty", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -522,6 +518,196 @@ describe("testops plugin", () => {
       await plugin.start({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
+    });
+
+    it("should call allEnvironmentIdentities from the store during upload", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([
+        { id: "chrome", name: "Chrome" },
+        { id: "firefox", name: "Firefox" },
+      ]);
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(AllureStoreMock.prototype.allEnvironmentIdentities).toHaveBeenCalled();
+    });
+
+    it("should rewrite display-facing environments to environment ids only in upload payload", async () => {
+      const storeFacingResult = { ...fixtures.testResults[0], environment: "QA" } as TestResult;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([storeFacingResult]);
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([{ id: "qa", name: "QA" }]);
+      AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue("qa");
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environments: [{ id: "qa", name: "QA" }],
+          trs: [expect.objectContaining({ id: storeFacingResult.id, environment: "qa" })],
+        }),
+      );
+    });
+
+    describe("categories", () => {
+      const categoryProductErrors: CategoryDefinition = {
+        name: "Product errors",
+        matchers: [{ statuses: ["failed"] }],
+        groupBy: [],
+        groupByMessage: false,
+        index: 0,
+      };
+
+      it("should call createLaunchCategoriesBulk and attach category from context.categories when tr matches", async () => {
+        const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "product-errors" },
+        ]);
+
+        const context = { categories: [categoryProductErrors] } as PluginContext;
+
+        await plugin.start(context, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "Product errors", name: "Product errors" },
+        ]);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                id: failedTr.id,
+                category: expect.objectContaining({
+                  externalId: "Product errors",
+                  name: "Product errors",
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should attach category with grouping when context.categories has groupBy", async () => {
+        const categoryWithGroupBy: CategoryDefinition = {
+          ...categoryProductErrors,
+          name: "Layer / Severity",
+          groupBy: ["severity", "layer"],
+        };
+        const failedTr = {
+          ...fixtures.testResults[0],
+          status: "failed" as const,
+          labels: [
+            { name: "severity", value: "critical" },
+            { name: "layer", value: "api" },
+          ],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "Layer / Severity" },
+        ]);
+
+        const context = { categories: [categoryWithGroupBy] } as PluginContext;
+
+        await plugin.start(context, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                category: expect.objectContaining({
+                  externalId: "Layer / Severity",
+                  name: "Layer / Severity",
+                  grouping: [
+                    { key: "severity", value: "critical", name: "severity: critical" },
+                    { key: "layer", value: "api", name: "layer: api" },
+                  ],
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should use tr.categories when present (e.g. from awesome plugin)", async () => {
+        const trWithCategories = {
+          ...fixtures.testResults[0],
+          categories: [
+            {
+              name: "Product errors",
+              grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+            },
+          ],
+        };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([trWithCategories]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "cat-1" }]);
+
+        await plugin.start({} as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "Product errors", name: "Product errors" },
+        ]);
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [
+              expect.objectContaining({
+                category: expect.objectContaining({
+                  externalId: "Product errors",
+                  name: "Product errors",
+                  grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+                }),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it("should not call createLaunchCategoriesBulk when no test results have categories", async () => {
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        await plugin.start({ categories: [categoryProductErrors] } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).not.toHaveBeenCalled();
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trs: [expect.not.objectContaining({ category: expect.anything() })],
+          }),
+        );
+      });
+
+      it("should continue upload when createLaunchCategoriesBulk fails", async () => {
+        const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockRejectedValue(new Error("Network error"));
+
+        await plugin.start({ categories: [categoryProductErrors] } as PluginContext, store);
+
+        expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
@@ -535,10 +721,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -560,10 +748,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
 
       await plugin.update({} as PluginContext, store);
 
@@ -580,10 +770,12 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
 
       await plugin.done({} as PluginContext, store);
 
@@ -602,7 +794,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -627,17 +819,21 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not re-upload test results that were already uploaded", async () => {
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.slice(0, 1).filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -706,9 +902,11 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
@@ -747,7 +945,7 @@ describe("testops plugin", () => {
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.done({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -768,7 +966,7 @@ describe("testops plugin", () => {
         });
 
         store = new AllureStoreMock() as unknown as AllureStore;
-        plugin = new TestopsPlugin({} as TestopsPluginOptions);
+        plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
 
         await plugin.done({ reportUuid: "test-uuid" } as PluginContext, store);
 
@@ -785,7 +983,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -810,13 +1008,15 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not call createLaunch on done", async () => {
@@ -828,6 +1028,19 @@ describe("testops plugin", () => {
       await plugin.done({} as PluginContext, store);
 
       expect(TestOpsClientMock.prototype.createLaunch).toHaveBeenCalledTimes(0);
+    });
+
+    it("should call closeLaunch when launchId is set", async () => {
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      TestOpsClientMock.prototype.launchId = 123;
+
+      await plugin.done({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.closeLaunch).toHaveBeenCalledWith(123);
     });
 
     it("should apply filter when uploading test results", async () => {
@@ -842,22 +1055,26 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
-      AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
+      AllureStoreMock.prototype.allTestResults.mockImplementation(async (options: any = {}) =>
+        fixtures.testResults.filter(options.filter ?? (() => true)),
+      );
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
-        environments: [],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [fixtures.testResults[0]],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
   });
 
@@ -871,7 +1088,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       store = new AllureStoreMock() as unknown as AllureStore;
     });
 
@@ -884,7 +1101,7 @@ describe("testops plugin", () => {
         launchTags: [],
       });
 
-      plugin = new TestopsPlugin({} as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({} as TestOpsPluginOptions);
       const result = await plugin.info({} as PluginContext, store);
 
       expect(result).toBeUndefined();
@@ -902,7 +1119,11 @@ describe("testops plugin", () => {
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 2, passed: 1, failed: 1 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 2,
+        passed: 1,
+        failed: 1,
+      });
 
       const result = await plugin.info({} as PluginContext, store);
 
@@ -922,12 +1143,16 @@ describe("testops plugin", () => {
         filter,
       });
 
-      plugin = new TestopsPlugin({ filter } as TestopsPluginOptions);
+      plugin = new TestOpsPlugin({ filter } as TestOpsPluginOptions);
 
       TestOpsClientMock.prototype.launchUrl = fixtures.launchUrl;
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults);
       AllureStoreMock.prototype.allNewTestResults.mockResolvedValue([]);
-      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({ total: 1, passed: 1, failed: 0 });
+      AllureStoreMock.prototype.testsStatistic.mockResolvedValue({
+        total: 1,
+        passed: 1,
+        failed: 0,
+      });
 
       await plugin.info({} as PluginContext, store);
 

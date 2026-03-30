@@ -177,6 +177,13 @@ export default defineConfig({
         groupBy: "none",
       },
     },
+    testops: {
+      options: {
+        accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
+        projectId: "770",
+        endpoint: "http://localhost:8080",
+      }
+    }
   },
   variables: {
     env_variable: "unknown",

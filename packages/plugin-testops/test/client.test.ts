@@ -46,11 +46,14 @@ const fixtures = {
   fixtures: [{ name: "before hook" } as TestStepResult, { name: "after hook" } as TestStepResult],
 };
 
-vi.mock("axios", async () => {
+vi.mock("axios", async (importOriginal) => {
   const utils = await import("./utils.js");
+  const original = await importOriginal<typeof import("axios")>();
 
   return {
+    ...original,
     default: {
+      ...original.default,
       create: () => utils.AxiosMock,
     },
   };
@@ -58,25 +61,41 @@ vi.mock("axios", async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  AxiosMock.postForm.mockImplementation((...args) => AxiosMock.post(...args));
 });
 
 describe("testops http client", () => {
   describe("constructor", () => {
     it("should throw an error when accessToken is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: "", projectId: fixtures.projectId, baseUrl: fixtures.endpoint }),
+        () =>
+          new TestOpsClient({
+            accessToken: "",
+            projectId: fixtures.projectId,
+            baseUrl: fixtures.endpoint,
+          }),
       ).toThrow();
     });
 
     it("should throw an error when projectId is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: fixtures.accessToken, projectId: "", baseUrl: fixtures.endpoint }),
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: "",
+            baseUrl: fixtures.endpoint,
+          }),
       ).toThrow();
     });
 
     it("should throw an error when baseUrl is not provided", () => {
       expect(
-        () => new TestOpsClient({ accessToken: fixtures.accessToken, projectId: fixtures.projectId, baseUrl: "" }),
+        () =>
+          new TestOpsClient({
+            accessToken: fixtures.accessToken,
+            projectId: fixtures.projectId,
+            baseUrl: "",
+          }),
       ).toThrow();
     });
 
@@ -281,6 +300,10 @@ describe("testops http client", () => {
           return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
         return Promise.resolve({ data: {} });
       });
 
@@ -343,10 +366,19 @@ describe("testops http client", () => {
       expect(AxiosMock.post).toHaveBeenCalledTimes(3);
       expect(AxiosMock.post).toHaveBeenNthCalledWith(1, "/api/uaa/oauth/token", expect.anything());
       expect(AxiosMock.post).toHaveBeenNthCalledWith(2, "/api/launch", expect.anything());
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(3, "/api/upload/session?manual=true", {
-        launchId: fixtures.launch.id,
-        environment: [],
-      });
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(
+        3,
+        "/api/upload/session",
+        {
+          launchId: fixtures.launch.id,
+          environment: [],
+        },
+        {
+          params: {
+            manual: "true",
+          },
+        },
+      );
     });
 
     it("should pass environment variables as key-value pairs to the session", async () => {
@@ -373,14 +405,23 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession(environment);
 
-      expect(AxiosMock.post).toHaveBeenNthCalledWith(3, "/api/upload/session?manual=true", {
-        launchId: fixtures.launch.id,
-        environment: [
-          { key: "NODE_ENV", value: "test" },
-          { key: "CI", value: "true" },
-          { key: "BUILD_NUMBER", value: "42" },
-        ],
-      });
+      expect(AxiosMock.post).toHaveBeenNthCalledWith(
+        3,
+        "/api/upload/session",
+        {
+          launchId: fixtures.launch.id,
+          environment: [
+            { key: "NODE_ENV", value: "test" },
+            { key: "CI", value: "true" },
+            { key: "BUILD_NUMBER", value: "42" },
+          ],
+        },
+        {
+          params: {
+            manual: "true",
+          },
+        },
+      );
     });
   });
 
@@ -392,7 +433,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "chrome" }])).rejects.toThrow(
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }])).rejects.toThrow(
         "Session isn't created! Call createSession first",
       );
     });
@@ -412,7 +453,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "chrome" }])).rejects.toThrow();
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }])).rejects.toThrow();
     });
 
     it("should post environments to /api/launch/named-env/bulk", async () => {
@@ -430,7 +471,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -465,9 +506,8 @@ describe("testops http client", () => {
           ],
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: expect.any(Function),
         },
       );
     });
@@ -485,7 +525,7 @@ describe("testops http client", () => {
         async () =>
           await client.uploadGlobalAttachments({
             attachments: [],
-            attachmentsResolver: () => Promise.resolve(null),
+            attachmentsResolver: () => Promise.resolve(undefined),
           }),
       ).rejects.toThrow("Session isn't created! Call createSession first");
     });
@@ -509,7 +549,7 @@ describe("testops http client", () => {
         async () =>
           await client.uploadGlobalAttachments({
             attachments: [],
-            attachmentsResolver: () => Promise.resolve(null),
+            attachmentsResolver: () => Promise.resolve(undefined),
           }),
       ).rejects.toThrow();
     });
@@ -524,7 +564,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -538,7 +578,7 @@ describe("testops http client", () => {
       });
       const attachments = [{ id: "att-1", name: "file.txt", contentType: "text/plain" } as AttachmentLink];
       const attachmentsResolver = vi.fn().mockImplementation(async (attachmentLink: AttachmentLink) => ({
-        originalFileName: attachmentLink.name,
+        originalFileName: (attachmentLink as any).name ?? attachmentLink.originalFileName,
         contentType: attachmentLink.contentType,
         content: Buffer.from("test content"),
       }));
@@ -551,8 +591,12 @@ describe("testops http client", () => {
       expect(attachmentsResolver).toHaveBeenCalledTimes(1);
       expect(attachmentsResolver).toHaveBeenCalledWith(attachments[0]);
       expect(AxiosMock.post).toHaveBeenCalledWith(
-        `/api/launch/attachment?launchId=${fixtures.launch.id}`,
+        "/api/launch/attachment",
         expect.any(FormData),
+        expect.objectContaining({
+          params: { launchId: fixtures.launch.id },
+          onUploadProgress: expect.any(Function),
+        }),
       );
     });
 
@@ -566,7 +610,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -588,8 +632,12 @@ describe("testops http client", () => {
 
       expect(attachmentsResolver).toHaveBeenCalledTimes(1);
       expect(AxiosMock.post).toHaveBeenCalledWith(
-        `/api/launch/attachment?launchId=${fixtures.launch.id}`,
+        "/api/launch/attachment",
         expect.any(FormData),
+        expect.objectContaining({
+          params: { launchId: fixtures.launch.id },
+          onUploadProgress: expect.any(Function),
+        }),
       );
     });
   });
@@ -635,7 +683,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -654,10 +702,16 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadGlobalErrors(errors);
 
-      expect(AxiosMock.post).toHaveBeenCalledWith("/api/launch/error/bulk", {
-        launchId: fixtures.launch.id,
-        items: errors,
-      });
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/error/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: errors,
+        },
+        expect.objectContaining({
+          onUploadProgress: expect.any(Function),
+        }),
+      );
     });
   });
 
@@ -750,7 +804,7 @@ describe("testops http client", () => {
           return { data: fixtures.launch };
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return { data: { id: 1 } };
         }
 
@@ -780,7 +834,14 @@ describe("testops http client", () => {
       await client.uploadTestResults({
         trs: fixtures.testResults,
         environments: [],
-        attachmentsResolver: () => Promise.resolve(fixtures.attachments),
+        attachmentsResolver: () =>
+          Promise.resolve(
+            fixtures.attachments.map((attachment) => ({
+              originalFileName: attachment.originalFileName ?? "attachment.bin",
+              contentType: attachment.contentType ?? "application/octet-stream",
+              content: Buffer.from("test"),
+            })),
+          ),
         fixturesResolver: () => Promise.resolve([]),
       });
 
@@ -802,7 +863,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -817,9 +878,9 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const trsWithEnv: TestResult[] = [
-        { ...fixtures.testResults[0], environment: "chrome" },
-        { ...fixtures.testResults[1], environment: "firefox" },
+      const trsWithEnv = [
+        { ...fixtures.testResults[0], environment: "chrome" } as TestResult,
+        { ...fixtures.testResults[1], environment: "firefox" } as TestResult,
       ];
 
       const client = new TestOpsClient({
@@ -851,9 +912,8 @@ describe("testops http client", () => {
           ],
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: expect.any(Function),
         },
       );
 
@@ -861,8 +921,8 @@ describe("testops http client", () => {
         "/api/upload/test-result",
         expect.objectContaining({
           results: expect.arrayContaining([
-            expect.objectContaining({ uuid: "0-0-0-0", namedEnv: { id: 10 } }),
-            expect.objectContaining({ uuid: "1-1-1-1", namedEnv: { id: 11 } }),
+            expect.objectContaining({ uuid: "0-0-0-0", environment: "chrome", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", environment: "firefox", namedEnv: { id: 11 } }),
           ]),
         }),
         expect.anything(),
@@ -884,7 +944,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -899,11 +959,6 @@ describe("testops http client", () => {
         return Promise.resolve({ data: {} });
       });
 
-      const trsWithSharedDisplayName: TestResult[] = [
-        { ...fixtures.testResults[0], environment: "qa_a" },
-        { ...fixtures.testResults[1], environment: "qa_b" },
-      ];
-
       const client = new TestOpsClient({
         accessToken: fixtures.accessToken,
         projectId: fixtures.projectId,
@@ -914,7 +969,10 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: trsWithSharedDisplayName,
+        trs: [
+          { ...fixtures.testResults[0], environment: "qa_a" } as TestResult,
+          { ...fixtures.testResults[1], environment: "qa_b" } as TestResult,
+        ],
         environments: [
           { id: "qa_a", name: "QA" },
           { id: "qa_b", name: "QA" },
@@ -933,9 +991,8 @@ describe("testops http client", () => {
           ],
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: expect.any(Function),
         },
       );
 
@@ -943,8 +1000,8 @@ describe("testops http client", () => {
         "/api/upload/test-result",
         expect.objectContaining({
           results: expect.arrayContaining([
-            expect.objectContaining({ uuid: "0-0-0-0", namedEnv: { id: 10 } }),
-            expect.objectContaining({ uuid: "1-1-1-1", namedEnv: { id: 11 } }),
+            expect.objectContaining({ uuid: "0-0-0-0", environment: "qa_a", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", environment: "qa_b", namedEnv: { id: 11 } }),
           ]),
         }),
         expect.anything(),
@@ -961,7 +1018,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -1007,7 +1064,7 @@ describe("testops http client", () => {
           return Promise.resolve({ data: fixtures.launch });
         }
 
-        if (url === "/api/upload/session?manual=true") {
+        if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
         }
 
@@ -1032,7 +1089,7 @@ describe("testops http client", () => {
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
       await client.uploadTestResults({
-        trs: [{ ...fixtures.testResults[0], environment: "chrome" }],
+        trs: [{ ...fixtures.testResults[0], environment: "chrome" } as TestResult],
         environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
@@ -1049,7 +1106,7 @@ describe("testops http client", () => {
       });
 
       await client.uploadTestResults({
-        trs: [{ ...fixtures.testResults[1], environment: "chrome" }],
+        trs: [{ ...fixtures.testResults[1], environment: "chrome" } as TestResult],
         environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),

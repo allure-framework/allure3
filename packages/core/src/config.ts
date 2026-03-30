@@ -307,6 +307,15 @@ export const getPluginInstance = (config: FullConfig, predicate: (plugin: Plugin
   return config?.plugins?.find(predicate);
 };
 
+/**
+ * Checks if the error is a module not found error
+ *
+ * @see https://nodejs.org/api/errors.html#err-module-not-found
+ */
+const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE_NOT_FOUND" } => {
+  return err instanceof Error && "code" in err && err.code === "ERR_MODULE_NOT_FOUND";
+};
+
 export const resolvePlugin = async (path: string) => {
   // try to append @allurereport/plugin- scope
   if (!path.startsWith("@allurereport/plugin-")) {
@@ -314,14 +323,21 @@ export const resolvePlugin = async (path: string) => {
       const module = await importWrapper(`@allurereport/plugin-${path}`);
 
       return module.default;
-    } catch (err) {}
+    } catch (err) {
+      // Only suppress "module not found" errors
+      // because we will try to resolve plugin without "@allurereport/plugin-" prefix
+      if (!isModuleNotFoundError(err)) {
+        // This means that there is a problem with the plugin code itself, so throw away!
+        throw err;
+      }
+    }
   }
 
   try {
     const module = await importWrapper(path);
 
     return module.default;
-  } catch (err) {
+  } catch {
     throw new Error(`Cannot resolve plugin: ${path}`);
   }
 };
