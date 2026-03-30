@@ -115,4 +115,3 @@ export const buildUploadCategoryGrouping = (
   tr: TestResultWithCategories,
   category: CategoryDefinition,
 ): UploadCategory["grouping"] => buildGrouping(tr, category);
-

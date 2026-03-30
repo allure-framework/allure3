@@ -13,16 +13,12 @@ export const toUploadCategory = (
     const groupingFromTestResult = c.grouping?.length ? c.grouping : undefined;
     const contextCategory =
       groupingFromTestResult === undefined
-        ? contextCategories.find(
-            (category) => category.id === externalId || category.name === c.name,
-          )
+        ? contextCategories.find((category) => category.id === externalId || category.name === c.name)
         : undefined;
     return {
       externalId,
       name: c.name,
-      grouping:
-        groupingFromTestResult ??
-        (contextCategory && buildUploadCategoryGrouping(tr, contextCategory)),
+      grouping: groupingFromTestResult ?? (contextCategory && buildUploadCategoryGrouping(tr, contextCategory)),
     };
   }
   return toUploadCategoryFromContext(tr, contextCategories);
