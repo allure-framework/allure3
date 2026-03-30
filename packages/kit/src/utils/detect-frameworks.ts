@@ -122,9 +122,7 @@ export const detectFrameworksByFiles = async (cwd: string): Promise<DetectedFram
   }
 
   if (detectedIds.size < FRAMEWORK_REGISTRY.length) {
-    const projectFiles = (await scanDirectoryShallow(cwd, 3)).map((filePath) =>
-      filePath.split(sep).join("/"),
-    );
+    const projectFiles = (await scanDirectoryShallow(cwd, 3)).map((filePath) => filePath.split(sep).join("/"));
 
     for (const framework of FRAMEWORK_REGISTRY) {
       if (detectedIds.has(framework.id)) {
