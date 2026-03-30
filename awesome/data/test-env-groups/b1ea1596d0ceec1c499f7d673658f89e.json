@@ -1,1 +1,1 @@
-{"id":"b1ea1596d0ceec1c499f7d673658f89e","fullName":"test/xcresult.test.ts#Not a MAC machine should ignore xcresult bundles","name":"should ignore xcresult bundles","status":"passed","testResultsByEnv":{"windows-latest":"cd9306a353403f957471599c80e07b6a"}}
+{"id":"b1ea1596d0ceec1c499f7d673658f89e","fullName":"test/xcresult.test.ts#Not a MAC machine should ignore xcresult bundles","name":"should ignore xcresult bundles","status":"passed","testResultsByEnv":{"windows-latest":"2deb2c49db84b6e414886e8d894cdc93","ubuntu-latest":"fe17e763fa2253bf2334b8340a0c50ae"}}

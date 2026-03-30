@@ -1,0 +1,54 @@
+{
+  "name": "Test with steps",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "Step 1",
+      "status": "passed",
+      "attachments": [
+        {
+          "name": "some name",
+          "source": "some-source.ext",
+          "type": "some/type"
+        }
+      ]
+    },
+    {
+      "name": "Step 2",
+      "status": "passed",
+      "steps": [
+        {
+          "name": "Step 2.1",
+          "status": "passed",
+          "attachments": [
+            {
+              "source": "some-source-without-name.ext",
+              "type": "some/type"
+            },
+            {
+              "name": "without type",
+              "source": "some-source-without-type.ext"
+            },
+            {
+              "source": "some-source-only.ext"
+            }
+          ]
+        },
+        {
+          "name": "Step 2.2",
+          "status": "passed",
+          "steps": [
+            {
+              "name": "Step 2.2.1",
+              "status": "passed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Step 3",
+      "status": "passed"
+    }
+  ]
+}

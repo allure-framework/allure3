@@ -1,0 +1,14 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;passed-test",
+        "keyword": "Scenario",
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo"
+  }
+]

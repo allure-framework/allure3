@@ -1,0 +1,22 @@
+{
+  "name": "Test with attachments",
+  "status": "passed",
+  "attachments": [
+    {
+      "name": "some name",
+      "source": "some-source.ext",
+      "type": "some/type"
+    },
+    {
+      "source": "some-source-without-name.ext",
+      "type": "some/type"
+    },
+    {
+      "name": "without type",
+      "source": "some-source-without-type.ext"
+    },
+    {
+      "source": "some-source-only.ext"
+    }
+  ]
+}

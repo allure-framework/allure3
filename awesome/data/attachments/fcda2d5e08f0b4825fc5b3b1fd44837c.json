@@ -1,0 +1,8 @@
+{
+  "name": "Test with trace",
+  "fullName": "Test with trace",
+  "status": "passed",
+  "statusDetails": {
+    "trace": "some trace"
+  }
+}

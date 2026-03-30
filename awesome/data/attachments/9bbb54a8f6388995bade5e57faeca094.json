@@ -1,0 +1,24 @@
+{
+  "name": "Labels test",
+  "status": "passed",
+  "labels": [
+    {
+      "name": "first",
+      "value": "first value"
+    },
+    {
+      "name": "second",
+      "value": "second value"
+    },
+    {
+      "name": "duplicate",
+      "value": "duplicate value"
+    },
+    {
+      "name": "without value"
+    },
+    {
+      "value": "only value"
+    }
+  ]
+}

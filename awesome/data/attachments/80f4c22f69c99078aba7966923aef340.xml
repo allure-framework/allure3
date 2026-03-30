@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<environment>
+    <id>10c89ed2-628c-4f60-b01f-faefd6731293</id>
+    <name>Test environment</name>
+    <parameter>
+        <name>Browser</name>
+        <key>browser</key>
+        <value>chrome</value>
+    </parameter>
+    <parameter>
+        <name>Host</name>
+        <key>host</key>
+        <value>https://allurereport.org</value>
+    </parameter>
+    <parameter>
+        <name>OS Name</name>
+        <key>os.name</key>
+        <value>linux</value>
+    </parameter>
+</environment>
