@@ -17,6 +17,7 @@ import {
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
+import { assertValidPluginIdForWindows, isWindows } from "./utils/windows.js";
 
 export interface ConfigOverride {
   name?: Config["name"];
@@ -40,8 +41,43 @@ const CONFIG_FILENAMES = [
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
 
-export const getPluginId = (key: string) => {
-  return key.replace(/^@.*\//, "").replace(/[/\\]/g, "-");
+/**
+ * Ensures a plugin id is safe as a single path segment
+ */
+export const assertValidPluginId = (id: string): void => {
+  if (id.length === 0) {
+    throw new Error("Invalid plugin id: must not be empty");
+  }
+
+  if (id === "." || id === "..") {
+    throw new Error(`Invalid plugin id ${JSON.stringify(id)}: must not be "." or ".."`);
+  }
+
+  if (id.includes("..")) {
+    throw new Error(`Invalid plugin id ${JSON.stringify(id)}: must not contain ".."`);
+  }
+
+  if (/[/\\]/.test(id)) {
+    throw new Error(`Invalid plugin id ${JSON.stringify(id)}: must not contain path separators`);
+  }
+
+  if (isWindows()) {
+    assertValidPluginIdForWindows(id);
+  }
+};
+
+export const getPluginId = (key: string): string => {
+  const trimmed = key.trim();
+
+  if (trimmed.length === 0) {
+    throw new Error(`Invalid plugin key ${JSON.stringify(key)}: must not be empty or whitespace-only`);
+  }
+
+  const id = trimmed.replace(/^@.*\//, "").replace(/[/\\]/g, "-");
+
+  assertValidPluginId(id);
+
+  return id;
 };
 
 /**

@@ -1,4 +1,6 @@
-import { resolve, sep } from "node:path";
+import { resolve } from "node:path";
+
+import { isPathContainedInDir } from "./safeOutputPath.js";
 
 export class UnsafeDumpPathError extends Error {
   constructor(entryName: string, reason?: string) {
@@ -6,21 +8,6 @@ export class UnsafeDumpPathError extends Error {
     super(`Refusing to restore dump: unsafe attachment path ${JSON.stringify(entryName)}${suffix}`);
     this.name = "UnsafeDumpPathError";
   }
-}
-
-function pathIsInsideDir(rootDir: string, candidatePath: string): boolean {
-  const rootResolved = resolve(rootDir);
-  const candidateResolved = resolve(candidatePath);
-
-  if (process.platform === "win32") {
-    const rootLower = rootResolved.toLowerCase();
-    const candLower = candidateResolved.toLowerCase();
-    const prefix = rootLower.endsWith("\\") ? rootLower : `${rootLower}\\`;
-    return candLower === rootLower || candLower.startsWith(prefix);
-  }
-
-  const prefix = rootResolved.endsWith(sep) ? rootResolved : `${rootResolved}${sep}`;
-  return candidateResolved === rootResolved || candidateResolved.startsWith(prefix);
 }
 
 /**
@@ -37,7 +24,7 @@ export function resolveDumpAttachmentPath(rootDir: string, entryName: string): s
 
   const resolved = resolve(resolve(rootDir), entryName);
 
-  if (!pathIsInsideDir(rootDir, resolved)) {
+  if (!isPathContainedInDir(rootDir, resolved)) {
     throw new UnsafeDumpPathError(entryName);
   }
 

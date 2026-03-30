@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "../../src/utils/safeDumpPath.js";
+import { isWindows } from "../../src/utils/windows.js";
 
 describe("resolveDumpAttachmentPath", () => {
   const root = resolve("/tmp/allure-dump-test-root");
@@ -39,7 +40,7 @@ describe("resolveDumpAttachmentPath", () => {
     expect(() => resolveDumpAttachmentPath(root, "/etc/passwd")).toThrow(UnsafeDumpPathError);
   });
 
-  it.skipIf(process.platform !== "win32")("rejects Windows-style absolute entry names", () => {
+  it.skipIf(!isWindows())("rejects Windows-style absolute entry names", () => {
     const winRoot = resolve("C:\\temp\\allure-dump-root");
     expect(() => resolveDumpAttachmentPath(winRoot, "C:\\Windows\\evil.txt")).toThrow(UnsafeDumpPathError);
     expect(() => resolveDumpAttachmentPath(winRoot, "D:\\other-drive.txt")).toThrow(UnsafeDumpPathError);
