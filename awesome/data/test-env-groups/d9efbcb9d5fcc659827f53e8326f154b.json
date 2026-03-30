@@ -1,0 +1,1 @@
+{"id":"d9efbcb9d5fcc659827f53e8326f154b","fullName":"test/uploadCategory.test.ts#toUploadCategory falls back to tr.categories name when id is missing","name":"falls back to tr.categories name when id is missing","status":"passed","testResultsByEnv":{"windows-latest":"9085a3966e29dfd9d7c50efa7b9fca19","macos-latest":"74301acc084859bbfbb312beafdc9a98"}}

@@ -1,0 +1,1 @@
+{"id":"791ea6f443d6f0ce5c4a2721b5e8330b","fullName":"test/utils/categories.test.ts#normalizeCategoriesConfig merges rules by id when names are different","name":"merges rules by id when names are different","status":"passed","testResultsByEnv":{"windows-latest":"285a1776974a9e1c997ea92a464ff2e0","macos-latest":"a4ea6131477e56b07213e81ee6fa6336"}}

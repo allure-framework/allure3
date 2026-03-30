@@ -1,0 +1,1 @@
+{"id":"c02667cb3867ee614d049e0f681df6d0","fullName":"test/utils/categories.test.ts#normalizeCategoriesConfig throws on normalized id collisions from different source ids","name":"throws on normalized id collisions from different source ids","status":"passed","testResultsByEnv":{"windows-latest":"05c03c22757814a6809cff4b79118935","macos-latest":"b42a79b0a175dc4b806fab226506d5d8"}}

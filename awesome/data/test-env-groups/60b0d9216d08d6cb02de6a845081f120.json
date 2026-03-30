@@ -1,0 +1,1 @@
+{"id":"60b0d9216d08d6cb02de6a845081f120","fullName":"test/uploadCategory.test.ts#toUploadCategory uses fallback values for historyId and environment when missing","name":"uses fallback values for historyId and environment when missing","status":"passed","testResultsByEnv":{"windows-latest":"0d837200e99a86a2f025f1805d7c80f9","macos-latest":"936189923b0f61d019cea9a67bab94c0"}}

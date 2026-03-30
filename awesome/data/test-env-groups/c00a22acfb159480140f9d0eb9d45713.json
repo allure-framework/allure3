@@ -1,0 +1,1 @@
+{"id":"c00a22acfb159480140f9d0eb9d45713","fullName":"test/uploadCategory.test.ts#toUploadCategory returns undefined when context categories are empty","name":"returns undefined when context categories are empty","status":"passed","testResultsByEnv":{"windows-latest":"fe3dcd99fa96c3d8d1108db2feecc9ed","macos-latest":"3632490c53d7af2ed3c74a49fd4d3886"}}

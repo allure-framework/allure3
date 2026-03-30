@@ -1,0 +1,1 @@
+{"id":"45f80e4c6d03957e152ec26f97a8edb2","fullName":"test/plugin.test.ts#testops plugin start categories should keep deep grouping payload from tr.categories as-is","name":"should keep deep grouping payload from tr.categories as-is","status":"passed","testResultsByEnv":{"windows-latest":"0dff6c76bc9cf385f66a1fcc14f04610","macos-latest":"9731cee0795f43360c8a9bfcd42afefe"}}
