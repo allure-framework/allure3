@@ -1,5 +1,5 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 
 import { type FrameworkDescriptor, FRAMEWORK_REGISTRY } from "./registry.js";
 
@@ -122,7 +122,9 @@ export const detectFrameworksByFiles = async (cwd: string): Promise<DetectedFram
   }
 
   if (detectedIds.size < FRAMEWORK_REGISTRY.length) {
-    const projectFiles = await scanDirectoryShallow(cwd, 3);
+    const projectFiles = (await scanDirectoryShallow(cwd, 3)).map((filePath) =>
+      filePath.split(sep).join("/"),
+    );
 
     for (const framework of FRAMEWORK_REGISTRY) {
       if (detectedIds.has(framework.id)) {
