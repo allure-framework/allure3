@@ -867,20 +867,36 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.indexAttachmentByTestResult.get(trId) ?? [];
   }
 
-  async retriesByTr(tr: TestResult): Promise<TestResult[]> {
+  async retriesByTr(tr?: TestResult): Promise<TestResult[]> {
+    const retries: TestResult[] = [];
+
     if (!tr || tr.hidden || !tr.historyId) {
-      return [];
+      return retries;
     }
 
-    return (this.indexTestResultByHistoryId.get(tr.historyId) ?? [])
-      .filter((r) => r.hidden)
-      .sort(nullsLast(compareBy("start", reverse(ordinal()))));
+    const trByHistoryId = this.indexTestResultByHistoryId.get(tr.historyId);
+
+    if (!trByHistoryId) {
+      return retries;
+    }
+
+    for (const r of trByHistoryId) {
+      // hidden should be true for a retry
+      // the environment should be the same as the original test result
+      if (!r.hidden || tr.environment !== r.environment) {
+        continue;
+      }
+
+      retries.push(r);
+    }
+
+    return retries.sort(nullsLast(compareBy("start", reverse(ordinal()))));
   }
 
   async retriesByTrId(trId: string): Promise<TestResult[]> {
     const tr = await this.testResultById(trId);
 
-    return tr ? this.retriesByTr(tr) : [];
+    return this.retriesByTr(tr);
   }
 
   async historyByTr(tr: TestResult): Promise<HistoryTestResult[] | undefined> {
