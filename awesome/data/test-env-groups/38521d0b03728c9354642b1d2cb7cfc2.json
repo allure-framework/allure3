@@ -1,1 +1,1 @@
-{"id":"38521d0b03728c9354642b1d2cb7cfc2","fullName":"test/allure2.test.ts#allure2 reader should parse parameters","name":"should parse parameters","status":"passed","testResultsByEnv":{"macos-latest":"cb27daaa90a68bb3a5d4bf0c02f8dd91"}}
+{"id":"38521d0b03728c9354642b1d2cb7cfc2","fullName":"test/allure2.test.ts#allure2 reader should parse parameters","name":"should parse parameters","status":"passed","testResultsByEnv":{"windows-latest":"6a44924ee35e0019db047bfdda618abe","ubuntu-latest":"3d97fe8e9b4452b3d8d89af93a0c3732","macos-latest":"675f555ea608995219ff4a574134f117"}}

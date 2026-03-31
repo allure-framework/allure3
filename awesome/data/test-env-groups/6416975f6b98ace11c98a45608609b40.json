@@ -1,0 +1,1 @@
+{"id":"6416975f6b98ace11c98a45608609b40","fullName":"test/config.test.ts#resolveConfig should normalize provided environment name","name":"should normalize provided environment name","status":"passed","testResultsByEnv":{"windows-latest":"50a15546f28c576c550dc21406135402","ubuntu-latest":"7f1a344939285bf5c911b1e8fbb66b87","macos-latest":"7bd1bfacbac46665a270c0fef7fe1ef6"}}

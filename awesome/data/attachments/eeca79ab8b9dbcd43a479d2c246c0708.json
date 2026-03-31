@@ -1,0 +1,12 @@
+[
+  {
+    "elements": [
+      {
+        "keyword": "Scenario",
+        "name": "Passed test",
+        "type": "scenario"
+      }
+    ],
+    "keyword": "Feature"
+  }
+]

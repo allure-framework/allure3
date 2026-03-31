@@ -1,1 +1,1 @@
-{"id":"339536121e87980acdb9b149465da3d7","fullName":"test/allure1.test.ts#allure1 reader steps should parse a step","name":"should parse a step","status":"passed","testResultsByEnv":{"macos-latest":"6c5a637b91c464a11e2bd3227c5f3feb"}}
+{"id":"339536121e87980acdb9b149465da3d7","fullName":"test/allure1.test.ts#allure1 reader steps should parse a step","name":"should parse a step","status":"passed","testResultsByEnv":{"windows-latest":"7700ef5801ec51fa0632e23cfb230b16","ubuntu-latest":"0dd8ef7ea56893940aab2262e41daf90","macos-latest":"b7105b140073759c3d974a962708efa8"}}

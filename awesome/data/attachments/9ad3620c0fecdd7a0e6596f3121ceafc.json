@@ -1,0 +1,28 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;bar",
+        "keyword": "Scenario",
+        "name": "Bar",
+        "steps": [
+          {
+            "doc_string": {
+              "value": "Lorem Ipsum"
+            },
+            "keyword": "Then ",
+            "name": "pass",
+            "result": {
+              "status": "passed"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

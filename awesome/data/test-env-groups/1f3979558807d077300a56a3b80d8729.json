@@ -1,0 +1,1 @@
+{"id":"1f3979558807d077300a56a3b80d8729","fullName":"test/environments.test.ts#environment helpers should keep persisted ids unchanged","name":"should keep persisted ids unchanged","status":"passed","testResultsByEnv":{"windows-latest":"4c8de38c1912875917c08d7209658cee","ubuntu-latest":"c7fbbfc4ad1ab4b9766a62df385e3512","macos-latest":"72d268453b7b9b52bc8d0b6a6bb91daf"}}

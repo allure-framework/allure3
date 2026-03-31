@@ -1,1 +1,1 @@
-{"id":"1ae72ed80d5f4b0e511277edafce1a5c","fullName":"allure-awesome/features/new.test.ts:108:3","name":"metadata shows correct count of new tests","status":"passed","testResultsByEnv":{"macos-latest":"dc28688f0967a01f7af54347f73da5b4"}}
+{"id":"1ae72ed80d5f4b0e511277edafce1a5c","fullName":"allure-awesome/features/new.test.ts:108:3","name":"metadata shows correct count of new tests","status":"passed","testResultsByEnv":{"windows-latest":"2ebaedd1b47d4ef1f00eace14e866589","ubuntu-latest":"3580ecda969d08c80a96f1cec1c3e4c6","macos-latest":"029bacea77a0d950e4a980640fca8850"}}

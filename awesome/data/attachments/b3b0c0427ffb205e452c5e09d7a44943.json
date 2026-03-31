@@ -1,0 +1,26 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;passed-test",
+        "keyword": "Scenario",
+        "name": "Passed test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "pass",
+            "result": {
+              "status": "passed"
+            },
+            "embeddings": [null]
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

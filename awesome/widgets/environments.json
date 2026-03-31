@@ -1,1 +1,1 @@
-["default","foo","bar","macos-latest"]
+[{"id":"default","name":"default"},{"id":"foo","name":"foo"},{"id":"bar","name":"bar"},{"id":"windows-latest","name":"windows-latest"},{"id":"ubuntu-latest","name":"ubuntu-latest"},{"id":"macos-latest","name":"macos-latest"}]

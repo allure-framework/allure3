@@ -1,1 +1,1 @@
-{"id":"ed0fc48b1cd79422c3f021276bba504d","fullName":"test/utils.test.ts#utils parseURLPath should parse URL path","name":"should parse URL path","status":"passed","testResultsByEnv":{"macos-latest":"c808a47b3f55cec11128ead024bf6179"}}
+{"id":"ed0fc48b1cd79422c3f021276bba504d","fullName":"test/utils.test.ts#utils parseURLPath should parse URL path","name":"should parse URL path","status":"passed","testResultsByEnv":{"windows-latest":"ca98c43aaa34e0325e466c87663d7e46","ubuntu-latest":"30d8b3064b661c1944d164147f7e08e3","macos-latest":"ae9739af0e40d7c335935b76e1e2c5b9"}}

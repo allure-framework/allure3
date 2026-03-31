@@ -1,1 +1,0 @@
-{"id":"d43b8bbb86d44615e53c396d1fe6e841","fullName":"test/config.test.ts#resolveConfig should accept environment config key with slash","name":"should accept environment config key with slash","status":"passed","testResultsByEnv":{"macos-latest":"9ea2622d34245c241d53366605225fa1"}}

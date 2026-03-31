@@ -1,0 +1,25 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;ambiguous-test",
+        "keyword": "Scenario",
+        "name": "Ambiguous test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "multiple",
+            "result": {
+              "status": "ambiguous"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

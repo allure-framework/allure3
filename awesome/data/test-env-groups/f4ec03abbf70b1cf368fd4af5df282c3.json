@@ -1,1 +1,1 @@
-{"id":"f4ec03abbf70b1cf368fd4af5df282c3","fullName":"test/index.test.ts#should generate files","name":"should generate files","status":"unknown","testResultsByEnv":{"macos-latest":"6c0d372226ca4f4e668e46665df1f36d"}}
+{"id":"f4ec03abbf70b1cf368fd4af5df282c3","fullName":"test/index.test.ts#should generate files","name":"should generate files","status":"unknown","testResultsByEnv":{"windows-latest":"11d3ec9a08f55320f7729cb031c22654","ubuntu-latest":"acfb16d7f6dbefb75329b286564c36af","macos-latest":"c574d6652f56f737a77c5b035b1e4d0e"}}

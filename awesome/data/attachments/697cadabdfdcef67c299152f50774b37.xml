@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test-suite xmlns="urn:model.allure.qatools.yandex.ru" version="1.4.4-SNAPSHOT">
+    <description type="markdown">Lorem Ipsum</description>
+    <test-cases>
+        <test-case title="foo">
+            <description type="markdown">Dolor Sit Amet</description>
+        </test-case>
+    </test-cases>
+</test-suite>

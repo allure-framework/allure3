@@ -1,0 +1,25 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;undefined-test",
+        "keyword": "Scenario",
+        "name": "Undefined test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "undefined",
+            "result": {
+              "status": "undefined"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

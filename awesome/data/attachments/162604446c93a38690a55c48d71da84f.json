@@ -1,0 +1,25 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;pending-test",
+        "keyword": "Scenario",
+        "name": "Pending test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "signal pending",
+            "result": {
+              "status": "pending"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

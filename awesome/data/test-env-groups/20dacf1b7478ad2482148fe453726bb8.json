@@ -1,1 +1,1 @@
-{"id":"20dacf1b7478ad2482148fe453726bb8","fullName":"test/allure2.test.ts#allure2 reader should parse testId","name":"should parse testId","status":"passed","testResultsByEnv":{"macos-latest":"2dec0a11e66e326d965672b6830c0493"}}
+{"id":"20dacf1b7478ad2482148fe453726bb8","fullName":"test/allure2.test.ts#allure2 reader should parse testId","name":"should parse testId","status":"passed","testResultsByEnv":{"windows-latest":"9c87ff0eb9c5a1470e7a48c76ec5c099","ubuntu-latest":"5a0523910a9baa56dfb3fffd3edfe4e1","macos-latest":"d448af8fffe21076cf88d3f839eae751"}}

@@ -1,0 +1,39 @@
+[
+  {
+    "elements": [
+      {
+        "id": "foo;unknown-test",
+        "keyword": "Scenario",
+        "name": "Unknown test",
+        "steps": [
+          {
+            "keyword": "Then ",
+            "name": "pass",
+            "result": {
+              "status": "passed"
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "unknown",
+            "result": {
+              "status": "unknown"
+            }
+          },
+          {
+            "keyword": "Then ",
+            "name": "skip",
+            "result": {
+              "status": "skipped"
+            }
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "foo",
+    "keyword": "Feature",
+    "name": "Foo",
+    "uri": "features/foo.feature"
+  }
+]

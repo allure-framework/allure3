@@ -1,1 +1,0 @@
-{"id":"8ef7d4e32ad2b7bf1b38e950036c6d24","fullName":"test/config.test.ts#resolveConfig should throw an actionable error for normalized key collisions","name":"should throw an actionable error for normalized key collisions","status":"passed","testResultsByEnv":{"macos-latest":"20e264065694218eae706f1945c40e2f"}}

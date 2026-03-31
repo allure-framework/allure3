@@ -1,1 +1,0 @@
-{"id":"6e6ca98061ddf09c31afc8d86900464b","fullName":"test/plugin.test.ts#testops plugin start should call allEnvironments from the store during upload","name":"should call allEnvironments from the store during upload","status":"passed","testResultsByEnv":{"macos-latest":"4d17377fb5368ce360ce081c9ef4c3ce"}}

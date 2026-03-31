@@ -1,0 +1,8 @@
+{
+  "name": "Test with expected",
+  "fullName": "Test with expected",
+  "status": "passed",
+  "statusDetails": {
+    "expected": "some expected"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Test with steps and times",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "Step 1",
+      "status": "passed",
+      "start": 1566219149481,
+      "stop": 1566219149485
+    },
+    {
+      "name": "Step 2",
+      "status": "passed",
+      "start": 1566219249481,
+      "stop": 1566219169485
+    },
+    {
+      "name": "Step 3",
+      "status": "passed",
+      "start": 1566218149481,
+      "stop": 1566219249485
+    }
+  ]
+}

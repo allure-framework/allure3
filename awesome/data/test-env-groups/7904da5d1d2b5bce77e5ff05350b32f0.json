@@ -1,1 +1,1 @@
-{"id":"7904da5d1d2b5bce77e5ff05350b32f0","fullName":"test/config.test.ts#readConfig should read a .mjs config","name":"should read a .mjs config","status":"passed","testResultsByEnv":{"macos-latest":"2f3fcb074e791adb2be6b81eefbbe4d1"}}
+{"id":"7904da5d1d2b5bce77e5ff05350b32f0","fullName":"test/config.test.ts#readConfig should read a .mjs config","name":"should read a .mjs config","status":"passed","testResultsByEnv":{"windows-latest":"a9f6f897d8ba99108e2aa8b5758df8af","ubuntu-latest":"754741af855fbc000c9bfc29a1edcbcd","macos-latest":"76203d871483bb72a21c7ae3f2570638"}}

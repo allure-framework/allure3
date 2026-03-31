@@ -1,1 +1,0 @@
-{"id":"ecd9f9dff9f940ea42069bab65464aab","fullName":"test/commands/run.test.ts#run command should fail with usage error for newline in --environment","name":"should fail with usage error for newline in --environment","status":"passed","testResultsByEnv":{"macos-latest":"e85628c833ef68c494f0331931166a59"}}

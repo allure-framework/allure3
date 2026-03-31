@@ -1,1 +1,0 @@
-{"id":"23b199fd616e936535105e3715279965","fullName":"test/utils/environment.test.ts#matchEnvironment should return default when no environment is matched","name":"should return default when no environment is matched","status":"passed","testResultsByEnv":{"macos-latest":"a40f89d32302f6a41f3627a0381029dd"}}

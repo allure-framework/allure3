@@ -1,1 +1,1 @@
-{"id":"1e01516f902aebf0a44ebf31306b64a0","fullName":"test/allure1.test.ts#allure1 reader name should prefer a title","name":"should prefer a title","status":"passed","testResultsByEnv":{"macos-latest":"cb9a91ed8b089560c0a7e5df2178b5a0"}}
+{"id":"1e01516f902aebf0a44ebf31306b64a0","fullName":"test/allure1.test.ts#allure1 reader name should prefer a title","name":"should prefer a title","status":"passed","testResultsByEnv":{"windows-latest":"d59c21472c50f9a63886047e3376dd28","ubuntu-latest":"ff3f98542718152c1cde2734be7d51cf","macos-latest":"6055499673173feb944bc17cbc97a417"}}

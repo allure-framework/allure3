@@ -1,1 +1,1 @@
-{"id":"80a8a1e23638c6382ee379b8715b3287","fullName":"allure-awesome/features/attachments.test.ts:457:5","name":"opens Playwright Trace in a new tab","status":"passed","testResultsByEnv":{"macos-latest":"8a8052cd8b69a75b4d90fe482c431e84"}}
+{"id":"80a8a1e23638c6382ee379b8715b3287","fullName":"allure-awesome/features/attachments.test.ts:457:5","name":"opens Playwright Trace in a new tab","status":"passed","testResultsByEnv":{"windows-latest":"1cb30baf3e5bb92936022e064af0a86c","ubuntu-latest":"af32314a6e4e35a8521550951bce448e","macos-latest":"f02903de54e67450f179201ae83826ed"}}

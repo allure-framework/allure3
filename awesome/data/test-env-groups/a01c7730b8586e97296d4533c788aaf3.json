@@ -1,1 +1,1 @@
-{"id":"a01c7730b8586e97296d4533c788aaf3","fullName":"test/util/event.test.ts#Events should stop all events","name":"should stop all events","status":"passed","testResultsByEnv":{"macos-latest":"b16ac161ffd91b56657e02534ffcb0b1"}}
+{"id":"a01c7730b8586e97296d4533c788aaf3","fullName":"test/util/event.test.ts#Events should stop all events","name":"should stop all events","status":"passed","testResultsByEnv":{"windows-latest":"cf255b2534a6eea1e8b45bf52a6ae8bb","ubuntu-latest":"27720ebb646f8c2863d6575993f05441","macos-latest":"b693675b16155e91c0677f157dcf7171"}}
