@@ -13,8 +13,6 @@
     position: absolute;
     left: 0;
     top: 0;
-    //background: var(--on-support-capella);
-    //background: var(--on-support-capella);
   }
 }
 
@@ -83,29 +81,6 @@
 }
 .tr-color-unknown {
   color: var(--on-support-skat);
-}
-
-.tr-bg-failed {
-  background: var(--bg-support-capella);
-}
-
-.tr-bg-broken {
-  background: var(--bg-support-atlas);
-}
-
-.tr-bg-skipped {
-  background: var(--bg-support-rau);
-}
-
-.tr-bg-passed {
-  background: var(--bg-support-castor);
-}
-
-.tr-bg-failed {
-  background: var(--bg-support-capella);
-}
-.tr-bg-unknown {
-  background: var(--bg-support-skat);
 }
 
 .test-result-error-trace {

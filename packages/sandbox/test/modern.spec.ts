@@ -18,6 +18,52 @@ it("sample broken test", async () => {
   throw new Error("broken test's reason");
 });
 
+it("sample failed test with body steps and test-level error", async () => {
+  await label("env", "bar");
+  await step("prepare data", () => {});
+  await step("send request", () => {});
+
+  expect({
+    status: "actual",
+    code: 500,
+  }).toEqual({
+    status: "expected",
+    code: 200,
+  });
+});
+
+it("sample broken test with body steps and test-level error", async () => {
+  await label("env", "foo");
+  await step("prepare data", () => {});
+  await step("send request", () => {});
+
+  throw new Error("broken after body steps");
+});
+
+it("should display nested failures", async () => {
+  await label("env", "foo");
+
+  await step("step 1", async () => {
+    await step("step 2", async () => {
+      await step("step 3", async () => {
+        expect(true).toBe(false);
+      });
+    });
+  });
+});
+
+it("should display nested errors", async () => {
+  await label("env", "bar");
+
+  await step("step 1", async () => {
+    await step("step 2", async () => {
+      await step("step 3", async () => {
+        throw new Error("step 3 error");
+      });
+    });
+  });
+});
+
 it("sample skipped test", async (ctx) => {
   ctx.skip();
 });
@@ -269,9 +315,9 @@ it("sample 100x100 description table test", async () => {
 });
 
 it("should create global attachment", async () => {
-  await globalAttachment("global-1.txt", new Buffer("global content 1"), "text/plain");
+  await globalAttachment("global-1.txt", Buffer.from("global content 1"), "text/plain");
 
   await step("attaching global attachment", async () => {
-    await globalAttachment("global-2.txt", new Buffer("global content 2"), "text/plain");
+    await globalAttachment("global-2.txt", Buffer.from("global content 2"), "text/plain");
   });
 });
