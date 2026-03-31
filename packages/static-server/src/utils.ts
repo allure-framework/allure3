@@ -1,3 +1,5 @@
+import { resolve, sep } from "node:path";
+
 const ALLURE_LIVE_RELOAD_HASH_STORAGE_KEY = "__allure_report_live_reload_hash__";
 
 /* eslint max-lines: 0 */
@@ -921,3 +923,46 @@ export const injectLiveReloadScript = (html: string) => {
 
   return html.replace("</body>", `${liveReloadScript}</body>`);
 };
+
+function isPathContainedInServeRoot(rootDir: string, candidatePath: string): boolean {
+  const rootResolved = resolve(rootDir);
+  const candidateResolved = resolve(candidatePath);
+
+  if (process.platform === "win32") {
+    const rootLower = rootResolved.toLowerCase();
+    const candLower = candidateResolved.toLowerCase();
+    const prefix = rootLower.endsWith("\\") ? rootLower : `${rootLower}\\`;
+    return candLower === rootLower || candLower.startsWith(prefix);
+  }
+
+  const prefix = rootResolved.endsWith(sep) ? rootResolved : `${rootResolved}${sep}`;
+  return candidateResolved === rootResolved || candidateResolved.startsWith(prefix);
+}
+
+/**
+ * Maps a URL pathname to an absolute file path only if it stays under {@param rootDir}.
+ * Returns null when the path escapes the serve root or is invalid.
+ */
+export function resolveUrlPathnameUnderServeRoot(rootDir: string, urlPathname: string): string | null {
+  let decoded: string;
+
+  try {
+    decoded = decodeURI(urlPathname);
+  } catch {
+    return null;
+  }
+
+  if (decoded.includes("\0")) {
+    return null;
+  }
+
+  const relative = decoded.replace(/^[/\\]+/, "");
+  const rootResolved = resolve(rootDir);
+  const candidate = resolve(rootResolved, relative);
+
+  if (!isPathContainedInServeRoot(rootResolved, candidate)) {
+    return null;
+  }
+
+  return candidate;
+}

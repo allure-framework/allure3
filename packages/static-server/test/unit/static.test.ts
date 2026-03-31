@@ -60,3 +60,13 @@ it("serves files with query parameters", async () => {
   expect(res.headers["content-type"]).toBe("application/octet-stream");
   expect(res.data).not.toBeUndefined();
 });
+
+it("returns 404 for path traversal outside the serve root", async () => {
+  server = await serve({ port, servePath });
+  const res = await axios.get(`http://localhost:${port}/../../static.test.ts`, {
+    timeout: 500,
+    validateStatus: () => true,
+  });
+
+  expect(res.status).toBe(404);
+});
