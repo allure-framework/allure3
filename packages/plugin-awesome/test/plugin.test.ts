@@ -1,4 +1,4 @@
-import type { Statistic, TestResult } from "@allurereport/core-api";
+import type { EnvironmentIdentity, Statistic, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext, ReportFiles } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
 
@@ -10,10 +10,6 @@ export const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) 
 
   return trsToProcess.reduce(
     (acc, test) => {
-      if (filter && !filter(test)) {
-        return acc;
-      }
-
       if (!acc[test.status]) {
         acc[test.status] = 0;
       }
@@ -178,11 +174,15 @@ describe("plugin", () => {
       const store: AllureStore = {
         metadataByKey: vi.fn().mockResolvedValue(undefined),
         allEnvironments: vi.fn().mockResolvedValue([]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
         allAttachments: vi.fn().mockResolvedValue([]),
         allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResultsWithTags.filter(options.filter) : testResultsWithTags;
           return trs;
         }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue([]),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        environmentIdByTrId: vi.fn().mockImplementation(async () => "default"),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) =>
           getTestResultsStats(testResultsWithTags, filter),
         ),
@@ -192,13 +192,17 @@ describe("plugin", () => {
         allGlobalErrors: vi.fn().mockResolvedValue([]),
         qualityGateResults: vi.fn().mockResolvedValue([]),
         qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
         fixturesByTrId: vi.fn().mockResolvedValue([]),
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;
@@ -234,6 +238,226 @@ describe("plugin", () => {
     });
   });
 
+  describe("environment-specific outputs", () => {
+    it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
+      const qaATestResult = {
+        id: "tr-qa-a",
+        name: "qa a test",
+        status: "passed",
+        environment: "QA",
+        labels: [],
+        parameters: [],
+        links: [],
+        steps: [],
+        hidden: false,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const qaBTestResult = {
+        id: "tr-qa-b",
+        name: "qa b test",
+        status: "failed",
+        environment: "QA",
+        labels: [],
+        parameters: [],
+        links: [],
+        steps: [],
+        hidden: false,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const testResults = [qaATestResult, qaBTestResult];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["QA"]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([
+          { id: "qa_a", name: "QA" },
+          { id: "qa_b", name: "QA" },
+        ] satisfies EnvironmentIdentity[]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
+        testResultsByEnvironmentId: vi
+          .fn()
+          .mockImplementation(async (environmentId: string) =>
+            environmentId === "qa_a" ? [qaATestResult] : environmentId === "qa_b" ? [qaBTestResult] : [],
+          ),
+        environmentIdByTrId: vi.fn().mockImplementation(async (trId: string) => (trId === "tr-qa-a" ? "qa_a" : "qa_b")),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        charts: [],
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-a"]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-b"]);
+      expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
+      expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");
+    });
+
+    it("should write timeline entries with environment ids and display names when two ids share one display name", async () => {
+      const qaATestResult = {
+        id: "tr-qa-a",
+        name: "qa a test",
+        status: "passed",
+        environment: "QA",
+        labels: [
+          { name: "host", value: "shared-host" },
+          { name: "thread", value: "thread-1" },
+        ],
+        parameters: [],
+        links: [],
+        steps: [],
+        hidden: false,
+        start: 1,
+        stop: 11,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const qaBTestResult = {
+        id: "tr-qa-b",
+        name: "qa b test",
+        status: "failed",
+        environment: "QA",
+        labels: [
+          { name: "host", value: "shared-host" },
+          { name: "thread", value: "thread-1" },
+        ],
+        parameters: [],
+        links: [],
+        steps: [],
+        hidden: false,
+        start: 2,
+        stop: 22,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const testResults = [qaATestResult, qaBTestResult];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["QA"]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([
+          { id: "qa_a", name: "QA" },
+          { id: "qa_b", name: "QA" },
+        ] satisfies EnvironmentIdentity[]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
+        testResultsByEnvironmentId: vi
+          .fn()
+          .mockImplementation(async (environmentId: string) =>
+            environmentId === "qa_a" ? [qaATestResult] : environmentId === "qa_b" ? [qaBTestResult] : [],
+          ),
+        environmentIdByTrId: vi.fn().mockImplementation(async (trId: string) => (trId === "tr-qa-a" ? "qa_a" : "qa_b")),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        charts: [],
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/timeline.json")!.toString("utf-8"))).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: "tr-qa-a",
+            environment: "qa_a",
+            environmentName: "QA",
+          }),
+          expect.objectContaining({
+            id: "tr-qa-b",
+            environment: "qa_b",
+            environmentName: "QA",
+          }),
+        ]),
+      );
+    });
+  });
+
   describe("single file mode", () => {
     it("should embed env widget paths using posix separators", async () => {
       const testResults: TestResult[] = [
@@ -257,11 +481,17 @@ describe("plugin", () => {
       const store: AllureStore = {
         metadataByKey: vi.fn().mockResolvedValue(undefined),
         allEnvironments: vi.fn().mockResolvedValue(["default"]),
+        allEnvironmentIdentities: vi
+          .fn()
+          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
         allAttachments: vi.fn().mockResolvedValue([]),
         allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
         allTestEnvGroups: vi.fn().mockResolvedValue([]),
         allGlobalAttachments: vi.fn().mockResolvedValue([]),
@@ -269,13 +499,17 @@ describe("plugin", () => {
         allGlobalErrors: vi.fn().mockResolvedValue([]),
         qualityGateResults: vi.fn().mockResolvedValue([]),
         qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
         fixturesByTrId: vi.fn().mockResolvedValue([]),
         historyByTrId: vi.fn().mockResolvedValue([]),
         retriesByTrId: vi.fn().mockResolvedValue([]),
         attachmentsByTrId: vi.fn().mockResolvedValue([]),
         allVariables: vi.fn().mockResolvedValue([]),
         envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
         allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
       } as unknown as AllureStore;

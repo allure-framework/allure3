@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ChartType } from "@allurereport/charts-api";
-import type { TestResult } from "@allurereport/core-api";
+import type { EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
 
@@ -59,21 +59,31 @@ describe("generateAllCharts", () => {
     const store: AllureStore = {
       metadataByKey: vi.fn().mockResolvedValue(undefined),
       allEnvironments: vi.fn().mockResolvedValue(["default"]),
+      allEnvironmentIdentities: vi
+        .fn()
+        .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
       allAttachments: vi.fn().mockResolvedValue([]),
       allTestResults: vi.fn().mockResolvedValue(testResults),
+      testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
+      testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+      environmentIdByTrId: vi.fn().mockResolvedValue("default"),
       testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
       allTestEnvGroups: vi.fn().mockResolvedValue([]),
       allGlobalAttachments: vi.fn().mockResolvedValue([]),
       globalExitCode: vi.fn().mockResolvedValue(undefined),
       allGlobalErrors: vi.fn().mockResolvedValue([]),
       qualityGateResults: vi.fn().mockResolvedValue([]),
+      qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
       fixturesByTrId: vi.fn().mockResolvedValue([]),
       historyByTrId: vi.fn().mockResolvedValue([]),
       retriesByTrId: vi.fn().mockResolvedValue([]),
       attachmentsByTrId: vi.fn().mockResolvedValue([]),
       allVariables: vi.fn().mockResolvedValue([]),
       envVariables: vi.fn().mockResolvedValue([]),
+      envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
       allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
       allNewTestResults: vi.fn().mockResolvedValue([]),
       attachmentContentById: vi.fn().mockResolvedValue(undefined),
     } as unknown as AllureStore;
@@ -111,5 +121,91 @@ describe("generateAllCharts", () => {
     });
     // Failed test must be excluded by filter
     expect(currentStatusChart!.data.failed).toBeUndefined();
+  });
+
+  it("should keep env-specific chart statistics separated by environment id when display names collide", async () => {
+    const qaATestResult = {
+      ...mockTestResult("tr-qa-a", "qa a test", "passed"),
+      environment: "QA",
+    };
+    const qaBTestResult = {
+      ...mockTestResult("tr-qa-b", "qa b test", "failed"),
+      environment: "QA",
+    };
+    const testResults = [qaATestResult, qaBTestResult];
+    const writtenWidgets = new Map<string, unknown>();
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const store: AllureStore = {
+      metadataByKey: vi.fn().mockResolvedValue(undefined),
+      allEnvironments: vi.fn().mockResolvedValue(["QA"]),
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([
+        { id: "qa_a", name: "QA" },
+        { id: "qa_b", name: "QA" },
+      ] satisfies EnvironmentIdentity[]),
+      allAttachments: vi.fn().mockResolvedValue([]),
+      allTestResults: vi.fn().mockResolvedValue(testResults),
+      testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
+      testResultsByEnvironmentId: vi
+        .fn()
+        .mockImplementation(async (environmentId: string) =>
+          environmentId === "qa_a" ? [qaATestResult] : environmentId === "qa_b" ? [qaBTestResult] : [],
+        ),
+      environmentIdByTrId: vi.fn().mockImplementation(async (trId: string) => (trId === "tr-qa-a" ? "qa_a" : "qa_b")),
+      testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+      allTestEnvGroups: vi.fn().mockResolvedValue([]),
+      allGlobalAttachments: vi.fn().mockResolvedValue([]),
+      globalExitCode: vi.fn().mockResolvedValue(undefined),
+      allGlobalErrors: vi.fn().mockResolvedValue([]),
+      qualityGateResults: vi.fn().mockResolvedValue([]),
+      qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+      fixturesByTrId: vi.fn().mockResolvedValue([]),
+      historyByTrId: vi.fn().mockResolvedValue([]),
+      retriesByTrId: vi.fn().mockResolvedValue([]),
+      attachmentsByTrId: vi.fn().mockResolvedValue([]),
+      allVariables: vi.fn().mockResolvedValue([]),
+      envVariables: vi.fn().mockResolvedValue([]),
+      envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+      allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+      allNewTestResults: vi.fn().mockResolvedValue([]),
+      attachmentContentById: vi.fn().mockResolvedValue(undefined),
+    } as unknown as AllureStore;
+
+    const context: PluginContext = {
+      id: "Awesome",
+      publish: true,
+      state: {} as PluginContext["state"],
+      allureVersion: "3.0.0",
+      reportUuid: "report-uuid",
+      reportName: "Test report",
+      reportFiles: {} as PluginContext["reportFiles"],
+      output: "/tmp/out",
+    };
+
+    await generateAllCharts(writer, store, { charts: [{ type: ChartType.CurrentStatus }] }, context);
+
+    const chartsData = writtenWidgets.get("charts.json") as {
+      byEnv: Record<string, Record<string, { type: string; data: Record<string, number> }>>;
+    };
+    const qaAChart = Object.values(chartsData.byEnv.qa_a).find((chart) => chart.type === ChartType.CurrentStatus);
+    const qaBChart = Object.values(chartsData.byEnv.qa_b).find((chart) => chart.type === ChartType.CurrentStatus);
+
+    expect(qaAChart?.data).toEqual({
+      passed: 1,
+      total: 1,
+    });
+    expect(qaBChart?.data).toEqual({
+      failed: 1,
+      total: 1,
+    });
   });
 });

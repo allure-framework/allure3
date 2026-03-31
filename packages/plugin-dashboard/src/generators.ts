@@ -85,7 +85,7 @@ export const generateAllCharts = async (
 };
 
 export const generateEnvirontmentsList = async (writer: DashboardDataWriter, store: AllureStore) => {
-  const environments = await store.allEnvironments();
+  const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("environments.json", environments);
 };

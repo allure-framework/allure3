@@ -199,6 +199,7 @@ export default defineConfig({
   },
   environments: {
     foo: {
+      name: "foo",
       variables: {
         env_variable: "foo",
         env_specific_variable: "foo",
@@ -206,20 +207,23 @@ export default defineConfig({
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
     },
     bar: {
+      name: "bar",
       variables: {
         env_variable: "bar",
         env_specific_variable: "bar",
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
-    [MAX_ENV_NAME_64]: {
+    max_env_name_64: {
+      name: MAX_ENV_NAME_64,
       variables: {
         env_variable: MAX_ENV_NAME_64,
         env_specific_variable: "max-length-64",
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64),
     },
-    [MAX_ENV_NAME_64_UNICODE]: {
+    max_env_name_64_unicode: {
+      name: MAX_ENV_NAME_64_UNICODE,
       variables: {
         env_variable: MAX_ENV_NAME_64_UNICODE,
         env_specific_variable: "max-length-64-unicode",

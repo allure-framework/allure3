@@ -42,6 +42,7 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
+import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -66,6 +67,7 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
+  readonly #environments: NonNullable<FullConfig["environments"]>;
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -112,6 +114,7 @@ export class AllureReport {
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
+    this.#environments = environments ?? {};
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -223,12 +226,18 @@ export class AllureReport {
     environment?: string;
   }) => {
     const { trs, knownIssues, state, environment } = params;
+    const qualityGateEnvironment =
+      environment === undefined
+        ? undefined
+        : (environmentIdentityById(this.#environments, environment)?.name ??
+          environmentIdentityByName(this.#environments, environment)?.name ??
+          environment);
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       knownIssues,
       state,
-      environment,
+      environment: qualityGateEnvironment,
     });
   };
 

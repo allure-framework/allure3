@@ -9,7 +9,7 @@ import {
 } from "@allurereport/web-components";
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { currentEnvironment, environmentsStore, setCurrentEnvironment } from "@/stores/env";
+import { currentEnvironment, environmentNameById, environmentsStore, setCurrentEnvironment } from "@/stores/env";
 import { useI18n } from "@/stores/locale";
 
 import * as styles from "./styles.scss";
@@ -46,8 +46,8 @@ const EnvironmentMenuItemText = ({ value }: { value: string }) => {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 export const EnvironmentPicker = () => {
   const { t } = useI18n("environments");
-  const environment = currentEnvironment.value;
-  const selectedEnvironmentLabel = environment || t("all");
+  const environmentId = currentEnvironment.value;
+  const selectedEnvironmentLabel = environmentId ? environmentNameById(environmentId) : t("all");
   const { ref: selectedTextRef, isTruncated: isSelectedValueTruncated } = useElementTruncation<HTMLSpanElement>([
     selectedEnvironmentLabel,
   ]);
@@ -99,18 +99,18 @@ export const EnvironmentPicker = () => {
           <Menu.ItemWithCheckmark
             data-testid={"environment-picker-item"}
             onClick={() => handleSelect("")}
-            isChecked={!environment}
+            isChecked={!environmentId}
           >
             {t("all")}
           </Menu.ItemWithCheckmark>
           {environmentsStore.value.data.map((env) => (
             <Menu.ItemWithCheckmark
               data-testid={"environment-picker-item"}
-              onClick={() => handleSelect(env)}
-              key={env}
-              isChecked={env === environment}
+              onClick={() => handleSelect(env.id)}
+              key={env.id}
+              isChecked={env.id === environmentId}
             >
-              <EnvironmentMenuItemText value={env} />
+              <EnvironmentMenuItemText value={env.name} />
             </Menu.ItemWithCheckmark>
           ))}
         </Menu.Section>

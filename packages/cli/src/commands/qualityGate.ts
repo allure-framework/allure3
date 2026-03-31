@@ -3,11 +3,18 @@ import { realpath } from "node:fs/promises";
 import { exit, cwd as processCwd } from "node:process";
 
 import { AllureReport, QualityGateState, readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { type TestResult, validateEnvironmentName } from "@allurereport/core-api";
-import { Command, Option, UsageError } from "clipanion";
+import { type TestResult } from "@allurereport/core-api";
+import { Command, Option } from "clipanion";
 import { glob } from "glob";
 import * as typanion from "typanion";
 import { red } from "yoctocolors";
+
+import {
+  environmentNameOption,
+  environmentOption,
+  normalizeCommandEnvironmentOptions,
+  resolveCommandEnvironment,
+} from "../utils/environment.js";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -56,29 +63,21 @@ export class QualityGateCommand extends Command {
     description: "Path to the known issues file. Updates the file and quarantines failed tests when specified",
   });
 
-  environment = Option.String("--environment,--env", {
-    description:
-      "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
-  });
+  environment = environmentOption();
+
+  environmentName = environmentNameOption();
 
   cwd = Option.String("--cwd", {
     description: "The working directory for the command to run (default: current working directory)",
   });
 
   async execute() {
-    let normalizedEnvironment = this.environment;
+    const environmentOptions = {
+      environment: this.environment,
+      environmentName: this.environmentName,
+    };
 
-    if (typeof this.environment === "string") {
-      const envValidationResult = validateEnvironmentName(this.environment);
-
-      if (!envValidationResult.valid) {
-        throw new UsageError(
-          `Invalid --environment value ${JSON.stringify(this.environment)}: ${envValidationResult.reason}`,
-        );
-      }
-
-      normalizedEnvironment = envValidationResult.normalized;
-    }
+    normalizeCommandEnvironmentOptions(environmentOptions);
 
     const cwd = await realpath(this.cwd ?? processCwd());
     const resultsDir = (this.resultsDir ?? "./**/allure-results").replace(/[\\/]$/, "");
@@ -86,6 +85,7 @@ export class QualityGateCommand extends Command {
     const config = await readConfig(cwd, this.config, {
       knownIssuesPath,
     });
+    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const rules: Record<string, any> = {};
 
     if (maxFailures !== undefined) {
@@ -113,7 +113,10 @@ export class QualityGateCommand extends Command {
       };
     }
 
-    const allureReport = new AllureReport(config);
+    const allureReport = new AllureReport({
+      ...config,
+      environment: resolvedEnvironment?.id,
+    });
 
     if (!allureReport.hasQualityGate) {
       // eslint-disable-next-line no-console
@@ -153,7 +156,7 @@ export class QualityGateCommand extends Command {
       const notHiddenTrs = (trs as TestResult[]).filter((tr) => !tr.hidden);
       const { results, fastFailed } = await allureReport.validate({
         trs: notHiddenTrs,
-        environment: normalizedEnvironment,
+        environment: resolvedEnvironment?.id,
         knownIssues,
         state,
       });
@@ -180,7 +183,7 @@ export class QualityGateCommand extends Command {
     const validationResults = await allureReport.validate({
       trs: allTrs,
       knownIssues,
-      environment: normalizedEnvironment,
+      environment: resolvedEnvironment?.id,
     });
 
     if (validationResults.results.length === 0) {

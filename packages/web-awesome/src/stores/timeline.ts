@@ -8,6 +8,7 @@ export type TimlineTr = Pick<
   TestResult,
   "id" | "name" | "status" | "flaky" | "hidden" | "environment" | "start" | "duration"
 > & {
+  environmentName?: string;
   host: string;
   thread: string;
 };

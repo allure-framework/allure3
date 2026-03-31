@@ -1,8 +1,13 @@
-import type { EnvironmentsConfig } from "../environment.js";
-import type { TestEnvGroup, TestResult } from "../model.js";
+import type { EnvironmentIdentity } from "../environment.js";
+import type { TestEnvGroup } from "../model.js";
 
 export const DEFAULT_ENVIRONMENT = "default";
 export const MAX_ENVIRONMENT_NAME_LENGTH = 64;
+export const MAX_ENVIRONMENT_ID_LENGTH = 64;
+export const DEFAULT_ENVIRONMENT_IDENTITY: EnvironmentIdentity = {
+  id: DEFAULT_ENVIRONMENT,
+  name: DEFAULT_ENVIRONMENT,
+};
 
 const hasControlChars = (value: string): boolean => {
   for (let i = 0; i < value.length; i++) {
@@ -45,6 +50,34 @@ export const validateEnvironmentName = (name: unknown): EnvironmentValidationRes
   return { valid: true, normalized };
 };
 
+export const validateEnvironmentId = (environmentId: unknown): EnvironmentValidationResult => {
+  if (typeof environmentId !== "string") {
+    return { valid: false, reason: "id must be a string" };
+  }
+
+  const normalized = environmentId.trim();
+
+  if (normalized.length === 0) {
+    return { valid: false, reason: "id must not be empty" };
+  }
+
+  if (normalized.length > MAX_ENVIRONMENT_ID_LENGTH) {
+    return {
+      valid: false,
+      reason: `id must not exceed ${MAX_ENVIRONMENT_ID_LENGTH} characters`,
+    };
+  }
+
+  if (!/^[A-Za-z0-9_-]+$/.test(normalized)) {
+    return {
+      valid: false,
+      reason: "id must contain only latin letters, digits, underscores, and hyphens",
+    };
+  }
+
+  return { valid: true, normalized };
+};
+
 export const assertValidEnvironmentName = (name: unknown, source: string = "environment name"): string => {
   const validationResult = validateEnvironmentName(name);
 
@@ -62,12 +95,6 @@ export const formatNormalizedEnvironmentCollision = (
 ): string =>
   `${sourcePath}: normalized key ${JSON.stringify(normalized)} is produced by original keys [${originalKeys.map((key) => JSON.stringify(key)).join(",")}]`;
 
-export const matchEnvironment = (envConfig: EnvironmentsConfig, tr: Pick<TestResult, "labels">): string => {
-  return (
-    Object.entries(envConfig).find(([, { matcher }]) => matcher({ labels: tr.labels }))?.[0] ?? DEFAULT_ENVIRONMENT
-  );
-};
-
 /**
  * Returns env count in the given group
  * Returns 0 if there is no envs in the group or the only one is default (shouldn't be rendered in the report)
@@ -75,7 +102,7 @@ export const matchEnvironment = (envConfig: EnvironmentsConfig, tr: Pick<TestRes
  */
 export const getRealEnvsCount = (group: TestEnvGroup): number => {
   const { testResultsByEnv = {} } = group ?? {};
-  const envsCount = Object.keys(testResultsByEnv).length ?? 0;
+  const envsCount = Object.keys(testResultsByEnv).length;
 
   if (envsCount <= 1 && DEFAULT_ENVIRONMENT in testResultsByEnv) {
     return 0;

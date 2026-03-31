@@ -1,8 +1,15 @@
 import type { ClientRequest } from "http";
 
-import type { AttachmentLink, CiDescriptor, TestError, TestResult, TestStatus } from "@allurereport/core-api";
+import type {
+  AttachmentLink,
+  CiDescriptor,
+  EnvironmentIdentity,
+  TestError,
+  TestResult,
+  TestStatus,
+} from "@allurereport/core-api";
 import type { QualityGateValidationResult } from "@allurereport/plugin-api";
-import axios, { AxiosError, isAxiosError, type AxiosInstance } from "axios";
+import axios, { AxiosError, isAxiosError, type AxiosInstance, type AxiosResponse } from "axios";
 import FormData from "form-data";
 import { chunk } from "lodash-es";
 import pLimit from "p-limit";
@@ -278,7 +285,7 @@ export class TestOpsClient {
     return undefined;
   }
 
-  async createNamedEnvs(environments: string[], onProgress?: (percent: number, total: number) => void) {
+  async createNamedEnvs(environments: EnvironmentIdentity[], onProgress?: (percent: number, total: number) => void) {
     if (!this.#session) {
       throw new Error("Session isn't created! Call createSession first");
     }
@@ -291,10 +298,9 @@ export class TestOpsClient {
       "/api/launch/named-env/bulk",
       {
         launchId: this.#launch.id,
-        items: environments.map((env) => ({
-          externalId: env,
-          // TODO: complete once https://github.com/allure-framework/allure3/pull/536 will be done
-          name: env,
+        items: environments.map(({ id, name }) => ({
+          externalId: id,
+          name,
         })),
       },
       {
@@ -309,11 +315,12 @@ export class TestOpsClient {
       },
     );
 
+    const namesById = new Map(environments.map(({ id, name }) => [id, name]));
+
     data.forEach((env) => {
       this.#namedEnvsIdsByEnv.set(env.externalId, {
         ...env,
-        // @TODO: CHANGE TO NAMES
-        name: environments.find((e) => e === env.externalId)!,
+        name: namesById.get(env.externalId) ?? env.externalId,
       });
     });
   }
@@ -386,6 +393,7 @@ export class TestOpsClient {
 
   async uploadTestResults(params: {
     trs: TestOpsPluginTestResult[];
+    environments: EnvironmentIdentity[];
     attachmentsResolver: AttachmentsResolver;
     fixturesResolver: FixtureResolver;
     onProgress?: () => void;
@@ -394,13 +402,31 @@ export class TestOpsClient {
       throw new Error("Session isn't created! Call createSession first");
     }
 
-    const { trs, attachmentsResolver, fixturesResolver, onProgress } = params;
+    const { trs, environments, attachmentsResolver, fixturesResolver, onProgress } = params;
     const trsChunks = chunk(trs, CHUNK_SIZE);
     const uploadLimitFn = pLimit(this.#uploadLimit);
     const uploadedTrs: TestResult[] = [];
+    const envNamesById = new Map(environments.map(({ id, name }) => [id, name]));
 
     try {
       for (const trsChunk of trsChunks) {
+        const chunkEnvs = new Map<string, EnvironmentIdentity>();
+
+        for (const tr of trsChunk) {
+          const environmentId = tr.environment;
+
+          if (environmentId && !this.#namedEnvsIdsByEnv.has(environmentId)) {
+            chunkEnvs.set(environmentId, {
+              id: environmentId,
+              name: envNamesById.get(environmentId) ?? environmentId,
+            });
+          }
+        }
+
+        if (chunkEnvs.size > 0) {
+          await this.createNamedEnvs(Array.from(chunkEnvs.values()));
+        }
+
         const reportIdsToTestOpsIds = await this.#postTestResultsChunk(trsChunk);
 
         await this.#uploadChunkAttachmentsAndFixtures(
@@ -430,7 +456,7 @@ export class TestOpsClient {
     return uploadedTrs;
   }
 
-  async #postTestResultsChunk(trsChunk: TestResult[]): Promise<Record<string, number>> {
+  async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[]): Promise<Record<string, number>> {
     const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
       "/api/upload/test-result",
       {

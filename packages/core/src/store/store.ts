@@ -5,8 +5,10 @@ import {
   type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
-  DEFAULT_ENVIRONMENT,
   type DefaultLabelsConfig,
+  DEFAULT_ENVIRONMENT,
+  DEFAULT_ENVIRONMENT_IDENTITY,
+  type EnvironmentIdentity,
   type EnvironmentsConfig,
   type HistoryDataPoint,
   type HistoryTestResult,
@@ -22,11 +24,11 @@ import {
   createDictionary,
   getHistoryIdCandidates,
   getWorstStatus,
-  matchEnvironment,
   nullsLast,
   ordinal,
   reverse,
   selectHistoryTestResults,
+  validateEnvironmentId,
   validateEnvironmentName,
 } from "@allurereport/core-api";
 import {
@@ -49,7 +51,12 @@ import type {
   ResultsVisitor,
 } from "@allurereport/reader-api";
 
-import { normalizeEnvironmentDescriptorMap } from "../utils/environment.js";
+import {
+  environmentIdentityById,
+  normalizeEnvironmentDescriptorMap,
+  resolveEnvironmentIdentity,
+  resolveStoredEnvironmentIdentity,
+} from "../utils/environment.js";
 import { isFlaky } from "../utils/flaky.js";
 import { getStatusTransition } from "../utils/new.js";
 import { testFixtureResultRawToState, testResultRawToState } from "./convert.js";
@@ -69,24 +76,20 @@ const index = <T>(indexMap: Map<string, T[]>, key: string | undefined, ...items:
 const wasStartedEarlier = (first: TestResult, second: TestResult) =>
   first.start === undefined || second.start === undefined || first.start < second.start;
 
-const hidePreviousAttempt = (state: Map<string, Map<string, TestResult>>, testResult: TestResult) => {
-  hidePreviousAttemptByEnvironment(state, testResult, testResult.environment);
-};
-
 const hidePreviousAttemptByEnvironment = (
   state: Map<string, Map<string, TestResult>>,
   testResult: TestResult,
-  environment: string | undefined,
+  environmentId: string | undefined,
 ) => {
   const { historyId } = testResult;
 
-  if (environment) {
-    if (!state.has(environment)) {
-      state.set(environment, new Map());
+  if (environmentId) {
+    if (!state.has(environmentId)) {
+      state.set(environmentId, new Map());
     }
 
     if (historyId) {
-      const historyIdToLastAttemptResult = state.get(environment)!;
+      const historyIdToLastAttemptResult = state.get(environmentId)!;
       const currentLastAttemptResult = historyIdToLastAttemptResult.get(historyId);
 
       if (currentLastAttemptResult) {
@@ -101,35 +104,6 @@ const hidePreviousAttemptByEnvironment = (
       }
     }
   }
-};
-
-const normalizeEnvironmentNameForStore = (name: unknown, options: { source: string; fallback?: string }): string => {
-  const validationResult = validateEnvironmentName(name);
-
-  if (!validationResult.valid) {
-    if (options.fallback !== undefined) {
-      return options.fallback;
-    }
-
-    throw new Error(`Invalid ${options.source} ${JSON.stringify(name)}: ${validationResult.reason}`);
-  }
-
-  return validationResult.normalized;
-};
-
-const environmentKeyForTestResultIndexing = (
-  testResult: Pick<TestResult, "environment" | "labels">,
-  forcedEnvironment: string | undefined,
-  environmentsConfig: EnvironmentsConfig,
-): string => {
-  if (typeof testResult.environment === "string") {
-    return normalizeEnvironmentNameForStore(testResult.environment, {
-      source: "environment",
-      fallback: DEFAULT_ENVIRONMENT,
-    });
-  }
-
-  return forcedEnvironment ?? matchEnvironment(environmentsConfig, testResult);
 };
 
 export const mapToObject = <K extends string | number | symbol, T = any>(map: Map<K, T>): Record<K, T> => {
@@ -155,6 +129,10 @@ export const updateMapWithRecord = <K extends string | number | symbol, T = any>
 
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #testResults: Map<string, TestResult>;
+  // Restored/runtime aliases that should still resolve by display name.
+  readonly #environmentDisplayNames: Map<string, string>;
+  // Canonical display names from the current environment catalog.
+  readonly #environmentNameToId: Map<string, string>;
   readonly #attachments: Map<string, AttachmentLink>;
   readonly #attachmentContents: Map<string, ResultFile>;
   readonly #testCases: Map<string, TestCase>;
@@ -163,13 +141,14 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   readonly #known: KnownTestFailure[];
   readonly #fixtures: Map<string, TestFixtureResult>;
   readonly #defaultLabels: DefaultLabelsConfig = {};
-  readonly #environment: string | undefined;
+  readonly #environment: EnvironmentIdentity | undefined;
   readonly #environmentsConfig: EnvironmentsConfig = {};
   readonly #reportVariables: ReportVariables = {};
   readonly #realtimeDispatcher?: RealtimeEventsDispatcher;
   readonly #realtimeSubscriber?: RealtimeSubscriber;
 
   readonly indexTestResultByTestCase: Map<string, TestResult[]> = new Map<string, TestResult[]>();
+  readonly indexTestResultByEnvironmentId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexLatestEnvTestResultByHistoryId: Map<string, Map<string, TestResult>> = new Map();
   readonly indexTestResultByHistoryId: Map<string, TestResult[]> = new Map<string, TestResult[]>();
   readonly indexAttachmentByTestResult: Map<string, AttachmentLink[]> = new Map<string, AttachmentLink[]>();
@@ -182,7 +161,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalExitCode: ExitCode | undefined;
   #qualityGateResults: QualityGateValidationResult[] = [];
   #historyPoints: HistoryDataPoint[] = [];
-  #environments: string[] = [];
+  #environments: EnvironmentIdentity[] = [];
 
   constructor(params?: {
     history?: AllureHistory;
@@ -204,34 +183,37 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environmentsConfig = {},
       reportVariables = {},
     } = params ?? {};
-    const environmentValidationErrors: string[] = [];
-    let normalizedEnvironment: string | undefined;
+    const errors: string[] = [];
 
-    if (environment !== undefined) {
-      const environmentValidationResult = validateEnvironmentName(environment);
+    const {
+      normalized: normalizedEnvironmentsConfig,
+      identities,
+      errors: configErrors,
+    } = normalizeEnvironmentDescriptorMap(environmentsConfig, "environmentsConfig");
+    errors.push(...configErrors);
+    const forcedEnvironment = resolveEnvironmentIdentity(
+      {
+        environment,
+      },
+      normalizedEnvironmentsConfig,
+      "store constructor",
+    );
+    errors.push(...forcedEnvironment.errors);
+    const resolvedEnvironment = forcedEnvironment.identity;
 
-      if (!environmentValidationResult.valid) {
-        environmentValidationErrors.push(
-          `Invalid store constructor environment ${JSON.stringify(environment)}: ${environmentValidationResult.reason}`,
-        );
-      } else {
-        normalizedEnvironment = environmentValidationResult.normalized;
-      }
+    if (errors.length > 0) {
+      throw new Error(errors.join("; "));
     }
 
-    const { normalized: normalizedEnvironmentsConfig, errors: normalizedConfigErrors } =
-      normalizeEnvironmentDescriptorMap(environmentsConfig, "store constructor environmentsConfig");
-    environmentValidationErrors.push(...normalizedConfigErrors);
+    const environments = [...identities];
 
-    if (environmentValidationErrors.length > 0) {
-      throw new Error(environmentValidationErrors.join("; "));
+    if (resolvedEnvironment) {
+      environments.push(resolvedEnvironment);
     }
-
-    const environments = Object.keys(normalizedEnvironmentsConfig)
-      .concat(normalizedEnvironment ?? "")
-      .filter(Boolean);
 
     this.#testResults = new Map<string, TestResult>();
+    this.#environmentDisplayNames = new Map<string, string>();
+    this.#environmentNameToId = new Map<string, string>();
     this.#attachments = new Map<string, AttachmentLink>();
     this.#attachmentContents = new Map<string, ResultFile>();
     this.#testCases = new Map<string, TestCase>();
@@ -244,13 +226,42 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#realtimeSubscriber = realtimeSubscriber;
     this.#defaultLabels = defaultLabels;
     this.#environmentsConfig = normalizedEnvironmentsConfig;
-    this.#environment = normalizedEnvironment;
+    this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
 
     this.#addEnvironments(environments);
 
     this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
       this.#qualityGateResults.push(...results);
+      this.#addEnvironments(
+        results
+          .map((result) => {
+            const aliasedEnvironmentId =
+              typeof result.environment === "string" ? this.#environmentIdByName(result.environment) : undefined;
+
+            if (aliasedEnvironmentId) {
+              const aliasedEnvironment =
+                this.#environments.find(({ id }) => id === aliasedEnvironmentId)?.name ?? aliasedEnvironmentId;
+
+              return {
+                id: aliasedEnvironmentId,
+                name: aliasedEnvironment,
+              };
+            }
+
+            return resolveStoredEnvironmentIdentity(
+              {
+                environmentName: result.environment,
+                labels: [],
+              },
+              this.#environmentsConfig,
+              {
+                forcedEnvironment: this.#environment,
+              },
+            );
+          })
+          .filter(Boolean) as EnvironmentIdentity[],
+      );
     });
     this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
@@ -277,18 +288,119 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     });
   }
 
-  #addEnvironments(envs: string[]) {
-    if (this.#environments.length === 0) {
-      this.#environments.push(DEFAULT_ENVIRONMENT);
+  #mergeEnvironmentIdentity(
+    existingEnvironment: EnvironmentIdentity | undefined,
+    incomingEnvironment: EnvironmentIdentity,
+  ): EnvironmentIdentity {
+    const configuredEnvironment = environmentIdentityById(this.#environmentsConfig, incomingEnvironment.id);
+
+    if (configuredEnvironment) {
+      return configuredEnvironment;
     }
 
-    this.#environments = Array.from(new Set([...this.#environments, ...envs]));
+    if (existingEnvironment) {
+      const existingNameValidation = validateEnvironmentName(existingEnvironment.name);
 
-    envs.forEach((key) => {
-      if (!this.indexLatestEnvTestResultByHistoryId.has(key)) {
-        this.indexLatestEnvTestResultByHistoryId.set(key, new Map());
+      if (existingNameValidation.valid) {
+        return {
+          id: existingEnvironment.id,
+          name: existingNameValidation.normalized,
+        };
+      }
+    }
+
+    const incomingNameValidation = validateEnvironmentName(incomingEnvironment.name);
+
+    if (incomingNameValidation.valid) {
+      return {
+        id: incomingEnvironment.id,
+        name: incomingNameValidation.normalized,
+      };
+    }
+
+    return {
+      id: incomingEnvironment.id,
+      name: incomingEnvironment.id,
+    };
+  }
+
+  #environmentIdForLookup(environmentKey: string) {
+    const aliasedEnvironmentId = this.#environmentIdByName(environmentKey);
+
+    if (aliasedEnvironmentId) {
+      return aliasedEnvironmentId;
+    }
+
+    const environmentIdValidation = validateEnvironmentId(environmentKey);
+
+    return environmentIdValidation.valid ? environmentIdValidation.normalized : undefined;
+  }
+
+  #addEnvironments(envs: EnvironmentIdentity[]) {
+    if (this.#environments.length === 0) {
+      this.#environments.push(DEFAULT_ENVIRONMENT_IDENTITY);
+    }
+
+    const nextById = new Map(this.#environments.map((environment) => [environment.id, environment]));
+
+    envs.forEach((environment) => {
+      nextById.set(environment.id, this.#mergeEnvironmentIdentity(nextById.get(environment.id), environment));
+    });
+
+    this.#environments = Array.from(nextById.values());
+
+    this.#environmentNameToId.clear();
+    this.#environments.forEach(({ id, name }) => {
+      this.#environmentNameToId.set(name, id);
+    });
+    envs.forEach(({ id, name }) => {
+      this.#environmentDisplayNames.set(name, id);
+    });
+
+    envs.forEach(({ id }) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
+        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
       }
     });
+  }
+
+  #environmentIdByName(environmentName: string): string | undefined {
+    const canonicalId = this.#environmentNameToId.get(environmentName);
+    if (canonicalId) {
+      return canonicalId;
+    }
+
+    return this.#environmentDisplayNames.get(environmentName);
+  }
+
+  #setTestResultEnvironmentId(testResult: TestResult, environmentId: string | undefined) {
+    if (!environmentId) {
+      return;
+    }
+
+    const existing = this.indexTestResultByEnvironmentId.get(environmentId);
+    if (existing?.some((tr) => tr.id === testResult.id)) {
+      return;
+    }
+
+    index(this.indexTestResultByEnvironmentId, environmentId, testResult);
+  }
+
+  #environmentIdByTestResult(testResult: TestResult) {
+    const storedEnvironmentKey = typeof testResult.environment === "string" ? testResult.environment : undefined;
+    return (
+      (storedEnvironmentKey ? this.#environmentIdByName(storedEnvironmentKey) : undefined) ??
+      resolveStoredEnvironmentIdentity(
+        {
+          environment: testResult.environment,
+          labels: testResult.labels,
+        },
+        this.#environmentsConfig,
+        {
+          forcedEnvironment: this.#environment,
+        },
+      )?.id
+    );
   }
 
   // history state
@@ -317,26 +429,57 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // quality gate data
 
   async qualityGateResults(): Promise<QualityGateValidationResult[]> {
-    return this.#qualityGateResults;
+    return [...this.#qualityGateResults];
   }
 
   async qualityGateResultsByEnv(): Promise<Record<string, QualityGateValidationResult[]>> {
+    const resultsById = await this.qualityGateResultsByEnvironmentId();
     const resultsByEnv = createDictionary<QualityGateValidationResult[]>();
 
-    for (const result of this.#qualityGateResults) {
-      const environment = normalizeEnvironmentNameForStore(result.environment, {
-        source: "environment",
-        fallback: DEFAULT_ENVIRONMENT,
-      });
+    Object.entries(resultsById).forEach(([environmentId, results]) => {
+      const environmentName = this.#environments.find(({ id }) => id === environmentId)?.name ?? environmentId;
 
-      if (!resultsByEnv[environment]) {
-        resultsByEnv[environment] = [];
-      }
-
-      resultsByEnv[environment].push(result);
-    }
+      resultsByEnv[environmentName] = results;
+    });
 
     return resultsByEnv;
+  }
+
+  async qualityGateResultsByEnvironmentId(): Promise<Record<string, QualityGateValidationResult[]>> {
+    const resultsById = createDictionary<QualityGateValidationResult[]>();
+
+    for (const result of this.#qualityGateResults) {
+      const aliasedEnvironmentId =
+        typeof result.environment === "string" ? this.#environmentIdByName(result.environment) : undefined;
+      const envIdentity =
+        aliasedEnvironmentId !== undefined
+          ? {
+              id: aliasedEnvironmentId,
+              name: this.#environments.find(({ id }) => id === aliasedEnvironmentId)?.name ?? aliasedEnvironmentId,
+            }
+          : resolveStoredEnvironmentIdentity(
+              {
+                environmentName: result.environment,
+                labels: [],
+              },
+              this.#environmentsConfig,
+              {
+                forcedEnvironment: this.#environment,
+              },
+            );
+
+      if (!envIdentity) {
+        continue;
+      }
+
+      if (!resultsById[envIdentity.id]) {
+        resultsById[envIdentity.id] = [];
+      }
+
+      resultsById[envIdentity.id].push(result);
+    }
+
+    return resultsById;
   }
 
   // global data
@@ -386,7 +529,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         if (!testResult.labels.find((label) => label.name === labelName)) {
           const defaultLabelValue = this.#defaultLabels[labelName];
 
-          // concat method works both with single value and arrays, so we can use it here in this way
           ([] as string[]).concat(defaultLabelValue as string[]).forEach((labelValue) => {
             testResult.labels.push({
               name: labelName,
@@ -397,9 +539,25 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       });
     }
 
-    testResult.environment = this.#environment || matchEnvironment(this.#environmentsConfig, testResult);
+    const environmentIdentity =
+      this.#environment ??
+      (() => {
+        const match = Object.entries(this.#environmentsConfig).find(([, { matcher }]) =>
+          matcher({ labels: testResult.labels }),
+        );
 
-    // Compute history-based statuses
+        if (!match) {
+          return DEFAULT_ENVIRONMENT_IDENTITY;
+        }
+
+        const [id, descriptor] = match;
+
+        return { id, name: descriptor.name ?? id };
+      })();
+
+    testResult.environment = environmentIdentity.name;
+    this.#addEnvironments([environmentIdentity]);
+
     const trHistory = await this.historyByTr(testResult);
 
     if (trHistory !== undefined) {
@@ -408,8 +566,9 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     }
 
     this.#testResults.set(testResult.id, testResult);
+    this.#setTestResultEnvironmentId(testResult, environmentIdentity.id);
 
-    hidePreviousAttempt(this.indexLatestEnvTestResultByHistoryId, testResult);
+    hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, testResult, environmentIdentity.id);
 
     index(this.indexTestResultByTestCase, testResult.testCase?.id, testResult);
     index(this.indexTestResultByHistoryId, testResult.historyId, testResult);
@@ -442,13 +601,11 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     const originalFileName = resultFile.getOriginalFileName();
     const id = md5(originalFileName);
 
-    // always override duplicate content
     this.#attachmentContents.set(id, resultFile);
 
     const maybeLink = this.#attachments.get(id);
 
     if (maybeLink) {
-      // we need to preserve the same object since it's referenced in steps
       const link = maybeLink as AttachmentLinkLinked;
 
       link.missed = false;
@@ -568,25 +725,50 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async allHistoryDataPointsByEnvironment(environment: string): Promise<HistoryDataPoint[]> {
-    const normalizedEnvironment = normalizeEnvironmentNameForStore(environment, {
-      source: "environment",
-    });
+    const environmentNameValidation = validateEnvironmentName(environment);
+
+    if (!environmentNameValidation.valid) {
+      return [];
+    }
+
+    const environmentId = this.#environmentIdByName(environmentNameValidation.normalized);
+
+    if (!environmentId) {
+      return [];
+    }
+
+    return this.allHistoryDataPointsByEnvironmentId(environmentId);
+  }
+
+  async allHistoryDataPointsByEnvironmentId(environmentId: string): Promise<HistoryDataPoint[]> {
+    const normalizedEnvironmentId = this.#environmentIdForLookup(environmentId);
+
+    if (!normalizedEnvironmentId) {
+      const validation = validateEnvironmentId(environmentId);
+      const reason = validation.valid ? "unknown environment id" : validation.reason;
+
+      throw new Error(`Invalid environmentId ${JSON.stringify(environmentId)}: ${reason}`);
+    }
 
     return this.#historyPoints.reduce((result, dp) => {
       const filteredTestResults: HistoryTestResult[] = [];
 
       for (const tr of Object.values(dp.testResults)) {
-        const hasLabels = tr.labels && tr.labels.length > 0;
-        const trEnvironment =
-          (typeof tr.environment === "string"
-            ? normalizeEnvironmentNameForStore(tr.environment, {
-                source: "environment",
-                fallback: DEFAULT_ENVIRONMENT,
-              })
-            : undefined) ??
-          (hasLabels ? matchEnvironment(this.#environmentsConfig, tr as Pick<TestResult, "labels">) : undefined);
+        const storedEnvironmentKey = typeof tr.environment === "string" ? tr.environment : undefined;
+        const trEnvId =
+          (storedEnvironmentKey ? this.#environmentIdByName(storedEnvironmentKey) : undefined) ??
+          resolveStoredEnvironmentIdentity(
+            {
+              environment: tr.environment,
+              labels: tr.labels ?? [],
+            },
+            this.#environmentsConfig,
+            {
+              forcedEnvironment: this.#environment,
+            },
+          )?.id;
 
-        if (trEnvironment === normalizedEnvironment) {
+        if (trEnvId === normalizedEnvironmentId) {
           filteredTestResults.push(tr);
         }
       }
@@ -673,6 +855,12 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
   async testResultsByTcId(tcId: string): Promise<TestResult[]> {
     return this.indexTestResultByTestCase.get(tcId) ?? [];
+  }
+
+  async environmentIdByTrId(trId: string): Promise<string | undefined> {
+    const testResult = this.#testResults.get(trId);
+
+    return testResult ? this.#environmentIdByTestResult(testResult) : undefined;
   }
 
   async attachmentsByTrId(trId: string): Promise<AttachmentLink[]> {
@@ -829,31 +1017,51 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // environments
 
   async allEnvironments() {
+    return this.#environments.map(({ name }) => name);
+  }
+
+  async allEnvironmentIdentities() {
     return this.#environments;
   }
 
   async testResultsByEnvironment(
     env: string,
     options: {
-      includeHidden: boolean;
+      includeHidden?: boolean;
     } = { includeHidden: false },
   ) {
-    const normalizedEnv = normalizeEnvironmentNameForStore(env, {
-      source: "environment",
-    });
-    const trs: TestResult[] = [];
+    const environmentNameValidation = validateEnvironmentName(env);
 
-    for (const [, tr] of this.#testResults) {
-      if (!options.includeHidden && tr.hidden) {
-        continue;
-      }
-
-      if (environmentKeyForTestResultIndexing(tr, this.#environment, this.#environmentsConfig) === normalizedEnv) {
-        trs.push(tr);
-      }
+    if (!environmentNameValidation.valid) {
+      return [];
     }
 
-    return trs;
+    const environmentId = this.#environmentIdByName(environmentNameValidation.normalized);
+
+    if (!environmentId) {
+      return [];
+    }
+
+    return this.testResultsByEnvironmentId(environmentId, options);
+  }
+
+  async testResultsByEnvironmentId(
+    envId: string,
+    options: {
+      includeHidden?: boolean;
+    } = { includeHidden: false },
+  ) {
+    const normalizedEnvId = this.#environmentIdForLookup(envId);
+
+    if (!normalizedEnvId) {
+      const validation = validateEnvironmentId(envId);
+      const reason = validation.valid ? "unknown environment id" : validation.reason;
+
+      throw new Error(`Invalid environmentId ${JSON.stringify(envId)}: ${reason}`);
+    }
+    const trs = this.indexTestResultByEnvironmentId.get(normalizedEnvId) ?? [];
+
+    return options.includeHidden ? [...trs] : trs.filter((tr) => !tr.hidden);
   }
 
   async allTestEnvGroups() {
@@ -888,7 +1096,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       };
 
       trs.forEach((tr) => {
-        const env = environmentKeyForTestResultIndexing(tr, this.#environment, this.#environmentsConfig);
+        const env = this.#environmentIdByTestResult(tr) ?? DEFAULT_ENVIRONMENT;
 
         envGroup.testResultsByEnv[env] = tr.id;
       });
@@ -906,13 +1114,41 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   }
 
   async envVariables(env: string) {
-    const normalizedEnv = normalizeEnvironmentNameForStore(env, {
-      source: "environment",
-    });
+    const environmentNameValidation = validateEnvironmentName(env);
+
+    if (!environmentNameValidation.valid) {
+      return {
+        ...this.#reportVariables,
+      };
+    }
+
+    const environmentId = this.#environmentIdByName(environmentNameValidation.normalized);
+
+    if (!environmentId) {
+      return {
+        ...this.#reportVariables,
+      };
+    }
+
+    return this.envVariablesByEnvironmentId(environmentId);
+  }
+
+  async envVariablesByEnvironmentId(envId: string) {
+    const normalizedEnvId = this.#environmentIdForLookup(envId);
+
+    if (!normalizedEnvId) {
+      const validation = validateEnvironmentId(envId);
+      const reason = validation.valid ? "unknown environment id" : validation.reason;
+
+      throw new Error(`Invalid environmentId ${JSON.stringify(envId)}: ${reason}`);
+    }
+    const envDescriptor = Object.prototype.hasOwnProperty.call(this.#environmentsConfig, normalizedEnvId)
+      ? this.#environmentsConfig[normalizedEnvId]
+      : undefined;
 
     return {
       ...this.#reportVariables,
-      ...(this.#environmentsConfig?.[normalizedEnv]?.variables ?? {}),
+      ...(envDescriptor?.variables ?? {}),
     };
   }
 
@@ -936,9 +1172,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       qualityGateResults: this.#qualityGateResults,
     };
 
-    this.indexLatestEnvTestResultByHistoryId.forEach((envMap) => {
+    this.indexLatestEnvTestResultByHistoryId.forEach((envMap, environmentId) => {
+      if (!storeDump.indexLatestEnvTestResultByHistoryId[environmentId]) {
+        storeDump.indexLatestEnvTestResultByHistoryId[environmentId] = {};
+      }
+
       envMap.forEach((tr, historyId) => {
-        storeDump.indexLatestEnvTestResultByHistoryId[historyId] = tr.id;
+        (storeDump.indexLatestEnvTestResultByHistoryId[environmentId] as Record<string, string>)[historyId] = tr.id;
       });
     });
     this.indexAttachmentByFixture.forEach((link, fxId) => {
@@ -982,19 +1222,73 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       indexKnownByHistoryId = {},
       qualityGateResults = [],
     } = stateDump;
-    const normalizedEnvironments = environments.map((environmentName) =>
-      normalizeEnvironmentNameForStore(environmentName, {
-        source: "environment",
-        fallback: DEFAULT_ENVIRONMENT,
-      }),
-    );
-    updateMapWithRecord(this.#testResults, testResults);
+    const storedEnvironmentAliases = environments.flatMap((environmentValue) => {
+      if (typeof environmentValue === "string") {
+        return [{ id: environmentValue, name: environmentValue }];
+      }
+
+      const idValidation = validateEnvironmentId(environmentValue.id);
+
+      if (!idValidation.valid) {
+        return [];
+      }
+
+      return [
+        {
+          id: idValidation.normalized,
+          name: environmentValue.name ?? idValidation.normalized,
+        },
+      ];
+    });
+    const normalizedEnvironments = environments
+      .map((environmentValue) => {
+        if (typeof environmentValue === "string") {
+          return resolveStoredEnvironmentIdentity(
+            {
+              environmentName: environmentValue,
+            },
+            this.#environmentsConfig,
+            {
+              forcedEnvironment: this.#environment,
+              fallbackToMatch: false,
+            },
+          );
+        }
+
+        return resolveStoredEnvironmentIdentity(
+          {
+            environment: environmentValue.id,
+            environmentName: environmentValue.name,
+          },
+          this.#environmentsConfig,
+          {
+            forcedEnvironment: this.#environment,
+            fallbackToMatch: false,
+          },
+        );
+      })
+      .filter(Boolean) as EnvironmentIdentity[];
+    this.#addEnvironments([...storedEnvironmentAliases, ...normalizedEnvironments]);
+
+    const envNameToId = new Map<string, string>();
+    for (const { id, name } of this.#environments) {
+      envNameToId.set(name, id);
+      envNameToId.set(id, id);
+    }
+
+    Object.values(testResults).forEach((testResult) => {
+      this.#testResults.set(testResult.id, testResult);
+      const storedEnvKey = typeof testResult.environment === "string" ? testResult.environment : undefined;
+      const envId =
+        (storedEnvKey ? envNameToId.get(storedEnvKey) : undefined) ?? this.#environmentIdByTestResult(testResult);
+
+      this.#setTestResultEnvironmentId(testResult, envId);
+    });
+
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
     updateMapWithRecord(this.#attachmentContents, attachmentsContents);
-
-    this.#addEnvironments(normalizedEnvironments);
     this.#globalAttachmentIds.push(...globalAttachmentIds);
     this.#globalErrors.push(...globalErrors);
 
@@ -1089,21 +1383,76 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
       existingKnown.push(...knownFailures);
     });
-    Object.values(indexLatestEnvTestResultByHistoryId).forEach((trId) => {
-      const tr = this.#testResults.get(trId);
-
-      if (!tr) {
-        return;
+    this.#environments.forEach(({ id }) => {
+      if (!this.indexLatestEnvTestResultByHistoryId.has(id)) {
+        this.indexLatestEnvTestResultByHistoryId.set(id, new Map());
       }
-
-      const normalizedEnvironment = environmentKeyForTestResultIndexing(
-        tr,
-        this.#environment,
-        this.#environmentsConfig,
-      );
-
-      hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironment);
     });
+
+    const latestAttemptsEntries = Object.entries(indexLatestEnvTestResultByHistoryId);
+    const hasNestedLatestAttempts = latestAttemptsEntries.some(
+      ([, value]) => typeof value === "object" && value !== null,
+    );
+
+    if (hasNestedLatestAttempts) {
+      latestAttemptsEntries.forEach(([environmentId, historyIds]) => {
+        const environmentIdValidation = validateEnvironmentId(environmentId);
+
+        if (!environmentIdValidation.valid || typeof historyIds !== "object" || historyIds === null) {
+          return;
+        }
+
+        const normalizedEnvironmentId = environmentIdValidation.normalized;
+
+        Object.values(historyIds as Record<string, string>).forEach((trId) => {
+          const tr = this.#testResults.get(trId);
+
+          if (!tr) {
+            return;
+          }
+
+          hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, normalizedEnvironmentId);
+        });
+      });
+    } else {
+      Object.entries(indexLatestEnvTestResultByHistoryId as Record<string, string>).forEach(
+        ([historyId, latestTrId]) => {
+          const trIdsForHistory = indexTestResultByHistoryId[historyId] ?? [];
+          const storedLatestTr = this.#testResults.get(latestTrId);
+          const storedLatestEnvironmentId = storedLatestTr
+            ? (this.#environmentIdByTestResult(storedLatestTr) ?? DEFAULT_ENVIRONMENT)
+            : undefined;
+
+          if (storedLatestTr && storedLatestEnvironmentId) {
+            hidePreviousAttemptByEnvironment(
+              this.indexLatestEnvTestResultByHistoryId,
+              storedLatestTr,
+              storedLatestEnvironmentId,
+            );
+          }
+
+          for (const trId of trIdsForHistory) {
+            if (trId === latestTrId) {
+              continue;
+            }
+
+            const tr = this.#testResults.get(trId);
+
+            if (!tr) {
+              continue;
+            }
+
+            const environmentId = this.#environmentIdByTestResult(tr) ?? DEFAULT_ENVIRONMENT;
+
+            if (storedLatestEnvironmentId && environmentId === storedLatestEnvironmentId) {
+              continue;
+            }
+
+            hidePreviousAttemptByEnvironment(this.indexLatestEnvTestResultByHistoryId, tr, environmentId);
+          }
+        },
+      );
+    }
 
     this.#qualityGateResults.push(...qualityGateResults);
   }

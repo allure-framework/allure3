@@ -90,7 +90,8 @@ beforeEach(() => {
   vi.stubEnv("ALLURE_LOG_LEVEL", "silent");
   vi.clearAllMocks();
   (detect as unknown as Mock).mockReturnValue({ type: "local" } as CiDescriptor);
-  AllureStoreMock.prototype.allEnvironments.mockResolvedValue([]);
+  AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([]);
+  AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue(undefined);
   AllureStoreMock.prototype.allGlobalErrors.mockResolvedValue([]);
   AllureStoreMock.prototype.allGlobalAttachments.mockResolvedValue([]);
 });
@@ -336,12 +337,15 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should map linked steps attachments before upload test results", async () => {
@@ -352,23 +356,26 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [
-          {
-            ...fixtures.testResults[1],
-            steps: [
-              {
-                ...fixtures.testResults[1].steps[0],
-                // @ts-expect-error
-                attachment: fixtures.testResults[1].steps[0].link,
-              },
-            ],
-          },
-        ],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [
+            {
+              ...fixtures.testResults[1],
+              steps: [
+                {
+                  ...fixtures.testResults[1].steps[0],
+                  // @ts-expect-error
+                  attachment: fixtures.testResults[1].steps[0].link,
+                },
+              ],
+            },
+          ],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not upload test results when store is empty", async () => {
@@ -442,12 +449,15 @@ describe("testops plugin", () => {
 
       await plugin.start({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [fixtures.testResults[0]],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should upload global attachments when they exist", async () => {
@@ -510,16 +520,39 @@ describe("testops plugin", () => {
       expect(TestOpsClientMock.prototype.uploadGlobalErrors).not.toHaveBeenCalled();
     });
 
-    it("should call allEnvironments from the store during upload", async () => {
+    it("should call allEnvironmentIdentities from the store during upload", async () => {
       AllureStoreMock.prototype.allTestResults.mockResolvedValue(fixtures.testResults.slice(0, 1));
-      AllureStoreMock.prototype.allEnvironments.mockResolvedValue(["chrome", "firefox"]);
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([
+        { id: "chrome", name: "Chrome" },
+        { id: "firefox", name: "Firefox" },
+      ]);
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
       AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
       await plugin.start({} as PluginContext, store);
 
-      expect(AllureStoreMock.prototype.allEnvironments).toHaveBeenCalled();
+      expect(AllureStoreMock.prototype.allEnvironmentIdentities).toHaveBeenCalled();
+    });
+
+    it("should rewrite display-facing environments to environment ids only in upload payload", async () => {
+      const storeFacingResult = { ...fixtures.testResults[0], environment: "QA" } as TestResult;
+
+      AllureStoreMock.prototype.allTestResults.mockResolvedValue([storeFacingResult]);
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([{ id: "qa", name: "QA" }]);
+      AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue("qa");
+      AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+      AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+      AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+      await plugin.start({} as PluginContext, store);
+
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environments: [{ id: "qa", name: "QA" }],
+          trs: [expect.objectContaining({ id: storeFacingResult.id, environment: "qa" })],
+        }),
+      );
     });
 
     describe("categories", () => {
@@ -879,12 +912,15 @@ describe("testops plugin", () => {
 
       await plugin.update({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not re-upload test results that were already uploaded", async () => {
@@ -1065,12 +1101,15 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: fixtures.testResults.slice(0, 1),
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: fixtures.testResults.slice(0, 1),
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
 
     it("should not call createLaunch on done", async () => {
@@ -1120,12 +1159,15 @@ describe("testops plugin", () => {
 
       await plugin.done({} as PluginContext, store);
 
-      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith({
-        trs: [fixtures.testResults[0]],
-        onProgress: expect.any(Function),
-        attachmentsResolver: expect.any(Function),
-        fixturesResolver: expect.any(Function),
-      });
+      expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trs: [fixtures.testResults[0]],
+          environments: [],
+          onProgress: expect.any(Function),
+          attachmentsResolver: expect.any(Function),
+          fixturesResolver: expect.any(Function),
+        }),
+      );
     });
   });
 

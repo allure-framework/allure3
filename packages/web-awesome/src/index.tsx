@@ -68,12 +68,14 @@ const App = () => {
     await waitForI18next;
     await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
 
+    const environmentIds = environmentsStore.value.data.map(({ id }) => id);
+
     if (currentEnvironment.value) {
       await fetchEnvTreesData([currentEnvironment.value]);
-      await fetchEnvStats(environmentsStore.value.data);
+      await fetchEnvStats(environmentIds);
     } else {
-      await fetchEnvTreesData(environmentsStore.value.data);
-      await fetchEnvStats(environmentsStore.value.data);
+      await fetchEnvTreesData(environmentIds);
+      await fetchEnvStats(environmentIds);
     }
 
     setPrefetched(true);
