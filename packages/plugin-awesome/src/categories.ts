@@ -84,7 +84,7 @@ export const applyCategoriesToTestResults = (tests: AwesomeTestResult[], categor
       continue;
     }
 
-    tr.categories = [{ name: matched.name }];
+    tr.categories = [{ id: matched.id, name: matched.name }];
   }
 };
 
@@ -204,8 +204,8 @@ export const generateCategories = async (
   const roots: string[] = [];
 
   const childrenMap = new Map<string, Set<string>>();
-  const categoryOrder = categories.filter((cat) => !cat.hide).map((cat) => cat.name);
-  const categoryIds = new Map<string, string>();
+  const categoryOrder = categories.filter((category) => !category.hide).map((category) => category.id);
+  const categoryNodeIds = new Map<string, string>();
   const categoryTouched = new Set<string>();
 
   const duplicateChecker = (node: CategoryNode) => {
@@ -226,9 +226,9 @@ export const generateCategories = async (
   };
 
   const ensureCategoryNode = (category: CategoryDefinition) => {
-    const catId = categoryIds.get(category.name) ?? `cat:${md5(category.name)}`;
-    if (!categoryIds.has(category.name)) {
-      categoryIds.set(category.name, catId);
+    const catId = categoryNodeIds.get(category.id) ?? `cat:${md5(category.id)}`;
+    if (!categoryNodeIds.has(category.id)) {
+      categoryNodeIds.set(category.id, catId);
     }
     duplicateChecker({
       id: catId,
@@ -248,7 +248,7 @@ export const generateCategories = async (
       continue;
     }
     const catId = ensureCategoryNode(matchedCategory);
-    categoryTouched.add(matchedCategory.name);
+    categoryTouched.add(matchedCategory.id);
     bumpStat(catId, tr.status);
 
     const environmentValue = envKey(tr.environment);
@@ -309,11 +309,11 @@ export const generateCategories = async (
     nodes[parentNodeId].childrenIds = sortedChildIds;
   }
 
-  for (const catName of categoryOrder) {
-    if (!categoryTouched.has(catName)) {
+  for (const categoryId of categoryOrder) {
+    if (!categoryTouched.has(categoryId)) {
       continue;
     }
-    const id = categoryIds.get(catName);
+    const id = categoryNodeIds.get(categoryId);
     if (id) {
       roots.push(id);
     }

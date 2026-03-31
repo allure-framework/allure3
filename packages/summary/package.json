@@ -33,7 +33,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/web-summary": "workspace:*",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.9"
   },
   "devDependencies": {
     "@types/node": "^20.17.9",

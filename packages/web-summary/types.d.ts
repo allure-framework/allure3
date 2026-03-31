@@ -38,6 +38,7 @@ export type AwesomeTestStepResult = TestStepResult;
 type AwesomeBreadcrumbItem = string[] | string[][];
 
 export interface AwesomeCategory {
+  id?: string;
   name: string;
   description?: string;
   descriptionHtml?: string;
