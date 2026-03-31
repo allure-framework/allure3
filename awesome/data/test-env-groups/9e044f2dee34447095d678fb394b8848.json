@@ -1,0 +1,1 @@
+{"id":"9e044f2dee34447095d678fb394b8848","fullName":"allure-awesome/test/testResult.test.ts:452:5","name":"nested failed test renders the synthetic error only inside the deepest step","status":"passed","testResultsByEnv":{"macos-latest":"dd0c12446a44015ae86312f3f7cee83f"}}

@@ -1,1 +1,1 @@
-{"id":"0a59e24216a8e337a535913fe31cd4ad","fullName":"allure-awesome/test/tree.test.ts:565:3","name":"stories groups are displayed","status":"passed","testResultsByEnv":{"windows-latest":"6323d2840f27b9b7fbb08a381566ad88","ubuntu-latest":"ac2ec0e5fc43e66c6c2c4ef4c32f1dc9","macos-latest":"38b5d1f92474ff03993d8a51dd164114"}}
+{"id":"0a59e24216a8e337a535913fe31cd4ad","fullName":"allure-awesome/test/tree.test.ts:565:3","name":"stories groups are displayed","status":"passed","testResultsByEnv":{"macos-latest":"e51c0ac4560a97eea1a40a3645dcdfaa"}}

@@ -1,1 +1,1 @@
-{"id":"0a3c7e91b5bb22cfc646a485c7604979","fullName":"test/index.test.ts#should generate testplan.json","name":"should generate testplan.json","status":"unknown","testResultsByEnv":{"windows-latest":"e94170056f3f4e9caaa01f731b4ff89f","ubuntu-latest":"b715155abe1cddc1caac565c7020e6d5","macos-latest":"42feb22c97d320b180fa1bd440edf931"}}
+{"id":"0a3c7e91b5bb22cfc646a485c7604979","fullName":"test/index.test.ts#should generate testplan.json","name":"should generate testplan.json","status":"unknown","testResultsByEnv":{"macos-latest":"d9d04cb911ce0ed896a7151612cf7f9d"}}

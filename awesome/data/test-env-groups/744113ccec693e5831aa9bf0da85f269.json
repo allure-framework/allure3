@@ -1,0 +1,1 @@
+{"id":"744113ccec693e5831aa9bf0da85f269","fullName":"test/components/TestResult/TrErrorStep.test.tsx#components > TestResult > TrErrorStep should be expanded by default when the error has trace or diff content","name":"should be expanded by default when the error has trace or diff content","status":"passed","testResultsByEnv":{"macos-latest":"2d2264bb7651ad743ff7563befa52916"}}

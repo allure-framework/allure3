@@ -1,1 +1,1 @@
-{"id":"21a12d676063a38843ffffc7e29a8206","fullName":"test/allure2.test.ts#allure2 reader should parse links","name":"should parse links","status":"passed","testResultsByEnv":{"windows-latest":"3cdd89ac667a08569af5c22e5e05d070","ubuntu-latest":"4fb7cdd06b7aa9baa9ec7b2937fcc662","macos-latest":"2336c4437aeb89768a18bb2a49f5697b"}}
+{"id":"21a12d676063a38843ffffc7e29a8206","fullName":"test/allure2.test.ts#allure2 reader should parse links","name":"should parse links","status":"passed","testResultsByEnv":{"macos-latest":"66b4a373a2914dfb8acc8b22306a5afa"}}

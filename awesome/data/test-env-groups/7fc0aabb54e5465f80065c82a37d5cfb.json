@@ -1,1 +1,1 @@
-{"id":"7fc0aabb54e5465f80065c82a37d5cfb","fullName":"test/unit/html.test.ts#live injects live reload script","name":"injects live reload script","status":"passed","testResultsByEnv":{"windows-latest":"1043e8bcdec525755601addaa58cec7f","ubuntu-latest":"5737e6a07b266feeaa08b627f9cdf096","macos-latest":"1d1e4b12eec99889d269cd395ccb06cd"}}
+{"id":"7fc0aabb54e5465f80065c82a37d5cfb","fullName":"test/unit/html.test.ts#live injects live reload script","name":"injects live reload script","status":"passed","testResultsByEnv":{"macos-latest":"586bbddac61624dcfc1a97b9126dea7d"}}

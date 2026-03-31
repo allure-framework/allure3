@@ -1,0 +1,1 @@
+{"id":"d46565e635b0c16064c5f55f4fb5234e","fullName":"test/components/TestResult/bodyItems.test.ts#components > TestResult > bodyItems should nest the synthetic error into the deepest matching broken step","name":"should nest the synthetic error into the deepest matching broken step","status":"passed","testResultsByEnv":{"macos-latest":"bfad6bc291507db0f22d8c020619da0a"}}
