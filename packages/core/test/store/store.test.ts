@@ -314,6 +314,83 @@ describe("test results", () => {
       ]),
     );
   });
+
+  it("should return retries in descending start order", async () => {
+    const store = new DefaultAllureStore();
+    const latest: RawTestResult = {
+      name: "test result latest",
+      fullName: "sample test",
+      start: 3000,
+    };
+    const retryOld: RawTestResult = {
+      name: "test result retry old",
+      fullName: "sample test",
+      start: 1000,
+    };
+    const retryNew: RawTestResult = {
+      name: "test result retry new",
+      fullName: "sample test",
+      start: 2000,
+    };
+
+    await store.visitTestResult(latest, { readerId });
+    await store.visitTestResult(retryOld, { readerId });
+    await store.visitTestResult(retryNew, { readerId });
+
+    const allTestResults = await store.allTestResults();
+    const latestResult = allTestResults.find((tr) => tr.name === latest.name);
+    const retries = latestResult ? await store.retriesByTrId(latestResult.id) : [];
+
+    expect(retries.map(({ name }) => name)).toEqual([retryNew.name, retryOld.name]);
+  });
+
+  it("should return retries only for the same historyId and environment", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+    const defaultLatest: RawTestResult = {
+      name: "default latest",
+      fullName: "sample test",
+      labels: [],
+      start: 3000,
+    };
+    const defaultRetry: RawTestResult = {
+      name: "default retry",
+      fullName: "sample test",
+      labels: [],
+      start: 1000,
+    };
+    const fooLatest: RawTestResult = {
+      name: "foo latest",
+      fullName: "sample test",
+      labels: [{ name: "env", value: "foo" }],
+      start: 4000,
+    };
+    const fooRetry: RawTestResult = {
+      name: "foo retry",
+      fullName: "sample test",
+      labels: [{ name: "env", value: "foo" }],
+      start: 2000,
+    };
+
+    await store.visitTestResult(defaultLatest, { readerId });
+    await store.visitTestResult(defaultRetry, { readerId });
+    await store.visitTestResult(fooLatest, { readerId });
+    await store.visitTestResult(fooRetry, { readerId });
+
+    const allTestResults = await store.allTestResults();
+    const defaultResult = allTestResults.find((tr) => tr.name === defaultLatest.name);
+    const fooResult = allTestResults.find((tr) => tr.name === fooLatest.name);
+    const defaultRetries = defaultResult ? await store.retriesByTrId(defaultResult.id) : [];
+    const fooRetries = fooResult ? await store.retriesByTrId(fooResult.id) : [];
+
+    expect(defaultRetries.map(({ name }) => name)).toEqual([defaultRetry.name]);
+    expect(fooRetries.map(({ name }) => name)).toEqual([fooRetry.name]);
+  });
 });
 
 describe("allNewTestResults", () => {
@@ -2972,10 +3049,10 @@ describe("dump state", () => {
         "Env 2, test 2, attempt 2",
       ]),
     );
-    expect(env1Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
-    expect(env1Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
-    expect(env2Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1", "Env 1, test 1, attempt 1"]);
-    expect(env2Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1", "Env 1, test 2, attempt 1"]);
+    expect(env1Test1Retries.map(({ name }) => name)).toEqual(["Env 1, test 1, attempt 1"]);
+    expect(env1Test2Retries.map(({ name }) => name)).toEqual(["Env 1, test 2, attempt 1"]);
+    expect(env2Test1Retries.map(({ name }) => name)).toEqual(["Env 2, test 1, attempt 1"]);
+    expect(env2Test2Retries.map(({ name }) => name)).toEqual(["Env 2, test 2, attempt 1"]);
   });
 
   it("should merge two dumps with no envs", async () => {
