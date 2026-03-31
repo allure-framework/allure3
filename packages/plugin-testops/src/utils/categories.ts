@@ -108,6 +108,8 @@ export const toUploadCategoryFromContext = (
     externalId: matched.id,
     name: matched.name,
     grouping: buildGrouping(tr, matched),
+    hide: matched.hide,
+    expand: matched.expand,
   };
 };
 

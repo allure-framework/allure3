@@ -10,6 +10,7 @@ export const toUploadCategory = (
   const c = tr.categories?.[0];
   if (c?.name) {
     const externalId = c.id ?? c.name;
+    const { hide, expand } = c || {};
     const groupingFromTestResult = c.grouping?.length ? c.grouping : undefined;
     const contextCategory =
       groupingFromTestResult === undefined
@@ -19,6 +20,8 @@ export const toUploadCategory = (
       externalId,
       name: c.name,
       grouping: groupingFromTestResult ?? (contextCategory && buildUploadCategoryGrouping(tr, contextCategory)),
+      hide,
+      expand,
     };
   }
   return toUploadCategoryFromContext(tr, contextCategories);
