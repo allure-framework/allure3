@@ -243,7 +243,11 @@ export class TestOpsPlugin implements Plugin {
 
   async #upload(
     store: AllureStore,
-    options = {} as { issueNewToken?: boolean; context?: PluginContext; stage: "start" | "update" | "done" },
+    options = {} as {
+      issueNewToken?: boolean;
+      context?: PluginContext;
+      stage: "start" | "update" | "done";
+    },
   ) {
     const { issueNewToken = true, context, stage } = options;
 
@@ -329,10 +333,21 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const bulkItems: { externalId: string; name: string }[] = [];
+    const bulkItems: { externalId: string; name: string; hide?: boolean; expand?: boolean }[] = [];
+    const seenExternalIds = new Set<string>();
 
-    for (const [externalId, name] of categoryNamesByExternalId) {
-      bulkItems.push({ externalId, name });
+    for (const tr of trs) {
+      const cat = tr.category;
+      if (!cat?.externalId) continue;
+      if (seenExternalIds.has(cat.externalId)) continue;
+      seenExternalIds.add(cat.externalId);
+
+      bulkItems.push({
+        externalId: cat.externalId,
+        name: categoryNamesByExternalId.get(cat.externalId) ?? categoryDisplayName(cat),
+        hide: cat.hide,
+        expand: cat.expand,
+      });
     }
 
     const launchId = this.#client.launchId;
@@ -424,7 +439,10 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const allTrs = await store.allTestResults({ filter: this.options.filter, includeHidden: false });
+    const allTrs = await store.allTestResults({
+      filter: this.options.filter,
+      includeHidden: false,
+    });
 
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 

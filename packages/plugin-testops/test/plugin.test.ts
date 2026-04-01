@@ -539,7 +539,12 @@ describe("testops plugin", () => {
       const storeFacingResult = { ...fixtures.testResults[0], environment: "QA" } as TestResult;
 
       AllureStoreMock.prototype.allTestResults.mockResolvedValue([storeFacingResult]);
-      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([{ id: "qa", name: "QA" }]);
+      AllureStoreMock.prototype.allEnvironmentIdentities.mockResolvedValue([
+        {
+          id: "qa",
+          name: "QA",
+        },
+      ]);
       AllureStoreMock.prototype.environmentIdByTrId.mockResolvedValue("qa");
       AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
       AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
@@ -576,12 +581,14 @@ describe("testops plugin", () => {
           { id: 1, externalId: "product-errors" },
         ]);
 
-        const context = { categories: [categoryProductErrors] } as PluginContext;
+        const context = {
+          categories: [{ ...categoryProductErrors, hide: false, expand: true }],
+        } as PluginContext;
 
         await plugin.start(context, store);
 
         expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
-          { externalId: "product-errors", name: "Product errors" },
+          { externalId: "product-errors", name: "Product errors", hide: false, expand: true },
         ]);
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -591,6 +598,8 @@ describe("testops plugin", () => {
                 category: expect.objectContaining({
                   externalId: "product-errors",
                   name: "Product errors",
+                  hide: false,
+                  expand: true,
                 }),
               }),
             ],
@@ -663,6 +672,8 @@ describe("testops plugin", () => {
               id: "product-errors",
               name: "Product errors",
               grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+              hide: false,
+              expand: true,
             },
           ],
         };
@@ -671,12 +682,17 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "cat-1" }]);
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          {
+            id: 2,
+            externalId: "cat-1",
+          },
+        ]);
 
         await plugin.start({} as PluginContext, store);
 
         expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
-          { externalId: "product-errors", name: "Product errors" },
+          { externalId: "product-errors", name: "Product errors", hide: false, expand: true },
         ]);
         expect(TestOpsClientMock.prototype.uploadTestResults).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -686,6 +702,8 @@ describe("testops plugin", () => {
                   externalId: "product-errors",
                   name: "Product errors",
                   grouping: [{ key: "owner", value: "alice", name: "owner: alice" }],
+                  hide: false,
+                  expand: true,
                 }),
               }),
             ],
@@ -715,7 +733,12 @@ describe("testops plugin", () => {
         AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
         AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
 
-        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([{ id: 2, externalId: "deep-cat" }]);
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          {
+            id: 2,
+            externalId: "deep-cat",
+          },
+        ]);
 
         await plugin.start({} as PluginContext, store);
 

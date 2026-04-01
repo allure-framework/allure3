@@ -142,6 +142,8 @@ describe("toUploadCategory", () => {
         { key: "environment", value: "prod", name: "environment: prod" },
         { key: "team", value: "qa", name: "team: qa" },
       ],
+      hide: false,
+      expand: false,
     });
   });
 
@@ -153,6 +155,8 @@ describe("toUploadCategory", () => {
       externalId: "product-errors",
       name: "Product errors",
       grouping: [{ key: "message", value: "<Empty>", name: "message: No message" }],
+      hide: false,
+      expand: false,
     });
   });
 
@@ -170,6 +174,8 @@ describe("toUploadCategory", () => {
           name: "message: Timeout while waiting for response",
         },
       ],
+      hide: false,
+      expand: false,
     });
   });
 
@@ -189,6 +195,8 @@ describe("toUploadCategory", () => {
         { key: "historyId", value: "hist-id-1", name: "My failed test" },
         { key: "environment", value: "stage", name: "environment: stage" },
       ],
+      hide: false,
+      expand: false,
     });
   });
 
@@ -209,6 +217,8 @@ describe("toUploadCategory", () => {
         { key: "environment", value: "stage", name: "environment: stage" },
         { key: "historyId", value: "tr-id-2", name: "tr-id-2" },
       ],
+      hide: false,
+      expand: false,
     });
   });
 
@@ -223,6 +233,8 @@ describe("toUploadCategory", () => {
         { key: "historyId", value: "<Empty>", name: "<Empty>" },
         { key: "environment", value: "<Empty>", name: "environment: No environment" },
       ],
+      hide: false,
+      expand: false,
     });
   });
 
