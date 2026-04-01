@@ -28,6 +28,18 @@ export const createBaseUrlScript = () => {
   `;
 };
 
+/**
+ * Same as JSON.stringify, but escapes < > & \u2028 \u2029
+ */
+export const stringifyForInlineScript = (value: unknown): string => {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003C")
+    .replaceAll(">", "\\u003E")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+};
+
 export const createReportDataScript = (
   reportFiles: {
     name: string;
