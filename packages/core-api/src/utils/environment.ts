@@ -23,6 +23,14 @@ const hasControlChars = (value: string): boolean => {
   return false;
 };
 
+const hasPathLikeSegments = (value: string): boolean => {
+  if (value.includes("/") || value.includes("\\")) {
+    return true;
+  }
+
+  return value === "." || value === "..";
+};
+
 export type EnvironmentValidationResult = { valid: true; normalized: string } | { valid: false; reason: string };
 
 export const validateEnvironmentName = (name: unknown): EnvironmentValidationResult => {
@@ -45,6 +53,10 @@ export const validateEnvironmentName = (name: unknown): EnvironmentValidationRes
 
   if (hasControlChars(normalized)) {
     return { valid: false, reason: "name must not contain control characters" };
+  }
+
+  if (hasPathLikeSegments(normalized)) {
+    return { valid: false, reason: "name must not contain path-like segments" };
   }
 
   return { valid: true, normalized };

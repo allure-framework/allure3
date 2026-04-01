@@ -21,13 +21,29 @@ describe("validateEnvironmentName", () => {
     expect(validateEnvironmentName(" default ")).toEqual({ valid: true, normalized: "default" });
   });
 
-  it("accepts names previously blocked by filesystem-style checks", () => {
-    expect(validateEnvironmentName("foo/bar")).toEqual({ valid: true, normalized: "foo/bar" });
+  it("accepts punctuation that does not represent path segments", () => {
     expect(validateEnvironmentName("foo#bar")).toEqual({ valid: true, normalized: "foo#bar" });
     expect(validateEnvironmentName("foo%bar")).toEqual({ valid: true, normalized: "foo%bar" });
     expect(validateEnvironmentName("foo:bar")).toEqual({ valid: true, normalized: "foo:bar" });
-    expect(validateEnvironmentName(".")).toEqual({ valid: true, normalized: "." });
-    expect(validateEnvironmentName("..")).toEqual({ valid: true, normalized: ".." });
+  });
+
+  it("rejects path-like segments", () => {
+    expect(validateEnvironmentName("foo/bar")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName("foo\\bar")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName(".")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName("..")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
   });
 
   it("rejects empty and whitespace-only names", () => {
