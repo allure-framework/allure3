@@ -1,4 +1,4 @@
-import { CiDescriptor, CiType } from "@allurereport/core-api";
+import { CiDescriptor, CiType, sanitizeExternalUrl } from "@allurereport/core-api";
 import { getReportOptions } from "@allurereport/web-commons";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { ClassValue } from "clsx";
@@ -52,16 +52,28 @@ export const CiInfo = ({ className }: CiInfoProps) => {
   }
 
   const link = ci.pullRequestUrl || ci.jobRunUrl || ci.jobUrl;
+  const safeLink = sanitizeExternalUrl(link);
   const label = ci.pullRequestName || ci.jobRunName || ci.jobName || link;
 
   if (!link) {
     return null;
   }
 
+  if (!safeLink) {
+    return (
+      <span className={clsx(styles["ci-info"], className)}>
+        <CiIcon type={ci.type} />
+        <Text type="paragraph" size="m" bold>
+          {label}
+        </Text>
+      </span>
+    );
+  }
+
   return (
-    <a className={clsx(styles["ci-info"], className)} href={link} target="_blank">
+    <a className={clsx(styles["ci-info"], className)} href={safeLink} target="_blank" rel="noopener noreferrer">
       <CiIcon type={ci.type} />
-      <Text type={"paragraph"} size={"m"} bold>
+      <Text type="paragraph" size="m" bold>
         {label}
       </Text>
     </a>
