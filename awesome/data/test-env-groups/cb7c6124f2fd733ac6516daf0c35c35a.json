@@ -1,0 +1,1 @@
+{"id":"cb7c6124f2fd733ac6516daf0c35c35a","fullName":"test/utils/safeDumpPath.test.ts#resolveDumpAttachmentPath allows a single-segment name","name":"allows a single-segment name","status":"passed","testResultsByEnv":{"windows-latest":"33a61e4f27d5224634734a3124a10561","ubuntu-latest":"684cee437f73560fd6153d056b4e6e44","macos-latest":"52611343ac8caf9c64b9995dc82ff3be"}}

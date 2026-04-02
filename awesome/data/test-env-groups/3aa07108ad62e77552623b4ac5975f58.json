@@ -1,0 +1,1 @@
+{"id":"3aa07108ad62e77552623b4ac5975f58","fullName":"test/utils/url.test.ts#sanitizeExternalUrl rejects unsafe or malformed urls","name":"rejects unsafe or malformed urls","status":"passed","testResultsByEnv":{"windows-latest":"97c23cfd94cf565db9e8ebe115c0f08d","ubuntu-latest":"4c39ccf151594fb96cc081e862be9659","macos-latest":"67b7538199020361cf63bc76cba4b693"}}

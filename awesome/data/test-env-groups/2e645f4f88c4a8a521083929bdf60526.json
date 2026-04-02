@@ -1,0 +1,1 @@
+{"id":"2e645f4f88c4a8a521083929bdf60526","fullName":"test/config.test.ts#getPluginId trims whitespace around the key","name":"trims whitespace around the key","status":"passed","testResultsByEnv":{"windows-latest":"93a949b78e66e0fd46e983e44444eaaf","ubuntu-latest":"91bd0e232569a08479b5665331400ebc","macos-latest":"bac28a8c363106454922357a648f595d"}}

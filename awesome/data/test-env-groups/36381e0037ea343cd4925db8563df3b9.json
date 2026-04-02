@@ -1,0 +1,1 @@
+{"id":"36381e0037ea343cd4925db8563df3b9","fullName":"test/utils/safeDumpPath.test.ts#resolveDumpAttachmentPath rejects a single .. segment","name":"rejects a single .. segment","status":"passed","testResultsByEnv":{"windows-latest":"7ee3e465998eb24e29bc2cb4263fb918","ubuntu-latest":"ba9b2b907a8457cf89ede3f0c05453e7","macos-latest":"bf5cbef126958ad16a527e6f4cb90bcd"}}

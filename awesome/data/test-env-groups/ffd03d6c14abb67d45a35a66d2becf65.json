@@ -1,0 +1,1 @@
+{"id":"ffd03d6c14abb67d45a35a66d2becf65","fullName":"test/utils/url.test.ts#sanitizeExternalUrl allows known-safe protocols","name":"allows known-safe protocols","status":"passed","testResultsByEnv":{"windows-latest":"57465cebc806b0d39f79697938988483","ubuntu-latest":"121401214c725da67a2c84fe95168598","macos-latest":"91896b0b059be0557e87f02ce45a58f5"}}

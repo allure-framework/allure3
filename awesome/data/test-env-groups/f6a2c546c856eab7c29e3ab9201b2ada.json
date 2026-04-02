@@ -1,0 +1,1 @@
+{"id":"f6a2c546c856eab7c29e3ab9201b2ada","fullName":"test/utils/safeDumpPath.test.ts#resolveDumpAttachmentPath rejects NUL in entry name","name":"rejects NUL in entry name","status":"passed","testResultsByEnv":{"windows-latest":"5a73678e60b2de62d98833805666e404","ubuntu-latest":"02cfb0f32c8721535a1065041a87f19a","macos-latest":"5a00179106ae59d8b315c3df0398bb9f"}}

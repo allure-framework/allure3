@@ -1,0 +1,1 @@
+{"id":"892d6b7b9fbc501cf28988d297f343a8","fullName":"test/utils/environment.test.ts#validateEnvironmentName rejects path-like segments","name":"rejects path-like segments","status":"passed","testResultsByEnv":{"windows-latest":"d06f3834fc172b98858cf74e2a067fc0","ubuntu-latest":"26ddb512c110be321111fdd3d84e5a34","macos-latest":"69cef1c0a2d2a7a51e3e4d2702fed240"}}

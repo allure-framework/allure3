@@ -1,0 +1,1 @@
+{"id":"ebb4a06d7c501d496ba455e3e52f74fb","fullName":"test/config.test.ts#getPluginId rejects empty and whitespace-only keys","name":"rejects empty and whitespace-only keys","status":"passed","testResultsByEnv":{"windows-latest":"1b5f3e3a63fa26e67f8ebe979b86f01e","ubuntu-latest":"6b5da56340ad55f7c07a6338c02d550b","macos-latest":"1afd221d079980cb076d98f62ce3f011"}}

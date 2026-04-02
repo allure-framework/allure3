@@ -1,0 +1,1 @@
+{"id":"0dd524dcf1f19a4d01fe75cf4216816e","fullName":"test/utils/safeOutputPath.test.ts#resolvePathUnderOutputRoot rejects NUL in path","name":"rejects NUL in path","status":"passed","testResultsByEnv":{"windows-latest":"cf3e0d16c83d2392b8be2520035c77f1","ubuntu-latest":"d2ebf363fcafb970b518e2b51ced5d70","macos-latest":"d47f6cc7ecca5b5185780d645e47d7eb"}}

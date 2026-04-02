@@ -1,0 +1,1 @@
+{"id":"65fb651521b08e842502bc60b5487b94","fullName":"test/unit/resolveUrlPathname.test.ts#resolveUrlPathnameUnderServeRoot rejects NUL in pathname","name":"rejects NUL in pathname","status":"passed","testResultsByEnv":{"windows-latest":"03a77fb4fee88f98f07969b8fcdc5c3b","ubuntu-latest":"0248615cff881edd59e397ed8bed1ff0","macos-latest":"c21cc46a5ed14eeb17167148205d1b2b"}}
