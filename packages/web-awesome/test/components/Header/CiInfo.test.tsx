@@ -107,6 +107,7 @@ describe("components > Header > CiInfo", () => {
     render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.pullRequestUrl);
+    expect(screen.getByRole("link")).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   it("should presence use job run url as href when provided", () => {
@@ -132,6 +133,19 @@ describe("components > Header > CiInfo", () => {
     render(<CiInfo />);
 
     expect(screen.getByRole("link")).toHaveAttribute("href", fixtures.jobRunUrl);
+  });
+
+  it("should not render a clickable link when ci url has unsafe protocol", () => {
+    (getReportOptions as Mock).mockReturnValueOnce({
+      ci: {
+        pullRequestUrl: "javascript:alert(1)",
+        pullRequestName: fixtures.pullRequestName,
+      },
+    });
+
+    render(<CiInfo />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("should presence pull request name as text when provided", () => {

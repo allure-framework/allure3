@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 
-import { createBaseUrlScript, createScriptTag } from "@allurereport/core-api";
+import { createBaseUrlScript, createScriptTag, stringifyForInlineScript } from "@allurereport/core-api";
 import type { PluginSummary } from "@allurereport/plugin-api";
 import Handlebars from "handlebars";
 
@@ -52,6 +52,6 @@ export const generateSummaryStaticFiles = async (payload: { summaries: PluginSum
   return compile({
     bodyTags: bodyTags.join("\n"),
     analyticsEnable: true,
-    reportSummaries: JSON.stringify(payload.summaries),
+    reportSummaries: stringifyForInlineScript(payload.summaries),
   });
 };

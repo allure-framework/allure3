@@ -44,6 +44,7 @@ import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -478,13 +479,23 @@ export class AllureReport {
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
           const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
-          const attachmentFilePath = join(dumpTempDir, attachmentId);
+          const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
 
           await writeFile(attachmentFilePath, attachmentContentEntry);
 
           resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
         }
       } catch (err) {
+        if (err instanceof UnsafeDumpPathError) {
+          console.error(
+            `Cannot restore dump from "${dump}": the archive lists attachment paths that would write outside the extract directory (unsafe zip paths such as "../" or absolute names).`,
+          );
+          console.error(err.message);
+          console.error(
+            "Only use dump archives produced by this tool; do not load untrusted or third-party --dump zip files.",
+          );
+          throw err;
+        }
         console.error(`Can't restore state from "${dump}", continuing without it`);
         console.error(err);
       }

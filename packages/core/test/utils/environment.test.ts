@@ -18,7 +18,7 @@ describe("environment runtime resolution", () => {
     });
   });
 
-  it("should resolve compatibility runtime keys with slashes unchanged", () => {
+  it("should ignore path-like runtime keys and fallback to default", () => {
     expect(
       resolveStoredEnvironmentIdentity(
         {
@@ -28,8 +28,8 @@ describe("environment runtime resolution", () => {
         {},
       ),
     ).toEqual({
-      id: "foo/bar",
-      name: "foo/bar",
+      id: "default",
+      name: "default",
     });
   });
 

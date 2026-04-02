@@ -4,6 +4,8 @@ import { join as joinPosix } from "node:path/posix";
 
 import type { PluginState, ReportFiles } from "@allurereport/plugin-api";
 
+import { resolvePathUnderOutputRoot } from "./utils/safeOutputPath.js";
+
 export class DefaultPluginState implements PluginState {
   readonly #state: Record<string, any>;
 
@@ -62,7 +64,7 @@ export class FileSystemReportFiles implements ReportFiles {
   }
 
   addFile = async (path: string, data: Buffer): Promise<string> => {
-    const targetPath = resolve(this.#output, path);
+    const targetPath = resolvePathUnderOutputRoot(this.#output, path);
     const targetDirPath = dirname(targetPath);
 
     await mkdir(targetDirPath, { recursive: true });

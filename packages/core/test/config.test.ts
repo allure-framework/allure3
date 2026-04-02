@@ -19,6 +19,7 @@ import {
   validateConfig,
 } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
+import { isWindows } from "../src/utils/windows.js";
 
 class PluginFixture {}
 
@@ -189,6 +190,40 @@ describe("getPluginId", () => {
   it("replaces slashes with dashes", () => {
     expect(getPluginId("allure/plugin/foo")).toEqual("allure-plugin-foo");
     expect(getPluginId("allure\\plugin\\foo")).toEqual("allure-plugin-foo");
+  });
+
+  it("trims whitespace around the key", () => {
+    expect(getPluginId("  awesome  ")).toEqual("awesome");
+  });
+
+  it("rejects empty and whitespace-only keys", () => {
+    expect(() => getPluginId("")).toThrow(/empty or whitespace-only/);
+    expect(() => getPluginId("   ")).toThrow(/empty or whitespace-only/);
+  });
+
+  it("rejects . and .. and .. segments after normalization", () => {
+    expect(() => getPluginId("..")).toThrow(/must not/);
+    expect(() => getPluginId(".")).toThrow(/must not/);
+    expect(() => getPluginId("foo..bar")).toThrow(/must not contain/);
+    expect(() => getPluginId("seg/foo/../bar")).toThrow(/must not contain/);
+  });
+
+  it.skipIf(!isWindows())("rejects characters invalid on Windows file names", () => {
+    expect(() => getPluginId("foo<bar")).toThrow(/Windows/);
+    expect(() => getPluginId("foo:bar")).toThrow(/Windows/);
+    expect(() => getPluginId("foo|bar")).toThrow(/Windows/);
+  });
+
+  it.skipIf(!isWindows())("rejects Windows reserved device names", () => {
+    expect(() => getPluginId("CON")).toThrow(/reserved/);
+    expect(() => getPluginId("com1")).toThrow(/reserved/);
+    expect(() => getPluginId("LPT2")).toThrow(/reserved/);
+  });
+
+  it.skipIf(isWindows())("allows Windows-forbidden id characters and reserved-like names on non-Windows", () => {
+    expect(getPluginId("foo:bar")).toEqual("foo:bar");
+    expect(getPluginId("com1")).toEqual("com1");
+    expect(getPluginId("foo<bar")).toEqual("foo<bar");
   });
 });
 

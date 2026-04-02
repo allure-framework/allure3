@@ -1,3 +1,4 @@
+import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
@@ -25,13 +26,27 @@ const TestResultLink: FunctionalComponent<{
   link: TestResultLinkProps;
 }> = ({ link }) => {
   const { url, type } = link;
+  const safeUrl = sanitizeExternalUrl(url);
 
   return (
     <div className={styles["test-result-link"]}>
       <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
-      <Text tag={"a"} href={url} target={"_blank"} size={"m"} className={styles["test-result-link-text"]}>
-        {url}
-      </Text>
+      {safeUrl ? (
+        <Text
+          tag={"a"}
+          href={safeUrl}
+          target={"_blank"}
+          rel={"noopener noreferrer"}
+          size={"m"}
+          className={styles["test-result-link-text"]}
+        >
+          {url}
+        </Text>
+      ) : (
+        <Text size={"m"} className={styles["test-result-link-text"]}>
+          {url}
+        </Text>
+      )}
     </div>
   );
 };
