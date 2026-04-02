@@ -23,6 +23,18 @@ export type NormalizedEnvironmentsResult = {
   errors: string[];
 };
 
+export const validateAllowedEnvironmentId = (
+  environmentId: string,
+  allowedIds: ReadonlySet<string>,
+  sourcePath: string,
+): string | undefined => {
+  if (allowedIds.size === 0 || allowedIds.has(environmentId)) {
+    return undefined;
+  }
+
+  return `${sourcePath}: environment id ${JSON.stringify(environmentId)} is not listed in allowedEnvironments`;
+};
+
 export const normalizeEnvironmentDescriptorMap = (
   input: EnvironmentsConfig,
   sourcePath: string,

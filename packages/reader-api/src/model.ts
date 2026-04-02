@@ -9,6 +9,10 @@ export type RawError = {
   actual?: string;
 };
 
+export type RawGlobalError = RawError & {
+  environment?: string;
+};
+
 export interface RawFixtureResult {
   uuid?: string;
   testResults?: string[];
@@ -120,7 +124,11 @@ export interface RawTestAttachment {
   type: "attachment";
 }
 
+export interface RawGlobalAttachment extends RawTestAttachment {
+  environment?: string;
+}
+
 export interface RawGlobals {
-  attachments: RawTestAttachment[];
-  errors: RawError[];
+  attachments: RawGlobalAttachment[];
+  errors: RawGlobalError[];
 }

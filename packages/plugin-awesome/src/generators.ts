@@ -10,7 +10,6 @@ import {
   type EnvironmentItem,
   type Statistic,
   type TestEnvGroup,
-  type TestError,
   type TestLabel,
   type TestResult,
   type TreeData,
@@ -30,6 +29,8 @@ import type {
   AllureStore,
   ExitCode,
   PluginContext,
+  PluginGlobalAttachment,
+  PluginGlobalError,
   PluginGlobals,
   QualityGateValidationResult,
   ReportFiles,
@@ -462,16 +463,26 @@ export const generateGlobals = async (
   writer: AwesomeDataWriter,
   payload: {
     globalExitCode?: ExitCode;
-    globalAttachments?: AttachmentLink[];
-    globalErrors?: TestError[];
+    globalAttachments?: PluginGlobalAttachment[];
+    globalAttachmentsByEnv?: Record<string, PluginGlobalAttachment[]>;
+    globalErrors?: PluginGlobalError[];
+    globalErrorsByEnv?: Record<string, PluginGlobalError[]>;
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
   },
 ) => {
-  const { globalExitCode, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const {
+    globalExitCode,
+    globalAttachments = [],
+    globalAttachmentsByEnv = {},
+    globalErrors = [],
+    globalErrorsByEnv = {},
+    contentFunction,
+  } = payload;
   const globals: PluginGlobals = {
     errors: globalErrors,
     attachments: [],
   };
+  const attachmentsByEnv: Record<string, PluginGlobalAttachment[]> = {};
 
   if (globalExitCode) {
     globals.exitCode = globalExitCode;
@@ -488,6 +499,25 @@ export const generateGlobals = async (
     await writer.writeAttachment(src, content);
 
     globals.attachments.push(attachment);
+  }
+
+  Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
+    const attachmentIds = new Set(globals.attachments.map(({ id }) => id));
+    const writtenAttachments = attachments.filter(({ id }) => attachmentIds.has(id));
+
+    if (writtenAttachments.length === 0) {
+      return;
+    }
+
+    attachmentsByEnv[environmentId] = writtenAttachments;
+  });
+
+  if (Object.keys(attachmentsByEnv).length > 0) {
+    globals.attachmentsByEnv = attachmentsByEnv;
+  }
+
+  if (Object.keys(globalErrorsByEnv).length > 0) {
+    globals.errorsByEnv = globalErrorsByEnv;
   }
 
   await writer.writeWidget("globals.json", globals);

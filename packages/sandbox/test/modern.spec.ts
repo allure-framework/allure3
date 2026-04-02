@@ -1,8 +1,74 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import { globalAttachment, globalError, description, descriptionHtml, label, step } from "allure-js-commons";
-import { expect, it } from "vitest";
+import { afterAll, expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+const SANDBOX_RESULTS_DIR = resolve(process.cwd(), "allure-results");
+const GLOBALS_FIXTURE_BASENAME = "sandbox-globals-env-fixture";
+
+afterAll(async () => {
+  await mkdir(SANDBOX_RESULTS_DIR, { recursive: true });
+
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-foo.txt`),
+    "foo scoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-bar.txt`),
+    "bar scoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-default.txt`),
+    "default unscoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-globals.json`),
+    JSON.stringify(
+      {
+        attachments: [
+          {
+            name: "foo global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-foo.txt`,
+            environment: "foo",
+          },
+          {
+            name: "bar global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-bar.txt`,
+            environment: "bar",
+          },
+          {
+            name: "default global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-default.txt`,
+          },
+        ],
+        errors: [
+          {
+            message: "foo global error",
+            trace: "Error: foo global error",
+            environment: "foo",
+          },
+          {
+            message: "bar global error",
+            trace: "Error: bar global error",
+            environment: "bar",
+          },
+          {
+            message: "default global error",
+            trace: "Error: default global error",
+          },
+        ],
+      },
+      null,
+      2,
+    ),
+  );
+});
 
 it("sample passed test", async () => {
   await label("env", "foo");

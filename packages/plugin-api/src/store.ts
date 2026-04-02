@@ -13,7 +13,7 @@ import type {
   TestResult,
 } from "@allurereport/core-api";
 
-import type { ExitCode } from "./plugin.js";
+import type { ExitCode, PluginGlobalAttachment, PluginGlobalError } from "./plugin.js";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
@@ -38,7 +38,9 @@ export interface AllureStore {
   // global data
   globalExitCode: () => Promise<ExitCode | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
+  allGlobalErrorsByEnv: () => Promise<Record<string, PluginGlobalError[]>>;
   allGlobalAttachments: () => Promise<AttachmentLink[]>;
+  allGlobalAttachmentsByEnv: () => Promise<Record<string, PluginGlobalAttachment[]>>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;
@@ -76,7 +78,7 @@ export interface AllureStoreDump {
   testResults: Record<string, TestResult>;
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
-  globalErrors: TestError[];
+  globalErrors: PluginGlobalError[];
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
