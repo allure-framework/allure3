@@ -277,8 +277,9 @@ export class TestOpsPlugin implements Plugin {
     await this.#uploadQualityGateResults(store);
 
     const environments = await store.allEnvironmentIdentities();
-    const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, context?.categories ?? []);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories);
+    const contextCategories = context?.categories ?? [];
+    const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
     await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
@@ -326,7 +327,7 @@ export class TestOpsPlugin implements Plugin {
     );
   }
 
-  async #syncLaunchCategories(trs: TestOpsPluginTestResult[]): Promise<void> {
+  async #syncLaunchCategories(trs: TestOpsPluginTestResult[], contextCategories: CategoryDefinition[]): Promise<void> {
     const categoryNamesByExternalId = this.#collectCategoryNamesByExternalId(trs);
 
     if (categoryNamesByExternalId.size === 0) {
@@ -350,10 +351,36 @@ export class TestOpsPlugin implements Plugin {
       });
     }
 
+    const rankByExternalId = new Map<string, number>();
+    for (const c of contextCategories) {
+      // Prefer canonical ids, but allow ordering by name for categories originating from `tr.categories`
+      if (!rankByExternalId.has(c.id)) {
+        rankByExternalId.set(c.id, c.index);
+      }
+      if (!rankByExternalId.has(c.name)) {
+        rankByExternalId.set(c.name, c.index);
+      }
+    }
+
+    const ranked = bulkItems.map((item, i) => ({
+      item,
+      i,
+      rank: rankByExternalId.get(item.externalId),
+    }));
+
+    ranked.sort((a, b) => {
+      const ar = a.rank ?? Number.POSITIVE_INFINITY;
+      const br = b.rank ?? Number.POSITIVE_INFINITY;
+      if (ar !== br) return ar - br;
+      return a.i - b.i; // stable for unknown ranks
+    });
+
+    const orderedBulkItems = ranked.map((r) => r.item);
+
     const launchId = this.#client.launchId;
 
     try {
-      const created = await this.#client.createLaunchCategoriesBulk(launchId!, bulkItems);
+      const created = await this.#client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
       const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
 
       this.#assignCreatedCategoryIds(trs, categoryIdByExternalId);
