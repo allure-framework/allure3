@@ -3,10 +3,6 @@ import * as console from "node:console";
 import { Command } from "clipanion";
 import colors from "yoctocolors";
 
-declare const __PKG_VERSION__: string;
-
-const VERSION = typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "dev";
-
 const COMMANDS = [
   {
     name: "init",
@@ -19,16 +15,18 @@ const COMMANDS = [
   { name: "doctor", description: "Diagnose your Allure configuration" },
 ];
 
-export class DefaultCommand extends Command {
-  static paths = [Command.Default];
+export class KitDefaultCommand extends Command {
+  static paths = [["kit"], ["kit", "help"]];
 
   async execute() {
     console.log();
-    console.log(`  ${colors.bold("allure-kit")} ${colors.dim(`v${VERSION}`)}`);
+    console.log(`  ${colors.bold("allure kit")}`);
     console.log(`  ${colors.dim("Allure 3 toolkit")}`);
     console.log();
     console.log(colors.bold("  Usage:"));
-    console.log(`    ${colors.cyan("allure-kit")} ${colors.yellow("<command>")} ${colors.dim("[options]")}`);
+    console.log(
+      `    ${colors.cyan("allure")} ${colors.cyan("kit")} ${colors.yellow("<command>")} ${colors.dim("[options]")}`,
+    );
     console.log();
     console.log(colors.bold("  Commands:"));
 
@@ -36,7 +34,6 @@ export class DefaultCommand extends Command {
 
     for (const { name, description } of COMMANDS) {
       const paddedName = name.padEnd(maxNameLength + 2);
-
       console.log(`    ${colors.cyan(paddedName)} ${colors.dim(description)}`);
     }
 
@@ -45,7 +42,7 @@ export class DefaultCommand extends Command {
     console.log(`    ${colors.cyan("--help, -h".padEnd(maxNameLength + 2))} ${colors.dim("Show help for a command")}`);
     console.log(`    ${colors.cyan("--version".padEnd(maxNameLength + 2))} ${colors.dim("Show version number")}`);
     console.log();
-    console.log(colors.dim("  Run allure-kit <command> --help for detailed usage of each command."));
+    console.log(colors.dim("  Run allure kit <command> --help for detailed usage of each command."));
     console.log();
   }
 }

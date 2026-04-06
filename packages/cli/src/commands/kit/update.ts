@@ -4,19 +4,19 @@ import { cwd as processCwd } from "node:process";
 import { Command, Option } from "clipanion";
 import prompts from "prompts";
 
-import { detectInstalledAllurePackages } from "../utils/detect-frameworks.js";
-import { detectPackageManager, getInstallCommand } from "../utils/detect-package-manager.js";
-import { executeCommand } from "../utils/exec.js";
-import { logError, logInfo, logNewLine, logStep, logSuccess, logWarning } from "../utils/ui.js";
+import { detectInstalledAllurePackages } from "./utils/detect-frameworks.js";
+import { detectPackageManager, getInstallCommand } from "./utils/detect-package-manager.js";
+import { executeCommand } from "./utils/exec.js";
+import { logError, logInfo, logNewLine, logStep, logSuccess, logWarning } from "./utils/ui.js";
 
-export class UpdateCommand extends Command {
-  static paths = [["update"]];
+export class KitUpdateCommand extends Command {
+  static paths = [["kit", "update"]];
 
   static usage = Command.Usage({
     description: "Update all Allure packages to the latest version",
     examples: [
-      ["update", "Check and update all Allure packages"],
-      ["update --yes", "Update without confirmation"],
+      ["kit update", "Check and update all Allure packages"],
+      ["kit update --yes", "Update without confirmation"],
     ],
   });
 

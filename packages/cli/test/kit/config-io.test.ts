@@ -11,9 +11,9 @@ import {
   updateConfigPlugins,
   updateConfigProperty,
   writeAllureConfig,
-} from "../src/utils/config-io.js";
+} from "../../src/commands/kit/utils/config-io.js";
 
-describe("config-io", () => {
+describe("kit/config-io", () => {
   let tempDir: string;
 
   beforeEach(async () => {

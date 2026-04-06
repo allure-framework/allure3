@@ -8,9 +8,9 @@ import {
   detectFrameworks,
   detectFrameworksByFiles,
   detectInstalledAllurePackages,
-} from "../src/utils/detect-frameworks.js";
+} from "../../src/commands/kit/utils/detect-frameworks.js";
 
-describe("detect-frameworks", () => {
+describe("kit/detect-frameworks", () => {
   let tempDir: string;
 
   beforeEach(async () => {

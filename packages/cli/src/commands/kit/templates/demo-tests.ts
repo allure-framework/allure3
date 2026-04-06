@@ -606,46 +606,14 @@ Scenario("showcases parameters and links", async ({ I }) => {
 `;
 
 export const DEMO_TEST_TEMPLATES: Record<string, DemoTestTemplate> = {
-  vitest: {
-    frameworkId: "vitest",
-    filename: "allure-demo.test.ts",
-    content: VITEST_DEMO,
-  },
-  playwright: {
-    frameworkId: "playwright",
-    filename: "allure-demo.spec.ts",
-    content: PLAYWRIGHT_DEMO,
-  },
-  jest: {
-    frameworkId: "jest",
-    filename: "allure-demo.test.ts",
-    content: JEST_DEMO,
-  },
-  mocha: {
-    frameworkId: "mocha",
-    filename: "allure-demo.test.js",
-    content: MOCHA_DEMO,
-  },
-  cypress: {
-    frameworkId: "cypress",
-    filename: "allure-demo.cy.js",
-    content: CYPRESS_DEMO,
-  },
-  cucumberjs: {
-    frameworkId: "cucumberjs",
-    filename: "allure-demo.feature",
-    content: CUCUMBERJS_DEMO,
-  },
-  jasmine: {
-    frameworkId: "jasmine",
-    filename: "allure-demo.spec.js",
-    content: JASMINE_DEMO,
-  },
-  codeceptjs: {
-    frameworkId: "codeceptjs",
-    filename: "allure-demo_test.js",
-    content: CODECEPTJS_DEMO,
-  },
+  vitest: { frameworkId: "vitest", filename: "allure-demo.test.ts", content: VITEST_DEMO },
+  playwright: { frameworkId: "playwright", filename: "allure-demo.spec.ts", content: PLAYWRIGHT_DEMO },
+  jest: { frameworkId: "jest", filename: "allure-demo.test.ts", content: JEST_DEMO },
+  mocha: { frameworkId: "mocha", filename: "allure-demo.test.js", content: MOCHA_DEMO },
+  cypress: { frameworkId: "cypress", filename: "allure-demo.cy.js", content: CYPRESS_DEMO },
+  cucumberjs: { frameworkId: "cucumberjs", filename: "allure-demo.feature", content: CUCUMBERJS_DEMO },
+  jasmine: { frameworkId: "jasmine", filename: "allure-demo.spec.js", content: JASMINE_DEMO },
+  codeceptjs: { frameworkId: "codeceptjs", filename: "allure-demo_test.js", content: CODECEPTJS_DEMO },
 };
 
 export const getDemoTestTemplate = (frameworkId: string): DemoTestTemplate | undefined => {

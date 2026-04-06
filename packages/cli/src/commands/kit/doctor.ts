@@ -5,11 +5,11 @@ import { cwd as processCwd } from "node:process";
 
 import { Command, Option } from "clipanion";
 
-import { findExistingConfig, readAllureConfig } from "../utils/config-io.js";
-import { detectFrameworks, detectInstalledAllurePackages } from "../utils/detect-frameworks.js";
-import { detectPackageManager } from "../utils/detect-package-manager.js";
-import { findReportPluginById, FRAMEWORK_REGISTRY } from "../utils/registry.js";
-import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "../utils/ui.js";
+import { findExistingConfig, readAllureConfig } from "./utils/config-io.js";
+import { detectFrameworks, detectInstalledAllurePackages } from "./utils/detect-frameworks.js";
+import { detectPackageManager } from "./utils/detect-package-manager.js";
+import { findReportPluginById, FRAMEWORK_REGISTRY } from "./utils/registry.js";
+import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "./utils/ui.js";
 
 const moduleExists = async (moduleName: string, cwd: string): Promise<boolean> => {
   try {
@@ -23,12 +23,12 @@ const moduleExists = async (moduleName: string, cwd: string): Promise<boolean> =
   }
 };
 
-export class DoctorCommand extends Command {
-  static paths = [["doctor"]];
+export class KitDoctorCommand extends Command {
+  static paths = [["kit", "doctor"]];
 
   static usage = Command.Usage({
     description: "Diagnose your Allure 3 configuration",
-    examples: [["doctor", "Run all diagnostic checks"]],
+    examples: [["kit doctor", "Run all diagnostic checks"]],
   });
 
   cwd = Option.String("--cwd", {
@@ -53,7 +53,7 @@ export class DoctorCommand extends Command {
 
     if (!existingConfig) {
       logError("No allurerc config file found");
-      logHint("Run 'allure-kit init' to create one");
+      logHint("Run 'allure kit init' to create one");
       issuesFound++;
     } else {
       logSuccess(`Config found: ${existingConfig.path} (${existingConfig.format})`);
@@ -91,7 +91,7 @@ export class DoctorCommand extends Command {
           logSuccess(`${framework.displayName} → ${framework.adapterPackage} installed`);
         } else {
           logError(`${framework.displayName} detected but ${framework.adapterPackage} is not installed`);
-          logHint(`Run: allure-kit init or install ${framework.adapterPackage} manually`);
+          logHint(`Run: allure kit init or install ${framework.adapterPackage} manually`);
           issuesFound++;
         }
       }
@@ -105,7 +105,7 @@ export class DoctorCommand extends Command {
       logSuccess("allure CLI package is installed");
     } else {
       logError("allure CLI package is not installed");
-      logHint("Run: allure-kit init");
+      logHint("Run: allure kit init");
       issuesFound++;
     }
 

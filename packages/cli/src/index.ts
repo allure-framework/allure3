@@ -3,6 +3,7 @@ import { argv } from "node:process";
 
 import { Builtins, Cli } from "clipanion";
 
+import "./lifecycle/register-default-terminal-hooks.js";
 import {
   AgentCommand,
   AgentLatestCommand,
@@ -16,6 +17,13 @@ import {
   DashboardCommand,
   GenerateCommand,
   HistoryCommand,
+  KitDefaultCommand,
+  KitDoctorCommand,
+  KitInitCommand,
+  KitPluginAddCommand,
+  KitPluginListCommand,
+  KitPluginRemoveCommand,
+  KitUpdateCommand,
   JiraClearCommand,
   KnownIssueCommand,
   LogCommand,

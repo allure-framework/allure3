@@ -4,15 +4,15 @@ import { cwd as processCwd } from "node:process";
 import { Command, Option } from "clipanion";
 import colors from "yoctocolors";
 
-import { readAllureConfig } from "../../utils/config-io.js";
-import { REPORT_PLUGIN_REGISTRY } from "../../utils/registry.js";
+import { readAllureConfig } from "./utils/config-io.js";
+import { REPORT_PLUGIN_REGISTRY } from "./utils/registry.js";
 
-export class PluginListCommand extends Command {
-  static paths = [["plugin", "list"]];
+export class KitPluginListCommand extends Command {
+  static paths = [["kit", "plugin", "list"]];
 
   static usage = Command.Usage({
     description: "List available Allure report plugins",
-    examples: [["plugin list", "Show all available plugins and their status"]],
+    examples: [["kit plugin list", "Show all available plugins and their status"]],
   });
 
   cwd = Option.String("--cwd", {

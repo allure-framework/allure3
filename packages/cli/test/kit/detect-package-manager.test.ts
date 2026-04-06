@@ -4,9 +4,13 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { detectPackageManager, getInstallCommand, getRemoveCommand } from "../src/utils/detect-package-manager.js";
+import {
+  detectPackageManager,
+  getInstallCommand,
+  getRemoveCommand,
+} from "../../src/commands/kit/utils/detect-package-manager.js";
 
-describe("detect-package-manager", () => {
+describe("kit/detect-package-manager", () => {
   let tempDir: string;
 
   beforeEach(async () => {
