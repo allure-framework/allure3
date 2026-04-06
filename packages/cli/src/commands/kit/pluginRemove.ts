@@ -4,18 +4,18 @@ import { cwd as processCwd } from "node:process";
 import { Command, Option } from "clipanion";
 import prompts from "prompts";
 
-import { findExistingConfig, readAllureConfig, updateConfigPlugins } from "../../utils/config-io.js";
-import { detectPackageManager, getRemoveCommand } from "../../utils/detect-package-manager.js";
-import { executeCommand } from "../../utils/exec.js";
-import { findReportPluginById } from "../../utils/registry.js";
-import { logError, logHint, logInfo, logNewLine, logSuccess, logWarning } from "../../utils/ui.js";
+import { findExistingConfig, readAllureConfig, updateConfigPlugins } from "./utils/config-io.js";
+import { detectPackageManager, getRemoveCommand } from "./utils/detect-package-manager.js";
+import { executeCommand } from "./utils/exec.js";
+import { findReportPluginById } from "./utils/registry.js";
+import { logError, logHint, logInfo, logNewLine, logSuccess, logWarning } from "./utils/ui.js";
 
-export class PluginRemoveCommand extends Command {
-  static paths = [["plugin", "remove"]];
+export class KitPluginRemoveCommand extends Command {
+  static paths = [["kit", "plugin", "remove"]];
 
   static usage = Command.Usage({
     description: "Remove a report plugin from your Allure config",
-    examples: [["plugin remove dashboard", "Remove the dashboard plugin"]],
+    examples: [["kit plugin remove dashboard", "Remove the dashboard plugin"]],
   });
 
   pluginName = Option.String({ required: true, name: "plugin" });

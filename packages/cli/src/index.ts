@@ -3,6 +3,7 @@ import { argv } from "node:process";
 
 import { Builtins, Cli } from "clipanion";
 
+import "./lifecycle/register-default-terminal-hooks.js";
 import {
   Allure2Command,
   AwesomeCommand,
@@ -11,6 +12,13 @@ import {
   DashboardCommand,
   GenerateCommand,
   HistoryCommand,
+  KitDefaultCommand,
+  KitDoctorCommand,
+  KitInitCommand,
+  KitPluginAddCommand,
+  KitPluginListCommand,
+  KitPluginRemoveCommand,
+  KitUpdateCommand,
   JiraClearCommand,
   KnownIssueCommand,
   LogCommand,
@@ -56,6 +64,15 @@ cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
 cli.register(WhoamiCommand);
+
+cli.register(KitDefaultCommand);
+cli.register(KitInitCommand);
+cli.register(KitUpdateCommand);
+cli.register(KitDoctorCommand);
+cli.register(KitPluginAddCommand);
+cli.register(KitPluginRemoveCommand);
+cli.register(KitPluginListCommand);
+
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 cli.runExit(args);

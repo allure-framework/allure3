@@ -57,6 +57,7 @@
     "lodash.omit": "^4.5.0",
     "prompts": "^2.4.2",
     "typanion": "^3.14.0",
+    "yaml": "^2.8.1",
     "yoctocolors": "^2.1.1"
   },
   "devDependencies": {

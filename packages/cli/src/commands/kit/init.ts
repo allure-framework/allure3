@@ -7,16 +7,16 @@ import { cwd as processCwd } from "node:process";
 import { Command, Option } from "clipanion";
 import prompts from "prompts";
 
-import { buildAllureConfig } from "../templates/allurerc.js";
-import { getDemoTestPath, getDemoTestTemplate } from "../templates/demo-tests.js";
-import type { ConfigFormat } from "../utils/config-io.js";
-import { findExistingConfig, writeAllureConfig } from "../utils/config-io.js";
-import type { DetectedFramework } from "../utils/detect-frameworks.js";
-import { detectFrameworks } from "../utils/detect-frameworks.js";
-import { detectPackageManager, getInstallCommand } from "../utils/detect-package-manager.js";
-import { executeCommand } from "../utils/exec.js";
-import { FRAMEWORK_REGISTRY, REPORT_PLUGIN_REGISTRY } from "../utils/registry.js";
-import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "../utils/ui.js";
+import { buildAllureConfig } from "./templates/allurerc.js";
+import { getDemoTestPath, getDemoTestTemplate } from "./templates/demo-tests.js";
+import type { ConfigFormat } from "./utils/config-io.js";
+import { findExistingConfig, writeAllureConfig } from "./utils/config-io.js";
+import type { DetectedFramework } from "./utils/detect-frameworks.js";
+import { detectFrameworks } from "./utils/detect-frameworks.js";
+import { detectPackageManager, getInstallCommand } from "./utils/detect-package-manager.js";
+import { executeCommand } from "./utils/exec.js";
+import { FRAMEWORK_REGISTRY, REPORT_PLUGIN_REGISTRY } from "./utils/registry.js";
+import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "./utils/ui.js";
 
 const sourceLabel = (source: DetectedFramework["source"]): string => {
   switch (source) {
@@ -30,18 +30,18 @@ const sourceLabel = (source: DetectedFramework["source"]): string => {
   }
 };
 
-export class InitCommand extends Command {
-  static paths = [["init"]];
+export class KitInitCommand extends Command {
+  static paths = [["kit", "init"]];
 
   static usage = Command.Usage({
     description: "Initialize Allure 3 in your project",
     details:
       "Detects test frameworks (by dependencies, config files, and existing tests), installs adapters, creates an allurerc config, and optionally generates demo tests showcasing all Allure features.",
     examples: [
-      ["init", "Interactive setup with auto-detection"],
-      ["init --format json", "Use JSON config format"],
-      ["init --yes", "Accept all defaults without prompts"],
-      ["init --demo", "Also generate demo tests"],
+      ["kit init", "Interactive setup with auto-detection"],
+      ["kit init --format json", "Use JSON config format"],
+      ["kit init --yes", "Accept all defaults without prompts"],
+      ["kit init --demo", "Also generate demo tests"],
     ],
   });
 

@@ -4,12 +4,12 @@ import { cwd as processCwd } from "node:process";
 import { Command, Option } from "clipanion";
 import prompts from "prompts";
 
-import { findExistingConfig, updateConfigPlugins } from "../../utils/config-io.js";
-import { detectPackageManager, getInstallCommand } from "../../utils/detect-package-manager.js";
-import { executeCommand } from "../../utils/exec.js";
-import type { PluginOptionDescriptor } from "../../utils/registry.js";
-import { findReportPluginById, REPORT_PLUGIN_REGISTRY } from "../../utils/registry.js";
-import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "../../utils/ui.js";
+import { findExistingConfig, updateConfigPlugins } from "./utils/config-io.js";
+import { detectPackageManager, getInstallCommand } from "./utils/detect-package-manager.js";
+import { executeCommand } from "./utils/exec.js";
+import type { PluginOptionDescriptor } from "./utils/registry.js";
+import { findReportPluginById, REPORT_PLUGIN_REGISTRY } from "./utils/registry.js";
+import { logError, logHint, logInfo, logNewLine, logStep, logSuccess, logWarning } from "./utils/ui.js";
 
 const promptForOption = async (opt: PluginOptionDescriptor): Promise<unknown> => {
   const envHint = opt.envVar ? ` (env: ${opt.envVar})` : "";
@@ -48,15 +48,15 @@ const promptForOption = async (opt: PluginOptionDescriptor): Promise<unknown> =>
   return response.value || undefined;
 };
 
-export class PluginAddCommand extends Command {
-  static paths = [["plugin", "add"]];
+export class KitPluginAddCommand extends Command {
+  static paths = [["kit", "plugin", "add"]];
 
   static usage = Command.Usage({
     description: "Add a report plugin to your Allure config",
     examples: [
-      ["plugin add dashboard", "Add the dashboard plugin"],
-      ["plugin add slack", "Add Slack plugin with interactive options"],
-      ["plugin add awesome --skip-options", "Add without configuring options"],
+      ["kit plugin add dashboard", "Add the dashboard plugin"],
+      ["kit plugin add slack", "Add Slack plugin with interactive options"],
+      ["kit plugin add awesome --skip-options", "Add without configuring options"],
     ],
   });
 
@@ -148,7 +148,7 @@ export class PluginAddCommand extends Command {
     const existingConfig = await findExistingConfig(workingDir);
 
     if (!existingConfig) {
-      logWarning("No allurerc config found. Run 'allure-kit init' first to create one.");
+      logWarning("No allurerc config found. Run 'allure kit init' first to create one.");
       logHint("Then add the plugin manually:");
       logHint(`  ${pluginId}: ${JSON.stringify({ options }, null, 2)}`);
       return;

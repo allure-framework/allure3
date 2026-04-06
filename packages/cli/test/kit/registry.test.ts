@@ -6,9 +6,9 @@ import {
   FRAMEWORK_REGISTRY,
   getDefaultReportPlugins,
   REPORT_PLUGIN_REGISTRY,
-} from "../src/utils/registry.js";
+} from "../../src/commands/kit/utils/registry.js";
 
-describe("registry", () => {
+describe("kit/registry", () => {
   describe("FRAMEWORK_REGISTRY", () => {
     it("should contain all expected frameworks", () => {
       const frameworkIds = FRAMEWORK_REGISTRY.map((framework) => framework.id);
