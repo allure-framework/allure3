@@ -7,12 +7,12 @@ import process, { exit } from "node:process";
 
 import {
   AllureReport,
-  QualityGateState,
   isFileNotFoundError,
+  QualityGateState,
   readConfig,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
+import { createTestPlan, type KnownTestFailure } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -27,13 +27,13 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
+import { buildAllureOpenNextStepCommands } from "../utils/after-command.js";
 import {
   environmentNameOption,
   environmentOption,
   normalizeCommandEnvironmentOptions,
   resolveCommandEnvironment,
 } from "../utils/environment.js";
-import { buildAllureOpenNextStepCommands } from "../utils/after-command.js";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
 import { stopProcessTree } from "../utils/process.js";
@@ -319,12 +319,11 @@ export class RunCommand extends Command {
         }
 
         const environmentOptions = {
-
-        environment: this.environment,
+          environment: this.environment,
           environmentName: this.environmentName,
-    };
+        };
 
-          normalizeCommandEnvironmentOptions(environmentOptions);
+        normalizeCommandEnvironmentOptions(environmentOptions);
 
         const before = new Date().getTime();
 
