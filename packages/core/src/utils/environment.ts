@@ -23,12 +23,52 @@ export type NormalizedEnvironmentsResult = {
   errors: string[];
 };
 
+export const validateAllowedEnvironmentIds = (
+  input: string[] | undefined,
+  sourcePath: string,
+): {
+  ids: string[];
+  idsSet: Set<string>;
+  errors: string[];
+} => {
+  const ids: string[] = [];
+  const idsSet = new Set<string>();
+  const errors: string[] = [];
+
+  for (const [index, environmentId] of (input ?? []).entries()) {
+    const validation = validateEnvironmentId(environmentId);
+
+    if (!validation.valid) {
+      errors.push(`${sourcePath}[${index}]: ${validation.reason}`);
+      continue;
+    }
+
+    if (validation.normalized !== environmentId) {
+      errors.push(`${sourcePath}[${index}]: id must not contain leading or trailing whitespace`);
+      continue;
+    }
+
+    if (idsSet.has(environmentId)) {
+      errors.push(`${sourcePath}: duplicated environment id ${JSON.stringify(environmentId)}`);
+      continue;
+    }
+
+    idsSet.add(environmentId);
+    ids.push(environmentId);
+  }
+
+  return {
+    ids,
+    idsSet,
+    errors,
+  };
+};
 export const validateAllowedEnvironmentId = (
   environmentId: string,
   allowedIds: ReadonlySet<string>,
   sourcePath: string,
 ): string | undefined => {
-  if (allowedIds.size === 0 || allowedIds.has(environmentId)) {
+  if (environmentId === DEFAULT_ENVIRONMENT || allowedIds.size === 0 || allowedIds.has(environmentId)) {
     return undefined;
   }
 

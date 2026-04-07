@@ -58,6 +58,7 @@ import {
   normalizeEnvironmentDescriptorMap,
   resolveEnvironmentIdentity,
   resolveStoredEnvironmentIdentity,
+  validateAllowedEnvironmentIds,
   validateAllowedEnvironmentId,
 } from "../utils/environment.js";
 import { isFlaky } from "../utils/flaky.js";
@@ -192,8 +193,6 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables = {},
     } = params ?? {};
     const errors: string[] = [];
-    const allowedEnvironmentIds = new Set(allowedEnvironments ?? []);
-
     const {
       normalized: normalizedEnvironmentsConfig,
       identities,
@@ -209,6 +208,24 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     );
     errors.push(...forcedEnvironment.errors);
     const resolvedEnvironment = forcedEnvironment.identity;
+    const { idsSet: allowedEnvironmentIds, errors: allowedEnvironmentErrors } = validateAllowedEnvironmentIds(
+      allowedEnvironments,
+      "allowedEnvironments",
+    );
+
+    errors.push(...allowedEnvironmentErrors);
+
+    Object.keys(normalizedEnvironmentsConfig).forEach((environmentId) => {
+      const allowedEnvironmentError = validateAllowedEnvironmentId(
+        environmentId,
+        allowedEnvironmentIds,
+        "environment config",
+      );
+
+      if (allowedEnvironmentError) {
+        errors.push(allowedEnvironmentError);
+      }
+    });
 
     if (resolvedEnvironment) {
       const error = validateAllowedEnvironmentId(
@@ -249,7 +266,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     this.#environmentsConfig = normalizedEnvironmentsConfig;
     this.#environment = resolvedEnvironment;
     this.#reportVariables = reportVariables;
-    this.#allowedEnvironmentIds = allowedEnvironmentIds;
+    this.#allowedEnvironmentIds = new Set(allowedEnvironmentIds);
 
     this.#addEnvironments(environments);
 

@@ -110,4 +110,20 @@ describe("resolveCommandEnvironment", () => {
       ),
     ).toThrow('cli: environment id "prod_env" is not listed in allowedEnvironments');
   });
+
+  it("should allow fallback to default when allowedEnvironments omits it", () => {
+    expect(
+      resolveCommandEnvironment(
+        {
+          environment: "default",
+          environments: config.environments,
+          allowedEnvironments: ["qa"],
+        },
+        {},
+      ),
+    ).toEqual({
+      id: "default",
+      name: "default",
+    });
+  });
 });

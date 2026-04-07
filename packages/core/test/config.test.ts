@@ -606,22 +606,6 @@ describe("resolveConfig", () => {
     ).resolves.toBeDefined();
   });
 
-  it("should keep allowed environment ids as configured", async () => {
-    const resolved = await resolveConfig({
-      allowedEnvironments: [" qa_env ", "prod_env"],
-    });
-
-    expect(resolved.allowedEnvironments).toEqual([" qa_env ", "prod_env"]);
-  });
-
-  it("should allow duplicate-looking allowed environment ids without normalizing them", async () => {
-    const resolved = await resolveConfig({
-      allowedEnvironments: ["qa_env", " qa_env "],
-    });
-
-    expect(resolved.allowedEnvironments).toEqual(["qa_env", " qa_env "]);
-  });
-
   it("should reject environments outside allowedEnvironments in config.environment", async () => {
     await expect(
       resolveConfig({
@@ -633,36 +617,52 @@ describe("resolveConfig", () => {
     );
   });
 
-  it("should not validate config.environments keys against allowedEnvironments", async () => {
-    const resolved = await resolveConfig({
-      allowedEnvironments: ["foo"],
-      environments: {
-        baz: {
-          matcher: () => true,
-        },
-      },
-    });
-
-    expect(Object.keys(resolved.environments)).toEqual(["baz"]);
+  it("should reject invalid allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "bar baz"],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[1]: id must contain only latin letters, digits, underscores, and hyphens",
+    );
   });
 
-  it("should not validate quality gate environment references against allowedEnvironments", async () => {
-    const resolved = await resolveConfig({
-      allowedEnvironments: ["foo"],
-      qualityGate: {
-        rules: [
-          {
-            allTestsContainEnv: "bar",
-            environmentsTested: ["foo", "baz"],
-          },
-        ],
-      },
-    });
+  it("should reject allowed environment ids with surrounding spaces instead of normalizing them", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: [" foo "],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[0]: id must not contain leading or trailing whitespace",
+    );
+  });
 
-    expect(resolved.qualityGate?.rules?.[0]).toMatchObject({
-      allTestsContainEnv: "bar",
-      environmentsTested: ["foo", "baz"],
-    });
+  it("should reject duplicate allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "foo"],
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.allowedEnvironments: duplicated environment id "foo"',
+    );
+  });
+
+  it("should reject configured environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
+            matcher: () => true,
+          },
+          bar: {
+            matcher: () => false,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.environments: environment id "bar" is not listed in allowedEnvironments',
+    );
   });
 
   it("should keep display-name-only allowed environment entries raw and unmatched", async () => {
@@ -682,30 +682,47 @@ describe("resolveConfig", () => {
     );
   });
 
-  it("should keep quality gate environment names unchanged when allowedEnvironments is present", async () => {
-    const resolved = await resolveConfig({
-      allowedEnvironments: ["qa_env"],
-      environments: {
-        qa_env: {
-          name: "QA",
-          matcher: () => true,
-        },
-      },
-      qualityGate: {
-        rules: [
-          {
-            allTestsContainEnv: "QA",
-            environmentsTested: [" QA "],
+  it("should reject forced environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        environment: "QA",
+        allowedEnvironments: ["prod"],
+        environments: {
+          qa: {
+            name: "QA",
+            matcher: () => true,
           },
-        ],
-      },
-    });
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "qa" is not listed in allowedEnvironments',
+    );
+  });
 
-    expect(resolved.allowedEnvironments).toEqual(["qa_env"]);
-    expect(resolved.qualityGate?.rules?.[0]).toMatchObject({
-      allTestsContainEnv: "QA",
-      environmentsTested: [" QA "],
-    });
+  it("should reject quality gate environment ids outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["qa_env"],
+        qualityGate: {
+          rules: [{ allTestsContainEnv: "bar", environmentsTested: ["qa_env", "bar"] }],
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.qualityGate.rules[0].allTestsContainEnv: environment id "bar" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should not require default to be listed in allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
   });
 });
 

@@ -393,6 +393,42 @@ describe("test results", () => {
   });
 });
 
+describe("environments", () => {
+  it("should reject configured environment ids outside allowedEnvironments in constructor", () => {
+    expect(
+      () =>
+        new DefaultAllureStore({
+          allowedEnvironments: ["foo"],
+          environmentsConfig: {
+            bar: {
+              matcher: () => true,
+            },
+          },
+        }),
+    ).toThrow('environment config: environment id "bar" is not listed in allowedEnvironments');
+  });
+
+  it("should allow default runtime environment even when it is omitted from allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["foo"],
+      environmentsConfig: {
+        foo: {
+          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
+        },
+      },
+    });
+
+    await expect(
+      store.visitTestResult(
+        {
+          name: "test result",
+          labels: [],
+        },
+        { readerId },
+      ),
+    ).resolves.toBeUndefined();
+  });
+});
 describe("allNewTestResults", () => {
   const historyId = `${md5("test1")}.${md5("")}`;
   const createHistoryDataPoint = (testResultKeys: string[]): HistoryDataPoint => ({
@@ -1970,23 +2006,6 @@ describe("environments", () => {
     expect(result).toEqual(["default", "foo"]);
   });
 
-  it("should not add test results when visitTestResult fails allowlist validation", async () => {
-    const store = new DefaultAllureStore({
-      allowedEnvironments: ["foo"],
-    });
-
-    await expect(
-      store.visitTestResult(
-        {
-          name: "test result 1",
-        },
-        { readerId },
-      ),
-    ).rejects.toThrow('test result environment: environment id "default" is not listed in allowedEnvironments');
-
-    expect(await store.allTestResults({ includeHidden: true })).toEqual([]);
-  });
-
   it("should return test results for given environment", async () => {
     const store = new DefaultAllureStore({
       environmentsConfig: {
@@ -2523,7 +2542,7 @@ describe("visitGlobals", () => {
     ).rejects.toThrow('globals environment: environment id "prod_env" is not listed in allowedEnvironments');
   });
 
-  it("should not validate environmentsConfig keys against allowedEnvironments in the constructor", () => {
+  it("should validate environmentsConfig keys against allowedEnvironments in the constructor", () => {
     expect(
       () =>
         new DefaultAllureStore({
@@ -2534,7 +2553,7 @@ describe("visitGlobals", () => {
             },
           },
         }),
-    ).not.toThrow();
+    ).toThrow('environment config: environment id "prod_env" is not listed in allowedEnvironments');
   });
 
   it("should use exact raw allowedEnvironments membership in the constructor", () => {
@@ -2549,7 +2568,7 @@ describe("visitGlobals", () => {
             },
           },
         }),
-    ).toThrow('store constructor environment: environment id "qa_env" is not listed in allowedEnvironments');
+    ).toThrow("allowedEnvironments[0]: id must not contain leading or trailing whitespace");
   });
 
   it("should fall back invalid explicit global environments to default", async () => {
