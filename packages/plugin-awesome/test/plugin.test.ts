@@ -578,11 +578,11 @@ describe("plugin", () => {
         expect(() => JSON.parse(decoded), `"${key}" value must be valid JSON`).not.toThrow();
       }
 
-      // widgets/environments.json must include "default"
+      // widgets/environments.json must include the default environment identity
       const envsRaw = embeddedData["widgets/environments.json"];
-      const envs = JSON.parse(Buffer.from(envsRaw, "base64").toString("utf-8")) as string[];
+      const envs = JSON.parse(Buffer.from(envsRaw, "base64").toString("utf-8")) as EnvironmentIdentity[];
 
-      expect(envs).toContain("default");
+      expect(envs).toContainEqual({ id: "default", name: "default" });
 
       // data test results file for the test must be present
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
