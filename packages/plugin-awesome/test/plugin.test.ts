@@ -459,26 +459,8 @@ describe("plugin", () => {
   });
 
   describe("single file mode", () => {
-    it("should embed env widget paths using posix separators", async () => {
-      const testResults: TestResult[] = [
-        {
-          id: "tr-1",
-          name: "passed test",
-          status: "passed",
-          environment: "default",
-          labels: [{ name: "tag", value: "smoke" }],
-        },
-      ] as TestResult[];
-
-      const addedFiles = new Map<string, Buffer>();
-      const reportFiles: ReportFiles = {
-        addFile: vi.fn(async (path: string, data: Buffer) => {
-          addedFiles.set(path, data);
-          return path;
-        }),
-      };
-
-      const store: AllureStore = {
+    const makeSingleFileStore = (testResults: TestResult[]): AllureStore =>
+      ({
         metadataByKey: vi.fn().mockResolvedValue(undefined),
         allEnvironments: vi.fn().mockResolvedValue(["default"]),
         allEnvironmentIdentities: vi
@@ -512,32 +494,98 @@ describe("plugin", () => {
         allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
         allNewTestResults: vi.fn().mockResolvedValue([]),
         attachmentContentById: vi.fn().mockResolvedValue(undefined),
-      } as unknown as AllureStore;
+      }) as unknown as AllureStore;
 
-      const context: PluginContext = {
-        id: "Awesome",
-        publish: true,
-        state: {} as PluginContext["state"],
-        allureVersion: "3.0.0",
-        reportUuid: "report-uuid",
-        reportName: "Test report",
-        reportFiles,
-        output: "/tmp/out",
+    const makeSingleFileContext = (reportFiles: ReportFiles): PluginContext => ({
+      id: "Awesome",
+      publish: true,
+      state: {} as PluginContext["state"],
+      allureVersion: "3.0.0",
+      reportUuid: "report-uuid",
+      reportName: "Test report",
+      reportFiles,
+      output: "/tmp/out",
+    });
+
+    /** Extract the allureReportData key→base64-value map embedded in index.html */
+    const extractEmbeddedData = (html: string): Record<string, string> => {
+      const data: Record<string, string> = {};
+      const pattern = /d\(("(?:[^"\\]|\\.)*"),("(?:[^"\\]|\\.)*")\)/g;
+      let match: RegExpExecArray | null;
+
+      while ((match = pattern.exec(html)) !== null) {
+        data[JSON.parse(match[1]) as string] = JSON.parse(match[2]) as string;
+      }
+
+      return data;
+    };
+
+    it("should embed all required widget files as valid base64 JSON with posix keys", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          environment: "default",
+          labels: [{ name: "tag", value: "smoke" }],
+        },
+      ] as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
       };
 
-      const plugin = new AwesomePlugin({
-        singleFile: true,
-      });
+      const plugin = new AwesomePlugin({ singleFile: true });
 
-      await plugin.start(context);
-      await plugin.update(context, store);
+      await plugin.start(makeSingleFileContext(reportFiles));
+      await plugin.done(makeSingleFileContext(reportFiles), makeSingleFileStore(testResults));
 
       const indexHtml = addedFiles.get("index.html")?.toString("utf-8") ?? "";
 
-      expect(indexHtml).toContain("widgets/default/tree.json");
-      expect(indexHtml).toContain("widgets/default/nav.json");
-      expect(indexHtml).not.toContain("widgets/default\\\\tree.json");
-      expect(indexHtml).not.toContain("widgets/default\\\\nav.json");
+      expect(indexHtml, "index.html must be generated").not.toBe("");
+
+      const embeddedData = extractEmbeddedData(indexHtml);
+
+      // All keys must use normalized report paths and POSIX separators.
+      for (const key of Object.keys(embeddedData)) {
+        expect(key).toMatch(/^(widgets|data)\//);
+        expect(key).not.toContain("\\");
+        expect(key).not.toMatch(/^(widgets|data)[^/]/);
+      }
+
+      // Required widget files must be present
+      const requiredKeys = [
+        "widgets/nav.json",
+        "widgets/default/tree.json",
+        "widgets/default/nav.json",
+        "widgets/environments.json",
+        "widgets/statistic.json",
+        "widgets/globals.json",
+      ];
+
+      for (const key of requiredKeys) {
+        expect(Object.keys(embeddedData), `"${key}" must be embedded`).toContain(key);
+      }
+
+      // Every value must decode to valid JSON
+      for (const [key, value] of Object.entries(embeddedData)) {
+        const decoded = Buffer.from(value, "base64").toString("utf-8");
+
+        expect(() => JSON.parse(decoded), `"${key}" value must be valid JSON`).not.toThrow();
+      }
+
+      // widgets/environments.json must include "default"
+      const envsRaw = embeddedData["widgets/environments.json"];
+      const envs = JSON.parse(Buffer.from(envsRaw, "base64").toString("utf-8")) as string[];
+
+      expect(envs).toContain("default");
+
+      // data test results file for the test must be present
+      expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);
     });
   });
 });
