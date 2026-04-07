@@ -570,6 +570,43 @@ describe("testops plugin", () => {
         index: 0,
       };
 
+      it("should preserve categories order from context.categories in createLaunchCategoriesBulk payload", async () => {
+        const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
+        const brokenTr = { ...fixtures.testResults[1], status: "broken" as const };
+
+        // Encounter order: broken first, then failed
+        AllureStoreMock.prototype.allTestResults.mockResolvedValue([brokenTr, failedTr]);
+        AllureStoreMock.prototype.attachmentsByTrId.mockResolvedValue([]);
+        AllureStoreMock.prototype.attachmentContentById.mockResolvedValue(fixtures.attachmentContent);
+        AllureStoreMock.prototype.fixturesByTrId.mockResolvedValue([]);
+
+        const categoryBroken: CategoryDefinition = {
+          id: "test-errors",
+          name: "Test errors",
+          matchers: [{ statuses: ["broken"] }],
+          groupBy: [],
+          groupByMessage: false,
+          index: 1,
+        };
+
+        TestOpsClientMock.prototype.createLaunchCategoriesBulk.mockResolvedValue([
+          { id: 1, externalId: "product-errors" },
+          { id: 2, externalId: "test-errors" },
+        ]);
+
+        const context = {
+          // Config order: failed category first, then broken category
+          categories: [categoryProductErrors, categoryBroken],
+        } as PluginContext;
+
+        await plugin.start(context, store);
+
+        expect(TestOpsClientMock.prototype.createLaunchCategoriesBulk).toHaveBeenCalledWith(123, [
+          { externalId: "product-errors", name: "Product errors" },
+          { externalId: "test-errors", name: "Test errors" },
+        ]);
+      });
+
       it("should call createLaunchCategoriesBulk and attach category from context.categories when tr matches", async () => {
         const failedTr = { ...fixtures.testResults[0], status: "failed" as const };
         AllureStoreMock.prototype.allTestResults.mockResolvedValue([failedTr]);
