@@ -19,7 +19,7 @@ export const parseWithExportedAttachments = async (
   try {
     attachmentsDir = await mkdtemp(path.join(tmpdir(), "allure-reader-xcresult-"));
     await exportAttachments(xcResultPath, attachmentsDir);
-    await fn(createAttachmentFileFactoryFn(attachmentsDir));
+    await fn(createAttachmentFileFactory(attachmentsDir));
   } finally {
     if (attachmentsDir) {
       try {
@@ -55,7 +55,7 @@ const timestampToString = (timestamp: number) => {
   });
 };
 
-const createAttachmentFileFactoryFn =
+export const createAttachmentFileFactory =
   (attachmentsDir: string): AttachmentFileFactory =>
   async (attachmentUuid, uniqueFileName) => {
     const fileExtension = path.extname(uniqueFileName);

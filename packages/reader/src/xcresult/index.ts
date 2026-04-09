@@ -35,6 +35,15 @@ export const readXcResultBundle = async (visitor: ResultsVisitor, directory: str
   return false;
 };
 
+export const isXcResultToolAvailable = async () => {
+  try {
+    await version();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const maybeGetXcResultToolVersion = async () => {
   try {
     return await version();
