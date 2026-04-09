@@ -62,6 +62,7 @@ export interface PluginSummary {
   status: TestStatus;
   duration: number;
   plugin?: string;
+  pluginId?: string;
   newTests?: SummaryTestResult[];
   flakyTests?: SummaryTestResult[];
   retryTests?: SummaryTestResult[];

@@ -597,6 +597,7 @@ export class AllureReport {
         return;
       }
 
+      summary.pluginId = context.id;
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
