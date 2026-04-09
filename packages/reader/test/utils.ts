@@ -40,14 +40,57 @@ export const readResults = async (
   files: Record<string, string> = {},
   result: boolean = true,
 ) => {
-  return step("readResults", async () => {
+  return step(`read ${reader.readerId()} results`, async () => {
     const visitor = mockVisitor();
+
+    await attachment(
+      `${reader.readerId()}-inputs.json`,
+      Buffer.from(
+        JSON.stringify(
+          {
+            readerId: reader.readerId(),
+            expectedResult: result,
+            files: Object.entries(files).map(([resourcePath, originalFileName]) => ({
+              resourcePath,
+              originalFileName,
+            })),
+          },
+          null,
+          2,
+        ),
+        "utf-8",
+      ),
+      "application/json",
+    );
+
     for (const filesKey in files) {
-      const resultFile = await readResourceAsResultFile(filesKey, files[filesKey]);
-      await attachResultFile(resultFile);
-      const read = await reader.read(visitor, resultFile);
-      expect(read).toBe(result);
+      await step(`read ${filesKey}`, async () => {
+        const resultFile = await readResourceAsResultFile(filesKey, files[filesKey]);
+        await attachResultFile(resultFile);
+        const read = await reader.read(visitor, resultFile);
+        expect(read).toBe(result);
+      });
     }
+
+    await attachment(
+      `${reader.readerId()}-visitor-summary.json`,
+      Buffer.from(
+        JSON.stringify(
+          {
+            testResults: visitor.visitTestResult.mock.calls.length,
+            attachmentFiles: visitor.visitAttachmentFile.mock.calls.length,
+            metadata: visitor.visitMetadata.mock.calls.length,
+            fixtures: visitor.visitTestFixtureResult.mock.calls.length,
+            globals: visitor.visitGlobals.mock.calls.length,
+          },
+          null,
+          2,
+        ),
+        "utf-8",
+      ),
+      "application/json",
+    );
+
     return visitor;
   });
 };

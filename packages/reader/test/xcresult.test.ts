@@ -7,13 +7,14 @@ import { step } from "allure-js-commons";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { IS_MAC } from "../src/xcresult/bundle.js";
-import { readXcResultBundle } from "../src/xcresult/index.js";
+import { isXcResultToolAvailable, readXcResultBundle } from "../src/xcresult/index.js";
 import { attachResultDir, buildResourcePath, mockVisitor } from "./utils.js";
 
 const filenamePatterns = {
   unnamed: /public\.data_\d_[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/,
   bar: /bar_\d_[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/,
 };
+const HAS_XCRESULTTOOL = IS_MAC && (await isXcResultToolAvailable());
 
 const readXcResultResource = async (resourcePath: string, expectedResult: boolean = true) => {
   return await step("readXcResultBundle", async () => {
@@ -47,7 +48,16 @@ describe.skipIf(IS_MAC)("Not a MAC machine", () => {
   });
 });
 
-describe.skipIf(!IS_MAC)("A MAC machine", { timeout: 10_000 }, () => {
+describe.skipIf(!IS_MAC || HAS_XCRESULTTOOL)("A MAC machine without xcresulttool", () => {
+  it("should treat xcresult parsing as unsupported instead of failing downstream assertions", async () => {
+    const result = await readXcResultResource("outcomes/passed.xcresult");
+
+    expect(result.visitAttachmentFile).not.toBeCalled();
+    expect(result.visitTestResult).not.toBeCalled();
+  });
+});
+
+describe.skipIf(!HAS_XCRESULTTOOL)("A MAC machine with xcresulttool", { timeout: 10_000 }, () => {
   describe("attachments", () => {
     it("should parse a nameless test attachment", async () => {
       const result = await readXcResultResource("attachments/nameless.xcresult");

@@ -1,7 +1,9 @@
 import { createRequire } from "node:module";
+import { env } from "node:process";
 import { defineConfig } from "vitest/config";
 
 const require = createRequire(import.meta.url);
+const resultsDir = env.ALLURE_RESULTS_DIR ?? "./out/allure-results";
 
 export default defineConfig({
   test: {
@@ -12,7 +14,7 @@ export default defineConfig({
       [
         "allure-vitest/reporter",
         {
-          resultsDir: "./out/allure-results",
+          resultsDir,
           globalLabels: [
             { name: "module", value: "reader" },
           ],
