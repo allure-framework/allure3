@@ -1,0 +1,10 @@
+{
+  "readerId": "cucumberjson",
+  "expectedResult": false,
+  "files": [
+    {
+      "resourcePath": "cucumberjsondata/reference/names/wellDefined.json",
+      "originalFileName": "cucumber"
+    }
+  ]
+}

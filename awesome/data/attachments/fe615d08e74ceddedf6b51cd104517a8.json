@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/labels/packages/suitePackageMissing.xml",
+      "originalFileName": "7c6b3510-571b-4e92-817f-cfb3c2101aac.xml"
+    }
+  ]
+}

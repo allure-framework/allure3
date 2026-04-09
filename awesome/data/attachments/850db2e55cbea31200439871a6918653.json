@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/statuses/skipped.xml",
+      "originalFileName": "0aff6e12-0e5c-4f64-a904-d19fd6d7c264-testsuite.xml"
+    }
+  ]
+}

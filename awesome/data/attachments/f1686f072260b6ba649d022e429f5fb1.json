@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/timings/stopInvalid.xml",
+      "originalFileName": "4a43e6b6-0995-4774-b93d-394647359bc0-testsuite.xml"
+    }
+  ]
+}

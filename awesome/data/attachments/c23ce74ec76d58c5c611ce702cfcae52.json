@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/bad-xml-characters.xml",
+      "originalFileName": "9dcdfa43-124a-4d78-ba25-fbf90e39e771-testsuite.xml"
+    }
+  ]
+}

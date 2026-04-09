@@ -1,0 +1,1 @@
+{"id":"1627a1b2d7dc7febc67e4a1f59b282e0","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool outcomes should parse a test with multiple failed top-level assertions","name":"should parse a test with multiple failed top-level assertions","status":"passed","testResultsByEnv":{"macos-latest":"4e76313dbe776a73c45e168058c2a0a1"}}

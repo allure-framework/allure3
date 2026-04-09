@@ -1,0 +1,1 @@
+{"id":"c008b5a39656434858c34d5e56328025","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool activities outcomes should parse an activity with multiple failed assertions","name":"should parse an activity with multiple failed assertions","status":"passed","testResultsByEnv":{"macos-latest":"66066d3fa5a6bff4f7a7ae29a01dd0d9"}}

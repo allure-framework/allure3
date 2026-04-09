@@ -1,0 +1,10 @@
+{
+  "readerId": "cucumberjson",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "cucumberjsondata/reference/stepNames/nameKeywordMissing.json",
+      "originalFileName": "cucumber.json"
+    }
+  ]
+}

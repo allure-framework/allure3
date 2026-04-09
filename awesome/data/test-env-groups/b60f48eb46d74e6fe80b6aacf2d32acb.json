@@ -1,0 +1,1 @@
+{"id":"b60f48eb46d74e6fe80b6aacf2d32acb","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool activities outcomes should parse an activity with two expected failures","name":"should parse an activity with two expected failures","status":"passed","testResultsByEnv":{"macos-latest":"8fbbecf88c35b2cb9f81ad9728d58d3c"}}

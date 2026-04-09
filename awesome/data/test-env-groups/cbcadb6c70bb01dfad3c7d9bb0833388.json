@@ -1,0 +1,1 @@
+{"id":"cbcadb6c70bb01dfad3c7d9bb0833388","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool outcomes should parse a test with one top-level expected failure","name":"should parse a test with one top-level expected failure","status":"passed","testResultsByEnv":{"macos-latest":"987b785b0b97458631e988bf0d1a5b12"}}

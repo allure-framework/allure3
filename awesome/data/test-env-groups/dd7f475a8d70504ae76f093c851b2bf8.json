@@ -1,0 +1,1 @@
+{"id":"dd7f475a8d70504ae76f093c851b2bf8","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test nested within two suites should have a subSuite","name":"should have a subSuite","status":"passed","testResultsByEnv":{"macos-latest":"00d935ad52967f17bf997f84f335452e"}}

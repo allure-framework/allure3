@@ -1,0 +1,10 @@
+{
+  "readerId": "cucumberjson",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "cucumberjsondata/reference/stepStatuses/passed.json",
+      "originalFileName": "cucumber.json"
+    }
+  ]
+}
