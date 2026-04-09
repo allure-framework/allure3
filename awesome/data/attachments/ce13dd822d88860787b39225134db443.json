@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/durations/roundUp.xml",
+      "originalFileName": "2738c88f-927d-4d8c-b637-51e3d38c9d83.xml"
+    }
+  ]
+}

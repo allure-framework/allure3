@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/timings/startGreaterThanStop.xml",
+      "originalFileName": "87d6338f-0524-42ba-85f8-6875dbb54676-testsuite.xml"
+    }
+  ]
+}

@@ -1,1 +1,1 @@
-{"id":"6fee04230f058917f84f4c01e42a47db","fullName":"test/config.test.ts#getPluginId rejects characters invalid on Windows file names","name":"rejects characters invalid on Windows file names","status":"passed","testResultsByEnv":{"windows-latest":"4bc3979f98d5972f5d3f12b70f7f8227"}}
+{"id":"6fee04230f058917f84f4c01e42a47db","fullName":"test/config.test.ts#getPluginId rejects characters invalid on Windows file names","name":"rejects characters invalid on Windows file names","status":"passed","testResultsByEnv":{"windows-latest":"adcad9bc2dc27f77078a111a5807f1fe"}}

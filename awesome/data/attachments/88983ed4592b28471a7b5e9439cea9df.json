@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/failure/empty.xml",
+      "originalFileName": "f091b03e-d36d-43d9-95c2-1b745b58dbaf.xml"
+    }
+  ]
+}

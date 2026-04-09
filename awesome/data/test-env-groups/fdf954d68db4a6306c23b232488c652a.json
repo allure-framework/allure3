@@ -1,1 +1,1 @@
-{"id":"fdf954d68db4a6306c23b232488c652a","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool destinations should add the ENV discriminator","name":"should add the ENV discriminator","status":"passed","testResultsByEnv":{"macos-latest":"3f5f6b4f1f64629d1e69b60c74313f1c"}}
+{"id":"fdf954d68db4a6306c23b232488c652a","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool destinations should add the ENV discriminator","name":"should add the ENV discriminator","status":"passed","testResultsByEnv":{"macos-latest":"e95a661a011b04edcbdb4cc41b335ffa"}}
