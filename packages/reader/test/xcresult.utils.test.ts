@@ -5,11 +5,7 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  findBundleInfoFile,
-  followsXcResultNaming,
-  isMostProbablyXcResultBundle,
-} from "../src/xcresult/bundle.js";
+import { findBundleInfoFile, followsXcResultNaming, isMostProbablyXcResultBundle } from "../src/xcresult/bundle.js";
 import { createAttachmentFileFactory, mapWellKnownAttachmentName } from "../src/xcresult/xcresulttool/utils.js";
 
 describe("xcresult bundle helpers", () => {
