@@ -41,6 +41,14 @@ const CONFIG_FILENAMES = [
 ] as const;
 const DEFAULT_CONFIG: Config = {} as const;
 
+const isAgentDescriptor = (value: string | undefined) => {
+  return value === "agent" || value === "@allurereport/plugin-agent";
+};
+
+const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
+  return Object.entries(plugins).some(([key, descriptor]) => isAgentDescriptor(key) || isAgentDescriptor(descriptor.import));
+};
+
 /**
  * Ensures a plugin id is safe as a single path segment
  */
@@ -262,7 +270,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
   const known = await readKnownIssues(knownIssuesPath);
   const variables = config.variables ?? {};
   const configuredPlugins = override.plugins ?? config.plugins;
-  const plugins =
+  const basePlugins =
     Object.keys(configuredPlugins ?? {}).length === 0
       ? {
           awesome: {
@@ -270,6 +278,14 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
           },
         }
       : configuredPlugins!;
+  const plugins = hasConfiguredAgent(basePlugins)
+    ? basePlugins
+    : {
+        ...basePlugins,
+        agent: {
+          options: {},
+        },
+      };
   const pluginInstances = await resolvePlugins(plugins);
 
   return {

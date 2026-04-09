@@ -389,7 +389,7 @@ describe("resolveConfig", () => {
     expect(resolved.historyLimit).toEqual(5);
   });
 
-  it("should set awesome as a default plugin if no plugins are provided", async () => {
+  it("should set awesome and agent as default plugins if no plugins are provided", async () => {
     (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 
     expect((await resolveConfig({})).plugins).toContainEqual({
@@ -402,6 +402,74 @@ describe("resolveConfig", () => {
       id: "awesome",
       enabled: true,
       options: {},
+      plugin: expect.any(PluginFixture),
+    });
+    expect((await resolveConfig({})).plugins).toContainEqual({
+      id: "agent",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
+    expect((await resolveConfig({ plugins: {} })).plugins).toContainEqual({
+      id: "agent",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
+  });
+
+  it("should append agent after configured plugins when agent is not specified", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {
+            reportName: "Custom",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+  });
+
+  it("should not duplicate agent when explicitly configured", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {},
+        },
+        agent: {
+          options: {
+            outputDir: "./out/agent-markdown",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins.filter(({ id }) => id === "agent")).toHaveLength(1);
+  });
+
+  it("should honor disabled agent config", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {},
+        },
+        agent: {
+          enabled: false,
+          options: {
+            outputDir: "./out/agent-markdown",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins).toContainEqual({
+      id: "agent",
+      enabled: false,
+      options: {
+        outputDir: "./out/agent-markdown",
+      },
       plugin: expect.any(PluginFixture),
     });
   });

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Allure Agent Setup"
+  short_description: "Set up Allure agent-mode project guidance"
+  default_prompt: "Use $allure-agent-mode-setup to add Allure agent-mode guidance to this project."
+
+policy:
+  allow_implicit_invocation: true
