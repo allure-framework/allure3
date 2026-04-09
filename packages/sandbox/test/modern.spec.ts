@@ -1,4 +1,4 @@
-import { globalAttachment, description, descriptionHtml, label, step } from "allure-js-commons";
+import { globalAttachment, globalError, description, descriptionHtml, label, step } from "allure-js-commons";
 import { expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
@@ -319,5 +319,19 @@ it("should create global attachment", async () => {
 
   await step("attaching global attachment", async () => {
     await globalAttachment("global-2.txt", Buffer.from("global content 2"), "text/plain");
+  });
+});
+
+it("should create global error", async () => {
+  await globalError({
+    message: "global error 1",
+    trace: "global error 1 trace",
+  });
+
+  await step("attaching global error", async () => {
+    await globalError({
+      message: "global error 2",
+      trace: "global error 2 trace",
+    });
   });
 });
