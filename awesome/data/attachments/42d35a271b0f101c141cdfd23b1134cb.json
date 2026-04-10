@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/error/messageInvalid.xml",
+      "originalFileName": "b914f7bd-28bf-41c0-b574-1f9a21336b7e.xml"
+    }
+  ]
+}

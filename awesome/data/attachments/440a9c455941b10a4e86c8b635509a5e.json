@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/skipped/wellDefined.xml",
+      "originalFileName": "8b6ee69c-7cb2-42f1-a7c0-da3f8b338d90.xml"
+    }
+  ]
+}
