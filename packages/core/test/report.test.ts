@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
@@ -359,5 +359,63 @@ describe("report", () => {
 
     expect(attachments).toHaveLength(1);
     expect(attachments[0]?.name).toBe("duplicated.log");
+  });
+
+  it("should ignore absolute global attachments outside working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-cwd-"));
+    const outsideDir = await mkdtemp(join(tmpdir(), "allure3-global-attachments-outside-"));
+    const insideFile = join(cwd, "inside.log");
+    const outsideFile = join(outsideDir, "outside.log");
+
+    await writeFile(insideFile, "inside");
+    await writeFile(outsideFile, "outside");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: [outsideFile, "*.log"],
+    });
+
+    expect(isAbsolute(outsideFile)).toBe(true);
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+    const names = attachments.map((a) => a.name).sort();
+
+    expect(names).toEqual(["inside.log"]);
+    expect(names).not.toContain("outside.log");
+  });
+
+  it("should ignore possibly sensitive files outside working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-cwd-"));
+    const outsideRoot = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-outside-"));
+    const insideFile = join(cwd, "artifacts", "safe.txt");
+    const sensitiveFile = join(outsideRoot, "secrets", "token.txt");
+
+    await mkdir(join(cwd, "artifacts"), { recursive: true });
+    await mkdir(join(outsideRoot, "secrets"), { recursive: true });
+    await writeFile(insideFile, "safe");
+    await writeFile(sensitiveFile, "super-secret");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: ["**/*.txt", sensitiveFile],
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+    const names = attachments.map((a) => a.name).sort();
+
+    expect(names).toEqual(["safe.txt"]);
+    expect(names).not.toContain("token.txt");
   });
 });

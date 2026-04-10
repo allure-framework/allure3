@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
 /* eslint max-lines: 0 */
@@ -261,7 +261,8 @@ export class AllureReport {
 
     this.#executionStage = "running";
 
-    const cwd = process.cwd();
+    const cwd = resolve(process.cwd());
+    const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
 
     if (this.#globalAttachments?.length) {
       const matchedFiles = new Set<string>();
@@ -273,9 +274,19 @@ export class AllureReport {
       }
 
       for (const filePath of matchedFiles) {
-        const originalFileName = basename(filePath);
+        const absoluteFilePath = resolve(filePath);
+        const isInsideCwd = absoluteFilePath === cwd || absoluteFilePath.startsWith(cwdWithSep);
 
-        this.#realtimeDispatcher.sendGlobalAttachment(new PathResultFile(filePath, originalFileName), originalFileName);
+        if (!isInsideCwd) {
+          continue;
+        }
+
+        const originalFileName = basename(absoluteFilePath);
+
+        this.#realtimeDispatcher.sendGlobalAttachment(
+          new PathResultFile(absoluteFilePath, originalFileName),
+          originalFileName,
+        );
       }
     }
 
