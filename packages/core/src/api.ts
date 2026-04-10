@@ -1,11 +1,5 @@
-import type {
-  CategoriesConfig,
-  DefaultLabelsConfig,
-  EnvironmentsConfig,
-  KnownTestFailure,
-  ReportVariables,
-} from "@allurereport/core-api";
-import type { Plugin, QualityGateConfig, ReportFiles } from "@allurereport/plugin-api";
+import type { CategoriesConfig, KnownTestFailure } from "@allurereport/core-api";
+import type { Plugin, ReportFiles, Config } from "@allurereport/plugin-api";
 import type { ResultsReader } from "@allurereport/reader-api";
 
 export interface PluginInstance {
@@ -15,50 +9,18 @@ export interface PluginInstance {
   options: Record<string, any>;
 }
 
-export interface FullConfig {
-  name: string;
-  output: string;
-  open: boolean;
-  port: string | undefined;
-  hideLabels?: (string | RegExp)[];
-  historyPath?: string;
-  historyLimit?: number;
-  knownIssuesPath: string;
-  /**
-   * You can specify default labels for tests which don't have them at all
-   * Could be useful if you want to highlight specific group of tests, e.g. when it's necessary to set the labels manually
-   * @example
-   * ```json
-   * {
-   *   "defaultLabels": {
-   *     "severity": "unspecified severity, set it manually",
-   *     "tag": ["foo", "bar"]
-   *   }
-   * }
-   * ```
-   */
-  defaultLabels?: DefaultLabelsConfig;
-  /**
-   * Signals that the report's plugins shouldn't be executed, but test results should be archived
-   * Archived test results can be restored later
-   */
-  dump?: string;
-  /**
-   * Environment which will be assigned to all tests
-   * Has higher priority than matched environment from the environments config field
-   */
-  environment?: string;
-  environments?: EnvironmentsConfig;
-  variables?: ReportVariables;
+type FullConfigRequiredFromConfig = Required<Pick<Config, "name" | "output" | "open" | "knownIssuesPath">>;
+
+export interface FullConfig
+  extends
+    Omit<Config, "name" | "output" | "open" | "knownIssuesPath" | "plugins" | "port">,
+    FullConfigRequiredFromConfig {
+  port: Config["port"] | undefined;
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];
-  appendHistory?: boolean;
   known?: KnownTestFailure[];
   realTime?: any;
-  qualityGate?: QualityGateConfig;
+  qualityGate?: Config["qualityGate"];
   categories?: CategoriesConfig;
-  allureService?: {
-    accessToken?: string;
-  };
 }
