@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import { ProgressConsolePresenter, resolveProgressConsoleMode } from "../src/index.js";
 
-const createStream = () => {
+const createStream = ({ isTTY = false }: { isTTY?: boolean } = {}) => {
   const chunks: string[] = [];
 
   return {
-    isTTY: false,
+    isTTY,
     write: (chunk: string) => {
       chunks.push(chunk);
       return true;
@@ -168,6 +168,45 @@ describe("ProgressConsolePresenter", () => {
     expect(stdout.read()).toContain("FAIL suite failing test");
     expect(stdout.read()).toContain("SKIP suite skipped test");
     expect(stderr.read()).toBe("");
+  });
+
+  it("should restore the live progress line after a rich mode highlight on TTY output", async () => {
+    const stdout = createStream({ isTTY: true });
+    const stderr = createStream();
+    const testResults: TestResult[] = [
+      {
+        id: "failed",
+        name: "failing test",
+        fullName: "suite failing test",
+        status: "failed",
+        flaky: false,
+        muted: false,
+        known: false,
+        hidden: false,
+        labels: [],
+        parameters: [],
+        links: [],
+        steps: [],
+        sourceMetadata: { readerId: "reader", metadata: {} },
+        error: { message: "boom" },
+      },
+    ];
+    const store = createStore({
+      testResults,
+      stats: { total: 1, failed: 1 },
+    });
+    const realtime = createRealtime();
+    const presenter = new ProgressConsolePresenter({
+      mode: "rich",
+      stdout,
+      stderr,
+    });
+
+    await presenter.attach(store, realtime.subscriber);
+    await realtime.emitTestResults(["failed"]);
+
+    expect(stdout.read()).toContain("FAIL suite failing test");
+    expect(stdout.read()).toMatch(/FAIL suite failing test.*Allure live: .*total 1/s);
   });
 
   it("should surface runner errors and partial runtime review in errors mode", async () => {

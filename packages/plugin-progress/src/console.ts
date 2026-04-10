@@ -636,11 +636,12 @@ export class ProgressConsolePresenter {
   }
 
   #restoreStatusLine() {
-    if (!this.#stdout.isTTY || !this.#statusLineVisible || !this.#latestProgressLine) {
+    if (!this.#stdout.isTTY || !this.#latestProgressLine) {
       return;
     }
 
     this.#stdout.write(this.#latestProgressLine);
+    this.#statusLineVisible = true;
   }
 
   #printEventLine(line: string, stream: OutputStream) {
