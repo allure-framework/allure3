@@ -4,6 +4,9 @@ import { describe, expect, it } from "vitest";
 
 import { ProgressConsolePresenter, resolveProgressConsoleMode } from "../src/index.js";
 
+const ansiPattern = new RegExp(String.raw`\u001B\[[0-?]*[ -/]*[@-~]`, "g");
+const stripAnsi = (value: string) => value.replace(ansiPattern, "");
+
 const createStream = ({ isTTY = false }: { isTTY?: boolean } = {}) => {
   const chunks: string[] = [];
 
@@ -13,7 +16,7 @@ const createStream = ({ isTTY = false }: { isTTY?: boolean } = {}) => {
       chunks.push(chunk);
       return true;
     },
-    read: () => chunks.join(""),
+    read: () => stripAnsi(chunks.join("")),
   };
 };
 
