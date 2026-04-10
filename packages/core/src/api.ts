@@ -23,4 +23,5 @@ export interface FullConfig
   realTime?: any;
   qualityGate?: Config["qualityGate"];
   categories?: CategoriesConfig;
+  globalAttachments?: string[];
 }
