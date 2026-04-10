@@ -63,6 +63,10 @@ export interface Config {
     accessToken?: string;
   };
   categories?: CategoriesConfig;
+  /**
+   * Array of glob patterns or full paths to match files in the working directory which should be attached to allure report as global attachments
+   */
+  globalAttachments?: string[];
 }
 
 export const defineConfig = (allureConfig: Config): Config => {

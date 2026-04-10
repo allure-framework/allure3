@@ -301,6 +301,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/snapshot", "npm:2.1.9"],\
           ["allure-js-commons", "virtual:3a0053d30ea23e2bc05be9bf4b5d77dfc3e77528707765ce5095eda8f30c0d1e3c53e60056d14a6e7d073538fee14669af72a6f71251afeeca5e301c569a31e8#npm:3.3.3"],\
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
+          ["glob", "npm:13.0.6"],\
           ["handlebars", "npm:4.7.9"],\
           ["node-stream-zip", "npm:1.15.0"],\
           ["p-limit", "npm:7.2.0"],\
@@ -16787,6 +16788,16 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
+      ["npm:13.0.6", {\
+        "packageLocation": "./.yarn/cache/glob-npm-13.0.6-864eb0cece-201ad69e5f.zip/node_modules/glob/",\
+        "packageDependencies": [\
+          ["glob", "npm:13.0.6"],\
+          ["minimatch", "npm:10.2.5"],\
+          ["minipass", "npm:7.1.3"],\
+          ["path-scurry", "npm:2.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:7.2.3", {\
         "packageLocation": "./.yarn/cache/glob-npm-7.2.3-2d866d17a5-59452a9202.zip/node_modules/glob/",\
         "packageDependencies": [\
@@ -19170,6 +19181,14 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "HARD"\
       }],\
+      ["npm:10.2.5", {\
+        "packageLocation": "./.yarn/cache/minimatch-npm-10.2.5-f1c8297822-19e87a931a.zip/node_modules/minimatch/",\
+        "packageDependencies": [\
+          ["minimatch", "npm:10.2.5"],\
+          ["brace-expansion", "npm:5.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
       ["npm:3.1.5", {\
         "packageLocation": "./.yarn/cache/minimatch-npm-3.1.5-86958baf50-b11a7ee577.zip/node_modules/minimatch/",\
         "packageDependencies": [\
@@ -19224,6 +19243,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/minipass-npm-7.1.2-3a5327d36d-c25f0ee819.zip/node_modules/minipass/",\
         "packageDependencies": [\
           ["minipass", "npm:7.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:7.1.3", {\
+        "packageLocation": "./.yarn/cache/minipass-npm-7.1.3-b73a16498d-175e4d5e20.zip/node_modules/minipass/",\
+        "packageDependencies": [\
+          ["minipass", "npm:7.1.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -20048,6 +20074,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/path-scurry-npm-2.0.0-5a556e8161-285ae0c2d6.zip/node_modules/path-scurry/",\
         "packageDependencies": [\
           ["path-scurry", "npm:2.0.0"],\
+          ["lru-cache", "npm:11.0.0"],\
+          ["minipass", "npm:7.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.0.2", {\
+        "packageLocation": "./.yarn/cache/path-scurry-npm-2.0.2-f10aa6a77e-2b4257422b.zip/node_modules/path-scurry/",\
+        "packageDependencies": [\
+          ["path-scurry", "npm:2.0.2"],\
           ["lru-cache", "npm:11.0.0"],\
           ["minipass", "npm:7.1.2"]\
         ],\

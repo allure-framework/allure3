@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
 /* eslint max-lines: 0 */
@@ -32,6 +32,7 @@ import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBund
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
+import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
 import pLimit from "p-limit";
 import ProgressBar from "progress";
@@ -69,6 +70,7 @@ export class AllureReport {
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
   readonly #environments: NonNullable<FullConfig["environments"]>;
+  readonly #globalAttachments: FullConfig["globalAttachments"];
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -97,6 +99,7 @@ export class AllureReport {
       dump,
       categories,
       allureService: allureServiceConfig,
+      globalAttachments,
     } = opts;
 
     this.#allureServiceClient = allureServiceConfig?.accessToken
@@ -116,6 +119,7 @@ export class AllureReport {
     this.#dump = dump;
     this.#hideLabels = hideLabels;
     this.#environments = environments ?? {};
+    this.#globalAttachments = globalAttachments;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -256,6 +260,35 @@ export class AllureReport {
     }
 
     this.#executionStage = "running";
+
+    const cwd = resolve(process.cwd());
+    const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
+
+    if (this.#globalAttachments?.length) {
+      const matchedFiles = new Set<string>();
+
+      for (const pattern of this.#globalAttachments) {
+        const files = await glob(pattern, { cwd, nodir: true, absolute: true });
+
+        files.forEach((filePath) => matchedFiles.add(filePath));
+      }
+
+      for (const filePath of matchedFiles) {
+        const absoluteFilePath = resolve(filePath);
+        const isInsideCwd = absoluteFilePath === cwd || absoluteFilePath.startsWith(cwdWithSep);
+
+        if (!isInsideCwd) {
+          continue;
+        }
+
+        const originalFileName = basename(absoluteFilePath);
+
+        this.#realtimeDispatcher.sendGlobalAttachment(
+          new PathResultFile(absoluteFilePath, originalFileName),
+          originalFileName,
+        );
+      }
+    }
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish && branch) {

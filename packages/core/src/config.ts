@@ -146,6 +146,7 @@ export const validateConfig = (config: Config) => {
     "qualityGate",
     "allureService",
     "categories",
+    "globalAttachments",
   ] as const;
   const unsupportedFields = Object.keys(config).filter(
     (key) => !supportedFields.includes(key as (typeof supportedFields)[number]),
@@ -291,6 +292,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     qualityGate: config.qualityGate,
     allureService: config.allureService,
     categories: config.categories,
+    globalAttachments: config.globalAttachments,
   };
 };
 

@@ -1,9 +1,13 @@
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { isAbsolute, join } from "node:path";
+
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { generateSummary } from "@allurereport/summary";
 import type { Mock, Mocked } from "vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
@@ -46,8 +50,15 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
   };
 };
 
+let previousCwd: string;
+
 beforeEach(() => {
+  previousCwd = process.cwd();
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  process.chdir(previousCwd);
 });
 
 describe("report", () => {
@@ -299,5 +310,112 @@ describe("report", () => {
         environment: "QA",
       }),
     );
+  });
+
+  it("should attach global attachments matched by glob patterns from working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-"));
+    const first = join(cwd, "global.log");
+    const second = join(cwd, "artifacts", "nested.txt");
+
+    await writeFile(first, "first");
+    await mkdir(join(cwd, "artifacts"), { recursive: true });
+    await writeFile(second, "second");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: ["*.log", "artifacts/**/*.txt"],
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+    const names = attachments.map((a) => a.name).sort();
+
+    expect(names).toEqual(["global.log", "nested.txt"]);
+  });
+
+  it("should deduplicate global attachments matched by multiple glob patterns", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-dedup-"));
+    const file = join(cwd, "duplicated.log");
+
+    await writeFile(file, "dup");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: ["*.log", "**/*.log", "duplicated.log"],
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+
+    expect(attachments).toHaveLength(1);
+    expect(attachments[0]?.name).toBe("duplicated.log");
+  });
+
+  it("should ignore absolute global attachments outside working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-cwd-"));
+    const outsideDir = await mkdtemp(join(tmpdir(), "allure3-global-attachments-outside-"));
+    const insideFile = join(cwd, "inside.log");
+    const outsideFile = join(outsideDir, "outside.log");
+
+    await writeFile(insideFile, "inside");
+    await writeFile(outsideFile, "outside");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: [outsideFile, "*.log"],
+    });
+
+    expect(isAbsolute(outsideFile)).toBe(true);
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+    const names = attachments.map((a) => a.name).sort();
+
+    expect(names).toEqual(["inside.log"]);
+    expect(names).not.toContain("outside.log");
+  });
+
+  it("should ignore possibly sensitive files outside working directory", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-cwd-"));
+    const outsideRoot = await mkdtemp(join(tmpdir(), "allure3-global-attachments-sensitive-outside-"));
+    const insideFile = join(cwd, "artifacts", "safe.txt");
+    const sensitiveFile = join(outsideRoot, "secrets", "token.txt");
+
+    await mkdir(join(cwd, "artifacts"), { recursive: true });
+    await mkdir(join(outsideRoot, "secrets"), { recursive: true });
+    await writeFile(insideFile, "safe");
+    await writeFile(sensitiveFile, "super-secret");
+
+    process.chdir(cwd);
+
+    const config = await resolveConfig({
+      name: "Allure Report",
+      globalAttachments: ["**/*.txt", sensitiveFile],
+    });
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+
+    const attachments = await allureReport.store.allGlobalAttachments();
+    const names = attachments.map((a) => a.name).sort();
+
+    expect(names).toEqual(["safe.txt"]);
+    expect(names).not.toContain("token.txt");
   });
 });
