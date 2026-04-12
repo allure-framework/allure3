@@ -16,6 +16,16 @@ const SORT_BY_PARAM = "sortBy";
 
 const hasSortByParam = computed(() => hasParam(SORT_BY_PARAM));
 
+const validateSortBy = (sortByValue: string): sortByValue is SortBy => {
+  const parts = sortByValue.split(",");
+  if (parts.length !== 2) {
+    return false;
+  }
+  const [field, direction] = parts;
+
+  return SORT_BY_FIELDS.includes(field as SortByField) && DIRECTIONS.includes(direction as SortByDirection);
+};
+
 const getInitialSortBy = (): SortBy => {
   if (typeof window === "undefined") {
     return DEFAULT_SORT_BY;
@@ -38,16 +48,6 @@ export const setSortBy = (sortByValue: SortBy) => {
   }
 
   sortBySignal.value = sortByValue;
-};
-
-const validateSortBy = (sortByValue: string): sortByValue is SortBy => {
-  const parts = sortByValue.split(",");
-  if (parts.length !== 2) {
-    return false;
-  }
-  const [field, direction] = parts;
-
-  return SORT_BY_FIELDS.includes(field as SortByField) && DIRECTIONS.includes(direction as SortByDirection);
 };
 
 export const sortBy = computed<SortBy>(() => {
