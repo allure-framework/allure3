@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 const execFileAsync = promisify(execFile);
 const commandsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(commandsDir, "../../../..");
+const yarnRcPath = join(repoRoot, ".yarnrc.yml");
 const cliPath = join(repoRoot, "packages", "cli", "cli.js");
 const simpleResultFixture = join(repoRoot, "packages", "reader", "test", "resources", "allure2data", "simple.json");
 const maxBuffer = 10 * 1024 * 1024;
@@ -26,16 +27,53 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
   });
 };
 
+const resolveYarnInvocation = async () => {
+  if (process.env.npm_execpath) {
+    if (/\.(?:c|m)?js$/u.test(process.env.npm_execpath)) {
+      return {
+        command: process.execPath,
+        args: [process.env.npm_execpath],
+      };
+    }
+
+    return {
+      command: process.env.npm_execpath,
+      args: [],
+    };
+  }
+
+  const yarnRc = await readFile(yarnRcPath, "utf-8");
+  const configuredYarnPath = /^yarnPath:\s+(.+)$/m.exec(yarnRc)?.[1]?.trim();
+
+  if (configuredYarnPath) {
+    return {
+      command: process.execPath,
+      args: [resolve(repoRoot, configuredYarnPath)],
+    };
+  }
+
+  return {
+    command: process.platform === "win32" ? "yarn.cmd" : "yarn",
+    args: [],
+  };
+};
+
+const runYarnCommand = async (args: string[], options: RunCommandOptions = {}) => {
+  const yarnInvocation = await resolveYarnInvocation();
+
+  return await runCommand(yarnInvocation.command, [...yarnInvocation.args, ...args], options);
+};
+
 describe("run command integration", () => {
   let tempDir: string;
 
   beforeAll(async () => {
     tempDir = await mkdtemp(join(tmpdir(), "allure-cli-agent-"));
 
-    await runCommand("yarn", ["workspace", "@allurereport/core", "build"]);
-    await runCommand("yarn", ["workspace", "@allurereport/plugin-log", "build"]);
-    await runCommand("yarn", ["workspace", "@allurereport/plugin-agent", "build"]);
-    await runCommand("yarn", ["workspace", "allure", "build"]);
+    await runYarnCommand(["workspace", "@allurereport/core", "build"]);
+    await runYarnCommand(["workspace", "@allurereport/plugin-log", "build"]);
+    await runYarnCommand(["workspace", "@allurereport/plugin-agent", "build"]);
+    await runYarnCommand(["workspace", "allure", "build"]);
   }, 240_000);
 
   afterAll(async () => {
