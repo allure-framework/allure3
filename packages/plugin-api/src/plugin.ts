@@ -85,10 +85,20 @@ export interface ExitCode {
   original: number;
 }
 
+export type PluginGlobalError = TestError & {
+  environment?: string;
+};
+
+export type PluginGlobalAttachment = AttachmentLink & {
+  environment?: string;
+};
+
 export interface PluginGlobals {
   exitCode?: ExitCode;
-  errors: TestError[];
-  attachments: AttachmentLink[];
+  errors: PluginGlobalError[];
+  attachments: PluginGlobalAttachment[];
+  errorsByEnv?: Record<string, PluginGlobalError[]>;
+  attachmentsByEnv?: Record<string, PluginGlobalAttachment[]>;
 }
 
 export interface BatchOptions {
@@ -96,11 +106,13 @@ export interface BatchOptions {
 }
 
 export interface RealtimeSubscriber {
-  onGlobalAttachment(listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>): () => void;
+  onGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+  ): () => void;
 
   onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
 
-  onGlobalError(listener: (error: TestError) => Promise<void>): () => void;
+  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>): () => void;
 
   onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
 
@@ -112,11 +124,11 @@ export interface RealtimeSubscriber {
 }
 
 export interface RealtimeEventsDispatcher {
-  sendGlobalAttachment(attachment: ResultFile, fileName?: string): void;
+  sendGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string): void;
 
   sendGlobalExitCode(payload: ExitCode): void;
 
-  sendGlobalError(error: TestError): void;
+  sendGlobalError(error: PluginGlobalError): void;
 
   sendQualityGateResults(payload: QualityGateValidationResult[]): void;
 

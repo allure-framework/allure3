@@ -2,6 +2,7 @@ import { defaultChartsConfig, defineConfig } from "allure";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+const sandboxTestopsEnabled = process.env.SANDBOX_ENABLE_TESTOPS === "true";
 
 const chartLayout = [
   {
@@ -186,13 +187,17 @@ export default defineConfig({
         groupBy: "none",
       },
     },
-    testops: {
-      options: {
-        accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
-        projectId: "770",
-        endpoint: "http://localhost:8080",
-      }
-    }
+    ...(sandboxTestopsEnabled
+      ? {
+          testops: {
+            options: {
+              accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
+              projectId: "770",
+              endpoint: "http://localhost:8080",
+            },
+          },
+        }
+      : {}),
   },
   variables: {
     env_variable: "unknown",

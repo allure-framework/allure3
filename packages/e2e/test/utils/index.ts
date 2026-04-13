@@ -26,6 +26,7 @@ export type GeneratorParams = {
     exitCode?: ExitCode;
     errors?: TestError[];
     attachments?: Record<string, Buffer>;
+    attachmentsByEnv?: Record<string, Record<string, Buffer>>;
   };
   qualityGateResults?: QualityGateValidationResult[];
 };
@@ -114,6 +115,16 @@ export const generateReport = async (payload: GeneratorParams) => {
         const resultFile = new BufferResultFile(buffer, fileName);
 
         report.realtimeDispatcher.sendGlobalAttachment(resultFile);
+      });
+    }
+
+    if (globals.attachmentsByEnv) {
+      Object.entries(globals.attachmentsByEnv).forEach(([environment, attachments]) => {
+        Object.entries(attachments).forEach(([fileName, buffer]) => {
+          const resultFile = new BufferResultFile(buffer, fileName);
+
+          report.realtimeDispatcher.sendGlobalAttachment(resultFile, undefined, environment);
+        });
       });
     }
   }

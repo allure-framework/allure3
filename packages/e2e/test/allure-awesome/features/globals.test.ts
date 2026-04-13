@@ -153,6 +153,53 @@ test.describe("globals", () => {
 
       await globalsPage.attachScreenshot();
     });
+
+    test("should render grouped global attachments like quality gates", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+          environments: {
+            foo: {
+              name: "foo",
+              matcher: () => false,
+            },
+            bar: {
+              name: "bar",
+              matcher: () => false,
+            },
+          },
+        }),
+        testResults: [],
+        globals: {
+          attachments: {
+            "default-global.txt": Buffer.from("default global attachment", "utf8"),
+          },
+          attachmentsByEnv: {
+            foo: {
+              "foo-global.txt": Buffer.from("foo global attachment", "utf8"),
+            },
+            bar: {
+              "bar-global.txt": Buffer.from("bar global attachment", "utf8"),
+            },
+          },
+        },
+      });
+
+      await page.goto(bootstrap.url);
+
+      await expect(globalsPage.globalAttachmentsTabLocator).toContainText("3");
+      await globalsPage.globalAttachmentsTabLocator.click();
+      await expect(page.getByRole("button", { name: /^All\s+1$/ })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /Environment: "default"/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Environment: "foo"/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Environment: "bar"/ })).toBeVisible();
+      await expect(page.getByText("default-global.txt")).toBeVisible();
+      await expect(page.getByText("foo-global.txt")).toBeVisible();
+      await expect(page.getByText("bar-global.txt")).toBeVisible();
+
+      await globalsPage.attachScreenshot();
+    });
   });
 
   test.describe("errors", () => {
@@ -209,6 +256,58 @@ test.describe("globals", () => {
       await expect(page.getByTestId("test-result-error")).toHaveCount(2);
       await expect(page.getByTestId("test-result-error").nth(0)).toContainText(testErrors[0].message);
       await expect(page.getByTestId("test-result-error").nth(1)).toContainText(testErrors[1].message);
+
+      await globalsPage.attachScreenshot();
+    });
+
+    test("should render grouped global errors like quality gates", async ({ page }) => {
+      bootstrap = await bootstrapReport({
+        reportConfig: makeReportConfig({
+          name: "Test Report",
+          appendHistory: false,
+          environments: {
+            foo: {
+              name: "foo",
+              matcher: () => false,
+            },
+            bar: {
+              name: "bar",
+              matcher: () => false,
+            },
+          },
+        }),
+        testResults: [],
+        globals: {
+          errors: [
+            {
+              message: "default global error",
+              trace: "Error: default global error",
+            },
+            {
+              message: "foo global error",
+              trace: "Error: foo global error",
+              environment: "foo",
+            },
+            {
+              message: "bar global error",
+              trace: "Error: bar global error",
+              environment: "bar",
+            },
+          ],
+        },
+      });
+
+      await page.goto(bootstrap.url);
+
+      await expect(globalsPage.globalErrorsTabLocator).toContainText("3");
+      await globalsPage.globalErrorsTabLocator.click();
+      await expect(page.getByRole("button", { name: /^All\s+1$/ })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /Environment: "default"/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Environment: "foo"/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Environment: "bar"/ })).toBeVisible();
+      await expect(page.getByText("default global error")).toBeVisible();
+      await expect(page.getByText("foo global error")).toBeVisible();
+      await expect(page.getByText("bar global error")).toBeVisible();
 
       await globalsPage.attachScreenshot();
     });

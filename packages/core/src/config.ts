@@ -13,7 +13,9 @@ import { FileSystemReportFiles } from "./plugin.js";
 import {
   environmentIdentityById,
   environmentIdentityByName,
+  validateAllowedEnvironmentIds,
   normalizeEnvironmentDescriptorMap,
+  validateAllowedEnvironmentId,
 } from "./utils/environment.js";
 import { importWrapper } from "./utils/module.js";
 import { normalizeImportPath } from "./utils/path.js";
@@ -141,6 +143,7 @@ export const validateConfig = (config: Config) => {
     "defaultLabels",
     "variables",
     "environment",
+    "allowedEnvironments",
     "environments",
     "appendHistory",
     "qualityGate",
@@ -208,13 +211,18 @@ export const loadJsConfig = async (configPath: string): Promise<Config> => {
 
 const resolveConfigEnvironments = (config: Config) => {
   const errors: string[] = [];
+  const {
+    ids: allowedEnvironments,
+    idsSet: allowedEnvironmentIds,
+    errors: allowedEnvironmentErrors,
+  } = validateAllowedEnvironmentIds(config.allowedEnvironments, "config.allowedEnvironments");
   const { normalized: environments, errors: environmentErrors } = normalizeEnvironmentDescriptorMap(
     config.environments ?? {},
     "config.environments",
   );
   let environment: string | undefined;
 
-  errors.push(...environmentErrors);
+  errors.push(...allowedEnvironmentErrors, ...environmentErrors);
 
   if (config.environment !== undefined) {
     const environmentResult = validateEnvironmentName(config.environment);
@@ -228,6 +236,24 @@ const resolveConfigEnvironments = (config: Config) => {
         environmentIdentityById(environments, normalizedEnvironment)?.id ??
         environmentIdentityByName(environments, normalizedEnvironment)?.id ??
         normalizedEnvironment;
+
+      const allowedEnvironmentError = validateAllowedEnvironmentId(environment, allowedEnvironmentIds, "config");
+
+      if (allowedEnvironmentError) {
+        throw new Error(`The provided Allure config contains invalid environments: ${allowedEnvironmentError}`);
+      }
+    }
+  }
+
+  for (const environmentId of Object.keys(environments)) {
+    const allowedEnvironmentError = validateAllowedEnvironmentId(
+      environmentId,
+      allowedEnvironmentIds,
+      "config.environments",
+    );
+
+    if (allowedEnvironmentError) {
+      throw new Error(`The provided Allure config contains invalid environments: ${allowedEnvironmentError}`);
     }
   }
 
@@ -238,6 +264,7 @@ const resolveConfigEnvironments = (config: Config) => {
   return {
     environments,
     environment,
+    allowedEnvironments,
   };
 };
 
@@ -248,7 +275,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     throw new Error(`The provided Allure config contains unsupported fields: ${validationResult.fields.join(", ")}`);
   }
 
-  const { environments, environment } = resolveConfigEnvironments(config);
+  const { environments, environment, allowedEnvironments } = resolveConfigEnvironments(config);
 
   const name = override.name ?? config.name ?? "Allure Report";
   const open = override.open ?? config.open ?? false;
@@ -281,6 +308,7 @@ export const resolveConfig = async (config: Config, override: ConfigOverride = {
     knownIssuesPath,
     known,
     environment,
+    allowedEnvironments,
     variables,
     environments,
     appendHistory,

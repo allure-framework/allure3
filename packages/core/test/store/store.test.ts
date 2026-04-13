@@ -393,6 +393,21 @@ describe("test results", () => {
   });
 });
 
+describe("environments", () => {
+  it("should not validate allowedEnvironments during live store construction", () => {
+    expect(
+      () =>
+        new DefaultAllureStore({
+          allowedEnvironments: ["foo"],
+          environmentsConfig: {
+            bar: {
+              matcher: () => true,
+            },
+          },
+        }),
+    ).not.toThrow();
+  });
+});
 describe("allNewTestResults", () => {
   const historyId = `${md5("test1")}.${md5("")}`;
   const createHistoryDataPoint = (testResultKeys: string[]): HistoryDataPoint => ({
@@ -2151,9 +2166,15 @@ describe("visitGlobals", () => {
 
     expect(errors).toHaveLength(2);
     expect(errors).toEqual([
-      { message: "Setup failed", trace: "Error at setup.js:10" },
-      { message: "Teardown failed", trace: "Error at teardown.js:5" },
+      { message: "Setup failed", trace: "Error at setup.js:10", environment: "default" },
+      { message: "Teardown failed", trace: "Error at teardown.js:5", environment: "default" },
     ]);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [
+        { message: "Setup failed", trace: "Error at setup.js:10", environment: "default" },
+        { message: "Teardown failed", trace: "Error at teardown.js:5", environment: "default" },
+      ],
+    });
   });
 
   it("should add global attachments", async () => {
@@ -2174,25 +2195,33 @@ describe("visitGlobals", () => {
     expect(attachments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: md5("global-log.txt"),
+          id: md5("default:global-log.txt"),
           name: "log file",
           originalFileName: "global-log.txt",
           ext: ".txt",
           contentType: "text/plain",
           used: true,
-          missed: false,
+          missed: true,
+          environment: "default",
         }),
         expect.objectContaining({
-          id: md5("global-screen.png"),
+          id: md5("default:global-screen.png"),
           name: "screenshot",
           originalFileName: "global-screen.png",
           ext: ".png",
           contentType: "image/png",
           used: true,
-          missed: false,
+          missed: true,
+          environment: "default",
         }),
       ]),
     );
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      default: expect.arrayContaining([
+        expect.objectContaining({ originalFileName: "global-log.txt", environment: "default" }),
+        expect.objectContaining({ originalFileName: "global-screen.png", environment: "default" }),
+      ]),
+    });
   });
 
   it("should use originalFileName as name when name is not provided", async () => {
@@ -2227,11 +2256,12 @@ describe("visitGlobals", () => {
     const attachments = await store.allGlobalAttachments();
 
     expect(errors).toHaveLength(1);
-    expect(errors[0]).toEqual({ message: "Something went wrong" });
+    expect(errors[0]).toEqual({ message: "Something went wrong", environment: "default" });
     expect(attachments).toHaveLength(1);
     expect(attachments[0]).toMatchObject({
       name: "debug log",
       originalFileName: "debug.txt",
+      environment: "default",
     });
   });
 
@@ -2251,8 +2281,8 @@ describe("visitGlobals", () => {
     const attachments = await store.allGlobalAttachments();
 
     expect(errors).toHaveLength(2);
-    expect(errors[0]).toEqual({ message: "Error 1" });
-    expect(errors[1]).toEqual({ message: "Error 2" });
+    expect(errors[0]).toEqual({ message: "Error 1", environment: "default" });
+    expect(errors[1]).toEqual({ message: "Error 2", environment: "default" });
     expect(attachments).toHaveLength(2);
   });
 
@@ -2308,13 +2338,216 @@ describe("visitGlobals", () => {
 
     expect(dump.globalAttachmentIds).toHaveLength(1);
     expect(dump.globalErrors).toHaveLength(1);
-    expect(dump.globalErrors[0]).toEqual({ message: "Global error" });
+    expect(dump.globalErrors[0]).toEqual({ message: "Global error", environment: "default" });
 
     const attachmentId = dump.globalAttachmentIds[0];
 
     expect(dump.attachments[attachmentId]).toMatchObject({
       name: "log",
       originalFileName: "global.log",
+      environment: "default",
+    });
+  });
+
+  it("should preserve explicit global environments and group globals by environment id", async () => {
+    const store = new DefaultAllureStore({
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => true,
+        },
+      },
+      allowedEnvironments: ["qa_env"],
+    });
+
+    await store.visitGlobals({
+      errors: [{ message: "Global error", environment: "qa_env" }],
+      attachments: [
+        {
+          name: "log",
+          originalFileName: "global.log",
+          contentType: "text/plain",
+          environment: "QA",
+          type: "attachment",
+        },
+      ],
+    });
+
+    expect(await store.allGlobalErrors()).toEqual([{ message: "Global error", environment: "QA" }]);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      qa_env: [{ message: "Global error", environment: "QA" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      qa_env: [
+        expect.objectContaining({
+          originalFileName: "global.log",
+          environment: "QA",
+        }),
+      ],
+    });
+  });
+
+  it("should keep global attachments with the same file name distinct across environments", async () => {
+    const mockRealtimeSubscriber = {
+      onQualityGateResults: vi.fn(),
+      onGlobalExitCode: vi.fn(),
+      onGlobalError: vi.fn(),
+      onGlobalAttachment: vi.fn(),
+    };
+    const store = new DefaultAllureStore({
+      realtimeSubscriber: mockRealtimeSubscriber as any,
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+      allowedEnvironments: ["qa_env", "prod_env"],
+    });
+    const qaAttachmentFile = {
+      getOriginalFileName: () => "global.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 101,
+    };
+    const prodAttachmentFile = {
+      getOriginalFileName: () => "global.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 202,
+    };
+    const onGlobalAttachmentCallback = mockRealtimeSubscriber.onGlobalAttachment.mock.calls[0][0];
+
+    await onGlobalAttachmentCallback({ attachment: qaAttachmentFile, environment: "qa_env" });
+    await onGlobalAttachmentCallback({ attachment: prodAttachmentFile, environment: "prod_env" });
+
+    const attachmentsByEnv = await store.allGlobalAttachmentsByEnv();
+    const qaAttachment = attachmentsByEnv.qa_env[0];
+    const prodAttachment = attachmentsByEnv.prod_env[0];
+
+    expect(qaAttachment.id).toBe(md5("qa_env:global.log"));
+    expect(prodAttachment.id).toBe(md5("prod_env:global.log"));
+    expect(qaAttachment.id).not.toBe(prodAttachment.id);
+    expect(await store.attachmentContentById(qaAttachment.id)).toBe(qaAttachmentFile);
+    expect(await store.attachmentContentById(prodAttachment.id)).toBe(prodAttachmentFile);
+  });
+
+  it("should link existing attachment content when globals are visited after files", async () => {
+    const store = new DefaultAllureStore();
+    const resultFile = {
+      getOriginalFileName: () => "global.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 123,
+    };
+
+    await store.visitAttachmentFile(resultFile as any);
+    await store.visitGlobals({
+      errors: [],
+      attachments: [{ originalFileName: "global.log", name: "global", type: "attachment" }],
+    });
+
+    const [attachment] = await store.allGlobalAttachments();
+
+    expect(attachment.missed).toBe(false);
+    expect(await store.attachmentContentById(attachment.id)).toBe(resultFile);
+  });
+
+  it("should link existing global attachments when files are visited after globals", async () => {
+    const store = new DefaultAllureStore();
+    const resultFile = {
+      getOriginalFileName: () => "global.log",
+      getExtension: () => ".log",
+      getContentType: () => "text/plain",
+      getContentLength: () => 123,
+    };
+
+    await store.visitGlobals({
+      errors: [],
+      attachments: [{ originalFileName: "global.log", name: "global", type: "attachment" }],
+    });
+    await store.visitAttachmentFile(resultFile as any);
+
+    const [attachment] = await store.allGlobalAttachments();
+
+    expect(attachment.missed).toBe(false);
+    expect(await store.attachmentContentById(attachment.id)).toBe(resultFile);
+  });
+
+  it("should inherit forced environment for globals without explicit environment", async () => {
+    const store = new DefaultAllureStore({
+      environment: "qa_env",
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => true,
+        },
+      },
+      allowedEnvironments: ["qa_env"],
+    });
+
+    await store.visitGlobals({
+      errors: [{ message: "Global error" }],
+      attachments: [{ originalFileName: "global.log", type: "attachment" }],
+    });
+
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      qa_env: [{ message: "Global error", environment: "QA" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      qa_env: [
+        expect.objectContaining({
+          originalFileName: "global.log",
+          environment: "QA",
+        }),
+      ],
+    });
+  });
+
+  it("should not validate globals assigned to environments outside allowedEnvironments during live ingestion", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+    });
+
+    await expect(
+      store.visitGlobals({
+        errors: [{ message: "Global error", environment: "prod_env" }],
+        attachments: [{ originalFileName: "global.log", type: "attachment", environment: "prod_env" }],
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      prod_env: [{ message: "Global error", environment: "prod_env" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      prod_env: [expect.objectContaining({ originalFileName: "global.log", environment: "prod_env" })],
+    });
+  });
+
+  it("should fall back invalid explicit global environments to default", async () => {
+    const store = new DefaultAllureStore();
+
+    await store.visitGlobals({
+      errors: [{ message: "Global error", environment: "" }],
+      attachments: [{ originalFileName: "global.log", type: "attachment", environment: "" }],
+    });
+
+    expect(await store.allGlobalErrors()).toEqual([{ message: "Global error", environment: "default" }]);
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      default: [{ message: "Global error", environment: "default" }],
+    });
+    expect(await store.allGlobalAttachments()).toEqual([
+      expect.objectContaining({
+        originalFileName: "global.log",
+        environment: "default",
+      }),
+    ]);
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      default: [expect.objectContaining({ originalFileName: "global.log", environment: "default" })],
     });
   });
 });
@@ -3215,6 +3448,157 @@ describe("dump state", () => {
     expect(results).toHaveLength(2);
     expect(results).toContainEqual(initialResult);
     expect(results).toContainEqual(dumpResult);
+  });
+
+  it("should reject restored test results assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {
+        "tr-1": {
+          id: "tr-1",
+          name: "prod result",
+          status: "passed",
+          environment: "Prod",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored testResults["tr-1"]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored global errors assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [{ message: "prod global error", environment: "Prod" }],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored globalErrors[0]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored quality gate results assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [{ rule: "maxFailures", success: false, message: "prod qg", environment: "Prod" }],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored qualityGateResults[0]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored latest-attempt indices outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {
+        prod_env: {},
+      },
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored indexLatestEnvTestResultByHistoryId["prod_env"]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
   });
 
   it("should degrade invalid restored test result environment names for indexing only", async () => {
