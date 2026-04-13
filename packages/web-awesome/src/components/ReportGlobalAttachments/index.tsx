@@ -55,11 +55,11 @@ export const ReportGlobalAttachments = () => {
 
         const entries = Object.entries(attachmentsByEnv).filter(([, envAttachments]) => envAttachments.length > 0);
 
-        if (!entries.length) {
-          if (!attachments.length) {
-            return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
-          }
+        if (!entries.length && !attachments.length) {
+          return <div className={styles["report-global-attachments-empty"]}>{t("no-attachments-results")}</div>;
+        }
 
+        if (!entries.length) {
           return renderAttachmentsContent(attachments);
         }
 

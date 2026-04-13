@@ -46,11 +46,11 @@ export const ReportGlobalErrors = () => {
 
         const entries = Object.entries(errorsByEnv).filter(([, envErrors]) => envErrors.length > 0);
 
-        if (!entries.length) {
-          if (!errors.length) {
-            return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
-          }
+        if (!entries.length && !errors.length) {
+          return <div className={styles["report-global-errors-empty"]}>{t("no-global-errors-results")}</div>;
+        }
 
+        if (!entries.length) {
           return renderErrorsContent(errors);
         }
 
