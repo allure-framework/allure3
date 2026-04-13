@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 
 import { notNull } from "@allurereport/core-api";
 import type {
+  RawGlobalAttachment,
+  RawGlobalError,
   RawFixtureResult,
   RawStep,
   RawTestAttachment,
@@ -23,6 +25,8 @@ import { cleanBadXmlCharacters, isStringAnyRecord, isStringAnyRecordArray } from
 import type {
   Attachment,
   FixtureResult,
+  GlobalAttachment,
+  GlobalStatusDetails,
   Globals,
   Label,
   Link,
@@ -154,7 +158,8 @@ export const allure2: ResultsReader = {
       }
     }
 
-    return false;
+    await visitor.visitAttachmentFile(data, { readerId });
+    return true;
   },
 
   readerId: () => readerId,
@@ -310,8 +315,10 @@ const processGlobals = async (visitor: ResultsVisitor, globals: Globals) => {
 
   await visitor.visitGlobals(
     {
-      attachments: Array.isArray(attachments) ? attachments.map((attachment) => convertAttachment(attachment)) : [],
-      errors: isStringAnyRecordArray(errors) ? errors : [],
+      attachments: Array.isArray(attachments)
+        ? attachments.map((attachment) => convertGlobalAttachment(attachment))
+        : [],
+      errors: isStringAnyRecordArray(errors) ? errors.map((error) => convertGlobalError(error)) : [],
     },
     { readerId },
   );
@@ -395,6 +402,23 @@ const convertAttachment = ({ name, type, source }: Attachment): RawTestAttachmen
     contentType: ensureString(type),
     originalFileName: ensureString(source),
     type: "attachment",
+  };
+};
+
+const convertGlobalAttachment = ({ environment, ...attachment }: GlobalAttachment): RawGlobalAttachment => {
+  return {
+    ...convertAttachment(attachment),
+    environment: ensureString(environment),
+  };
+};
+
+const convertGlobalError = ({ environment, ...error }: GlobalStatusDetails): RawGlobalError => {
+  return {
+    message: ensureString(error.message),
+    trace: ensureString(error.trace),
+    expected: ensureString(error.expected),
+    actual: ensureString(error.actual),
+    environment: ensureString(environment),
   };
 };
 

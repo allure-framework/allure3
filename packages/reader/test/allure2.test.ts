@@ -913,6 +913,46 @@ describe("allure2 reader", () => {
     expect(globals.errors).toHaveLength(0);
   });
 
+  it("should parse globals environments", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-with-environments.json": generateGlobalsName(),
+    });
+
+    expect(visitor.visitGlobals).toHaveBeenCalledTimes(1);
+
+    const [globals] = visitor.visitGlobals.mock.calls[0];
+
+    expect(globals.errors).toEqual([
+      {
+        message: "Global setup failed",
+        environment: "qa_env",
+      },
+    ]);
+    expect(globals.attachments).toEqual([
+      {
+        name: "Global log",
+        contentType: "text/plain",
+        originalFileName: "global-log.txt",
+        type: "attachment",
+        environment: "qa_env",
+      },
+    ]);
+  });
+
+  it("should read attachment files referenced by globals", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/globals-with-attachments.json": generateGlobalsName(),
+      "allure2data/global-log.txt": "global-log.txt",
+      "allure2data/global-screenshot.png": "global-screenshot.png",
+    });
+
+    expect(visitor.visitAttachmentFile).toHaveBeenCalledTimes(2);
+    expect(visitor.visitAttachmentFile.mock.calls.map(([file]) => file.getOriginalFileName())).toEqual([
+      "global-log.txt",
+      "global-screenshot.png",
+    ]);
+  });
+
   it("should not call visitGlobals for non-globals json files", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": generateTestResultName(),

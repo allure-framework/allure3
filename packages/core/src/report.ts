@@ -92,6 +92,7 @@ export class AllureReport {
       defaultLabels = {},
       variables = {},
       environment,
+      allowedEnvironments,
       environments,
       output,
       hideLabels,
@@ -148,6 +149,7 @@ export class AllureReport {
       known,
       defaultLabels,
       environment,
+      allowedEnvironments,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];

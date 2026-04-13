@@ -1,7 +1,23 @@
 @import "~@allurereport/web-components/mixins.scss";
 
+.report-global-errors-container {
+  padding: 12px 0 40px 8px;
+}
+
 .report-global-errors {
   padding: 20px 0;
+}
+
+.report-global-errors-item {
+  margin-bottom: 8px;
+}
+
+.report-global-errors-section {
+  &:not(:last-child) {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
+  }
 }
 
 .report-global-errors-empty {

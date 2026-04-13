@@ -28,6 +28,7 @@ export interface Config {
    * Has higher priority than matched environment from the environments config field
    */
   environment?: string;
+  allowedEnvironments?: string[];
   environments?: EnvironmentsConfig;
   variables?: ReportVariables;
   /**

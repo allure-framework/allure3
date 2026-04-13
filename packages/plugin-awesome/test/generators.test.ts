@@ -4,7 +4,7 @@ import type { EnvironmentIdentity, TestResult } from "@allurereport/core-api";
 import type { AllureStore, PluginContext } from "@allurereport/plugin-api";
 import { describe, expect, it, vi } from "vitest";
 
-import { generateAllCharts } from "../src/generators.js";
+import { generateAllCharts, generateGlobals } from "../src/generators.js";
 import type { AwesomeDataWriter } from "../src/writer.js";
 
 const getTestResultsStats = (trs: TestResult[], filter: (tr: TestResult) => boolean = () => true) => {
@@ -206,6 +206,85 @@ describe("generateAllCharts", () => {
     expect(qaBChart?.data).toEqual({
       failed: 1,
       total: 1,
+    });
+  });
+});
+
+describe("generateGlobals", () => {
+  it("should keep grouped globals by environment and exclude unwritten attachments from grouped payloads", async () => {
+    const writtenWidgets = new Map<string, unknown>();
+    const writtenContent = { kind: "attachment" } as any;
+    const writer: AwesomeDataWriter = {
+      writeData: vi.fn().mockResolvedValue(undefined),
+      writeWidget: vi.fn(async (fileName: string, data: unknown) => {
+        writtenWidgets.set(fileName, data);
+      }),
+      writeTestCase: vi.fn().mockResolvedValue(undefined),
+      writeAttachment: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await generateGlobals(writer, {
+      globalErrors: [{ message: "QA error", environment: "QA" }],
+      globalErrorsByEnv: {
+        qa_env: [{ message: "QA error", environment: "QA" }],
+      },
+      globalAttachments: [
+        { id: "written", ext: ".txt", originalFileName: "written.txt", missed: false, used: true, environment: "QA" },
+        {
+          id: "missing",
+          ext: ".txt",
+          originalFileName: "missing.txt",
+          missed: false,
+          used: true,
+          environment: "QA",
+        },
+      ],
+      globalAttachmentsByEnv: {
+        qa_env: [
+          { id: "written", ext: ".txt", originalFileName: "written.txt", missed: false, used: true, environment: "QA" },
+          {
+            id: "missing",
+            ext: ".txt",
+            originalFileName: "missing.txt",
+            missed: false,
+            used: true,
+            environment: "QA",
+          },
+        ],
+      },
+      contentFunction: vi.fn(async (id: string) => (id === "written" ? writtenContent : undefined)) as any,
+    });
+
+    expect(writer.writeAttachment).toHaveBeenCalledTimes(1);
+    expect(writer.writeAttachment).toHaveBeenCalledWith("written.txt", writtenContent);
+
+    expect(writtenWidgets.get("globals.json")).toEqual({
+      attachments: [
+        {
+          id: "written",
+          ext: ".txt",
+          originalFileName: "written.txt",
+          missed: false,
+          used: true,
+          environment: "QA",
+        },
+      ],
+      attachmentsByEnv: {
+        qa_env: [
+          {
+            id: "written",
+            ext: ".txt",
+            originalFileName: "written.txt",
+            missed: false,
+            used: true,
+            environment: "QA",
+          },
+        ],
+      },
+      errors: [{ message: "QA error", environment: "QA" }],
+      errorsByEnv: {
+        qa_env: [{ message: "QA error", environment: "QA" }],
+      },
     });
   });
 });

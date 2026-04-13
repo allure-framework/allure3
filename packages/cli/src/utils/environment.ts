@@ -1,3 +1,9 @@
+import {
+  environmentIdentityById,
+  environmentIdentityByName,
+  type FullConfig,
+  validateAllowedEnvironmentId,
+} from "@allurereport/core";
 import type { EnvironmentIdentity } from "@allurereport/core-api";
 import { validateEnvironmentId, validateEnvironmentName, type EnvironmentsConfig } from "@allurereport/core-api";
 import { Option, UsageError } from "clipanion";
@@ -95,7 +101,7 @@ const resolveConfigEnvironment = (config: Pick<EnvironmentConfig, "environment" 
 };
 
 export const resolveCommandEnvironment = (
-  config: Pick<EnvironmentConfig, "environment" | "environments">,
+  config: Pick<FullConfig, "environment" | "environments" | "allowedEnvironments">,
   options: CommandEnvironmentOptions & { source?: string },
 ): EnvironmentIdentity | undefined => {
   const source = options.source ?? "cli";
@@ -115,6 +121,13 @@ export const resolveCommandEnvironment = (
   }
 
   const identity = identityFromId ?? identityFromName ?? configIdentity;
+  const allowedEnvironmentIds = new Set(config.allowedEnvironments ?? []);
+  const allowlistError =
+    identity?.id !== undefined ? validateAllowedEnvironmentId(identity.id, allowedEnvironmentIds, source) : undefined;
+
+  if (allowlistError) {
+    throw new UsageError(allowlistError);
+  }
 
   return identity;
 };

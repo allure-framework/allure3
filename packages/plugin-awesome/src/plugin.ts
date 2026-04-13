@@ -78,8 +78,10 @@ export class AwesomePlugin implements Plugin {
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
+    const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
+    const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
     const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
     const envResultsById = new Map<string, Awaited<ReturnType<AllureStore["allTestResults"]>>>();
     const envIdByTrId = new Map<string, string>();
@@ -193,7 +195,9 @@ export class AwesomePlugin implements Plugin {
     await generateQualityGateResults(this.#writer!, qualityGateResults);
     await generateGlobals(this.#writer!, {
       globalAttachments,
+      globalAttachmentsByEnv,
       globalErrors,
+      globalErrorsByEnv,
       globalExitCode,
       contentFunction: (id) => store.attachmentContentById(id),
     });

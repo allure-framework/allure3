@@ -673,6 +673,123 @@ describe("resolveConfig", () => {
       }),
     ).resolves.toBeDefined();
   });
+
+  it("should reject environments outside allowedEnvironments in config.environment", async () => {
+    await expect(
+      resolveConfig({
+        environment: "baz",
+        allowedEnvironments: ["foo", "bar"],
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "baz" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject invalid allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "bar baz"],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[1]: id must contain only latin letters, digits, underscores, and hyphens",
+    );
+  });
+
+  it("should reject allowed environment ids with surrounding spaces instead of normalizing them", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: [" foo "],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[0]: id must not contain leading or trailing whitespace",
+    );
+  });
+
+  it("should reject duplicate allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "foo"],
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.allowedEnvironments: duplicated environment id "foo"',
+    );
+  });
+
+  it("should reject configured environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
+            matcher: () => true,
+          },
+          bar: {
+            matcher: () => false,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.environments: environment id "bar" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should keep display-name-only allowed environment entries raw and unmatched", async () => {
+    await expect(
+      resolveConfig({
+        environment: "QA",
+        allowedEnvironments: ["QA"],
+        environments: {
+          qa_env: {
+            name: "QA",
+            matcher: () => true,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "qa_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject forced environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        environment: "QA",
+        allowedEnvironments: ["prod"],
+        environments: {
+          qa: {
+            name: "QA",
+            matcher: () => true,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "qa" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should not validate quality gate environment ids against allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["qa_env"],
+        qualityGate: {
+          rules: [{ allTestsContainEnv: "bar", environmentsTested: ["qa_env", "bar"] }],
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("should not require default to be listed in allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
 });
 
 describe("getPluginInstance", () => {

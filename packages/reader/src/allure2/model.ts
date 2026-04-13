@@ -4,6 +4,10 @@ export interface Attachment {
   source?: string;
 }
 
+export interface GlobalAttachment extends Attachment {
+  environment?: string;
+}
+
 // TODO we need to ensure case insensitive enums mapping + do not fail in case of invalid values
 
 export enum Status {
@@ -55,6 +59,10 @@ export interface StatusDetails {
   expected?: string;
 }
 
+export interface GlobalStatusDetails extends StatusDetails {
+  environment?: string;
+}
+
 interface ExecutableItem {
   name?: string;
   status?: Status;
@@ -91,6 +99,6 @@ export interface TestResultContainer {
 }
 
 export interface Globals {
-  attachments: Attachment[];
-  errors: StatusDetails[];
+  attachments: GlobalAttachment[];
+  errors: GlobalStatusDetails[];
 }
