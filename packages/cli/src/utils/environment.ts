@@ -1,6 +1,5 @@
-import { environmentIdentityById, environmentIdentityByName, type FullConfig } from "@allurereport/core";
 import type { EnvironmentIdentity } from "@allurereport/core-api";
-import { validateEnvironmentId, validateEnvironmentName } from "@allurereport/core-api";
+import { validateEnvironmentId, validateEnvironmentName, type EnvironmentsConfig } from "@allurereport/core-api";
 import { Option, UsageError } from "clipanion";
 
 const environmentOptionDescription =
@@ -14,6 +13,47 @@ type CommandEnvironmentOptions = {
   environmentName?: string;
 };
 
+type EnvironmentConfig = {
+  environment?: string;
+  environments?: EnvironmentsConfig;
+};
+
+const environmentIdentityById = (
+  environmentsConfig: EnvironmentsConfig,
+  environmentId: string,
+): EnvironmentIdentity | undefined => {
+  if (!Object.prototype.hasOwnProperty.call(environmentsConfig, environmentId)) {
+    return undefined;
+  }
+
+  const descriptor = environmentsConfig[environmentId];
+
+  if (!descriptor) {
+    return undefined;
+  }
+
+  return {
+    id: environmentId,
+    name: descriptor.name ?? environmentId,
+  };
+};
+
+const environmentIdentityByName = (
+  environmentsConfig: EnvironmentsConfig,
+  environmentName: string,
+): EnvironmentIdentity | undefined => {
+  for (const [id, descriptor] of Object.entries(environmentsConfig)) {
+    if ((descriptor?.name ?? id) === environmentName) {
+      return {
+        id,
+        name: descriptor?.name ?? id,
+      };
+    }
+  }
+
+  return undefined;
+};
+
 export const environmentOption = () =>
   Option.String("--environment,--env", {
     description: environmentOptionDescription,
@@ -25,7 +65,7 @@ export const environmentNameOption = () =>
   });
 
 const resolveEnvironmentByName = (
-  config: Pick<FullConfig, "environments">,
+  config: Pick<EnvironmentConfig, "environments">,
   environmentName: string,
   source: string,
 ): EnvironmentIdentity => {
@@ -40,7 +80,7 @@ const resolveEnvironmentByName = (
   return identity;
 };
 
-const resolveConfigEnvironment = (config: Pick<FullConfig, "environment" | "environments">) => {
+const resolveConfigEnvironment = (config: Pick<EnvironmentConfig, "environment" | "environments">) => {
   if (config.environment === undefined) {
     return undefined;
   }
@@ -55,7 +95,7 @@ const resolveConfigEnvironment = (config: Pick<FullConfig, "environment" | "envi
 };
 
 export const resolveCommandEnvironment = (
-  config: Pick<FullConfig, "environment" | "environments">,
+  config: Pick<EnvironmentConfig, "environment" | "environments">,
   options: CommandEnvironmentOptions & { source?: string },
 ): EnvironmentIdentity | undefined => {
   const source = options.source ?? "cli";
