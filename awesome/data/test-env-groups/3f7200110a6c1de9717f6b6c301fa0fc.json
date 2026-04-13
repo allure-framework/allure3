@@ -1,1 +1,1 @@
-{"id":"3f7200110a6c1de9717f6b6c301fa0fc","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with a suite should not have a subSuite","name":"should not have a subSuite","status":"passed","testResultsByEnv":{"macos-latest":"c7e936023cd2adf736954314bb065657"}}
+{"id":"3f7200110a6c1de9717f6b6c301fa0fc","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with a suite should not have a subSuite","name":"should not have a subSuite","status":"passed","testResultsByEnv":{"macos-latest":"c77b97eac341407f14a8abafb52337b4"}}

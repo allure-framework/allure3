@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/failures/messageInvalid.xml",
+      "originalFileName": "fc643123-cdea-4b6d-adf1-9bddc5341041-testsuite.xml"
+    }
+  ]
+}

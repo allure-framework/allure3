@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/fullNames/noTestClass.xml",
+      "originalFileName": "3146df72-756e-4591-822b-8e2535e008a3-testsuite.xml"
+    }
+  ]
+}

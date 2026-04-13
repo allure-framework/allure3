@@ -1,0 +1,1 @@
+{"id":"0697b02c821085f606222b022ff9dbc6","fullName":"test/config.test.ts#resolveConfig should reject invalid allowed environment ids","name":"should reject invalid allowed environment ids","status":"passed","testResultsByEnv":{"windows-latest":"738b050ba4abaea2d16053a380af729d","ubuntu-latest":"ee17a65a218a2529740320a24c76e756","macos-latest":"9f73c2363faea9d14d07b641c7688b85"}}

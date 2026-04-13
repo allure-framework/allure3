@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/labels/testCaseLabelElementInvalid.xml",
+      "originalFileName": "2e45c191-0783-45a6-a548-2f9eb582b555-testsuite.xml"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/statuses/broken.xml",
+      "originalFileName": "23e20fc9-a628-49cd-b187-b02dfe28bd1e-testsuite.xml"
+    }
+  ]
+}
