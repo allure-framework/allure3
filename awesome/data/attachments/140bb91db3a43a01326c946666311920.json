@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/timings/startMissing.xml",
+      "originalFileName": "18e5eddd-ca15-4913-9943-30ccd9ec83ee-testsuite.xml"
+    }
+  ]
+}

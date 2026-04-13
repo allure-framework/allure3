@@ -1,1 +1,1 @@
-{"id":"c6c52e9845525b7f1db134ff77372cb4","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool repetitions should add repetition parameter","name":"should add repetition parameter","status":"passed","testResultsByEnv":{"macos-latest":"78c1e93ec35c13dcfb652dbfb3d095b3"}}
+{"id":"c6c52e9845525b7f1db134ff77372cb4","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool repetitions should add repetition parameter","name":"should add repetition parameter","status":"passed","testResultsByEnv":{"macos-latest":"580ba24f939dc9a61b1dfb9f502f2178"}}

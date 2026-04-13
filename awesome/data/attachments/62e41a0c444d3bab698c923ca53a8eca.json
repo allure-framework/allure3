@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/labels/testClasses/missing.xml",
+      "originalFileName": "830614fa-1483-41c4-bf5d-308dbb310c30.xml"
+    }
+  ]
+}

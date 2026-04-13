@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/globals-with-errors.json",
+      "originalFileName": "5e6cc798-71fa-4d5c-9c31-019960324404-globals.json"
+    }
+  ]
+}
