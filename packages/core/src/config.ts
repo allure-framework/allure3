@@ -46,7 +46,9 @@ const isAgentDescriptor = (value: string | undefined) => {
 };
 
 const hasConfiguredAgent = (plugins: Record<string, PluginDescriptor>) => {
-  return Object.entries(plugins).some(([key, descriptor]) => isAgentDescriptor(key) || isAgentDescriptor(descriptor.import));
+  return Object.entries(plugins).some(
+    ([key, descriptor]) => isAgentDescriptor(key) || isAgentDescriptor(descriptor.import),
+  );
 };
 
 /**

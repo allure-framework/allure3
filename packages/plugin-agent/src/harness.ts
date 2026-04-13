@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import type { Statistic, TestLabel, TestStatus } from "@allurereport/core-api";
+
 import { ENRICHMENT_ACTIONS_BY_CHECK_NAME, type EnrichmentActionCategory } from "./guidance.js";
 
 export type AgentFindingSeverity = "info" | "warning" | "high";
@@ -421,7 +422,10 @@ const sortPlan = (items: AgentEnrichmentPlanItem[]) =>
     return left.checkName.localeCompare(right.checkName);
   });
 
-const impactForFinding = (finding: AgentFindingManifestLine, antiDummyConfidenceThreshold: number): AgentAcceptanceImpact => {
+const impactForFinding = (
+  finding: AgentFindingManifestLine,
+  antiDummyConfidenceThreshold: number,
+): AgentAcceptanceImpact => {
   if (SCOPE_REJECTING_CHECKS.includes(finding.check_name as (typeof SCOPE_REJECTING_CHECKS)[number])) {
     return "reject";
   }
@@ -520,14 +524,20 @@ export const planAgentEnrichmentReview = (
   const notes: string[] = [];
 
   if (!output.run.expectations_present) {
-    notes.push("Generate ALLURE_AGENT_EXPECTATIONS before the next enrichment iteration so scope checks are comparable.");
+    notes.push(
+      "Generate ALLURE_AGENT_EXPECTATIONS before the next enrichment iteration so scope checks are comparable.",
+    );
   }
 
   if (rejecting.some((item) => item.checkName === "noop-dominated-steps")) {
-    notes.push("Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.");
+    notes.push(
+      "Reject noop-dominated enrichment: keep only steps tied to real actions or checks, and use real runtime attachments instead of placeholders.",
+    );
   }
 
-  if (rejecting.some((item) => SCOPE_REJECTING_CHECKS.includes(item.checkName as (typeof SCOPE_REJECTING_CHECKS)[number]))) {
+  if (
+    rejecting.some((item) => SCOPE_REJECTING_CHECKS.includes(item.checkName as (typeof SCOPE_REJECTING_CHECKS)[number]))
+  ) {
     notes.push("Reject scope drift: rerun only the intended tests and keep forbidden scope in the expectations file.");
   }
 

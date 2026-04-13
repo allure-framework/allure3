@@ -3,8 +3,8 @@
   "version": "3.3.1",
   "description": "Allure Agent Plugin – AI-friendly markdown report generator",
   "keywords": [
-    "allure",
     "agent",
+    "allure",
     "markdown",
     "plugin",
     "report",

@@ -1,9 +1,16 @@
 import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import type { AttachmentLink, TestError, TestFixtureResult, TestResult, TestStepResult } from "@allurereport/core-api";
-import type { AllureStore, ExitCode, PluginContext, QualityGateValidationResult, RealtimeSubscriber, ResultFile } from "@allurereport/plugin-api";
+import type {
+  AllureStore,
+  ExitCode,
+  PluginContext,
+  QualityGateValidationResult,
+  RealtimeSubscriber,
+  ResultFile,
+} from "@allurereport/plugin-api";
 import { BufferResultFile } from "@allurereport/reader-api";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -237,12 +244,10 @@ describe("AgentPlugin", () => {
       phase: "running" | "done";
     }>(join(outputDir, "manifest", "run.json"));
     const testContent = await readFile(join(outputDir, "tests", "default", "live-history.md"), "utf-8");
-    const eventLines = await readJsonl<
-      {
-        event_type: string;
-        markdown_path?: string;
-      }
-    >(join(outputDir, "manifest", "test-events.jsonl"));
+    const eventLines = await readJsonl<{
+      event_type: string;
+      markdown_path?: string;
+    }>(join(outputDir, "manifest", "test-events.jsonl"));
 
     expect(runningManifest.phase).toBe("running");
     expect(testContent).toContain("suite live result");
@@ -264,11 +269,9 @@ describe("AgentPlugin", () => {
     const finalManifest = await readJson<{
       phase: "running" | "done";
     }>(join(outputDir, "manifest", "run.json"));
-    const finalEvents = await readJsonl<
-      {
-        event_type: string;
-      }
-    >(join(outputDir, "manifest", "test-events.jsonl"));
+    const finalEvents = await readJsonl<{
+      event_type: string;
+    }>(join(outputDir, "manifest", "test-events.jsonl"));
 
     expect(finalManifest.phase).toBe("done");
     expect(finalEvents.at(-1)).toEqual(expect.objectContaining({ event_type: "run_finished" }));
@@ -610,9 +613,9 @@ describe("AgentPlugin", () => {
     expect(content).toContain("missing attachment");
     expect(content).toContain("screenshot.png");
     expect(content).toContain("fixture.log");
-    expect(await readFile(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png"), "utf-8")).toBe(
-      "png-bytes",
-    );
+    expect(
+      await readFile(join(outputDir, "tests", "default", "artifact-history.assets", "screenshot.png"), "utf-8"),
+    ).toBe("png-bytes");
     expect(await readFile(join(outputDir, "tests", "default", "artifact-history.assets", "fixture.log"), "utf-8")).toBe(
       "fixture log",
     );
@@ -700,19 +703,15 @@ notes:
         total: number;
       };
     }>(join(outputDir, "manifest", "run.json"));
-    const testsManifest = await readJsonl<
-      {
-        full_name: string;
-        scope_match: "match" | "unexpected" | "forbidden" | "unknown";
-      }
-    >(join(outputDir, "manifest", "tests.jsonl"));
-    const findingsManifest = await readJsonl<
-      {
-        check_name: string;
-        severity: "info" | "warning" | "high";
-        subject: string;
-      }
-    >(join(outputDir, "manifest", "findings.jsonl"));
+    const testsManifest = await readJsonl<{
+      full_name: string;
+      scope_match: "match" | "unexpected" | "forbidden" | "unknown";
+    }>(join(outputDir, "manifest", "tests.jsonl"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      severity: "info" | "warning" | "high";
+      subject: string;
+    }>(join(outputDir, "manifest", "findings.jsonl"));
     const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
     const forbiddenContent = await readFile(join(outputDir, "tests", "api", "feature-b-history.md"), "utf-8");
 
@@ -772,12 +771,10 @@ notes:
 
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
-    const findingsManifest = await readJsonl<
-      {
-        check_name: string;
-        severity: "info" | "warning" | "high";
-      }
-    >(join(outputDir, "manifest", "findings.jsonl"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      severity: "info" | "warning" | "high";
+    }>(join(outputDir, "manifest", "findings.jsonl"));
     const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
 
     expect(findingsManifest).toEqual(
@@ -874,12 +871,10 @@ notes:
         };
       };
     }>(join(outputDir, "manifest", "run.json"));
-    const findingsManifest = await readJsonl<
-      {
-        check_name: string;
-        severity: "info" | "warning" | "high";
-      }
-    >(join(outputDir, "manifest", "findings.jsonl"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      severity: "info" | "warning" | "high";
+    }>(join(outputDir, "manifest", "findings.jsonl"));
     const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
 
     expect(runManifest.actual_exit_code).toBe(1);
@@ -943,7 +938,7 @@ notes:
             Buffer.from(
               [
                 "1606| beforeAll(async () => {",
-                "xcrun: error: unable to find utility \"xcresulttool\", not a developer tool or in PATH",
+                'xcrun: error: unable to find utility "xcresulttool", not a developer tool or in PATH',
                 "NO_COLOR is ignored",
               ].join("\n"),
               "utf-8",
@@ -975,7 +970,7 @@ notes:
     const indexContent = await readFile(join(outputDir, "index.md"), "utf-8");
 
     expect(runManifest.modeling.stderr.actionableSamples).toEqual(
-      expect.arrayContaining([expect.stringContaining("unable to find utility \"xcresulttool\"")]),
+      expect.arrayContaining([expect.stringContaining('unable to find utility "xcresulttool"')]),
     );
     expect(runManifest.modeling.runnerFailures.samples).toEqual(
       expect.arrayContaining([expect.objectContaining({ message: expect.stringContaining("xcresulttool") })]),
@@ -1103,12 +1098,10 @@ notes:
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
     const testContent = await readFile(join(outputDir, "tests", "default", "low-signal-history.md"), "utf-8");
-    const findingsManifest = await readJsonl<
-      {
-        check_name: string;
-        subject: string;
-      }
-    >(join(outputDir, "manifest", "findings.jsonl"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      subject: string;
+    }>(join(outputDir, "manifest", "findings.jsonl"));
 
     expect(testContent).toContain("failed-without-useful-steps");
     expect(testContent).toContain("failed-without-attachments");
@@ -1164,13 +1157,11 @@ notes:
     await new AgentPlugin({ outputDir }).done(createContext(), store);
 
     const testContent = await readFile(join(outputDir, "tests", "default", "retry-evidence-history.md"), "utf-8");
-    const findingsManifest = await readJsonl<
-      {
-        check_name: string;
-        severity: "info" | "warning" | "high";
-        subject: string;
-      }
-    >(join(outputDir, "manifest", "findings.jsonl"));
+    const findingsManifest = await readJsonl<{
+      check_name: string;
+      severity: "info" | "warning" | "high";
+      subject: string;
+    }>(join(outputDir, "manifest", "findings.jsonl"));
 
     expect(testContent).toContain("retries-without-new-evidence");
     expect(testContent).toContain("## Retry 1");

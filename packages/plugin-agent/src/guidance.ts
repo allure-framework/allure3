@@ -33,12 +33,14 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
   "runner-failures-outside-logical-results": {
     category: "bootstrap-allure",
     title: "Inspect partial runtime failures before accepting the review",
-    guidance: "Check global stderr and global errors for suite-load, import, or setup failures that were not rendered as logical tests.",
+    guidance:
+      "Check global stderr and global errors for suite-load, import, or setup failures that were not rendered as logical tests.",
   },
   "unmodeled-visible-results": {
     category: "review-manually",
     title: "Call out partial runtime modeling",
-    guidance: "Compare run statistics with the logical test files and document any skipped or non-passed results that were not rendered.",
+    guidance:
+      "Compare run statistics with the logical test files and document any skipped or non-passed results that were not rendered.",
   },
   "missing-expected-test": {
     category: "narrow-test-scope",
@@ -108,17 +110,20 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
   "noop-dominated-steps": {
     category: "collapse-low-signal-trace",
     title: "Replace noop-style steps with real evidence",
-    guidance: "Keep only steps tied to real actions or checks, and replace bulk event spam with a compact artifact when needed.",
+    guidance:
+      "Keep only steps tied to real actions or checks, and replace bulk event spam with a compact artifact when needed.",
   },
   "step-spam": {
     category: "collapse-low-signal-trace",
     title: "Reduce low-signal step spam",
-    guidance: "Prefer a smaller set of meaningful steps plus one compact text attachment when the trace is mostly event logs.",
+    guidance:
+      "Prefer a smaller set of meaningful steps plus one compact text attachment when the trace is mostly event logs.",
   },
   "global-only-artifacts": {
     category: "add-test-attachments",
     title: "Move evidence closer to the failing test",
-    guidance: "Use step-scoped or test-scoped attachments near the relevant failing action instead of relying only on global logs.",
+    guidance:
+      "Use step-scoped or test-scoped attachments near the relevant failing action instead of relying only on global logs.",
   },
   "passed-without-observable-evidence": {
     category: "add-meaningful-steps",
@@ -213,16 +218,20 @@ export const renderAgentsGuide = (projectGuidePath?: string) =>
 
 ## Reading Order
 
-${projectGuidePath ? `1. Read [project guidance](${projectGuidePath}) first for repo-specific testing conventions and loop expectations.
+${
+  projectGuidePath
+    ? `1. Read [project guidance](${projectGuidePath}) first for repo-specific testing conventions and loop expectations.
 2. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
 3. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 4. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
 5. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
-6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.` : `1. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
+6. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.`
+    : `1. Read \`manifest/run.json\` for the current phase, counts, and modeling summary.
 2. Tail \`manifest/test-events.jsonl\` for the newest structured updates while the run is active.
 3. Open \`index.md\` for run-level status, scope summary, and the highest-priority findings.
 4. Open the relevant file under \`tests/<environment>/<historyId-or-trId>.md\` for evidence review.
-5. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.`}
+5. Follow links into \`.assets/\` for test-scoped artifacts and into \`artifacts/global/\` for process logs such as stdout and stderr.`
+}
 
 ## Directory Contract
 
