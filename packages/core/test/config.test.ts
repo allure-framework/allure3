@@ -699,7 +699,7 @@ describe("resolveConfig", () => {
     );
   });
 
-  it("should reject quality gate environment ids outside allowedEnvironments", async () => {
+  it("should not validate quality gate environment ids against allowedEnvironments", async () => {
     await expect(
       resolveConfig({
         allowedEnvironments: ["qa_env"],
@@ -707,9 +707,7 @@ describe("resolveConfig", () => {
           rules: [{ allTestsContainEnv: "bar", environmentsTested: ["qa_env", "bar"] }],
         },
       }),
-    ).rejects.toThrow(
-      'The provided Allure config contains invalid environments: config.qualityGate.rules[0].allTestsContainEnv: environment id "bar" is not listed in allowedEnvironments',
-    );
+    ).resolves.toBeDefined();
   });
 
   it("should not require default to be listed in allowedEnvironments", async () => {

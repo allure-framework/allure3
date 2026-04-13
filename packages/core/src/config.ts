@@ -3,7 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import * as process from "node:process";
 
-import { validateEnvironmentId, validateEnvironmentName } from "@allurereport/core-api";
+import { validateEnvironmentName } from "@allurereport/core-api";
 import type { Config, PluginDescriptor } from "@allurereport/plugin-api";
 import { parse } from "yaml";
 
@@ -257,48 +257,6 @@ const resolveConfigEnvironments = (config: Config) => {
     }
   }
 
-  for (const [rulesetIndex, ruleset] of (config.qualityGate?.rules ?? []).entries()) {
-    if (ruleset.allTestsContainEnv !== undefined) {
-      const validation = validateEnvironmentId(ruleset.allTestsContainEnv);
-
-      if (!validation.valid) {
-        errors.push(`config.qualityGate.rules[${rulesetIndex}].allTestsContainEnv: ${validation.reason}`);
-      } else {
-        const allowedEnvironmentError = validateAllowedEnvironmentId(
-          validation.normalized,
-          allowedEnvironmentIds,
-          `config.qualityGate.rules[${rulesetIndex}].allTestsContainEnv`,
-        );
-
-        if (allowedEnvironmentError) {
-          throw new Error(`The provided Allure config contains invalid environments: ${allowedEnvironmentError}`);
-        }
-      }
-    }
-
-    if (ruleset.environmentsTested !== undefined) {
-      for (const [environmentIndex, environmentId] of ruleset.environmentsTested.entries()) {
-        const validation = validateEnvironmentId(environmentId);
-
-        if (!validation.valid) {
-          errors.push(
-            `config.qualityGate.rules[${rulesetIndex}].environmentsTested[${environmentIndex}]: ${validation.reason}`,
-          );
-          continue;
-        }
-
-        const allowedEnvironmentError = validateAllowedEnvironmentId(
-          validation.normalized,
-          allowedEnvironmentIds,
-          `config.qualityGate.rules[${rulesetIndex}].environmentsTested[${environmentIndex}]`,
-        );
-
-        if (allowedEnvironmentError) {
-          throw new Error(`The provided Allure config contains invalid environments: ${allowedEnvironmentError}`);
-        }
-      }
-    }
-  }
   if (errors.length > 0) {
     throw new Error(`The provided Allure config contains invalid environments: ${errors.join("; ")}`);
   }

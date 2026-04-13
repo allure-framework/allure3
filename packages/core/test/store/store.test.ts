@@ -394,7 +394,7 @@ describe("test results", () => {
 });
 
 describe("environments", () => {
-  it("should reject configured environment ids outside allowedEnvironments in constructor", () => {
+  it("should not validate allowedEnvironments during live store construction", () => {
     expect(
       () =>
         new DefaultAllureStore({
@@ -405,28 +405,7 @@ describe("environments", () => {
             },
           },
         }),
-    ).toThrow('environment config: environment id "bar" is not listed in allowedEnvironments');
-  });
-
-  it("should allow default runtime environment even when it is omitted from allowedEnvironments", async () => {
-    const store = new DefaultAllureStore({
-      allowedEnvironments: ["foo"],
-      environmentsConfig: {
-        foo: {
-          matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "env" && value === "foo"),
-        },
-      },
-    });
-
-    await expect(
-      store.visitTestResult(
-        {
-          name: "test result",
-          labels: [],
-        },
-        { readerId },
-      ),
-    ).resolves.toBeUndefined();
+    ).not.toThrow();
   });
 });
 describe("allNewTestResults", () => {
@@ -2529,7 +2508,7 @@ describe("visitGlobals", () => {
     });
   });
 
-  it("should reject globals assigned to environments outside allowedEnvironments", async () => {
+  it("should not validate globals assigned to environments outside allowedEnvironments during live ingestion", async () => {
     const store = new DefaultAllureStore({
       allowedEnvironments: ["qa_env"],
     });
@@ -2537,38 +2516,16 @@ describe("visitGlobals", () => {
     await expect(
       store.visitGlobals({
         errors: [{ message: "Global error", environment: "prod_env" }],
-        attachments: [],
+        attachments: [{ originalFileName: "global.log", type: "attachment", environment: "prod_env" }],
       }),
-    ).rejects.toThrow('globals environment: environment id "prod_env" is not listed in allowedEnvironments');
-  });
+    ).resolves.toBeUndefined();
 
-  it("should validate environmentsConfig keys against allowedEnvironments in the constructor", () => {
-    expect(
-      () =>
-        new DefaultAllureStore({
-          allowedEnvironments: ["qa_env"],
-          environmentsConfig: {
-            prod_env: {
-              matcher: () => false,
-            },
-          },
-        }),
-    ).toThrow('environment config: environment id "prod_env" is not listed in allowedEnvironments');
-  });
-
-  it("should use exact raw allowedEnvironments membership in the constructor", () => {
-    expect(
-      () =>
-        new DefaultAllureStore({
-          environment: "qa_env",
-          allowedEnvironments: [" qa_env "],
-          environmentsConfig: {
-            qa_env: {
-              matcher: () => true,
-            },
-          },
-        }),
-    ).toThrow("allowedEnvironments[0]: id must not contain leading or trailing whitespace");
+    expect(await store.allGlobalErrorsByEnv()).toEqual({
+      prod_env: [{ message: "Global error", environment: "prod_env" }],
+    });
+    expect(await store.allGlobalAttachmentsByEnv()).toEqual({
+      prod_env: [expect.objectContaining({ originalFileName: "global.log", environment: "prod_env" })],
+    });
   });
 
   it("should fall back invalid explicit global environments to default", async () => {
@@ -3491,6 +3448,157 @@ describe("dump state", () => {
     expect(results).toHaveLength(2);
     expect(results).toContainEqual(initialResult);
     expect(results).toContainEqual(dumpResult);
+  });
+
+  it("should reject restored test results assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {
+        "tr-1": {
+          id: "tr-1",
+          name: "prod result",
+          status: "passed",
+          environment: "Prod",
+        },
+      },
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored testResults["tr-1"]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored global errors assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [{ message: "prod global error", environment: "Prod" }],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored globalErrors[0]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored quality gate results assigned to environments outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+      environmentsConfig: {
+        qa_env: {
+          name: "QA",
+          matcher: () => false,
+        },
+        prod_env: {
+          name: "Prod",
+          matcher: () => false,
+        },
+      },
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [{ rule: "maxFailures", success: false, message: "prod qg", environment: "Prod" }],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored qualityGateResults[0]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject restored latest-attempt indices outside allowedEnvironments", async () => {
+    const store = new DefaultAllureStore({
+      allowedEnvironments: ["qa_env"],
+    });
+    const dump = {
+      testResults: {},
+      attachments: {},
+      testCases: {},
+      fixtures: {},
+      environments: [],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {},
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {
+        prod_env: {},
+      },
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+
+    await expect(store.restoreState(dump as unknown as AllureStoreDump, {})).rejects.toThrow(
+      'restored indexLatestEnvTestResultByHistoryId["prod_env"]: environment id "prod_env" is not listed in allowedEnvironments',
+    );
   });
 
   it("should degrade invalid restored test result environment names for indexing only", async () => {
