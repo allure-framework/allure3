@@ -1,3 +1,3 @@
 import { createHash } from "node:crypto";
 
-export const md5 = (data: string) => createHash("md5").update(data).digest("hex");
+export const sha256 = (data: string) => createHash("sha256").update(data).digest("hex");
