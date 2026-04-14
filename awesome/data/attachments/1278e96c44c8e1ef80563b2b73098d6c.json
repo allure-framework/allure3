@@ -1,0 +1,18 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/status-details-flaky.json",
+      "originalFileName": "c10077f2-7410-409d-ac0a-f08d6be6bbf5-result.json"
+    },
+    {
+      "resourcePath": "allure2data/status-details-flaky-false.json",
+      "originalFileName": "847b89e6-6e83-4556-a618-7f0ebee157a7-result.json"
+    },
+    {
+      "resourcePath": "allure2data/status-details-flaky-not-set.json",
+      "originalFileName": "b3c2a4d6-8fe3-4694-b82a-e862441d3f12-result.json"
+    }
+  ]
+}

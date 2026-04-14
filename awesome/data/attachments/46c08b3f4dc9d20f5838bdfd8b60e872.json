@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/durations/integer.xml",
+      "originalFileName": "3967f85b-d351-4125-91bd-d5127a950a00.xml"
+    }
+  ]
+}

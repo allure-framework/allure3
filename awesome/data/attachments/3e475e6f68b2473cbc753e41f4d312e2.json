@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/passed.xml",
+      "originalFileName": "14981d24-0ba2-40f0-b60b-9fa2351630e4.xml"
+    }
+  ]
+}
