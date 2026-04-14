@@ -53,7 +53,7 @@ export const runProcess = (params: {
 
 export const terminationOf = (testProcess: ChildProcess): Promise<number | null> =>
   new Promise((resolve) => {
-    testProcess.on("exit", (code) => resolve(code));
+    testProcess.on("close", (code) => resolve(code));
   });
 
 /**

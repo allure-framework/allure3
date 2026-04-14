@@ -505,13 +505,17 @@ export class RunCommand extends Command {
       stderrResultFile.contentType = "text/plain";
 
       allureReport.realtimeDispatcher.sendGlobalAttachment(stderrResultFile, "stderr.txt");
+    }
 
-      if (processFailed) {
-        allureReport.realtimeDispatcher.sendGlobalError({
-          message: "Test process has failed",
-          trace: testProcessResult.stderr,
-        });
-      }
+    if (processFailed) {
+      const processFailureTrace = [testProcessResult?.stderr, testProcessResult?.stdout]
+        .filter((output): output is string => !!output)
+        .join("\n");
+
+      allureReport.realtimeDispatcher.sendGlobalError({
+        message: "Test process has failed",
+        ...(processFailureTrace ? { trace: processFailureTrace } : {}),
+      });
     }
 
     allureReport.realtimeDispatcher.sendGlobalExitCode(globalExitCode);
