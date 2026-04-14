@@ -1,7 +1,5 @@
 import { exit } from "node:process";
 
-import type { FullConfig } from "@allurereport/core";
-import { AllureReport, readConfig } from "@allurereport/core";
 import { KnownError } from "@allurereport/service";
 import { epic, feature, label, story } from "allure-js-commons";
 import { glob } from "glob";
@@ -10,6 +8,9 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { generate } from "../../../src/commands/commons/generate.js";
 import { logError } from "../../../src/utils/logs.js";
 import { AllureReportMock } from "../../utils.js";
+import { readConfig } from "@allurereport/core";
+
+type FullConfig = Record<string, unknown>;
 
 vi.mock("glob", () => ({
   glob: vi.fn(),
@@ -19,7 +20,6 @@ vi.mock("@allurereport/core", async () => {
 
   return {
     AllureReport: utils.AllureReportMock,
-    readConfig: vi.fn(),
   };
 });
 vi.mock("../../../src/utils/logs.js", () => ({
@@ -41,8 +41,8 @@ beforeEach(async () => {
 describe("generate function", () => {
   it("should do nothing when there are no results directory and dump files", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({});
 
     await generate({
       cwd: ".",
@@ -55,14 +55,13 @@ describe("generate function", () => {
       expect.stringContaining("No test results directories found matching pattern: ./notfound"),
     );
     expect(exit).toHaveBeenCalledWith(1);
-    expect(AllureReport).not.toHaveBeenCalled();
+    expect(AllureReportMock).not.toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
   });
 
   it("should initialize and run allure report when the results directory is provided", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
-    (readConfig as Mock).mockResolvedValue({});
 
     await generate({
       cwd: ".",
@@ -141,8 +140,6 @@ describe("generate function", () => {
     vi.mocked(glob).mockResolvedValueOnce(["dump2.zip"]);
     vi.mocked(glob).mockResolvedValueOnce([]);
 
-    (readConfig as Mock).mockResolvedValue({});
-
     await generate({
       cwd: ".",
       config: {} as FullConfig,
@@ -163,8 +160,6 @@ describe("generate function", () => {
     vi.mocked(glob).mockResolvedValueOnce(["dump1.zip"]);
     vi.mocked(glob).mockResolvedValueOnce(["dump2.zip"]);
     vi.mocked(glob).mockResolvedValueOnce(["./allure-results/"]);
-
-    (readConfig as Mock).mockResolvedValue({});
 
     await generate({
       cwd: ".",
