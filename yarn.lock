@@ -16431,7 +16431,7 @@ __metadata:
     allure-js-commons: "npm:^3.6.0"
     allure-vitest: "npm:^3.6.0"
     rimraf: "npm:^6.0.1"
-    vite: "npm:^6.4.1"
+    vite: "npm:^6.4.2"
     vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
@@ -18485,9 +18485,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.4.1":
-  version: 6.4.1
-  resolution: "vite@npm:6.4.1"
+"vite@npm:^6.4.2":
+  version: 6.4.2
+  resolution: "vite@npm:6.4.2"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
@@ -18536,7 +18536,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/ea2083b6b1d1c9e85a13d6797ae989aa1dbc27a5c054319c71141934bf3f8dba8d54b510618040f95751148da63787f28f043df7458a194c81f8b6d8a2d32844
+  checksum: 10/d6622843fb367065c2459c8d972d1f0d302844bdb329602c4bfb3c149607744f74fbfcbb3d170a4f58fa494012ad74a88e3a63df236845840d50475b89786796
   languageName: node
   linkType: hard
 
