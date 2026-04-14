@@ -1,0 +1,18 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/globals-with-attachments.json",
+      "originalFileName": "94ea9b02-b0af-4b9f-91e9-b19c8125e8fc-globals.json"
+    },
+    {
+      "resourcePath": "allure2data/global-log.txt",
+      "originalFileName": "global-log.txt"
+    },
+    {
+      "resourcePath": "allure2data/global-screenshot.png",
+      "originalFileName": "global-screenshot.png"
+    }
+  ]
+}
