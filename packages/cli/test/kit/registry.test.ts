@@ -22,6 +22,7 @@ describe("kit/registry", () => {
       expect(frameworkIds).toContain("jasmine");
       expect(frameworkIds).toContain("codeceptjs");
       expect(frameworkIds).toContain("newman");
+      expect(frameworkIds).toContain("wdio");
     });
 
     it("should have unique ids", () => {

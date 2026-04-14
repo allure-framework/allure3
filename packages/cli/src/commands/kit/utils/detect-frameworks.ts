@@ -129,6 +129,12 @@ export const detectFrameworksByFiles = async (cwd: string): Promise<DetectedFram
         continue;
       }
 
+      // WDIO commonly uses Cucumber feature files, but it's not the same as standalone Cucumber.js.
+      // If WDIO was detected by config, avoid auto-detecting standalone Cucumber.js just by "*.feature".
+      if (detectedIds.has("wdio") && framework.id === "cucumberjs") {
+        continue;
+      }
+
       const hasTestFiles = framework.testFilePatterns.some((pattern) =>
         projectFiles.some((file) => matchesGlob(file, pattern)),
       );
@@ -155,11 +161,14 @@ export const detectFrameworks = async (cwd: string): Promise<DetectedFramework[]
 
     for (const framework of FRAMEWORK_REGISTRY) {
       for (const [source, deps] of Object.entries(allDependencies)) {
-        if (deps[framework.packageName]) {
+        const detectPackageNames = framework.detectPackageNames ?? [framework.packageName];
+        const matchedPackageName = detectPackageNames.find((name) => deps[name]);
+
+        if (matchedPackageName) {
           detectedFromDeps.push({
             framework,
             source: source as "dependencies" | "devDependencies",
-            version: deps[framework.packageName],
+            version: deps[matchedPackageName],
           });
           break;
         }
@@ -191,7 +200,8 @@ export const detectInstalledAllurePackages = async (
         name === "allure" ||
         name.startsWith("allure-") ||
         name.startsWith("@allurereport/") ||
-        name === "newman-reporter-allure"
+        name === "newman-reporter-allure" ||
+        name === "@wdio/allure-reporter"
       ) {
         allurePackages.push({ name, version, isDev });
       }

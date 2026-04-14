@@ -19,6 +19,7 @@ import {
   HistoryCommand,
   KitDefaultCommand,
   KitDoctorCommand,
+  KitGhPagesInitCommand,
   KitInitCommand,
   KitPluginAddCommand,
   KitPluginListCommand,
@@ -72,6 +73,16 @@ cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
+
+cli.register(KitDefaultCommand);
+cli.register(KitInitCommand);
+cli.register(KitUpdateCommand);
+cli.register(KitDoctorCommand);
+cli.register(KitGhPagesInitCommand);
+cli.register(KitPluginAddCommand);
+cli.register(KitPluginRemoveCommand);
+cli.register(KitPluginListCommand);
+
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 cli.runExit(args);

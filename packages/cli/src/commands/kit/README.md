@@ -8,6 +8,8 @@ It helps you:
 - manage report plugins,
 - diagnose setup issues.
 
+Detected frameworks include popular runners like Vitest, Playwright, Jest, Mocha, Cypress, Cucumber.js, Jasmine, CodeceptJS, Newman, and WebdriverIO (WDIO).
+
 ## Run
 
 Use without global install:
@@ -59,6 +61,14 @@ allure kit update [--yes] [--cwd <path>]
 
 ```bash
 allure kit doctor [--cwd <path>]
+```
+
+### `gh-pages init`
+
+Creates a GitHub Actions workflow that generates an Allure report and publishes it to GitHub Pages via the `gh-pages` branch.
+
+```bash
+allure kit gh-pages init [--yes] [--branch <name>] [--config <path>] [--test-command <cmd>] [--cwd <path>]
 ```
 
 ### `plugin list`

@@ -8,6 +8,7 @@ const COMMANDS = [
     name: "init",
     description: "Initialize Allure 3 in your project (auto-detects frameworks, --demo for sample tests)",
   },
+  { name: "gh-pages init", description: "Create GitHub Pages workflow for publishing Allure report" },
   { name: "plugin add <name>", description: "Add a report plugin with interactive options" },
   { name: "plugin remove <name>", description: "Remove a report plugin" },
   { name: "plugin list", description: "List available report plugins" },
