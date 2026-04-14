@@ -8,7 +8,6 @@ import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/cor
 import { newFilesInDirectoryWatcher } from "@allurereport/directory-watcher";
 import Awesome from "@allurereport/plugin-awesome";
 import ProgressPlugin from "@allurereport/plugin-progress";
-import ServerReloadPlugin from "@allurereport/plugin-server-reload";
 import { PathResultFile } from "@allurereport/reader-api";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
@@ -77,21 +76,6 @@ export class WatchCommand extends Command {
       port: this.port,
     });
 
-    try {
-      await rm(config.output, { recursive: true });
-    } catch (e) {
-      if (!isFileNotFoundError(e)) {
-        console.error("could not clean output directory", e);
-      }
-    }
-
-    // FIXME: do we need to start the server when there's no servable reports in the config?
-    const server = await serve({
-      servePath: config.output,
-      port: this.port ? parseInt(this.port, 10) : undefined,
-      live: false,
-      open: false,
-    });
     const allureReport = new AllureReport({
       ...config,
       realTime: true,
@@ -116,15 +100,26 @@ export class WatchCommand extends Command {
           options: {},
           plugin: new ProgressPlugin(),
         },
-        {
-          id: "server reload",
-          enabled: true,
-          options: {},
-          plugin: new ServerReloadPlugin({
-            server,
-          }),
-        },
       ],
+    });
+
+    try {
+      await rm(allureReport.output, { recursive: true });
+    } catch (e) {
+      if (!isFileNotFoundError(e)) {
+        console.error("could not clean output directory", e);
+      }
+    }
+
+    // FIXME: do we need to start the server when there's no servable reports in the config?
+    const server = await serve({
+      servePath: allureReport.output,
+      port: this.port ? parseInt(this.port, 10) : undefined,
+      live: false,
+      open: false,
+    });
+    const stopServerReload = allureReport.realtimeSubscriber.onAll(async () => {
+      server.reload();
     });
 
     await allureReport.start();
@@ -144,6 +139,7 @@ export class WatchCommand extends Command {
     process.on("SIGINT", async () => {
       // new line for ctrl+C character
       console.log("");
+      stopServerReload();
       await abort();
       await server.stop();
       await allureReport.done();

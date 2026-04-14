@@ -61,15 +61,19 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
     }
 
     await allureReport.done();
+
+    return allureReport.output;
   } catch (error) {
     if (error instanceof KnownError) {
       // eslint-disable-next-line no-console
       console.error(red(error.message));
       exit(1);
-      return;
+
+      return params.config.output;
     }
 
     await logError("Failed to generate report due to unexpected error", error as Error);
     exit(1);
+    return params.config.output;
   }
 };

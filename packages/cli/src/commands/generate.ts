@@ -82,7 +82,7 @@ export class GenerateCommand extends Command {
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
 
-    await generate({
+    const outputPath = await generate({
       dump: this.dump,
       resultsDir: this.resultsDir ?? "./**/allure-results",
       cwd,
@@ -92,7 +92,7 @@ export class GenerateCommand extends Command {
     if (config.open) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: config.output,
+        servePath: outputPath,
         open: true,
       });
     }

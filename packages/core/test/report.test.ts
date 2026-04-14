@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 
@@ -359,6 +359,35 @@ describe("report", () => {
 
     expect(attachments).toHaveLength(1);
     expect(attachments[0]?.name).toBe("duplicated.log");
+  });
+
+  it("should replace [report_uuid] placeholder in the output path", async () => {
+    const outputRoot = await mkdtemp(join(tmpdir(), "allure3-report-output-template-"));
+    const p1 = createPlugin("p1");
+    const p2 = createPlugin("p2");
+    const config = await resolveConfig({
+      name: "Allure Report",
+      output: join(outputRoot, "[report_uuid]", "my-report"),
+    });
+
+    p1.plugin.done.mockImplementation(async (context) => {
+      await context.reportFiles.addFile("marker.txt", Buffer.from("p1"));
+    });
+    p2.plugin.done.mockImplementation(async (context) => {
+      await context.reportFiles.addFile("marker.txt", Buffer.from("p2"));
+    });
+
+    config.plugins = [p1, p2];
+
+    const allureReport = new AllureReport(config);
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(allureReport.output).toBe(join(outputRoot, allureReport.reportUuid, "my-report"));
+    expect(allureReport.output).not.toContain("[report_uuid]");
+    await expect(access(join(allureReport.output, "p1", "marker.txt"))).resolves.toBeUndefined();
+    await expect(access(join(allureReport.output, "p2", "marker.txt"))).resolves.toBeUndefined();
   });
 
   it("should ignore absolute global attachments outside working directory", async () => {
