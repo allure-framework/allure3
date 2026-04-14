@@ -27,7 +27,30 @@ const runCommand = async (command: string, args: string[], options: RunCommandOp
   });
 };
 
+const pathExists = async (filePath: string) => {
+  try {
+    await stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const resolveYarnInvocation = async () => {
+  const yarnRc = await readFile(yarnRcPath, "utf-8");
+  const configuredYarnPath = /^yarnPath:\s+(.+)$/m.exec(yarnRc)?.[1]?.trim();
+
+  if (configuredYarnPath) {
+    const resolvedYarnPath = resolve(repoRoot, configuredYarnPath);
+
+    if (await pathExists(resolvedYarnPath)) {
+      return {
+        command: process.execPath,
+        args: [resolvedYarnPath],
+      };
+    }
+  }
+
   if (process.env.npm_execpath) {
     if (/\.(?:c|m)?js$/u.test(process.env.npm_execpath)) {
       return {
@@ -36,19 +59,20 @@ const resolveYarnInvocation = async () => {
       };
     }
 
+    if (process.platform === "win32" && !/\.[^./\\]+$/u.test(process.env.npm_execpath)) {
+      const windowsShimPath = `${process.env.npm_execpath}.cmd`;
+
+      if (await pathExists(windowsShimPath)) {
+        return {
+          command: windowsShimPath,
+          args: [],
+        };
+      }
+    }
+
     return {
       command: process.env.npm_execpath,
       args: [],
-    };
-  }
-
-  const yarnRc = await readFile(yarnRcPath, "utf-8");
-  const configuredYarnPath = /^yarnPath:\s+(.+)$/m.exec(yarnRc)?.[1]?.trim();
-
-  if (configuredYarnPath) {
-    return {
-      command: process.execPath,
-      args: [resolve(repoRoot, configuredYarnPath)],
     };
   }
 
