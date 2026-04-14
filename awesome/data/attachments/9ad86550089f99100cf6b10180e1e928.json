@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/sample.xml",
+      "originalFileName": "4b352311-18dc-4c2f-82d9-d6d60e18b2b5.xml"
+    }
+  ]
+}

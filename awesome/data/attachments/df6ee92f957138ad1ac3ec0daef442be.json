@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/oneNestedStep.xml",
+      "originalFileName": "b2be0692-bd35-4dac-8ebe-e3e8457221df-testsuite.xml"
+    }
+  ]
+}

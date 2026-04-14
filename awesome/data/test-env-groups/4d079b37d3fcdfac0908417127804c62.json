@@ -1,1 +1,1 @@
-{"id":"4d079b37d3fcdfac0908417127804c62","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with a suite should have a testClass","name":"should have a testClass","status":"passed","testResultsByEnv":{"macos-latest":"df0f67f555d867c94fd28315af7aca49"}}
+{"id":"4d079b37d3fcdfac0908417127804c62","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with a suite should have a testClass","name":"should have a testClass","status":"passed","testResultsByEnv":{"macos-latest":"25fa007f5e3fc3cc4019f231f894e8d2"}}

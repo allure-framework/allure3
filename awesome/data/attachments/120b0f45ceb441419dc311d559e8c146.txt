@@ -1,0 +1,1 @@
+Allure is running on http://localhost:40585
