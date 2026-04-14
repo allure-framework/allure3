@@ -38,7 +38,7 @@
     "@allurereport/reader-api": "workspace:*",
     "axios": "^1.15.0",
     "form-data": "^4.0.5",
-    "lodash-es": "^4",
+    "lodash-es": "^4.18.1",
     "p-limit": "^7.3.0",
     "progress": "^2.0.3",
     "yoctocolors": "^2"
