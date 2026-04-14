@@ -152,6 +152,7 @@ __metadata:
     "@playwright/test": "npm:^1.56.1"
     "@types/lodash.times": "npm:^4.3.9"
     "@types/node": "npm:^20.17.9"
+    allure: "workspace:*"
     allure-js-commons: "npm:^3.3.3"
     allure-playwright: "npm:^3.3.3"
     lodash.times: "npm:^4.3.2"

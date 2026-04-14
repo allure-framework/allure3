@@ -373,6 +373,7 @@ const RAW_RUNTIME_STATE =
           ["@playwright/test", "npm:1.56.1"],\
           ["@types/lodash.times", "npm:4.3.9"],\
           ["@types/node", "npm:20.17.9"],\
+          ["allure", "workspace:packages/cli"],\
           ["allure-js-commons", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["allure-playwright", "virtual:d975462ba8bd330fa59745db6b9711664d1c5cc20d72d175c0686c3e48e6363bb32374c77761b083dc4c2702519688a640326689c5664ffcf8ad63bcdea4777c#npm:3.3.3"],\
           ["lodash.times", "npm:4.3.2"],\

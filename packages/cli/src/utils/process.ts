@@ -9,6 +9,11 @@ type StopProcessTreeOpts = {
   signal?: NodeJS.Signals;
 };
 
+export type ProcessTermination = {
+  code: number | null;
+  error?: Error;
+};
+
 type ProcessBrief = {
   parentPid: number;
   pid: number;
@@ -52,9 +57,37 @@ export const runProcess = (params: {
   });
 };
 
-export const terminationOf = (testProcess: ChildProcess): Promise<number | null> =>
+export const terminationOf = (testProcess: ChildProcess): Promise<ProcessTermination> =>
   new Promise((resolve) => {
-    testProcess.on("exit", (code) => resolve(code));
+    let completed = false;
+    let processSpawned = false;
+    let terminationError: Error | undefined;
+
+    const finish = (code: number | null) => {
+      if (completed) {
+        return;
+      }
+
+      completed = true;
+      resolve({
+        code,
+        error: terminationError,
+      });
+    };
+
+    testProcess.once("spawn", () => {
+      processSpawned = true;
+    });
+    testProcess.once("error", (error) => {
+      terminationError = error;
+
+      // Child process spawn failures may not reach a meaningful exit code,
+      // but the command still needs to be treated as a failed run.
+      if (!processSpawned) {
+        finish(1);
+      }
+    });
+    testProcess.once("close", (code) => finish(code));
   });
 
 /**
