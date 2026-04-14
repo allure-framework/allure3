@@ -26,7 +26,7 @@
     "allure-js-commons": "^3.6.0",
     "allure-vitest": "^3.6.0",
     "rimraf": "^6.0.1",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "vitest": "^4.0.18"
   },
   "packageManager": "yarn@4.3.1"
