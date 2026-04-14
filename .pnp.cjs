@@ -631,7 +631,7 @@ const RAW_RUNTIME_STATE =
           ["allure-vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:3.3.3"],\
           ["axios", "npm:1.13.5"],\
           ["form-data", "npm:4.0.5"],\
-          ["lodash-es", "npm:4.17.23"],\
+          ["lodash-es", "npm:4.18.1"],\
           ["p-limit", "npm:7.3.0"],\
           ["progress", "npm:2.0.3"],\
           ["rimraf", "npm:6.0.1"],\
@@ -18654,10 +18654,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["lodash-es", [\
-      ["npm:4.17.23", {\
-        "packageLocation": "./.yarn/cache/lodash-es-npm-4.17.23-b4279789e6-1feae200df.zip/node_modules/lodash-es/",\
+      ["npm:4.18.1", {\
+        "packageLocation": "./.yarn/cache/lodash-es-npm-4.18.1-02cf41b912-8bfad225ef.zip/node_modules/lodash-es/",\
         "packageDependencies": [\
-          ["lodash-es", "npm:4.17.23"]\
+          ["lodash-es", "npm:4.18.1"]\
         ],\
         "linkType": "HARD"\
       }]\
