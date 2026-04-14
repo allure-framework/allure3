@@ -201,7 +201,8 @@ const RAW_RUNTIME_STATE =
           ["oxlint-tsgolint", "npm:0.16.0"],\
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["yaml", "npm:2.8.3"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -390,7 +391,8 @@ const RAW_RUNTIME_STATE =
           ["oxlint-tsgolint", "npm:0.16.0"],\
           ["rimraf", "npm:6.0.1"],\
           ["tslib", "npm:2.7.0"],\
-          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"]\
+          ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
+          ["yaml", "npm:2.8.3"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -12011,6 +12013,7 @@ const RAW_RUNTIME_STATE =
           ["typanion", "npm:3.14.0"],\
           ["typescript", "patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"],\
           ["vitest", "virtual:e545774f2ccef2393aca5c009a358532c03f065393263f9cbb3ab67366c2879624d5c1730fe5313387f3f2857386a5904c6581787f320ce570367a0ce47cf7b2#npm:2.1.9"],\
+          ["yaml", "npm:2.8.3"],\
           ["yoctocolors", "npm:2.1.1"]\
         ],\
         "linkType": "SOFT"\

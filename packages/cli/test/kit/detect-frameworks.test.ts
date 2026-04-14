@@ -87,6 +87,23 @@ describe("kit/detect-frameworks", () => {
       expect(detected[0].framework.adapterPackage).toBe("newman-reporter-allure");
     });
 
+    it("should detect wdio from devDependencies", async () => {
+      await writeFile(
+        join(tempDir, "package.json"),
+        JSON.stringify({
+          devDependencies: { "@wdio/cli": "^9.0.0" },
+        }),
+      );
+
+      const detected = await detectFrameworks(tempDir);
+
+      expect(detected).toHaveLength(1);
+      expect(detected[0].framework.id).toBe("wdio");
+      expect(detected[0].framework.adapterPackage).toBe("@wdio/allure-reporter");
+      expect(detected[0].source).toBe("devDependencies");
+      expect(detected[0].version).toBe("^9.0.0");
+    });
+
     it("should return empty array when no package.json exists", async () => {
       const detected = await detectFrameworks(tempDir);
 
@@ -192,6 +209,16 @@ describe("kit/detect-frameworks", () => {
       expect(detected[0].source).toBe("config-file");
     });
 
+    it("should detect wdio by config file", async () => {
+      await writeFile(join(tempDir, "wdio.conf.ts"), "export const config = {}");
+
+      const detected = await detectFrameworksByFiles(tempDir);
+
+      expect(detected).toHaveLength(1);
+      expect(detected[0].framework.id).toBe("wdio");
+      expect(detected[0].source).toBe("config-file");
+    });
+
     it("should detect cucumberjs by .feature files", async () => {
       const featuresDir = join(tempDir, "features");
 
@@ -203,6 +230,21 @@ describe("kit/detect-frameworks", () => {
       expect(detected).toHaveLength(1);
       expect(detected[0].framework.id).toBe("cucumberjs");
       expect(detected[0].source).toBe("test-files");
+    });
+
+    it("should not detect standalone cucumberjs by .feature files when wdio is detected", async () => {
+      await writeFile(join(tempDir, "wdio.conf.ts"), "export const config = {}");
+
+      const featuresDir = join(tempDir, "features");
+
+      await mkdir(featuresDir, { recursive: true });
+      await writeFile(join(featuresDir, "login.feature"), "Feature: Login");
+
+      const detected = await detectFrameworksByFiles(tempDir);
+      const ids = detected.map((d) => d.framework.id);
+
+      expect(ids).toContain("wdio");
+      expect(ids).not.toContain("cucumberjs");
     });
 
     it("should detect cypress by .cy.ts test files", async () => {
@@ -364,6 +406,20 @@ describe("kit/detect-frameworks", () => {
 
       expect(packages).toHaveLength(1);
       expect(packages[0].name).toBe("newman-reporter-allure");
+    });
+
+    it("should detect @wdio/allure-reporter as an allure package", async () => {
+      await writeFile(
+        join(tempDir, "package.json"),
+        JSON.stringify({
+          devDependencies: { "@wdio/allure-reporter": "^9.0.0" },
+        }),
+      );
+
+      const packages = await detectInstalledAllurePackages(tempDir);
+
+      expect(packages).toHaveLength(1);
+      expect(packages[0].name).toBe("@wdio/allure-reporter");
     });
 
     it("should return empty array when no package.json exists", async () => {

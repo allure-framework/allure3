@@ -14,6 +14,7 @@ import {
   HistoryCommand,
   KitDefaultCommand,
   KitDoctorCommand,
+  KitGhPagesInitCommand,
   KitInitCommand,
   KitPluginAddCommand,
   KitPluginListCommand,
@@ -69,6 +70,7 @@ cli.register(KitDefaultCommand);
 cli.register(KitInitCommand);
 cli.register(KitUpdateCommand);
 cli.register(KitDoctorCommand);
+cli.register(KitGhPagesInitCommand);
 cli.register(KitPluginAddCommand);
 cli.register(KitPluginRemoveCommand);
 cli.register(KitPluginListCommand);

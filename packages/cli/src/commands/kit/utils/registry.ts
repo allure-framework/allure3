@@ -1,7 +1,16 @@
 export interface FrameworkDescriptor {
   id: string;
   displayName: string;
+  /**
+   * Primary package name used for display and adapter mapping.
+   * Detection may include additional package names via `detectPackageNames`.
+   */
   packageName: string;
+  /**
+   * Additional package names that indicate this framework is used in the project.
+   * Useful when a framework is typically installed as a set of packages (e.g. WebdriverIO).
+   */
+  detectPackageNames?: string[];
   adapterPackage: string;
   setupHint: string;
   configFilePatterns: string[];
@@ -118,6 +127,25 @@ export const FRAMEWORK_REGISTRY: FrameworkDescriptor[] = [
     setupHint: 'Run newman with "-r allure" flag, e.g. newman run collection.json -r allure',
     configFilePatterns: [],
     testFilePatterns: ["**/*.postman_collection.json"],
+  },
+  {
+    id: "wdio",
+    displayName: "WebdriverIO (WDIO)",
+    packageName: "webdriverio",
+    detectPackageNames: [
+      "webdriverio",
+      "@wdio/cli",
+      "@wdio/local-runner",
+      "@wdio/runner",
+      "@wdio/cucumber-framework",
+      "@wdio/mocha-framework",
+      "@wdio/jasmine-framework",
+    ],
+    adapterPackage: "@wdio/allure-reporter",
+    setupHint:
+      'Install "@wdio/allure-reporter" and add it to reporters in wdio.conf.ts (works for WDIO+Cucumber too), e.g. reporters: [["allure", { outputDir: "allure-results" }]]',
+    configFilePatterns: ["wdio.conf.ts", "wdio.conf.js", "wdio.conf.mts", "wdio.conf.mjs", "wdio.conf.cjs"],
+    testFilePatterns: [],
   },
 ];
 
@@ -285,7 +313,13 @@ export const REPORT_PLUGIN_REGISTRY: ReportPluginDescriptor[] = [
 ];
 
 export const findFrameworkByPackageName = (packageName: string): FrameworkDescriptor | undefined => {
-  return FRAMEWORK_REGISTRY.find((framework) => framework.packageName === packageName);
+  return FRAMEWORK_REGISTRY.find((framework) => {
+    if (framework.packageName === packageName) {
+      return true;
+    }
+
+    return framework.detectPackageNames?.includes(packageName) ?? false;
+  });
 };
 
 export const findReportPluginById = (pluginId: string): ReportPluginDescriptor | undefined => {
