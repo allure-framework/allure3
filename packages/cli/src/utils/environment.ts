@@ -24,42 +24,6 @@ type EnvironmentConfig = {
   environments?: EnvironmentsConfig;
 };
 
-const environmentIdentityById = (
-  environmentsConfig: EnvironmentsConfig,
-  environmentId: string,
-): EnvironmentIdentity | undefined => {
-  if (!Object.prototype.hasOwnProperty.call(environmentsConfig, environmentId)) {
-    return undefined;
-  }
-
-  const descriptor = environmentsConfig[environmentId];
-
-  if (!descriptor) {
-    return undefined;
-  }
-
-  return {
-    id: environmentId,
-    name: descriptor.name ?? environmentId,
-  };
-};
-
-const environmentIdentityByName = (
-  environmentsConfig: EnvironmentsConfig,
-  environmentName: string,
-): EnvironmentIdentity | undefined => {
-  for (const [id, descriptor] of Object.entries(environmentsConfig)) {
-    if ((descriptor?.name ?? id) === environmentName) {
-      return {
-        id,
-        name: descriptor?.name ?? id,
-      };
-    }
-  }
-
-  return undefined;
-};
-
 export const environmentOption = () =>
   Option.String("--environment,--env", {
     description: environmentOptionDescription,

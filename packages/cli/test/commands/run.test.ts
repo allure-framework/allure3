@@ -34,11 +34,10 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   mkdtemp: vi.fn().mockResolvedValue("/tmp/run"),
   writeFile: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
-    ...(await importOriginal()),
     AllureReport: AllureReportMock,
     QualityGateState: class {
       getResult() {
