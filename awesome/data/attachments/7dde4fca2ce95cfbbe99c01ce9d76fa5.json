@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/labels/suites/wellDefinedAggregated.xml",
+      "originalFileName": "30773d0b-26a5-4d06-afa8-3d528d2fd7c2.xml"
+    }
+  ]
+}

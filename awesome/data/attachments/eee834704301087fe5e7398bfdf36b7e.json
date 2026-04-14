@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/attachments/stderr/wellDefined.xml",
+      "originalFileName": "3b3253bb-fca9-4c14-87bb-b76ec50638d3.xml"
+    }
+  ]
+}

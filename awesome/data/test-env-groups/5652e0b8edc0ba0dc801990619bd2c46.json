@@ -1,1 +1,1 @@
-{"id":"5652e0b8edc0ba0dc801990619bd2c46","fullName":"test/config.test.ts#getPluginId rejects Windows reserved device names","name":"rejects Windows reserved device names","status":"passed","testResultsByEnv":{"windows-latest":"4e42a94e76c7741f4c32d367c16d7148"}}
+{"id":"5652e0b8edc0ba0dc801990619bd2c46","fullName":"test/config.test.ts#getPluginId rejects Windows reserved device names","name":"rejects Windows reserved device names","status":"passed","testResultsByEnv":{"windows-latest":"f1f95ace8a74bbe4ca3ea161e49d52b9"}}
