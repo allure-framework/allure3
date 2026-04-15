@@ -1,0 +1,1 @@
+{"id":"d2211e02237c9887419dd7aaf0b8b318","fullName":"test/config.test.ts#resolveConfig should honor disabled agent config","name":"should honor disabled agent config","status":"passed","testResultsByEnv":{"windows-latest":"b5ec22ee2efca6488d039b51211aef43","ubuntu-latest":"32ae684a3d8b3309372fa05785183578","macos-latest":"891b1ea87e16d773614b9125e04f151e"}}

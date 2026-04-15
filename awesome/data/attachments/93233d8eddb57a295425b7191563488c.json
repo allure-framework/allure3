@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/description.json",
+      "originalFileName": "6c819ddd-8058-4444-91c2-792a07df543e-result.json"
+    }
+  ]
+}

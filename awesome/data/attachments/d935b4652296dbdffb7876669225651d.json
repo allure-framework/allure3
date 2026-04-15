@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/statuses/pending.xml",
+      "originalFileName": "b471d263-65de-4523-83c0-d46677f69ad8-testsuite.xml"
+    }
+  ]
+}
