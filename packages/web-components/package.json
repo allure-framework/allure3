@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-components",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "Collection of Preact components used across the web Allure reports",
   "keywords": [
     "allure",
@@ -69,7 +69,7 @@
     "d3-shape": "^3.2.0",
     "d3-tip": "^0.9.1",
     "d3-transition": "^3.0.1",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "preact": "^10.28.2",
     "prismjs": "^1.30.0",
     "react": "npm:@preact/compat@*",

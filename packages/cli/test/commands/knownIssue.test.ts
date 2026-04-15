@@ -26,11 +26,10 @@ vi.mock("node:fs", async (importOriginal) => ({
   ...(await importOriginal()),
   existsSync: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
-    ...(await importOriginal()),
     resolveConfig: vi.fn().mockResolvedValue({}),
     writeKnownIssues: vi.fn(),
     AllureReport: AllureReportMock,

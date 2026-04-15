@@ -1,0 +1,17 @@
+goal: Validate feature A
+task_id: feature-a
+expected:
+  environments:
+    - default
+  full_name_prefixes:
+    - feature A
+  label_values:
+    feature: feature-a
+forbidden:
+  full_name_prefixes:
+    - feature B
+  label_values:
+    feature:
+      - feature-b
+notes:
+  - Only feature A tests should run.

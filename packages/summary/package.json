@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/summary",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "Allure Summary Plugin – dashboard page generator with charts for Allure Report",
   "keywords": [
     "allure",

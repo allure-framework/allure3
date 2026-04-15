@@ -38,11 +38,10 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   ...(await importOriginal()),
   realpath: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
     AllureReport: AllureReportMock,
   };
