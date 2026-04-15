@@ -84,6 +84,7 @@ __metadata:
   dependencies:
     "@allurereport/ci": "workspace:*"
     "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-agent": "workspace:*"
     "@allurereport/plugin-allure2": "workspace:*"
     "@allurereport/plugin-api": "workspace:*"
     "@allurereport/plugin-awesome": "workspace:*"
@@ -173,6 +174,23 @@ __metadata:
     rimraf: "npm:^6.0.1"
     tslib: "npm:^2.7.0"
     typescript: "npm:^5.6.3"
+  languageName: unknown
+  linkType: soft
+
+"@allurereport/plugin-agent@workspace:*, @allurereport/plugin-agent@workspace:packages/plugin-agent":
+  version: 0.0.0-use.local
+  resolution: "@allurereport/plugin-agent@workspace:packages/plugin-agent"
+  dependencies:
+    "@allurereport/core-api": "workspace:*"
+    "@allurereport/plugin-api": "workspace:*"
+    "@allurereport/reader-api": "workspace:*"
+    "@types/node": "npm:^20.17.9"
+    "@vitest/runner": "npm:^2.1.9"
+    allure-vitest: "npm:^3.3.3"
+    rimraf: "npm:^6.0.1"
+    typescript: "npm:^5.6.3"
+    vitest: "npm:^2.1.9"
+    yaml: "npm:^2.8.1"
   languageName: unknown
   linkType: soft
 
@@ -19417,7 +19435,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.8.3":
+"yaml@npm:^2.8.1, yaml@npm:^2.8.3":
   version: 2.8.3
   resolution: "yaml@npm:2.8.3"
   bin:

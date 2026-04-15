@@ -46,14 +46,51 @@ vi.mock("node:fs/promises", () => ({
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const utils = await import("../utils.js");
+  const environmentIdentityById = vi.fn((environments: Record<string, { name?: string }>, environmentId: string) => {
+    const descriptor = environments[environmentId];
+
+    return descriptor ? { id: environmentId, name: descriptor.name ?? environmentId } : undefined;
+  });
+  const environmentIdentityByName = vi.fn(
+    (environments: Record<string, { name?: string }>, environmentName: string) => {
+      for (const [id, descriptor] of Object.entries(environments)) {
+        if ((descriptor?.name ?? id) === environmentName) {
+          return {
+            id,
+            name: descriptor?.name ?? id,
+          };
+        }
+      }
+
+      return undefined;
+    },
+  );
+  const validateAllowedEnvironmentId = vi.fn(
+    (environmentId: string, allowedIds: ReadonlySet<string>, sourcePath: string) => {
+      if (environmentId === "default" || allowedIds.size === 0 || allowedIds.has(environmentId)) {
+        return undefined;
+      }
+
+      return `${sourcePath}: environment id ${JSON.stringify(environmentId)} is not listed in allowedEnvironments`;
+    },
+  );
 
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
     AllureReport: utils.AllureReportMock,
+    QualityGateState: class {
+      getResult() {
+        return undefined;
+      }
+
+      setResult() {}
+    },
+    environmentIdentityById,
+    environmentIdentityByName,
+    validateAllowedEnvironmentId,
   };
 });
 

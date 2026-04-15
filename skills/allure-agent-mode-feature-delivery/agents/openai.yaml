@@ -1,0 +1,7 @@
+interface:
+  display_name: "Allure Feature Delivery"
+  short_description: "Use agent-mode for feature test loops"
+  default_prompt: "Use $allure-agent-mode-feature-delivery to write or validate tests for this feature with Allure agent-mode."
+
+policy:
+  allow_implicit_invocation: true

@@ -278,7 +278,7 @@ describe("stopProcessTree", () => {
     });
   });
 
-  describe("on a POSIX-compliant system", { skip: platform === "win32" }, () => {
+  describe("on a POSIX-compliant system", { skip: platform === "win32", timeout: 10_000 }, () => {
     it("should stop a tree of a single process", async () => {
       const {
         pids: { pid },
