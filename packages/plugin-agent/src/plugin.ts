@@ -2162,7 +2162,7 @@ const buildRunAndTestFindings = (params: {
           "Global process logs help agents debug bootstrap failures and compare the recorded results with console output.",
         evidencePaths: [],
         remediationHint:
-          "Run tests through `allure run -- <command>` without disabling log capture when you need bootstrap diagnostics.",
+          "Run tests through `allure agent -- <command>` without `--silent` when you need bootstrap diagnostics, or use `ALLURE_AGENT_*` with `allure run` for lower-level control.",
         confidence: 0.9,
       }),
     );

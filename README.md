@@ -60,6 +60,22 @@ To successfully generate a report, ensure that your test setup outputs results i
 
 After the tests complete, the report is generated automatically. Existing results from previous runs are ignored, as Allure 3 focuses solely on new data to ensure accurate and up-to-date reporting.
 
+### Running Tests In Agent Mode
+
+When you need agent-friendly markdown output for review, debugging, or scope validation, use the `agent` command:
+
+```bash
+npx allure agent -- <test_command>
+```
+
+For example:
+
+```bash
+npx allure agent -- npm test
+```
+
+`allure agent` runs with an agent-only profile by default. It creates a fresh output directory automatically, can load an expectations file with `--expectations`, and ignores configured presentation or export plugins such as Awesome or TestOps unless you explicitly fall back to the lower-level `ALLURE_AGENT_*` plus `allure run` flow.
+
 ### Generating Reports Manually
 
 If you already have test results and wish to generate a report manually, use the `generate` command:
@@ -106,6 +122,7 @@ The Allure CLI includes several helpful global options. Use `--help` to explore 
 
 ```bash
 npx allure run --help
+npx allure agent --help
 npx allure watch --help
 ```
 

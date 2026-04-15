@@ -4,6 +4,10 @@ import { argv } from "node:process";
 import { Builtins, Cli } from "clipanion";
 
 import {
+  AgentCommand,
+  AgentLatestCommand,
+  AgentSelectCommand,
+  AgentStateDirCommand,
   Allure2Command,
   AwesomeCommand,
   ClassicCommand,
@@ -39,6 +43,10 @@ const cli = new Cli({
 
 cli.register(AwesomeCommand);
 cli.register(Allure2Command);
+cli.register(AgentLatestCommand);
+cli.register(AgentSelectCommand);
+cli.register(AgentStateDirCommand);
+cli.register(AgentCommand);
 cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);

@@ -24,8 +24,12 @@ describe("allure agent-mode skills bundle", () => {
 
     expect(setupSkill).toContain("name: allure-agent-mode-setup");
     expect(setupSkill).toContain("docs/allure-agent-mode.md");
+    expect(setupSkill).toContain("allure agent latest");
+    expect(setupSkill).toContain("allure agent state-dir");
+    expect(setupSkill).toContain("allure agent select --latest");
+    expect(setupSkill).toContain("allure agent --rerun-latest");
     expect(setupSkill).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
     expect(setupUi).toContain('display_name: "Allure Agent Setup"');
     expect(featureSkill).toContain("name: allure-agent-mode-feature-delivery");
@@ -34,10 +38,10 @@ describe("allure agent-mode skills bundle", () => {
     expect(featureSkill).toContain("auditing coverage");
     expect(featureSkill).toContain("triaging failing suites");
     expect(featureSkill).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
     expect(featureSkill).toContain(
-      "Use `allure run` for smoke checks too, even when the change is small or mechanical.",
+      "Use `allure agent` for smoke checks too, even when the change is small or mechanical.",
     );
     expect(featureSkill).toContain(
       "Only skip agent mode when it is impossible or when you are debugging agent mode itself.",
@@ -64,11 +68,21 @@ describe("allure agent-mode skills bundle", () => {
     expect(projectGuide).toContain("### Test Review Loop");
     expect(projectGuide).toContain("Runtime first, source second.");
     expect(projectGuide).toContain("## Verification Standard");
+    expect(projectGuide).toContain("## Helpful Commands");
+    expect(projectGuide).toContain("allure agent latest");
+    expect(projectGuide).toContain("allure agent state-dir");
+    expect(projectGuide).toContain("allure agent select --latest");
+    expect(projectGuide).toContain("allure agent --rerun-latest");
+    expect(projectGuide).toContain("--rerun-preset review|failed|unsuccessful|all");
+    expect(projectGuide).toContain("--rerun-environment <id>");
+    expect(projectGuide).toContain("--rerun-label name=value");
+    expect(projectGuide).toContain("ALLURE_AGENT_STATE_DIR");
+    expect(projectGuide).toContain("print the `index.md` path");
     expect(projectGuide).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
     expect(projectGuide).toContain(
-      "Use `allure run` for smoke checks too, even when the change is small or mechanical.",
+      "Use `allure agent` for smoke checks too, even when the change is small or mechanical.",
     );
     expect(projectGuide).toContain(
       "Only skip agent mode when it is impossible or when you are debugging agent mode itself.",
@@ -77,17 +91,27 @@ describe("allure agent-mode skills bundle", () => {
     expect(projectGuide).toContain("### Coverage Review Workflow");
     expect(projectGuide).toContain("## Acceptance Rules");
     expect(projectGuide).toContain("When Console Errors Are Not Represented As Test Results");
-    expect(projectGuide).toContain("yarn allure run -- yarn workspace allure test");
+    expect(projectGuide).toContain("yarn allure agent --");
     expect(projectGuide).toContain("test/commands/run.integration.test.ts");
     expect(rootAgents).toContain("docs/allure-agent-mode.md");
     expect(rootAgents).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
-    expect(rootAgents).toContain("Use `allure run` for smoke checks too");
+    expect(rootAgents).toContain("Use `allure agent` for smoke checks too");
     expect(rootAgents).toContain("reasoning, review, coverage analysis, debugging, or any user-facing conclusion");
     expect(rootAgents).toContain("console-only review");
     expect(templateGuide).toContain("ALLURE_AGENT_EXPECTATIONS");
     expect(templateGuide).toContain("## Verification Standard");
+    expect(templateGuide).toContain("## Helpful Commands");
+    expect(templateGuide).toContain("allure agent latest");
+    expect(templateGuide).toContain("allure agent state-dir");
+    expect(templateGuide).toContain("allure agent select --latest");
+    expect(templateGuide).toContain("allure agent --rerun-latest");
+    expect(templateGuide).toContain("--rerun-preset review|failed|unsuccessful|all");
+    expect(templateGuide).toContain("--rerun-environment <id>");
+    expect(templateGuide).toContain("--rerun-label name=value");
+    expect(templateGuide).toContain("ALLURE_AGENT_STATE_DIR");
+    expect(templateGuide).toContain("print the `index.md` path");
     expect(templateGuide).toContain("### Test Review Loop");
     expect(templateGuide).toContain("### Small Test Change Workflow");
     expect(templateGuide).toContain("### Coverage Review Workflow");
@@ -95,14 +119,14 @@ describe("allure agent-mode skills bundle", () => {
     expect(templateGuide).toContain("partial runtime review");
     expect(agentsSnippet).toContain("Use [Allure Agent Mode](docs/allure-agent-mode.md)");
     expect(agentsSnippet).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
-    expect(agentsSnippet).toContain("Use `allure run` for smoke checks too");
+    expect(agentsSnippet).toContain("Use `allure agent` for smoke checks too");
     expect(agentsSnippet).toContain("reasoning, review, coverage analysis, debugging, or any user-facing conclusion");
     expect(readme).toContain("## Verification Standard");
     expect(readme).toContain("For small mechanical test changes, use a scoped agent-mode run for the smoke check");
     expect(readme).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`.",
     );
     expect(readme).toContain("treat the review as partial");
   });
