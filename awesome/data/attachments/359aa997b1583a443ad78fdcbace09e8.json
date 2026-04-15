@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/labels/special/historyId.xml",
+      "originalFileName": "cac731d0-4fda-464c-8b0f-7d0d105f854a-testsuite.xml"
+    }
+  ]
+}
