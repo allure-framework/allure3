@@ -5,7 +5,7 @@ import {
   validateAllowedEnvironmentId,
 } from "@allurereport/core";
 import type { EnvironmentIdentity } from "@allurereport/core-api";
-import { validateEnvironmentId, validateEnvironmentName } from "@allurereport/core-api";
+import { validateEnvironmentId, validateEnvironmentName, type EnvironmentsConfig } from "@allurereport/core-api";
 import { Option, UsageError } from "clipanion";
 
 const environmentOptionDescription =
@@ -19,6 +19,11 @@ type CommandEnvironmentOptions = {
   environmentName?: string;
 };
 
+type EnvironmentConfig = {
+  environment?: string;
+  environments?: EnvironmentsConfig;
+};
+
 export const environmentOption = () =>
   Option.String("--environment,--env", {
     description: environmentOptionDescription,
@@ -30,7 +35,7 @@ export const environmentNameOption = () =>
   });
 
 const resolveEnvironmentByName = (
-  config: Pick<FullConfig, "environments">,
+  config: Pick<EnvironmentConfig, "environments">,
   environmentName: string,
   source: string,
 ): EnvironmentIdentity => {
@@ -45,7 +50,7 @@ const resolveEnvironmentByName = (
   return identity;
 };
 
-const resolveConfigEnvironment = (config: Pick<FullConfig, "environment" | "environments">) => {
+const resolveConfigEnvironment = (config: Pick<EnvironmentConfig, "environment" | "environments">) => {
   if (config.environment === undefined) {
     return undefined;
   }

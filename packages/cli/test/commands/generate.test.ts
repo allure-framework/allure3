@@ -8,9 +8,8 @@ import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { generate } from "../../src/commands/commons/generate.js";
 import { GenerateCommand } from "../../src/commands/generate.js";
 
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
   };
 });
