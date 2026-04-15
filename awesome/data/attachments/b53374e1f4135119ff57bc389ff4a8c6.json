@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/status-case-insensitive.json",
+      "originalFileName": "67304ad1-720e-4ff8-ad43-cbf53da2fbbc-result.json"
+    }
+  ]
+}
