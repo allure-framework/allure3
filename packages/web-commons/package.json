@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-commons",
-  "version": "3.3.1",
+  "version": "3.5.0",
   "description": "Collection of utilities used across the web Allure reports",
   "keywords": [
     "allure",
@@ -36,7 +36,7 @@
     "d3-interpolate": "^3.0.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
-    "dompurify": "^3.2.6",
+    "dompurify": "^3.3.2",
     "nanoid": "^5.1.6"
   },
   "devDependencies": {

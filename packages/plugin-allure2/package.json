@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-allure2",
-  "version": "3.3.1",
+  "version": "3.5.0",
   "description": "The classic version of Allure HTML report",
   "keywords": [
     "allure",
@@ -33,7 +33,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "find-up": "^8.0.0",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.9"
   },
   "devDependencies": {
     "@types/node": "^20.17.9",

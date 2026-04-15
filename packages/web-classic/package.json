@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/web-classic",
-  "version": "3.3.1",
+  "version": "3.5.0",
   "description": "The static files for Allure Classic Report",
   "keywords": [
     "allure",
@@ -74,7 +74,7 @@
     "style-loader": "^4.0.0",
     "svg-sprite-loader": "^6.0.11",
     "typescript": "^5.6.3",
-    "underscore": "^1.13.7",
+    "underscore": "^1.13.8",
     "vitest": "^2.1.9",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4",

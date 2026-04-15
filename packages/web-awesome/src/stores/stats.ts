@@ -62,14 +62,18 @@ export const fetchEnvStats = async (envs: string[]) => {
     const data = await Promise.all(
       envsToFetch.map((env) => fetchReportJsonData<AwesomeTree>(`widgets/${env}/statistic.json`, { bustCache: true })),
     );
+    const previous = statsByEnvStore.peek().data;
 
     statsByEnvStore.value = {
-      data: envs.reduce((acc, env, index) => {
-        return {
-          ...acc,
-          [env]: data[index],
-        };
-      }, {}),
+      data: envsToFetch.reduce(
+        (acc, env, index) => {
+          return {
+            ...acc,
+            [env]: data[index],
+          };
+        },
+        { ...previous },
+      ),
       loading: false,
       error: undefined,
     };

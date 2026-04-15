@@ -25,9 +25,8 @@ vi.mock("@allurereport/service", async (importOriginal) => {
     AllureServiceClient: utils.AllureServiceClientMock,
   };
 });
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
   };
 });

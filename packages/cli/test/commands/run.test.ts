@@ -34,11 +34,10 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   mkdtemp: vi.fn().mockResolvedValue("/tmp/run"),
   writeFile: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
-    ...(await importOriginal()),
     AllureReport: AllureReportMock,
     QualityGateState: class {
       getResult() {
@@ -113,15 +112,6 @@ describe("run command", () => {
     const command = new RunCommand();
 
     command.commandToRun = [];
-
-    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
-  });
-
-  it("should fail with usage error for newline in --environment", async () => {
-    const command = new RunCommand();
-
-    command.commandToRun = ["--", "echo", "hi"];
-    command.environment = "foo\nbar";
 
     await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
   });

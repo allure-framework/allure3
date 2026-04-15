@@ -1,6 +1,22 @@
 .report-global-attachments {
-  padding-left: 0;
-  padding-right: 0;
+  padding: 12px 0 40px 8px;
+}
+
+.report-global-attachments-view {
+  min-height: 0 !important;
+  padding: 20px 0 8px;
+
+  [data-testid="test-result-attachment-header"] + div {
+    margin-top: 6px;
+  }
+}
+
+.report-global-attachments-section {
+  &:not(:last-child) {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--on-border-muted);
+  }
 }
 
 .report-global-attachments-empty {

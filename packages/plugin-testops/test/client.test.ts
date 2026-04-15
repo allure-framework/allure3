@@ -15,7 +15,7 @@ import { AxiosMock, BASE_URL } from "./utils.js";
 
 const fixtures = {
   accessToken: "test",
-  ouathToken: "tset",
+  oauthToken: "tset",
   endpoint: "http://example.com",
   projectId: "12345",
   launch: {
@@ -149,7 +149,7 @@ describe("testops http client", () => {
     it("should return launch url when launch is created", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -176,7 +176,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         return Promise.resolve({ data: {} });
@@ -198,7 +198,7 @@ describe("testops http client", () => {
     it("should call /api/upload/start with ci metadata", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -236,7 +236,7 @@ describe("testops http client", () => {
     it("should throw an error when upload hasn't been started before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
         return Promise.resolve({ data: {} });
       });
@@ -255,7 +255,7 @@ describe("testops http client", () => {
     it("should call /api/upload/stop after startUpload", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -297,7 +297,7 @@ describe("testops http client", () => {
     it("should create launch with issues oauth token", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -343,7 +343,7 @@ describe("testops http client", () => {
     it("should create a session for a current launch with empty environment by default", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -384,7 +384,7 @@ describe("testops http client", () => {
     it("should pass environment variables as key-value pairs to the session", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -433,7 +433,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow(
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }])).rejects.toThrow(
         "Session isn't created! Call createSession first",
       );
     });
@@ -441,7 +441,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         return Promise.resolve({ data: {} });
@@ -453,7 +453,7 @@ describe("testops http client", () => {
         baseUrl: fixtures.endpoint,
       });
 
-      await expect(async () => await client.createNamedEnvs(["chrome"])).rejects.toThrow();
+      await expect(async () => await client.createNamedEnvs([{ id: "chrome", name: "Chrome" }])).rejects.toThrow();
     });
 
     it("should post environments to /api/launch/named-env/bulk", async () => {
@@ -464,7 +464,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -491,15 +491,18 @@ describe("testops http client", () => {
       await client.issueOauthToken();
       await client.createLaunch(fixtures.launchName, fixtures.launchTags);
       await client.createSession();
-      await client.createNamedEnvs(["chrome", "firefox"]);
+      await client.createNamedEnvs([
+        { id: "chrome", name: "Chrome" },
+        { id: "firefox", name: "Firefox" },
+      ]);
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
         "/api/launch/named-env/bulk",
         {
           launchId: fixtures.launch.id,
           items: [
-            { externalId: "chrome", name: "chrome" },
-            { externalId: "firefox", name: "firefox" },
+            { externalId: "chrome", name: "Chrome" },
+            { externalId: "firefox", name: "Firefox" },
           ],
         },
         {
@@ -530,7 +533,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         return Promise.resolve({ data: {} });
@@ -554,7 +557,7 @@ describe("testops http client", () => {
     it("should upload attachments to /api/launch/attachment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -600,7 +603,7 @@ describe("testops http client", () => {
     it("should skip attachments when resolver returns null", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -655,7 +658,7 @@ describe("testops http client", () => {
     it("should throw an error when launch hasn't been created before", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         return Promise.resolve({ data: {} });
@@ -673,7 +676,7 @@ describe("testops http client", () => {
     it("should post errors to /api/launch/error/bulk", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -724,6 +727,7 @@ describe("testops http client", () => {
         async () =>
           await client.uploadTestResults({
             trs: [],
+            environments: [],
             attachmentsResolver: () => Promise.resolve([]),
             fixturesResolver: () => Promise.resolve([]),
           }),
@@ -734,7 +738,7 @@ describe("testops http client", () => {
     it("should resolve attachments and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -770,6 +774,7 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
+        environments: [],
         attachmentsResolver,
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -792,7 +797,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation(async (url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return { data: { access_token: fixtures.ouathToken } };
+          return { data: { access_token: fixtures.oauthToken } };
         }
 
         if (url === "/api/launch") {
@@ -828,6 +833,7 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
+        environments: [],
         attachmentsResolver: () =>
           Promise.resolve(
             fixtures.attachments.map((attachment) => ({
@@ -842,10 +848,15 @@ describe("testops http client", () => {
       expect(maxConcurrentCount).toBeLessThanOrEqual(limit);
     });
 
-    it("should keep environment field in upload payload when present", async () => {
+    it("should create named environments for test results with environment ids and display names", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "Chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "Firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -854,6 +865,10 @@ describe("testops http client", () => {
 
         if (url === "/api/upload/session") {
           return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
         }
 
         if (url === "/api/upload/test-result") {
@@ -879,20 +894,114 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: trsWithEnv,
+        environments: [
+          { id: "chrome", name: "Chrome" },
+          { id: "firefox", name: "Firefox" },
+        ],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
 
-      expect(AxiosMock.post.mock.calls.filter((call: any[]) => call[0] === "/api/launch/named-env/bulk")).toHaveLength(
-        0,
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/named-env/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { externalId: "chrome", name: "Chrome" },
+            { externalId: "firefox", name: "Firefox" },
+          ],
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: expect.any(Function),
+        },
       );
 
       expect(AxiosMock.post).toHaveBeenCalledWith(
         "/api/upload/test-result",
         expect.objectContaining({
           results: expect.arrayContaining([
-            expect.objectContaining({ id: "0-0-0-0", environment: "chrome" }),
-            expect.objectContaining({ id: "1-1-1-1", environment: "firefox" }),
+            expect.objectContaining({ uuid: "0-0-0-0", environment: "chrome", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", environment: "firefox", namedEnv: { id: 11 } }),
+          ]),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("should create distinct named environments for different env ids sharing one display name", async () => {
+      const namedEnvs: TestOpsNamedEnv[] = [
+        { id: 10, name: "QA", externalId: "qa_a", jobRunId: 1, launchId: fixtures.launch.id },
+        { id: 11, name: "QA", externalId: "qa_b", jobRunId: 1, launchId: fixtures.launch.id },
+      ];
+
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: namedEnvs });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: fixtures.testOpsResults.slice(0, 2) } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+      await client.uploadTestResults({
+        trs: [
+          { ...fixtures.testResults[0], environment: "qa_a" } as TestResult,
+          { ...fixtures.testResults[1], environment: "qa_b" } as TestResult,
+        ],
+        environments: [
+          { id: "qa_a", name: "QA" },
+          { id: "qa_b", name: "QA" },
+        ],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/launch/named-env/bulk",
+        {
+          launchId: fixtures.launch.id,
+          items: [
+            { externalId: "qa_a", name: "QA" },
+            { externalId: "qa_b", name: "QA" },
+          ],
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: expect.any(Function),
+        },
+      );
+
+      expect(AxiosMock.post).toHaveBeenCalledWith(
+        "/api/upload/test-result",
+        expect.objectContaining({
+          results: expect.arrayContaining([
+            expect.objectContaining({ uuid: "0-0-0-0", environment: "qa_a", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", environment: "qa_b", namedEnv: { id: 11 } }),
           ]),
         }),
         expect.anything(),
@@ -902,7 +1011,7 @@ describe("testops http client", () => {
     it("should not create named environments when test results have no environment", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -931,6 +1040,7 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
+        environments: [],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -947,7 +1057,7 @@ describe("testops http client", () => {
 
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -980,6 +1090,7 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: [{ ...fixtures.testResults[0], environment: "chrome" } as TestResult],
+        environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -996,6 +1107,7 @@ describe("testops http client", () => {
 
       await client.uploadTestResults({
         trs: [{ ...fixtures.testResults[1], environment: "chrome" } as TestResult],
+        environments: [{ id: "chrome", name: "Chrome" }],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver: () => Promise.resolve([]),
       });
@@ -1008,7 +1120,7 @@ describe("testops http client", () => {
     it("should resolve fixtures and upload them", async () => {
       AxiosMock.post.mockImplementation((url: string) => {
         if (url === "/api/uaa/oauth/token") {
-          return Promise.resolve({ data: { access_token: fixtures.ouathToken } });
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
         }
 
         if (url === "/api/launch") {
@@ -1044,6 +1156,7 @@ describe("testops http client", () => {
       await client.createSession();
       await client.uploadTestResults({
         trs: fixtures.testResults,
+        environments: [],
         attachmentsResolver: () => Promise.resolve([]),
         fixturesResolver,
       });

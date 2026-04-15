@@ -2,10 +2,10 @@ import console from "node:console";
 import type { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
-import type { TestError } from "@allurereport/core-api";
 import type {
   BatchOptions,
   ExitCode,
+  PluginGlobalError,
   QualityGateValidationResult,
   RealtimeEventsDispatcher as RealtimeEventsDispatcherType,
   RealtimeSubscriber as RealtimeSubscriberType,
@@ -27,9 +27,9 @@ export interface AllureStoreEvents {
   [RealtimeEvents.TestResult]: [string];
   [RealtimeEvents.TestFixtureResult]: [string];
   [RealtimeEvents.AttachmentFile]: [string];
-  [RealtimeEvents.GlobalAttachment]: [{ attachment: ResultFile; fileName?: string }];
+  [RealtimeEvents.GlobalAttachment]: [{ attachment: ResultFile; fileName?: string; environment?: string }];
   [RealtimeEvents.GlobalExitCode]: [ExitCode];
-  [RealtimeEvents.GlobalError]: [TestError];
+  [RealtimeEvents.GlobalError]: [PluginGlobalError];
 }
 
 interface HandlerData {
@@ -45,15 +45,15 @@ export class RealtimeEventsDispatcher implements RealtimeEventsDispatcherType {
     this.#emitter = emitter;
   }
 
-  sendGlobalAttachment(attachment: ResultFile, fileName?: string) {
-    this.#emitter.emit(RealtimeEvents.GlobalAttachment, { attachment, fileName });
+  sendGlobalAttachment(attachment: ResultFile, fileName?: string, environment?: string) {
+    this.#emitter.emit(RealtimeEvents.GlobalAttachment, { attachment, fileName, environment });
   }
 
   sendGlobalExitCode(codes: ExitCode) {
     this.#emitter.emit(RealtimeEvents.GlobalExitCode, codes);
   }
 
-  sendGlobalError(error: TestError) {
+  sendGlobalError(error: PluginGlobalError) {
     this.#emitter.emit(RealtimeEvents.GlobalError, error);
   }
 
@@ -82,7 +82,9 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     this.#emitter = emitter;
   }
 
-  onGlobalAttachment(listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>) {
+  onGlobalAttachment(
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+  ) {
     this.#emitter.on(RealtimeEvents.GlobalAttachment, listener);
 
     return () => {
@@ -98,7 +100,7 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     };
   }
 
-  onGlobalError(listener: (error: TestError) => Promise<void>) {
+  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>) {
     this.#emitter.on(RealtimeEvents.GlobalError, listener);
 
     return () => {

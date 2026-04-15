@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/reader",
-  "version": "3.3.1",
+  "version": "3.5.0",
   "description": "Collection of utilities which helps to process different kind of test results as Allure Results",
   "keywords": [
     "allure",
@@ -29,7 +29,7 @@
     "@allurereport/core-api": "workspace:*",
     "@allurereport/plugin-api": "workspace:*",
     "@allurereport/reader-api": "workspace:*",
-    "fast-xml-parser": "^5.3.8"
+    "fast-xml-parser": "^5.5.7"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.3",

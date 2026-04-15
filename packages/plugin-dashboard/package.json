@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-dashboard",
-  "version": "3.3.1",
+  "version": "3.5.0",
   "description": "Allure Dashboard Plugin – plugin for generating dashboard with a mix of charts",
   "keywords": [
     "allure",
@@ -38,7 +38,7 @@
     "@allurereport/web-commons": "workspace:*",
     "@allurereport/web-dashboard": "workspace:*",
     "d3-shape": "^3.2.0",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.9"
   },
   "devDependencies": {
     "@types/d3-shape": "^3.1.6",

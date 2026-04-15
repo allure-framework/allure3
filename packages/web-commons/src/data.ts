@@ -23,17 +23,20 @@ export const loadReportData = async (name: string): Promise<string> => {
 
   return new Promise((resolve, reject) => {
     const dataByName = globalThis.allureReportData ?? {};
-    if (dataByName[name]) {
+
+    if (name in dataByName) {
       return resolve(dataByName[name] as string);
     }
 
     const posixKey = toPosixPath(name);
-    if (dataByName[posixKey]) {
+
+    if (posixKey in dataByName) {
       return resolve(dataByName[posixKey] as string);
     }
 
     const legacyBackslashKey = posixKey.replace(/\//g, "\\");
-    if (dataByName[legacyBackslashKey]) {
+
+    if (legacyBackslashKey in dataByName) {
       return resolve(dataByName[legacyBackslashKey] as string);
     }
 
@@ -79,7 +82,19 @@ export class ReportFetchError extends Error {
 }
 
 export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
-  const url = await reportDataUrl(path, undefined, params);
+  let url: string;
+
+  try {
+    url = await reportDataUrl(path, undefined, params);
+  } catch {
+    // In single-file mode loadReportData throws a plain Error when a key is absent.
+    // Convert to ReportFetchError(404) so callers behave the same as in multi-file mode.
+    throw new ReportFetchError(
+      `Failed to fetch ${path}: data not found`,
+      new Response(null, { status: 404, statusText: "Not Found" }),
+    );
+  }
+
   const res = await globalThis.fetch(url);
 
   if (!res.ok) {

@@ -31,9 +31,8 @@ vi.mock("node:os", async (importOriginal) => {
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
   };
 });

@@ -1,0 +1,47 @@
+{
+  "name": "@allurereport/plugin-agent",
+  "version": "3.5.0",
+  "description": "Allure Agent Plugin – AI-friendly markdown report generator",
+  "keywords": [
+    "agent",
+    "allure",
+    "markdown",
+    "plugin",
+    "report",
+    "testing"
+  ],
+  "license": "Apache-2.0",
+  "author": "Qameta Software",
+  "repository": "https://github.com/allure-framework/allure3",
+  "files": [
+    "./dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "run clean && tsc --project ./tsconfig.json",
+    "clean": "rimraf ./dist",
+    "test": "rimraf ./out && vitest run",
+    "lint": "oxlint --import-plugin src test features stories",
+    "lint:fix": "oxlint --import-plugin --fix src test features stories"
+  },
+  "dependencies": {
+    "@allurereport/core-api": "workspace:*",
+    "@allurereport/plugin-api": "workspace:*",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@allurereport/reader-api": "workspace:*",
+    "@types/node": "^20.17.9",
+    "@vitest/runner": "^2.1.9",
+    "allure-vitest": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}

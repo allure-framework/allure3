@@ -6,10 +6,10 @@ import { basename, join } from "node:path";
 import { defaultChartsConfig } from "@allurereport/charts-api";
 import {
   type AttachmentLink,
+  type EnvironmentIdentity,
   type EnvironmentItem,
   type Statistic,
   type TestEnvGroup,
-  type TestError,
   type TestLabel,
   type TestResult,
   type TreeData,
@@ -17,6 +17,7 @@ import {
   createBaseUrlScript,
   createFontLinkTag,
   createReportDataScript,
+  stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
   incrementStatistic,
@@ -28,6 +29,8 @@ import type {
   AllureStore,
   ExitCode,
   PluginContext,
+  PluginGlobalAttachment,
+  PluginGlobalError,
   PluginGlobals,
   QualityGateValidationResult,
   ReportFiles,
@@ -380,21 +383,21 @@ export const generateEnvironmentJson = async (writer: AwesomeDataWriter, env: En
 };
 
 export const generateEnvirontmentsList = async (writer: AwesomeDataWriter, store: AllureStore) => {
-  const environments = await store.allEnvironments();
+  const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("environments.json", environments);
 };
 
 export const generateVariables = async (writer: AwesomeDataWriter, store: AllureStore) => {
   const reportVariables = await store.allVariables();
-  const environments = await store.allEnvironments();
+  const environments = await store.allEnvironmentIdentities();
 
   await writer.writeWidget("variables.json", reportVariables);
 
   for (const env of environments) {
-    const envVariables = await store.envVariables(env);
+    const envVariables = await store.envVariablesByEnvironmentId(env.id);
 
-    await writer.writeWidget(joinPosixPath(env, "variables.json"), envVariables);
+    await writer.writeWidget(joinPosixPath(env.id, "variables.json"), envVariables);
   }
 };
 
@@ -403,7 +406,7 @@ export const generateStatistic = async (
   data: {
     stats: Statistic;
     statsByEnv: Map<string, Statistic>;
-    envs: string[];
+    envs: EnvironmentIdentity[];
   },
 ) => {
   const { stats, statsByEnv, envs } = data;
@@ -412,14 +415,14 @@ export const generateStatistic = async (
   await writer.writeWidget("pie_chart.json", getPieChartValues(stats));
 
   for (const env of envs) {
-    const envStats = statsByEnv.get(env);
+    const envStats = statsByEnv.get(env.id);
 
     if (!envStats) {
       continue;
     }
 
-    await writer.writeWidget(joinPosixPath(env, "statistic.json"), envStats);
-    await writer.writeWidget(joinPosixPath(env, "pie_chart.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env.id, "statistic.json"), envStats);
+    await writer.writeWidget(joinPosixPath(env.id, "pie_chart.json"), envStats);
   }
 };
 
@@ -460,16 +463,26 @@ export const generateGlobals = async (
   writer: AwesomeDataWriter,
   payload: {
     globalExitCode?: ExitCode;
-    globalAttachments?: AttachmentLink[];
-    globalErrors?: TestError[];
+    globalAttachments?: PluginGlobalAttachment[];
+    globalAttachmentsByEnv?: Record<string, PluginGlobalAttachment[]>;
+    globalErrors?: PluginGlobalError[];
+    globalErrorsByEnv?: Record<string, PluginGlobalError[]>;
     contentFunction: (id: string) => Promise<ResultFile | undefined>;
   },
 ) => {
-  const { globalExitCode, globalAttachments = [], globalErrors = [], contentFunction } = payload;
+  const {
+    globalExitCode,
+    globalAttachments = [],
+    globalAttachmentsByEnv = {},
+    globalErrors = [],
+    globalErrorsByEnv = {},
+    contentFunction,
+  } = payload;
   const globals: PluginGlobals = {
     errors: globalErrors,
     attachments: [],
   };
+  const attachmentsByEnv: Record<string, PluginGlobalAttachment[]> = {};
 
   if (globalExitCode) {
     globals.exitCode = globalExitCode;
@@ -486,6 +499,25 @@ export const generateGlobals = async (
     await writer.writeAttachment(src, content);
 
     globals.attachments.push(attachment);
+  }
+
+  Object.entries(globalAttachmentsByEnv).forEach(([environmentId, attachments]) => {
+    const attachmentIds = new Set(globals.attachments.map(({ id }) => id));
+    const writtenAttachments = attachments.filter(({ id }) => attachmentIds.has(id));
+
+    if (writtenAttachments.length === 0) {
+      return;
+    }
+
+    attachmentsByEnv[environmentId] = writtenAttachments;
+  });
+
+  if (Object.keys(attachmentsByEnv).length > 0) {
+    globals.attachmentsByEnv = attachmentsByEnv;
+  }
+
+  if (Object.keys(globalErrorsByEnv).length > 0) {
+    globals.errorsByEnv = globalErrorsByEnv;
   }
 
   await writer.writeWidget("globals.json", globals);
@@ -589,7 +621,7 @@ export const generateStaticFiles = async (
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
-      reportOptions: JSON.stringify(reportOptions),
+      reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
       reportUuid,

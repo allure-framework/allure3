@@ -12,7 +12,7 @@ import {
   readConfig,
   stringifyQualityGateResults,
 } from "@allurereport/core";
-import { type KnownTestFailure, createTestPlan, validateEnvironmentName } from "@allurereport/core-api";
+import { type KnownTestFailure, createTestPlan } from "@allurereport/core-api";
 import type { Watcher } from "@allurereport/directory-watcher";
 import {
   allureResultsDirectoriesWatcher,
@@ -27,6 +27,12 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
+import {
+  environmentNameOption,
+  environmentOption,
+  normalizeCommandEnvironmentOptions,
+  resolveCommandEnvironment,
+} from "../utils/environment.js";
 import { logTests, runProcess, terminationOf } from "../utils/index.js";
 import { logError } from "../utils/logs.js";
 import { stopProcessTree } from "../utils/process.js";
@@ -274,10 +280,9 @@ export class RunCommand extends Command {
       "Runs tests in dump mode to collect results to a dump archive with the provided name (default: empty string)",
   });
 
-  environment = Option.String("--environment,--env", {
-    description:
-      "Force specific environment to all tests in the run. Given environment has higher priority than the one defined in the config file (default: empty string)",
-  });
+  environment = environmentOption();
+
+  environmentName = environmentNameOption();
 
   historyLimit = Option.String("--history-limit", {
     description: "Limits the number of history entries to keep (default: unlimited)",
@@ -304,19 +309,12 @@ export class RunCommand extends Command {
       throw new UsageError("expecting command to be specified after --, e.g. allure run -- npm run test");
     }
 
-    let normalizedEnvironment = this.environment;
+    const environmentOptions = {
+      environment: this.environment,
+      environmentName: this.environmentName,
+    };
 
-    if (this.environment !== undefined) {
-      const envValidationResult = validateEnvironmentName(this.environment);
-
-      if (!envValidationResult.valid) {
-        throw new UsageError(
-          `invalid --environment value ${JSON.stringify(this.environment)}: ${envValidationResult.reason}`,
-        );
-      }
-
-      normalizedEnvironment = envValidationResult.normalized;
-    }
+    normalizeCommandEnvironmentOptions(environmentOptions);
 
     const before = new Date().getTime();
 
@@ -342,7 +340,7 @@ export class RunCommand extends Command {
       hideLabels,
       historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
     });
-    const resolvedEnvironment = normalizedEnvironment ?? config.environment;
+    const resolvedEnvironment = resolveCommandEnvironment(config, environmentOptions);
     const withQualityGate = !!config.qualityGate;
     const withRerun = !!this.rerun;
 
@@ -361,7 +359,7 @@ export class RunCommand extends Command {
     }
     const allureReport = new AllureReport({
       ...config,
-      environment: resolvedEnvironment,
+      environment: resolvedEnvironment?.id,
       dump: this.dump,
       realTime: false,
       plugins: [
@@ -399,7 +397,7 @@ export class RunCommand extends Command {
         cwd,
         command,
         commandArgs,
-        environment: resolvedEnvironment,
+        environment: resolvedEnvironment?.id,
         environmentVariables: {},
         withQualityGate,
       });
@@ -430,7 +428,7 @@ export class RunCommand extends Command {
           cwd,
           command,
           commandArgs,
-          environment: resolvedEnvironment,
+          environment: resolvedEnvironment?.id,
           environmentVariables: {
             ALLURE_TESTPLAN_PATH: testPlanPath,
             ALLURE_RERUN: `${rerun}`,
@@ -450,7 +448,7 @@ export class RunCommand extends Command {
         const { results } = await allureReport.validate({
           trs,
           knownIssues,
-          environment: resolvedEnvironment,
+          environment: resolvedEnvironment?.id,
         });
 
         qualityGateResults = results;

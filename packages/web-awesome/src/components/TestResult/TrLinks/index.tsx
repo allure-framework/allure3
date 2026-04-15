@@ -1,10 +1,12 @@
+import { sanitizeExternalUrl } from "@allurereport/core-api";
 import { Button, SvgIcon, Text, allureIcons } from "@allurereport/web-components";
 import type { FunctionalComponent } from "preact";
-import type { AwesomeTestResult } from "types";
 
 import { MetadataButton } from "@/components/MetadataButton";
 import { useI18n } from "@/stores/locale";
 import { collapsedTrees, toggleTree } from "@/stores/tree";
+
+import { AwesomeTestResult } from "../../../../types";
 
 import * as styles from "./styles.scss";
 
@@ -27,13 +29,28 @@ const TrLink: FunctionalComponent<{
   link: TrLinkProps;
 }> = ({ link }) => {
   const { url, name, type } = link;
+  const safeUrl = sanitizeExternalUrl(url);
+  const label = name || url;
 
   return (
     <div className={styles["test-result-link"]} data-testid="test-result-meta-link">
       <SvgIcon id={linksIconMap[type] ?? allureIcons.lineGeneralLink1} />
-      <Text tag={"a"} href={url} target={"_blank"} size={"m"} className={styles["test-result-link-text"]}>
-        {name || url}
-      </Text>
+      {safeUrl ? (
+        <Text
+          tag={"a"}
+          href={safeUrl}
+          target={"_blank"}
+          rel={"noopener noreferrer"}
+          size={"m"}
+          className={styles["test-result-link-text"]}
+        >
+          {label}
+        </Text>
+      ) : (
+        <Text size={"m"} className={styles["test-result-link-text"]}>
+          {label}
+        </Text>
+      )}
     </div>
   );
 };

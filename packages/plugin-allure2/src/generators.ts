@@ -7,6 +7,7 @@ import {
   createBaseUrlScript,
   createFaviconLinkTag,
   createReportDataScript,
+  stringifyForInlineScript,
   createScriptTag,
   createStylesLinkTag,
 } from "@allurereport/core-api";
@@ -193,7 +194,7 @@ export const generateStaticFiles = async (payload: {
       headTags: headTags.join("\n"),
       bodyTags: bodyTags.join("\n"),
       reportFilesScript: createReportDataScript(reportDataFiles),
-      reportOptions: JSON.stringify(reportOptions),
+      reportOptions: stringifyForInlineScript(reportOptions),
       analyticsEnable: true,
       allureVersion,
       reportLanguage,

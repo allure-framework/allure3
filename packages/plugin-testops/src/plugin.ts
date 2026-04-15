@@ -1,7 +1,7 @@
 import { env } from "node:process";
 
 import { detect } from "@allurereport/ci";
-import type { CategoryDefinition, CiDescriptor, TestStatus } from "@allurereport/core-api";
+import type { CategoryDefinition, CiDescriptor, EnvironmentIdentity, TestStatus } from "@allurereport/core-api";
 import { getWorstStatus } from "@allurereport/core-api";
 import { type AllureStore, type Plugin, type PluginContext, createPluginSummary } from "@allurereport/plugin-api";
 import { uniqBy, stubTrue } from "lodash-es";
@@ -32,7 +32,7 @@ export class TestOpsPlugin implements Plugin {
   #enabled: boolean = false;
   #launchName: string = "";
   #launchTags: string[] = [];
-  #uploadedTestResultsIds: string[] = [];
+  #uploadedTestResultsIds: Set<string> = new Set();
   #autocloseLaunch: boolean;
 
   constructor(readonly options: TestOpsPluginOptions) {
@@ -83,44 +83,6 @@ export class TestOpsPlugin implements Plugin {
 
   get ciMode() {
     return this.#ci && this.#ci.type !== "local";
-  }
-
-  async #uploadNamedEnvs(store: AllureStore) {
-    const envs = await store.allEnvironments();
-
-    // Filter out envs that already have been uploaded this session
-    const envsToUpload = envs.filter((env) => !this.#client.getNamedEnvFor(env));
-
-    if (envsToUpload.length === 0) {
-      this.#logger.verbose("No named environments to upload");
-      return;
-    }
-
-    const progressBar = this.#logger.progressBar("Uploading named environments");
-
-    try {
-      progressBar.update(0);
-      await this.#client.createNamedEnvs(envsToUpload, (percent, total) => {
-        progressBar.update(percent / total);
-      });
-      progressBar.update(1);
-      progressBar.terminate();
-      this.#logger.debug("Named environments uploaded");
-      this.#logger.debug(Array.from(this.#client.namedEnvs));
-    } catch (error) {
-      progressBar.terminate();
-
-      if (error instanceof Error) {
-        if (this.#client.isTestOpsClientError(error)) {
-          this.#logger.error(`Failed to upload named environments: ${error.response.data.message}`);
-          this.#logger.debug(error.response?.data);
-        } else {
-          this.#logger.error(`Failed to upload named environments: ${error.message}`);
-        }
-      } else {
-        this.#logger.error("Failed to upload named environments");
-      }
-    }
   }
 
   async #uploadQualityGateResults(store: AllureStore) {
@@ -241,7 +203,11 @@ export class TestOpsPlugin implements Plugin {
     }
   }
 
-  async #uploadTestResults(store: AllureStore, trsToUpload: TestOpsPluginTestResult[]) {
+  async #uploadTestResults(
+    store: AllureStore,
+    trsToUpload: TestOpsPluginTestResult[],
+    environments: EnvironmentIdentity[],
+  ) {
     const totalCount = trsToUpload.length;
 
     this.#logger.info(
@@ -253,11 +219,14 @@ export class TestOpsPlugin implements Plugin {
     const uploadedTrs = await this.#client.uploadTestResults({
       attachmentsResolver: attachmentsResolverFactory(store),
       fixturesResolver: fixturesResolverFactory(store),
+      environments,
       trs: trsToUpload,
       onProgress: () => trsProgressBar.tick(),
     });
 
-    this.#uploadedTestResultsIds.push(...uploadedTrs.map((tr) => tr.id));
+    uploadedTrs.forEach((tr) => {
+      this.#uploadedTestResultsIds.add(tr.id);
+    });
 
     const uploadedCount = uploadedTrs.length;
 
@@ -274,7 +243,11 @@ export class TestOpsPlugin implements Plugin {
 
   async #upload(
     store: AllureStore,
-    options = {} as { issueNewToken?: boolean; context?: PluginContext; stage: "start" | "update" | "done" },
+    options = {} as {
+      issueNewToken?: boolean;
+      context?: PluginContext;
+      stage: "start" | "update" | "done";
+    },
   ) {
     const { issueNewToken = true, context, stage } = options;
 
@@ -299,15 +272,16 @@ export class TestOpsPlugin implements Plugin {
 
     await this.#client.createSession(env);
 
-    await this.#uploadNamedEnvs(store);
     await this.#uploadGlobalAttachments(store);
     await this.#uploadGlobalErrors(store);
     await this.#uploadQualityGateResults(store);
 
-    const trsEnrichedWithCategories = this.#enrichWithCategories(trsToUpload, context?.categories ?? []);
-    await this.#syncLaunchCategories(trsEnrichedWithCategories);
+    const environments = await store.allEnvironmentIdentities();
+    const contextCategories = context?.categories ?? [];
+    const trsEnrichedWithCategories = await this.#enrichWithCategories(store, trsToUpload, contextCategories);
+    await this.#syncLaunchCategories(trsEnrichedWithCategories, contextCategories);
 
-    await this.#uploadTestResults(store, trsEnrichedWithCategories);
+    await this.#uploadTestResults(store, trsEnrichedWithCategories, environments);
   }
 
   async #trsToUpload(store: AllureStore) {
@@ -315,7 +289,7 @@ export class TestOpsPlugin implements Plugin {
 
     const filteredTrs = await store.allTestResults({
       filter: (tr) => {
-        const uploaded = this.#uploadedTestResultsIds.includes(tr.id);
+        const uploaded = this.#uploadedTestResultsIds.has(tr.id);
 
         if (uploaded) {
           return false;
@@ -329,39 +303,84 @@ export class TestOpsPlugin implements Plugin {
     return filteredTrs;
   }
 
-  #enrichWithCategories(
+  async #enrichWithCategories(
+    store: AllureStore,
     trs: TestOpsPluginTestResult[],
     contextCategories: CategoryDefinition[],
-  ): TestOpsPluginTestResult[] {
-    return trs.map((tr) => {
-      const base = { ...tr, steps: unwrapStepsAttachments(tr.steps) };
-      const category = toUploadCategory(tr, contextCategories ?? []);
+  ): Promise<TestOpsPluginTestResult[]> {
+    return Promise.all(
+      trs.map(async (tr) => {
+        const environmentId = await store.environmentIdByTrId(tr.id);
+        const base = {
+          ...tr,
+          ...(environmentId ? { environment: environmentId } : {}),
+          steps: unwrapStepsAttachments(tr.steps),
+        };
+        const category = toUploadCategory(base, contextCategories ?? []);
 
-      if (category) {
-        base.category = category;
-      }
+        if (category) {
+          base.category = category;
+        }
 
-      return base;
-    });
+        return base;
+      }),
+    );
   }
 
-  async #syncLaunchCategories(trs: TestOpsPluginTestResult[]): Promise<void> {
+  async #syncLaunchCategories(trs: TestOpsPluginTestResult[], contextCategories: CategoryDefinition[]): Promise<void> {
     const categoryNamesByExternalId = this.#collectCategoryNamesByExternalId(trs);
 
     if (categoryNamesByExternalId.size === 0) {
       return;
     }
 
-    const bulkItems: { externalId: string; name: string }[] = [];
+    const bulkItems: { externalId: string; name: string; hide?: boolean; expand?: boolean }[] = [];
+    const seenExternalIds = new Set<string>();
 
-    for (const [externalId, name] of categoryNamesByExternalId) {
-      bulkItems.push({ externalId, name });
+    for (const tr of trs) {
+      const cat = tr.category;
+      if (!cat?.externalId) continue;
+      if (seenExternalIds.has(cat.externalId)) continue;
+      seenExternalIds.add(cat.externalId);
+
+      bulkItems.push({
+        externalId: cat.externalId,
+        name: categoryNamesByExternalId.get(cat.externalId) ?? categoryDisplayName(cat),
+        hide: cat.hide,
+        expand: cat.expand,
+      });
     }
+
+    const rankByExternalId = new Map<string, number>();
+    for (const c of contextCategories) {
+      // Prefer canonical ids, but allow ordering by name for categories originating from `tr.categories`
+      if (!rankByExternalId.has(c.id)) {
+        rankByExternalId.set(c.id, c.index);
+      }
+      if (!rankByExternalId.has(c.name)) {
+        rankByExternalId.set(c.name, c.index);
+      }
+    }
+
+    const ranked = bulkItems.map((item, i) => ({
+      item,
+      i,
+      rank: rankByExternalId.get(item.externalId),
+    }));
+
+    ranked.sort((a, b) => {
+      const ar = a.rank ?? Number.POSITIVE_INFINITY;
+      const br = b.rank ?? Number.POSITIVE_INFINITY;
+      if (ar !== br) return ar - br;
+      return a.i - b.i; // stable for unknown ranks
+    });
+
+    const orderedBulkItems = ranked.map((r) => r.item);
 
     const launchId = this.#client.launchId;
 
     try {
-      const created = await this.#client.createLaunchCategoriesBulk(launchId!, bulkItems);
+      const created = await this.#client.createLaunchCategoriesBulk(launchId!, orderedBulkItems);
       const categoryIdByExternalId = new Map(created.map((r) => [r.externalId, r.id]));
 
       this.#assignCreatedCategoryIds(trs, categoryIdByExternalId);
@@ -447,7 +466,10 @@ export class TestOpsPlugin implements Plugin {
       return;
     }
 
-    const allTrs = await store.allTestResults({ filter: this.options.filter, includeHidden: false });
+    const allTrs = await store.allTestResults({
+      filter: this.options.filter,
+      includeHidden: false,
+    });
 
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));
 

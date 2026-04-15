@@ -1,5 +1,5 @@
 import { getParamValue, hasParam, setParams } from "@allurereport/web-commons";
-import { computed, effect } from "@preact/signals";
+import { computed, effect, signal } from "@preact/signals";
 
 export type SortByDirection = "asc" | "desc";
 export type SortByField = "order" | "duration" | "status" | "name";
@@ -16,21 +16,6 @@ const SORT_BY_PARAM = "sortBy";
 
 const hasSortByParam = computed(() => hasParam(SORT_BY_PARAM));
 
-export const setSortBy = (sortByValue: SortBy) => {
-  if (hasSortByParam.peek()) {
-    setParams({
-      key: SORT_BY_PARAM,
-      value: undefined,
-    });
-  }
-
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  localStorage.setItem(SORT_BY_STORAGE_KEY, sortByValue);
-};
-
 const validateSortBy = (sortByValue: string): sortByValue is SortBy => {
   const parts = sortByValue.split(",");
   if (parts.length !== 2) {
@@ -39,6 +24,30 @@ const validateSortBy = (sortByValue: string): sortByValue is SortBy => {
   const [field, direction] = parts;
 
   return SORT_BY_FIELDS.includes(field as SortByField) && DIRECTIONS.includes(direction as SortByDirection);
+};
+
+const getInitialSortBy = (): SortBy => {
+  if (typeof window === "undefined") {
+    return DEFAULT_SORT_BY;
+  }
+  const stored = localStorage.getItem(SORT_BY_STORAGE_KEY);
+  if (stored && validateSortBy(stored.toLowerCase())) {
+    return stored.toLowerCase() as SortBy;
+  }
+  return DEFAULT_SORT_BY;
+};
+
+const sortBySignal = signal<SortBy>(getInitialSortBy());
+
+export const setSortBy = (sortByValue: SortBy) => {
+  if (hasSortByParam.peek()) {
+    setParams({
+      key: SORT_BY_PARAM,
+      value: undefined,
+    });
+  }
+
+  sortBySignal.value = sortByValue;
 };
 
 export const sortBy = computed<SortBy>(() => {
@@ -53,13 +62,7 @@ export const sortBy = computed<SortBy>(() => {
     return DEFAULT_SORT_BY;
   }
 
-  const storageSortBy = localStorage.getItem(SORT_BY_STORAGE_KEY);
-
-  if (storageSortBy && validateSortBy(storageSortBy.toLowerCase())) {
-    return storageSortBy.toLowerCase() as SortBy;
-  }
-
-  return DEFAULT_SORT_BY;
+  return sortBySignal.value;
 });
 
 effect(() => {

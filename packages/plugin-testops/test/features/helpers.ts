@@ -10,7 +10,8 @@ export const mockAllureStore = () => {
     allTestResults = vi.fn().mockResolvedValue([]);
     allGlobalAttachments = vi.fn().mockResolvedValue([]);
     allGlobalErrors = vi.fn().mockResolvedValue([]);
-    allEnvironments = vi.fn().mockResolvedValue([]);
+    allEnvironmentIdentities = vi.fn().mockResolvedValue([]);
+    environmentIdByTrId = vi.fn().mockResolvedValue(undefined);
     attachmentsByTrId = vi.fn().mockResolvedValue([]);
     attachmentContentById = vi.fn().mockResolvedValue(undefined);
     fixturesByTrId = vi.fn().mockResolvedValue([]);

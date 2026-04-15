@@ -40,7 +40,8 @@ describe("Quality Gate upload", () => {
 
     store.allGlobalAttachments.mockResolvedValue([]);
     store.allGlobalErrors.mockResolvedValue([]);
-    store.allEnvironments.mockResolvedValue([]);
+    store.allEnvironmentIdentities.mockResolvedValue([]);
+    store.environmentIdByTrId.mockResolvedValue(undefined);
     store.attachmentsByTrId.mockResolvedValue([]);
     store.fixturesByTrId.mockResolvedValue([]);
     store.qualityGateResults.mockResolvedValue([
@@ -124,7 +125,8 @@ describe("Quality Gate upload", () => {
       ]),
       allGlobalAttachments: vi.fn().mockResolvedValue([]),
       allGlobalErrors: vi.fn().mockResolvedValue([]),
-      allEnvironments: vi.fn().mockResolvedValue([]),
+      allEnvironmentIdentities: vi.fn().mockResolvedValue([]),
+      environmentIdByTrId: vi.fn().mockResolvedValue(undefined),
       attachmentsByTrId: vi.fn().mockResolvedValue([]),
       fixturesByTrId: vi.fn().mockResolvedValue([]),
       qualityGateResults: vi.fn().mockResolvedValue([

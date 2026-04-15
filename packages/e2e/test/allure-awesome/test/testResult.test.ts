@@ -34,8 +34,16 @@ const build100x100TableHtml = () => {
   ].join("");
 };
 
+const countStandaloneOverviewErrors = async (testResultPage: TestResultPage) => {
+  return await testResultPage.page.getByTestId("test-result-error").evaluateAll((nodes) => {
+    return nodes.filter((node) => !node.closest('[data-testid="test-result-step-content"]')).length;
+  });
+};
+
 test.beforeAll(async () => {
   const now = Date.now();
+  const assertionAttachmentFileName = "body-assertion.txt";
+  const assertionAttachmentContent = "expected true to be false // Object.is equality";
 
   bootstrap = await bootstrapReport({
     reportConfig: {
@@ -158,6 +166,156 @@ test.beforeAll(async () => {
         stop: now + 8000,
         descriptionHtml: build100x100TableHtml(),
       },
+      {
+        name: "8 sample failed test with body attachment and error",
+        fullName: "sample.js#8 sample failed test with body attachment and error",
+        status: Status.FAILED,
+        stage: Stage.FINISHED,
+        start: now + 8000,
+        stop: now + 9000,
+        statusDetails: {
+          message: "expected true to be false // Object.is equality",
+          trace: "failed attachment body trace",
+          actual: "true",
+          expected: "false",
+        },
+        steps: [
+          {
+            name: "body step",
+            status: Status.PASSED,
+            stage: Stage.FINISHED,
+            start: now + 8100,
+            stop: now + 8200,
+            parameters: [],
+            steps: [],
+            statusDetails: {},
+          },
+          {
+            type: "attachment",
+            name: "assertion",
+            originalFileName: assertionAttachmentFileName,
+            contentType: "text/plain",
+          },
+        ],
+      },
+      {
+        name: "9 sample failed test with nested step error",
+        fullName: "sample.js#9 sample failed test with nested step error",
+        status: Status.FAILED,
+        stage: Stage.FINISHED,
+        start: now + 9000,
+        stop: now + 10000,
+        statusDetails: {
+          message: "expected true to be false // Object.is equality",
+          trace: "nested failed trace",
+          actual: "true",
+          expected: "false",
+        },
+        steps: [
+          {
+            name: "step 1",
+            status: Status.FAILED,
+            stage: Stage.FINISHED,
+            start: now + 9100,
+            stop: now + 9900,
+            parameters: [],
+            statusDetails: {
+              message: "expected true to be false // Object.is equality",
+              trace: "nested failed trace",
+            },
+            steps: [
+              {
+                name: "step 2",
+                status: Status.FAILED,
+                stage: Stage.FINISHED,
+                start: now + 9200,
+                stop: now + 9800,
+                parameters: [],
+                statusDetails: {
+                  message: "expected true to be false // Object.is equality",
+                  trace: "nested failed trace",
+                },
+                steps: [
+                  {
+                    name: "step 3",
+                    status: Status.FAILED,
+                    stage: Stage.FINISHED,
+                    start: now + 9300,
+                    stop: now + 9700,
+                    parameters: [],
+                    statusDetails: {
+                      message: "expected true to be false // Object.is equality",
+                      trace: "nested failed trace",
+                    },
+                    steps: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: "10 sample broken test with nested step error",
+        fullName: "sample.js#10 sample broken test with nested step error",
+        status: Status.BROKEN,
+        stage: Stage.FINISHED,
+        start: now + 10000,
+        stop: now + 11000,
+        statusDetails: {
+          message: "step 3 error",
+          trace: "nested broken trace",
+        },
+        steps: [
+          {
+            name: "step 1",
+            status: Status.BROKEN,
+            stage: Stage.FINISHED,
+            start: now + 10100,
+            stop: now + 10900,
+            parameters: [],
+            statusDetails: {
+              message: "step 3 error",
+              trace: "nested broken trace",
+            },
+            steps: [
+              {
+                name: "step 2",
+                status: Status.BROKEN,
+                stage: Stage.FINISHED,
+                start: now + 10200,
+                stop: now + 10800,
+                parameters: [],
+                statusDetails: {
+                  message: "step 3 error",
+                  trace: "nested broken trace",
+                },
+                steps: [
+                  {
+                    name: "step 3",
+                    status: Status.BROKEN,
+                    stage: Stage.FINISHED,
+                    start: now + 10300,
+                    stop: now + 10700,
+                    parameters: [],
+                    statusDetails: {
+                      message: "step 3 error",
+                      trace: "nested broken trace",
+                    },
+                    steps: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    attachments: [
+      {
+        source: assertionAttachmentFileName,
+        content: Buffer.from(assertionAttachmentContent),
+      },
     ],
   });
 });
@@ -216,30 +374,119 @@ test.describe("allure-awesome", () => {
       expect(clipboardContent).toEqual("sample.js#0 sample passed test");
     });
 
-    test("failed test contains error message and stack", async () => {
-      await treePage.leafStatusFailedLocator.click();
-      await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
-      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
-      await testResultPage.errorMessageLocator.click();
-      await expect(testResultPage.errorTraceLocator).toHaveText("failed test trace");
-    });
+    test("failed test renders its test-level error in the body section", async () => {
+      await treePage.openTestResultByTitle("1 sample failed test");
 
-    test("failed test contains error actual/expected comparison", async () => {
-      await treePage.leafStatusFailedLocator.click();
-      await expect(testResultPage.errorMessageLocator).toHaveText("Assertion error: Expected 1 to be 2");
-      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
+      const errorStep = testResultPage.getStepByName("Assertion error: Expected 1 to be 2");
+
+      await expect(errorStep.locator).toBeVisible();
+      await expect(errorStep.locator.getByTestId("test-result-step-title")).toHaveText(
+        "Assertion error: Expected 1 to be 2",
+      );
+      await expect(testResultPage.page.getByText("No test steps information available")).not.toBeVisible();
+      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(0);
+
+      await testResultPage.expandStepByTitle("Assertion error: Expected 1 to be 2");
+
+      await expect(errorStep.stepDetailsLocator.getByTestId("test-result-error-message")).toHaveCount(0);
+      await expect(errorStep.stepTraceLocator).toHaveText("failed test trace");
       await expect(testResultPage.errorDiffButtonLocator).toBeVisible();
       await testResultPage.errorDiffButtonLocator.click();
       await expect(testResultPage.errorDiffLocator).toBeVisible();
     });
 
-    test("broken test contains error message and stack", async () => {
-      await treePage.leafStatusBrokenLocator.click();
-      await expect(testResultPage.errorMessageLocator).toHaveText("An unexpected error");
-      await expect(testResultPage.errorTraceLocator).not.toBeVisible();
-      await testResultPage.errorMessageLocator.click();
-      await expect(testResultPage.errorTraceLocator).toHaveText("broken test trace");
+    test("broken test renders its test-level error in the body section", async () => {
+      await treePage.openTestResultByTitle("2 sample broken test");
+
+      const errorStep = testResultPage.getStepByName("An unexpected error");
+
+      await expect(errorStep.locator).toBeVisible();
+      await expect(errorStep.locator.getByTestId("test-result-step-title")).toHaveText("An unexpected error");
+      await expect(testResultPage.page.getByText("No test steps information available")).not.toBeVisible();
+      expect(await countStandaloneOverviewErrors(testResultPage)).toBe(0);
+
+      await testResultPage.expandStepByTitle("An unexpected error");
+
+      await expect(errorStep.stepDetailsLocator.getByTestId("test-result-error-message")).toHaveCount(0);
+      await expect(errorStep.stepTraceLocator).toHaveText("broken test trace");
     });
+
+    test("test-level error stays last and duplicate-looking assertion attachment remains visible", async () => {
+      await treePage.openTestResultByTitle("8 sample failed test with body attachment and error");
+
+      const stepsRoot = testResultPage.page.getByTestId("test-result-steps-root").first();
+      await expect(stepsRoot).toBeVisible();
+
+      // The assertion attachment step should be visible
+      const assertionStep = stepsRoot.getByTestId("test-result-step").filter({
+        has: testResultPage.page.getByTestId("test-result-step-title").getByText("assertion", { exact: true }),
+      });
+      await expect(assertionStep).toBeVisible();
+
+      // The test-level error step should be visible
+      const errorStep = stepsRoot.getByTestId("test-result-step").filter({
+        has: testResultPage.page
+          .getByTestId("test-result-step-title")
+          .getByText("expected true to be false // Object.is equality", { exact: true }),
+      });
+      await expect(errorStep).toBeVisible();
+
+      // The test-level error must come after the assertion attachment in the DOM
+      const isErrorAfterAssertion = await assertionStep.evaluate(
+        (assertionNode, { errorTitle }) => {
+          const stepsRoot = assertionNode.closest('[data-testid="test-result-steps-root"]');
+          if (!stepsRoot) return false;
+          const allSteps = Array.from(stepsRoot.querySelectorAll(':scope > [data-testid="test-result-step"]'));
+          const assertionIdx = allSteps.indexOf(assertionNode as Element);
+          const errorIdx = allSteps.findIndex((el) =>
+            el.querySelector('[data-testid="test-result-step-title"]')?.textContent?.includes(errorTitle),
+          );
+          return errorIdx > assertionIdx;
+        },
+        { errorTitle: "expected true to be false" },
+      );
+
+      expect(isErrorAfterAssertion).toBe(true);
+    });
+
+    test("nested failed test renders the synthetic error only inside the deepest step", async () => {
+      await treePage.openTestResultByTitle("9 sample failed test with nested step error");
+
+      const stepsRoot = testResultPage.page.getByTestId("test-result-steps-root").first();
+      const step1 = testResultPage.getStepByName("step 1");
+      const step2 = step1.getSubstepByName("step 2");
+      const step3 = step2.getSubstepByName("step 3");
+      const nestedErrorStep = step3.getSubstepByName("expected true to be false // Object.is equality");
+
+      await expect(stepsRoot.locator(':scope > [data-testid="test-result-step"]')).toHaveCount(1);
+      await expect(step1.locator).toBeVisible();
+      await expect(step2.locator).toBeVisible();
+      await expect(step3.locator).toBeVisible();
+      await expect(nestedErrorStep.locator).toBeVisible();
+      await expect(step3.contentLocator.locator(':scope > [data-testid="test-result-error"]')).toHaveCount(0);
+      await expect(nestedErrorStep.stepDetailsLocator.getByTestId("test-result-error-message")).toHaveCount(0);
+      await expect(nestedErrorStep.stepTraceLocator).toHaveText("nested failed trace");
+    });
+
+    test("nested broken test renders the synthetic error only inside the deepest step", async () => {
+      await treePage.openTestResultByTitle("10 sample broken test with nested step error");
+
+      const stepsRoot = testResultPage.page.getByTestId("test-result-steps-root").first();
+      const step1 = testResultPage.getStepByName("step 1");
+      const step2 = step1.getSubstepByName("step 2");
+      const step3 = step2.getSubstepByName("step 3");
+      const nestedErrorStep = step3.getSubstepByName("step 3 error");
+
+      await expect(stepsRoot.locator(':scope > [data-testid="test-result-step"]')).toHaveCount(1);
+      await expect(step1.locator).toBeVisible();
+      await expect(step2.locator).toBeVisible();
+      await expect(step3.locator).toBeVisible();
+      await expect(nestedErrorStep.locator).toBeVisible();
+      await expect(step3.contentLocator.locator(':scope > [data-testid="test-result-error"]')).toHaveCount(0);
+      await expect(nestedErrorStep.stepDetailsLocator.getByTestId("test-result-error-message")).toHaveCount(0);
+      await expect(nestedErrorStep.stepTraceLocator).toHaveText("nested broken trace");
+    });
+
     test("has a collapsable links section with links", async () => {
       const homepageLink = testResultPage.getLink(0);
       const docsLink = testResultPage.getLink(1);

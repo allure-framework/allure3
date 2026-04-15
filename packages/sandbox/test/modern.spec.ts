@@ -1,8 +1,74 @@
-import { globalAttachment, description, descriptionHtml, label, step } from "allure-js-commons";
-import { expect, it } from "vitest";
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
+import { globalAttachment, globalError, description, descriptionHtml, label, step } from "allure-js-commons";
+import { afterAll, expect, it } from "vitest";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+const SANDBOX_RESULTS_DIR = resolve(process.cwd(), "allure-results");
+const GLOBALS_FIXTURE_BASENAME = "sandbox-globals-env-fixture";
+
+afterAll(async () => {
+  await mkdir(SANDBOX_RESULTS_DIR, { recursive: true });
+
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-foo.txt`),
+    "foo scoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-bar.txt`),
+    "bar scoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-default.txt`),
+    "default unscoped global attachment\n",
+  );
+  await writeFile(
+    resolve(SANDBOX_RESULTS_DIR, `${GLOBALS_FIXTURE_BASENAME}-globals.json`),
+    JSON.stringify(
+      {
+        attachments: [
+          {
+            name: "foo global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-foo.txt`,
+            environment: "foo",
+          },
+          {
+            name: "bar global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-bar.txt`,
+            environment: "bar",
+          },
+          {
+            name: "default global log",
+            type: "text/plain",
+            source: `${GLOBALS_FIXTURE_BASENAME}-default.txt`,
+          },
+        ],
+        errors: [
+          {
+            message: "foo global error",
+            trace: "Error: foo global error",
+            environment: "foo",
+          },
+          {
+            message: "bar global error",
+            trace: "Error: bar global error",
+            environment: "bar",
+          },
+          {
+            message: "default global error",
+            trace: "Error: default global error",
+          },
+        ],
+      },
+      null,
+      2,
+    ),
+  );
+});
 
 it("sample passed test", async () => {
   await label("env", "foo");
@@ -16,6 +82,52 @@ it("sample failed test", async () => {
 
 it("sample broken test", async () => {
   throw new Error("broken test's reason");
+});
+
+it("sample failed test with body steps and test-level error", async () => {
+  await label("env", "bar");
+  await step("prepare data", () => {});
+  await step("send request", () => {});
+
+  expect({
+    status: "actual",
+    code: 500,
+  }).toEqual({
+    status: "expected",
+    code: 200,
+  });
+});
+
+it("sample broken test with body steps and test-level error", async () => {
+  await label("env", "foo");
+  await step("prepare data", () => {});
+  await step("send request", () => {});
+
+  throw new Error("broken after body steps");
+});
+
+it("should display nested failures", async () => {
+  await label("env", "foo");
+
+  await step("step 1", async () => {
+    await step("step 2", async () => {
+      await step("step 3", async () => {
+        expect(true).toBe(false);
+      });
+    });
+  });
+});
+
+it("should display nested errors", async () => {
+  await label("env", "bar");
+
+  await step("step 1", async () => {
+    await step("step 2", async () => {
+      await step("step 3", async () => {
+        throw new Error("step 3 error");
+      });
+    });
+  });
 });
 
 it("sample skipped test", async (ctx) => {
@@ -269,9 +381,23 @@ it("sample 100x100 description table test", async () => {
 });
 
 it("should create global attachment", async () => {
-  await globalAttachment("global-1.txt", new Buffer("global content 1"), "text/plain");
+  await globalAttachment("global-1.txt", Buffer.from("global content 1"), "text/plain");
 
   await step("attaching global attachment", async () => {
-    await globalAttachment("global-2.txt", new Buffer("global content 2"), "text/plain");
+    await globalAttachment("global-2.txt", Buffer.from("global content 2"), "text/plain");
+  });
+});
+
+it("should create global error", async () => {
+  await globalError({
+    message: "global error 1",
+    trace: "global error 1 trace",
+  });
+
+  await step("attaching global error", async () => {
+    await globalError({
+      message: "global error 2",
+      trace: "global error 2 trace",
+    });
   });
 });

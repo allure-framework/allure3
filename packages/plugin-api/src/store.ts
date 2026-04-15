@@ -1,5 +1,6 @@
 import type {
   AttachmentLink,
+  EnvironmentIdentity,
   HistoryDataPoint,
   HistoryTestResult,
   KnownTestFailure,
@@ -12,7 +13,7 @@ import type {
   TestResult,
 } from "@allurereport/core-api";
 
-import type { ExitCode } from "./plugin.js";
+import type { ExitCode, PluginGlobalAttachment, PluginGlobalError } from "./plugin.js";
 import type { QualityGateValidationResult } from "./qualityGate.js";
 import type { ResultFile } from "./resultFile.js";
 
@@ -27,15 +28,19 @@ export interface AllureStore {
   allFixtures: () => Promise<TestFixtureResult[]>;
   allHistoryDataPoints: () => Promise<HistoryDataPoint[]>;
   allHistoryDataPointsByEnvironment: (environment: string) => Promise<HistoryDataPoint[]>;
+  allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   qualityGateResultsByEnv: () => Promise<Record<string, QualityGateValidationResult[]>>;
+  qualityGateResultsByEnvironmentId: () => Promise<Record<string, QualityGateValidationResult[]>>;
   // global data
   globalExitCode: () => Promise<ExitCode | undefined>;
   allGlobalErrors: () => Promise<TestError[]>;
+  allGlobalErrorsByEnv: () => Promise<Record<string, PluginGlobalError[]>>;
   allGlobalAttachments: () => Promise<AttachmentLink[]>;
+  allGlobalAttachmentsByEnv: () => Promise<Record<string, PluginGlobalAttachment[]>>;
   // search api
   testCaseById: (tcId: string) => Promise<TestCase | undefined>;
   testResultById: (trId: string) => Promise<TestResult | undefined>;
@@ -43,6 +48,7 @@ export interface AllureStore {
   attachmentContentById: (attachmentId: string) => Promise<ResultFile | undefined>;
   metadataByKey: <T>(key: string) => Promise<T | undefined>;
   testResultsByTcId: (tcId: string) => Promise<TestResult[]>;
+  environmentIdByTrId: (trId: string) => Promise<string | undefined>;
   attachmentsByTrId: (trId: string) => Promise<AttachmentLink[]>;
   retriesByTr: (tr: TestResult) => Promise<TestResult[]>;
   retriesByTrId: (trId: string) => Promise<TestResult[]>;
@@ -58,27 +64,30 @@ export interface AllureStore {
   testsStatistic: (filter?: (testResult: TestResult) => boolean) => Promise<Statistic>;
   // environments
   allEnvironments: () => Promise<string[]>;
-  testResultsByEnvironment: (env: string) => Promise<TestResult[]>;
+  allEnvironmentIdentities: () => Promise<EnvironmentIdentity[]>;
+  testResultsByEnvironment: (env: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
+  testResultsByEnvironmentId: (envId: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
   allTestEnvGroups: () => Promise<TestEnvGroup[]>;
   // variables
   allVariables: () => Promise<Record<string, any>>;
   envVariables: (env: string) => Promise<Record<string, any>>;
+  envVariablesByEnvironmentId: (envId: string) => Promise<Record<string, any>>;
 }
 
 export interface AllureStoreDump {
   testResults: Record<string, TestResult>;
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
-  globalErrors: TestError[];
+  globalErrors: PluginGlobalError[];
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
-  environments: string[];
+  environments: Array<string | EnvironmentIdentity>;
   reportVariables: ReportVariables;
   qualityGateResults: QualityGateValidationResult[];
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
-  indexLatestEnvTestResultByHistoryId: Record<string, string>;
+  indexLatestEnvTestResultByHistoryId: Record<string, string> | Record<string, Record<string, string>>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
   indexKnownByHistoryId: Record<string, KnownTestFailure[]>;

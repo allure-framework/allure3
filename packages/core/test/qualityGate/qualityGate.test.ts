@@ -174,6 +174,39 @@ describe("QualityGate", () => {
       expect(fastFailed).toBe(false);
     });
 
+    it("should preserve passed environment values in failed results", async () => {
+      const mockRule: QualityGateRule<number> = {
+        rule: "mockRule",
+        message: ({ actual, expected }) => `Mock rule failed with ${actual} vs ${expected}`,
+        validate: vi.fn().mockResolvedValue({
+          success: false,
+          actual: 5,
+          expected: 3,
+        }),
+      };
+      const qualityGate = new QualityGate({
+        rules: [{ mockRule: 3 }],
+        use: [mockRule],
+      });
+
+      const { results } = await qualityGate.validate({
+        trs: [createTestResult("1", "passed")],
+        knownIssues: [],
+        environment: "foo/bar",
+      });
+
+      expect(results).toEqual([
+        expect.objectContaining({
+          environment: "foo/bar",
+        }),
+      ]);
+      expect(mockRule.validate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: "foo/bar",
+        }),
+      );
+    });
+
     it("should validate test results against rules and return empty array when all rules pass", async () => {
       const mockRule: QualityGateRule<number> = {
         rule: "mockRule",

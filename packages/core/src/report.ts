@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
 /* eslint max-lines: 0 */
@@ -32,6 +32,7 @@ import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBund
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
 import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
+import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
 import pLimit from "p-limit";
 import ProgressBar from "progress";
@@ -42,7 +43,9 @@ import { AllureLocalHistory, createHistory } from "./history.js";
 import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
+import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
@@ -66,6 +69,8 @@ export class AllureReport {
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
+  readonly #environments: NonNullable<FullConfig["environments"]>;
+  readonly #globalAttachments: FullConfig["globalAttachments"];
 
   #dumpTempDirs: string[] = [];
   #state?: Record<string, PluginState>;
@@ -87,6 +92,7 @@ export class AllureReport {
       defaultLabels = {},
       variables = {},
       environment,
+      allowedEnvironments,
       environments,
       output,
       hideLabels,
@@ -94,6 +100,7 @@ export class AllureReport {
       dump,
       categories,
       allureService: allureServiceConfig,
+      globalAttachments,
     } = opts;
 
     this.#allureServiceClient = allureServiceConfig?.accessToken
@@ -112,6 +119,8 @@ export class AllureReport {
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
+    this.#environments = environments ?? {};
+    this.#globalAttachments = globalAttachments;
 
     if (qualityGate) {
       this.#qualityGate = new QualityGate(qualityGate);
@@ -140,6 +149,7 @@ export class AllureReport {
       known,
       defaultLabels,
       environment,
+      allowedEnvironments,
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
@@ -223,12 +233,18 @@ export class AllureReport {
     environment?: string;
   }) => {
     const { trs, knownIssues, state, environment } = params;
+    const qualityGateEnvironment =
+      environment === undefined
+        ? undefined
+        : (environmentIdentityById(this.#environments, environment)?.name ??
+          environmentIdentityByName(this.#environments, environment)?.name ??
+          environment);
 
     return this.#qualityGate!.validate({
       trs: trs.filter(Boolean),
       knownIssues,
       state,
-      environment,
+      environment: qualityGateEnvironment,
     });
   };
 
@@ -246,6 +262,35 @@ export class AllureReport {
     }
 
     this.#executionStage = "running";
+
+    const cwd = resolve(process.cwd());
+    const cwdWithSep = cwd.endsWith(sep) ? cwd : `${cwd}${sep}`;
+
+    if (this.#globalAttachments?.length) {
+      const matchedFiles = new Set<string>();
+
+      for (const pattern of this.#globalAttachments) {
+        const files = await glob(pattern, { cwd, nodir: true, absolute: true });
+
+        files.forEach((filePath) => matchedFiles.add(filePath));
+      }
+
+      for (const filePath of matchedFiles) {
+        const absoluteFilePath = resolve(filePath);
+        const isInsideCwd = absoluteFilePath === cwd || absoluteFilePath.startsWith(cwdWithSep);
+
+        if (!isInsideCwd) {
+          continue;
+        }
+
+        const originalFileName = basename(absoluteFilePath);
+
+        this.#realtimeDispatcher.sendGlobalAttachment(
+          new PathResultFile(absoluteFilePath, originalFileName),
+          originalFileName,
+        );
+      }
+    }
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish && branch) {
@@ -469,13 +514,23 @@ export class AllureReport {
       try {
         for (const [attachmentId] of Object.entries(attachmentsEntries)) {
           const attachmentContentEntry = await dumpArchive.entryData(attachmentId);
-          const attachmentFilePath = join(dumpTempDir, attachmentId);
+          const attachmentFilePath = resolveDumpAttachmentPath(dumpTempDir, attachmentId);
 
           await writeFile(attachmentFilePath, attachmentContentEntry);
 
           resultsAttachments[attachmentId] = new PathResultFile(attachmentFilePath, attachmentId);
         }
       } catch (err) {
+        if (err instanceof UnsafeDumpPathError) {
+          console.error(
+            `Cannot restore dump from "${dump}": the archive lists attachment paths that would write outside the extract directory (unsafe zip paths such as "../" or absolute names).`,
+          );
+          console.error(err.message);
+          console.error(
+            "Only use dump archives produced by this tool; do not load untrusted or third-party --dump zip files.",
+          );
+          throw err;
+        }
         console.error(`Can't restore state from "${dump}", continuing without it`);
         console.error(err);
       }
@@ -577,6 +632,7 @@ export class AllureReport {
         return;
       }
 
+      summary.pluginId = context.id;
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 

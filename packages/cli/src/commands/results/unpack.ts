@@ -50,7 +50,9 @@ export class ResultsUnpackCommand extends Command {
 
     try {
       await fs.mkdir(outputDir, { recursive: true });
-    } catch (ignored) {}
+    } catch {
+      // ignore
+    }
 
     let successCount = 0;
     let failCount = 0;
@@ -59,7 +61,8 @@ export class ResultsUnpackCommand extends Command {
       const resolvedPath = resolve(cwd, archivePath);
 
       try {
-        await fs.access(resolvedPath);
+        await fs.access(resolvedPath, fs.constants.R_OK);
+        await fs.access(outputDir, fs.constants.W_OK);
 
         console.log(`Extracting ${resolvedPath} to ${outputDir}`);
 

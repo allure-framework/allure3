@@ -1,53 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { EnvironmentsConfig } from "../../src/index.js";
-import type { TestResult } from "../../src/model.js";
 import {
+  MAX_ENVIRONMENT_ID_LENGTH,
   MAX_ENVIRONMENT_NAME_LENGTH,
   assertValidEnvironmentName,
   formatNormalizedEnvironmentCollision,
-  matchEnvironment,
+  validateEnvironmentId,
   validateEnvironmentName,
 } from "../../src/utils/environment.js";
-
-const fixtures = {
-  envConfig: {
-    foo: {
-      variables: {
-        foo: "bar",
-      },
-      matcher: ({ labels }) => !!labels.find(({ name, value }) => name === "foo" && value === "bar"),
-    },
-  } as EnvironmentsConfig,
-};
-
-describe("matchEnvironment", () => {
-  it("should return matched environment", () => {
-    const result = matchEnvironment(fixtures.envConfig, {
-      labels: [
-        {
-          name: "foo",
-          value: "bar",
-        },
-      ],
-    } as TestResult);
-
-    expect(result).toEqual(Object.keys(fixtures.envConfig)[0]);
-  });
-
-  it("should return default when no environment is matched", () => {
-    const result = matchEnvironment(fixtures.envConfig, {
-      labels: [
-        {
-          name: "foo",
-          value: "baz",
-        },
-      ],
-    } as TestResult);
-
-    expect(result).toEqual("default");
-  });
-});
 
 describe("validateEnvironmentName", () => {
   it("accepts valid names and returns normalized value", () => {
@@ -61,13 +21,29 @@ describe("validateEnvironmentName", () => {
     expect(validateEnvironmentName(" default ")).toEqual({ valid: true, normalized: "default" });
   });
 
-  it("accepts names previously blocked by filesystem-style checks", () => {
-    expect(validateEnvironmentName("foo/bar")).toEqual({ valid: true, normalized: "foo/bar" });
+  it("accepts punctuation that does not represent path segments", () => {
     expect(validateEnvironmentName("foo#bar")).toEqual({ valid: true, normalized: "foo#bar" });
     expect(validateEnvironmentName("foo%bar")).toEqual({ valid: true, normalized: "foo%bar" });
     expect(validateEnvironmentName("foo:bar")).toEqual({ valid: true, normalized: "foo:bar" });
-    expect(validateEnvironmentName(".")).toEqual({ valid: true, normalized: "." });
-    expect(validateEnvironmentName("..")).toEqual({ valid: true, normalized: ".." });
+  });
+
+  it("rejects path-like segments", () => {
+    expect(validateEnvironmentName("foo/bar")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName("foo\\bar")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName(".")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
+    expect(validateEnvironmentName("..")).toEqual({
+      valid: false,
+      reason: "name must not contain path-like segments",
+    });
   });
 
   it("rejects empty and whitespace-only names", () => {
@@ -121,6 +97,49 @@ describe("validateEnvironmentName", () => {
     expect(validateEnvironmentName(1)).toEqual({
       valid: false,
       reason: "name must be a string",
+    });
+  });
+});
+
+describe("validateEnvironmentId", () => {
+  it("accepts authored IDs with latin letters, digits, underscores and hyphens", () => {
+    const validBoundaryId = "a".repeat(MAX_ENVIRONMENT_ID_LENGTH);
+
+    expect(validateEnvironmentId("foo")).toEqual({ valid: true, normalized: "foo" });
+    expect(validateEnvironmentId("foo_bar")).toEqual({ valid: true, normalized: "foo_bar" });
+    expect(validateEnvironmentId("foo-bar")).toEqual({ valid: true, normalized: "foo-bar" });
+    expect(validateEnvironmentId("A1_b-2")).toEqual({ valid: true, normalized: "A1_b-2" });
+    expect(validateEnvironmentId(validBoundaryId)).toEqual({ valid: true, normalized: validBoundaryId });
+    expect(validateEnvironmentId("  foo  ")).toEqual({ valid: true, normalized: "foo" });
+  });
+
+  it("rejects ids with internal whitespace or unsupported characters", () => {
+    expect(validateEnvironmentId("foo bar")).toEqual({
+      valid: false,
+      reason: "id must contain only latin letters, digits, underscores, and hyphens",
+    });
+    expect(validateEnvironmentId("foo/bar")).toEqual({
+      valid: false,
+      reason: "id must contain only latin letters, digits, underscores, and hyphens",
+    });
+    expect(validateEnvironmentId("прод")).toEqual({
+      valid: false,
+      reason: "id must contain only latin letters, digits, underscores, and hyphens",
+    });
+  });
+
+  it("rejects empty, too long and non-string ids", () => {
+    expect(validateEnvironmentId("")).toEqual({
+      valid: false,
+      reason: "id must not be empty",
+    });
+    expect(validateEnvironmentId("a".repeat(MAX_ENVIRONMENT_ID_LENGTH + 1))).toEqual({
+      valid: false,
+      reason: `id must not exceed ${MAX_ENVIRONMENT_ID_LENGTH} characters`,
+    });
+    expect(validateEnvironmentId(1)).toEqual({
+      valid: false,
+      reason: "id must be a string",
     });
   });
 });

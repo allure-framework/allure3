@@ -13,11 +13,10 @@ import { AllureReportMock } from "../../utils.js";
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const utils = await import("../../utils.js");
 
   return {
-    ...(await importOriginal()),
     AllureReport: utils.AllureReportMock,
     readConfig: vi.fn(),
   };

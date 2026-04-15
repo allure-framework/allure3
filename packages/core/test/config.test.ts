@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import { MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
+import { MAX_ENVIRONMENT_ID_LENGTH, MAX_ENVIRONMENT_NAME_LENGTH } from "@allurereport/core-api";
 import type { Config } from "@allurereport/plugin-api";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -19,6 +19,7 @@ import {
   validateConfig,
 } from "../src/config.js";
 import { importWrapper } from "../src/utils/module.js";
+import { isWindows } from "../src/utils/windows.js";
 
 class PluginFixture {}
 
@@ -190,6 +191,40 @@ describe("getPluginId", () => {
     expect(getPluginId("allure/plugin/foo")).toEqual("allure-plugin-foo");
     expect(getPluginId("allure\\plugin\\foo")).toEqual("allure-plugin-foo");
   });
+
+  it("trims whitespace around the key", () => {
+    expect(getPluginId("  awesome  ")).toEqual("awesome");
+  });
+
+  it("rejects empty and whitespace-only keys", () => {
+    expect(() => getPluginId("")).toThrow(/empty or whitespace-only/);
+    expect(() => getPluginId("   ")).toThrow(/empty or whitespace-only/);
+  });
+
+  it("rejects . and .. and .. segments after normalization", () => {
+    expect(() => getPluginId("..")).toThrow(/must not/);
+    expect(() => getPluginId(".")).toThrow(/must not/);
+    expect(() => getPluginId("foo..bar")).toThrow(/must not contain/);
+    expect(() => getPluginId("seg/foo/../bar")).toThrow(/must not contain/);
+  });
+
+  it.skipIf(!isWindows())("rejects characters invalid on Windows file names", () => {
+    expect(() => getPluginId("foo<bar")).toThrow(/Windows/);
+    expect(() => getPluginId("foo:bar")).toThrow(/Windows/);
+    expect(() => getPluginId("foo|bar")).toThrow(/Windows/);
+  });
+
+  it.skipIf(!isWindows())("rejects Windows reserved device names", () => {
+    expect(() => getPluginId("CON")).toThrow(/reserved/);
+    expect(() => getPluginId("com1")).toThrow(/reserved/);
+    expect(() => getPluginId("LPT2")).toThrow(/reserved/);
+  });
+
+  it.skipIf(isWindows())("allows Windows-forbidden id characters and reserved-like names on non-Windows", () => {
+    expect(getPluginId("foo:bar")).toEqual("foo:bar");
+    expect(getPluginId("com1")).toEqual("com1");
+    expect(getPluginId("foo<bar")).toEqual("foo<bar");
+  });
 });
 
 class ModuleNotFoundError extends Error {
@@ -253,6 +288,14 @@ describe("resolveConfig", () => {
       environment: "staging",
     };
     const resolved = await resolveConfig(fixture);
+
+    expect(resolved.environment).toEqual("staging");
+  });
+
+  it("should normalize provided environment name", async () => {
+    const resolved = await resolveConfig({
+      environment: " staging ",
+    });
 
     expect(resolved.environment).toEqual("staging");
   });
@@ -346,7 +389,7 @@ describe("resolveConfig", () => {
     expect(resolved.historyLimit).toEqual(5);
   });
 
-  it("should set awesome as a default plugin if no plugins are provided", async () => {
+  it("should set awesome and agent as default plugins if no plugins are provided", async () => {
     (importWrapper as unknown as MockInstance).mockResolvedValue({ default: PluginFixture });
 
     expect((await resolveConfig({})).plugins).toContainEqual({
@@ -359,6 +402,74 @@ describe("resolveConfig", () => {
       id: "awesome",
       enabled: true,
       options: {},
+      plugin: expect.any(PluginFixture),
+    });
+    expect((await resolveConfig({})).plugins).toContainEqual({
+      id: "agent",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
+    expect((await resolveConfig({ plugins: {} })).plugins).toContainEqual({
+      id: "agent",
+      enabled: true,
+      options: {},
+      plugin: expect.any(PluginFixture),
+    });
+  });
+
+  it("should append agent after configured plugins when agent is not specified", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {
+            reportName: "Custom",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins.map(({ id }) => id)).toEqual(["awesome", "agent"]);
+  });
+
+  it("should not duplicate agent when explicitly configured", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {},
+        },
+        agent: {
+          options: {
+            outputDir: "./out/agent-markdown",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins.filter(({ id }) => id === "agent")).toHaveLength(1);
+  });
+
+  it("should honor disabled agent config", async () => {
+    const resolved = await resolveConfig({
+      plugins: {
+        awesome: {
+          options: {},
+        },
+        agent: {
+          enabled: false,
+          options: {
+            outputDir: "./out/agent-markdown",
+          },
+        },
+      },
+    });
+
+    expect(resolved.plugins).toContainEqual({
+      id: "agent",
+      enabled: false,
+      options: {
+        outputDir: "./out/agent-markdown",
+      },
       plugin: expect.any(PluginFixture),
     });
   });
@@ -374,19 +485,31 @@ describe("resolveConfig", () => {
     );
   });
 
+  it("should reject top-level environmentName public config field", async () => {
+    await expect(
+      resolveConfig({ environmentName: "staging" } as Config & { environmentName?: string }),
+    ).rejects.toThrow("The provided Allure config contains unsupported fields: environmentName");
+  });
+
+  it("should reject top-level environmentId public config field", async () => {
+    await expect(resolveConfig({ environmentId: "qa_env" } as Config & { environmentId?: string })).rejects.toThrow(
+      "The provided Allure config contains unsupported fields: environmentId",
+    );
+  });
+
   it("should throw an error for invalid forced environment name", async () => {
     await expect(resolveConfig({ environment: "" })).rejects.toThrow(
-      "The provided Allure config contains invalid environment names: environment: name must not be empty",
+      "The provided Allure config contains invalid environments: environment name must not be empty",
     );
   });
 
   it("should throw an error for invalid forced environment control characters", async () => {
     await expect(resolveConfig({ environment: "foo\nbar" })).rejects.toThrow(
-      "The provided Allure config contains invalid environment names: environment: name must not contain control characters",
+      "The provided Allure config contains invalid environments: environment name must not contain control characters",
     );
   });
 
-  it("should throw an error for invalid environment config key with control characters", async () => {
+  it("should throw an error for invalid environment id with control characters", async () => {
     await expect(
       resolveConfig({
         environments: {
@@ -396,11 +519,11 @@ describe("resolveConfig", () => {
         },
       }),
     ).rejects.toThrow(
-      'The provided Allure config contains invalid environment names: environments["foo\\r\\nbar"]: name must not contain control characters',
+      'The provided Allure config contains invalid environments: config.environments["foo\\r\\nbar"]: id must contain only latin letters, digits, underscores, and hyphens',
     );
   });
 
-  it("should accept environment config key with slash", async () => {
+  it("should reject environment ids with unsupported characters", async () => {
     await expect(
       resolveConfig({
         environments: {
@@ -409,14 +532,16 @@ describe("resolveConfig", () => {
           },
         },
       }),
-    ).resolves.toBeDefined();
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.environments["foo/bar"]: id must contain only latin letters, digits, underscores, and hyphens',
+    );
   });
 
   it("should normalize environment values and keys", async () => {
     const resolved = await resolveConfig({
-      environment: " default ",
+      environment: "default",
       environments: {
-        " foo ": {
+        foo: {
           matcher: () => true,
         },
       },
@@ -426,7 +551,82 @@ describe("resolveConfig", () => {
     expect(Object.keys(resolved.environments)).toEqual(["foo"]);
   });
 
-  it("should throw an actionable error for normalized key collisions", async () => {
+  it("should accept environment ID in the public environment field", async () => {
+    const resolved = await resolveConfig({
+      environment: "qa_env",
+      environments: {
+        qa_env: {
+          name: " QA Env ",
+          matcher: () => true,
+        },
+      },
+    });
+
+    expect(resolved.environment).toBe("qa_env");
+    expect(Object.keys(resolved.environments)).toEqual(["qa_env"]);
+    expect(resolved.environments?.qa_env?.name).toBe("QA Env");
+  });
+
+  it("should resolve environment display name to environment ID in the public environment field", async () => {
+    const resolved = await resolveConfig({
+      environment: " QA Env ",
+      environments: {
+        qa_env: {
+          name: "QA Env",
+          matcher: () => true,
+        },
+      },
+    });
+
+    expect(resolved.environment).toBe("qa_env");
+  });
+
+  it("should keep configured environment ids in resolved environments config", async () => {
+    const resolved = await resolveConfig({
+      environments: {
+        compat_env: {
+          name: "Compat Env",
+          matcher: () => true,
+        },
+      },
+    });
+
+    expect(Object.keys(resolved.environments)).toEqual(["compat_env"]);
+  });
+
+  it("should reject duplicate display names across explicit environment ids", async () => {
+    await expect(
+      resolveConfig({
+        environments: {
+          qa_one: {
+            name: "QA",
+            matcher: () => true,
+          },
+          qa_two: {
+            name: " QA ",
+            matcher: () => false,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.environments: normalized environment name "QA" is produced by ids ["qa_one","qa_two"]',
+    );
+  });
+
+  it("should trim surrounding spaces from configured environment ids", async () => {
+    const resolved = await resolveConfig({
+      environments: {
+        " QA ": {
+          matcher: () => true,
+        },
+      },
+    });
+
+    expect(Object.keys(resolved.environments)).toEqual(["QA"]);
+    expect(resolved.environments.QA?.name).toBe("QA");
+  });
+
+  it("should reject duplicate ids after trimming surrounding spaces", async () => {
     await expect(
       resolveConfig({
         environments: {
@@ -439,7 +639,7 @@ describe("resolveConfig", () => {
         },
       }),
     ).rejects.toThrow(
-      'The provided Allure config contains invalid environment names: config.environments: normalized key "foo" is produced by original keys ["foo"," foo "]',
+      'The provided Allure config contains invalid environments: config.environments: normalized key "foo" is produced by original keys ["foo"," foo "]',
     );
   });
 
@@ -451,6 +651,139 @@ describe("resolveConfig", () => {
         environment: validBoundaryName,
         environments: {
           [validBoundaryName]: {
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("should accept configured environment ids with max allowed length through environment", async () => {
+    const validBoundaryId = "a".repeat(MAX_ENVIRONMENT_ID_LENGTH);
+
+    await expect(
+      resolveConfig({
+        environment: validBoundaryId,
+        environments: {
+          [validBoundaryId]: {
+            name: "QA",
+            matcher: () => true,
+          },
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("should reject environments outside allowedEnvironments in config.environment", async () => {
+    await expect(
+      resolveConfig({
+        environment: "baz",
+        allowedEnvironments: ["foo", "bar"],
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "baz" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject invalid allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "bar baz"],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[1]: id must contain only latin letters, digits, underscores, and hyphens",
+    );
+  });
+
+  it("should reject allowed environment ids with surrounding spaces instead of normalizing them", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: [" foo "],
+      }),
+    ).rejects.toThrow(
+      "The provided Allure config contains invalid environments: config.allowedEnvironments[0]: id must not contain leading or trailing whitespace",
+    );
+  });
+
+  it("should reject duplicate allowed environment ids", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo", "foo"],
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.allowedEnvironments: duplicated environment id "foo"',
+    );
+  });
+
+  it("should reject configured environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
+            matcher: () => true,
+          },
+          bar: {
+            matcher: () => false,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config.environments: environment id "bar" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should keep display-name-only allowed environment entries raw and unmatched", async () => {
+    await expect(
+      resolveConfig({
+        environment: "QA",
+        allowedEnvironments: ["QA"],
+        environments: {
+          qa_env: {
+            name: "QA",
+            matcher: () => true,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "qa_env" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should reject forced environments outside allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        environment: "QA",
+        allowedEnvironments: ["prod"],
+        environments: {
+          qa: {
+            name: "QA",
+            matcher: () => true,
+          },
+        },
+      }),
+    ).rejects.toThrow(
+      'The provided Allure config contains invalid environments: config: environment id "qa" is not listed in allowedEnvironments',
+    );
+  });
+
+  it("should not validate quality gate environment ids against allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["qa_env"],
+        qualityGate: {
+          rules: [{ allTestsContainEnv: "bar", environmentsTested: ["qa_env", "bar"] }],
+        },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("should not require default to be listed in allowedEnvironments", async () => {
+    await expect(
+      resolveConfig({
+        allowedEnvironments: ["foo"],
+        environments: {
+          foo: {
             matcher: () => true,
           },
         },

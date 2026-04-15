@@ -177,17 +177,29 @@ const MainReport = () => {
             />
             <Loadable
               source={globalsStore}
-              renderData={({ attachments = [], errors = [] }) => (
-                <>
-                  <RootTab id={ReportRootTab.GlobalAttachments}>
-                    {t("globalAttachments")} <Counter count={attachments.length} />
-                  </RootTab>
-                  <RootTab id={ReportRootTab.GlobalErrors}>
-                    {t("globalErrors")}{" "}
-                    <Counter status={errors.length > 0 ? "failed" : undefined} count={errors.length} />
-                  </RootTab>
-                </>
-              )}
+              renderData={({ attachments = [], attachmentsByEnv = {}, errors = [], errorsByEnv = {} }) => {
+                const currentEnvAttachments = currentEnvironment.value
+                  ? (attachmentsByEnv[currentEnvironment.value] ?? [])
+                  : attachments;
+                const currentEnvErrors = currentEnvironment.value
+                  ? (errorsByEnv[currentEnvironment.value] ?? [])
+                  : errors;
+
+                return (
+                  <>
+                    <RootTab id={ReportRootTab.GlobalAttachments}>
+                      {t("globalAttachments")} <Counter count={currentEnvAttachments.length} />
+                    </RootTab>
+                    <RootTab id={ReportRootTab.GlobalErrors}>
+                      {t("globalErrors")}{" "}
+                      <Counter
+                        status={currentEnvErrors.length > 0 ? "failed" : undefined}
+                        count={currentEnvErrors.length}
+                      />
+                    </RootTab>
+                  </>
+                );
+              }}
             />
           </NavTabsList>
           <div className={styles["main-report-tabs-content"]}>

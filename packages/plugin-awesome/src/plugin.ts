@@ -1,4 +1,4 @@
-import { type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
+import { incrementStatistic, type EnvironmentItem, type Statistic, joinPosixPath } from "@allurereport/core-api";
 import {
   type AllureStore,
   type Plugin,
@@ -9,7 +9,6 @@ import {
 import { preciseTreeLabels } from "@allurereport/plugin-api";
 
 import { applyCategoriesToTestResults, generateCategories } from "./categories.js";
-import { filterEnv } from "./environments.js";
 import { generateTimeline } from "./generateTimeline.js";
 import {
   generateAllCharts,
@@ -32,6 +31,36 @@ import {
 import type { AwesomePluginOptions } from "./model.js";
 import { type AwesomeDataWriter, InMemoryReportDataWriter, ReportFileDataWriter } from "./writer.js";
 
+const statisticByTestResults = async (
+  store: AllureStore,
+  testResults: Awaited<ReturnType<AllureStore["allTestResults"]>>,
+): Promise<Statistic> => {
+  const statistic: Statistic = { total: 0 };
+
+  for (const testResult of testResults) {
+    if (testResult.hidden) {
+      continue;
+    }
+
+    statistic.total++;
+    incrementStatistic(statistic, testResult.status);
+
+    if ((await store.retriesByTrId(testResult.id)).length > 0) {
+      statistic.retries = (statistic.retries ?? 0) + 1;
+    }
+
+    if (testResult.flaky) {
+      statistic.flaky = (statistic.flaky ?? 0) + 1;
+    }
+
+    if (testResult.transition === "new") {
+      statistic.new = (statistic.new ?? 0) + 1;
+    }
+  }
+
+  return statistic;
+};
+
 export class AwesomePlugin implements Plugin {
   #writer: AwesomeDataWriter | undefined;
 
@@ -42,21 +71,48 @@ export class AwesomePlugin implements Plugin {
     const hideLabels = context.hideLabels;
     const categories = context.categories ?? [];
     const environmentItems = await store.metadataByKey<EnvironmentItem[]>("allure_environment");
-    const reportEnvironments = await store.allEnvironments();
     const attachments = await store.allAttachments();
     const allTrs = await store.allTestResults({ includeHidden: true, filter });
     const statistics = await store.testsStatistic(filter);
-    const environments = await store.allEnvironments();
+    const environments = await store.allEnvironmentIdentities();
     const envStatistics = new Map<string, Statistic>();
     const allTestEnvGroups = await store.allTestEnvGroups();
     const globalAttachments = await store.allGlobalAttachments();
+    const globalAttachmentsByEnv = await store.allGlobalAttachmentsByEnv();
     const globalExitCode = await store.globalExitCode();
     const globalErrors = await store.allGlobalErrors();
-    const qualityGateResults = await store.qualityGateResultsByEnv();
+    const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
+    const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
+    const envResultsById = new Map<string, Awaited<ReturnType<AllureStore["allTestResults"]>>>();
+    const envIdByTrId = new Map<string, string>();
 
-    for (const env of environments) {
-      envStatistics.set(env, await store.testsStatistic(filterEnv(env, filter)));
-    }
+    environments.forEach(({ id }) => {
+      envResultsById.set(id, []);
+    });
+
+    await Promise.all(
+      allTrs.map(async (tr) => {
+        const environmentId = await store.environmentIdByTrId(tr.id);
+
+        if (!environmentId) {
+          return;
+        }
+
+        envIdByTrId.set(tr.id, environmentId);
+
+        if (!envResultsById.has(environmentId)) {
+          envResultsById.set(environmentId, []);
+        }
+
+        envResultsById.get(environmentId)!.push(tr);
+      }),
+    );
+
+    await Promise.all(
+      environments.map(async ({ id }) => {
+        envStatistics.set(id, await statisticByTestResults(store, envResultsById.get(id) ?? []));
+      }),
+    );
 
     await generateStatistic(this.#writer!, {
       stats: statistics,
@@ -72,13 +128,13 @@ export class AwesomePlugin implements Plugin {
       tests: convertedTrs,
       categories,
       environmentCount: environments.length,
-      environments,
+      environments: environments.map(({ name }) => name),
       defaultEnvironment: "default",
       selectedEnvironmentCount: environments.length,
     });
     const hasGroupBy = groupBy.length > 0;
 
-    await generateTimeline(this.#writer!, convertedTrs, this.options);
+    await generateTimeline(this.#writer!, allTrs, this.options, envIdByTrId);
 
     const treeLabels = hasGroupBy
       ? preciseTreeLabels(groupBy, convertedTrs, ({ labels }) => labels.map(({ name }) => name))
@@ -90,20 +146,36 @@ export class AwesomePlugin implements Plugin {
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
-    for (const reportEnvironment of reportEnvironments) {
-      const envConvertedTrs = convertedTrs.filter(({ environment }) => environment === reportEnvironment);
+    const envConvertedTrsById = new Map<string, typeof convertedTrs>();
 
-      await generateTree(this.#writer!, joinPosixPath(reportEnvironment, "tree.json"), treeLabels, envConvertedTrs, {
+    convertedTrs.forEach((tr) => {
+      const environmentId = envIdByTrId.get(tr.id);
+
+      if (!environmentId) {
+        return;
+      }
+
+      if (!envConvertedTrsById.has(environmentId)) {
+        envConvertedTrsById.set(environmentId, []);
+      }
+
+      envConvertedTrsById.get(environmentId)!.push(tr);
+    });
+
+    for (const reportEnvironment of environments) {
+      const envConvertedTrs = envConvertedTrsById.get(reportEnvironment.id) ?? [];
+
+      await generateTree(this.#writer!, joinPosixPath(reportEnvironment.id, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
       });
-      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment, "nav.json"));
+      await generateNav(this.#writer!, envConvertedTrs, joinPosixPath(reportEnvironment.id, "nav.json"));
       await generateCategories(this.#writer!, {
         tests: envConvertedTrs,
         categories,
         environmentCount: 1,
         defaultEnvironment: "default",
         selectedEnvironmentCount: 1,
-        filename: joinPosixPath(reportEnvironment, "categories.json"),
+        filename: joinPosixPath(reportEnvironment.id, "categories.json"),
       });
     }
 
@@ -123,7 +195,9 @@ export class AwesomePlugin implements Plugin {
     await generateQualityGateResults(this.#writer!, qualityGateResults);
     await generateGlobals(this.#writer!, {
       globalAttachments,
+      globalAttachmentsByEnv,
       globalErrors,
+      globalErrorsByEnv,
       globalExitCode,
       contentFunction: (id) => store.attachmentContentById(id),
     });

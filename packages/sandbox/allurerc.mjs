@@ -2,6 +2,7 @@ import { defaultChartsConfig, defineConfig } from "allure";
 
 const MAX_ENV_NAME_64 = "env-" + "x".repeat(60);
 const MAX_ENV_NAME_64_UNICODE = "я".repeat(64);
+const sandboxTestopsEnabled = process.env.SANDBOX_ENABLE_TESTOPS === "true";
 
 const chartLayout = [
   {
@@ -46,6 +47,7 @@ const chartLayout = [
 
 const comboRules = [
   {
+    id: "sandbox.layer-severity-message-envgroup",
     name: "Layer / Severity+Layer / Msg / EnvGroup",
     matchers: { labels: { layer: /.+/ } },
     groupBy: ["severity", { label: "layer" }],
@@ -53,6 +55,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.owner-message",
     name: "Owner / Owner / Msg",
     matchers: { labels: { owner: /.+/ } },
     groupBy: ["owner"],
@@ -60,6 +63,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.feature-status-envgroup",
     name: "Feature / Status / EnvGroup",
     matchers: { labels: { feature: /.+/ } },
     groupBy: ["status"],
@@ -67,6 +71,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.story-transition-environment",
     name: "Story / Transition+Env",
     matchers: { labels: { story: /.+/ } },
     groupBy: ["transition", "environment"],
@@ -74,6 +79,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.transitions-transition-environment-envgroup",
     name: "Transitions / Transition+EnvGroup",
     matchers: { transitions: ["new", "fixed", "regressed", "malfunctioned"] },
     groupBy: ["transition", "environment"],
@@ -81,6 +87,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.flaky-message",
     name: "Flaky / Flaky / Msg",
     matchers: { flaky: true },
     groupBy: ["flaky"],
@@ -88,6 +95,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.non-flaky-message",
     name: "Non-flaky / Flaky / Msg",
     matchers: { flaky: false },
     groupBy: ["flaky"],
@@ -95,6 +103,7 @@ const comboRules = [
     groupEnvironments: false,
   },
   {
+    id: "sandbox.feature-story-envgroup",
     name: "Feature+Story / EnvGroup",
     matchers: { labels: { feature: /.+/, story: /.+/ } },
     groupBy: [{ label: "feature" }, { label: "story" }],
@@ -102,6 +111,7 @@ const comboRules = [
     groupEnvironments: true,
   },
   {
+    id: "sandbox.env-label-environment-message",
     name: "Env label / Environment / Msg",
     matchers: { labels: { env: /.+/ } },
     groupBy: ["environment"],
@@ -177,19 +187,24 @@ export default defineConfig({
         groupBy: "none",
       },
     },
-    testops: {
-      options: {
-        accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
-        projectId: "770",
-        endpoint: "http://localhost:8080",
-      }
-    }
+    ...(sandboxTestopsEnabled
+      ? {
+          testops: {
+            options: {
+              accessToken: "2e1a978d-71b7-4bcc-a3a5-19ed5fedae80",
+              projectId: "770",
+              endpoint: "http://localhost:8080",
+            },
+          },
+        }
+      : {}),
   },
   variables: {
     env_variable: "unknown",
   },
   environments: {
     foo: {
+      name: "foo",
       variables: {
         env_variable: "foo",
         env_specific_variable: "foo",
@@ -197,20 +212,23 @@ export default defineConfig({
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "foo"),
     },
     bar: {
+      name: "bar",
       variables: {
         env_variable: "bar",
         env_specific_variable: "bar",
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === "bar"),
     },
-    [MAX_ENV_NAME_64]: {
+    max_env_name_64: {
+      name: MAX_ENV_NAME_64,
       variables: {
         env_variable: MAX_ENV_NAME_64,
         env_specific_variable: "max-length-64",
       },
       matcher: ({ labels }) => labels.some(({ name, value }) => name === "env" && value === MAX_ENV_NAME_64),
     },
-    [MAX_ENV_NAME_64_UNICODE]: {
+    max_env_name_64_unicode: {
+      name: MAX_ENV_NAME_64_UNICODE,
       variables: {
         env_variable: MAX_ENV_NAME_64_UNICODE,
         env_specific_variable: "max-length-64-unicode",

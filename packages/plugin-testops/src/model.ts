@@ -13,13 +13,21 @@ export type UploadCategory = {
   externalId: string;
   name?: string;
   grouping?: UploadCategoryGrouping[];
+  expand?: boolean;
+  hide?: boolean;
 };
 
 export type TestResultWithCategories = Pick<
   TestResult,
   "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"
 > & {
-  categories?: { name: string; grouping?: UploadCategoryGrouping[] }[];
+  categories?: {
+    id?: string;
+    name: string;
+    grouping?: UploadCategoryGrouping[];
+    hide?: boolean;
+    expand?: boolean;
+  }[];
 };
 
 export interface TestOpsPluginTestResult extends TestResult {
@@ -39,6 +47,8 @@ export interface TestOpsPluginTestResult extends TestResult {
 export type LaunchCategoryBulkItem = {
   externalId: string;
   name: string;
+  expand?: boolean;
+  hide?: boolean;
 };
 
 export type LaunchCategoryBulkResult = {

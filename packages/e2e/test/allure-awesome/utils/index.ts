@@ -15,6 +15,7 @@ export type BootstrapReportParams = Omit<GeneratorParams, "rootDir" | "reportDir
     exitCode?: ExitCode;
     errors?: TestError[];
     attachments?: Record<string, Buffer>;
+    attachmentsByEnv?: Record<string, Record<string, Buffer>>;
   };
 };
 

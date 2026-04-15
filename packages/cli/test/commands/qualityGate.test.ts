@@ -2,7 +2,7 @@ import * as console from "node:console";
 import { exit } from "node:process";
 
 import { readConfig, stringifyQualityGateResults } from "@allurereport/core";
-import { UsageError, run } from "clipanion";
+import { run } from "clipanion";
 import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -46,14 +46,51 @@ vi.mock("node:fs/promises", () => ({
 vi.mock("glob", () => ({
   glob: vi.fn(),
 }));
-vi.mock("@allurereport/core", async (importOriginal) => {
+vi.mock("@allurereport/core", async () => {
   const utils = await import("../utils.js");
+  const environmentIdentityById = vi.fn((environments: Record<string, { name?: string }>, environmentId: string) => {
+    const descriptor = environments[environmentId];
+
+    return descriptor ? { id: environmentId, name: descriptor.name ?? environmentId } : undefined;
+  });
+  const environmentIdentityByName = vi.fn(
+    (environments: Record<string, { name?: string }>, environmentName: string) => {
+      for (const [id, descriptor] of Object.entries(environments)) {
+        if ((descriptor?.name ?? id) === environmentName) {
+          return {
+            id,
+            name: descriptor?.name ?? id,
+          };
+        }
+      }
+
+      return undefined;
+    },
+  );
+  const validateAllowedEnvironmentId = vi.fn(
+    (environmentId: string, allowedIds: ReadonlySet<string>, sourcePath: string) => {
+      if (environmentId === "default" || allowedIds.size === 0 || allowedIds.has(environmentId)) {
+        return undefined;
+      }
+
+      return `${sourcePath}: environment id ${JSON.stringify(environmentId)} is not listed in allowedEnvironments`;
+    },
+  );
 
   return {
-    ...(await importOriginal()),
     readConfig: vi.fn(),
     stringifyQualityGateResults: vi.fn(),
     AllureReport: utils.AllureReportMock,
+    QualityGateState: class {
+      getResult() {
+        return undefined;
+      }
+
+      setResult() {}
+    },
+    environmentIdentityById,
+    environmentIdentityByName,
+    validateAllowedEnvironmentId,
   };
 });
 
@@ -250,7 +287,34 @@ describe("quality-gate command", () => {
 
     command.environment = "foo\nbar";
 
-    await expect(command.execute()).rejects.toBeInstanceOf(UsageError);
+    await expect(command.execute()).rejects.toThrow("Invalid --environment value");
     expect(readConfig).not.toHaveBeenCalled();
+  });
+
+  it("should pass resolved environment identity into AllureReport", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({
+      plugins: [],
+      environments: {
+        prod_env: {
+          name: "Production",
+        },
+      },
+    });
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
+    AllureReportMock.prototype.hasQualityGate = true;
+
+    const command = new QualityGateCommand();
+
+    command.cwd = fixtures.cwd;
+    command.resultsDir = undefined;
+    command.environmentName = "Production";
+
+    await command.execute();
+
+    expect(AllureReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        environment: "prod_env",
+      }),
+    );
   });
 });

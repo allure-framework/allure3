@@ -8,7 +8,7 @@ import { cwd } from "node:process";
 import watchDirectory from "@allurereport/directory-watcher";
 import openUrl from "open";
 
-import { TYPES_BY_EXTENSION, identity, injectLiveReloadScript } from "./utils.js";
+import { TYPES_BY_EXTENSION, identity, injectLiveReloadScript, resolveUrlPathnameUnderServeRoot } from "./utils.js";
 
 export type AllureStaticServer = {
   url: string;
@@ -110,7 +110,14 @@ export const serve = async (options?: {
       return;
     }
 
-    let fsPath = join(pathToServe, decodeURI(pathname));
+    const resolvedPublic = resolveUrlPathnameUnderServeRoot(pathToServe, pathname);
+
+    if (resolvedPublic === null) {
+      res.writeHead(404);
+      return res.end();
+    }
+
+    let fsPath = resolvedPublic;
     let stats: Stats;
 
     try {
