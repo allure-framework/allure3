@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/timings-stop.json",
+      "originalFileName": "1d1bccf2-5b7a-4187-a32f-2aebaf6a641a-result.json"
+    }
+  ]
+}
