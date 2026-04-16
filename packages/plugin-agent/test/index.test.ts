@@ -506,10 +506,19 @@ describe("AgentPlugin", () => {
     expect(guide).toContain("## Enrichment Loop Workflow");
     expect(guide).toContain("## Verification Standard");
     expect(guide).toContain("manifest/test-events.jsonl");
+    expect(guide).toContain("allure agent latest");
+    expect(guide).toContain("allure agent state-dir");
+    expect(guide).toContain("allure agent select --latest");
+    expect(guide).toContain("allure agent --rerun-latest");
+    expect(guide).toContain("--rerun-preset");
+    expect(guide).toContain("--rerun-environment");
+    expect(guide).toContain("--rerun-label");
+    expect(guide).toContain("ALLURE_AGENT_STATE_DIR");
+    expect(guide).toContain("print the `index.md` path");
     expect(guide).toContain(
-      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.",
+      "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
     );
-    expect(guide).toContain("Use `allure run` for smoke checks too, even when the change is small or mechanical.");
+    expect(guide).toContain("Use `allure agent` for smoke checks too, even when the change is small or mechanical.");
     expect(guide).toContain("Only skip agent mode when it is impossible or when you are debugging agent mode itself.");
     expect(guide).toContain("## Small Test Change Workflow");
     expect(guide).toContain("## Coverage Review Workflow");

@@ -1,9 +1,13 @@
+import { resolve } from "node:path";
+
 import { readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { executeAgentMode } from "../../src/commands/agent.js";
 import { RunCommand } from "../../src/commands/run.js";
+import { ALLURE_CLI_ACTIVE_COMMAND_ENV } from "../../src/utils/execution-context.js";
 
 const { exitMock, processStream } = vi.hoisted(() => {
   const exitMock = vi.fn();
@@ -85,9 +89,15 @@ vi.mock("@allurereport/static-server", async (importOriginal) => ({
   ...(await importOriginal()),
   serve: vi.fn(),
 }));
+vi.mock("../../src/commands/agent.js", () => ({
+  executeAgentMode: vi.fn().mockResolvedValue(undefined),
+}));
 
 beforeEach(async () => {
   vi.clearAllMocks();
+  delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
+  delete process.env.ALLURE_AGENT_OUTPUT;
+  delete process.env.ALLURE_AGENT_EXPECTATIONS;
 
   const { AllureReportMock } = await import("../utils.js");
 
@@ -118,6 +128,7 @@ describe("run command", () => {
 
   it("should pass hideLabels override to readConfig and apply normalized value to default awesome plugin", async () => {
     const { AllureReportMock } = await import("../utils.js");
+    const { runProcess } = await import("../../src/utils/index.js");
 
     (readConfig as Mock).mockResolvedValueOnce({
       output: "./allure-report",
@@ -145,6 +156,13 @@ describe("run command", () => {
             plugin: expect.any(AwesomePlugin),
           }),
         ]),
+      }),
+    );
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        environmentVariables: {
+          ALLURE_CLI_ACTIVE_COMMAND: "run",
+        },
       }),
     );
     expect(exitMock).toHaveBeenCalledWith(0);
@@ -190,5 +208,53 @@ describe("run command", () => {
       }),
     );
     expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
+  it("should bypass nested allure wrappers and execute the child command directly", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess } = await import("../../src/utils/index.js");
+
+    process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV] = "agent";
+
+    await run(RunCommand, ["run", "--silent", "--", "npm", "test"]);
+
+    expect(runProcess).toHaveBeenCalledWith({
+      command: "npm",
+      commandArgs: ["test"],
+      cwd: "/cwd",
+      logs: "ignore",
+    });
+    expect(readConfig).not.toHaveBeenCalled();
+    expect(AllureReportMock).not.toHaveBeenCalled();
+    expect(exitMock).toHaveBeenCalledWith(0);
+
+    delete process.env[ALLURE_CLI_ACTIVE_COMMAND_ENV];
+  });
+
+  it("should delegate legacy env-based agent mode to the agent command", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { runProcess } = await import("../../src/utils/index.js");
+    const consoleModule = await import("node:console");
+
+    process.env.ALLURE_AGENT_OUTPUT = "./legacy-agent-output";
+    process.env.ALLURE_AGENT_EXPECTATIONS = "./legacy-expected.yaml";
+
+    await run(RunCommand, ["run", "--cwd", "./fixture", "--silent", "--", "npm", "test"]);
+
+    expect(executeAgentMode).toHaveBeenCalledWith({
+      configPath: undefined,
+      cwd: "./fixture",
+      output: resolve(process.cwd(), "./legacy-agent-output"),
+      expectations: resolve(process.cwd(), "./legacy-expected.yaml"),
+      environment: undefined,
+      environmentName: undefined,
+      silent: true,
+      args: ["npm", "test"],
+    });
+    expect(readConfig).not.toHaveBeenCalled();
+    expect(AllureReportMock).not.toHaveBeenCalled();
+    expect(runProcess).not.toHaveBeenCalled();
+    expect(consoleModule.log).not.toHaveBeenCalled();
+    expect(exitMock).not.toHaveBeenCalled();
   });
 });
