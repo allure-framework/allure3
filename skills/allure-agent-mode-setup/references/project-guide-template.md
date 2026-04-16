@@ -6,13 +6,29 @@ Use Allure agent-mode to design, review, validate, debug, and enrich tests in th
 
 Runtime first, source second.
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use `ALLURE_AGENT_*` with `allure run` only as the lower-level fallback when you need direct environment control.
 - If the agent-mode output is missing or incomplete, debug that first and treat console-only conclusions as provisional.
 
 ## Verification Standard
 
-- Use `allure run` for smoke checks too, even when the change is small or mechanical.
+- Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
+- After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
+
+## Helpful Commands
+
+- `allure agent latest` prints the latest agent output directory for the current project cwd. Use it when a prior run omitted `--output` and you want to reopen the most recent agent-mode artifacts.
+- `allure agent state-dir` prints the state directory for the current project cwd. Use it when you need to inspect where `latest` pointers are stored or debug sandbox behavior.
+- `allure agent select --latest` or `allure agent select --from <output-dir>` prints the review-targeted test plan from a prior agent run. Add `--preset failed` or exact `--label name=value` / `--environment <id>` filters when you need a narrower rerun plan.
+- `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` reruns only the selected tests through the framework-agnostic Allure testplan flow. The default rerun preset is `review`.
+
+## Advanced Reruns
+
+- `--rerun-preset review|failed|unsuccessful|all` changes how the rerun seed set is chosen. Use `review` for the default agent-targeted loop, `failed` for classic failure reruns, `unsuccessful` for any non-passed tests, and `all` when you want the whole previously observed set.
+- `--rerun-environment <id>` narrows the rerun selection to one or more environment ids from the previous agent output. Repeat the flag for multiple environments.
+- `--rerun-label name=value` narrows the rerun selection to tests whose prior results carried exact matching labels. Repeat the flag for multiple label filters.
+- `ALLURE_AGENT_STATE_DIR` overrides the default project-scoped state directory used by `allure agent latest`, `allure agent state-dir`, and `--rerun-latest`. Use it when you need a deterministic shared location in CI or a constrained sandbox.
 
 ## Core Loops
 
@@ -20,18 +36,19 @@ Runtime first, source second.
 
 1. Identify the exact review scope.
 2. Create a fresh expectations file for this run in a temp directory.
-3. Run only that scope with `allure run`.
+3. Run only that scope with `allure agent`.
 4. Read `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 5. Read per-test markdown only for tests that failed, drifted, or have findings.
 6. Only after runtime review, inspect source code for root cause or coverage gaps.
 7. If evidence is weak or partial, enrich the tests and rerun.
+8. When iterating on the same scope, prefer `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` so the rerun stays focused on the review-targeted tests.
 
 ### Feature Delivery Loop
 
 1. Understand the feature or issue.
 2. Create a fresh expectations file for this run in a temp directory.
 3. Write or update the tests.
-4. Run the target scope with `allure run`.
+4. Run the target scope with `allure agent`.
 5. Review `index.md`, manifests, and per-test markdown.
 6. Enrich tests when evidence is weak.
 7. Rerun until scope and evidence are acceptable.
@@ -48,7 +65,7 @@ Use this when the run is functionally correct but too weak to review:
 ### Small Test Change Workflow
 
 1. Create a fresh expectations file and temp output directory for the touched scope.
-2. Run the touched scope with `allure run`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.
+2. Run the touched scope with `allure agent`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.
 3. Review `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 4. Only then make a final statement about regression safety or test correctness.
 
@@ -56,7 +73,7 @@ Use this when the run is functionally correct but too weak to review:
 
 1. Split command or package audits into scoped groups.
 2. Give each group its own expectations file and temp output directory.
-3. Run each group with `allure run`.
+3. Run each group with `allure agent`.
 4. Review runtime artifacts first, then inspect source code only after the run explains what actually executed.
 5. Mark the review incomplete until each scoped group either matched expectations or was explicitly documented as a broad package-health audit.
 
@@ -88,9 +105,10 @@ Compact coverage-review pattern:
 TMP_DIR="$(mktemp -d)"
 EXPECTATIONS="$TMP_DIR/expectations.yaml"
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-npx allure run -- npm test -- <scope>
+npx allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- npm test -- <scope>
 ```
 
 Single-spec expectations example:
