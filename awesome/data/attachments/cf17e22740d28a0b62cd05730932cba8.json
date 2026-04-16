@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/attachments/titleInvalid.xml",
+      "originalFileName": "bfd11f6f-541e-4b0e-8be6-fd6df3b93f51-testsuite.xml"
+    }
+  ]
+}

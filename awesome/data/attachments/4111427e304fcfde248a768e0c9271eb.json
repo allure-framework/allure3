@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/statuses/upperCase.xml",
+      "originalFileName": "b73c4aa3-7ac2-4954-aaa8-0c0080617009-testsuite.xml"
+    }
+  ]
+}
