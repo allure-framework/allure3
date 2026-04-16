@@ -138,6 +138,25 @@ export class TreePage extends CommonPage {
     return this.getNthSectionLocator(n).getByTestId("tree-section-title");
   }
 
+  getNthSectionSubtreeToggleLocator(n: number) {
+    return this.getNthSectionLocator(n).getByTestId("tree-subtree-toggle");
+  }
+
+  async clickNthSectionSubtreeToggle(n: number) {
+    await this.getNthSectionSubtreeToggleLocator(n).click();
+  }
+
+  async getSectionTitles() {
+    const titlesCount = await this.sectionsLocator.count();
+    const titles: string[] = [];
+
+    for (let index = 0; index < titlesCount; index += 1) {
+      titles.push((await this.getNthSectionTitleLocator(index).innerText()).trim());
+    }
+
+    return titles;
+  }
+
   getLeafByTitle(title: string) {
     return this.leafLocator.filter({
       has: this.page.getByText(title, { exact: true }),

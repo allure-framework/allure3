@@ -44,6 +44,7 @@ export class TestResultPage extends CommonPage {
   prevStatusLocator: Locator;
 
   linksLocator: Locator;
+  stepsSubtreeToggleLocator: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -86,6 +87,7 @@ export class TestResultPage extends CommonPage {
     this.prevStatusLocator = page.getByTestId("test-result-prev-status");
 
     this.linksLocator = page.getByTestId("test-result-meta-links");
+    this.stepsSubtreeToggleLocator = page.getByTestId("test-result-steps-subtree-toggle");
   }
 
   tabById(id: string) {
@@ -197,5 +199,9 @@ export class TestResultPage extends CommonPage {
 
   async toggleLinkSection() {
     this.linksLocator.getByRole("button").click();
+  }
+
+  async toggleStepsSubtree() {
+    await this.stepsSubtreeToggleLocator.click();
   }
 }

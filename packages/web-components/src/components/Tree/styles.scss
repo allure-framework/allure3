@@ -65,6 +65,18 @@
   flex-grow: 1;
 }
 
+.tree-subtree-toggle {
+  flex: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.tree-section:hover .tree-subtree-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .tree-count {
   display: flex;
   align-items: flex-start;

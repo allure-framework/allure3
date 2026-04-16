@@ -201,8 +201,9 @@
   gap: 8px;
 
   > :first-child {
-    flex: 1 1 auto;
+    //flex: 1 1 auto;
     min-width: 0;
+    width: max-content;
   }
 
   > :last-child {

@@ -54,6 +54,18 @@
   }
 }
 
+.test-result-step-subtree-toggle {
+  flex: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.test-result-step-header:hover .test-result-step-subtree-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .test-result-header-text {
   padding-left: 4px;
   word-break: break-word;

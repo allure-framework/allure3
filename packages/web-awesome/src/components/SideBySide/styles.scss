@@ -1,7 +1,7 @@
 .side {
   width: 100%;
   margin: 0;
-  overflow: hidden;
+  //overflow: hidden;
   display: flex;
   max-width: 1920px;
   justify-content: space-between;
@@ -17,15 +17,17 @@
 
 .side-left {
   margin-right: auto;
-  transition: width 50ms;
-  will-change: width;
+  border-radius: 12px 0 0 12px;
+  box-shadow: var(--shadow-small);
+  overflow: hidden;
 }
 
 .side-right {
   flex: 1 1 auto;
   margin-left: auto;
-  transition: width 200ms;
-  will-change: width, height;
+  border-radius: 0 12px 12px 0;
+  box-shadow: var(--shadow-small);
+  overflow: hidden;
 }
 
 [dir="ltr"] {

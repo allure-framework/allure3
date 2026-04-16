@@ -3,8 +3,12 @@ import type { FunctionComponent } from "preact";
 
 import { hasTestLevelErrorContent, type TestLevelErrorItem } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
+import {
+  getStepTreeExpansionPolicy,
+  isOpenByDefaultForPolicy,
+} from "@/components/TestResult/TrSteps/stepTreeExpansion";
 import { TrStepHeader } from "@/components/TestResult/TrSteps/TrStepHeader";
-import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { isTreeOpened, toggleTree } from "@/stores/tree";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -14,8 +18,10 @@ export type TrErrorStepProps = {
 };
 
 export const TrErrorStep: FunctionComponent<TrErrorStepProps> = ({ item, stepIndex }) => {
-  const isOpened = !collapsedTrees.value.has(item.id);
   const hasContent = hasTestLevelErrorContent(item.error);
+  const policy = getStepTreeExpansionPolicy();
+  const openedByDefault = isOpenByDefaultForPolicy(policy, item.status === "failed" || item.status === "broken");
+  const isOpened = isTreeOpened(item.id, openedByDefault);
 
   return (
     <div data-testid="test-result-step" className={styles["test-result-step"]}>
@@ -25,7 +31,7 @@ export const TrErrorStep: FunctionComponent<TrErrorStepProps> = ({ item, stepInd
         stepIndex={stepIndex}
         isOpened={isOpened}
         hasContent={hasContent}
-        onToggle={() => toggleTree(item.id)}
+        onToggle={() => toggleTree(item.id, openedByDefault)}
       />
       {isOpened && hasContent && (
         <div

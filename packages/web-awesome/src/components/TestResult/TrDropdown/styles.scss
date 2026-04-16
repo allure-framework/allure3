@@ -32,3 +32,10 @@
     background: var(--bg-control-flat-medium);
   }
 }
+
+.test-result-dropdown-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
