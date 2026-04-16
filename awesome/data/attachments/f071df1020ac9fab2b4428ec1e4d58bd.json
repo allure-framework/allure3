@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/labels/packages/wellDefinedWithOneTestCase.xml",
+      "originalFileName": "9a04fbfb-2ef7-46b9-b522-12ccd9bd8333.xml"
+    }
+  ]
+}

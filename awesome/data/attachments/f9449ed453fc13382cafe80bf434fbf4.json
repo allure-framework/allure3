@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/labels/suites/suiteNameMissing.xml",
+      "originalFileName": "5d292bdd-95d6-4e0b-9bab-bb97e160a93c.xml"
+    }
+  ]
+}

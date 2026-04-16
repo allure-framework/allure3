@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/attachments/sourceMissing.xml",
+      "originalFileName": "0d75ae9c-3353-40fa-ac07-edd2d4eccbf6-testsuite.xml"
+    }
+  ]
+}
