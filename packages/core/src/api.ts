@@ -16,6 +16,7 @@ export interface FullConfig
     Omit<Config, "name" | "output" | "open" | "knownIssuesPath" | "plugins" | "port">,
     FullConfigRequiredFromConfig {
   port: Config["port"] | undefined;
+  allowedEnvironments?: Config["allowedEnvironments"];
   reportFiles: ReportFiles;
   readers?: ResultsReader[];
   plugins?: PluginInstance[];

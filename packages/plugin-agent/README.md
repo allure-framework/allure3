@@ -16,7 +16,7 @@ This plugin writes AI-friendly markdown summaries for a test run. It is designed
 flows like:
 
 ```shell
-ALLURE_AGENT_OUTPUT=./out/agent-report npx allure run -- npm test
+npx allure agent -- npm test
 ```
 
 When enabled, the plugin writes:
@@ -38,8 +38,8 @@ accept. See [the enrichment loop guide](../../docs/agent_enrichment_loop.md).
 
 ## Verification Standard
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.
-- Use `allure run` for smoke checks too, even when the change is small or mechanical.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 
 ## Skills-First Workflow
@@ -84,7 +84,24 @@ export default defineConfig({
 });
 ```
 
-You can also enable it through an environment variable:
+The preferred CLI entrypoint is:
+
+```shell
+npx allure agent -- npm test
+```
+
+You can provide an explicit expectations file and output directory when you need deterministic paths:
+
+```shell
+npx allure agent \
+  --output ./out/agent-report \
+  --expectations ./out/agent-expected.yaml \
+  -- npm test
+```
+
+That command uses an agent-only profile by default, so configured presentation and export plugins such as Awesome, Dashboard, or TestOps are ignored for that run.
+
+You can also enable the plugin through lower-level environment variables when you need direct env control:
 
 ```shell
 ALLURE_AGENT_OUTPUT=./out/agent-report npx allure run -- npm test
@@ -184,7 +201,7 @@ markdown and `manifest/findings.jsonl`.
 
 The intended usage pattern is:
 
-1. Run tests with `allure run -- <command>`.
+1. Run tests with `allure agent -- <command>`.
 2. Watch `manifest/run.json` and `manifest/test-events.jsonl` while the run is active.
 3. Review `index.md` plus the manifest files.
 4. If evidence is weak, add steps, attachments, labels, or parameters.
@@ -252,9 +269,17 @@ the same policy in a project-level skill or agent prompt, you can start with:
 ```md
 ## Allure Agent Mode Instructions
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.
-- Use `allure run` for smoke checks too, even when the change is small or mechanical.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
+- After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
+- Use `allure agent latest` to reopen the newest run when `--output` was omitted.
+- Use `allure agent state-dir` to inspect where the current project stores its latest-agent state.
+- Use `allure agent select --latest` or `allure agent select --from <output-dir>` to inspect the review-targeted test plan before rerunning.
+- Use `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` to rerun only the selected tests.
+- Use `--rerun-preset review|failed|unsuccessful|all`, repeated `--rerun-environment <id>`, and repeated `--rerun-label name=value` when you need a narrower rerun selection from the previous output.
+- Use `ALLURE_AGENT_STATE_DIR` when you need to override where the current project stores latest-agent state for `latest`, `state-dir`, or `--rerun-latest`.
+- Use `ALLURE_AGENT_*` with `allure run` only as the lower-level fallback when you need direct environment control.
 - Generate or refresh `ALLURE_AGENT_EXPECTATIONS` before each targeted rerun.
 - Run tests with `ALLURE_AGENT_OUTPUT` and review `manifest/run.json`, `manifest/test-events.jsonl`, `index.md`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 - Enrich only the intended tests. Add real steps for real setup, actions, and assertions.

@@ -7,8 +7,8 @@ description: Use Allure agent-mode to design or review test scope, create per-ru
 
 Use this skill for feature or bug work that changes tests, for reviewing existing tests, auditing coverage, triaging failing suites, investigating weak evidence, or debugging flaky and environment-sensitive failures.
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.
-- Use `allure run` for smoke checks too, even when the change is small or mechanical.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 
 ## Read First
@@ -22,7 +22,7 @@ If it does not, use the guidance in this skill and suggest running the setup ski
 1. Understand the feature, issue, or review goal and decide the intended test scope.
 2. Create a fresh expectations file for this run in a temp directory.
 3. Write or update the tests, or keep the current tests unchanged if the task is review-only.
-4. Run only the intended scope with `allure run` before relying on raw console output.
+4. Run only the intended scope with `allure agent` before relying on raw console output.
 5. Review `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, `manifest/findings.jsonl`, and the relevant test markdown files before inspecting source code.
 6. If evidence is weak, enrich the tests with real steps, attachments, or minimal metadata.
 7. Rerun with a new temp output directory and a new expectations file.
@@ -33,7 +33,7 @@ If it does not, use the guidance in this skill and suggest running the setup ski
 ### Small Test Change Workflow
 
 1. Create a fresh expectations file and temp output directory for the touched scope.
-2. Run the touched scope with `allure run`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.
+2. Run the touched scope with `allure agent`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.
 3. Review `index.md`, `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 4. Only then make a final statement about regression safety or test correctness.
 
@@ -41,7 +41,7 @@ If it does not, use the guidance in this skill and suggest running the setup ski
 
 1. Split command or package audits into scoped groups.
 2. Give each group its own expectations file and temp output directory.
-3. Run each group with `allure run`.
+3. Run each group with `allure agent`.
 4. Review runtime artifacts first, then inspect source code only after the run explains what actually executed.
 5. Mark the review incomplete until each scoped group either matched expectations or was explicitly documented as a broad package-health audit.
 
@@ -51,9 +51,10 @@ Compact coverage-review pattern:
 TMP_DIR="$(mktemp -d)"
 EXPECTATIONS="$TMP_DIR/expectations.yaml"
 
-ALLURE_AGENT_OUTPUT="$TMP_DIR/agent-output" \
-ALLURE_AGENT_EXPECTATIONS="$EXPECTATIONS" \
-npx allure run -- npm test -- <scope>
+npx allure agent \
+  --output "$TMP_DIR/agent-output" \
+  --expectations "$EXPECTATIONS" \
+  -- npm test -- <scope>
 ```
 
 Coverage-review expectations example:

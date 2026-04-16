@@ -2,6 +2,7 @@ export * from "./history.js";
 export * from "./testplan.js";
 export * from "./classic.js";
 export * from "./allure2.js";
+export * from "./agent.js";
 export * from "./awesome.js";
 export * from "./csv.js";
 export * from "./history.js";
