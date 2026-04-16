@@ -14,6 +14,11 @@ let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 let testResultPage: TestResultPage;
 
+const recreateBootstrap = async (...args: Parameters<typeof bootstrapReport>) => {
+  await bootstrap?.shutdown?.();
+  return bootstrapReport(...args);
+};
+
 test.describe("attachments", () => {
   test.beforeEach(async ({ browserName, page }) => {
     await label("env", browserName);
@@ -28,7 +33,7 @@ test.describe("attachments", () => {
 
   test.describe("commons", () => {
     test.beforeEach(async ({ page }) => {
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
@@ -83,7 +88,7 @@ test.describe("attachments", () => {
 
   test.describe("text attachment", () => {
     test.beforeEach(async ({ page }) => {
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
@@ -164,7 +169,7 @@ test.describe("attachments", () => {
 
   test.describe("code attachment", () => {
     test.beforeEach(async ({ page }) => {
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
@@ -247,7 +252,7 @@ test.describe("attachments", () => {
     test.beforeEach(async ({ page }) => {
       const imageAttachment = await readFile(resolve(dirname, "../../fixtures/image.png"));
 
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
@@ -328,7 +333,7 @@ test.describe("attachments", () => {
     test.beforeEach(async ({ page }) => {
       const videoAttachment = await readFile(resolve(dirname, "../../fixtures/video.mp4"));
 
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with attachments",
           appendHistory: true,
@@ -409,7 +414,7 @@ test.describe("attachments", () => {
     test.beforeEach(async ({ page }) => {
       const playwrightTraceAttachment = await readFile(resolve(dirname, "../../fixtures/playwright-trace.zip"));
 
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Allure report with Playwright trace attachment",
           appendHistory: true,

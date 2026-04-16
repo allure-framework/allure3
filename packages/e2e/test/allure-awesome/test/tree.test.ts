@@ -8,6 +8,11 @@ let bootstrap: ReportBootstrap;
 let treePage: TreePage;
 let testResultPage: TestResultPage;
 
+const recreateBootstrap = async (...args: Parameters<typeof bootstrapReport>) => {
+  await bootstrap?.shutdown?.();
+  return bootstrapReport(...args);
+};
+
 test.beforeEach(async ({ browserName, page }) => {
   await label("env", browserName);
 
@@ -25,7 +30,7 @@ test.afterAll(async () => {
 
 test.describe("commons", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -164,7 +169,7 @@ test.describe("commons", () => {
 
 test.describe("SearchBox component with debounce", () => {
   test("should update value with debounce and clear input", async ({ page }) => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -212,7 +217,7 @@ test.describe("SearchBox component with debounce", () => {
 
 test.describe("suites", () => {
   test("should display tree groups with a correct suites hierarchy", async ({ page }) => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -278,7 +283,7 @@ test.describe("suites", () => {
   });
 
   test("should not display groups when test results don't have related label", async ({ page }) => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -340,7 +345,7 @@ test.describe("suites", () => {
   });
 
   test("should assign default labels when test results don't any matched one label", async ({ page }) => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -406,7 +411,7 @@ test.describe("suites", () => {
   });
 
   test("should render mixed suite depth when some labels are missing", async ({ page }) => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -478,7 +483,7 @@ test.describe("suites", () => {
 
 test.describe("features", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",
@@ -527,7 +532,7 @@ test.describe("features", () => {
 
 test.describe("stories", () => {
   test.beforeAll(async () => {
-    bootstrap = await bootstrapReport(
+    bootstrap = await recreateBootstrap(
       {
         reportConfig: {
           name: "Sample allure report",

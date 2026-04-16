@@ -9,6 +9,11 @@ let bootstrap: ReportBootstrap;
 let commonPage: CommonPage;
 let treePage: TreePage;
 
+const recreateBootstrap = async (...args: Parameters<typeof bootstrapReport>) => {
+  await bootstrap?.shutdown?.();
+  return bootstrapReport(...args);
+};
+
 const now = Date.now();
 const fixtures = {
   testResults: [
@@ -37,7 +42,7 @@ test.beforeEach(async ({ page, browserName }) => {
 test.describe("allure-awesome", () => {
   test.describe("report options", () => {
     test("should contain title from config in the page title", async ({ page }) => {
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
@@ -63,7 +68,7 @@ test.describe("allure-awesome", () => {
 
     test.describe("layout switching", () => {
       test("should render split layout when it's enabled in the plugin options", async ({ page }) => {
-        bootstrap = await bootstrapReport({
+        bootstrap = await recreateBootstrap({
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
@@ -90,7 +95,7 @@ test.describe("allure-awesome", () => {
       });
 
       test("should render single layout by default", async ({ page }) => {
-        bootstrap = await bootstrapReport({
+        bootstrap = await recreateBootstrap({
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
@@ -113,7 +118,7 @@ test.describe("allure-awesome", () => {
       });
 
       test("should toggle from base layout to splitted one and back", async ({ page }) => {
-        bootstrap = await bootstrapReport({
+        bootstrap = await recreateBootstrap({
           reportConfig: {
             name: "Sample allure report",
             appendHistory: false,
@@ -141,7 +146,7 @@ test.describe("allure-awesome", () => {
     });
 
     test("render test results which match the filter", async ({ page }) => {
-      bootstrap = await bootstrapReport({
+      bootstrap = await recreateBootstrap({
         reportConfig: {
           name: "Sample allure report",
           appendHistory: false,
