@@ -4,6 +4,8 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 
+import { buildAllureOpenNextStepCommands } from "../utils/after-command.js";
+import { emitTerminalHookEvent, runWithTerminalHooks } from "../utils/terminal-hooks.js";
 import { generate } from "./commons/generate.js";
 
 export class GenerateCommand extends Command {
@@ -71,30 +73,47 @@ export class GenerateCommand extends Command {
   });
 
   async execute() {
-    const cwd = this.cwd ?? processCwd();
-    const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
-    const config = await readConfig(cwd, this.config, {
-      name: this.reportName,
-      output: this.output,
-      open: this.open,
-      port: this.port,
-      hideLabels,
-      historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
-    });
+    return runWithTerminalHooks({
+      commandId: "generate",
+      payload: {
+        resultsDir: this.resultsDir,
+        config: this.config,
+        output: this.output,
+      },
+      run: async () => {
+        const cwd = this.cwd ?? processCwd();
+        const hideLabels = this.hideLabels?.length ? this.hideLabels : undefined;
+        const config = await readConfig(cwd, this.config, {
+          name: this.reportName,
+          output: this.output,
+          open: this.open,
+          port: this.port,
+          hideLabels,
+          historyLimit: this.historyLimit ? parseInt(this.historyLimit, 10) : undefined,
+        });
 
-    await generate({
-      dump: this.dump,
-      resultsDir: this.resultsDir ?? "./**/allure-results",
-      cwd,
-      config,
-    });
+        await generate({
+          dump: this.dump,
+          resultsDir: this.resultsDir ?? "./**/allure-results",
+          cwd,
+          config,
+        });
 
-    if (config.open) {
-      await serve({
-        port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: config.output,
-        open: true,
-      });
-    }
+        if (config.open) {
+          await serve({
+            port: config.port ? parseInt(config.port, 10) : undefined,
+            servePath: config.output,
+            open: true,
+          });
+          return;
+        }
+
+        await emitTerminalHookEvent({
+          kind: "next-step",
+          text: "You can open the report in your browser with:",
+          commands: buildAllureOpenNextStepCommands({ cwd, reportPath: config.output }),
+        });
+      },
+    });
   }
 }
