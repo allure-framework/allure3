@@ -35,7 +35,45 @@ jobs:
         run: yarn lint:type
 
   test:
-    name: Build on ${{ matrix.os }}
+    name: Core tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+      - name: Install dependencies
+        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/AppData/Local/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
+      - name: Install playwright for static server
+        run: yarn workspace @allurereport/static-server playwright install chromium
+      - name: Install playwright dependencies
+        if: runner.os == 'Linux'
+        run: yarn workspace @allurereport/static-server playwright install-deps
+      - name: Build project
+        run: yarn build
+      - name: Test core workspaces
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }}-core --dump=allure-results-${{ matrix.os }}-core -- yarn test:ci:core
+      - name: Upload test results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: allure-results-${{ matrix.os }}-core
+          path: ./allure-results-${{ matrix.os }}-core.zip
+
+  e2e:
+    name: E2E tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -63,20 +101,21 @@ jobs:
         run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Build project
         run: yarn build
-      - name: Test Project
-        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }} --dump=allure-results-${{ matrix.os }} -- yarn test:ci
-      - name: Upload test results
+      - name: Test E2E workspace
+        run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }}-e2e --dump=allure-results-${{ matrix.os }}-e2e -- yarn workspace @allurereport/e2e test
+      - name: Upload E2E results
         uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: allure-results-${{ matrix.os }}
-          path: ./allure-results-${{ matrix.os }}.zip
+          name: allure-results-${{ matrix.os }}-e2e
+          path: ./allure-results-${{ matrix.os }}-e2e.zip
 
   report:
-    needs: [lint, test]
+    needs: [test, e2e]
     name: Build report
     runs-on: ubuntu-latest
     if: always()
+    timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: write
@@ -97,24 +136,40 @@ jobs:
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
-          name: allure-results-ubuntu-latest
+          name: allure-results-ubuntu-latest-core
           path: ./
       - name: Download allure results from macOS
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
-          name: allure-results-macos-latest
+          name: allure-results-macos-latest-core
           path: ./
       - name: Download allure results from Windows
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
-          name: allure-results-windows-latest
+          name: allure-results-windows-latest-core
           path: ./
-      - name: Install dependencies
-        run: yarn install --immutable --immutable-cache --check-cache
+      - name: Download allure results from E2E Ubuntu
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-ubuntu-latest-e2e
+          path: ./
+      - name: Download allure results from E2E macOS
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-macos-latest-e2e
+          path: ./
+      - name: Download allure results from E2E Windows
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: allure-results-windows-latest-e2e
+          path: ./
       - name: Generate report
-        run: yarn allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
+        run: yarn dlx allure generate --config=./allurerc.mjs --dump="allure-results-*.zip" --output=./allure-report
       - name: Allure Report Official
         uses: allure-framework/allure-action@v0
         with:
