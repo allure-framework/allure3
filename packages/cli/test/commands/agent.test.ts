@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import { readConfig } from "@allurereport/core";
 import { run, UsageError } from "clipanion";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -219,6 +221,8 @@ describe("agent command", () => {
 
   it("should resolve explicit output and expectations paths relative to cwd", async () => {
     const consoleModule = await import("node:console");
+    const resolvedOutput = resolve("/cwd", "./custom-output");
+    const resolvedExpectations = resolve("/cwd", "./expected.yaml");
 
     await run(AgentCommand, [
       "agent",
@@ -232,17 +236,17 @@ describe("agent command", () => {
     ]);
 
     expect(readConfig).toHaveBeenCalledWith("/cwd", undefined, {
-      output: "/cwd/custom-output",
+      output: resolvedOutput,
       plugins: {
         agent: {
           options: {
-            outputDir: "/cwd/custom-output",
+            outputDir: resolvedOutput,
           },
         },
       },
     });
-    expect(consoleModule.log).toHaveBeenCalledWith("agent output: /cwd/custom-output");
-    expect(consoleModule.log).toHaveBeenCalledWith("agent expectations: /cwd/expected.yaml");
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent output: ${resolvedOutput}`);
+    expect(consoleModule.log).toHaveBeenCalledWith(`agent expectations: ${resolvedExpectations}`);
   });
 
   it("should pass ALLURE_TESTPLAN_PATH to the child process when rerun-from is enabled", async () => {
@@ -330,6 +334,9 @@ describe("agent command", () => {
   });
 
   it("should sandbox ALLURE_AGENT_* variables during execution and restore them afterwards", async () => {
+    const resolvedOutput = resolve("/cwd", "./custom-output");
+    const resolvedExpectations = resolve("/cwd", "./expected.yaml");
+
     process.env.ALLURE_AGENT_OUTPUT = "ambient-output";
     process.env.ALLURE_AGENT_EXPECTATIONS = "ambient-expected";
     process.env.ALLURE_AGENT_NAME = "ambient-name";
@@ -338,8 +345,8 @@ describe("agent command", () => {
     process.env.ALLURE_AGENT_CONVERSATION_ID = "ambient-conversation";
 
     (executeAllureRun as Mock).mockImplementationOnce(async () => {
-      expect(process.env.ALLURE_AGENT_OUTPUT).toBe("/cwd/custom-output");
-      expect(process.env.ALLURE_AGENT_EXPECTATIONS).toBe("/cwd/expected.yaml");
+      expect(process.env.ALLURE_AGENT_OUTPUT).toBe(resolvedOutput);
+      expect(process.env.ALLURE_AGENT_EXPECTATIONS).toBe(resolvedExpectations);
       expect(process.env.ALLURE_AGENT_COMMAND).toBe("npm test");
       expect(process.env.ALLURE_AGENT_PROJECT_ROOT).toBe("/cwd");
       expect(process.env.ALLURE_AGENT_NAME).toBeUndefined();

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,7 +32,8 @@ describe("agent-state utils", () => {
   it("should persist latest state under the computed temp state dir for each project cwd", async () => {
     const fsModule = await import("node:fs/promises");
     const cwd = "/repo";
-    const projectHash = createHash("sha256").update(cwd).digest("hex").slice(0, 16);
+    const normalizedCwd = resolve(cwd);
+    const projectHash = createHash("sha256").update(normalizedCwd).digest("hex").slice(0, 16);
     const statePath = join("/tmp", `allure-agent-state-${projectHash}`, "latest.json");
 
     await writeLatestAgentState({
@@ -55,7 +56,7 @@ describe("agent-state utils", () => {
   it("should resolve an explicit state dir override from the environment", () => {
     process.env[ALLURE_AGENT_STATE_DIR_ENV] = "/custom-agent-state";
 
-    expect(resolveAgentStateDir("/repo")).toBe("/custom-agent-state");
+    expect(resolveAgentStateDir("/repo")).toBe(resolve("/custom-agent-state"));
   });
 
   it("should return undefined when no latest state exists for the project", async () => {
