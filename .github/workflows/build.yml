@@ -35,7 +35,7 @@ jobs:
         run: yarn lint:type
 
   test:
-    name: Core tests on ${{ matrix.os }}
+    name: Core + E2E tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -54,54 +54,30 @@ jobs:
         with:
           path: |
             ~/.cache/ms-playwright
+            ~/Library/Caches/ms-playwright
             ~/AppData/Local/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
-      - name: Install playwright for static server
-        run: yarn workspace @allurereport/static-server playwright install chromium
+          key: ${{ runner.os }}-playwright-${{ hashFiles('packages/e2e/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - name: Install playwright for E2E
+        run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
       - name: Install playwright dependencies
         if: runner.os == 'Linux'
-        run: yarn workspace @allurereport/static-server playwright install-deps
+        run: yarn workspace @allurereport/e2e playwright install-deps
       - name: Build project
         run: yarn build
       - name: Test core workspaces
+        timeout-minutes: 35
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }}-core --dump=allure-results-${{ matrix.os }}-core -- yarn test:ci:core
-      - name: Upload test results
+      - name: Upload core test results
         uses: actions/upload-artifact@v5
         if: always()
         with:
           name: allure-results-${{ matrix.os }}-core
           path: ./allure-results-${{ matrix.os }}-core.zip
-
-  e2e:
-    name: E2E tests on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20.x"
-          cache: "yarn"
-      - name: Install dependencies
-        run: yarn install --immutable --immutable-cache --check-cache
-      - name: Restore Playwright browser cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/ms-playwright
-            ~/AppData/Local/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
-      - name: Install playwright for e2e
-        run: yarn workspace @allurereport/e2e playwright install chromium firefox webkit
-      - name: Install playwright dependencies for e2e
-        if: runner.os == 'Linux'
-        run: yarn workspace @allurereport/e2e playwright install-deps
-      - name: Build project
-        run: yarn build
       - name: Test E2E workspace
+        if: always()
+        timeout-minutes: 45
         run: yarn allure run --config=./allurerc.gate.mjs --environment=${{ matrix.os }}-e2e --dump=allure-results-${{ matrix.os }}-e2e -- yarn workspace @allurereport/e2e test
       - name: Upload E2E results
         uses: actions/upload-artifact@v5
@@ -111,7 +87,7 @@ jobs:
           path: ./allure-results-${{ matrix.os }}-e2e.zip
 
   report:
-    needs: [test, e2e]
+    needs: [test]
     name: Build report
     runs-on: ubuntu-latest
     if: always()
@@ -132,19 +108,19 @@ jobs:
         with:
           node-version: "20.x"
           cache: "yarn"
-      - name: Download allure results from Ubuntu
+      - name: Download allure results from Ubuntu core
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
           name: allure-results-ubuntu-latest-core
           path: ./
-      - name: Download allure results from macOS
+      - name: Download allure results from macOS core
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
           name: allure-results-macos-latest-core
           path: ./
-      - name: Download allure results from Windows
+      - name: Download allure results from Windows core
         uses: actions/download-artifact@v6
         continue-on-error: true
         with:
