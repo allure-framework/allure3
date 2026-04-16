@@ -114,7 +114,9 @@ export const TrStep: FunctionComponent<{
       lastSubtreeToggle,
     });
     setSubtreeState(nextState);
-    setLastSubtreeToggle(nextState);
+    if (nextState !== "first") {
+      setLastSubtreeToggle(nextState);
+    }
   };
 
   const toggleStep = () => {

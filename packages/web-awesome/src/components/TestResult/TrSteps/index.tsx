@@ -79,7 +79,9 @@ export const TrSteps: FunctionalComponent<TrStepsProps> = ({ bodyItems, id }) =>
       lastSubtreeToggle,
     });
     setSubtreeState(nextState);
-    setLastSubtreeToggle(nextState);
+    if (nextState !== "first") {
+      setLastSubtreeToggle(nextState);
+    }
   };
 
   const toggleRoot = () => {

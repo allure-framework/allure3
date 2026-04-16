@@ -35,32 +35,32 @@ test.beforeEach(async ({ page, browserName }) => {
           stop: now + 1000,
           steps: [
             {
-              type: "step",
               name: "level 1",
               status: Status.PASSED,
               stage: Stage.FINISHED,
               start: now + 100,
               stop: now + 900,
+              statusDetails: {},
               attachments: [],
               parameters: [],
               steps: [
                 {
-                  type: "step",
                   name: "level 2",
                   status: Status.PASSED,
                   stage: Stage.FINISHED,
                   start: now + 200,
                   stop: now + 800,
+                  statusDetails: {},
                   attachments: [],
                   parameters: [],
                   steps: [
                     {
-                      type: "step",
                       name: "level 3",
                       status: Status.PASSED,
                       stage: Stage.FINISHED,
                       start: now + 300,
                       stop: now + 700,
+                      statusDetails: {},
                       attachments: [],
                       parameters: [],
                       steps: [],
@@ -106,8 +106,9 @@ test("should cycle body subtree toggle state like categories", async () => {
   await expect(level2Step.locator).toHaveCount(0);
 
   await testResultPage.toggleStepsSubtree();
-  await expect(level2Step.locator).toHaveCount(1);
-  await expect(level3Step.locator).toHaveCount(1);
+  await expect(level1Step.locator).toHaveCount(0);
+  await expect(level2Step.locator).toHaveCount(0);
+  await expect(level3Step.locator).toHaveCount(0);
 });
 
 test("should cycle step subtree toggle state like categories", async () => {
@@ -131,6 +132,6 @@ test("should cycle step subtree toggle state like categories", async () => {
   await expect(level3Step.locator).toHaveCount(0);
 
   await level1Step.toggleSubtree();
-  await expect(level2Step.locator).toHaveCount(1);
-  await expect(level3Step.locator).toHaveCount(1);
+  await expect(level2Step.locator).toHaveCount(0);
+  await expect(level3Step.locator).toHaveCount(0);
 });

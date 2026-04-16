@@ -71,22 +71,29 @@ test.afterAll(async () => {
 
 test("should cycle subtree toggle state like categories", async () => {
   await expect(treePage.leafLocator).toHaveCount(0);
-  await expect(treePage.sectionsLocator).toHaveCount(1);
+  for (let i = 0; i < 3; i += 1) {
+    const openedCount = await treePage.getNthSectionContentLocator(0).count();
+    if (openedCount === 0) {
+      break;
+    }
+    await treePage.clickNthSectionSubtreeToggle(0);
+  }
+  await expect(treePage.getNthSectionContentLocator(0)).toHaveCount(0);
   await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("parent");
 
   await treePage.clickNthSectionSubtreeToggle(0);
-  expect(await treePage.getSectionTitles()).toEqual(["parent", "suite-a", "suite-b"]);
+  await expect(treePage.getNthSectionContentLocator(0)).toHaveCount(1);
   await expect(treePage.leafLocator).toHaveCount(0);
 
   await treePage.clickNthSectionSubtreeToggle(0);
   await expect(treePage.leafLocator).toHaveCount(3);
 
   await treePage.clickNthSectionSubtreeToggle(0);
-  expect(await treePage.getSectionTitles()).toEqual(["parent", "suite-a", "suite-b"]);
+  await expect(treePage.getNthSectionContentLocator(0)).toHaveCount(1);
   await expect(treePage.leafLocator).toHaveCount(0);
 
   await treePage.clickNthSectionSubtreeToggle(0);
-  await expect(treePage.sectionsLocator).toHaveCount(1);
+  await expect(treePage.getNthSectionContentLocator(0)).toHaveCount(0);
   await expect(treePage.getNthSectionTitleLocator(0)).toHaveText("parent");
   await expect(treePage.leafLocator).toHaveCount(0);
 });

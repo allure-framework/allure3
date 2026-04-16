@@ -204,4 +204,15 @@ export class TestResultPage extends CommonPage {
   async toggleStepsSubtree() {
     await this.stepsSubtreeToggleLocator.click();
   }
+
+  async ensureBodyStepsOpened() {
+    const stepsRoot = this.page.getByTestId("test-result-steps-root").first();
+    const isVisible = await stepsRoot.isVisible().catch(() => false);
+    if (isVisible) {
+      return;
+    }
+
+    await this.toggleStepsSubtree();
+    await stepsRoot.waitFor({ state: "visible", timeout: 10000 });
+  }
 }

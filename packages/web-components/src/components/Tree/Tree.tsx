@@ -143,7 +143,9 @@ export const Tree: FunctionalComponent<TreeProps> = ({
       lastSubtreeToggle,
     });
     setSubtreeState(nextState);
-    setLastSubtreeToggle(nextState);
+    if (nextState !== "first") {
+      setLastSubtreeToggle(nextState);
+    }
   };
 
   if (!hasRenderableChildren) {
