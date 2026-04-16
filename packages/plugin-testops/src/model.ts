@@ -17,6 +17,160 @@ export type UploadCategory = {
   hide?: boolean;
 };
 
+export type UploadTestStatus = "failed" | "broken" | "passed" | "skipped" | "unknown";
+
+export type UploadTestResultCategoryGroupingDto = {
+  key?: string;
+  value?: string;
+  name?: string;
+};
+
+export type UploadTestResultCategoryDto = {
+  id?: number;
+  externalId?: string;
+  grouping?: UploadTestResultCategoryGroupingDto[];
+};
+
+export type UploadTestResultNamedEnvDto = {
+  id?: number;
+  externalId?: string;
+};
+
+export type UploadAttachmentDto = {
+  name?: string;
+  originalFileName?: string;
+  contentType?: string;
+  contentLength?: number;
+  optional?: boolean;
+};
+
+export type UploadParameterDto = {
+  name?: string;
+  value?: string;
+  hidden?: boolean;
+  excluded?: boolean;
+  masked?: boolean;
+};
+
+export type UploadLinkDto = {
+  name?: string;
+  url?: string;
+  type?: string;
+};
+
+export type UploadLabelDto = {
+  name?: string;
+  value?: string;
+};
+
+export type UploadTestResultBodyStepDto = {
+  type: "body";
+  body?: string;
+  bodyJson?: unknown;
+  status?: UploadTestStatus;
+  start?: number;
+  stop?: number;
+  duration?: number;
+  message?: string;
+  trace?: string;
+  parameters?: UploadParameterDto[];
+  steps?: UploadTestResultStepDto[];
+  expectedResultSteps?: UploadTestResultStepDto[];
+};
+
+export type UploadTestResultExpectedBodyStepDto = {
+  type: "expected_body";
+  body?: string;
+  bodyJson?: unknown;
+  status?: UploadTestStatus;
+  start?: number;
+  stop?: number;
+  duration?: number;
+  message?: string;
+};
+
+export type UploadTestResultAttachmentStepDto = {
+  type: "attachment";
+  attachment?: UploadAttachmentDto;
+  status?: UploadTestStatus;
+  start?: number;
+  stop?: number;
+  duration?: number;
+};
+
+export type UploadTestResultUnknownStepDto = {
+  type?: string;
+};
+
+export type UploadTestResultStepDto =
+  | UploadTestResultBodyStepDto
+  | UploadTestResultExpectedBodyStepDto
+  | UploadTestResultAttachmentStepDto
+  | UploadTestResultUnknownStepDto;
+
+export type UploadTestResultDto = {
+  uuid?: string;
+  historyId?: string;
+  testCaseId?: string;
+  name?: string;
+  fullName?: string;
+  description?: string;
+  descriptionHtml?: string;
+  precondition?: string;
+  preconditionHtml?: string;
+  expectedResult?: string;
+  expectedResultHtml?: string;
+  start?: number;
+  stop?: number;
+  duration?: number;
+  status?: UploadTestStatus;
+  message?: string;
+  trace?: string;
+  hostId?: string;
+  threadId?: string;
+  environment?: string;
+  category?: UploadTestResultCategoryDto;
+  namedEnv?: UploadTestResultNamedEnvDto;
+  steps?: UploadTestResultStepDto[];
+  attachments?: UploadAttachmentDto[];
+  parameters?: UploadParameterDto[];
+  links?: UploadLinkDto[];
+  labels?: UploadLabelDto[];
+};
+
+export type UploadResultsDto = {
+  testSessionId: number;
+  results?: UploadTestResultDto[];
+};
+
+export type UploadTestResultResponseDto = {
+  id?: number;
+  uuid?: string;
+};
+
+export type UploadResultsResponseDto = {
+  results?: UploadTestResultResponseDto[];
+};
+
+export type UploadTestFixtureType = "BEFORE" | "AFTER";
+
+export type UploadTestFixtureResultDto = {
+  type?: UploadTestFixtureType;
+  uuid?: string;
+  name?: string;
+  start?: number;
+  stop?: number;
+  duration?: number;
+  status?: UploadTestStatus;
+  message?: string;
+  trace?: string;
+  steps?: UploadTestResultStepDto[];
+};
+
+export type UploadFixturesResultsDto = {
+  fixtures?: UploadTestFixtureResultDto[];
+};
+
 export type TestResultWithCategories = Pick<
   TestResult,
   "status" | "labels" | "error" | "flaky" | "duration" | "transition" | "environment"

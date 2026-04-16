@@ -459,7 +459,13 @@ describe("testops http client", () => {
     it("should post environments to /api/launch/named-env/bulk", async () => {
       const namedEnvs: TestOpsNamedEnv[] = [
         { id: 10, name: "chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
-        { id: 11, name: "firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+        {
+          id: 11,
+          name: "firefox",
+          externalId: "firefox",
+          jobRunId: 1,
+          launchId: fixtures.launch.id,
+        },
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
@@ -790,6 +796,101 @@ describe("testops http client", () => {
       );
     });
 
+    it("should post test results using uploader DTO shape (with environment, normalized category externalId)", async () => {
+      AxiosMock.post.mockImplementation((url: string) => {
+        if (url === "/api/uaa/oauth/token") {
+          return Promise.resolve({ data: { access_token: fixtures.oauthToken } });
+        }
+
+        if (url === "/api/launch") {
+          return Promise.resolve({ data: fixtures.launch });
+        }
+
+        if (url === "/api/upload/session") {
+          return Promise.resolve({ data: { id: 1 } });
+        }
+
+        if (url === "/api/launch/named-env/bulk") {
+          return Promise.resolve({ data: [{ id: 10, externalId: "chrome" }] });
+        }
+
+        if (url === "/api/upload/test-result") {
+          return Promise.resolve({ data: { results: [{ id: 1, uuid: "tr-1" }] } });
+        }
+
+        return Promise.resolve({ data: {} });
+      });
+
+      const client = new TestOpsClient({
+        accessToken: fixtures.accessToken,
+        projectId: fixtures.projectId,
+        baseUrl: fixtures.endpoint,
+      });
+
+      await client.issueOauthToken();
+      await client.createLaunch(fixtures.launchName, fixtures.launchTags);
+      await client.createSession();
+
+      const tr = {
+        id: "tr-1",
+        name: "Test",
+        status: "passed",
+        // should be used to resolve named env but not be sent as `environment`
+        environment: "chrome",
+        // should be converted to string in payload
+        category: {
+          externalId: 123,
+          grouping: [{ key: "status", value: "passed", name: "status: passed" }],
+        },
+        steps: [
+          {
+            type: "step",
+            name: "Do something",
+            status: "passed",
+            parameters: [],
+            steps: [],
+          },
+        ] as TestStepResult[],
+        someUnknownField: "nope",
+      } as any as TestResult;
+
+      await client.uploadTestResults({
+        trs: [tr],
+        environments: [{ id: "chrome", name: "Chrome" }],
+        attachmentsResolver: () => Promise.resolve([]),
+        fixturesResolver: () => Promise.resolve([]),
+      });
+
+      const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+      expect(uploadCall).toBeTruthy();
+
+      const body = uploadCall?.[1] as any;
+      expect(body.testSessionId).toBe(1);
+      expect(body.results).toHaveLength(1);
+      expect(body.results[0]).toEqual(
+        expect.objectContaining({
+          uuid: "tr-1",
+          name: "Test",
+          status: "passed",
+          environment: "chrome",
+          category: {
+            externalId: "123",
+            grouping: [{ key: "status", value: "passed", name: "status: passed" }],
+          },
+          namedEnv: { id: 10 },
+          steps: [
+            expect.objectContaining({
+              type: "body",
+              body: "Do something",
+            }),
+          ],
+        }),
+      );
+
+      expect(body.results[0].id).toBeUndefined();
+      expect(body.results[0].someUnknownField).toBeUndefined();
+    });
+
     it("should limit concurrent per-TR uploads to the configured limit", async () => {
       let concurrentCount = 0;
       let maxConcurrentCount = 0;
@@ -851,7 +952,13 @@ describe("testops http client", () => {
     it("should create named environments for test results with environment ids and display names", async () => {
       const namedEnvs: TestOpsNamedEnv[] = [
         { id: 10, name: "Chrome", externalId: "chrome", jobRunId: 1, launchId: fixtures.launch.id },
-        { id: 11, name: "Firefox", externalId: "firefox", jobRunId: 1, launchId: fixtures.launch.id },
+        {
+          id: 11,
+          name: "Firefox",
+          externalId: "firefox",
+          jobRunId: 1,
+          launchId: fixtures.launch.id,
+        },
       ];
 
       AxiosMock.post.mockImplementation((url: string) => {
@@ -921,12 +1028,24 @@ describe("testops http client", () => {
         "/api/upload/test-result",
         expect.objectContaining({
           results: expect.arrayContaining([
-            expect.objectContaining({ uuid: "0-0-0-0", environment: "chrome", namedEnv: { id: 10 } }),
-            expect.objectContaining({ uuid: "1-1-1-1", environment: "firefox", namedEnv: { id: 11 } }),
+            expect.objectContaining({
+              uuid: "0-0-0-0",
+              namedEnv: { id: 10 },
+            }),
+            expect.objectContaining({
+              uuid: "1-1-1-1",
+              namedEnv: { id: 11 },
+            }),
           ]),
         }),
         expect.anything(),
       );
+
+      const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+      expect(uploadCall).toBeTruthy();
+      const uploadBody = uploadCall?.[1] as any;
+      expect(uploadBody.testSessionId).toBe(1);
+      expect(uploadBody.results?.[0]?.environment).toBe("chrome");
     });
 
     it("should create distinct named environments for different env ids sharing one display name", async () => {
@@ -1000,12 +1119,17 @@ describe("testops http client", () => {
         "/api/upload/test-result",
         expect.objectContaining({
           results: expect.arrayContaining([
-            expect.objectContaining({ uuid: "0-0-0-0", environment: "qa_a", namedEnv: { id: 10 } }),
-            expect.objectContaining({ uuid: "1-1-1-1", environment: "qa_b", namedEnv: { id: 11 } }),
+            expect.objectContaining({ uuid: "0-0-0-0", namedEnv: { id: 10 } }),
+            expect.objectContaining({ uuid: "1-1-1-1", namedEnv: { id: 11 } }),
           ]),
         }),
         expect.anything(),
       );
+
+      const uploadCall = AxiosMock.post.mock.calls.find((call: any[]) => call[0] === "/api/upload/test-result");
+      expect(uploadCall).toBeTruthy();
+      const uploadBody = uploadCall?.[1] as any;
+      expect(uploadBody.results?.[0]?.environment).toBe("qa_a");
     });
 
     it("should not create named environments when test results have no environment", async () => {

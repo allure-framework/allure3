@@ -10,6 +10,7 @@ import type {
   TestOpsFixtureResult,
   TestOpsPluginOptions,
 } from "./model.js";
+import { uploadFilenameForLink } from "./uploaderDto.js";
 
 export const unwrapStepsAttachments = (steps: TestStepResult[]): TestStepResult[] => {
   return steps.map((step) => {
@@ -66,15 +67,14 @@ export function attachmentsResolverFactory(store: AllureStore) {
       attachments.map(async (attachment) => {
         const content = await store.attachmentContentById(attachment.id);
         const body = await content?.readContent(async (s) => s);
-        // @ts-expect-error - FIXME
-        const name = attachment.name || attachment.originalFileName;
+        const filename = uploadFilenameForLink(attachment);
 
-        if (name === undefined || body === undefined) {
+        if (filename === undefined || body === undefined) {
           return undefined;
         }
 
         result.push({
-          originalFileName: name,
+          originalFileName: filename,
           contentType: attachment.contentType ?? "application/octet-stream",
           content: body,
         });

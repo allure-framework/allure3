@@ -11,6 +11,7 @@ import { TestOpsClient } from "./client.js";
 import { Logger } from "./logger.js";
 import type { TestOpsPluginTestResult, TestOpsPluginOptions, UploadCategory } from "./model.js";
 import { toUploadCategory } from "./uploadCategory.js";
+import { uploadFilenameForLink } from "./uploaderDto.js";
 import {
   attachmentsResolverFactory,
   fixturesResolverFactory,
@@ -170,15 +171,14 @@ export class TestOpsPlugin implements Plugin {
         attachmentsResolver: async (attachmentLink) => {
           const content = await store.attachmentContentById(attachmentLink.id);
           const body = await content?.readContent(async (stream) => stream);
-          // @ts-expect-error - FIXME
-          const attachmentName = attachmentLink.name || attachmentLink.originalFileName;
+          const filename = uploadFilenameForLink(attachmentLink);
 
-          if (attachmentName === undefined || body === undefined) {
+          if (filename === undefined || body === undefined) {
             return undefined;
           }
 
           return {
-            originalFileName: attachmentName,
+            originalFileName: filename,
             contentType: attachmentLink.contentType ?? "application/octet-stream",
             content: body,
           };
