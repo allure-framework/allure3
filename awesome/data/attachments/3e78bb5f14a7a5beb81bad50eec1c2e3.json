@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/attachments/wellDefinedAttachments.xml",
+      "originalFileName": "d1a6bdfa-a6ea-46ea-89bf-65b883ab1609-testsuite.xml"
+    }
+  ]
+}
