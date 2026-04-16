@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/statuses/passed.xml",
+      "originalFileName": "f73b6513-9ac9-424b-bd0b-682281890d19-testsuite.xml"
+    }
+  ]
+}
