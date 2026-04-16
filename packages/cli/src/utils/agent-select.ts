@@ -80,10 +80,7 @@ const buildTestPlan = (tests: AgentTestManifestLine[]): TestPlan => {
   };
 };
 
-const selectTestsByPreset = (
-  output: AgentOutputBundle,
-  preset: AgentRerunPreset,
-): AgentTestManifestLine[] => {
+const selectTestsByPreset = (output: AgentOutputBundle, preset: AgentRerunPreset): AgentTestManifestLine[] => {
   switch (preset) {
     case "review": {
       const review = planAgentEnrichmentReview(output);
@@ -181,9 +178,7 @@ export const selectAgentTestPlan = async (params: {
   const preset = params.preset ?? "review";
   const output = await loadAgentOutput(params.outputDir);
   const selectedTests = selectTestsByPreset(output, preset)
-    .filter((test) =>
-      params.environments?.length ? params.environments.includes(test.environment_id) : true,
-    )
+    .filter((test) => (params.environments?.length ? params.environments.includes(test.environment_id) : true))
     .filter((test) => (params.labelFilters?.length ? matchesLabelFilters(test.labels, params.labelFilters) : true));
 
   return {

@@ -54,7 +54,7 @@ vi.mock("../../src/utils/agent-state.js", () => ({
   readLatestAgentState: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("../../src/utils/agent-select.js", () => ({
-  normalizeAgentRerunPreset: vi.fn((value?: string) => (value ?? "review")),
+  normalizeAgentRerunPreset: vi.fn((value?: string) => value ?? "review"),
   parseAgentLabelFilters: vi.fn((values?: string[]) =>
     (values ?? []).map((value) => {
       const [name, filterValue] = value.split("=");
@@ -203,7 +203,9 @@ describe("agent command", () => {
     const stateDir = "/tmp/allure-agent-state-0f0810f05e3f7d8f";
 
     (writeLatestAgentState as Mock)
-      .mockRejectedValueOnce(Object.assign(new Error(`EACCES: permission denied, mkdir '${stateDir}'`), { code: "EACCES" }))
+      .mockRejectedValueOnce(
+        Object.assign(new Error(`EACCES: permission denied, mkdir '${stateDir}'`), { code: "EACCES" }),
+      )
       .mockResolvedValueOnce(undefined);
 
     await run(AgentCommand, ["agent", "--", "npm", "test"]);

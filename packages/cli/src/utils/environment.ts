@@ -1,8 +1,4 @@
-import {
-  environmentIdentityById,
-  environmentIdentityByName,
-  validateAllowedEnvironmentId,
-} from "@allurereport/core";
+import { environmentIdentityById, environmentIdentityByName, validateAllowedEnvironmentId } from "@allurereport/core";
 import type { EnvironmentIdentity } from "@allurereport/core-api";
 import { validateEnvironmentId, validateEnvironmentName, type EnvironmentsConfig } from "@allurereport/core-api";
 import { Option, UsageError } from "clipanion";

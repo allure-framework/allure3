@@ -64,9 +64,7 @@ const isAgentLatestState = (value: unknown): value is AgentLatestState => {
   );
 };
 
-export const writeLatestAgentState = async (
-  value: Omit<AgentLatestState, "schema">,
-): Promise<AgentLatestState> => {
+export const writeLatestAgentState = async (value: Omit<AgentLatestState, "schema">): Promise<AgentLatestState> => {
   const normalizedState: AgentLatestState = {
     schema: AGENT_STATE_SCHEMA,
     cwd: resolve(value.cwd),

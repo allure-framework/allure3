@@ -7,14 +7,6 @@ import process, { exit } from "node:process";
 import { AllureReport, isFileNotFoundError, readConfig } from "@allurereport/core";
 import { Command, Option, UsageError } from "clipanion";
 
-import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
-import {
-  environmentNameOption,
-  environmentOption,
-  normalizeCommandEnvironmentOptions,
-  resolveCommandEnvironment,
-} from "../utils/environment.js";
-import { readLatestAgentState, resolveAgentStateDir, writeLatestAgentState } from "../utils/agent-state.js";
 import {
   createAgentTestPlanContext,
   normalizeAgentRerunPreset,
@@ -22,7 +14,15 @@ import {
   resolveAgentSelectionOutputDir,
   selectAgentTestPlan,
 } from "../utils/agent-select.js";
+import { readLatestAgentState, resolveAgentStateDir, writeLatestAgentState } from "../utils/agent-state.js";
+import {
+  environmentNameOption,
+  environmentOption,
+  normalizeCommandEnvironmentOptions,
+  resolveCommandEnvironment,
+} from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 const withProcessEnv = async <T>(overrides: Record<string, string | undefined>, fn: () => Promise<T>): Promise<T> => {
   const previousValues = new Map<string, string | undefined>();
@@ -199,7 +199,8 @@ export class AgentStateDirCommand extends Command {
 
   static usage = Command.Usage({
     description: "Print the Allure agent state directory for the current project",
-    details: "This command prints the resolved state directory used to persist latest-agent pointers for the current project cwd.",
+    details:
+      "This command prints the resolved state directory used to persist latest-agent pointers for the current project cwd.",
     examples: [
       ["agent state-dir", "Print the resolved state directory for the current project"],
       ["agent state-dir --cwd ./packages/cli", "Print the resolved state directory for a specific project cwd"],
@@ -222,7 +223,8 @@ export class AgentSelectCommand extends Command {
 
   static usage = Command.Usage({
     description: "Select tests from an existing agent output and emit a test plan",
-    details: "This command resolves a set of tests from a prior agent run and prints or writes a testplan.json payload.",
+    details:
+      "This command resolves a set of tests from a prior agent run and prints or writes a testplan.json payload.",
     examples: [
       ["agent select --from ./out/agent-output", "Print a test plan for the default review-targeted tests"],
       ["agent select --latest --preset failed", "Print a test plan for failed tests from the latest project run"],
@@ -231,7 +233,8 @@ export class AgentSelectCommand extends Command {
   });
 
   cwd = Option.String("--cwd", {
-    description: "The project directory used to resolve --latest and relative paths (default: current working directory)",
+    description:
+      "The project directory used to resolve --latest and relative paths (default: current working directory)",
   });
 
   from = Option.String("--from", {

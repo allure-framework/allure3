@@ -9,8 +9,6 @@ import { serve } from "@allurereport/static-server";
 import { Command, Option, UsageError } from "clipanion";
 import { red } from "yoctocolors";
 
-import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
-import { executeAgentMode } from "./agent.js";
 import {
   environmentNameOption,
   environmentOption,
@@ -18,6 +16,8 @@ import {
   resolveCommandEnvironment,
 } from "../utils/environment.js";
 import { createChildAllureCliEnvironment, getActiveAllureCliCommand } from "../utils/execution-context.js";
+import { executeAgentMode } from "./agent.js";
+import { executeAllureRun, executeNestedAllureCommand } from "./commons/run.js";
 
 export class RunCommand extends Command {
   static paths = [["run"]];

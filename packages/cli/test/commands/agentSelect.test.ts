@@ -20,7 +20,7 @@ vi.mock("node:fs/promises", async (importOriginal) => ({
   writeFile: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("../../src/utils/agent-select.js", () => ({
-  normalizeAgentRerunPreset: vi.fn((value?: string) => (value ?? "review")),
+  normalizeAgentRerunPreset: vi.fn((value?: string) => value ?? "review"),
   parseAgentLabelFilters: vi.fn((values?: string[]) =>
     (values ?? []).map((value) => {
       const [name, filterValue] = value.split("=");
@@ -72,6 +72,8 @@ describe("agent select command", () => {
       from: "./agent-output",
       latest: false,
     });
-    expect(consoleModule.log).toHaveBeenCalledWith(`{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    }\n  ]\n}`);
+    expect(consoleModule.log).toHaveBeenCalledWith(
+      `{\n  "version": "1.0",\n  "tests": [\n    {\n      "selector": "suite feature A"\n    }\n  ]\n}`,
+    );
   });
 });
