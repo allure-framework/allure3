@@ -3,7 +3,7 @@ import type { FunctionalComponent } from "preact";
 import { useState } from "preact/hooks";
 import type { AwesomeTestResult } from "types";
 
-import { getBodyItems } from "@/components/TestResult/bodyItems";
+import { getStepBodyItems } from "@/components/TestResult/bodyItems";
 import { TrDropdown } from "@/components/TestResult/TrDropdown";
 import { TrBodyItems } from "@/components/TestResult/TrSteps/TrBodyItems";
 import { useI18n } from "@/stores/locale";
@@ -26,7 +26,7 @@ export const TrSetup: FunctionalComponent<TrSetupProps> = ({ setup, id }) => {
     toggleTree(teardownId);
   };
   const { t } = useI18n("execution");
-  const bodyItems = getBodyItems({ id: teardownId, status: "passed", steps: setup ?? [] });
+  const bodyItems = getStepBodyItems(setup ?? []);
 
   return (
     <div className={styles["test-result-steps"]}>

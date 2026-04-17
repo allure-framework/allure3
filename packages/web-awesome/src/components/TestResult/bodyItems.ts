@@ -128,6 +128,9 @@ const buildStepBodyItems = (
   return { bodyItems, didPlaceSyntheticError };
 };
 
+export const getStepBodyItems = (steps: AwesomeTestResult["steps"]): TrBodyItem[] =>
+  buildStepBodyItems(steps, undefined).bodyItems;
+
 export const getBodyItems = (
   testResult?: Pick<AwesomeTestResult, "id" | "status" | "steps" | "error">,
   fallbackTitle = "Error",
