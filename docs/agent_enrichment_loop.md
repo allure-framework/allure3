@@ -17,7 +17,7 @@ test run, but it does not mutate tests or invent evidence.
 The enrichment loop sits above that output:
 
 1. Generate `ALLURE_AGENT_EXPECTATIONS` as a fresh per-run YAML or JSON file.
-2. Run tests with `ALLURE_AGENT_OUTPUT`.
+2. Run tests with `allure agent`, or use the lower-level `ALLURE_AGENT_*` plus `allure run` fallback when you need direct environment control.
 3. Review `manifest/run.json`, `manifest/tests.jsonl`, and `manifest/findings.jsonl`.
 4. Enrich only the targeted tests with real runtime metadata.
 5. Rerun the same scope and accept the change only when scope matches and the

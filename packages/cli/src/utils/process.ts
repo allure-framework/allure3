@@ -41,13 +41,14 @@ export const runProcess = (params: {
       COLORTERM: "truecolor",
       TERM: "xterm-256color",
     });
+    delete env.NO_COLOR;
   }
 
   return spawn(command, commandArgs, {
     env,
     cwd,
     stdio: logs,
-    shell: true,
+    shell: IS_WIN,
   });
 };
 

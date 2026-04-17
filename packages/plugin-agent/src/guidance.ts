@@ -134,21 +134,28 @@ export const ENRICHMENT_ACTIONS_BY_CHECK_NAME: Record<string, EnrichmentActionDe
 
 export const AGENT_ENRICHMENT_WORKFLOW = [
   "Generate or refresh `ALLURE_AGENT_EXPECTATIONS` before each targeted enrichment iteration.",
-  "Run tests with `allure run -- <command>` and `ALLURE_AGENT_OUTPUT` enabled.",
+  "Run tests with `allure agent --output <dir> --expectations <file> -- <command>`.",
+  "After each test run, print the `index.md` path from that output directory so collaborators can open the run overview quickly.",
+  "Use `allure agent latest` to recover the newest output directory when a prior run omitted `--output`.",
+  "Use `allure agent state-dir` to inspect where the current project stores its latest-agent state.",
+  "Use `ALLURE_AGENT_STATE_DIR` when you need to override where the current project stores latest-agent state for `latest`, `state-dir`, or `--rerun-latest`.",
+  "Use `allure agent select --latest` or `allure agent select --from <output-dir>` to inspect the review-targeted test plan before rerunning.",
+  "Use `allure agent --rerun-latest -- <command>` or `allure agent --rerun-from <output-dir> -- <command>` to rerun only the selected tests through Allure testplan support. Add `--rerun-preset`, repeated `--rerun-environment`, or repeated `--rerun-label name=value` filters when you need a narrower rerun slice.",
   "Inspect `manifest/run.json`, tail `manifest/test-events.jsonl`, then review `index.md`, `manifest/tests.jsonl`, and `manifest/findings.jsonl` before editing tests.",
   "Enrich only the intended tests, rerun the same scope, and compare the rerun against `manifest/expected.json` when present.",
   "Accept the rerun only when scope is clean, evidence is strong enough to review, and no high-confidence dummy findings remain.",
 ] as const;
 
 export const AGENT_VERIFICATION_RULES = [
-  "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure run`. It preserves the original console logs and adds agent-mode artifacts when you need them.",
-  "Use `allure run` for smoke checks too, even when the change is small or mechanical.",
+  "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
+  "Use `allure agent` for smoke checks too, even when the change is small or mechanical.",
   "Only skip agent mode when it is impossible or when you are debugging agent mode itself.",
+  "After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.",
 ] as const;
 
 export const AGENT_SMALL_TEST_CHANGE_WORKFLOW = [
   "Create a fresh temp `ALLURE_AGENT_OUTPUT` and `ALLURE_AGENT_EXPECTATIONS` for the touched scope before closing the task.",
-  "Run the touched scope with `allure run`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.",
+  "Run the touched scope with `allure agent`, even if the goal is only a smoke check after a mechanical change such as typing cleanup, mock refactors, or helper extraction.",
   "Review `manifest/run.json`, `manifest/test-events.jsonl`, `index.md`, `manifest/tests.jsonl`, and `manifest/findings.jsonl` before making any final claim.",
 ] as const;
 
@@ -193,11 +200,19 @@ export const AGENT_PARTIAL_RUNTIME_REVIEW_RULES = [
 
 export const AGENT_INSTRUCTIONS_TEMPLATE = `## Allure Agent Mode Instructions
 
-- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through \`allure run\`. It preserves the original console logs and adds agent-mode artifacts when you need them.
-- Use \`allure run\` for smoke checks too, even when the change is small or mechanical.
+- If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through \`allure agent\`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.
+- Use \`allure agent\` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
+- After each agent-mode test run, print the \`index.md\` path from that run's output directory so users can open the run overview quickly.
+- Use \`ALLURE_AGENT_*\` with \`allure run\` only as the lower-level fallback when you need direct environment control.
+- Use \`allure agent latest\` to reopen the newest run when \`--output\` was omitted.
+- Use \`allure agent state-dir\` to inspect where the current project stores its latest-agent state.
+- Use \`allure agent select --latest\` or \`allure agent select --from <output-dir>\` to inspect the review-targeted test plan before rerunning.
+- Use \`allure agent --rerun-latest -- <command>\` or \`allure agent --rerun-from <output-dir> -- <command>\` to rerun only the selected tests.
+- Use \`--rerun-preset review|failed|unsuccessful|all\`, repeated \`--rerun-environment <id>\`, and repeated \`--rerun-label name=value\` when you need a narrower rerun selection from the previous output.
+- Use \`ALLURE_AGENT_STATE_DIR\` when you need to override where the current project stores latest-agent state for \`latest\`, \`state-dir\`, or \`--rerun-latest\`.
 - Generate or refresh \`ALLURE_AGENT_EXPECTATIONS\` before each targeted rerun.
-- Run tests with \`ALLURE_AGENT_OUTPUT\` and review \`manifest/run.json\`, \`manifest/test-events.jsonl\`, \`index.md\`, \`manifest/tests.jsonl\`, and \`manifest/findings.jsonl\`.
+- Run tests with \`allure agent\` and review \`manifest/run.json\`, \`manifest/test-events.jsonl\`, \`index.md\`, \`manifest/tests.jsonl\`, and \`manifest/findings.jsonl\`.
 - Enrich only the intended tests. Add real steps for real setup, actions, and assertions.
 - Attach only real runtime evidence such as payloads, responses, screenshots, DOM snapshots, diffs, logs, or traces.
 - Keep metadata minimal. Add labels or severity only when scope review, debugging, or quality policy uses them.
