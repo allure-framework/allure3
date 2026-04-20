@@ -68,7 +68,7 @@ const App = () => {
     await waitForI18next;
     await Promise.all(fns.map((fn) => fn(currentEnvironment.value)));
 
-    const environmentIds = environmentsStore.value.data.map(({ id }) => id);
+    const environmentIds = environmentsStore.value.data.map(({ id }) => id).filter((id): id is string => Boolean(id));
 
     if (currentEnvironment.value) {
       await fetchEnvTreesData([currentEnvironment.value]);
@@ -83,7 +83,7 @@ const App = () => {
 
   useEffect(() => {
     prefetchData();
-  }, [currentEnvironment.value]);
+  }, []);
 
   useSignalEffect(() => {
     const testResultId = currentTrId.value;

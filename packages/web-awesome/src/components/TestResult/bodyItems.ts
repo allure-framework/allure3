@@ -1,5 +1,5 @@
 import type { AttachmentTestStepResult, DefaultTestStepResult, TestError, TestStatus } from "@allurereport/core-api";
-import type { AwesomeTestResult } from "types";
+import type { AwesomeFixtureResult, AwesomeTestResult } from "types";
 
 export type TestLevelErrorItem = {
   type: "error";
@@ -126,6 +126,31 @@ const buildStepBodyItems = (
   }
 
   return { bodyItems, didPlaceSyntheticError };
+};
+
+export const getStepBodyItems = (steps: AwesomeTestResult["steps"]): TrBodyItem[] =>
+  buildStepBodyItems(steps, undefined).bodyItems;
+
+export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStepItem => {
+  const err = fixture.error;
+
+  return {
+    type: "step",
+    item: {
+      type: "step",
+      name: fixture.name,
+      status: fixture.status,
+      parameters: [],
+      steps: [],
+      stepId: fixture.id,
+      duration: fixture.duration,
+      message: err?.message,
+      trace: err?.trace,
+      error: err,
+    },
+    bodyItems: getStepBodyItems(fixture.steps),
+    suppressInlineError: false,
+  };
 };
 
 export const getBodyItems = (

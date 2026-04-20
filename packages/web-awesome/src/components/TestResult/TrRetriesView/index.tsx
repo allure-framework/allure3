@@ -10,13 +10,13 @@ import * as styles from "./styles.scss";
 export const TrRetriesView: FunctionalComponent<{
   testResult: AwesomeTestResult;
 }> = ({ testResult }) => {
-  const { retries } = testResult ?? {};
+  const retries = testResult?.retries ?? [];
   const { t } = useI18n("empty");
 
   return (
     <div className={styles["test-result-retries"]}>
       {retries.length ? (
-        retries?.map((item, key) => (
+        retries.map((item, key) => (
           <TrRetriesItem
             testResultItem={item as unknown as AwesomeTestResult}
             key={key}
