@@ -1,6 +1,6 @@
 {
   "name": "@allurereport/plugin-agent",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Allure Agent Plugin – AI-friendly markdown report generator",
   "keywords": [
     "agent",
