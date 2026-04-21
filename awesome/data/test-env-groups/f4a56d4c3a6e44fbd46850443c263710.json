@@ -1,1 +1,1 @@
-{"id":"f4a56d4c3a6e44fbd46850443c263710","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with no suites should set host","name":"should set host","status":"passed","testResultsByEnv":{"macos-latest":"d4efe4cb5391897efe0af2bdb1595ad3"}}
+{"id":"f4a56d4c3a6e44fbd46850443c263710","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with no suites should set host","name":"should set host","status":"passed","testResultsByEnv":{"macos-latest":"aff3478f57f9904ca5be525cbf565187"}}

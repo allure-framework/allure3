@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/fullNames/classnameInvalid.xml",
+      "originalFileName": "75bec05b-71e1-41a9-9121-6ee3e0e22d63.xml"
+    }
+  ]
+}

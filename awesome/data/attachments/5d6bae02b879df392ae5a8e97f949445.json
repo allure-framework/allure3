@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/timings-start.json",
+      "originalFileName": "5c2075a7-9fab-43cb-9890-a87e0fc8af2b-result.json"
+    }
+  ]
+}
