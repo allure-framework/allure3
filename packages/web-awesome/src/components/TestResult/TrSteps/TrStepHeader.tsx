@@ -12,6 +12,7 @@ export type TrStepHeaderProps = {
   hasContent: boolean;
   onToggle: () => void;
   extra?: preact.ComponentChildren;
+  subtreeToggle?: preact.ComponentChildren;
 };
 
 export const TrStepHeader: FunctionComponent<TrStepHeaderProps> = ({
@@ -22,6 +23,7 @@ export const TrStepHeader: FunctionComponent<TrStepHeaderProps> = ({
   hasContent,
   onToggle,
   extra,
+  subtreeToggle,
 }) => (
   <div
     data-testid="test-result-step-header"
@@ -45,6 +47,7 @@ export const TrStepHeader: FunctionComponent<TrStepHeaderProps> = ({
     <Text data-testid="test-result-step-title" className={styles["test-result-header-text"]}>
       {title}
     </Text>
+    {subtreeToggle}
     {extra}
   </div>
 );

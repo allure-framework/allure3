@@ -15,7 +15,7 @@ const SideBySide = ({ left, right }: { left: JSX.Element; right: JSX.Element }) 
 
     const splitter = Split([`.${styles["side-left"]}`, `.${styles["side-right"]}`], {
       sizes,
-      gutterSize: 7,
+      gutterSize: 4,
       gutter: (): HTMLElement => {
         const gutter = document.createElement("div");
         gutter.className = `${styles.gutter}`;

@@ -557,6 +557,7 @@ export const generateStaticFiles = async (
     layout = "base",
     defaultSection = "",
     ci,
+    stepTreeExpansion,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -616,6 +617,7 @@ export const generateStaticFiles = async (
     allureVersion,
     sections,
     defaultSection,
+    stepTreeExpansion,
   };
 
   try {

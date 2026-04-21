@@ -70,9 +70,11 @@ test.describe("attachments", () => {
 
     test('should render "missed" label for attachments which don\'t exist', async () => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
+      await testResultPage.toggleAttachmentByTitle("attachment");
       await expect(
         testResultPage.testResultAttachmentLocator.nth(0).getByTestId("test-result-attachment-missed"),
       ).toBeVisible();
@@ -130,6 +132,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
@@ -211,6 +214,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
@@ -294,6 +298,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1, { timeout: 10000 });
@@ -375,6 +380,7 @@ test.describe("attachments", () => {
 
     test("should render attachment in the test result body and allow to preview it", async () => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.expandStepByTitle("bar");
 
       await expect(testResultPage.testResultAttachmentLocator).toHaveCount(1);
@@ -456,6 +462,7 @@ test.describe("attachments", () => {
 
     test("opens Playwright Trace in a new tab", async ({ page }) => {
       await treePage.clickNthLeaf(0);
+      await testResultPage.ensureBodyStepsOpened();
       await testResultPage.toggleStepByTitle("bar");
 
       const popupPromise = page

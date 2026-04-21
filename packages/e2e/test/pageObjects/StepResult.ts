@@ -75,6 +75,11 @@ export class StepResultFixture extends PageObject {
     await this.locator.getByTestId("test-result-step-arrow-button").click();
   }
 
+  async toggleSubtree() {
+    await this.locator.getByTestId("test-result-step-header").first().hover();
+    await this.locator.getByTestId("test-result-step-subtree-toggle").first().click({ force: true });
+  }
+
   /**
    * Expands or collapses the step's trace.
    */

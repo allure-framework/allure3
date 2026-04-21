@@ -1,7 +1,7 @@
 .above {
-  margin-bottom: 12px;
   display: flex;
   width: 100%;
+  min-width: 0;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
@@ -28,6 +28,7 @@
 
 .right {
   margin-left: auto;
+  flex: none;
   display: flex;
   gap: 4px;
   align-items: center;
