@@ -8,7 +8,7 @@ import { useState } from "preact/hooks";
 import { TrAttachmentInfo } from "@/components/TestResult/TrSteps/TrAttachmentInfo";
 import { useI18n } from "@/stores";
 import { openModal } from "@/stores/modal";
-import { collapsedTrees, toggleTree } from "@/stores/tree";
+import { isTreeOpened, toggleTree } from "@/stores/tree";
 
 import * as styles from "@/components/TestResult/TrSteps/styles.scss";
 
@@ -62,7 +62,7 @@ export const TrAttachment: FunctionComponent<{
   className?: string;
 }> = ({ item, stepIndex }) => {
   const attachmentTreeId = item.link?.id !== null ? `attachment-${item.link.id}` : null;
-  const isOpened = !collapsedTrees.value.has(attachmentTreeId);
+  const isOpened = attachmentTreeId !== null ? isTreeOpened(attachmentTreeId, false) : false;
   const [showPreview, setShowPreview] = useState(false);
   const [highlightCode, setHighlightCode] = useState(true);
   const { t: tAttachments } = useI18n("attachments");
@@ -100,7 +100,7 @@ export const TrAttachment: FunctionComponent<{
         onClick={(e) => {
           e.stopPropagation();
           if (attachmentTreeId !== null) {
-            toggleTree(attachmentTreeId);
+            toggleTree(attachmentTreeId, false);
           }
         }}
       >

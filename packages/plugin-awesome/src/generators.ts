@@ -150,7 +150,9 @@ export const generateTestResults = async (
   for (const tr of trs) {
     const trFixtures = await store.fixturesByTrId(tr.id);
     const convertedTrFixtures: AwesomeFixtureResult[] = trFixtures.map(convertFixtureResult);
-    const convertedTr: AwesomeTestResult = convertTestResult(tr, { hideLabels: options.hideLabels });
+    const convertedTr: AwesomeTestResult = convertTestResult(tr, {
+      hideLabels: options.hideLabels,
+    });
 
     convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
@@ -555,6 +557,7 @@ export const generateStaticFiles = async (
     layout = "base",
     defaultSection = "",
     ci,
+    stepTreeExpansion,
   } = payload;
   const compile = Handlebars.compile(template);
   const manifest = await readTemplateManifest(payload.singleFile);
@@ -614,6 +617,7 @@ export const generateStaticFiles = async (
     allureVersion,
     sections,
     defaultSection,
+    stepTreeExpansion,
   };
 
   try {
@@ -670,11 +674,6 @@ export const generateTreeFilters = async (writer: AwesomeDataWriter, testResults
         trCategories.add(category.name);
       }
     });
-  }
-
-  // No need to generate a json file if it will be empty
-  if (trTags.size === 0 && trCategories.size === 0) {
-    return Promise.resolve();
   }
 
   const tags = Array.from(trTags).sort((a, b) => a.localeCompare(b));

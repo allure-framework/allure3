@@ -37,6 +37,19 @@ describe("normalizeCategoriesConfig", () => {
     expect(normalized).toHaveLength(DEFAULT_ERROR_CATEGORIES.length);
   });
 
+  it("assigns stable ids to default categories", () => {
+    const normalized = normalizeCategoriesConfig(undefined);
+    expect(normalized.map((r) => r.id)).toEqual(DEFAULT_ERROR_CATEGORIES.map((r) => r.id));
+  });
+
+  it("allows overriding defaults by name without explicit id", () => {
+    const normalized = normalizeCategoriesConfig([{ name: "Product errors", matchers: { message: "boom" } }]);
+    const product = normalized.find((r) => r.name === "Product errors")!;
+    expect(product).toBeDefined();
+    expect(product.matchers.length).toBeGreaterThanOrEqual(2);
+    expect(product.id).toBe(DEFAULT_ERROR_CATEGORIES[0].id);
+  });
+
   it("accepts array config and appends defaults after custom rules", () => {
     const cfg: CategoriesConfig = [
       { name: "Custom", matchers: { statuses: ["failed"] } },

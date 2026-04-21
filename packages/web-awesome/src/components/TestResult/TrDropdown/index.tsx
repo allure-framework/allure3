@@ -11,8 +11,9 @@ export const TrDropdown: FunctionalComponent<{
   title: string;
   icon: string;
   counter: number;
+  actions?: preact.ComponentChildren;
   className?: ClassValue;
-}> = ({ isOpened, setIsOpen, title, icon, counter, className }) => {
+}> = ({ isOpened, setIsOpen, title, icon, counter, actions, className }) => {
   return (
     <div className={clsx(styles["test-result-dropdown"], className)} onClick={() => setIsOpen(!isOpened)}>
       <ArrowButton isOpened={isOpened} icon={allureIcons.arrowsChevronDown} />
@@ -20,6 +21,11 @@ export const TrDropdown: FunctionalComponent<{
         <SvgIcon id={icon} />
         <Text bold>{title}</Text>
         <Counter count={counter} size="s" />
+        {actions ? (
+          <div className={styles["test-result-dropdown-actions"]} onClick={(event) => event.stopPropagation()}>
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-commons";
+import { buildFilterPredicate, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";
@@ -23,19 +23,51 @@ export const noTests = computed(() => {
 });
 
 export const collapsedTrees = signal(new Set(loadFromLocalStorage<string[]>("collapsedTrees", [])));
+export const expandedTrees = signal(new Set(loadFromLocalStorage<string[]>("expandedTrees", [])));
 
 effect(() => {
   localStorage.setItem("collapsedTrees", JSON.stringify([...collapsedTrees.value]));
 });
 
-export const toggleTree = (id: string) => {
-  const newSet = new Set(collapsedTrees.value);
-  if (newSet.has(id)) {
-    newSet.delete(id);
-  } else {
-    newSet.add(id);
+effect(() => {
+  localStorage.setItem("expandedTrees", JSON.stringify([...expandedTrees.value]));
+});
+
+export const isTreeOpened = (id: string, openedByDefault = true): boolean => {
+  if (openedByDefault) {
+    return !collapsedTrees.value.has(id);
   }
-  collapsedTrees.value = newSet;
+
+  return expandedTrees.value.has(id);
+};
+
+const setTreeStoredState = (id: string, shouldBeOpened: boolean, openedByDefault: boolean) => {
+  if (openedByDefault) {
+    const nextCollapsedTrees = new Set(collapsedTrees.value);
+    if (shouldBeOpened) {
+      nextCollapsedTrees.delete(id);
+    } else {
+      nextCollapsedTrees.add(id);
+    }
+    collapsedTrees.value = nextCollapsedTrees;
+    return;
+  }
+
+  const nextExpandedTrees = new Set(expandedTrees.value);
+  if (shouldBeOpened) {
+    nextExpandedTrees.add(id);
+  } else {
+    nextExpandedTrees.delete(id);
+  }
+  expandedTrees.value = nextExpandedTrees;
+};
+
+export const toggleTree = (id: string, openedByDefault = true) => {
+  setTreeStoredState(id, !isTreeOpened(id, openedByDefault), openedByDefault);
+};
+
+export const setTreeOpened = (id: string, shouldBeOpened: boolean, openedByDefault = true) => {
+  setTreeStoredState(id, shouldBeOpened, openedByDefault);
 };
 
 export const fetchEnvTreesData = async (envs: string[]) => {
@@ -74,7 +106,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
   } catch (e) {
     treeStore.value = {
       ...treeStore.peek(),
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

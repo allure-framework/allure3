@@ -1,5 +1,6 @@
 import type { ChartOptions } from "@allurereport/charts-api";
 import type { CiDescriptor, EnvironmentsConfig, TestResult } from "@allurereport/core-api";
+import type { StepTreeExpansion } from "@allurereport/web-awesome";
 
 export type AwesomeOptions = {
   reportName?: string;
@@ -20,6 +21,7 @@ export type AwesomeOptions = {
   defaultSection?: string;
   publish?: boolean;
   appendTitlePath?: boolean;
+  stepTreeExpansion?: StepTreeExpansion;
 };
 
 export type TemplateManifest = Record<string, string>;

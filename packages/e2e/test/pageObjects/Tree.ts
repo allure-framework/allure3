@@ -20,6 +20,7 @@ export class TreePage extends CommonPage {
   leafTransitionTooltipLocator: Locator;
 
   sectionsLocator: Locator;
+  treeContentLocator: Locator;
   searchLocator: Locator;
   searchClearLocator: Locator;
 
@@ -68,6 +69,7 @@ export class TreePage extends CommonPage {
     this.leafTransitionTooltipLocator = page.getByTestId("tree-leaf-transition-tooltip");
 
     this.sectionsLocator = page.getByTestId("tree-section");
+    this.treeContentLocator = page.getByTestId("tree-content");
     this.searchLocator = page.getByTestId("search-input");
     this.searchClearLocator = page.getByTestId("clear-button");
 
@@ -136,6 +138,31 @@ export class TreePage extends CommonPage {
 
   getNthSectionTitleLocator(n: number) {
     return this.getNthSectionLocator(n).getByTestId("tree-section-title");
+  }
+
+  getNthSectionSubtreeToggleLocator(n: number) {
+    return this.getNthSectionLocator(n).getByTestId("tree-subtree-toggle");
+  }
+
+  getNthSectionContentLocator(n: number) {
+    return this.getNthSectionLocator(n).locator("..").locator(':scope > [data-testid="tree-content"]');
+  }
+
+  async clickNthSectionSubtreeToggle(n: number) {
+    const section = this.getNthSectionLocator(n);
+    await section.hover();
+    await this.getNthSectionSubtreeToggleLocator(n).click({ force: true });
+  }
+
+  async getSectionTitles() {
+    const titlesCount = await this.sectionsLocator.count();
+    const titles: string[] = [];
+
+    for (let index = 0; index < titlesCount; index += 1) {
+      titles.push((await this.getNthSectionTitleLocator(index).innerText()).trim());
+    }
+
+    return titles;
   }
 
   getLeafByTitle(title: string) {

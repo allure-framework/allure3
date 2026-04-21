@@ -12,6 +12,7 @@ import type {
 } from "@allurereport/core-api";
 
 export type Layout = "base" | "split";
+export type StepTreeExpansion = "collapsed" | "expand_failed_only" | "expanded";
 
 export type AwesomeReportOptions = {
   allureVersion: string;
@@ -27,6 +28,7 @@ export type AwesomeReportOptions = {
   sections?: string[];
   cacheKey: string;
   ci?: CiDescriptor;
+  stepTreeExpansion?: StepTreeExpansion;
 };
 
 export type AwesomeFixtureResult = Omit<

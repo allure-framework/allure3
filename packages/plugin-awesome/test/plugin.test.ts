@@ -240,6 +240,93 @@ describe("plugin", () => {
     });
   });
 
+  describe("generated widget files", () => {
+    it("always writes widgets/allure_environment.json (and environments.json) in multi-file mode when metadata is absent", async () => {
+      const testResults: TestResult[] = [
+        {
+          id: "tr-1",
+          name: "passed test",
+          status: "passed",
+          labels: [],
+        },
+      ] as TestResult[];
+
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default"]),
+        allEnvironmentIdentities: vi
+          .fn()
+          .mockResolvedValue([{ id: "default", name: "default" } satisfies EnvironmentIdentity]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
+        testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
+        environmentIdByTrId: vi.fn().mockResolvedValue("default"),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue([]),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({ charts: [] });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(addedFiles.has("widgets/allure_environment.json")).toBe(true);
+      expect(JSON.parse(addedFiles.get("widgets/allure_environment.json")!.toString("utf-8"))).toEqual([]);
+
+      expect(addedFiles.has("widgets/environments.json")).toBe(true);
+      expect(addedFiles.get("widgets/environments.json")!.toString("utf-8")).toBeTruthy();
+
+      expect(addedFiles.has("widgets/tree-filters.json")).toBe(true);
+      expect(JSON.parse(addedFiles.get("widgets/tree-filters.json")!.toString("utf-8"))).toEqual({
+        tags: [],
+        categories: [],
+      });
+    });
+  });
+
   describe("environment-specific outputs", () => {
     it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
       const qaATestResult = {
@@ -571,6 +658,7 @@ describe("plugin", () => {
         "widgets/default/tree.json",
         "widgets/default/nav.json",
         "widgets/environments.json",
+        "widgets/allure_environment.json",
         "widgets/statistic.json",
         "widgets/globals.json",
       ];
@@ -591,6 +679,20 @@ describe("plugin", () => {
       const envs = JSON.parse(Buffer.from(envsRaw, "base64").toString("utf-8")) as EnvironmentIdentity[];
 
       expect(envs).toContainEqual({ id: "default", name: "default" });
+
+      const envMetaRaw = embeddedData["widgets/allure_environment.json"];
+      const envMeta = JSON.parse(Buffer.from(envMetaRaw, "base64").toString("utf-8"));
+
+      expect(envMeta).toEqual([]);
+
+      const treeFiltersRaw = embeddedData["widgets/tree-filters.json"];
+      const treeFilters = JSON.parse(Buffer.from(treeFiltersRaw, "base64").toString("utf-8")) as {
+        tags: string[];
+        categories: string[];
+      };
+
+      expect(treeFilters.tags).toEqual(["smoke"]);
+      expect(Array.isArray(treeFilters.categories)).toBe(true);
 
       // data test results file for the test must be present
       expect(Object.keys(embeddedData).some((k) => k.startsWith("data/test-results/"))).toBe(true);

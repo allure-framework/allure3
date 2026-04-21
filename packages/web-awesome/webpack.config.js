@@ -1,9 +1,10 @@
-import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { fileURLToPath } from "node:url";
+
+import ForkTsCheckerPlugin from "fork-ts-checker-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import SpriteLoaderPlugin from "svg-sprite-loader/plugin.js";
 import TerserPlugin from "terser-webpack-plugin";
 import webpack from "webpack";
@@ -79,6 +80,17 @@ export default (env, argv) => {
       static: "./out/dev",
       historyApiFallback: true,
       watchFiles: ["./src"],
+      client: {
+        overlay: {
+          runtimeErrors: (error) => {
+            if (!error?.message) {
+              return true;
+            }
+
+            return !error.message.includes("ResizeObserver loop completed with undelivered notifications");
+          },
+        },
+      },
       devMiddleware: {
         index: true,
         mimeTypes: { phtml: "text/html" },

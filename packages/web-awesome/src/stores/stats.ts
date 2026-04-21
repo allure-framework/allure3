@@ -1,5 +1,5 @@
 import type { Statistic } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -38,7 +38,7 @@ export const fetchReportStats = async () => {
   } catch (err) {
     reportStatsStore.value = {
       data: { total: 0 },
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }
@@ -80,7 +80,7 @@ export const fetchEnvStats = async (envs: string[]) => {
   } catch (err) {
     statsByEnvStore.value = {
       ...statsByEnvStore.peek(),
-      error: err.message,
+      error: errorMessageFromUnknown(err),
       loading: false,
     };
   }
