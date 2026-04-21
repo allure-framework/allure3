@@ -141,7 +141,7 @@ export const fixtureResultToTrStepItem = (fixture: AwesomeFixtureResult): TrStep
       name: fixture.name,
       status: fixture.status,
       parameters: [],
-      steps: [],
+      steps: fixture.steps,
       stepId: fixture.id,
       duration: fixture.duration,
       message: err?.message,

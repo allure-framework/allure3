@@ -86,6 +86,17 @@ const App = () => {
   }, []);
 
   useSignalEffect(() => {
+    const envId = currentEnvironment.value;
+
+    if (!prefetched || !envId) {
+      return;
+    }
+
+    fetchEnvTreesData([envId]);
+    fetchEnvStats([envId]);
+  });
+
+  useSignalEffect(() => {
     const testResultId = currentTrId.value;
     if (isTestResultRoute.value && testResultId) {
       fetchTestResult(testResultId);
