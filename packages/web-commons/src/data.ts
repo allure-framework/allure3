@@ -81,6 +81,8 @@ export class ReportFetchError extends Error {
   }
 }
 
+export const errorMessageFromUnknown = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
 export const fetchReportJsonData = async <T>(path: string, params?: { bustCache: boolean }) => {
   let url: string;
 

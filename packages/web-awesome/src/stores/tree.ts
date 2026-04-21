@@ -1,4 +1,4 @@
-import { buildFilterPredicate, fetchReportJsonData } from "@allurereport/web-commons";
+import { buildFilterPredicate, errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import type { RecursiveTree } from "@allurereport/web-components/global";
 import { computed, effect, signal } from "@preact/signals";
 import type { AwesomeTree, AwesomeTreeGroup } from "types";
@@ -74,7 +74,7 @@ export const fetchEnvTreesData = async (envs: string[]) => {
   } catch (e) {
     treeStore.value = {
       ...treeStore.peek(),
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

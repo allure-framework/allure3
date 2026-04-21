@@ -184,9 +184,7 @@ export class AwesomePlugin implements Plugin {
     await generateEnvirontmentsList(this.#writer!, store);
     await generateVariables(this.#writer!, store);
 
-    if (environmentItems?.length) {
-      await generateEnvironmentJson(this.#writer!, environmentItems);
-    }
+    await generateEnvironmentJson(this.#writer!, environmentItems ?? []);
 
     if (attachments?.length) {
       await generateAttachmentsFiles(this.#writer!, attachments, (id) => store.attachmentContentById(id));

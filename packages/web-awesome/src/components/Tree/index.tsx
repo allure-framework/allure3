@@ -72,15 +72,20 @@ export const TreeList = () => {
 
         // render single tree for single environment
         if (environmentsStore.value.data.length === 1) {
+          const soleId = environmentsStore.value.data[0]!.id;
+          const soleStatistic = currentEnvironment.value
+            ? statsByEnvStore.value.data[currentEnvironment.value]
+            : statsByEnvStore.value.data[soleId];
+
           return (
             <div>
               <Tree
                 reportStatistic={reportStatsStore.value.data}
-                statistic={statsByEnvStore.value.data[currentEnvironment.value]}
+                statistic={soleStatistic}
                 collapsedTrees={collapsedTrees.value}
                 toggleTree={toggleTree}
                 navigateTo={treeNavigateTo}
-                tree={treeLocalizer(filteredTree.value.default)}
+                tree={treeLocalizer(filteredTree.value[soleId])}
                 statusFilter={currentTreeStatus}
                 routeId={trId}
                 root
