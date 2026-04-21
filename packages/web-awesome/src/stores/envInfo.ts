@@ -1,5 +1,5 @@
 import type { EnvironmentItem } from "@allurereport/core-api";
-import { fetchReportJsonData } from "@allurereport/web-commons";
+import { errorMessageFromUnknown, fetchReportJsonData } from "@allurereport/web-commons";
 import { signal } from "@preact/signals";
 
 import type { StoreSignalState } from "@/stores/types";
@@ -28,7 +28,7 @@ export const fetchEnvInfo = async () => {
   } catch (e) {
     envInfoStore.value = {
       ...envInfoStore.peek(),
-      error: e.message,
+      error: errorMessageFromUnknown(e),
       loading: false,
     };
   }

@@ -4,7 +4,7 @@ import { useState } from "preact/hooks";
 
 import { MetadataList } from "@/components/Metadata";
 import { type MetadataItem } from "@/components/ReportMetadata";
-import type { TrStepItem } from "@/components/TestResult/bodyItems";
+import { hasErrorDiff, type TrStepItem } from "@/components/TestResult/bodyItems";
 import { TrError } from "@/components/TestResult/TrError";
 import {
   collectExpandableStepNodes,
@@ -43,14 +43,22 @@ export const TrStepParameters = (props: { parameters: TrStepItem["item"]["parame
 
 export const TrStepsContent = (props: { item: TrStepItem }) => {
   const { item: stepData, bodyItems, suppressInlineError } = props.item;
+  const inlineError = {
+    message: stepData.message ?? stepData.error?.message,
+    trace: stepData.trace ?? stepData.error?.trace,
+    actual: stepData.error?.actual,
+    expected: stepData.error?.expected,
+  };
   const hasInlineError = Boolean(
-    (stepData.message || stepData.trace) && !stepData.hasSimilarErrorInSubSteps && !suppressInlineError,
+    (inlineError.message || inlineError.trace || hasErrorDiff(inlineError)) &&
+    !stepData.hasSimilarErrorInSubSteps &&
+    !suppressInlineError,
   );
 
   return (
     <div data-testid={"test-result-step-content"} className={styles["test-result-step-content"]}>
       {Boolean(stepData.parameters?.length) && <TrStepParameters parameters={stepData.parameters} />}
-      {hasInlineError && <TrError {...stepData} />}
+      {hasInlineError && <TrError {...inlineError} status={stepData.status} />}
       {Boolean(bodyItems.length) && <TrBodyItems bodyItems={bodyItems} />}
     </div>
   );
@@ -61,8 +69,16 @@ export const TrStep: FunctionComponent<{
   stepIndex?: number;
 }> = ({ item, stepIndex }) => {
   const { item: stepData, bodyItems, suppressInlineError } = item;
+  const inlineError = {
+    message: stepData.message ?? stepData.error?.message,
+    trace: stepData.trace ?? stepData.error?.trace,
+    actual: stepData.error?.actual,
+    expected: stepData.error?.expected,
+  };
   const hasInlineError = Boolean(
-    (stepData.message || stepData.trace) && !stepData.hasSimilarErrorInSubSteps && !suppressInlineError,
+    (inlineError.message || inlineError.trace || hasErrorDiff(inlineError)) &&
+    !stepData.hasSimilarErrorInSubSteps &&
+    !suppressInlineError,
   );
   const policy = getStepTreeExpansionPolicy();
   const hasContent = hasStepContent(item);
