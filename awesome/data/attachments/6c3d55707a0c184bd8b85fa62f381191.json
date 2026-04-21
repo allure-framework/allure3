@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/durations/invalid.xml",
+      "originalFileName": "6f13aaf1-b8df-4be8-97e4-04e9fc371dad.xml"
+    }
+  ]
+}

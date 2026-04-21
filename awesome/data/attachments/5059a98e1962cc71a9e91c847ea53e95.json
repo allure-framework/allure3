@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/skipped/empty.xml",
+      "originalFileName": "3fb62455-59c2-4baf-83ae-52a3ef816991.xml"
+    }
+  ]
+}

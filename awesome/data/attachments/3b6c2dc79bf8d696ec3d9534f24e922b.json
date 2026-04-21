@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/attachments/stdout/invalid.xml",
+      "originalFileName": "02cfd41a-ea4c-4acf-bd96-0767a7e52719.xml"
+    }
+  ]
+}

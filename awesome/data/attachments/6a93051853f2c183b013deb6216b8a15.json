@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/failure/wellDefined.xml",
+      "originalFileName": "32d7b75c-3cbc-4c28-a76e-5119bc769589.xml"
+    }
+  ]
+}
