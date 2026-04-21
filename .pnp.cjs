@@ -937,7 +937,7 @@ const RAW_RUNTIME_STATE =
           ["d3-interpolate", "npm:3.0.1"],\
           ["d3-scale", "npm:4.0.2"],\
           ["d3-shape", "npm:3.2.0"],\
-          ["dompurify", "npm:3.3.3"],\
+          ["dompurify", "npm:3.4.0"],\
           ["jsdom", "virtual:9b037461298e50c6c170aa1fff242bb8930ef8feec399d8aa7e79f6479e91f7b3bf5d631b0c7f7701b011ebd07a5efa42e663e604109236dbee18c18976c43dd#npm:26.1.0"],\
           ["nanoid", "npm:3.3.8"],\
           ["rimraf", "npm:6.0.1"],\
@@ -15522,10 +15522,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["dompurify", [\
-      ["npm:3.3.3", {\
-        "packageLocation": "./.yarn/cache/dompurify-npm-3.3.3-6b51c69448-4cc9c539ed.zip/node_modules/dompurify/",\
+      ["npm:3.4.0", {\
+        "packageLocation": "./.yarn/cache/dompurify-npm-3.4.0-34c401dd9b-ead40b78ec.zip/node_modules/dompurify/",\
         "packageDependencies": [\
-          ["dompurify", "npm:3.3.3"],\
+          ["dompurify", "npm:3.4.0"],\
           ["@types/trusted-types", "npm:2.0.7"]\
         ],\
         "linkType": "HARD"\
