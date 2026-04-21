@@ -1,0 +1,10 @@
+{
+  "readerId": "allure2",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure2data/status-not-set.json",
+      "originalFileName": "b6367b20-282e-4a61-b7fa-61ccccdec9e0-result.json"
+    }
+  ]
+}

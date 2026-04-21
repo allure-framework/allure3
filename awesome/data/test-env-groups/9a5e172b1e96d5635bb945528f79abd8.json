@@ -1,1 +1,1 @@
-{"id":"9a5e172b1e96d5635bb945528f79abd8","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with no suites should set testMethod","name":"should set testMethod","status":"passed","testResultsByEnv":{"macos-latest":"3143b5c37ca853fffb5e25ce442f09a7"}}
+{"id":"9a5e172b1e96d5635bb945528f79abd8","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool labels a test with no suites should set testMethod","name":"should set testMethod","status":"passed","testResultsByEnv":{"macos-latest":"96858650b4669aa294700683410cc1c3"}}

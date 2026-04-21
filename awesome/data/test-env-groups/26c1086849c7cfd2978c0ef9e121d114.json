@@ -1,1 +1,1 @@
-{"id":"26c1086849c7cfd2978c0ef9e121d114","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool outcomes should parse a skipped test","name":"should parse a skipped test","status":"passed","testResultsByEnv":{"macos-latest":"5bf36909aa14c4d1d0b1bb6460763f59"}}
+{"id":"26c1086849c7cfd2978c0ef9e121d114","fullName":"test/xcresult.test.ts#A MAC machine with xcresulttool outcomes should parse a skipped test","name":"should parse a skipped test","status":"passed","testResultsByEnv":{"macos-latest":"19a2f422259e5ba02b02f5a0333a4ad5"}}

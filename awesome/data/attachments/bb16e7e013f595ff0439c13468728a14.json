@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/timings/wellDefined.xml",
+      "originalFileName": "795de301-e59d-4bc1-bf8f-4e713cfa98c5-testsuite.xml"
+    }
+  ]
+}
