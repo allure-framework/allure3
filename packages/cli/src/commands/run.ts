@@ -176,13 +176,6 @@ export class RunCommand extends Command {
       exit(-1);
     }
 
-    try {
-      await rm(config.output, { recursive: true });
-    } catch (e) {
-      if (!isFileNotFoundError(e)) {
-        console.error("could not clean output directory", e);
-      }
-    }
     const allureReport = new AllureReport({
       ...config,
       environment: resolvedEnvironment?.id,
@@ -203,6 +196,13 @@ export class RunCommand extends Command {
             ]),
       ],
     });
+    try {
+      await rm(allureReport.output, { recursive: true });
+    } catch (e) {
+      if (!isFileNotFoundError(e)) {
+        console.error("could not clean output directory", e);
+      }
+    }
     const knownIssues = await allureReport.store.allKnownIssues();
     const { globalExitCode } = await executeAllureRun({
       allureReport,
@@ -222,7 +222,7 @@ export class RunCommand extends Command {
     if (config.open) {
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: config.output,
+        servePath: allureReport.output,
         open: true,
       });
     } else {

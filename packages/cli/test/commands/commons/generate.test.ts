@@ -31,6 +31,7 @@ vi.mock("node:process", async (importOriginal) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  AllureReportMock.prototype.output = "/resolved-output";
 });
 
 describe("generate function", () => {
@@ -59,12 +60,14 @@ describe("generate function", () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
 
-    await generate({
-      cwd: ".",
-      config: {} as FullConfig,
-      resultsDir: "./allure-results",
-      dump: [],
-    });
+    await expect(
+      generate({
+        cwd: ".",
+        config: {} as FullConfig,
+        resultsDir: "./allure-results",
+        dump: [],
+      }),
+    ).resolves.toBe("/resolved-output");
 
     expect(AllureReportMock).toHaveBeenCalled();
 

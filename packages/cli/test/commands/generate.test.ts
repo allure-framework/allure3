@@ -266,7 +266,7 @@ describe("generate command", () => {
     };
 
     (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.output);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new GenerateCommand();
@@ -303,7 +303,7 @@ describe("generate command", () => {
     };
 
     (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true, port: fixtures.port });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.output);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new GenerateCommand();
@@ -363,7 +363,7 @@ describe("generate command", () => {
 
     const error = new Error("Serve failed");
     (readConfig as Mock).mockResolvedValue({ output: fixtures.output, open: true });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.output);
     (serve as Mock).mockRejectedValue(error);
 
     const command = new GenerateCommand();

@@ -62,7 +62,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
     (glob as unknown as Mock).mockResolvedValue([]);
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -143,7 +143,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
     (glob as unknown as Mock).mockResolvedValue([]);
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -207,7 +207,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -237,7 +237,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir, port: fixtures.port });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(OpenCommand, ["open", "--port", fixtures.port, fixtures.resultsDir]);
@@ -268,7 +268,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -308,7 +308,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -338,7 +338,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -366,7 +366,7 @@ describe("open command", () => {
     (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     const command = new OpenCommand();
@@ -398,7 +398,7 @@ describe("open command", () => {
       output: fixtures.tmpDir,
       hideLabels: ["owner", "tag"],
     });
-    (generate as Mock).mockResolvedValue(undefined);
+    (generate as Mock).mockResolvedValue(fixtures.tmpDir);
     (serve as Mock).mockResolvedValue(undefined);
 
     await run(OpenCommand, ["open", "--hide-labels", "owner", "--hide-labels", "tag", fixtures.resultsDir]);

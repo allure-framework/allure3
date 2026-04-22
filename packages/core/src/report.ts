@@ -40,7 +40,7 @@ import ZipWriteStream from "zip-stream";
 
 import type { FullConfig, PluginInstance } from "./api.js";
 import { AllureLocalHistory, createHistory } from "./history.js";
-import { DefaultPluginState, PluginFiles } from "./plugin.js";
+import { DefaultPluginState, FileSystemReportFiles, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
@@ -49,6 +49,11 @@ import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDump
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
+const reportUuidPathPlaceholder = "[report_uuid]";
+
+const resolveReportOutputPath = (output: string, reportUuid: string) => {
+  return resolve(output.replaceAll(reportUuidPathPlaceholder, reportUuid));
+};
 
 export class AllureReport {
   readonly #reportName: string;
@@ -153,12 +158,17 @@ export class AllureReport {
     });
     this.#readers = [...readers];
     this.#plugins = [...plugins];
-    this.#reportFiles = reportFiles;
-    this.#output = output;
+    this.#output = resolveReportOutputPath(output, this.reportUuid);
+    this.#reportFiles =
+      reportFiles instanceof FileSystemReportFiles ? new FileSystemReportFiles(this.#output) : reportFiles;
   }
 
   get hasQualityGate() {
     return !!this.#qualityGate;
+  }
+
+  get output(): string {
+    return this.#output;
   }
 
   get store(): DefaultAllureStore {

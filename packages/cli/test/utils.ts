@@ -3,6 +3,7 @@ import { vi } from "vitest";
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export const AllureReportMock = vi.fn(function (this: Record<string, unknown>, config?: unknown) {
   this.config = config;
+  this.output = (config as { output?: string } | undefined)?.output ?? "/resolved-output";
 });
 
 AllureReportMock.prototype.store = {

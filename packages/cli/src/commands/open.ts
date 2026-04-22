@@ -77,7 +77,7 @@ export class OpenCommand extends Command {
         hideLabels,
       });
 
-      await generate({
+      const outputPath = await generate({
         resultsDir: targetFullPath,
         cwd,
         config,
@@ -94,7 +94,7 @@ export class OpenCommand extends Command {
 
       await serve({
         port: config.port ? parseInt(config.port, 10) : undefined,
-        servePath: config.output,
+        servePath: outputPath,
         open: true,
       });
     }
