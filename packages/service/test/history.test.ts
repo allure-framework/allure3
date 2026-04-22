@@ -49,7 +49,7 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
+    serviceClient = new AllureServiceClientClass({ url: fixtures.url, accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
       branch: fixtures.branch,

@@ -13,17 +13,15 @@ export class AllureServiceClient {
   readonly #url: string;
 
   constructor(readonly config: Config["allureService"]) {
+    if (!config?.url) {
+      throw new Error("Allure service URL is required");
+    }
+
     if (!config?.accessToken) {
       throw new Error("Allure service access token is required");
     }
 
-    const { iss, projectId, url: baseUrl } = this.decodeToken(config.accessToken) ?? {};
-
-    if (iss !== "allure-service" || !baseUrl || !projectId) {
-      throw new Error("Invalid access token");
-    }
-
-    this.#url = baseUrl;
+    this.#url = config.url.replace(/\/+$/, "");
     this.#client = createServiceHttpClient(this.#url, config.accessToken);
   }
 
@@ -195,6 +193,7 @@ export class AllureServiceClient {
     filepath?: string;
   }) {
     const { reportUuid, filename, file, filepath, pluginId } = payload;
+    const reportFilename = pluginId ? joinPosix(pluginId, filename) : filename;
 
     if (!file && !filepath) {
       throw new Error("File or filepath is required");
@@ -212,7 +211,7 @@ export class AllureServiceClient {
 
     const form = new FormData();
 
-    form.set("filename", pluginId ? joinPosix(pluginId, filename) : filename);
+    form.set("filename", reportFilename);
     form.set("file", content);
 
     await this.#client.post(`/reports/${reportUuid}/upload`, {
@@ -222,6 +221,6 @@ export class AllureServiceClient {
       },
     });
 
-    return joinPosix(this.#url, reportUuid, filename);
+    return joinPosix(this.#url, reportUuid, reportFilename);
   }
 }

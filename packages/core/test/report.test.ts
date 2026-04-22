@@ -232,6 +232,7 @@ describe("report", () => {
     const allureReport = new AllureReport({
       ...config,
       allureService: {
+        url: "https://service.allurereport.org",
         accessToken: validAccessToken,
       },
     });
