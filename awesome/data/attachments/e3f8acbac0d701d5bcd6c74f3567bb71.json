@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/failures/traceMissing.xml",
+      "originalFileName": "e5e4e379-b560-4269-8c3f-cee89d619d00-testsuite.xml"
+    }
+  ]
+}
