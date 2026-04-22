@@ -103,9 +103,10 @@ export class AllureReport {
       globalAttachments,
     } = opts;
 
-    this.#allureServiceClient = allureServiceConfig?.accessToken
-      ? new AllureServiceClient(allureServiceConfig)
-      : undefined;
+    this.#allureServiceClient =
+      allureServiceConfig?.url && allureServiceConfig?.accessToken
+        ? new AllureServiceClient(allureServiceConfig)
+        : undefined;
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
@@ -293,7 +294,7 @@ export class AllureReport {
     }
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish && branch) {
+    if (this.#allureServiceClient && this.#publish) {
       const { url } = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
@@ -543,7 +544,8 @@ export class AllureReport {
 
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
-    const remoteHrefs: string[] = [];
+    const remoteHrefs: Set<string> = new Set();
+    const remoteHrefsByPluginId: Record<string, string> = {};
     // track plugins that failed to upload to prevent wrong remote links generation
     const cancelledPluginsIds: Set<string> = new Set();
 
@@ -590,12 +592,17 @@ export class AllureReport {
             }
 
             if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-              await this.#allureServiceClient!.addReportFile({
+              const uploadedFileUrl = await this.#allureServiceClient!.addReportFile({
                 reportUuid: this.reportUuid,
                 pluginId: context.id,
                 filename,
                 filepath,
               });
+
+              if (filename === "index.html") {
+                remoteHrefsByPluginId[context.id] = uploadedFileUrl;
+                remoteHrefs.add(uploadedFileUrl);
+              }
             } else {
               await this.#allureServiceClient!.addReportAsset({
                 filename,
@@ -636,10 +643,13 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish && this.reportUrl && !cancelledPluginsIds.has(context.id)) {
-        summary.remoteHref = `${this.reportUrl}/${context.id}/`;
+      if (context.publish && !cancelledPluginsIds.has(context.id)) {
+        summary.remoteHref =
+          remoteHrefsByPluginId[context.id] ?? (this.reportUrl ? `${this.reportUrl}/${context.id}/` : undefined);
 
-        remoteHrefs.push(summary.remoteHref);
+        if (summary.remoteHref) {
+          remoteHrefs.add(summary.remoteHref);
+        }
       }
 
       summaries.push({
@@ -727,7 +737,7 @@ export class AllureReport {
       }
     }
 
-    if (remoteHrefs.length > 0) {
+    if (remoteHrefs.size > 0) {
       console.info("Next reports have been published:");
 
       remoteHrefs.forEach((href) => {

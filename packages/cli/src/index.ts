@@ -26,7 +26,6 @@ import {
   SlackCommand,
   TestPlanCommand,
   WatchCommand,
-  WhoamiCommand,
 } from "./commands/index.js";
 
 const [node, app, ...args] = argv;
@@ -63,7 +62,6 @@ cli.register(TestPlanCommand);
 cli.register(WatchCommand);
 cli.register(ResultsPackCommand);
 cli.register(ResultsUnpackCommand);
-cli.register(WhoamiCommand);
 cli.register(Builtins.HelpCommand);
 cli.register(Builtins.VersionCommand);
 cli.runExit(args);

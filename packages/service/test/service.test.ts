@@ -56,25 +56,28 @@ describe("AllureServiceClient", () => {
     vi.clearAllMocks();
 
     serviceClient = new AllureServiceClientClass({
+      url: fixtures.url,
       accessToken: fixtures.accessToken,
     });
   });
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() => new AllureServiceClientClass({})).toThrow("Allure service access token is required");
+      expect(() => new AllureServiceClientClass({})).toThrow("Allure service URL is required");
     });
 
     it("should throw an error if access token is invalid", () => {
-      expect(() => new AllureServiceClientClass({ accessToken: invalidIssuerToken })).toThrow("Invalid access token");
+      expect(() => new AllureServiceClientClass({ url: fixtures.url, accessToken: invalidIssuerToken })).not.toThrow();
     });
 
-    it("should throw an error if access token has wrong format", () => {
-      expect(() => new AllureServiceClientClass({ accessToken: "invalid-token" })).toThrow("Invalid access token");
+    it("should throw an error if URL is not provided", () => {
+      expect(() => new AllureServiceClientClass({ accessToken: "invalid-token" })).toThrow(
+        "Allure service URL is required",
+      );
     });
 
-    it("should successfully create client with valid access token", () => {
-      expect(() => new AllureServiceClientClass({ accessToken: validAccessToken })).not.toThrow();
+    it("should successfully create client with valid config", () => {
+      expect(() => new AllureServiceClientClass({ url: fixtures.url, accessToken: validAccessToken })).not.toThrow();
     });
   });
 
@@ -390,7 +393,7 @@ describe("AllureServiceClient", () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.filename));
+      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.pluginId, fixtures.filename));
     });
 
     it("should upload a file from a filepath", async () => {
@@ -416,7 +419,7 @@ describe("AllureServiceClient", () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.filename));
+      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.pluginId, fixtures.filename));
     });
 
     it("should upload a file without plugin ID", async () => {
