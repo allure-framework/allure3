@@ -28,7 +28,11 @@ import type {
   TestOpsNamedEnv,
   TestOpsPluginTestResult,
   TestOpsSession,
+  UploadResultsDto,
+  UploadResultsResponseDto,
 } from "./model.js";
+import type { TestOpsFixtureResult } from "./model.js";
+import { toUploadFixturesResultsDto, toUploadResultsDto } from "./uploaderDto.js";
 
 class TestOpsClientError extends AxiosError<{
   message: string;
@@ -196,7 +200,7 @@ export class TestOpsClient {
     }
 
     this.#logger.verbose(`Starting CI upload (${ci.type})…`);
-    await this.#client.post<any>("/api/upload/start", {
+    await this.#client.post<unknown>("/api/upload/start", {
       projectId: this.#projectId,
       ci: {
         name: ci.type,
@@ -247,7 +251,7 @@ export class TestOpsClient {
     this.#logger.debug(`Launch created: id=${bold(data.id.toString())}`);
   }
 
-  async createSession(environment: Record<string, any> = {}) {
+  async createSession(environment: Record<string, unknown> = {}) {
     if (!this.#launch) {
       throw new Error("Launch isn't created! Call createLaunch first");
     }
@@ -457,59 +461,45 @@ export class TestOpsClient {
   }
 
   async #postTestResultsChunk(trsChunk: TestOpsPluginTestResult[]): Promise<Record<string, number>> {
-    const { data } = await this.#client.post<{ results: { id: number; uuid: string }[] }>(
-      "/api/upload/test-result",
-      {
-        testSessionId: this.#session!.id,
-        results: trsChunk.map((testResult) => {
-          const extendedTestResult: TestOpsPluginTestResult = {
-            ...testResult,
-            // pass the report id to TestOps to be able to match the test result with the report
-            uuid: testResult.id,
-          };
+    const extendedChunk: TestOpsPluginTestResult[] = trsChunk.map((testResult) => {
+      const extendedTestResult: TestOpsPluginTestResult = {
+        ...testResult,
+        // pass the report id to TestOps to be able to match the test result with the report
+        uuid: testResult.id,
+      };
 
-          const namedEnvironment = !!testResult.environment && this.getNamedEnvFor(testResult.environment);
+      const namedEnvironment = !!testResult.environment && this.getNamedEnvFor(testResult.environment);
 
-          if (namedEnvironment) {
-            extendedTestResult.namedEnv = { id: namedEnvironment.id };
-          }
+      if (namedEnvironment) {
+        extendedTestResult.namedEnv = { id: namedEnvironment.id };
+      }
 
-          if (
-            typeof extendedTestResult.category?.externalId === "string" ||
-            typeof extendedTestResult.category?.externalId === "number"
-          ) {
-            const category = extendedTestResult.category;
+      const error = extendedTestResult.error;
 
-            extendedTestResult.category = {
-              externalId: category.externalId,
-            };
+      if (typeof error?.message === "string") {
+        extendedTestResult.message = error.message;
+      }
 
-            if (category.grouping && category.grouping.length > 0) {
-              extendedTestResult.category.grouping = category.grouping;
-            }
-          }
+      if (typeof error?.trace === "string") {
+        extendedTestResult.trace = error.trace;
+      }
 
-          const error = extendedTestResult.error;
+      return extendedTestResult;
+    });
 
-          if (typeof error?.message === "string") {
-            extendedTestResult.message = error.message;
-          }
+    const body: UploadResultsDto = toUploadResultsDto(this.#session!.id, extendedChunk);
 
-          if (typeof error?.trace === "string") {
-            extendedTestResult.trace = error.trace;
-          }
-
-          return extendedTestResult;
-        }),
-      },
-      { headers: { "Content-Type": "application/json" } },
-    );
+    const { data } = await this.#client.post<UploadResultsResponseDto>("/api/upload/test-result", body, {
+      headers: { "Content-Type": "application/json" },
+    });
 
     const reportIdsToTestOpsIds: Record<string, number> = {};
 
     for (const { id, uuid } of data.results ?? []) {
       // "uuid" here is the test result id that was passed to TestOps by us
-      reportIdsToTestOpsIds[uuid] = id;
+      if (typeof uuid === "string" && typeof id === "number") {
+        reportIdsToTestOpsIds[uuid] = id;
+      }
     }
 
     return reportIdsToTestOpsIds;
@@ -575,12 +565,12 @@ export class TestOpsClient {
     }
   }
 
-  async #uploadFixturesForResult(testOpsResultId: number, fixtures: unknown[]): Promise<void> {
+  async #uploadFixturesForResult(testOpsResultId: number, fixtures: TestOpsFixtureResult[]): Promise<void> {
     if (fixtures.length === 0) return;
 
-    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, {
-      fixtures,
-    });
+    const body = toUploadFixturesResultsDto(fixtures);
+
+    await this.#client.post(`/api/upload/test-result/${testOpsResultId}/test-fixture-result`, body);
   }
 
   async uploadQualityGateResults(
