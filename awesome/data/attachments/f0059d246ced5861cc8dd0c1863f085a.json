@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/skipped/messageInvalid.xml",
+      "originalFileName": "8982f9f8-50c7-4f8f-9769-84fb85d71d74.xml"
+    }
+  ]
+}

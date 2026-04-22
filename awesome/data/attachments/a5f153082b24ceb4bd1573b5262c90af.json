@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/steps/statuses/statusInvalid.xml",
+      "originalFileName": "48595ffe-abe1-4cd3-a7d2-e7d5f12c9cb9-testsuite.xml"
+    }
+  ]
+}

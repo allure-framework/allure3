@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/statuses/skipped/contentMissing.xml",
+      "originalFileName": "7199403b-148e-4a6d-88dd-0617f39fb6a4.xml"
+    }
+  ]
+}
