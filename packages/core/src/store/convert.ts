@@ -133,7 +133,7 @@ const processTestCase = ({ testCases }: StateData, raw: RawTestResult): TestCase
     const testCase: TestCase = {
       id,
       allureId,
-      externalId: allureId ?? raw.testId,
+      externalId: raw.testId,
       name: raw.testCaseName ?? raw.name ?? __unknown,
       fullName: raw.fullName,
     };
