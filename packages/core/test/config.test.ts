@@ -227,40 +227,52 @@ describe("getPluginId", () => {
   });
 });
 
-class ModuleNotFoundError extends Error {
-  constructor() {
-    super("Module not found");
-  }
+const createModuleNotFoundError = (code: "ERR_MODULE_NOT_FOUND" | "MODULE_NOT_FOUND") => {
+  const err = new Error(code === "MODULE_NOT_FOUND" ? "Cannot find module" : "Module not found");
 
-  code = "ERR_MODULE_NOT_FOUND";
-}
+  return Object.assign(err, { code });
+};
 
 describe("resolvePlugin", () => {
+  const customPluginPath = "/tmp/custom-plugin/index.js";
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("prepends @allurereport/plugin- prefix and tries to resolve plugin when the path is not scoped", async () => {
+  it.each([
+    {
+      title: "prepends @allurereport/plugin- prefix and falls back on ESM module-not-found",
+      pluginPath: "classic",
+      code: "ERR_MODULE_NOT_FOUND" as const,
+    },
+    {
+      title: "falls back to the original path on CommonJS module-not-found",
+      pluginPath: customPluginPath,
+      code: "MODULE_NOT_FOUND" as const,
+    },
+  ])("$title", async ({ pluginPath, code }) => {
     const fixture = { name: "Allure" };
+    const expectedPrefixedPath = `@allurereport/plugin-${pluginPath}`;
 
     (importWrapper as unknown as MockInstance).mockImplementation((path: string) => {
-      if (path.startsWith("@allurereport")) {
-        throw new ModuleNotFoundError();
+      if (path === expectedPrefixedPath) {
+        throw createModuleNotFoundError(code);
       }
 
       return { default: fixture };
     });
 
-    const plugin = await resolvePlugin("classic");
+    const plugin = await resolvePlugin(pluginPath);
 
     expect(importWrapper).toHaveBeenCalledTimes(2);
-    expect(importWrapper).toHaveBeenCalledWith("@allurereport/plugin-classic");
-    expect(importWrapper).toHaveBeenCalledWith("classic");
+    expect(importWrapper).toHaveBeenNthCalledWith(1, expectedPrefixedPath);
+    expect(importWrapper).toHaveBeenNthCalledWith(2, pluginPath);
     expect(plugin).toEqual(fixture);
   });
 
   it("throws an error when plugin can't be resolved", async () => {
-    (importWrapper as unknown as MockInstance).mockRejectedValue(new ModuleNotFoundError());
+    (importWrapper as unknown as MockInstance).mockRejectedValue(createModuleNotFoundError("ERR_MODULE_NOT_FOUND"));
 
     await expect(() => resolvePlugin("classic")).rejects.toThrow("Cannot resolve plugin: classic");
   });
