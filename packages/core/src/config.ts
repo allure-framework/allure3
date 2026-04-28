@@ -396,8 +396,10 @@ export const getPluginInstance = (config: FullConfig, predicate: (plugin: Plugin
  *
  * @see https://nodejs.org/api/errors.html#err-module-not-found
  */
-const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE_NOT_FOUND" } => {
-  return err instanceof Error && "code" in err && err.code === "ERR_MODULE_NOT_FOUND";
+const isModuleNotFoundError = (err: unknown): err is Error & { code: "ERR_MODULE_NOT_FOUND" | "MODULE_NOT_FOUND" } => {
+  return (
+    err instanceof Error && "code" in err && (err.code === "ERR_MODULE_NOT_FOUND" || err.code === "MODULE_NOT_FOUND")
+  );
 };
 
 export const resolvePlugin = async (path: string) => {
