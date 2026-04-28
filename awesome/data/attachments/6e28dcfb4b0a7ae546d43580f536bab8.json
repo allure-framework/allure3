@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/statuses/canceled.xml",
+      "originalFileName": "473c68e0-11e9-4966-b8cd-66698f9621d5-testsuite.xml"
+    }
+  ]
+}

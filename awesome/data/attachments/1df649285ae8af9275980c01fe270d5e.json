@@ -1,0 +1,10 @@
+{
+  "readerId": "junit",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "junitxmldata/attachments/stderr/missing.xml",
+      "originalFileName": "035e2c9f-96fe-4bb0-b3e2-724aad97797d.xml"
+    }
+  ]
+}
