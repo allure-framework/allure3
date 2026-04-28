@@ -112,7 +112,7 @@ export const toUploadTestResultDto = (tr: TestOpsPluginTestResult): UploadTestRe
   return {
     uuid: tr.id,
     historyId: tr.historyId,
-    testCaseId: tr.testCase?.id,
+    testCaseId: tr.testCase?.externalId,
     name: tr.name,
     fullName: tr.fullName,
     description: tr.description,
