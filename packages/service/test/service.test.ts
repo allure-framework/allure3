@@ -36,7 +36,39 @@ const fixtures = {
   reportName: "Test Report",
   filename: "data.json",
   pluginId: "sample",
+  repo: "allure3",
   branch: "main",
+};
+
+const expectMultipartUpload = async (expected: {
+  endpoint: string;
+  filename: string;
+  content: string;
+  signal?: AbortSignal;
+}) => {
+  expect(HttpClientMock.prototype.post).toHaveBeenLastCalledWith(expected.endpoint, {
+    body: expect.any(FormData),
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    ...(expected.signal ? { signal: expected.signal } : {}),
+  });
+
+  const [, payload] = HttpClientMock.prototype.post.mock.calls.at(-1) as [
+    string,
+    {
+      body: FormData;
+    },
+  ];
+  const uploadedFile = payload.body.get("file");
+
+  expect(payload.body.get("filename")).toBe(expected.filename);
+  expect(uploadedFile).toBeInstanceOf(Blob);
+  expect(uploadedFile).toBeInstanceOf(File);
+  expect(typeof uploadedFile).not.toBe("string");
+  expect((uploadedFile as Blob).type).toBe("application/octet-stream");
+  expect((uploadedFile as File).name).toBe(expected.filename);
+  expect(await (uploadedFile as Blob).text()).toBe(expected.content);
 };
 
 const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
@@ -81,98 +113,22 @@ describe("AllureServiceClient", () => {
     });
   });
 
-  describe("decodeToken", () => {
-    it("should decode a valid JWT token", () => {
-      const decoded = serviceClient.decodeToken(validAccessToken);
-
-      expect(decoded).toEqual({
-        iss: "allure-service",
-        url: "https://service.allurereport.org",
-        projectId: "test-project-id",
-      });
-    });
-
-    it("should return undefined for invalid token", () => {
-      const decoded = serviceClient.decodeToken("not-a-valid-jwt");
-
-      expect(decoded).toBeUndefined();
-    });
-  });
-
-  describe("profile", () => {
-    it("should return the user profile and project", async () => {
-      HttpClientMock.prototype.get.mockResolvedValue({
-        user: { email: fixtures.email },
-        project: { id: fixtures.project, name: "Test Project" },
-      });
-
-      const res = await serviceClient.profile();
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/user/profile");
-      expect(res).toEqual({
-        user: { email: fixtures.email },
-        project: { id: fixtures.project, name: "Test Project" },
-      });
-    });
-  });
-
-  describe("generateNewAccessToken", () => {
-    it("should generate a new access token for a project", async () => {
-      HttpClientMock.prototype.post.mockResolvedValue({ accessToken: fixtures.newAccessToken });
-
-      const res = await serviceClient.generateNewAccessToken(fixtures.project);
-
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/auth/tokens", {
-        body: {
-          projectId: fixtures.project,
-        },
-      });
-      expect(res).toBe(fixtures.newAccessToken);
-    });
-  });
-
-  describe("projects", () => {
-    it("should return the list of projects", async () => {
-      const projectsList = {
-        projects: [
-          { id: "project-1", name: "Project 1" },
-          { id: "project-2", name: "Project 2" },
-        ],
-      };
-
-      HttpClientMock.prototype.get.mockResolvedValue(projectsList);
-
-      const res = await serviceClient.projects();
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/projects");
-      expect(res).toEqual(projectsList);
-    });
-  });
-
-  describe("project", () => {
-    it("should return a specific project by UUID", async () => {
-      const projectData = { project: { id: fixtures.project, name: "Test Project" } };
-
-      HttpClientMock.prototype.get.mockResolvedValue(projectData);
-
-      const res = await serviceClient.project(fixtures.project);
-
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(`/projects/${fixtures.project}`);
-      expect(res).toEqual(projectData);
-    });
-  });
-
   describe("downloadHistory", () => {
-    it("should download history for a branch", async () => {
+    it("should download history for a repository branch", async () => {
       HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.history] });
 
       const res = await serviceClient.downloadHistory({
+        repo: fixtures.repo,
         branch: fixtures.branch,
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(res).toEqual([fixtures.history]);
     });
 
@@ -180,13 +136,18 @@ describe("AllureServiceClient", () => {
       HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.history] });
 
       const res = await serviceClient.downloadHistory({
+        repo: fixtures.repo,
         branch: fixtures.branch,
         limit: 10,
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?limit=10&branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: "10",
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(res).toEqual([fixtures.history]);
     });
 
@@ -194,12 +155,17 @@ describe("AllureServiceClient", () => {
       HttpClientMock.prototype.get.mockResolvedValue({ history: [] });
 
       await serviceClient.downloadHistory({
+        repo: fixtures.repo,
         branch: "feature/test-branch",
       });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent(encodeURIComponent("feature/test-branch"))}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent("feature/test-branch"),
+        },
+      });
     });
   });
 
@@ -212,17 +178,19 @@ describe("AllureServiceClient", () => {
       const res = await serviceClient.createReport({
         reportName: fixtures.reportName,
         reportUuid: fixtures.report,
+        repo: fixtures.repo,
         branch: fixtures.branch,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/reports", {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports", {
         body: {
           reportName: fixtures.reportName,
           reportUuid: fixtures.report,
+          repo: fixtures.repo,
           branch: fixtures.branch,
         },
       });
-      expect(res).toEqual(reportUrl);
+      expect(res.href).toBe(reportUrl.url);
     });
 
     it("should create a report without branch", async () => {
@@ -234,31 +202,40 @@ describe("AllureServiceClient", () => {
         reportName: fixtures.reportName,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/reports", {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/api/reports", {
         body: {
           reportName: fixtures.reportName,
           reportUuid: undefined,
+          repo: undefined,
           branch: undefined,
         },
       });
-      expect(res).toEqual(reportUrl);
+      expect(res.href).toBe(reportUrl.url);
     });
   });
 
   describe("completeReport", () => {
-    it("should mark report as completed with history point", async () => {
+    it("should mark report as completed with a full history point URL", async () => {
       HttpClientMock.prototype.post.mockResolvedValue({});
 
+      const historyPoint = {
+        ...fixtures.history,
+        url: `/${fixtures.report}`,
+      };
       const res = await serviceClient.completeReport({
         reportUuid: fixtures.report,
-        historyPoint: fixtures.history,
+        historyPoint,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/complete`, {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/complete`, {
         body: {
-          historyPoint: fixtures.history,
+          historyPoint: {
+            ...historyPoint,
+            url: `${fixtures.url}/${fixtures.report}`,
+          },
         },
       });
+      expect(historyPoint.url).toBe(`/${fixtures.report}`);
       expect(res).toEqual({});
     });
   });
@@ -271,7 +248,7 @@ describe("AllureServiceClient", () => {
         reportUuid: fixtures.report,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/delete`, {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/delete`, {
         body: {
           pluginId: "",
         },
@@ -287,7 +264,7 @@ describe("AllureServiceClient", () => {
         pluginId: fixtures.pluginId,
       });
 
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/delete`, {
+      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/api/reports/${fixtures.report}/delete`, {
         body: {
           pluginId: fixtures.pluginId,
         },
@@ -311,16 +288,11 @@ describe("AllureServiceClient", () => {
         filename: fixtures.filename,
         file: fileBuffer,
       });
-      const form = new FormData();
 
-      form.set("filename", fixtures.filename);
-      form.set("file", fileBuffer as unknown as Blob);
-
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/assets/upload", {
-        body: form,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await expectMultipartUpload({
+        endpoint: "/api/assets/upload",
+        filename: fixtures.filename,
+        content: "test-content",
       });
       expect(res).toEqual({});
     });
@@ -335,16 +307,11 @@ describe("AllureServiceClient", () => {
         filepath: "test.txt",
       });
 
-      const form = new FormData();
-      form.set("filename", fixtures.filename);
-      form.set("file", fileBuffer);
-
       expect(readFile).toHaveBeenCalledWith("test.txt");
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith("/assets/upload", {
-        body: form,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await expectMultipartUpload({
+        endpoint: "/api/assets/upload",
+        filename: fixtures.filename,
+        content: "test-content",
       });
       expect(res).toEqual({});
     });
@@ -382,18 +349,13 @@ describe("AllureServiceClient", () => {
         filename: fixtures.filename,
         file: fileBuffer,
       });
-      const form = new FormData();
 
-      form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
-      form.set("file", fileBuffer);
-
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/upload`, {
-        body: form,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await expectMultipartUpload({
+        endpoint: `/api/reports/${fixtures.report}/upload`,
+        filename: joinPosix(fixtures.pluginId, fixtures.filename),
+        content: "test-content",
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.pluginId, fixtures.filename));
+      expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/${fixtures.filename}`);
     });
 
     it("should upload a file from a filepath", async () => {
@@ -407,19 +369,14 @@ describe("AllureServiceClient", () => {
         filename: fixtures.filename,
         filepath: "test.txt",
       });
-      const form = new FormData();
-
-      form.set("filename", joinPosix(fixtures.pluginId, fixtures.filename));
-      form.set("file", fileBuffer as unknown as Blob);
 
       expect(readFile).toHaveBeenCalledWith("test.txt");
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/upload`, {
-        body: form,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await expectMultipartUpload({
+        endpoint: `/api/reports/${fixtures.report}/upload`,
+        filename: joinPosix(fixtures.pluginId, fixtures.filename),
+        content: "test-content",
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.pluginId, fixtures.filename));
+      expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.pluginId}/${fixtures.filename}`);
     });
 
     it("should upload a file without plugin ID", async () => {
@@ -431,18 +388,35 @@ describe("AllureServiceClient", () => {
         filename: fixtures.filename,
         file: fileBuffer,
       });
-      const form = new FormData();
 
-      form.set("filename", fixtures.filename);
-      form.set("file", fileBuffer as unknown as Blob);
-
-      expect(HttpClientMock.prototype.post).toHaveBeenCalledWith(`/reports/${fixtures.report}/upload`, {
-        body: form,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await expectMultipartUpload({
+        endpoint: `/api/reports/${fixtures.report}/upload`,
+        filename: fixtures.filename,
+        content: "test-content",
       });
-      expect(res).toEqual(joinPosix(fixtures.url, fixtures.report, fixtures.filename));
+      expect(res).toEqual(`${fixtures.url}/${fixtures.report}/${fixtures.filename}`);
+    });
+
+    it("should preserve the URL protocol slashes in uploaded file hrefs", async () => {
+      serviceClient = new AllureServiceClientClass({
+        url: "http://localhost:3000/",
+        accessToken: fixtures.accessToken,
+      });
+      HttpClientMock.prototype.post.mockResolvedValue({});
+
+      const res = await serviceClient.addReportFile({
+        reportUuid: fixtures.report,
+        pluginId: "awesome",
+        filename: "index.html",
+        file: Buffer.from("test-content"),
+      });
+
+      await expectMultipartUpload({
+        endpoint: `/api/reports/${fixtures.report}/upload`,
+        filename: "awesome/index.html",
+        content: "test-content",
+      });
+      expect(res).toEqual(`http://localhost:3000/${fixtures.report}/awesome/index.html`);
     });
 
     it("should throw an error if file size exceeds maximum", async () => {

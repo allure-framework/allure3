@@ -50,6 +50,13 @@ import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDump
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
 
+const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
+  const repo = ci?.repoName;
+  const branch = ci?.jobRunBranch;
+
+  return repo && branch ? { repo, branch } : {};
+};
+
 export class AllureReport {
   readonly #reportName: string;
   readonly #reportVariables: ReportVariables;
@@ -131,7 +138,7 @@ export class AllureReport {
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
-        branch: this.#ci?.jobRunBranch,
+        ...remoteReportParams(this.#ci),
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
@@ -250,7 +257,7 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    const branch = this.#ci?.jobRunBranch;
+    const remoteParams = remoteReportParams(this.#ci);
 
     await this.#store.readHistory();
 
@@ -295,13 +302,13 @@ export class AllureReport {
 
     // create remote report to publish files into
     if (this.#allureServiceClient && this.#publish) {
-      const { url } = await this.#allureServiceClient.createReport({
+      const url = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
-        branch,
+        ...remoteParams,
       });
 
-      this.reportUrl = url;
+      this.reportUrl = url.href;
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
@@ -584,10 +591,11 @@ export class AllureReport {
               })
             : undefined;
         const limitFn = pLimit(50);
+        const uploadAbortController = new AbortController();
         const fns = pluginFilesEntries.map(([filename, filepath]) =>
           limitFn(async () => {
             // skip next plugin files upload if the plugin upload has already failed
-            if (cancelledPluginsIds.has(context.id)) {
+            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
               return;
             }
 
@@ -597,7 +605,12 @@ export class AllureReport {
                 pluginId: context.id,
                 filename,
                 filepath,
+                signal: uploadAbortController.signal,
               });
+
+              if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+                return;
+              }
 
               if (filename === "index.html") {
                 remoteHrefsByPluginId[context.id] = uploadedFileUrl;
@@ -607,7 +620,12 @@ export class AllureReport {
               await this.#allureServiceClient!.addReportAsset({
                 filename,
                 filepath,
+                signal: uploadAbortController.signal,
               });
+            }
+
+            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+              return;
             }
 
             progressBar?.tick?.();
@@ -620,6 +638,16 @@ export class AllureReport {
           await Promise.all(fns);
         } catch (err) {
           cancelledPluginsIds.add(context.id);
+          uploadAbortController.abort();
+
+          await Promise.allSettled(fns);
+
+          const pluginRemoteHref = remoteHrefsByPluginId[context.id];
+
+          if (pluginRemoteHref) {
+            remoteHrefs.delete(pluginRemoteHref);
+            delete remoteHrefsByPluginId[context.id];
+          }
 
           // cleanup the report on failure to prevent incomplete reports on the server
           // even lack of one file can make the report unusable

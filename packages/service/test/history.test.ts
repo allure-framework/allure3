@@ -17,6 +17,7 @@ const fixtures = {
   accessToken: validAccessToken,
   project: "test-project-id",
   url: "https://service.allurereport.org",
+  repo: "allure3",
   branch: "main",
   historyDataPoint: {
     uuid: "1",
@@ -52,6 +53,7 @@ describe("AllureRemoteHistory", () => {
     serviceClient = new AllureServiceClientClass({ url: fixtures.url, accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
+      repo: fixtures.repo,
       branch: fixtures.branch,
     });
   });
@@ -76,9 +78,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -108,6 +114,7 @@ describe("AllureRemoteHistory", () => {
     it("should return resolved history data with a limit set in the constructor", async () => {
       history = new AllureRemoteHistory({
         allureServiceClient: serviceClient,
+        repo: fixtures.repo,
         branch: fixtures.branch,
         limit: 10,
       });
@@ -116,9 +123,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?limit=10&branch=${encodeURIComponent(fixtures.branch)}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: "10",
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent(fixtures.branch),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -127,9 +138,28 @@ describe("AllureRemoteHistory", () => {
 
       const result = await history.readHistory({ branch: "feature" });
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith(
-        `/projects/history?branch=${encodeURIComponent("feature")}`,
-      );
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent(fixtures.repo),
+          branch: encodeURIComponent("feature"),
+        },
+      });
+      expect(result).toEqual([fixtures.historyDataPoint]);
+    });
+
+    it("should override the constructor repository via the method argument", async () => {
+      HttpClientMock.prototype.get.mockResolvedValue({ history: [fixtures.historyDataPoint] });
+
+      const result = await history.readHistory({ repo: "other-repo", branch: "feature" });
+
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: encodeURIComponent("other-repo"),
+          branch: encodeURIComponent("feature"),
+        },
+      });
       expect(result).toEqual([fixtures.historyDataPoint]);
     });
 
@@ -142,7 +172,13 @@ describe("AllureRemoteHistory", () => {
 
       const result = await historyWithoutBranch.readHistory();
 
-      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/projects/history");
+      expect(HttpClientMock.prototype.get).toHaveBeenCalledWith("/api/history", {
+        params: {
+          limit: undefined,
+          repo: undefined,
+          branch: undefined,
+        },
+      });
       expect(result).toEqual([]);
     });
 
