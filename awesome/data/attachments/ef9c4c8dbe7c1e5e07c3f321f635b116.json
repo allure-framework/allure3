@@ -1,0 +1,10 @@
+{
+  "readerId": "allure1",
+  "expectedResult": true,
+  "files": [
+    {
+      "resourcePath": "allure1data/parameters/kindSysProp.xml",
+      "originalFileName": "632bd180-dfd2-4b6d-8eda-498b79c0007a-testsuite.xml"
+    }
+  ]
+}
