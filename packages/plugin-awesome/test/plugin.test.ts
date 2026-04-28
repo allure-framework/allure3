@@ -328,6 +328,103 @@ describe("plugin", () => {
   });
 
   describe("environment-specific outputs", () => {
+    it("should derive environment-specific widgets from the store environment index without double-counting default", async () => {
+      const stagingTestResult = {
+        id: "tr-staging",
+        name: "staging test",
+        status: "passed",
+        environment: "staging",
+        labels: [],
+        parameters: [],
+        links: [],
+        steps: [],
+        hidden: false,
+        sourceMetadata: { readerId: "system", metadata: {} },
+      } as TestResult;
+      const testResults = [stagingTestResult];
+      const addedFiles = new Map<string, Buffer>();
+      const reportFiles: ReportFiles = {
+        addFile: vi.fn(async (path: string, data: Buffer) => {
+          addedFiles.set(path, data);
+          return path;
+        }),
+      };
+
+      const store: AllureStore = {
+        metadataByKey: vi.fn().mockResolvedValue(undefined),
+        allEnvironments: vi.fn().mockResolvedValue(["default", "staging"]),
+        allEnvironmentIdentities: vi.fn().mockResolvedValue([
+          { id: "default", name: "default" },
+          { id: "staging", name: "staging" },
+        ] satisfies EnvironmentIdentity[]),
+        allAttachments: vi.fn().mockResolvedValue([]),
+        allTestResults: vi.fn(async (options?: { includeHidden?: boolean; filter?: (tr: TestResult) => boolean }) => {
+          const trs = options?.filter ? testResults.filter(options.filter) : testResults;
+          return trs;
+        }),
+        testResultsByEnvironmentId: vi
+          .fn()
+          .mockImplementation(async (environmentId: string) =>
+            environmentId === "staging" ? [stagingTestResult] : [],
+          ),
+        environmentIdByTrId: vi.fn().mockResolvedValue("staging"),
+        testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),
+        allTestEnvGroups: vi.fn().mockResolvedValue([]),
+        allGlobalAttachments: vi.fn().mockResolvedValue([]),
+        allGlobalAttachmentsByEnv: vi.fn().mockResolvedValue({}),
+        globalExitCode: vi.fn().mockResolvedValue(undefined),
+        allGlobalErrors: vi.fn().mockResolvedValue([]),
+        allGlobalErrorsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResults: vi.fn().mockResolvedValue([]),
+        qualityGateResultsByEnv: vi.fn().mockResolvedValue({}),
+        qualityGateResultsByEnvironmentId: vi.fn().mockResolvedValue({}),
+        fixturesByTrId: vi.fn().mockResolvedValue([]),
+        historyByTrId: vi.fn().mockResolvedValue([]),
+        retriesByTrId: vi.fn().mockResolvedValue([]),
+        attachmentsByTrId: vi.fn().mockResolvedValue([]),
+        allVariables: vi.fn().mockResolvedValue([]),
+        envVariables: vi.fn().mockResolvedValue([]),
+        envVariablesByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allHistoryDataPoints: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironment: vi.fn().mockResolvedValue([]),
+        allHistoryDataPointsByEnvironmentId: vi.fn().mockResolvedValue([]),
+        allNewTestResults: vi.fn().mockResolvedValue([]),
+        attachmentContentById: vi.fn().mockResolvedValue(undefined),
+      } as unknown as AllureStore;
+
+      const context: PluginContext = {
+        id: "Awesome",
+        publish: true,
+        state: {} as PluginContext["state"],
+        allureVersion: "3.0.0",
+        reportUuid: "report-uuid",
+        reportName: "Test report",
+        reportFiles,
+        output: "/tmp/out",
+      };
+
+      const plugin = new AwesomePlugin({
+        charts: [],
+      });
+
+      await plugin.start(context);
+      await plugin.update(context, store);
+
+      expect(JSON.parse(addedFiles.get("widgets/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/staging/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/default/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 0,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/staging/nav.json")!.toString("utf-8"))).toEqual(["tr-staging"]);
+      expect(JSON.parse(addedFiles.get("widgets/default/nav.json")!.toString("utf-8"))).toEqual([]);
+    });
+
     it("should keep env-specific widgets separated by environment id when allEnvironments exposes one shared display name", async () => {
       const qaATestResult = {
         id: "tr-qa-a",
@@ -374,7 +471,6 @@ describe("plugin", () => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
         testResultsByEnvironmentId: vi
           .fn()
           .mockImplementation(async (environmentId: string) =>
@@ -425,6 +521,14 @@ describe("plugin", () => {
 
       expect(JSON.parse(addedFiles.get("widgets/qa_a/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-a"]);
       expect(JSON.parse(addedFiles.get("widgets/qa_b/nav.json")!.toString("utf-8"))).toEqual(["tr-qa-b"]);
+      expect(JSON.parse(addedFiles.get("widgets/qa_a/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        passed: 1,
+      });
+      expect(JSON.parse(addedFiles.get("widgets/qa_b/statistic.json")!.toString("utf-8"))).toEqual({
+        total: 1,
+        failed: 1,
+      });
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-a");
       expect(store.environmentIdByTrId).toHaveBeenCalledWith("tr-qa-b");
     });
@@ -485,7 +589,6 @@ describe("plugin", () => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue([qaATestResult, qaBTestResult]),
         testResultsByEnvironmentId: vi
           .fn()
           .mockImplementation(async (environmentId: string) =>
@@ -564,7 +667,6 @@ describe("plugin", () => {
           const trs = options?.filter ? testResults.filter(options.filter) : testResults;
           return trs;
         }),
-        testResultsByEnvironment: vi.fn().mockResolvedValue(testResults),
         testResultsByEnvironmentId: vi.fn().mockResolvedValue(testResults),
         environmentIdByTrId: vi.fn().mockResolvedValue("default"),
         testsStatistic: vi.fn(async (filter: (tr: TestResult) => boolean) => getTestResultsStats(testResults, filter)),

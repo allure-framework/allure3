@@ -42,7 +42,6 @@ const statisticByTestResults = async (
       continue;
     }
 
-    statistic.total++;
     incrementStatistic(statistic, testResult.status);
 
     if ((await store.retriesByTrId(testResult.id)).length > 0) {
@@ -83,12 +82,7 @@ export class AwesomePlugin implements Plugin {
     const globalErrors = await store.allGlobalErrors();
     const globalErrorsByEnv = await store.allGlobalErrorsByEnv();
     const qualityGateResults = await store.qualityGateResultsByEnvironmentId();
-    const envResultsById = new Map<string, Awaited<ReturnType<AllureStore["allTestResults"]>>>();
     const envIdByTrId = new Map<string, string>();
-
-    environments.forEach(({ id }) => {
-      envResultsById.set(id, []);
-    });
 
     await Promise.all(
       allTrs.map(async (tr) => {
@@ -99,18 +93,14 @@ export class AwesomePlugin implements Plugin {
         }
 
         envIdByTrId.set(tr.id, environmentId);
-
-        if (!envResultsById.has(environmentId)) {
-          envResultsById.set(environmentId, []);
-        }
-
-        envResultsById.get(environmentId)!.push(tr);
       }),
     );
 
     await Promise.all(
       environments.map(async ({ id }) => {
-        envStatistics.set(id, await statisticByTestResults(store, envResultsById.get(id) ?? []));
+        const envTrs = await store.testResultsByEnvironmentId(id, { includeHidden: true });
+
+        envStatistics.set(id, await statisticByTestResults(store, envTrs));
       }),
     );
 
@@ -146,24 +136,13 @@ export class AwesomePlugin implements Plugin {
     await generateNav(this.#writer!, convertedTrs, "nav.json");
     await generateTestEnvGroups(this.#writer!, allTestEnvGroups);
 
-    const envConvertedTrsById = new Map<string, typeof convertedTrs>();
-
-    convertedTrs.forEach((tr) => {
-      const environmentId = envIdByTrId.get(tr.id);
-
-      if (!environmentId) {
-        return;
-      }
-
-      if (!envConvertedTrsById.has(environmentId)) {
-        envConvertedTrsById.set(environmentId, []);
-      }
-
-      envConvertedTrsById.get(environmentId)!.push(tr);
-    });
+    const convertedTrsById = new Map(convertedTrs.map((tr) => [tr.id, tr] as const));
 
     for (const reportEnvironment of environments) {
-      const envConvertedTrs = envConvertedTrsById.get(reportEnvironment.id) ?? [];
+      const envTrs = await store.testResultsByEnvironmentId(reportEnvironment.id, { includeHidden: true });
+      const envConvertedTrs = envTrs
+        .map((tr) => convertedTrsById.get(tr.id))
+        .filter((tr): tr is (typeof convertedTrs)[number] => Boolean(tr));
 
       await generateTree(this.#writer!, joinPosixPath(reportEnvironment.id, "tree.json"), treeLabels, envConvertedTrs, {
         appendTitlePath,
