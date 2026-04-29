@@ -1,6 +1,8 @@
+import console from "node:console";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
+import { setTimeout } from "node:timers/promises";
 
 import type { TestResult } from "@allurereport/core-api";
 import type { Plugin, QualityGateRule } from "@allurereport/plugin-api";
@@ -48,6 +50,15 @@ const createPlugin = (id: string, enabled: boolean = true, options: Record<strin
     options,
     plugin,
   };
+};
+
+const createSignal = () => {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+
+  return { promise, resolve };
 };
 
 let previousCwd: string;
@@ -417,5 +428,194 @@ describe("report", () => {
 
     expect(names).toEqual(["safe.txt"]);
     expect(names).not.toContain("token.txt");
+  });
+
+  it("should coalesce realtime updates without dropping events", async () => {
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    const blockUpdate = createSignal();
+    const firstUpdateStarted = createSignal();
+    const secondUpdateStarted = createSignal();
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+
+    (p1.plugin.update as Mock)
+      .mockReset()
+      .mockImplementationOnce(async () => {
+        firstUpdateStarted.resolve();
+        await blockUpdate.promise;
+      })
+      .mockImplementationOnce(async () => {
+        secondUpdateStarted.resolve();
+      })
+      .mockResolvedValue(undefined);
+
+    allureReport.realtimeDispatcher.sendTestResult("tr-1");
+    await firstUpdateStarted.promise;
+
+    expect(p1.plugin.update).toBeCalledTimes(1);
+
+    allureReport.realtimeDispatcher.sendTestResult("tr-2");
+    allureReport.realtimeDispatcher.sendTestResult("tr-3");
+    await setTimeout(150);
+
+    expect(p1.plugin.update).toBeCalledTimes(1);
+
+    blockUpdate.resolve();
+    await secondUpdateStarted.promise;
+
+    expect(p1.plugin.update).toBeCalledTimes(2);
+    await allureReport.done();
+  });
+
+  it("should shutdown cleanly when no realtime events occurred after start", async () => {
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+    await allureReport.done();
+
+    expect(p1.plugin.update).toBeCalledTimes(1);
+    expect(p1.plugin.done).toBeCalledTimes(1);
+  });
+
+  it("should not schedule extra updates for realtime events before scheduled update starts", async () => {
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+
+    (p1.plugin.update as Mock).mockReset().mockResolvedValue(undefined);
+
+    allureReport.realtimeDispatcher.sendTestResult("tr-1");
+    allureReport.realtimeDispatcher.sendTestFixtureResult("tfr-1");
+    allureReport.realtimeDispatcher.sendAttachmentFile("af-1");
+
+    await allureReport.done();
+
+    expect(p1.plugin.update).toBeCalledTimes(1);
+  });
+
+  it("should wait for active realtime update before plugin done", async () => {
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+
+    const blockUpdate = createSignal();
+    const updateStarted = createSignal();
+    let doneResolved = false;
+
+    (p1.plugin.update as Mock)
+      .mockReset()
+      .mockImplementationOnce(async () => {
+        updateStarted.resolve();
+        await blockUpdate.promise;
+      })
+      .mockResolvedValue(undefined);
+    (p1.plugin.done as Mock).mockReset().mockResolvedValue(undefined);
+
+    allureReport.realtimeDispatcher.sendTestResult("tr-1");
+    await updateStarted.promise;
+
+    expect(p1.plugin.update).toBeCalledTimes(1);
+
+    const donePromise = allureReport.done().then(() => {
+      doneResolved = true;
+    });
+    await setTimeout(100);
+
+    expect(doneResolved).toBe(false);
+    expect(p1.plugin.done).not.toBeCalled();
+
+    blockUpdate.resolve();
+    await donePromise;
+
+    expect(p1.plugin.done).toBeCalledTimes(1);
+    expect((p1.plugin.update as Mock).mock.invocationCallOrder[0]).toBeLessThan(
+      (p1.plugin.done as Mock).mock.invocationCallOrder[0],
+    );
+  });
+
+  it("should finish plugin done when active realtime plugin update fails during shutdown", async () => {
+    const p1 = createPlugin("p1");
+    const config = await resolveConfig({
+      name: "Allure Report",
+    });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const updateError = new Error("update failed");
+    const releaseUpdate = createSignal();
+    const updateStarted = createSignal();
+
+    config.plugins?.push(p1);
+
+    const allureReport = new AllureReport({
+      ...config,
+      realTime: true,
+    });
+
+    await allureReport.start();
+
+    (p1.plugin.update as Mock).mockReset().mockImplementationOnce(async () => {
+      updateStarted.resolve();
+      await releaseUpdate.promise;
+      throw updateError;
+    });
+    (p1.plugin.done as Mock).mockReset().mockResolvedValue(undefined);
+
+    allureReport.realtimeDispatcher.sendTestResult("tr-1");
+    await updateStarted.promise;
+
+    const donePromise = allureReport.done();
+    await setTimeout(100);
+
+    expect(p1.plugin.done).not.toBeCalled();
+
+    releaseUpdate.resolve();
+    await donePromise;
+
+    const pluginErrorCalls = consoleError.mock.calls.filter(([message]) => message === "plugin p1 error");
+
+    expect(pluginErrorCalls).toHaveLength(1);
+    expect(pluginErrorCalls[0][1]).toBe(updateError);
+    expect(p1.plugin.done).toBeCalledTimes(1);
+
+    consoleError.mockRestore();
   });
 });

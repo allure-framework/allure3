@@ -149,18 +149,15 @@ export class RealtimeSubscriber implements RealtimeSubscriberType {
     };
   }
 
-  onAll(listener: () => Promise<void>, options: BatchOptions = {}) {
-    const { maxTimeout = 100 } = options;
-    const handler = this.#createBatchHandler(maxTimeout, listener);
-
-    this.#emitter.on(RealtimeEvents.TestResult, handler);
-    this.#emitter.on(RealtimeEvents.TestFixtureResult, handler);
-    this.#emitter.on(RealtimeEvents.AttachmentFile, handler);
+  onAll(listener: () => void) {
+    this.#emitter.on(RealtimeEvents.TestResult, listener);
+    this.#emitter.on(RealtimeEvents.TestFixtureResult, listener);
+    this.#emitter.on(RealtimeEvents.AttachmentFile, listener);
 
     return () => {
-      this.#emitter.off(RealtimeEvents.TestResult, handler);
-      this.#emitter.off(RealtimeEvents.TestFixtureResult, handler);
-      this.#emitter.off(RealtimeEvents.AttachmentFile, handler);
+      this.#emitter.off(RealtimeEvents.TestResult, listener);
+      this.#emitter.off(RealtimeEvents.TestFixtureResult, listener);
+      this.#emitter.off(RealtimeEvents.AttachmentFile, listener);
     };
   }
 

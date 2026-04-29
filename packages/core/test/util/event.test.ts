@@ -137,4 +137,47 @@ describe("Events", () => {
     await setTimeout(150);
     expect(listener).toBeCalledTimes(0);
   });
+
+  it("should synchronously notify on all result-like events", () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const listener = vi.fn();
+
+    events.onAll(listener);
+
+    emitter.emit("testResult", "tr-1");
+    emitter.emit("testFixtureResult", "tfr-1");
+    emitter.emit("attachmentFile", "af-1");
+
+    expect(listener).toBeCalledTimes(3);
+  });
+
+  it("should unsubscribe from all result-like events", () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const listener = vi.fn();
+    const unsubscribe = events.onAll(listener);
+
+    unsubscribe();
+    emitter.emit("testResult", "tr-1");
+    emitter.emit("testFixtureResult", "tfr-1");
+    emitter.emit("attachmentFile", "af-1");
+
+    expect(listener).not.toBeCalled();
+  });
+
+  it("should stop all result-like events via offAll", () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const listener = vi.fn();
+
+    events.onAll(listener);
+    events.offAll();
+
+    emitter.emit("testResult", "tr-1");
+    emitter.emit("testFixtureResult", "tfr-1");
+    emitter.emit("attachmentFile", "af-1");
+
+    expect(listener).not.toBeCalled();
+  });
 });

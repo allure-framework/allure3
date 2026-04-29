@@ -45,6 +45,7 @@ import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
 import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -61,6 +62,7 @@ export class AllureReport {
   readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
   readonly #realtimeSubscriber: RealtimeSubscriber;
   readonly #realtimeDispatcher: RealtimeEventsDispatcher;
+  readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
@@ -116,6 +118,7 @@ export class AllureReport {
     this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
     this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
     this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
+    this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
@@ -308,18 +311,19 @@ export class AllureReport {
     });
 
     if (this.#realTime) {
-      await this.#update();
+      await this.#runRealtimeUpdate();
 
-      this.#realtimeSubscriber.onAll(async () => {
-        await this.#update();
+      this.#realtimeSubscriber.onAll(() => {
+        this.#realtimeUpdateScheduler.request();
       });
     }
   };
 
-  #update = async (): Promise<void> => {
+  #runRealtimeUpdate = async (): Promise<void> => {
     if (this.#executionStage !== "running") {
       return;
     }
+
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.update?.(context, this.#store);
     });
@@ -556,7 +560,12 @@ export class AllureReport {
     const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
 
     this.#realtimeSubscriber.offAll();
-    // closing it early, to prevent future reads
+    try {
+      await this.#realtimeUpdateScheduler.close();
+    } catch (e) {
+      console.error("realtime update failed during shutdown", e);
+    }
+    // closing it after realtime update settles, to prevent future reads
     this.#executionStage = "done";
 
     // just dump state when dump is set and generate nothing
