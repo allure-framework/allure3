@@ -50,6 +50,13 @@ import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDump
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const initRequired = "report is not initialised. Call the start() method first.";
 
+const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; branch?: string } => {
+  const repo = ci?.repoName;
+  const branch = ci?.jobRunBranch;
+
+  return repo && branch ? { repo, branch } : {};
+};
+
 export class AllureReport {
   readonly #reportName: string;
   readonly #reportVariables: ReportVariables;
@@ -103,9 +110,10 @@ export class AllureReport {
       globalAttachments,
     } = opts;
 
-    this.#allureServiceClient = allureServiceConfig?.accessToken
-      ? new AllureServiceClient(allureServiceConfig)
-      : undefined;
+    this.#allureServiceClient =
+      allureServiceConfig?.url && allureServiceConfig?.accessToken
+        ? new AllureServiceClient(allureServiceConfig)
+        : undefined;
     this.reportUuid = randomUUID();
     this.#ci = detect();
 
@@ -130,7 +138,7 @@ export class AllureReport {
     if (this.#allureServiceClient) {
       this.#history = new AllureRemoteHistory({
         limit: historyLimit,
-        branch: this.#ci?.jobRunBranch,
+        ...remoteReportParams(this.#ci),
         allureServiceClient: this.#allureServiceClient,
       });
     } else if (historyPath) {
@@ -249,7 +257,7 @@ export class AllureReport {
   };
 
   start = async (): Promise<void> => {
-    const branch = this.#ci?.jobRunBranch;
+    const remoteParams = remoteReportParams(this.#ci);
 
     await this.#store.readHistory();
 
@@ -293,14 +301,14 @@ export class AllureReport {
     }
 
     // create remote report to publish files into
-    if (this.#allureServiceClient && this.#publish && branch) {
-      const { url } = await this.#allureServiceClient.createReport({
+    if (this.#allureServiceClient && this.#publish) {
+      const url = await this.#allureServiceClient.createReport({
         reportUuid: this.reportUuid,
         reportName: this.#reportName,
-        branch,
+        ...remoteParams,
       });
 
-      this.reportUrl = url;
+      this.reportUrl = url.href;
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
@@ -543,7 +551,8 @@ export class AllureReport {
 
   done = async (): Promise<void> => {
     const summaries: PluginSummary[] = [];
-    const remoteHrefs: string[] = [];
+    const remoteHrefs: Set<string> = new Set();
+    const remoteHrefsByPluginId: Record<string, string> = {};
     // track plugins that failed to upload to prevent wrong remote links generation
     const cancelledPluginsIds: Set<string> = new Set();
 
@@ -582,25 +591,41 @@ export class AllureReport {
               })
             : undefined;
         const limitFn = pLimit(50);
+        const uploadAbortController = new AbortController();
         const fns = pluginFilesEntries.map(([filename, filepath]) =>
           limitFn(async () => {
             // skip next plugin files upload if the plugin upload has already failed
-            if (cancelledPluginsIds.has(context.id)) {
+            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
               return;
             }
 
             if (/^(data|widgets|index\.html$|summary\.json$)/.test(filename)) {
-              await this.#allureServiceClient!.addReportFile({
+              const uploadedFileUrl = await this.#allureServiceClient!.addReportFile({
                 reportUuid: this.reportUuid,
                 pluginId: context.id,
                 filename,
                 filepath,
+                signal: uploadAbortController.signal,
               });
+
+              if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+                return;
+              }
+
+              if (filename === "index.html") {
+                remoteHrefsByPluginId[context.id] = uploadedFileUrl;
+                remoteHrefs.add(uploadedFileUrl);
+              }
             } else {
               await this.#allureServiceClient!.addReportAsset({
                 filename,
                 filepath,
+                signal: uploadAbortController.signal,
               });
+            }
+
+            if (cancelledPluginsIds.has(context.id) || uploadAbortController.signal.aborted) {
+              return;
             }
 
             progressBar?.tick?.();
@@ -613,6 +638,16 @@ export class AllureReport {
           await Promise.all(fns);
         } catch (err) {
           cancelledPluginsIds.add(context.id);
+          uploadAbortController.abort();
+
+          await Promise.allSettled(fns);
+
+          const pluginRemoteHref = remoteHrefsByPluginId[context.id];
+
+          if (pluginRemoteHref) {
+            remoteHrefs.delete(pluginRemoteHref);
+            delete remoteHrefsByPluginId[context.id];
+          }
 
           // cleanup the report on failure to prevent incomplete reports on the server
           // even lack of one file can make the report unusable
@@ -636,10 +671,13 @@ export class AllureReport {
       summary.pullRequestHref = this.#ci?.pullRequestUrl;
       summary.jobHref = this.#ci?.jobRunUrl;
 
-      if (context.publish && this.reportUrl && !cancelledPluginsIds.has(context.id)) {
-        summary.remoteHref = `${this.reportUrl}/${context.id}/`;
+      if (context.publish && !cancelledPluginsIds.has(context.id)) {
+        summary.remoteHref =
+          remoteHrefsByPluginId[context.id] ?? (this.reportUrl ? `${this.reportUrl}/${context.id}/` : undefined);
 
-        remoteHrefs.push(summary.remoteHref);
+        if (summary.remoteHref) {
+          remoteHrefs.add(summary.remoteHref);
+        }
       }
 
       summaries.push({
@@ -727,7 +765,7 @@ export class AllureReport {
       }
     }
 
-    if (remoteHrefs.length > 0) {
+    if (remoteHrefs.size > 0) {
       console.info("Next reports have been published:");
 
       remoteHrefs.forEach((href) => {
