@@ -144,6 +144,46 @@ describe("newFilesInDirectoryWatcher", () => {
     expect(handler).toBeCalledWith(file, expect.any(Dirent));
   });
 
+  it("should detect the first file created in a pre-existing empty nested directory", async () => {
+    const handler = vi.fn();
+    const target = join(fixturesDir, "empty-parent", "empty-child");
+    await mkdir(target, { recursive: true });
+
+    newFilesInDirectoryWatcher(fixturesDir, handler, { indexDelay: 10, abortController });
+
+    await setTimeout(50);
+
+    const file = join(target, "file.txt");
+    await writeFile(file, "content", "utf8");
+    await setTimeout(100);
+
+    expect(handler).toBeCalledWith(file, expect.any(Dirent));
+  });
+
+  it("should rescan when a file appears after the directory snapshot but during scan", async () => {
+    const seedDirectory = join(fixturesDir, "seed");
+    const targetDirectory = join(fixturesDir, "target");
+    await mkdir(seedDirectory);
+    await mkdir(targetDirectory);
+
+    const seedFile = join(seedDirectory, "seed.txt");
+    const racingFile = join(targetDirectory, "racing.txt");
+    await writeFile(seedFile, "seed", "utf8");
+
+    const handler = vi.fn(async (file: string) => {
+      if (file === seedFile) {
+        await writeFile(racingFile, "racing", "utf8");
+      }
+    });
+
+    newFilesInDirectoryWatcher(fixturesDir, handler, { indexDelay: 10, abortController });
+
+    await setTimeout(250);
+
+    expect(handler).toBeCalledWith(seedFile, expect.any(Dirent));
+    expect(handler).toBeCalledWith(racingFile, expect.any(Dirent));
+  });
+
   it("should finish initial scan on abort", async () => {
     const handler = vi.fn();
     const longRunningHandler = (...args: any[]) =>
