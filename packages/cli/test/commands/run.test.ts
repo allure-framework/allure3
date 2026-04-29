@@ -77,7 +77,7 @@ vi.mock("../../src/utils/index.js", async (importOriginal) => ({
     stdout: processStream,
     stderr: processStream,
   })),
-  terminationOf: vi.fn().mockResolvedValue(0),
+  terminationOf: vi.fn().mockResolvedValue({ code: 0, error: undefined }),
 }));
 vi.mock("../../src/utils/logs.js", () => ({
   logError: vi.fn(),
@@ -218,12 +218,14 @@ describe("run command", () => {
 
     await run(RunCommand, ["run", "--silent", "--", "npm", "test"]);
 
-    expect(runProcess).toHaveBeenCalledWith({
-      command: "npm",
-      commandArgs: ["test"],
-      cwd: "/cwd",
-      logs: "ignore",
-    });
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npm",
+        commandArgs: ["test"],
+        cwd: "/cwd",
+        logs: "ignore",
+      }),
+    );
     expect(readConfig).not.toHaveBeenCalled();
     expect(AllureReportMock).not.toHaveBeenCalled();
     expect(exitMock).toHaveBeenCalledWith(0);
@@ -256,5 +258,34 @@ describe("run command", () => {
     expect(runProcess).not.toHaveBeenCalled();
     expect(consoleModule.log).not.toHaveBeenCalled();
     expect(exitMock).not.toHaveBeenCalled();
+  });
+
+  it("should convert child process spawn errors into a failed run report", async () => {
+    const { AllureReportMock } = await import("../utils.js");
+    const { terminationOf } = await import("../../src/utils/index.js");
+
+    (readConfig as Mock).mockResolvedValueOnce({
+      output: "./allure-report",
+      open: false,
+      plugins: [],
+    });
+    (terminationOf as Mock).mockResolvedValueOnce({
+      code: 1,
+      error: new Error("spawn yarn ENOENT"),
+    });
+
+    await run(RunCommand, ["run", "--", "yarn", "test"]);
+
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalAttachment).toHaveBeenCalledWith(
+      expect.anything(),
+      "stderr.txt",
+    );
+    expect(AllureReportMock.prototype.realtimeDispatcher.sendGlobalError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Test process has failed",
+        trace: expect.stringContaining("spawn yarn ENOENT"),
+      }),
+    );
+    expect(exitMock).toHaveBeenCalledWith(1);
   });
 });

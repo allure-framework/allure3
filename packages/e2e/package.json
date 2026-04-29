@@ -24,6 +24,7 @@
     "@playwright/test": "^1.56.1",
     "@types/lodash.times": "^4.3.9",
     "@types/node": "^20.17.9",
+    "allure": "workspace:*",
     "allure-js-commons": "^3.3.3",
     "allure-playwright": "^3.3.3",
     "lodash.times": "^4.3.2",
