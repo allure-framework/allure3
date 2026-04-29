@@ -1,11 +1,14 @@
-import { spawn } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
+import process from "node:process";
 
+import { AllureReport, FileSystemReportFiles } from "@allurereport/core";
+import AwesomePlugin from "@allurereport/plugin-awesome";
 import { expect, test } from "@playwright/test";
 import { feature, parameter } from "allure-js-commons";
 
+import { executeAllureRun } from "../../../../cli/src/commands/commons/run.js";
 import { GlobalsPage, TestResultPage } from "../../pageObjects/index.js";
 import { serveReport } from "../../utils/index.js";
 
@@ -41,34 +44,41 @@ test.describe("run command globals", () => {
   });
 
   test("should attach stdout and stderr for a failed run command", async ({ page }) => {
-    console.log("the test");
-    let stdout = "";
-    let stderr = "";
-    const reportProcess = spawn(
-      "yarn",
-      ["allure", "run", "--cwd", commandCwd, "--output", reportOutput, "--", "node", "-e", FAILED_RUN_COMMAND_SCRIPT],
-      {
-        stdio: "pipe",
-        shell: false,
-      },
-    );
-
-    reportProcess.stdout.on("data", (data) => {
-      stdout += data;
+    const report = new AllureReport({
+      name: "Run command globals",
+      output: reportOutput,
+      open: false,
+      port: undefined,
+      knownIssuesPath: undefined,
+      reportFiles: new FileSystemReportFiles(reportOutput),
+      realTime: false,
+      plugins: [
+        {
+          id: "awesome",
+          enabled: true,
+          options: {},
+          plugin: new AwesomePlugin({}),
+        },
+      ],
     });
-    reportProcess.stderr.on("data", (data) => {
-      stderr += data;
+    const knownIssues = await report.store.allKnownIssues();
+    const { globalExitCode, testProcessResult } = await executeAllureRun({
+      allureReport: report,
+      knownIssues,
+      cwd: commandCwd,
+      command: process.execPath,
+      commandArgs: ["-e", FAILED_RUN_COMMAND_SCRIPT],
+      environmentVariables: {},
+      withQualityGate: false,
+      logs: "pipe",
+      silent: true,
+      ignoreLogs: false,
+      logProcessExit: false,
     });
 
-    await new Promise((resolve) => {
-      reportProcess.on("close", () => {
-        resolve(undefined);
-      });
-    });
-
-    expect(reportProcess.exitCode).toBe(1);
-    expect(stdout).toContain(STDOUT_MESSAGE);
-    expect(stderr).toContain(STDERR_MESSAGE);
+    expect(globalExitCode.original).toBe(1);
+    expect(testProcessResult?.stdout).toContain(STDOUT_MESSAGE);
+    expect(testProcessResult?.stderr).toContain(STDERR_MESSAGE);
 
     const server = await serveReport(reportOutput);
 
