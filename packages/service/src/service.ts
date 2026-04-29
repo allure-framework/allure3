@@ -27,8 +27,7 @@ export class AllureServiceClient {
       throw new Error("Allure service access token is required");
     }
 
-    this.#url = config.url.replace(/\/+$/, "");
-
+    this.#url = config.url.replace(/\/$/, "");
     this.#client = createServiceHttpClient(this.#url, config.accessToken);
   }
 
