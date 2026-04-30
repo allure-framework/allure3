@@ -6,6 +6,14 @@ export interface RealtimeUpdateSchedulerOptions {
   cooldownMs?: number;
 }
 
+/**
+ * Schedules full-report realtime updates without overlapping runs.
+ *
+ * `request()` marks that a rebuild is needed. The scheduler waits for a short
+ * cooldown, runs the worker once, and runs one more pass if more requests arrived
+ * while the worker was active. `close()` stops new requests and waits for already
+ * scheduled work before final report generation continues.
+ */
 export class RealtimeUpdateScheduler {
   readonly #worker: () => Promise<void>;
   readonly #cooldownMs: number;
@@ -57,6 +65,7 @@ export class RealtimeUpdateScheduler {
 
     this.#failed = false;
     this.#failure = undefined;
+    this.#dirty = false;
 
     const cycle = this.#runCycle()
       .catch((err) => {
