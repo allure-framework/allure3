@@ -1,9 +1,11 @@
+import console from "node:console";
 import { EventEmitter } from "node:events";
 import { setTimeout } from "node:timers/promises";
 
 import { describe, expect, it, vi } from "vitest";
 
 import { AllureStoreEvents, RealtimeSubscriber } from "../../src/utils/event.js";
+import { RealtimeChannel } from "../../src/utils/realtimeChannel.js";
 
 const getRandomInt = (max: number): number => Math.floor(Math.random() * max);
 
@@ -138,45 +140,181 @@ describe("Events", () => {
     expect(listener).toBeCalledTimes(0);
   });
 
-  it("should synchronously notify on all result-like events", () => {
+  it("should abort pending batched events on unsubscribe", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
     const events = new RealtimeSubscriber(emitter);
     const listener = vi.fn();
+    const unsubscribe = events.onTestResults(listener);
 
-    events.onAll(listener);
-
-    emitter.emit("testResult", "tr-1");
-    emitter.emit("testFixtureResult", "tfr-1");
-    emitter.emit("attachmentFile", "af-1");
-
-    expect(listener).toBeCalledTimes(3);
-  });
-
-  it("should unsubscribe from all result-like events", () => {
-    const emitter = new EventEmitter<AllureStoreEvents>();
-    const events = new RealtimeSubscriber(emitter);
-    const listener = vi.fn();
-    const unsubscribe = events.onAll(listener);
-
+    emitter.emit("testResult", "123");
     unsubscribe();
-    emitter.emit("testResult", "tr-1");
-    emitter.emit("testFixtureResult", "tfr-1");
-    emitter.emit("attachmentFile", "af-1");
+
+    // default batch timeout is set to 100
+    await setTimeout(150);
 
     expect(listener).not.toBeCalled();
   });
 
-  it("should stop all result-like events via offAll", () => {
+  it("should support sync batched listeners", async () => {
     const emitter = new EventEmitter<AllureStoreEvents>();
     const events = new RealtimeSubscriber(emitter);
+    const result: string[][] = [];
+
+    events.onTestResults((ids) => {
+      result.push(ids);
+    });
+    emitter.emit("testResult", "123");
+
+    // default batch timeout is set to 100
+    await setTimeout(150);
+
+    expect(result).toEqual([["123"]]);
+  });
+
+  it("should log batched listener errors", async () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const error = new Error("listener failed");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    events.onTestResults(vi.fn().mockRejectedValue(error));
+    emitter.emit("testResult", "123");
+
+    // default batch timeout is set to 100
+    await setTimeout(150);
+
+    expect(consoleError).toBeCalledWith("can't execute listener", error);
+
+    consoleError.mockRestore();
+  });
+
+  it("should wait for an active batched listener before delivering the next batch", async () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    let releaseFirstBatch!: () => void;
+    const firstBatch = new Promise<void>((resolve) => {
+      releaseFirstBatch = resolve;
+    });
+    const listener = vi.fn((ids: string[]) => (ids.includes("first") ? firstBatch : undefined));
+
+    events.onTestResults(listener);
+    emitter.emit("testResult", "first");
+
+    // default batch timeout is set to 100
+    await setTimeout(150);
+    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenLastCalledWith(["first"]);
+
+    emitter.emit("testResult", "second");
+
+    // The second batch should stay buffered while the first listener is still active.
+    await setTimeout(150);
+    expect(listener).toBeCalledTimes(1);
+
+    releaseFirstBatch();
+    await setTimeout(150);
+
+    expect(listener).toBeCalledTimes(2);
+    expect(listener).toHaveBeenLastCalledWith(["second"]);
+  });
+
+  it("should start direct listeners synchronously", () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const listener = vi.fn(() => Promise.resolve());
+
+    events.onGlobalError(listener);
+    emitter.emit("globalError", { message: "global failure" });
+
+    expect(listener).toBeCalledWith({ message: "global failure" });
+  });
+
+  it("should log direct listener errors", async () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const error = new Error("listener failed");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    events.onGlobalError(vi.fn().mockRejectedValue(error));
+    emitter.emit("globalError", { message: "global failure" });
+
+    await setTimeout(0);
+
+    expect(consoleError).toBeCalledWith("can't execute listener", error);
+
+    consoleError.mockRestore();
+  });
+
+  it("should log direct listener sync throws", async () => {
+    const emitter = new EventEmitter<AllureStoreEvents>();
+    const events = new RealtimeSubscriber(emitter);
+    const error = new Error("listener failed");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    events.onGlobalError(
+      vi.fn((): Promise<void> => {
+        throw error;
+      }),
+    );
+    emitter.emit("globalError", { message: "global failure" });
+
+    await setTimeout(0);
+
+    expect(consoleError).toBeCalledWith("can't execute listener", error);
+
+    consoleError.mockRestore();
+  });
+
+  it("should synchronously notify when result-like events change", () => {
+    const channel = new RealtimeChannel();
     const listener = vi.fn();
 
-    events.onAll(listener);
-    events.offAll();
+    channel.onResultLikeChanged(listener);
 
-    emitter.emit("testResult", "tr-1");
-    emitter.emit("testFixtureResult", "tfr-1");
-    emitter.emit("attachmentFile", "af-1");
+    channel.dispatcher.sendTestResult("tr-1");
+    channel.dispatcher.sendTestFixtureResult("tfr-1");
+    channel.dispatcher.sendAttachmentFile("af-1");
+
+    expect(listener).toBeCalledTimes(3);
+  });
+
+  it("should unsubscribe from result-like change events", () => {
+    const channel = new RealtimeChannel();
+    const listener = vi.fn();
+    const unsubscribe = channel.onResultLikeChanged(listener);
+
+    unsubscribe();
+    channel.dispatcher.sendTestResult("tr-1");
+    channel.dispatcher.sendTestFixtureResult("tfr-1");
+    channel.dispatcher.sendAttachmentFile("af-1");
+
+    expect(listener).not.toBeCalled();
+  });
+
+  it("should stop result-like change events via channel close", () => {
+    const channel = new RealtimeChannel();
+    const listener = vi.fn();
+
+    channel.onResultLikeChanged(listener);
+    channel.close();
+
+    channel.dispatcher.sendTestResult("tr-1");
+    channel.dispatcher.sendTestFixtureResult("tfr-1");
+    channel.dispatcher.sendAttachmentFile("af-1");
+
+    expect(listener).not.toBeCalled();
+  });
+
+  it("should abort pending batched subscriber events via channel close", async () => {
+    const channel = new RealtimeChannel();
+    const listener = vi.fn();
+
+    channel.subscriber.onTestResults(listener);
+    channel.dispatcher.sendTestResult("tr-1");
+    channel.close();
+
+    // default batch timeout is set to 100
+    await setTimeout(150);
 
     expect(listener).not.toBeCalled();
   });

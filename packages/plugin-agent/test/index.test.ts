@@ -8,6 +8,7 @@ import type {
   ExitCode,
   PluginContext,
   QualityGateValidationResult,
+  RealtimeListenerResult,
   RealtimeSubscriber,
   ResultFile,
 } from "@allurereport/plugin-api";
@@ -101,43 +102,45 @@ const createStore = (overrides: Partial<AllureStore> = {}): AllureStore =>
 
 const createRealtimeSubscriber = () => {
   const listeners = {
-    testResults: [] as Array<(trIds: string[]) => Promise<void>>,
-    globalAttachments: [] as Array<(payload: { attachment: ResultFile; fileName?: string }) => Promise<void>>,
-    globalErrors: [] as Array<(error: TestError) => Promise<void>>,
-    globalExitCodes: [] as Array<(payload: ExitCode) => Promise<void>>,
-    qualityGateResults: [] as Array<(payload: QualityGateValidationResult[]) => Promise<void>>,
+    testResults: [] as Array<(trIds: string[]) => RealtimeListenerResult>,
+    globalAttachments: [] as Array<(payload: { attachment: ResultFile; fileName?: string }) => RealtimeListenerResult>,
+    globalErrors: [] as Array<(error: TestError) => RealtimeListenerResult>,
+    globalExitCodes: [] as Array<(payload: ExitCode) => RealtimeListenerResult>,
+    qualityGateResults: [] as Array<(payload: QualityGateValidationResult[]) => RealtimeListenerResult>,
   };
 
   const subscriber: RealtimeSubscriber = {
-    onTestResults: vi.fn((listener: (trIds: string[]) => Promise<void>) => {
+    onTestResults: vi.fn((listener: (trIds: string[]) => RealtimeListenerResult) => {
       listeners.testResults.push(listener);
 
       return () => {
         listeners.testResults = listeners.testResults.filter((candidate) => candidate !== listener);
       };
     }),
-    onGlobalAttachment: vi.fn((listener: (payload: { attachment: ResultFile; fileName?: string }) => Promise<void>) => {
-      listeners.globalAttachments.push(listener);
+    onGlobalAttachment: vi.fn(
+      (listener: (payload: { attachment: ResultFile; fileName?: string }) => RealtimeListenerResult) => {
+        listeners.globalAttachments.push(listener);
 
-      return () => {
-        listeners.globalAttachments = listeners.globalAttachments.filter((candidate) => candidate !== listener);
-      };
-    }),
-    onGlobalError: vi.fn((listener: (error: TestError) => Promise<void>) => {
+        return () => {
+          listeners.globalAttachments = listeners.globalAttachments.filter((candidate) => candidate !== listener);
+        };
+      },
+    ),
+    onGlobalError: vi.fn((listener: (error: TestError) => RealtimeListenerResult) => {
       listeners.globalErrors.push(listener);
 
       return () => {
         listeners.globalErrors = listeners.globalErrors.filter((candidate) => candidate !== listener);
       };
     }),
-    onGlobalExitCode: vi.fn((listener: (payload: ExitCode) => Promise<void>) => {
+    onGlobalExitCode: vi.fn((listener: (payload: ExitCode) => RealtimeListenerResult) => {
       listeners.globalExitCodes.push(listener);
 
       return () => {
         listeners.globalExitCodes = listeners.globalExitCodes.filter((candidate) => candidate !== listener);
       };
     }),
-    onQualityGateResults: vi.fn((listener: (payload: QualityGateValidationResult[]) => Promise<void>) => {
+    onQualityGateResults: vi.fn((listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult) => {
       listeners.qualityGateResults.push(listener);
 
       return () => {
@@ -152,7 +155,7 @@ const createRealtimeSubscriber = () => {
     subscriber,
     emitTestResults: async (trIds: string[]) => {
       for (const listener of listeners.testResults) {
-        await listener(trIds);
+        await Promise.resolve(listener(trIds));
       }
     },
   };

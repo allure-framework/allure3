@@ -202,4 +202,31 @@ describe("RealtimeUpdateScheduler", () => {
 
     await expect(scheduler.flush()).rejects.toBe(error);
   });
+
+  it("should not carry dirty state from a failed cycle into the next request", async () => {
+    const blockUpdate = createSignal();
+    const firstUpdateStarted = createSignal();
+    const error = new Error("update failed");
+    const worker = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        firstUpdateStarted.resolve();
+        await blockUpdate.promise;
+        throw error;
+      })
+      .mockResolvedValue(undefined);
+    const scheduler = new RealtimeUpdateScheduler(worker, { cooldownMs: 1 });
+
+    scheduler.request();
+    await firstUpdateStarted.promise;
+    scheduler.request();
+    blockUpdate.resolve();
+
+    await expect(scheduler.flush()).rejects.toBe(error);
+
+    scheduler.request();
+    await scheduler.flush();
+
+    expect(worker).toBeCalledTimes(2);
+  });
 });
