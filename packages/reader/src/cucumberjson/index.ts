@@ -90,7 +90,12 @@ export const cucumberjson: ResultsReader = {
     if (originalFileName.endsWith(".json")) {
       try {
         const parsed = await data.asJson<CucumberFeature[]>();
-        if (parsed) {
+        // Cucumber JSON is always an array of features at the top level.
+        // Other tooling sometimes drops a single object into the same
+        // results directory (e.g. the Jenkins Allure plugin's
+        // testrun.json — { stop, name, start }). Skip non-arrays so the
+        // reader doesn't crash with `TypeError: parsed is not iterable`.
+        if (isArray(parsed)) {
           let oneOrMoreFeaturesParsed = false;
           for (const feature of parsed) {
             oneOrMoreFeaturesParsed ||= await processFeature(visitor, originalFileName, feature);
