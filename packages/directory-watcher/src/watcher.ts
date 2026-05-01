@@ -103,44 +103,6 @@ const findFiles = async (
   }
 };
 
-const createDirectorySnapshot = async (watchDirectory: string, recursive: boolean): Promise<Map<string, number>> => {
-  const snapshot = new Map<string, number>();
-  const recordDirectoryMtime = async (path: string): Promise<boolean> => {
-    try {
-      const stats = await stat(path);
-      if (!stats.isDirectory()) {
-        return false;
-      }
-      snapshot.set(path, stats.mtimeMs);
-      return true;
-    } catch (e) {
-      if (!isFileNotFoundError(e)) {
-        console.error("can't stat directory", path, e);
-      }
-      return false;
-    }
-  };
-
-  if (!(await recordDirectoryMtime(watchDirectory)) || !recursive) {
-    return snapshot;
-  }
-
-  try {
-    const dir = await opendir(watchDirectory, { recursive: true });
-    for await (const dirent of dir) {
-      if (dirent.isDirectory()) {
-        await recordDirectoryMtime(join(dirent.parentPath ?? dirent.path, dirent.name));
-      }
-    }
-  } catch (e) {
-    if (!isFileNotFoundError(e)) {
-      console.error("can't read directory", e);
-    }
-  }
-
-  return snapshot;
-};
-
 const singleIteration = async (callback: () => Promise<void>, ...ac: AbortController[]): Promise<void> => {
   return setImmediate<void>(undefined, { signal: AbortSignal.any(ac.map((c) => c.signal)) })
     .then(() => callback())
@@ -227,42 +189,12 @@ export const newFilesInDirectoryWatcher = (
 ): Watcher => {
   const { recursive = true, ignoreInitial = false, ...rest } = options;
   const indexedFiles: Set<string> = new Set();
-  let directorySnapshot = new Map<string, number>();
-
-  const rescanFiles = async (callback: typeof onNewFile) => {
-    directorySnapshot = await createDirectorySnapshot(directory, recursive);
-    await findFiles(directory, indexedFiles, callback, recursive);
-  };
-
-  const hasAnyDirChanged = async (): Promise<boolean> => {
-    if (directorySnapshot.size === 0) {
-      return true;
-    }
-
-    for (const [dir, mtime] of directorySnapshot) {
-      try {
-        const stats = await stat(dir);
-        if (stats.mtimeMs !== mtime) {
-          return true;
-        }
-      } catch (e) {
-        if (!isFileNotFoundError(e)) {
-          console.error("can't stat directory", dir, e);
-        }
-        return true;
-      }
-    }
-
-    return false;
-  };
 
   const initialCallback = async () => {
-    await rescanFiles(ignoreInitial ? noop : onNewFile);
+    await findFiles(directory, indexedFiles, ignoreInitial ? noop : onNewFile, recursive);
   };
   const iterationCallback = async () => {
-    if (await hasAnyDirChanged()) {
-      await rescanFiles(onNewFile);
-    }
+    await findFiles(directory, indexedFiles, onNewFile, recursive);
   };
 
   return watch(initialCallback, iterationCallback, iterationCallback, rest);
