@@ -1,6 +1,5 @@
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { EventEmitter } from "node:events";
 import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -44,7 +43,9 @@ import { DefaultPluginState, PluginFiles } from "./plugin.js";
 import { QualityGate, type QualityGateState } from "./qualityGate/index.js";
 import { DefaultAllureStore } from "./store/store.js";
 import { environmentIdentityById, environmentIdentityByName } from "./utils/environment.js";
-import { type AllureStoreEvents, RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { RealtimeEventsDispatcher, RealtimeSubscriber } from "./utils/event.js";
+import { RealtimeChannel } from "./utils/realtimeChannel.js";
+import { RealtimeUpdateScheduler } from "./utils/realtimeUpdateScheduler.js";
 import { resolveDumpAttachmentPath, UnsafeDumpPathError } from "./utils/safeDumpPath.js";
 
 const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -58,9 +59,8 @@ export class AllureReport {
   readonly #readers: readonly ResultsReader[];
   readonly #plugins: readonly PluginInstance[];
   readonly #reportFiles: ReportFiles;
-  readonly #eventEmitter: EventEmitter<AllureStoreEvents>;
-  readonly #realtimeSubscriber: RealtimeSubscriber;
-  readonly #realtimeDispatcher: RealtimeEventsDispatcher;
+  readonly #realtimeChannel: RealtimeChannel;
+  readonly #realtimeUpdateScheduler: RealtimeUpdateScheduler;
   readonly #realTime: any;
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
@@ -113,9 +113,8 @@ export class AllureReport {
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
     this.#reportVariables = variables;
-    this.#eventEmitter = new EventEmitter<AllureStoreEvents>();
-    this.#realtimeDispatcher = new RealtimeEventsDispatcher(this.#eventEmitter);
-    this.#realtimeSubscriber = new RealtimeSubscriber(this.#eventEmitter);
+    this.#realtimeChannel = new RealtimeChannel();
+    this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
     this.#dump = dump;
     this.#hideLabels = hideLabels;
@@ -141,8 +140,8 @@ export class AllureReport {
     }
 
     this.#store = new DefaultAllureStore({
-      realtimeSubscriber: this.#realtimeSubscriber,
-      realtimeDispatcher: this.#realtimeDispatcher,
+      realtimeSubscriber: this.#realtimeChannel.subscriber,
+      realtimeDispatcher: this.#realtimeChannel.dispatcher,
       reportVariables: variables,
       environmentsConfig: environments,
       history: this.#history,
@@ -166,11 +165,11 @@ export class AllureReport {
   }
 
   get realtimeSubscriber(): RealtimeSubscriber {
-    return this.#realtimeSubscriber;
+    return this.#realtimeChannel.subscriber;
   }
 
   get realtimeDispatcher(): RealtimeEventsDispatcher {
-    return this.#realtimeDispatcher;
+    return this.#realtimeChannel.dispatcher;
   }
 
   get #publish() {
@@ -285,7 +284,7 @@ export class AllureReport {
 
         const originalFileName = basename(absoluteFilePath);
 
-        this.#realtimeDispatcher.sendGlobalAttachment(
+        this.#realtimeChannel.dispatcher.sendGlobalAttachment(
           new PathResultFile(absoluteFilePath, originalFileName),
           originalFileName,
         );
@@ -304,22 +303,23 @@ export class AllureReport {
     }
 
     await this.#eachPlugin(true, async (plugin, context) => {
-      await plugin.start?.(context, this.#store, this.#realtimeSubscriber);
+      await plugin.start?.(context, this.#store, this.#realtimeChannel.subscriber);
     });
 
     if (this.#realTime) {
-      await this.#update();
+      await this.#runRealtimeUpdate();
 
-      this.#realtimeSubscriber.onAll(async () => {
-        await this.#update();
+      this.#realtimeChannel.onResultLikeChanged(() => {
+        this.#realtimeUpdateScheduler.request();
       });
     }
   };
 
-  #update = async (): Promise<void> => {
+  #runRealtimeUpdate = async (): Promise<void> => {
     if (this.#executionStage !== "running") {
       return;
     }
+
     await this.#eachPlugin(false, async (plugin, context) => {
       await plugin.update?.(context, this.#store);
     });
@@ -555,8 +555,13 @@ export class AllureReport {
     const testCases = await this.#store.allTestCases();
     const historyDataPoint = createHistory(this.reportUuid, this.#reportName, testCases, testResults, this.reportUrl);
 
-    this.#realtimeSubscriber.offAll();
-    // closing it early, to prevent future reads
+    this.#realtimeChannel.close();
+    try {
+      await this.#realtimeUpdateScheduler.close();
+    } catch (e) {
+      console.error("realtime update failed during shutdown", e);
+    }
+    // closing it after realtime update settles, to prevent future reads
     this.#executionStage = "done";
 
     // just dump state when dump is set and generate nothing

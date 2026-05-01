@@ -239,7 +239,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
 
     this.#addEnvironments(environments);
 
-    this.#realtimeSubscriber?.onQualityGateResults(async (results: QualityGateValidationResult[]) => {
+    this.#realtimeSubscriber?.onQualityGateResults((results: QualityGateValidationResult[]) => {
       this.#qualityGateResults.push(...results);
       this.#addEnvironments(
         results
@@ -271,13 +271,13 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
           .filter(Boolean) as EnvironmentIdentity[],
       );
     });
-    this.#realtimeSubscriber?.onGlobalExitCode(async (exitCode: ExitCode) => {
+    this.#realtimeSubscriber?.onGlobalExitCode((exitCode: ExitCode) => {
       this.#globalExitCode = exitCode;
     });
-    this.#realtimeSubscriber?.onGlobalError(async (error: PluginGlobalError) => {
+    this.#realtimeSubscriber?.onGlobalError((error: PluginGlobalError) => {
       this.#addGlobalError(error);
     });
-    this.#realtimeSubscriber?.onGlobalAttachment(async ({ attachment, fileName, environment }) => {
+    this.#realtimeSubscriber?.onGlobalAttachment(({ attachment, fileName, environment }) => {
       const originalFileName = attachment.getOriginalFileName();
       const resolvedEnvironment = this.#resolveGlobalEnvironmentIdentity(environment);
       const attachmentLink: PluginGlobalAttachment = {
