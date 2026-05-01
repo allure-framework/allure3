@@ -4,7 +4,7 @@ import type { StepTreeExpansion } from "@allurereport/web-awesome";
 
 export type AwesomeOptions = {
   reportName?: string;
-  singleFile?: boolean;
+  singleFile?: boolean | string;
   logo?: string;
   theme?: "light" | "dark" | "auto";
   reportLanguage?: string;
