@@ -436,7 +436,7 @@ export const generateAttachmentsFiles = async (
   const result = new Map<string, string>();
   for (const { id, ext, ...link } of attachmentLinks) {
     if (link.missed) {
-      return;
+      continue;
     }
     const content = await contentFunction(id);
 

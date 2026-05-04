@@ -2858,6 +2858,91 @@ describe("dump state", () => {
     expect(testResults).toHaveLength(1);
   });
 
+  it("should relink restored test body attachment steps to restored attachment content", async () => {
+    const attachmentId = md5("datatable.tsv");
+    const staleStepLink = {
+      id: attachmentId,
+      originalFileName: "datatable.tsv",
+      name: "Data table",
+      contentType: "text/tab-separated-values",
+      ext: ".tsv",
+      used: true,
+      missed: true,
+    };
+    const dumpAttachment = {
+      ...staleStepLink,
+      contentLength: undefined,
+    };
+    const dump = {
+      testResults: {
+        "test-result-id": {
+          id: "test-result-id",
+          name: "test result",
+          fullName: "test result",
+          status: "passed",
+          steps: [
+            {
+              name: "Given I have following user details",
+              status: "passed",
+              parameters: [],
+              steps: [
+                {
+                  type: "attachment",
+                  link: staleStepLink,
+                },
+              ],
+              type: "step",
+            },
+          ],
+        },
+      },
+      attachments: {
+        [attachmentId]: dumpAttachment,
+      },
+      testCases: {},
+      fixtures: {},
+      environments: ["default"],
+      reportVariables: {},
+      globalAttachmentIds: [],
+      globalErrors: [],
+      qualityGateResults: [],
+      indexAttachmentByTestResult: {
+        "test-result-id": [attachmentId],
+      },
+      indexTestResultByHistoryId: {},
+      indexTestResultByTestCase: {},
+      indexLatestEnvTestResultByHistoryId: {},
+      indexAttachmentByFixture: {},
+      indexFixturesByTestResult: {},
+      indexKnownByHistoryId: {},
+    };
+    const attachmentContent = new BufferResultFile(Buffer.from("name\tvalue", "utf-8"), "datatable.tsv");
+    const store = new DefaultAllureStore();
+
+    await store.restoreState(dump as unknown as AllureStoreDump, {
+      [attachmentId]: attachmentContent,
+    });
+
+    const [testResult] = await store.allTestResults();
+    const [indexedAttachment] = await store.attachmentsByTrId("test-result-id");
+    const [step] = testResult.steps;
+    const [attachmentStep] = step.type === "step" ? step.steps : [];
+
+    expect(indexedAttachment).toMatchObject({
+      missed: false,
+      contentLength: 10,
+    });
+    expect(attachmentStep).toMatchObject({
+      link: {
+        missed: false,
+        contentLength: 10,
+      },
+      type: "attachment",
+    });
+    expect(attachmentStep.type === "attachment" ? attachmentStep.link : undefined).toBe(indexedAttachment);
+    expect(await store.attachmentContentById(attachmentId)).toBe(attachmentContent);
+  });
+
   it("should append globalAttachments and globalErrors when restoring to existing store", async () => {
     const mockRealtimeSubscriber = {
       onQualityGateResults: vi.fn(),
