@@ -1,17 +1,25 @@
 import { type AllureHistory, normalizeHistoryDataPointUrls } from "@allurereport/core-api";
 
-import type { AllureServiceClient } from "./service.js";
+import type { AllureServiceApiClient } from "./model.js";
 import { KnownError } from "./utils/http.js";
 
 export class AllureRemoteHistory implements AllureHistory {
-  constructor(readonly params: { allureServiceClient: AllureServiceClient; limit?: number; branch?: string }) {}
+  constructor(
+    readonly params: {
+      allureServiceClient: AllureServiceApiClient;
+      limit?: number;
+      repo?: string;
+      branch?: string;
+    },
+  ) {}
 
-  async readHistory(params?: { branch?: string }) {
+  async readHistory(params?: { repo?: string; branch?: string }) {
     const { limit } = this.params;
 
     try {
       const res = await this.params.allureServiceClient.downloadHistory({
-        branch: params?.branch ?? this.params.branch,
+        repo: params?.repo || this.params.repo || undefined,
+        branch: params?.branch || this.params.branch || undefined,
         limit,
       });
 

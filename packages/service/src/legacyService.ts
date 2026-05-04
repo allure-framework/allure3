@@ -11,37 +11,44 @@ const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
 
 const createUploadBlob = (content: Buffer) => new Blob([content], { type: UPLOAD_CONTENT_TYPE });
-const createReportUrl = (baseUrl: string, reportUuid: string) => `${baseUrl}/${reportUuid}`;
-const createReportFileUrl = (baseUrl: string, reportUuid: string, reportFilename: string) =>
-  `${baseUrl}/${joinPosix(reportUuid, reportFilename)}`;
+const createReportFileUrl = (reportUrl: URL, reportFilename: string) => {
+  const fileUrl = new URL(reportUrl);
 
-export class AllureServiceClient implements AllureServiceApiClient {
+  fileUrl.pathname = joinPosix(fileUrl.pathname, reportFilename);
+  fileUrl.search = "";
+  fileUrl.hash = "";
+
+  return fileUrl.toString();
+};
+const createFallbackReportUrl = (baseUrl: string, reportUuid: string) => {
+  const reportUrl = new URL(`${baseUrl}/`);
+
+  reportUrl.pathname = joinPosix(reportUrl.pathname, reportUuid);
+
+  return reportUrl;
+};
+
+export class AllureLegacyServiceClient implements AllureServiceApiClient {
   readonly #client: HttpClient;
   readonly #url: string;
+  #reportUrl: URL | undefined;
 
   constructor(readonly config: Config["allureService"]) {
-    if (!config?.url) {
-      throw new Error("Allure service URL is required");
-    }
-
     if (!config?.accessToken) {
       throw new Error("Allure service access token is required");
     }
 
-    this.#url = config.url.replace(/\/$/, "");
+    const { url } = JSON.parse(atob(config.accessToken.split(".")[1])) as { url: string };
+
+    this.#url = url.replace(/\/$/, "");
     this.#client = createServiceHttpClient(this.#url, config.accessToken);
   }
 
-  /**
-   * Downloads history data for a specific repository branch
-   * @param payload
-   */
   async downloadHistory(payload: { repo?: string; branch?: string; limit?: number }) {
-    const { repo, branch, limit } = payload ?? {};
-    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>("/api/history", {
+    const { branch, limit } = payload ?? {};
+    const { history } = await this.#client.get<{ history: HistoryDataPoint[] }>("/projects/history", {
       params: {
         limit: limit ? encodeURIComponent(limit) : undefined,
-        repo: repo ? encodeURIComponent(repo) : undefined,
         branch: branch ? encodeURIComponent(branch) : undefined,
       },
     });
@@ -49,63 +56,41 @@ export class AllureServiceClient implements AllureServiceApiClient {
     return history;
   }
 
-  /**
-   * Creates a new report and returns the URL
-   * @param payload
-   */
   async createReport(payload: { reportName: string; reportUuid?: string; repo?: string; branch?: string }) {
-    const { reportName, reportUuid, repo, branch } = payload;
-    const { url } = await this.#client.post<{ url: string }>("/api/reports", {
+    const { reportName, reportUuid, branch } = payload;
+    const { url } = await this.#client.post<{ url: string }>("/reports", {
       body: {
         reportName,
         reportUuid,
-        repo,
         branch,
       },
     });
 
-    return new URL(url, this.#url);
+    this.#reportUrl = new URL(url);
+
+    return this.#reportUrl;
   }
 
-  /**
-   * Marks report as a completed one and assigns history data point to it
-   * Incompleted reports don't appear in the history
-   * Use when all report files have been uploaded
-   * @param payload
-   */
   async completeReport(payload: { reportUuid: string; historyPoint: HistoryDataPoint }) {
     const { reportUuid, historyPoint } = payload;
-    const completedHistoryPoint = {
-      ...historyPoint,
-      url: createReportUrl(this.#url, reportUuid),
-    };
 
-    return this.#client.post(`/api/reports/${reportUuid}/complete`, {
+    return this.#client.post(`/reports/${reportUuid}/complete`, {
       body: {
-        historyPoint: completedHistoryPoint,
+        historyPoint,
       },
     });
   }
 
-  /**
-   * Entirely deletes a report by its UUID with all the uploaded files
-   * If plugin id is provided, delete report for the plugin only
-   * @param payload
-   */
   async deleteReport(payload: { reportUuid: string; pluginId?: string }) {
     const { reportUuid, pluginId = "" } = payload;
 
-    return this.#client.post(`/api/reports/${reportUuid}/delete`, {
+    return this.#client.post(`/reports/${reportUuid}/delete`, {
       body: {
         pluginId,
       },
     });
   }
 
-  /**
-   * Uploads report asset which can be shared between multiple reports at once
-   * @param payload
-   */
   async addReportAsset(payload: { filename: string; file?: Buffer; filepath?: string; signal?: AbortSignal }) {
     const { filename, file, filepath, signal } = payload;
 
@@ -128,20 +113,13 @@ export class AllureServiceClient implements AllureServiceApiClient {
     form.set("filename", filename);
     form.set("file", createUploadBlob(content), filename);
 
-    return this.#client.post("/api/assets/upload", {
+    return this.#client.post("/assets/upload", {
       body: form,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
       ...(signal ? { signal } : {}),
     });
   }
 
-  /**
-   * Adds a file to an existing report
-   * If the report doesn't exist, it will be created
-   * @param payload
-   */
   async addReportFile(payload: {
     reportUuid: string;
     pluginId?: string;
@@ -172,14 +150,12 @@ export class AllureServiceClient implements AllureServiceApiClient {
     form.set("filename", reportFilename);
     form.set("file", createUploadBlob(content), reportFilename);
 
-    await this.#client.post(`/api/reports/${reportUuid}/upload`, {
+    await this.#client.post(`/reports/${reportUuid}/upload`, {
       body: form,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
       ...(signal ? { signal } : {}),
     });
 
-    return createReportFileUrl(this.#url, reportUuid, reportFilename);
+    return createReportFileUrl(this.#reportUrl ?? createFallbackReportUrl(this.#url, reportUuid), reportFilename);
   }
 }
