@@ -1,7 +1,7 @@
 import { computed } from "@preact/signals-core";
 
 import { paramsToSearchParams } from "../url/helpers.js";
-import { currentUrl, goTo } from "../url/index.js";
+import { currentUrl, getCurrentUrl, goTo } from "../url/index.js";
 
 export const router = computed(() => {
   const hash = currentUrl.value.hash.startsWith("#") ? currentUrl.value.hash.slice(1) : currentUrl.value.hash;
@@ -49,10 +49,10 @@ const createRouteUrl = (path: string, params: Record<string, string | undefined>
 
 export const navigateTo = (to: NavigateTo) => {
   const { path, params = {}, replace = false, searchParams = {}, keepSearchParams = false } = to;
-  const currentPathname = currentUrl.value.pathname;
 
-  const newUrl = new URL(currentPathname, currentUrl.value.origin);
+  const newUrl = new URL(getCurrentUrl());
   const routeUrl = createRouteUrl(path, params);
+  newUrl.search = "";
   newUrl.hash = routeUrl === "" || routeUrl === "/" ? "" : `#${routeUrl}`;
 
   if (keepSearchParams) {
