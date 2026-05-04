@@ -122,7 +122,7 @@ const createBreadcrumbs = (convertedTr: ClassicTestResult) => {
 };
 
 export const generateTestResults = async (writer: ClassicDataWriter, store: AllureStore) => {
-  const allTr = await store.allTestResults({ includeHidden: true });
+  const allTr = await store.allTestResults({ includeRetries: true });
   let convertedTrs: ClassicTestResult[] = [];
 
   for (const tr of allTr) {
@@ -142,6 +142,7 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
     convertedTr.history = (await store.historyByTrId(tr.id)) ?? [];
     convertedTr.retries = await store.retriesByTrId(tr.id);
     convertedTr.retry = convertedTr.retries.length > 0;
+    convertedTr.isRetry = tr.isRetry;
     convertedTr.setup = convertedTrFixtures.filter((f) => f.type === "before");
     convertedTr.teardown = convertedTrFixtures.filter((f) => f.type === "after");
     // FIXME: the type is correct, but typescript still shows an error
@@ -166,7 +167,7 @@ export const generateTestResults = async (writer: ClassicDataWriter, store: Allu
 
   await writer.writeWidget(
     "nav.json",
-    convertedTrs.filter(({ hidden }) => !hidden).map(({ id }) => id),
+    convertedTrs.filter(({ isRetry }) => !isRetry).map(({ id }) => id),
   );
 
   return convertedTrs;
@@ -178,7 +179,7 @@ export const generateTree = async (
   labels: string[],
   tests: ClassicTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.isRetry);
   const tree = createTreeByLabels<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
     labels,
@@ -204,7 +205,7 @@ export const generateTree = async (
   );
 
   // @ts-ignore
-  filterTree(tree, (leaf) => !leaf.hidden);
+  filterTree(tree, (leaf) => !leaf.isRetry);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
   transformTree(tree, (leaf, idx) => ({ ...leaf, groupOrder: idx + 1 }));
 
@@ -361,7 +362,7 @@ export const generateTreeByCategories = async (
   treeName: string,
   tests: ClassicTestResult[],
 ) => {
-  const visibleTests = tests.filter((test) => !test.hidden);
+  const visibleTests = tests.filter((test) => !test.isRetry);
 
   const tree = createTreeByCategories<ClassicTestResult, ClassicTreeLeaf, ClassicTreeGroup>(
     visibleTests,
@@ -387,7 +388,7 @@ export const generateTreeByCategories = async (
   );
 
   // @ts-ignore
-  filterTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>) => !leaf.hidden);
+  filterTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>) => !leaf.retry);
   sortTree(tree, nullsLast(compareBy("start", ordinal())));
   transformTree(tree, (leaf: TreeLeaf<ClassicTreeLeaf>, idx: number) => ({
     ...leaf,

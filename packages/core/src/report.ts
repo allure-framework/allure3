@@ -405,11 +405,11 @@ export class AllureReport {
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
-      indexLatestEnvTestResultByHistoryId = {},
       indexAttachmentByFixture = {},
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
+      testResultIdsIngestOrder = [],
     }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
       [AllureStoreDumpFiles.TestResults, testResults],
       [AllureStoreDumpFiles.TestCases, testCases],
@@ -423,11 +423,11 @@ export class AllureReport {
       [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
       [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
       [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
-      [AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId, indexLatestEnvTestResultByHistoryId],
       [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
       [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
       [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
       [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
+      [AllureStoreDumpFiles.TestResultIngestOrder, testResultIdsIngestOrder],
     ];
     let dumpError: unknown;
 
@@ -564,9 +564,6 @@ export class AllureReport {
           const indexTestResultsByTestCaseEntry = await requiredEntryData(
             AllureStoreDumpFiles.IndexTestResultsByTestCase,
           );
-          const indexLatestEnvTestResultsByHistoryIdEntry = await requiredEntryData(
-            AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-          );
           const indexAttachmentsByFixtureEntry = await requiredEntryData(
             AllureStoreDumpFiles.IndexAttachmentsByFixture,
           );
@@ -575,6 +572,7 @@ export class AllureReport {
           );
           const indexKnownByHistoryIdEntry = await requiredEntryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
           const qualityGateResultsEntry = await requiredEntryData(AllureStoreDumpFiles.QualityGateResults);
+          const testResultIngestOrderEntry = await optionalEntryData(AllureStoreDumpFiles.TestResultIngestOrder);
           const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
           const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
@@ -591,11 +589,11 @@ export class AllureReport {
               case AllureStoreDumpFiles.IndexAttachmentsByTestResults:
               case AllureStoreDumpFiles.IndexTestResultsByHistoryId:
               case AllureStoreDumpFiles.IndexTestResultsByTestCase:
-              case AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId:
               case AllureStoreDumpFiles.IndexAttachmentsByFixture:
               case AllureStoreDumpFiles.IndexFixturesByTestResult:
               case AllureStoreDumpFiles.IndexKnownByHistoryId:
               case AllureStoreDumpFiles.QualityGateResults:
+              case AllureStoreDumpFiles.TestResultIngestOrder:
                 return acc;
               default:
                 if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
@@ -620,11 +618,13 @@ export class AllureReport {
             indexAttachmentByTestResult: JSON.parse(indexAttachmentsEntry.toString("utf8")),
             indexTestResultByHistoryId: JSON.parse(indexTestResultsByHistoryId.toString("utf8")),
             indexTestResultByTestCase: JSON.parse(indexTestResultsByTestCaseEntry.toString("utf8")),
-            indexLatestEnvTestResultByHistoryId: JSON.parse(indexLatestEnvTestResultsByHistoryIdEntry.toString("utf8")),
             indexAttachmentByFixture: JSON.parse(indexAttachmentsByFixtureEntry.toString("utf8")),
             indexFixturesByTestResult: JSON.parse(indexFixturesByTestResultEntry.toString("utf8")),
             indexKnownByHistoryId: JSON.parse(indexKnownByHistoryIdEntry.toString("utf8")),
             qualityGateResults: JSON.parse(qualityGateResultsEntry.toString("utf8")),
+            testResultIdsIngestOrder: testResultIngestOrderEntry
+              ? JSON.parse(testResultIngestOrderEntry.toString("utf8"))
+              : [],
           };
           const dumpTempDir = await mkdtemp(join(tmpdir(), basename(dump, ".zip")));
           const resultsAttachments: Record<string, ResultFile> = {};

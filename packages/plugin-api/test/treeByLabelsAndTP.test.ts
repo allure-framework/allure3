@@ -15,7 +15,7 @@ const itResult = (args: Partial<TestResult> & { titlePath?: string[] }): TestRes
   links: [],
   flaky: false,
   muted: false,
-  hidden: false,
+  isRetry: false,
   known: false,
   sourceMetadata: {
     readerId: "system",

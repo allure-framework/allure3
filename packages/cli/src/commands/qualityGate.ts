@@ -153,9 +153,9 @@ export class QualityGateCommand extends Command {
 
     allureReport.realtimeSubscriber.onTestResults(async (trsIds) => {
       const trs = await Promise.all(trsIds.map((id) => allureReport.store.testResultById(id)));
-      const notHiddenTrs = (trs as TestResult[]).filter((tr) => !tr.hidden);
+      const nonRetryTrs = (trs as TestResult[]).filter((tr) => !tr.isRetry);
       const { results, fastFailed } = await allureReport.validate({
-        trs: notHiddenTrs,
+        trs: nonRetryTrs,
         environment: resolvedEnvironment?.id,
         knownIssues,
         state,
@@ -179,7 +179,7 @@ export class QualityGateCommand extends Command {
 
     await allureReport.done();
 
-    const allTrs = await allureReport.store.allTestResults({ includeHidden: false });
+    const allTrs = await allureReport.store.allTestResults({ includeRetries: false });
     const validationResults = await allureReport.validate({
       trs: allTrs,
       knownIssues,

@@ -297,7 +297,7 @@ export class TestOpsPlugin implements Plugin {
 
         return filter(tr);
       },
-      includeHidden: false,
+      includeRetries: false,
     });
 
     return filteredTrs;
@@ -468,7 +468,7 @@ export class TestOpsPlugin implements Plugin {
 
     const allTrs = await store.allTestResults({
       filter: this.options.filter,
-      includeHidden: false,
+      includeRetries: false,
     });
 
     const worstStatus = getWorstStatus(allTrs.map(({ status }) => status));

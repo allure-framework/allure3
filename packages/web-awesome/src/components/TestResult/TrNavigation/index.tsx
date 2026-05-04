@@ -107,7 +107,7 @@ export const TrNavigation = (props: Props) => {
     return null;
   }
 
-  const isHidden = !!testResult?.hidden;
+  const isHidden = !!testResult?.isRetry;
   const hasFullName = !!testResult?.fullName;
 
   // Nothing to show

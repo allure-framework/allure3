@@ -62,7 +62,8 @@ export interface TestResult {
 
   transition?: TestStatusTransition;
 
-  hidden: boolean;
+  retryHash?: string;
+  isRetry: boolean;
 
   hostId?: string;
   threadId?: string;

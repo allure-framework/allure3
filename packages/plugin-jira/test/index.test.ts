@@ -46,7 +46,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels: [],
     steps: [],
     sourceMetadata: undefined,

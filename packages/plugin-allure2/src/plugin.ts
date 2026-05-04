@@ -39,7 +39,7 @@ export class Allure2Plugin implements Plugin {
     );
     const categories = (await store.metadataByKey<Allure2Category[]>("allure2_categories")) ?? [];
     const environmentItems = (await store.metadataByKey<EnvironmentItem[]>("allure_environment")) ?? [];
-    const tests = await store.allTestResults({ includeHidden: true });
+    const tests = await store.allTestResults({ includeRetries: true });
     const allTr: Allure2TestResult[] = [];
 
     for (const value of tests) {
@@ -62,7 +62,7 @@ export class Allure2Plugin implements Plugin {
 
     await generateTestResults(writer, allTr);
 
-    const displayedTr = allTr.filter((atr) => !atr.hidden);
+    const displayedTr = allTr.filter((atr) => !atr.isRetry);
     const treeLabelNamesFactory = (labelNames: string[]) =>
       preciseTreeLabels(labelNames, displayedTr, (tr) => {
         if (tr.labels) {

@@ -23,7 +23,7 @@ export type TestResultFilter = (testResult: TestResult) => boolean;
 export interface AllureStore {
   // base state
   allTestCases: () => Promise<TestCase[]>;
-  allTestResults: (options?: { includeHidden?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
+  allTestResults: (options?: { includeRetries?: boolean; filter?: TestResultFilter }) => Promise<TestResult[]>;
   allAttachments: () => Promise<AttachmentLink[]>;
   allMetadata: () => Promise<Record<string, any>>;
   allFixtures: () => Promise<TestFixtureResult[]>;
@@ -69,8 +69,8 @@ export interface AllureStore {
   // environments
   allEnvironments: () => Promise<string[]>;
   allEnvironmentIdentities: () => Promise<EnvironmentIdentity[]>;
-  testResultsByEnvironment: (env: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
-  testResultsByEnvironmentId: (envId: string, options?: { includeHidden?: boolean }) => Promise<TestResult[]>;
+  testResultsByEnvironment: (env: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
+  testResultsByEnvironmentId: (envId: string, options?: { includeRetries?: boolean }) => Promise<TestResult[]>;
   allTestEnvGroups: () => Promise<TestEnvGroup[]>;
   // variables
   allVariables: () => Promise<Record<string, any>>;
@@ -92,10 +92,11 @@ export interface AllureStoreDump {
   indexAttachmentByTestResult: Record<string, string[]>;
   indexTestResultByHistoryId: Record<string, string[]>;
   indexTestResultByTestCase: Record<string, string[]>;
-  indexLatestEnvTestResultByHistoryId: Record<string, string> | Record<string, Record<string, string>>;
   indexAttachmentByFixture: Record<string, string[]>;
   indexFixturesByTestResult: Record<string, string[]>;
   indexKnownByHistoryId: Record<string, KnownTestFailure[]>;
+  /** Global ingest order of test result ids (append order in store). */
+  testResultIdsIngestOrder: string[];
 }
 
 export enum AllureStoreDumpFiles {
@@ -111,9 +112,9 @@ export enum AllureStoreDumpFiles {
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",
   IndexTestResultsByHistoryId = "index-test-results-by-history-id.json",
   IndexTestResultsByTestCase = "index-test-results-by-test-case.json",
-  IndexLatestEnvTestResultsByHistoryId = "index-latest-env-test-results-by-history-id.json",
   IndexAttachmentsByFixture = "index-attachments-by-fixture.json",
   IndexFixturesByTestResult = "index-fixtures-by-test-result.json",
   IndexKnownByHistoryId = "index-known-by-history-id.json",
   QualityGateResults = "quality-gate-results.json",
+  TestResultIngestOrder = "test-result-ingest-order.json",
 }

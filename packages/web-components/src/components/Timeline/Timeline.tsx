@@ -174,7 +174,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
           label: segment.label,
           labelGroup: segment.labelGroup,
           timeRange: segment.timeRange,
-          hidden: segment.hidden,
+          isRetry: segment.isRetry,
           val: segment.val,
           labelVal: segment.val,
           segment: segment,
@@ -719,7 +719,7 @@ const InnerTimeline: FunctionComponent<Omit<TimelineProps, "width">> = (props) =
         })
         .attr("height", SEGMENT_HEIGHT)
         .style("fill", (d) =>
-          d.hidden ? `url(#gradient-${innerId}-${d.segment.status})` : getColorFromStatus(d.segment.status),
+          d.isRetry ? `url(#gradient-${innerId}-${d.segment.status})` : getColorFromStatus(d.segment.status),
         )
         .style("fill-opacity", 1);
     };

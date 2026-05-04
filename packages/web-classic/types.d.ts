@@ -51,6 +51,7 @@ export type ClassicTestResult = Omit<
   | "preconditionHtml"
   | "steps"
 > & {
+  isRetry: boolean;
   setup: ClassicFixtureResult[];
   teardown: ClassicFixtureResult[];
   steps: ClassicTestStepResult[];

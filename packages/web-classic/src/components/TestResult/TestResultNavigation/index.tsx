@@ -44,7 +44,7 @@ export const TestResultNavigation: FunctionalComponent<TestResultNavigationProps
         return (
           <div className={styles["test-result-nav"]}>
             {fullName && <FullName />}
-            {data && !testResult?.hidden && (
+            {data && !testResult?.isRetry && (
               <div className={styles["test-result-navigator"]}>
                 <TooltipWrapper tooltipText={tooltip("prevTR")} isTriggerActive={currentIndex > 1}>
                   <IconButton

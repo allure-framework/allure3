@@ -44,7 +44,7 @@ const createTestResult = (overrides: Partial<TestResult> = {}): TestResult =>
     flaky: false,
     muted: false,
     known: false,
-    hidden: false,
+    isRetry: false,
     labels: [],
     parameters: [],
     links: [],
@@ -384,7 +384,7 @@ describe("AgentPlugin", () => {
       historyId: "shared-history",
       name: "primary retry",
       fullName: "suite primary retry",
-      hidden: true,
+      isRetry: true,
       status: "broken",
       start: 200,
       error: {
@@ -1152,7 +1152,7 @@ notes:
       historyId: "retry-evidence-history",
       fullName: "suite retry evidence",
       status: "failed",
-      hidden: true,
+      isRetry: true,
       duration: 150,
       start: 300,
       error: {
