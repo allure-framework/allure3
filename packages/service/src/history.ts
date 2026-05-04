@@ -1,12 +1,12 @@
 import { type AllureHistory, normalizeHistoryDataPointUrls } from "@allurereport/core-api";
 
-import type { AllureServiceClient } from "./service.js";
+import type { AllureServiceApiClient } from "./model.js";
 import { KnownError } from "./utils/http.js";
 
 export class AllureRemoteHistory implements AllureHistory {
   constructor(
     readonly params: {
-      allureServiceClient: AllureServiceClient;
+      allureServiceClient: AllureServiceApiClient;
       limit?: number;
       repo?: string;
       branch?: string;

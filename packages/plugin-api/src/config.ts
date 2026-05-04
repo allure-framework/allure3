@@ -63,6 +63,7 @@ export interface Config {
   allureService?: {
     url?: string;
     accessToken?: string;
+    legacy?: boolean;
   };
   categories?: CategoriesConfig;
   /**

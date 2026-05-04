@@ -30,7 +30,14 @@ import {
 } from "@allurereport/plugin-api";
 import { allure1, allure2, attachments, cucumberjson, junitXml, readXcResultBundle } from "@allurereport/reader";
 import { PathResultFile, type ResultsReader } from "@allurereport/reader-api";
-import { AllureRemoteHistory, AllureServiceClient, KnownError, UnknownError } from "@allurereport/service";
+import {
+  AllureLegacyServiceClient,
+  AllureRemoteHistory,
+  AllureServiceClient,
+  type AllureServiceApiClient,
+  KnownError,
+  UnknownError,
+} from "@allurereport/service";
 import { generateSummary } from "@allurereport/summary";
 import { glob } from "glob";
 import ZipReadStream from "node-stream-zip";
@@ -72,7 +79,7 @@ export class AllureReport {
   readonly #hideLabels: FullConfig["hideLabels"];
   readonly #output: string;
   readonly #history: AllureHistory | undefined;
-  readonly #allureServiceClient: AllureServiceClient | undefined;
+  readonly #allureServiceClient: AllureServiceApiClient | undefined;
   readonly #qualityGate: QualityGate | undefined;
   readonly #dump: string | undefined;
   readonly #categories: CategoryDefinition[];
@@ -110,10 +117,14 @@ export class AllureReport {
       globalAttachments,
     } = opts;
 
-    this.#allureServiceClient =
-      allureServiceConfig?.url && allureServiceConfig?.accessToken
-        ? new AllureServiceClient(allureServiceConfig)
-        : undefined;
+    if (allureServiceConfig?.accessToken) {
+      if (allureServiceConfig?.legacy) {
+        this.#allureServiceClient = new AllureLegacyServiceClient(allureServiceConfig);
+      } else if (allureServiceConfig?.url) {
+        this.#allureServiceClient = new AllureServiceClient(allureServiceConfig);
+      }
+    }
+
     this.reportUuid = randomUUID();
     this.#ci = detect();
 

@@ -13,7 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
-import { AllureServiceClientMock } from "./utils.js";
+import { AllureLegacyServiceClientMock, AllureServiceClientMock } from "./utils.js";
 
 // JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
 const validAccessToken =
@@ -25,6 +25,7 @@ vi.mock("@allurereport/service", async (importOriginal) => {
   return {
     ...(await importOriginal()),
     AllureServiceClient: utils.AllureServiceClientMock,
+    AllureLegacyServiceClient: utils.AllureLegacyServiceClientMock,
   };
 });
 vi.mock("@allurereport/summary", () => ({
@@ -58,6 +59,12 @@ let previousCwd: string;
 beforeEach(() => {
   previousCwd = process.cwd();
   vi.clearAllMocks();
+  (AllureServiceClientMock.prototype.createReport as Mock).mockResolvedValue(
+    new URL("https://allurereport.com/reports"),
+  );
+  (AllureLegacyServiceClientMock.prototype.createReport as Mock).mockResolvedValue(
+    new URL("https://allurereport.com/reports"),
+  );
 });
 
 afterEach(() => {
@@ -74,6 +81,38 @@ describe("report", () => {
 
     await allureReport.start();
     await allureReport.done();
+  });
+
+  it("should use legacy service client when allureService.legacy is true", async () => {
+    const config = await resolveConfig({ name: "Allure Report" });
+    let allureReport!: AllureReport;
+
+    await step("prepare legacy service publishing", async () => {
+      config.plugins = [createPlugin("p1", true, { publish: true })];
+
+      allureReport = new AllureReport({
+        ...config,
+        allureService: {
+          accessToken: validAccessToken,
+          legacy: true,
+        },
+      });
+
+      await attachment(
+        "legacy service config",
+        JSON.stringify({ legacy: true, urlConfigured: false, publishPlugins: ["p1"] }, null, 2),
+        "application/json",
+      );
+    });
+
+    await step("start the report with the legacy client", async () => {
+      await allureReport.start();
+    });
+
+    await step("verify legacy client selection", async () => {
+      expect(AllureLegacyServiceClientMock).toHaveBeenCalledTimes(1);
+      expect(AllureServiceClientMock).toHaveBeenCalledTimes(0);
+    });
   });
 
   it("should not allow call done() before start()", async () => {
