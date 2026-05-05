@@ -8166,7 +8166,7 @@ __metadata:
     adm-zip: "npm:^0.5.16"
     allure-vitest: "npm:^3.3.3"
     clipanion: "npm:^4.0.0-rc.4"
-    glob: "npm:^11.1.0"
+    glob: "npm:^13.0.6"
     lodash.omit: "npm:^4.18.0"
     prompts: "npm:^2.4.2"
     rimraf: "npm:^6.0.1"
@@ -11722,7 +11722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^11.0.0, glob@npm:^11.1.0":
+"glob@npm:^11.0.0":
   version: 11.1.0
   resolution: "glob@npm:11.1.0"
   dependencies:
