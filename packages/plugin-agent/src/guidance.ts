@@ -150,6 +150,7 @@ export const AGENT_VERIFICATION_RULES = [
   "If a command executes tests and its result will be used for smoke checking, reasoning, review, coverage analysis, debugging, or any user-facing conclusion, run it through `allure agent`. It preserves the original console logs and adds agent-mode artifacts without inheriting the normal report or export plugins from the project config.",
   "Use `allure agent` for smoke checks too, even when the change is small or mechanical.",
   "Only skip agent mode when it is impossible or when you are debugging agent mode itself.",
+  "After changing a package in this repository, run that package build command before finalizing (for example, `yarn workspace <package-name> build`).",
   "After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.",
 ] as const;
 

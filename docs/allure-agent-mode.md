@@ -25,6 +25,7 @@ Runtime first, source second.
 - Use `allure agent` for smoke checks too, even when the change is small or mechanical.
 - Only skip agent mode when it is impossible or when you are debugging agent mode itself.
 - After each agent-mode test run, print the `index.md` path from that run's output directory so users can open the run overview quickly.
+- After changing a package in this repository, run that package build command before finalizing (for example, `yarn workspace <package-name> build`).
 
 ## Repository Status
 
