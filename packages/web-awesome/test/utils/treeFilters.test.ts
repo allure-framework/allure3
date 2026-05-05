@@ -138,7 +138,7 @@ describe("utils > treeFilters", () => {
     });
 
     it("sorts leaves by status in descending order", () => {
-      const leaves = ["a1", "b2", "c3", "d4", "e5"];
+      const leaves = ["a1", "b2", "c3", "d4", "e5", "f6", "z9"];
       const leavesById = {
         a1: {
           name: "a1",
@@ -160,15 +160,25 @@ describe("utils > treeFilters", () => {
           name: "e5",
           status: "skipped",
         } as AwesomeTestResult,
+        f6: {
+          name: "f6",
+          status: "failed",
+        } as AwesomeTestResult,
+        z9: {
+          name: "z9",
+          status: "passed",
+        } as AwesomeTestResult,
       };
       const result = filterLeaves(leaves, leavesById as any, alwaysTruePredicate, "status,desc");
 
       expect(result).toEqual([
-        expect.objectContaining({ name: "d4" }),
-        expect.objectContaining({ name: "e5" }),
-        expect.objectContaining({ name: "a1" }),
-        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "f6" }),
         expect.objectContaining({ name: "b2" }),
+        expect.objectContaining({ name: "c3" }),
+        expect.objectContaining({ name: "z9" }),
+        expect.objectContaining({ name: "a1" }),
+        expect.objectContaining({ name: "e5" }),
+        expect.objectContaining({ name: "d4" }),
       ]);
     });
 
@@ -325,6 +335,75 @@ describe("utils > treeFilters", () => {
           trees: [],
         }),
       );
+    });
+
+    it("keeps problem-heavy groups first when sorting by status in descending order", () => {
+      const group = {
+        leaves: [],
+        groups: ["passedHeavy", "failedAlpha", "brokenGroup", "failedZulu"],
+      };
+      const leavesById = {
+        failedAlphaTest: {
+          name: "failedAlphaTest",
+          status: "failed",
+        } as AwesomeTestResult,
+        failedZuluTest: {
+          name: "failedZuluTest",
+          status: "failed",
+        } as AwesomeTestResult,
+        brokenTest1: {
+          name: "brokenTest1",
+          status: "broken",
+        } as AwesomeTestResult,
+        brokenTest2: {
+          name: "brokenTest2",
+          status: "broken",
+        } as AwesomeTestResult,
+        passedTest1: {
+          name: "passedTest1",
+          status: "passed",
+        } as AwesomeTestResult,
+        passedTest2: {
+          name: "passedTest2",
+          status: "passed",
+        } as AwesomeTestResult,
+      };
+      const groupsById = {
+        passedHeavy: {
+          name: "passedHeavy",
+          leaves: ["passedTest1", "passedTest2"],
+          groups: [] as string[],
+        },
+        brokenGroup: {
+          name: "brokenGroup",
+          leaves: ["brokenTest1", "brokenTest2"],
+          groups: [] as string[],
+        },
+        failedAlpha: {
+          name: "failedAlpha",
+          leaves: ["failedAlphaTest"],
+          groups: [] as string[],
+        },
+        failedZulu: {
+          name: "failedZulu",
+          leaves: ["failedZuluTest"],
+          groups: [] as string[],
+        },
+      };
+      const result = createRecursiveTree({
+        group: group as any,
+        leavesById: leavesById as any,
+        groupsById: groupsById as any,
+        filterPredicate: alwaysTruePredicate,
+        sortBy: "status,desc",
+      });
+
+      expect(result.trees).toEqual([
+        expect.objectContaining({ name: "failedZulu" }),
+        expect.objectContaining({ name: "failedAlpha" }),
+        expect.objectContaining({ name: "brokenGroup" }),
+        expect.objectContaining({ name: "passedHeavy" }),
+      ]);
     });
   });
 });
