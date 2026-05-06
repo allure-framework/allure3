@@ -59,8 +59,9 @@ const groupComparatorByTreeSortBy = (sortBy: SortBy = "status,asc"): Comparator<
 };
 
 const withDirection = <T extends { name: string }>(cmp: Comparator<T>, sortBy: SortBy): Comparator<T> => {
-  const isStatusSort = sortBy.startsWith("status,");
-  const isDescending = sortBy.endsWith(",desc");
+  const sortParams = sortBy.split(",");
+  const isStatusSort = sortParams.includes("status");
+  const isDescending = sortParams.includes("desc");
   const nameComparator = compareBy<T>("name", alphabetically());
 
   return andThen([
