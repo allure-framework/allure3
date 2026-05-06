@@ -105,22 +105,24 @@ export interface BatchOptions {
   maxTimeout?: number;
 }
 
+export type RealtimeListenerResult = void | Promise<void>;
+
 export interface RealtimeSubscriber {
   onGlobalAttachment(
-    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => Promise<void>,
+    listener: (payload: { attachment: ResultFile; fileName?: string; environment?: string }) => RealtimeListenerResult,
   ): () => void;
 
-  onGlobalExitCode(listener: (payload: ExitCode) => Promise<void>): () => void;
+  onGlobalExitCode(listener: (payload: ExitCode) => RealtimeListenerResult): () => void;
 
-  onGlobalError(listener: (error: PluginGlobalError) => Promise<void>): () => void;
+  onGlobalError(listener: (error: PluginGlobalError) => RealtimeListenerResult): () => void;
 
-  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => Promise<void>): () => void;
+  onQualityGateResults(listener: (payload: QualityGateValidationResult[]) => RealtimeListenerResult): () => void;
 
-  onTestResults(listener: (trIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestResults(listener: (trIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onTestFixtureResults(listener: (tfrIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onTestFixtureResults(listener: (tfrIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 
-  onAttachmentFiles(listener: (afIds: string[]) => Promise<void>, options?: BatchOptions): () => void;
+  onAttachmentFiles(listener: (afIds: string[]) => RealtimeListenerResult, options?: BatchOptions): () => void;
 }
 
 export interface RealtimeEventsDispatcher {
