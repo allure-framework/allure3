@@ -20,6 +20,7 @@ import {
   type TestError,
   type TestFixtureResult,
   type TestResult,
+  type TestStepResult,
   compareBy,
   createDictionary,
   getHistoryIdCandidates,
@@ -128,6 +129,21 @@ export const updateMapWithRecord = <K extends string | number | symbol, T = any>
   });
 
   return map;
+};
+
+const relinkAttachmentSteps = (steps: TestStepResult[] = [], attachments: Map<string, AttachmentLink>) => {
+  steps.forEach((step) => {
+    if (step.type === "attachment") {
+      const restoredLink = attachments.get(step.link.id);
+
+      if (restoredLink && restoredLink.used) {
+        step.link = restoredLink;
+      }
+      return;
+    }
+
+    relinkAttachmentSteps(step.steps, attachments);
+  });
 };
 
 export class DefaultAllureStore implements AllureStore, ResultsVisitor {
@@ -1018,6 +1034,33 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#attachmentContents.get(attachmentId);
   }
 
+  #restoreAttachmentContent(id: string, content: ResultFile) {
+    const attachment = this.#attachments.get(id);
+
+    this.#attachmentContents.set(id, content);
+
+    if (!attachment) {
+      return;
+    }
+
+    const linkedAttachment = attachment as AttachmentLinkLinked;
+
+    linkedAttachment.missed = false;
+    linkedAttachment.contentType = linkedAttachment.contentType ?? content.getContentType();
+    linkedAttachment.contentLength = content.getContentLength();
+    linkedAttachment.ext =
+      linkedAttachment.ext === undefined || linkedAttachment.ext === "" ? content.getExtension() : linkedAttachment.ext;
+  }
+
+  #relinkRestoredAttachmentSteps() {
+    this.#testResults.forEach(({ steps }) => {
+      relinkAttachmentSteps(steps, this.#attachments);
+    });
+    this.#fixtures.forEach(({ steps }) => {
+      relinkAttachmentSteps(steps, this.#attachments);
+    });
+  }
+
   async metadataByKey<T>(key: string): Promise<T | undefined> {
     return this.#metadata.get(key);
   }
@@ -1485,7 +1528,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     updateMapWithRecord(this.#attachments, attachments);
     updateMapWithRecord(this.#testCases, testCases);
     updateMapWithRecord(this.#fixtures, fixtures);
-    updateMapWithRecord(this.#attachmentContents, attachmentsContents);
+    Object.entries(attachmentsContents).forEach(([id, content]) => {
+      this.#restoreAttachmentContent(id, content);
+    });
+    this.#relinkRestoredAttachmentSteps();
     globalAttachmentIds.forEach((id) => {
       const attachment = this.#attachments.get(id);
 
