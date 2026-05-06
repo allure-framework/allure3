@@ -3535,6 +3535,33 @@ describe("dump state", () => {
     expect(results).toContainEqual(dumpResult);
   });
 
+  it("should add, dump, and restore check results", async () => {
+    const store = new DefaultAllureStore();
+    const checkResult = {
+      name: "Lint",
+      status: "passed" as const,
+      tags: ["ci", "linux"],
+      details: {
+        command: "npm run lint",
+        message: "lint ok",
+      },
+    };
+
+    await store.addCheckResult(checkResult);
+
+    expect(await store.allCheckResults()).toEqual([checkResult]);
+
+    const dump = store.dumpState();
+
+    expect(dump.checkResults).toEqual([checkResult]);
+
+    const newStore = new DefaultAllureStore();
+
+    await newStore.restoreState(dump, {});
+
+    expect(await newStore.allCheckResults()).toEqual([checkResult]);
+  });
+
   it("should reject restored test results assigned to environments outside allowedEnvironments", async () => {
     const store = new DefaultAllureStore({
       allowedEnvironments: ["qa_env"],

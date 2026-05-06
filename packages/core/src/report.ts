@@ -396,6 +396,7 @@ export class AllureReport {
       attachments,
       environments,
       reportVariables,
+      checkResults = [],
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
@@ -411,6 +412,7 @@ export class AllureReport {
       [AllureStoreDumpFiles.TestCases, testCases],
       [AllureStoreDumpFiles.Fixtures, fixtures],
       [AllureStoreDumpFiles.Attachments, attachments],
+      [AllureStoreDumpFiles.CheckResults, checkResults],
       [AllureStoreDumpFiles.Environments, environments],
       [AllureStoreDumpFiles.ReportVariables, reportVariables],
       [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
@@ -506,6 +508,7 @@ export class AllureReport {
         const testCasesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestCases);
         const fixturesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Fixtures);
         const attachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Attachments);
+        const checkResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.CheckResults);
         const environmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Environments);
         const reportVariablesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.ReportVariables);
         const globalAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalAttachments);
@@ -533,6 +536,7 @@ export class AllureReport {
         const attachmentsEntries = Object.entries(await dumpArchive.entries()).reduce((acc, [entryName, entry]) => {
           switch (entryName) {
             case AllureStoreDumpFiles.Attachments:
+            case AllureStoreDumpFiles.CheckResults:
             case AllureStoreDumpFiles.TestResults:
             case AllureStoreDumpFiles.TestCases:
             case AllureStoreDumpFiles.Fixtures:
@@ -564,6 +568,7 @@ export class AllureReport {
           testCases: JSON.parse(testCasesEntry.toString("utf8")),
           fixtures: JSON.parse(fixturesEntry.toString("utf8")),
           attachments: attachmentsLinks,
+          checkResults: checkResultsEntry ? JSON.parse(checkResultsEntry.toString("utf8")) : [],
           environments: JSON.parse(environmentsEntry.toString("utf8")),
           reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
           globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),

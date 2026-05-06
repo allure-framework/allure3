@@ -2,6 +2,7 @@ import { extname } from "node:path";
 
 /* eslint max-lines: off */
 import {
+  type AllureCheckResult,
   type AllureHistory,
   type AttachmentLink,
   type AttachmentLinkLinked,
@@ -181,6 +182,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   #globalErrors: PluginGlobalError[] = [];
   #globalErrorsByEnv: Map<string, PluginGlobalError[]> = new Map();
   #globalExitCode: ExitCode | undefined;
+  #checkResults: AllureCheckResult[] = [];
   #qualityGateResults: QualityGateValidationResult[] = [];
   #historyPoints: HistoryDataPoint[] = [];
   #environments: EnvironmentIdentity[] = [];
@@ -562,6 +564,28 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     await this.#history.appendHistory(history);
   }
 
+  // check data
+
+  async addCheckResult(result: AllureCheckResult): Promise<void> {
+    this.#checkResults.push({
+      name: result.name,
+      status: result.status,
+      ...(result.tags?.length ? { tags: [...result.tags] } : {}),
+      details: {
+        command: result.details.command,
+        ...(result.details.message ? { message: result.details.message } : {}),
+        ...(result.details.error ? { error: result.details.error } : {}),
+      },
+    });
+  }
+
+  async allCheckResults(): Promise<AllureCheckResult[]> {
+    return this.#checkResults.map((result) => ({
+      ...result,
+      ...(result.tags ? { tags: [...result.tags] } : {}),
+    }));
+  }
+
   // quality gate data
 
   async qualityGateResults(): Promise<QualityGateValidationResult[]> {
@@ -669,6 +693,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
   // test methods
 
   // visitor API
+
+  async visitCheckResult(result: AllureCheckResult): Promise<void> {
+    await this.addCheckResult(result);
+  }
 
   async visitTestResult(raw: RawTestResult, context: ReaderContext): Promise<void> {
     const attachmentLinks: AttachmentLink[] = [];
@@ -1405,6 +1433,10 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       reportVariables: this.#reportVariables,
       globalAttachmentIds: this.#globalAttachmentIds,
       globalErrors: this.#globalErrors,
+      checkResults: this.#checkResults.map((result) => ({
+        ...result,
+        ...(result.tags ? { tags: [...result.tags] } : {}),
+      })),
       indexLatestEnvTestResultByHistoryId: {},
       indexAttachmentByTestResult: {},
       indexTestResultByHistoryId: {},
@@ -1456,6 +1488,7 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
       environments,
       globalAttachmentIds = [],
       globalErrors = [],
+      checkResults = [],
       indexAttachmentByTestResult = {},
       indexTestResultByHistoryId = {},
       indexTestResultByTestCase = {},
@@ -1579,6 +1612,18 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
         },
       );
       this.#globalErrors.push(this.#indexGlobalError(error));
+    });
+    checkResults.forEach((result) => {
+      this.#checkResults.push({
+        name: result.name,
+        status: result.status,
+        ...(result.tags?.length ? { tags: [...result.tags] } : {}),
+        details: {
+          command: result.details?.command ?? "",
+          ...(result.details?.message ? { message: result.details.message } : {}),
+          ...(result.details?.error ? { error: result.details.error } : {}),
+        },
+      });
     });
 
     Object.assign(this.#reportVariables, reportVariables);

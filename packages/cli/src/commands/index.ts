@@ -5,6 +5,7 @@ export * from "./allure2.js";
 export * from "./agent.js";
 export * from "./awesome.js";
 export * from "./csv.js";
+export * from "./check.js";
 export * from "./history.js";
 export * from "./knownIssue.js";
 export * from "./run.js";

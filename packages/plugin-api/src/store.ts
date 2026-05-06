@@ -1,4 +1,5 @@
 import type {
+  AllureCheckResult,
   AttachmentLink,
   EnvironmentIdentity,
   HistoryDataPoint,
@@ -31,6 +32,9 @@ export interface AllureStore {
   allHistoryDataPointsByEnvironmentId: (environmentId: string) => Promise<HistoryDataPoint[]>;
   allKnownIssues: () => Promise<KnownTestFailure[]>;
   allNewTestResults: (filter?: TestResultFilter, history?: HistoryDataPoint[]) => Promise<TestResult[]>;
+  // check data
+  addCheckResult: (result: AllureCheckResult) => Promise<void>;
+  allCheckResults: () => Promise<AllureCheckResult[]>;
   // quality gate data
   qualityGateResults: () => Promise<QualityGateValidationResult[]>;
   qualityGateResultsByEnv: () => Promise<Record<string, QualityGateValidationResult[]>>;
@@ -79,6 +83,7 @@ export interface AllureStoreDump {
   attachments: Record<string, AttachmentLink>;
   globalAttachmentIds: string[];
   globalErrors: PluginGlobalError[];
+  checkResults: AllureCheckResult[];
   testCases: Record<string, TestCase>;
   fixtures: Record<string, TestFixtureResult>;
   environments: Array<string | EnvironmentIdentity>;
@@ -100,6 +105,7 @@ export enum AllureStoreDumpFiles {
   GlobalErrors = "global-errors.json",
   GlobalAttachments = "global-attachments.json",
   Attachments = "attachments.json",
+  CheckResults = "check-results.json",
   Environments = "environments.json",
   ReportVariables = "report-variables.json",
   IndexAttachmentsByTestResults = "index-attachments-by-test-results.json",

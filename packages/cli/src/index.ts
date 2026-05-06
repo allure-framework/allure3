@@ -10,6 +10,7 @@ import {
   AgentStateDirCommand,
   Allure2Command,
   AwesomeCommand,
+  CheckCommand,
   ClassicCommand,
   CsvCommand,
   DashboardCommand,
@@ -46,6 +47,7 @@ cli.register(AgentLatestCommand);
 cli.register(AgentSelectCommand);
 cli.register(AgentStateDirCommand);
 cli.register(AgentCommand);
+cli.register(CheckCommand);
 cli.register(ClassicCommand);
 cli.register(CsvCommand);
 cli.register(DashboardCommand);

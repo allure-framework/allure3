@@ -6,9 +6,28 @@ import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
+const generateCheckResultName = () => `${randomUUID()}-check-result.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
 describe("allure2 reader", () => {
+  it("should parse check result", async () => {
+    const visitor = await readResults(allure2, {
+      "allure2data/check-result.json": generateCheckResultName(),
+    });
+
+    expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);
+    expect(visitor.visitTestResult).not.toHaveBeenCalled();
+    expect(visitor.visitCheckResult.mock.calls[0][0]).toEqual({
+      name: "Lint",
+      status: "passed",
+      tags: ["ci", "linux"],
+      details: {
+        command: "npm run lint",
+        message: "lint ok",
+      },
+    });
+  });
+
   it("should parse simple result", async () => {
     const visitor = await readResults(allure2, {
       "allure2data/simple.json": generateTestResultName(),
