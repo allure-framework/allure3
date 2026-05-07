@@ -13,13 +13,20 @@ export type TrDescriptionProps = {
   descriptionHtml: AwesomeTestResult["descriptionHtml"];
 };
 
-const MIN_HEIGHT = 120;
+const getIframeContentHeight = (iframe: HTMLIFrameElement) => {
+  const documentElement = iframe.contentDocument?.documentElement;
+  const body = iframe.contentDocument?.body;
+  const bodyRectHeight = body?.getBoundingClientRect().height ?? 0;
+  const scrollHeight = Math.max(body?.scrollHeight ?? 0, documentElement?.scrollHeight ?? 0);
+
+  return Math.ceil(Math.max(bodyRectHeight, scrollHeight));
+};
 
 export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, descriptionHtml }) => {
-  const descriptionId = id !== null ? `${id}-description` : null;
+  const descriptionId = typeof id === "string" ? `${id}-description` : null;
   const isOpen = !collapsedTrees.value.has(descriptionId);
   const [blobUrl, setBlobUrl] = useState("");
-  const [height, setHeight] = useState(MIN_HEIGHT);
+  const [height, setHeight] = useState(0);
   const currentTheme = themeStore.value.current;
 
   const sanitized = useMemo(() => (descriptionHtml ? sanitizeIframeHtml(descriptionHtml) : ""), [descriptionHtml]);
@@ -51,10 +58,7 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
 
   const handleLoad = (e: Event) => {
     const iframe = e.currentTarget as HTMLIFrameElement;
-    const documentElement = iframe.contentDocument?.documentElement;
-    const body = iframe.contentDocument?.body;
-    const scrollHeight = Math.max(documentElement?.scrollHeight ?? 0, body?.scrollHeight ?? 0);
-    setHeight(Math.max(scrollHeight, MIN_HEIGHT));
+    setHeight(getIframeContentHeight(iframe));
   };
 
   return (
@@ -74,6 +78,7 @@ export const TrDescription: FunctionalComponent<TrDescriptionProps> = ({ id, des
             {blobUrl && (
               <iframe
                 data-testid="test-result-description-frame"
+                title="Description"
                 src={blobUrl}
                 width="100%"
                 height={String(height)}
