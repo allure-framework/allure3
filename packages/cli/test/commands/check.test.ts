@@ -130,7 +130,7 @@ describe("check command", () => {
       shell: false,
     });
     expect(mkdir).toHaveBeenCalledWith("/report-output", { recursive: true });
-    expect(vi.mocked(writeFile).mock.calls[0][0]).toMatch(/\/report-output\/.+-check-result\.json$/);
+    expect(vi.mocked(writeFile).mock.calls[0][0]).toMatch(/report-output(\/|\\).+-check-result\.json$/);
     expect(readWrittenCheckResult()).toEqual({
       name: "Lint",
       status: "passed",
