@@ -1,10 +1,10 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { exit } from "node:process";
 
 import { AllureReport, readConfig } from "@allurereport/core";
 import AwesomePlugin from "@allurereport/plugin-awesome";
 import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AwesomeCommand } from "../../src/commands/awesome.js";
@@ -29,16 +29,17 @@ vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
 }));
-vi.mock("node:fs", async (importOriginal) => ({
-  ...(await importOriginal()),
-  existsSync: vi.fn(),
-}));
 vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
   return {
     readConfig: vi.fn(),
     AllureReport: AllureReportMock,
+  };
+});
+vi.mock("glob", async () => {
+  return {
+    glob: vi.fn(),
   };
 });
 
@@ -48,35 +49,25 @@ beforeEach(() => {
 
 describe("awesome command", () => {
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(false);
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
     (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
 
-    const command = new AwesomeCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(AwesomeCommand, ["awesome", fixtures.resultsDir]);
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+      expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();
   });
 
   it("should initialize allure report with default plugin options when config doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [],
     });
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new AwesomeCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(AwesomeCommand, ["awesome", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith({
@@ -94,7 +85,6 @@ describe("awesome command", () => {
   });
 
   it("should initialize allure report with default plugin options even when config exists", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({
       plugins: [
         {
@@ -111,13 +101,9 @@ describe("awesome command", () => {
         },
       ],
     });
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new AwesomeCommand();
-
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(AwesomeCommand, ["awesome", fixtures.resultsDir]);
 
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport).toHaveBeenCalledWith(
@@ -133,8 +119,8 @@ describe("awesome command", () => {
   });
 
   it("should prefer CLI arguments over config and defaults", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
     await run(AwesomeCommand, [
       "awesome",
@@ -160,8 +146,8 @@ describe("awesome command", () => {
   });
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
     (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
     await run(AwesomeCommand, ["awesome", "./allure-results"]);
 
@@ -176,7 +162,7 @@ describe("awesome command", () => {
   });
 
   it("should pass hideLabels from CLI to awesome plugin options", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
     const config = {
       hideLabels: ["owner", "tag"],
     };
