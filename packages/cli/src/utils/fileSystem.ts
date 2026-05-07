@@ -1,6 +1,6 @@
 import { glob } from "glob";
 
-export const searchFilesByGlobs = async (basePath: string, patterns: readonly string[]) => {
+export const findFilesByGlobs = async (basePath: string, patterns: readonly string[]) => {
   const files: string[] = [];
 
   for (const pattern of patterns) {
@@ -18,7 +18,7 @@ export const searchFilesByGlobs = async (basePath: string, patterns: readonly st
   return files;
 };
 
-export const searchDirectoriesByGlobs = async (basePath: string, patterns: readonly string[]) => {
+export const findDirectoriesByGlobs = async (basePath: string, patterns: readonly string[]) => {
   const directories: string[] = [];
 
   for (const pattern of patterns) {
@@ -38,8 +38,8 @@ export const searchDirectoriesByGlobs = async (basePath: string, patterns: reado
   return directories;
 };
 
-export const searchAllureResultDirectories = async (basePath: string, patterns: readonly string[]) => {
+export const findAllureResultDirectories = async (basePath: string, patterns: readonly string[]) => {
   const resolvedPatterns = patterns.length ? patterns : ["./**/allure-results"];
-  const resultDirectories = await searchDirectoriesByGlobs(basePath, resolvedPatterns);
+  const resultDirectories = await findDirectoriesByGlobs(basePath, resolvedPatterns);
   return { patterns: resolvedPatterns, resultDirectories };
 };

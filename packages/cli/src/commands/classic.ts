@@ -7,7 +7,7 @@ import ClassicPlugin, { type ClassicPluginOptions } from "@allurereport/plugin-c
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { searchAllureResultDirectories } from "../utils/fileSystem.js";
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class ClassicCommand extends Command {
   static paths = [["classic"]];
@@ -72,7 +72,7 @@ export class ClassicCommand extends Command {
   async execute() {
     const cwd = await realpath(this.cwd ?? process.cwd());
 
-    const { resultDirectories, patterns } = await searchAllureResultDirectories(cwd, this.resultsDir);
+    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);

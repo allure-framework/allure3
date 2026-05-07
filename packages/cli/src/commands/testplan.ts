@@ -6,7 +6,7 @@ import { AllureReport, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
 
-import { searchAllureResultDirectories } from "../utils/fileSystem.js";
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class TestPlanCommand extends Command {
   static paths = [["testplan"]];
@@ -40,7 +40,7 @@ export class TestPlanCommand extends Command {
   });
 
   async execute() {
-    const { resultDirectories, patterns } = await searchAllureResultDirectories(process.cwd(), this.resultsDir);
+    const { resultDirectories, patterns } = await findAllureResultDirectories(process.cwd(), this.resultsDir);
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);

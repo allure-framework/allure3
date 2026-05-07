@@ -8,7 +8,7 @@ import { readConfig } from "@allurereport/core";
 import { serve } from "@allurereport/static-server";
 import { Command, Option } from "clipanion";
 
-import { searchFilesByGlobs } from "./../utils/fileSystem.js";
+import { findFilesByGlobs } from "./../utils/fileSystem.js";
 import { generate } from "./commons/generate.js";
 
 export class OpenCommand extends Command {
@@ -103,7 +103,7 @@ export class OpenCommand extends Command {
       const [maybeRelativeReportPath = fallback] = inputs;
       const maybeAbsoluteReportPath = join(cwd, maybeRelativeReportPath);
       if (existsSync(maybeAbsoluteReportPath)) {
-        const summaryFiles = await searchFilesByGlobs(cwd, [join(maybeAbsoluteReportPath, "**", "summary.json")]);
+        const summaryFiles = await findFilesByGlobs(cwd, [join(maybeAbsoluteReportPath, "**", "summary.json")]);
         if (summaryFiles.length > 0) {
           return maybeAbsoluteReportPath;
         }

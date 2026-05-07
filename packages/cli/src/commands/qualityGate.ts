@@ -14,7 +14,7 @@ import {
   normalizeCommandEnvironmentOptions,
   resolveCommandEnvironment,
 } from "../utils/environment.js";
-import { searchAllureResultDirectories } from "../utils/fileSystem.js";
+import { findAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class QualityGateCommand extends Command {
   static paths = [["quality-gate"]];
@@ -136,7 +136,7 @@ export class QualityGateCommand extends Command {
       return;
     }
 
-    const { resultDirectories, patterns } = await searchAllureResultDirectories(cwd, this.resultsDir);
+    const { resultDirectories, patterns } = await findAllureResultDirectories(cwd, this.resultsDir);
     if (!resultDirectories.length) {
       console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
