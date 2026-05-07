@@ -47,9 +47,9 @@ export class HistoryCommand extends Command {
   });
 
   async execute() {
-    const resultDirectories = await searchAllureResultDirectories(process.cwd(), this.resultsDir);
+    const { resultDirectories, patterns } = await searchAllureResultDirectories(process.cwd(), this.resultsDir);
     if (!resultDirectories.length) {
-      console.error(red(`No test results directories found matching pattern: ${this.resultsDir}`));
+      console.error(red(`No test results directories found matching pattern: ${patterns}`));
       exit(1);
       return;
     }

@@ -39,5 +39,7 @@ export const searchDirectoriesByGlobs = async (basePath: string, patterns: reado
 };
 
 export const searchAllureResultDirectories = async (basePath: string, patterns: readonly string[]) => {
-  return await searchDirectoriesByGlobs(basePath, patterns.length ? patterns : ["./**/allure-results"]);
+  const resolvedPatterns = patterns.length ? patterns : ["./**/allure-results"];
+  const resultDirectories = await searchDirectoriesByGlobs(basePath, resolvedPatterns);
+  return { patterns: resolvedPatterns, resultDirectories };
 };

@@ -13,14 +13,14 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
 
   // don't read allure results directories without the parameter when dump file has been found
   // or read allure results directory when it is explicitly provided
-  const resultsDirectories: string[] =
+  const { resultDirectories = [], patterns = params.resultsDir } =
     !!params?.resultsDir || dumpFiles.length === 0
       ? await searchAllureResultDirectories(params.cwd, params.resultsDir)
-      : [];
+      : {};
 
-  if (resultsDirectories.length === 0 && dumpFiles.length === 0) {
+  if (resultDirectories.length === 0 && dumpFiles.length === 0) {
     // eslint-disable-next-line no-console
-    console.error(red(`No test results directories found matching pattern: ${params.resultsDir}`));
+    console.error(red(`No test results directories found matching pattern: ${patterns}`));
     exit(1);
     return;
   }
@@ -31,7 +31,7 @@ export const generate = async (params: { cwd: string; config: FullConfig; result
     await allureReport.restoreState(Array.from(dumpFiles));
     await allureReport.start();
 
-    for (const dir of resultsDirectories) {
+    for (const dir of resultDirectories) {
       await allureReport.readDirectory(dir);
     }
 
