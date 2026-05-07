@@ -2,7 +2,7 @@ import { defineConfig } from "allure";
 import { qualityGateDefaultRules } from "allure/rules";
 import { env } from "node:process";
 
-const { ALLURE_SERVICE_ACCESS_TOKEN } = env;
+const { ALLURE_SERVICE_ACCESS_TOKEN, ALLURE_SERVICE_URL } = env;
 
 /**
  * @type {import("allure").AllureConfig}
