@@ -1,5 +1,4 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
 import process, { exit } from "node:process";
 
@@ -7,6 +6,8 @@ import { AllureReport, readConfig } from "@allurereport/core";
 import LogPlugin, { type LogPluginOptions } from "@allurereport/plugin-log";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
+
+import { searchAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class LogCommand extends Command {
   static paths = [["log"]];
@@ -21,10 +22,17 @@ export class LogCommand extends Command {
         "log ./allure-results --all-steps --with-trace",
         "Print results with all steps and stack traces from the ./allure-results directory",
       ],
+      ["log ./packages/*/allure-results", "Print results from all Allure result directories matching the pattern"],
+      [
+        "log ./packages/foo/allure-results ./packages/bar/allure-results",
+        "Print results from two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   config = Option.String("--config,-c", {
     description: "The path Allure config file",
@@ -47,13 +55,15 @@ export class LogCommand extends Command {
   });
 
   async execute() {
-    if (!existsSync(this.resultsDir)) {
-      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+    const cwd = await realpath(this.cwd ?? process.cwd());
+
+    const resultDirectories = await searchAllureResultDirectories(cwd, this.resultsDir);
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${this.resultsDir}`));
       exit(1);
       return;
     }
 
-    const cwd = await realpath(this.cwd ?? process.cwd());
     const before = new Date().getTime();
     const defaultLogOptions = {
       allSteps: this.allSteps ?? false,
@@ -74,7 +84,11 @@ export class LogCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir);
+
+    for (const directory of resultDirectories) {
+      await allureReport.readDirectory(directory);
+    }
+
     await allureReport.done();
 
     const after = new Date().getTime();
