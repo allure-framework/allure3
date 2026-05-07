@@ -250,7 +250,6 @@ describe("quality-gate command", () => {
 
   it("should prefer CLI arguments over config and defaults", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
-    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
     await run(QualityGateCommand, ["quality-gate", "--known-issues", "foo"]);
 
@@ -262,7 +261,6 @@ describe("quality-gate command", () => {
 
   it("should not overwrite readConfig values if no CLI arguments provided", async () => {
     (readConfig as Mock).mockResolvedValueOnce({});
-    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
     await run(QualityGateCommand, ["quality-gate"]);
 
