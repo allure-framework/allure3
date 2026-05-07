@@ -301,4 +301,32 @@ describe("quality-gate command", () => {
       }),
     );
   });
+
+  it("should support multiple resultsDir", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar/"]);
+    (readConfig as Mock).mockResolvedValueOnce({ plugins: [] });
+    AllureReportMock.prototype.hasQualityGate = true;
+    AllureReportMock.prototype.realtimeSubscriber = {
+      onTestResults: () => {},
+    };
+    AllureReportMock.prototype.store = {
+      allTestResults: vi.fn().mockResolvedValue([]),
+      testResultById: vi.fn(),
+      allKnownIssues: vi.fn().mockResolvedValue([]),
+    };
+    (AllureReportMock.prototype.validate as unknown as Mock).mockResolvedValueOnce({ results: [] });
+
+    await run(QualityGateCommand, ["quality-gate", "foo", "bar"]);
+
+    expect(exit).toHaveBeenCalledWith(0);
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", expect.any(Object));
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", expect.any(Object));
+
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledTimes(2);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./foo/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./bar/");
+  });
 });

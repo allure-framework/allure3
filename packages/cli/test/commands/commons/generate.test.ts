@@ -174,4 +174,45 @@ describe("generate function", () => {
     expect(AllureReportMock.prototype.done).toHaveBeenCalled();
     expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledWith("./allure-results/");
   });
+
+  it("should support multiple result directories", async () => {
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo1/", "./foo2/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar1/", "./bar2/"]);
+    (readConfig as Mock).mockResolvedValue({});
+
+    await generate({
+      cwd: ".",
+      config: {} as FullConfig,
+      resultsDir: ["foo", "bar"],
+      dump: [],
+    });
+
+    expect(AllureReportMock).toHaveBeenCalled();
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: ".",
+    });
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", {
+      mark: true,
+      nodir: false,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: ".",
+    });
+    expect(AllureReportMock.prototype.restoreState).toHaveBeenCalledWith([]);
+    expect(AllureReportMock.prototype.start).toHaveBeenCalled();
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenCalledTimes(4);
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(1, "./foo1/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(2, "./foo2/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(3, "./bar1/");
+    expect(AllureReportMock.prototype.readDirectory).toHaveBeenNthCalledWith(4, "./bar2/");
+    expect(AllureReportMock.prototype.done).toHaveBeenCalled();
+  });
 });

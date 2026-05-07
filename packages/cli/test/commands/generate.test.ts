@@ -280,4 +280,18 @@ describe("generate command", () => {
       }),
     );
   });
+
+  it("should support multiple resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValue({});
+    (generate as Mock).mockResolvedValue(undefined);
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(GenerateCommand, ["generate", "foo", "bar"]);
+
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsDir: ["foo", "bar"],
+      }),
+    );
+  });
 });

@@ -152,4 +152,20 @@ describe("allure2 command", () => {
       historyPath: undefined,
     });
   });
+
+  it("should support multiple resultsDir", async () => {
+    (readConfig as Mock).mockResolvedValueOnce({});
+    (glob as unknown as Mock).mockResolvedValueOnce(["./foo/"]);
+    (glob as unknown as Mock).mockResolvedValueOnce(["./bar/"]);
+
+    await run(Allure2Command, ["allure2", "foo", "bar"]);
+
+    expect(glob).toHaveBeenCalledTimes(2);
+    expect(glob).toHaveBeenNthCalledWith(1, "foo", expect.any(Object));
+    expect(glob).toHaveBeenNthCalledWith(2, "bar", expect.any(Object));
+
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(2);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(1, "./foo/");
+    expect(AllureReport.prototype.readDirectory).toHaveBeenNthCalledWith(2, "./bar/");
+  });
 });
