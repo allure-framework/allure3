@@ -1,10 +1,11 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
-import { exit } from "node:process";
+import process, { exit } from "node:process";
 
 import { AllureReport, resolveConfig } from "@allurereport/core";
 import { Command, Option } from "clipanion";
 import { red } from "yoctocolors";
+
+import { searchAllureResultDirectories } from "../utils/fileSystem.js";
 
 export class HistoryCommand extends Command {
   static paths = [["history"]];
@@ -18,10 +19,20 @@ export class HistoryCommand extends Command {
         "history ./allure-results --history-path custom-history.jsonl",
         "Generate history from the ./allure-results directory to the custom-history.jsonl file",
       ],
+      [
+        "history ./packages/*/allure-results",
+        "Generate history from all Allure result directories matching the pattern",
+      ],
+      [
+        "history ./packages/foo/allure-results ./packages/bar/allure-results",
+        "Generate history from two Allure result directories",
+      ],
     ],
   });
 
-  resultsDir = Option.String({ required: true, name: "The directory with Allure results" });
+  resultsDir = Option.Rest({
+    name: "Patterns to match test results directories in the current working directory (default: ./**/allure-results)",
+  });
 
   historyPath = Option.String("--history-path,-h", {
     description: "The path to history file",
@@ -36,9 +47,11 @@ export class HistoryCommand extends Command {
   });
 
   async execute() {
-    if (!existsSync(this.resultsDir)) {
-      console.error(red(`The given test results directory doesn't exist: ${this.resultsDir}`));
+    const resultDirectories = await searchAllureResultDirectories(process.cwd(), this.resultsDir);
+    if (!resultDirectories.length) {
+      console.error(red(`No test results directories found matching pattern: ${this.resultsDir}`));
       exit(1);
+      return;
     }
 
     const config = await resolveConfig({
@@ -52,7 +65,11 @@ export class HistoryCommand extends Command {
     const allureReport = new AllureReport(config);
 
     await allureReport.start();
-    await allureReport.readDirectory(this.resultsDir);
+
+    for (const directory of resultDirectories) {
+      await allureReport.readDirectory(directory);
+    }
+
     await allureReport.done();
   }
 }
