@@ -1034,6 +1034,21 @@ export class DefaultAllureStore implements AllureStore, ResultsVisitor {
     return this.#attachmentContents.get(attachmentId);
   }
 
+  markAttachmentMissed(attachmentId: string) {
+    const attachment = this.#attachments.get(attachmentId);
+
+    if (!attachment) {
+      return;
+    }
+
+    const missedAttachment = attachment as AttachmentLink & { contentLength?: number; missed: boolean };
+
+    missedAttachment.missed = true;
+    delete missedAttachment.contentLength;
+    this.#attachmentContents.delete(attachmentId);
+    this.#relinkRestoredAttachmentSteps();
+  }
+
   #restoreAttachmentContent(id: string, content: ResultFile) {
     const attachment = this.#attachments.get(id);
 

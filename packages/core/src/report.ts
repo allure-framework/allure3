@@ -1,6 +1,6 @@
 import console from "node:console";
 import { randomUUID } from "node:crypto";
-import { createReadStream, createWriteStream, existsSync, readFileSync } from "node:fs";
+import { createWriteStream, existsSync, readFileSync } from "node:fs";
 import { lstat, mkdtemp, opendir, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
@@ -13,7 +13,6 @@ import type {
   CategoryDefinition,
   CiDescriptor,
   KnownTestFailure,
-  ReportVariables,
   TestResult,
 } from "@allurereport/core-api";
 import { normalizeCategoriesConfig } from "@allurereport/core-api";
@@ -67,7 +66,6 @@ const remoteReportParams = (ci: CiDescriptor | undefined): { repo?: string; bran
 
 export class AllureReport {
   readonly #reportName: string;
-  readonly #reportVariables: ReportVariables;
   readonly #ci: CiDescriptor | undefined;
   readonly #store: DefaultAllureStore;
   readonly #readers: readonly ResultsReader[];
@@ -131,7 +129,6 @@ export class AllureReport {
     const reportTitleSuffix = this.#ci?.pullRequestName ?? this.#ci?.jobRunName;
 
     this.#reportName = [name, reportTitleSuffix].filter(Boolean).join(" – ");
-    this.#reportVariables = variables;
     this.#realtimeChannel = new RealtimeChannel();
     this.#realtimeUpdateScheduler = new RealtimeUpdateScheduler(this.#runRealtimeUpdate);
     this.#realTime = realTime;
@@ -345,12 +342,60 @@ export class AllureReport {
   };
 
   dumpState = async (): Promise<void> => {
-    const {
+    const dumpArchive = new ZipWriteStream({
+      zlib: { level: 5 },
+    });
+    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
+    const dumpPath = `${this.#dump}.zip`;
+    const dumpTempPath = `${dumpPath}.${randomUUID()}.tmp`;
+    const dumpArchiveWriteStream = createWriteStream(dumpTempPath);
+    let dumpArchiveError: unknown;
+    let dumpArchiveFinished = false;
+    let resolveDumpArchivePromise: (() => void) | undefined;
+    const finishDumpArchive = (err?: unknown) => {
+      dumpArchiveError ??= err;
+
+      if (!dumpArchiveFinished) {
+        dumpArchiveFinished = true;
+        resolveDumpArchivePromise?.();
+      }
+    };
+    const dumpArchivePromise = new Promise<void>((res) => {
+      resolveDumpArchivePromise = res;
+
+      dumpArchive.on("error", (err) => {
+        dumpArchiveWriteStream.destroy();
+        finishDumpArchive(err);
+      });
+      dumpArchiveWriteStream.on("finish", () => finishDumpArchive());
+      dumpArchiveWriteStream.on("error", (err) => finishDumpArchive(err));
+    });
+    const errMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
+    const addDumpEntry = async (data: Buffer, entryName: string): Promise<unknown | undefined> => {
+      try {
+        await addEntry(data, { name: entryName });
+        return undefined;
+      } catch (err) {
+        return err;
+      }
+    };
+    const addRequiredDumpEntry = async (data: Buffer, entryName: string) => {
+      const err = await addDumpEntry(data, entryName);
+
+      if (err) {
+        throw new Error(`Failed to write dump entry "${entryName}": ${errMessage(err)}`);
+      }
+    };
+    const addJsonDumpEntry = async (entryName: AllureStoreDumpFiles, value: unknown) => {
+      await addRequiredDumpEntry(Buffer.from(JSON.stringify(value)), entryName);
+    };
+    const dumpJsonEntries = ({
       testResults,
       testCases,
       fixtures,
-      attachments: attachmentsLinks,
+      attachments,
       environments,
+      reportVariables,
       globalAttachmentIds = [],
       globalErrors = [],
       indexAttachmentByTestResult = {},
@@ -361,91 +406,89 @@ export class AllureReport {
       indexFixturesByTestResult = {},
       indexKnownByHistoryId = {},
       qualityGateResults = [],
-    } = this.#store.dumpState();
-    const allAttachments = await this.#store.allAttachments();
-    const dumpArchive = new ZipWriteStream({
-      zlib: { level: 5 },
-    });
-    const addEntry = promisify(dumpArchive.entry.bind(dumpArchive));
-    const dumpArchiveWriteStream = createWriteStream(`${this.#dump}.zip`);
-    const promise = new Promise((res, rej) => {
-      dumpArchive.on("error", (err) => rej(err));
-      dumpArchiveWriteStream.on("finish", () => res(void 0));
-      dumpArchiveWriteStream.on("error", (err) => rej(err));
-    });
+    }: AllureStoreDump): [AllureStoreDumpFiles, unknown][] => [
+      [AllureStoreDumpFiles.TestResults, testResults],
+      [AllureStoreDumpFiles.TestCases, testCases],
+      [AllureStoreDumpFiles.Fixtures, fixtures],
+      [AllureStoreDumpFiles.Attachments, attachments],
+      [AllureStoreDumpFiles.Environments, environments],
+      [AllureStoreDumpFiles.ReportVariables, reportVariables],
+      [AllureStoreDumpFiles.GlobalAttachments, globalAttachmentIds],
+      [AllureStoreDumpFiles.GlobalErrors, globalErrors],
+      [AllureStoreDumpFiles.IndexAttachmentsByTestResults, indexAttachmentByTestResult],
+      [AllureStoreDumpFiles.IndexTestResultsByHistoryId, indexTestResultByHistoryId],
+      [AllureStoreDumpFiles.IndexTestResultsByTestCase, indexTestResultByTestCase],
+      [AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId, indexLatestEnvTestResultByHistoryId],
+      [AllureStoreDumpFiles.IndexAttachmentsByFixture, indexAttachmentByFixture],
+      [AllureStoreDumpFiles.IndexFixturesByTestResult, indexFixturesByTestResult],
+      [AllureStoreDumpFiles.IndexKnownByHistoryId, indexKnownByHistoryId],
+      [AllureStoreDumpFiles.QualityGateResults, qualityGateResults],
+    ];
+    let dumpError: unknown;
 
     dumpArchive.pipe(dumpArchiveWriteStream);
 
-    await addEntry(Buffer.from(JSON.stringify(testResults)), {
-      name: AllureStoreDumpFiles.TestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(testCases)), {
-      name: AllureStoreDumpFiles.TestCases,
-    });
-    await addEntry(Buffer.from(JSON.stringify(fixtures)), {
-      name: AllureStoreDumpFiles.Fixtures,
-    });
-    await addEntry(Buffer.from(JSON.stringify(attachmentsLinks)), {
-      name: AllureStoreDumpFiles.Attachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(environments)), {
-      name: AllureStoreDumpFiles.Environments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(this.#reportVariables)), {
-      name: AllureStoreDumpFiles.ReportVariables,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalAttachmentIds)), {
-      name: AllureStoreDumpFiles.GlobalAttachments,
-    });
-    await addEntry(Buffer.from(JSON.stringify(globalErrors)), {
-      name: AllureStoreDumpFiles.GlobalErrors,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByTestResult)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByTestResults,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexTestResultByTestCase)), {
-      name: AllureStoreDumpFiles.IndexTestResultsByTestCase,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexLatestEnvTestResultByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexLatestEnvTestResultsByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexAttachmentByFixture)), {
-      name: AllureStoreDumpFiles.IndexAttachmentsByFixture,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexFixturesByTestResult)), {
-      name: AllureStoreDumpFiles.IndexFixturesByTestResult,
-    });
-    await addEntry(Buffer.from(JSON.stringify(indexKnownByHistoryId)), {
-      name: AllureStoreDumpFiles.IndexKnownByHistoryId,
-    });
-    await addEntry(Buffer.from(JSON.stringify(qualityGateResults)), {
-      name: AllureStoreDumpFiles.QualityGateResults,
-    });
+    try {
+      const allAttachments = await this.#store.allAttachments();
 
-    for (const attachment of allAttachments) {
-      const content = await this.#store.attachmentContentById(attachment.id);
+      for (const attachment of allAttachments) {
+        const skipAttachment = (message: string) => {
+          const originalFileName = attachment.originalFileName ? ` (${attachment.originalFileName})` : "";
 
-      if (!content) {
-        continue;
+          this.#store.markAttachmentMissed(attachment.id);
+          console.warn(`Skipping attachment while writing dump: ${attachment.id}${originalFileName}. ${message}`);
+        };
+
+        try {
+          const content = await this.#store.attachmentContentById(attachment.id);
+
+          if (!content) {
+            skipAttachment("attachment content is missing");
+            continue;
+          }
+
+          const data = await content.asBuffer();
+
+          if (data === undefined) {
+            skipAttachment("attachment content is missing");
+            continue;
+          }
+
+          const err = await addDumpEntry(data, attachment.id);
+
+          if (err) {
+            skipAttachment(`failed to add attachment entry: ${errMessage(err)}`);
+          }
+        } catch (err) {
+          skipAttachment(errMessage(err));
+        }
       }
 
-      if (content instanceof PathResultFile) {
-        await addEntry(createReadStream(content.path), {
-          name: attachment.id,
-        });
-      } else {
-        await addEntry(await content.asBuffer(), {
-          name: attachment.id,
-        });
+      for (const [entryName, value] of dumpJsonEntries(this.#store.dumpState())) {
+        await addJsonDumpEntry(entryName, value);
       }
+    } catch (err) {
+      dumpError = err;
+    } finally {
+      try {
+        dumpArchive.finalize();
+      } catch (err) {
+        dumpError ??= err;
+        dumpArchiveWriteStream.destroy();
+        finishDumpArchive(err);
+      }
+
+      await dumpArchivePromise;
     }
 
-    dumpArchive.finalize();
+    dumpError ??= dumpArchiveError;
 
-    return promise as Promise<void>;
+    if (dumpError) {
+      await rm(dumpTempPath, { force: true });
+      throw dumpError;
+    }
+
+    await rename(dumpTempPath, dumpPath);
   };
 
   restoreState = async (dumps: string[]): Promise<void> => {
@@ -481,6 +524,7 @@ export class AllureReport {
       );
       const indexKnownByHistoryIdEntry = await dumpArchive.entryData(AllureStoreDumpFiles.IndexKnownByHistoryId);
       const qualityGateResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.QualityGateResults);
+      const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
       const attachmentsEntries = Object.entries(await dumpArchive.entries()).reduce((acc, [entryName, entry]) => {
         switch (entryName) {
@@ -502,6 +546,10 @@ export class AllureReport {
           case AllureStoreDumpFiles.QualityGateResults:
             return acc;
           default:
+            if (attachmentsLinks[entryName]?.missed) {
+              return acc;
+            }
+
             return Object.assign(acc, {
               [entryName]: entry,
             });
@@ -511,7 +559,7 @@ export class AllureReport {
         testResults: JSON.parse(testResultsEntry.toString("utf8")),
         testCases: JSON.parse(testCasesEntry.toString("utf8")),
         fixtures: JSON.parse(fixturesEntry.toString("utf8")),
-        attachments: JSON.parse(attachmentsEntry.toString("utf8")),
+        attachments: attachmentsLinks,
         environments: JSON.parse(environmentsEntry.toString("utf8")),
         reportVariables: JSON.parse(reportVariablesEntry.toString("utf8")),
         globalAttachmentIds: JSON.parse(globalAttachmentsEntry.toString("utf8")),
