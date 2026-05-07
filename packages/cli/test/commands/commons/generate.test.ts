@@ -42,7 +42,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./notfound",
+      resultsDir: ["./notfound"],
       dump: [],
     });
 
@@ -62,7 +62,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
@@ -78,18 +78,21 @@ describe("generate function", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
-    AllureReportMock.prototype.start.mockRejectedValueOnce(new KnownError("known error"));
+    const fence = new Promise<void>((r) => {
+      AllureReportMock.prototype.start.mockImplementationOnce(async () => {
+        r();
+        throw new KnownError("known error");
+      });
+    });
 
     const promise = generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await fence;
     await Promise.resolve();
 
     expect(async () => await promise).not.toThrow();
@@ -103,18 +106,21 @@ describe("generate function", () => {
   it("should handle unknown errors and exit with code 1 with errors logging", async () => {
     (glob as unknown as Mock).mockResolvedValueOnce(["./allure-results/"]);
     (readConfig as Mock).mockResolvedValue({});
-    AllureReportMock.prototype.start.mockRejectedValueOnce(new Error("unknown error"));
+    const fence = new Promise<void>((r) => {
+      AllureReportMock.prototype.start.mockImplementationOnce(async () => {
+        r();
+        throw new Error("unknown error");
+      });
+    });
 
     const promise = generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: [],
     });
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await fence;
     await Promise.resolve();
     await Promise.resolve();
 
@@ -135,7 +141,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "",
+      resultsDir: [""],
       dump: ["dump1.zip", "dump2.zip"],
     });
 
@@ -158,7 +164,7 @@ describe("generate function", () => {
     await generate({
       cwd: ".",
       config: {} as FullConfig,
-      resultsDir: "./allure-results",
+      resultsDir: ["./allure-results"],
       dump: ["dump1.zip", "dump2.zip"],
     });
 

@@ -51,408 +51,369 @@ beforeEach(() => {
 });
 
 describe("open command", () => {
-  it("should generate report in temp directory and serve when no summary files found", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
+  it("should open existing default dir when no input and config output are provided", async () => {
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (glob as unknown as Mock).mockResolvedValue(["foo"]);
+    (readConfig as Mock).mockResolvedValue({ port: undefined });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "bar"]);
+
+    expect(glob).toHaveBeenCalledWith(join("bar", "allure-report", "**", "summary.json"), {
+      nodir: true,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: "bar",
+    });
+    expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
+      port: undefined,
+    });
+    expect(generate).not.toHaveBeenCalled();
+    expect(serve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        port: undefined,
+        servePath: join("bar", "allure-report"),
+        open: true,
+      }),
+    );
+  });
+
+  it("should open existing configured dir when no input is provided", async () => {
+    (existsSync as Mock).mockReturnValue(true);
+    (glob as unknown as Mock).mockResolvedValue(["foo"]);
+    (readConfig as Mock).mockResolvedValueOnce({ output: "bar" });
+    (readConfig as Mock).mockResolvedValue({ port: undefined });
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "baz"]);
+
+    expect(glob).toHaveBeenCalledWith(join("baz", "bar", "**", "summary.json"), {
+      nodir: true,
+      absolute: true,
+      dot: true,
+      windowsPathsNoEscape: true,
+      cwd: "baz",
+    });
+    expect(readConfig).toHaveBeenCalledWith("baz", undefined, {
+      port: undefined,
+    });
+    expect(generate).not.toHaveBeenCalled();
+    expect(serve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        port: undefined,
+        servePath: join("baz", "bar"),
+        open: true,
+      }),
+    );
+  });
+
+  it("should generate report in temp directory and serve when no summary files found", async () => {
+    (existsSync as Mock).mockReturnValue(true);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (glob as unknown as Mock).mockResolvedValue([]);
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", "allure-report-"));
-    expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
-      port: expect.any(Object),
-      output: fixtures.tmpDir,
+    expect(mkdtemp).toHaveBeenCalledWith(join("foo", "allure-report-"));
+    expect(readConfig).toHaveBeenCalledWith("qux", undefined, {
+      port: undefined,
+      output: "bar",
       hideLabels: undefined,
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: ".",
-        config: { output: fixtures.tmpDir },
-        resultsDir: join(".", fixtures.resultsDir),
+        cwd: "qux",
+        config: { output: "baz" },
+        resultsDir: ["qut"],
       }),
     );
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: fixtures.tmpDir,
+        servePath: "baz",
+        open: true,
+      }),
+    );
+  });
+
+  it("should generate and serve the default pattern when no input provided and output not exists", async () => {
+    (existsSync as Mock).mockReturnValue(false);
+    (readConfig as Mock).mockResolvedValueOnce({ output: "foo" });
+    (readConfig as Mock).mockResolvedValueOnce({ output: "bar" });
+    (tmpdir as Mock).mockReturnValueOnce("baz");
+    (mkdtemp as Mock).mockResolvedValueOnce("qux");
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "--cwd", "qut"]);
+
+    expect(readConfig).toHaveBeenNthCalledWith(1, "qut", undefined, {
+      port: undefined,
+    });
+    expect(readConfig).toHaveBeenNthCalledWith(2, "qut", undefined, expect.objectContaining({ output: "qux" }));
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsDir: [],
+        cwd: "qut",
+        config: expect.objectContaining({
+          output: "bar",
+        }),
+      }),
+    );
+    expect(serve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        port: undefined,
+        servePath: "bar",
         open: true,
       }),
     );
   });
 
   it("should serve existing report when summary.json files are found", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (glob as unknown as Mock).mockResolvedValue([join(".", fixtures.resultsDir, "summary.json")]);
+    (glob as unknown as Mock).mockResolvedValue(["foo"]);
     (readConfig as Mock).mockResolvedValue({ port: undefined });
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "bar", "baz"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(glob).toHaveBeenCalledWith(join(".", fixtures.resultsDir, "**", "summary.json"), {
-      mark: true,
-      nodir: false,
+    expect(glob).toHaveBeenCalledWith(join("bar", "baz", "**", "summary.json"), {
+      nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: ".",
+      cwd: "bar",
     });
-    expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
-      port: expect.any(Object),
+    expect(readConfig).toHaveBeenCalledWith("bar", undefined, {
+      port: undefined,
     });
     expect(generate).not.toHaveBeenCalled();
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
         port: undefined,
-        servePath: join(".", fixtures.resultsDir),
+        servePath: join("bar", "baz"),
         open: true,
       }),
     );
   });
 
   it("should generate report when target directory does not exist", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
     (existsSync as Mock).mockReturnValue(false);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (glob as unknown as Mock).mockResolvedValue([]);
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(existsSync).toHaveBeenCalledWith(join(".", fixtures.resultsDir));
     expect(glob).not.toHaveBeenCalled();
-    expect(generate).toHaveBeenCalled();
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsDir: ["qut"],
+        cwd: "qux",
+        config: expect.objectContaining({
+          output: "baz",
+        }),
+      }),
+    );
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
-        servePath: fixtures.tmpDir,
+        servePath: "baz",
         open: true,
       }),
     );
   });
 
   it("should serve with custom port when specified", async () => {
-    const fixtures = {
-      resultsDir: "report",
-      port: "8080",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (glob as unknown as Mock).mockResolvedValue([join(".", fixtures.resultsDir, "summary.json")]);
-    (readConfig as Mock).mockResolvedValue({ port: fixtures.port });
+    (glob as unknown as Mock).mockResolvedValue(["foo"]);
+    (readConfig as Mock).mockResolvedValue({ port: "10201" });
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "bar", "--port", "10202", "baz"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.port = fixtures.port;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
-      port: fixtures.port,
+    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
+      port: "10202",
     });
     expect(serve).toHaveBeenCalledWith(
       expect.objectContaining({
-        port: 8080,
-        servePath: join(".", fixtures.resultsDir),
+        port: 10201,
+        servePath: join("bar", "baz"),
         open: true,
       }),
     );
   });
 
   it("should use custom config file when provided", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-      configPath: join(".", "custom", "allurerc.mjs"),
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux", "--config", "qut", "quc"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-    command.config = fixtures.configPath;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledWith(".", fixtures.configPath, {
-      port: expect.any(Object),
-      output: fixtures.tmpDir,
+    expect(readConfig).toHaveBeenCalledWith("qux", "qut", {
+      port: undefined,
+      output: "bar",
       hideLabels: undefined,
     });
   });
 
-  it("should prefer CLI arguments over config", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-      port: "3000",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
+  it("should use process cwd if no --cwd provided", async () => {
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir, port: fixtures.port });
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    await run(OpenCommand, ["open", "--port", fixtures.port, fixtures.resultsDir]);
+    await run(OpenCommand, ["open", "qux"]);
 
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      port: fixtures.port,
-      output: fixtures.tmpDir,
-      hideLabels: undefined,
-    });
-    expect(serve).toHaveBeenCalledWith(
-      expect.objectContaining({
-        port: 3000,
-        servePath: fixtures.tmpDir,
-        open: true,
-      }),
-    );
-  });
-
-  it("should use cwd when provided", async () => {
-    const fixtures = {
-      cwd: join("/", "custom", "cwd"),
-      resultsDir: "allure-report",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
-    (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
-    (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
-    (generate as Mock).mockResolvedValue(undefined);
-    (serve as Mock).mockResolvedValue(undefined);
-
-    const command = new OpenCommand();
-
-    command.cwd = fixtures.cwd;
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(readConfig).toHaveBeenCalledWith(fixtures.cwd, expect.any(Object), {
-      port: expect.any(Object),
-      output: fixtures.tmpDir,
-      hideLabels: undefined,
-    });
+    expect(readConfig).toHaveBeenCalledWith(process.cwd(), undefined, expect.any(Object));
     expect(glob).toHaveBeenCalledWith(
-      join(fixtures.cwd, fixtures.resultsDir, "**", "summary.json"),
+      join(process.cwd(), "qux", "**", "summary.json"),
       expect.objectContaining({
-        cwd: fixtures.cwd,
+        cwd: process.cwd(),
       }),
     );
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: fixtures.cwd,
-        resultsDir: join(fixtures.cwd, fixtures.resultsDir),
+        cwd: process.cwd(),
+        resultsDir: ["qux"],
       }),
     );
   });
 
   it("should check for summary.json in target directory", async () => {
-    const fixtures = {
-      resultsDir: "my-results",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(glob).toHaveBeenCalledWith(join(".", fixtures.resultsDir, "**", "summary.json"), {
-      mark: true,
-      nodir: false,
+    expect(glob).toHaveBeenCalledWith(join("qux", "qut", "**", "summary.json"), {
+      nodir: true,
       absolute: true,
       dot: true,
       windowsPathsNoEscape: true,
-      cwd: ".",
+      cwd: "qux",
     });
   });
 
-  it("should use configured output when target is not provided", async () => {
-    const fixtures = {
-      configuredOutput: "/custom/allure-report",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
+  it("should pass empty resultsDir to generate when not provided and no summary in output", async () => {
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock)
-      .mockResolvedValueOnce({ output: fixtures.configuredOutput })
-      .mockResolvedValueOnce({ output: fixtures.tmpDir });
+    (readConfig as Mock).mockResolvedValue({ output: "bar" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux"]);
 
-    command.cwd = ".";
-    command.resultsDir = undefined;
-
-    await command.execute();
-
-    expect(existsSync).toHaveBeenCalledWith(fixtures.configuredOutput);
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        resultsDir: fixtures.configuredOutput,
+        resultsDir: [],
       }),
     );
   });
 
-  it("should serve configured output when no target is provided", async () => {
-    const fixtures = {
-      configuredOutput: "/custom/allure-report",
-      port: "8080",
-    };
-
-    (existsSync as Mock).mockReturnValue(true);
-    (glob as unknown as Mock).mockResolvedValue([join(fixtures.configuredOutput, "summary.json")]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.configuredOutput, port: fixtures.port });
+  it("should pass empty resultsDir to generate when not provided and output not exists", async () => {
+    (existsSync as Mock).mockReturnValue(false);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (readConfig as Mock).mockResolvedValue({ output: "bar" });
+    (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    await run(OpenCommand, ["serve", "--port", fixtures.port]);
+    await run(OpenCommand, ["open", "--cwd", "qux"]);
 
-    expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
-      port: fixtures.port,
-    });
-    expect(glob).toHaveBeenCalledWith(join(fixtures.configuredOutput, "**", "summary.json"), {
-      mark: true,
-      nodir: false,
-      absolute: true,
-      dot: true,
-      windowsPathsNoEscape: true,
-      cwd: expect.any(String),
-    });
-    expect(mkdtemp).not.toHaveBeenCalled();
-    expect(generate).not.toHaveBeenCalled();
-    expect(serve).toHaveBeenCalledWith(
+    expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
-        port: 8080,
-        servePath: fixtures.configuredOutput,
-        open: true,
+        resultsDir: [],
       }),
     );
   });
 
   it("should create temp directory with mkdtemp pattern", async () => {
-    const fixtures = {
-      resultsDir: "allure-report",
-      tmpDir: "/tmp/allure-report-xyz789",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
-    (readConfig as Mock).mockResolvedValue({ output: fixtures.tmpDir });
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    const command = new OpenCommand();
+    await run(OpenCommand, ["open", "--cwd", "qux", "qut"]);
 
-    command.cwd = ".";
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
-
-    expect(mkdtemp).toHaveBeenCalledWith(join("/tmp", "allure-report-"));
-    expect(readConfig).toHaveBeenCalledWith(".", expect.any(Object), {
-      port: expect.any(Object),
-      output: fixtures.tmpDir,
+    expect(mkdtemp).toHaveBeenCalledWith(join("foo", "allure-report-"));
+    expect(readConfig).toHaveBeenCalledWith("qux", undefined, {
+      port: undefined,
+      output: "bar",
       hideLabels: undefined,
     });
   });
 
   it("should pass hideLabels override when generating a temporary report", async () => {
-    const fixtures = {
-      resultsDir: "allure-results",
-      tmpDir: "/tmp/allure-report-abc123",
-    };
-
     (existsSync as Mock).mockReturnValue(true);
-    (tmpdir as Mock).mockReturnValue("/tmp");
-    (mkdtemp as Mock).mockResolvedValue(fixtures.tmpDir);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
     (glob as unknown as Mock).mockResolvedValue([]);
     (readConfig as Mock).mockResolvedValue({
-      output: fixtures.tmpDir,
-      hideLabels: ["owner", "tag"],
+      output: "baz",
+      hideLabels: ["qut", "quc"],
     });
     (generate as Mock).mockResolvedValue(undefined);
     (serve as Mock).mockResolvedValue(undefined);
 
-    await run(OpenCommand, ["open", "--hide-labels", "owner", "--hide-labels", "tag", fixtures.resultsDir]);
+    await run(OpenCommand, ["open", "--hide-labels", "quz", "--hide-labels", "qur", "qre"]);
 
     expect(readConfig).toHaveBeenCalledWith(expect.any(String), undefined, {
       port: undefined,
-      output: fixtures.tmpDir,
-      hideLabels: ["owner", "tag"],
+      output: "bar",
+      hideLabels: ["quz", "qur"],
     });
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
-          hideLabels: ["owner", "tag"],
+          hideLabels: ["qut", "quc"],
         }),
       }),
     );
+  });
+
+  it("should generate if more than one resultsDir provided", async () => {
+    (existsSync as Mock).mockReturnValue(true);
+    (tmpdir as Mock).mockReturnValue("foo");
+    (mkdtemp as Mock).mockResolvedValue("bar");
+    (readConfig as Mock).mockResolvedValue({ output: "baz" });
+    (glob as unknown as Mock).mockResolvedValue([]);
+    (generate as Mock).mockResolvedValue(undefined);
+    (serve as Mock).mockResolvedValue(undefined);
+
+    await run(OpenCommand, ["open", "foo", "bar"]);
+
+    expect(existsSync).toHaveBeenCalledTimes(0);
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resultsDir: ["foo", "bar"],
+      }),
+    );
+    expect(serve).toHaveBeenCalledOnce();
   });
 });
