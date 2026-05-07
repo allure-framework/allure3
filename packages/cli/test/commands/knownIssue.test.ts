@@ -1,8 +1,9 @@
 import * as console from "node:console";
-import { existsSync } from "node:fs";
 import { exit } from "node:process";
 
 import { AllureReport, resolveConfig, writeKnownIssues } from "@allurereport/core";
+import { run } from "clipanion";
+import { glob } from "glob";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { KnownIssueCommand } from "../../src/commands/knownIssue.js";
@@ -22,10 +23,6 @@ vi.mock("node:process", async (importOriginal) => ({
   ...(await importOriginal()),
   exit: vi.fn(),
 }));
-vi.mock("node:fs", async (importOriginal) => ({
-  ...(await importOriginal()),
-  existsSync: vi.fn(),
-}));
 vi.mock("@allurereport/core", async () => {
   const { AllureReportMock } = await import("../utils.js");
 
@@ -35,6 +32,11 @@ vi.mock("@allurereport/core", async () => {
     AllureReport: AllureReportMock,
   };
 });
+vi.mock("glob", async () => {
+  return {
+    glob: vi.fn(),
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,30 +44,21 @@ beforeEach(() => {
 
 describe("known-issue command", () => {
   it("should exit with code 1 when resultsDir doesn't exist", async () => {
-    (existsSync as Mock).mockReturnValueOnce(false);
+    (glob as unknown as Mock).mockResolvedValueOnce([]);
 
-    const command = new KnownIssueCommand();
-
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(KnownIssueCommand, ["known-issue", fixtures.resultsDir]);
 
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining(`The given test results directory doesn't exist: ${fixtures.resultsDir}`),
+      expect.stringContaining(`No test results directories found matching pattern: ${fixtures.resultsDir}`),
     );
     expect(exit).toHaveBeenCalledWith(1);
     expect(AllureReport).not.toHaveBeenCalled();
   });
 
   it("should initialize allure report and write known issues with default output path", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new KnownIssueCommand();
-
-    command.output = undefined;
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(KnownIssueCommand, ["known-issue", fixtures.resultsDir]);
 
     expect(resolveConfig).toHaveBeenCalledTimes(1);
     expect(resolveConfig).toHaveBeenCalledWith({
@@ -74,20 +67,15 @@ describe("known-issue command", () => {
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.start).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(1);
-    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(fixtures.resultsDir);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(`${fixtures.resultsDir}/`);
     expect(AllureReport.prototype.done).toHaveBeenCalledTimes(1);
     expect(writeKnownIssues).toHaveBeenCalledTimes(1);
   });
 
   it("should initialize allure report and write known issues with custom output path", async () => {
-    (existsSync as Mock).mockReturnValueOnce(true);
+    (glob as unknown as Mock).mockResolvedValueOnce([`${fixtures.resultsDir}/`]);
 
-    const command = new KnownIssueCommand();
-
-    command.output = fixtures.output;
-    command.resultsDir = fixtures.resultsDir;
-
-    await command.execute();
+    await run(KnownIssueCommand, ["known-issue", "--output", fixtures.output, fixtures.resultsDir]);
 
     expect(resolveConfig).toHaveBeenCalledTimes(1);
     expect(resolveConfig).toHaveBeenCalledWith({
@@ -96,7 +84,7 @@ describe("known-issue command", () => {
     expect(AllureReport).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.start).toHaveBeenCalledTimes(1);
     expect(AllureReport.prototype.readDirectory).toHaveBeenCalledTimes(1);
-    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(fixtures.resultsDir);
+    expect(AllureReport.prototype.readDirectory).toHaveBeenCalledWith(`${fixtures.resultsDir}/`);
     expect(AllureReport.prototype.done).toHaveBeenCalledTimes(1);
     expect(writeKnownIssues).toHaveBeenCalledTimes(1);
   });
