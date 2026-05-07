@@ -61,7 +61,6 @@ export interface Config {
   appendHistory?: boolean;
   qualityGate?: QualityGateConfig;
   allureService?: {
-    url?: string;
     accessToken?: string;
     legacy?: boolean;
   };

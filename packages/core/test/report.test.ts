@@ -16,9 +16,9 @@ import { resolveConfig } from "../src/index.js";
 import { AllureReport } from "../src/report.js";
 import { AllureLegacyServiceClientMock, AllureServiceClientMock } from "./utils.js";
 
-// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
+// Token payload: { "accessToken": "ELzFh8...", "url": "http://localhost:3000" }
 const validAccessToken =
-  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
+  "ars1.eyJhY2Nlc3NUb2tlbiI6IkVMekZoOFZvaENXeXRrTFlGZ0U2QzVtTS1DWTlyWnd2ZXVYMkRlbmtkTm8iLCJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAifQ.OEwujL5WsTP0TQ8nFxrUauKfRLslw-S2ZFnlgFPTwO8";
 
 vi.mock("@allurereport/service", async (importOriginal) => {
   const utils = await import("./utils.js");
@@ -290,7 +290,6 @@ describe("report", () => {
       allureReport = new AllureReport({
         ...config,
         allureService: {
-          url: "https://service.allurereport.org",
           accessToken: validAccessToken,
         },
       });
@@ -415,7 +414,6 @@ describe("report", () => {
         allureReport = new AllureReport({
           ...config,
           allureService: {
-            url: "https://service.allurereport.org",
             accessToken: validAccessToken,
           },
         });

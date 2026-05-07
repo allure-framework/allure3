@@ -120,7 +120,7 @@ export class AllureReport {
     if (allureServiceConfig?.accessToken) {
       if (allureServiceConfig?.legacy) {
         this.#allureServiceClient = new AllureLegacyServiceClient(allureServiceConfig);
-      } else if (allureServiceConfig?.url) {
+      } else {
         this.#allureServiceClient = new AllureServiceClient(allureServiceConfig);
       }
     }

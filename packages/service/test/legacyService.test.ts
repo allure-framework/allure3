@@ -7,13 +7,16 @@ import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vites
 import type { AllureLegacyServiceClient } from "../src/legacyService.js";
 import { HttpClientMock, createHttpClientMock } from "./utils.js";
 
-// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
-const validAccessToken =
-  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
+const serviceAccessToken = "service-access-token";
+const serviceUrl = "https://service.allurereport.org";
+const createAccessToken = (payload: Record<string, string>) =>
+  `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
+const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
 
 const fixtures = {
   accessToken: validAccessToken,
-  url: "https://service.allurereport.org",
+  serviceAccessToken,
+  url: serviceUrl,
   reportUrl: "https://service.allurereport.org/reports/report-uuid/",
   history: {
     uuid: "1",
@@ -92,7 +95,7 @@ describe("AllureLegacyServiceClient", () => {
     });
 
     it("should create the HTTP client from the service URL in the access token", () => {
-      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, fixtures.accessToken);
+      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, fixtures.serviceAccessToken);
     });
   });
 

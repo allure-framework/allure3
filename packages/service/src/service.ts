@@ -6,6 +6,7 @@ import { type Config } from "@allurereport/plugin-api";
 
 import type { AllureServiceApiClient } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
+import { parseServiceToken } from "./utils/token.js";
 
 const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
@@ -20,15 +21,13 @@ export class AllureServiceClient implements AllureServiceApiClient {
   readonly #url: string;
 
   constructor(readonly config: Config["allureService"]) {
-    if (!config?.url) {
-      throw new Error("Allure service URL is required");
-    }
-
     if (!config?.accessToken) {
       throw new Error("Allure service access token is required");
     }
 
-    this.#url = config.url.replace(/\/$/, "");
+    const { url } = parseServiceToken(config.accessToken);
+
+    this.#url = url.replace(/\/$/, "");
     this.#client = createServiceHttpClient(this.#url, config.accessToken);
   }
 
