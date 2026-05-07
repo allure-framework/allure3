@@ -6,6 +6,7 @@ import { type Config } from "@allurereport/plugin-api";
 
 import type { AllureServiceApiClient } from "./model.js";
 import { type HttpClient, createServiceHttpClient } from "./utils/http.js";
+import { parseServiceToken } from "./utils/token.js";
 
 const ASSET_MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const UPLOAD_CONTENT_TYPE = "application/octet-stream";
@@ -38,10 +39,10 @@ export class AllureLegacyServiceClient implements AllureServiceApiClient {
       throw new Error("Allure service access token is required");
     }
 
-    const { url } = JSON.parse(atob(config.accessToken.split(".")[1])) as { url: string };
+    const { accessToken, url } = parseServiceToken(config.accessToken);
 
     this.#url = url.replace(/\/$/, "");
-    this.#client = createServiceHttpClient(this.#url, config.accessToken);
+    this.#client = createServiceHttpClient(this.#url, accessToken);
   }
 
   async downloadHistory(payload: { repo?: string; branch?: string; limit?: number }) {

@@ -8,15 +8,16 @@ import { HttpClientMock } from "./utils.js";
 
 const { AllureServiceClient: AllureServiceClientClass } = await import("../src/service.js");
 
-// Static JWT token fixture
-// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
-const validAccessToken =
-  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
+const serviceAccessToken = "service-access-token";
+const serviceUrl = "https://service.allurereport.org";
+const createAccessToken = (payload: Record<string, string>) =>
+  `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
+const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
 
 const fixtures = {
   accessToken: validAccessToken,
   project: "test-project-id",
-  url: "https://service.allurereport.org",
+  url: serviceUrl,
   repo: "allure3",
   branch: "main",
   historyDataPoint: {
@@ -50,7 +51,7 @@ describe("AllureRemoteHistory", () => {
   let history: AllureRemoteHistory;
 
   beforeEach(() => {
-    serviceClient = new AllureServiceClientClass({ url: fixtures.url, accessToken: fixtures.accessToken });
+    serviceClient = new AllureServiceClientClass({ accessToken: fixtures.accessToken });
     history = new AllureRemoteHistory({
       allureServiceClient: serviceClient,
       repo: fixtures.repo,

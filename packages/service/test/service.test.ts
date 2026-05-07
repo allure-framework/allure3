@@ -7,19 +7,18 @@ import { type MockedFunction, beforeEach, describe, expect, it, vi } from "vites
 import type { AllureServiceClient } from "../src/service.js";
 import { HttpClientMock, createHttpClientMock } from "./utils.js";
 
-// JWT payload: { "iss": "allure-service", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
-const validAccessToken =
-  "header.eyJpc3MiOiJhbGx1cmUtc2VydmljZSIsInVybCI6Imh0dHBzOi8vc2VydmljZS5hbGx1cmVyZXBvcnQub3JnIiwicHJvamVjdElkIjoidGVzdC1wcm9qZWN0LWlkIn0.signature";
-
-// JWT payload: { "iss": "wrong-issuer", "url": "https://service.allurereport.org", "projectId": "test-project-id" }
-const invalidIssuerToken =
-  "header.eyJpc3MiOiJ3cm9uZy1pc3N1ZXIiLCJ1cmwiOiJodHRwczovL3NlcnZpY2UuYWxsdXJlcmVwb3J0Lm9yZyIsInByb2plY3RJZCI6InRlc3QtcHJvamVjdC1pZCJ9.signature";
+const serviceAccessToken = "service-access-token";
+const serviceUrl = "https://service.allurereport.org";
+const createAccessToken = (payload: Record<string, string>) =>
+  `ars1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.signature`;
+const validAccessToken = createAccessToken({ accessToken: serviceAccessToken, url: serviceUrl });
 
 const fixtures = {
   accessToken: validAccessToken,
+  serviceAccessToken,
   newAccessToken: "new-access-token",
   project: "test-project-id",
-  url: "https://service.allurereport.org",
+  url: serviceUrl,
   email: "test@test.com",
   history: {
     uuid: "1",
@@ -88,28 +87,32 @@ describe("AllureServiceClient", () => {
     vi.clearAllMocks();
 
     serviceClient = new AllureServiceClientClass({
-      url: fixtures.url,
       accessToken: fixtures.accessToken,
     });
   });
 
   describe("constructor", () => {
     it("should throw an error if access token is not provided", () => {
-      expect(() => new AllureServiceClientClass({})).toThrow("Allure service URL is required");
+      expect(() => new AllureServiceClientClass({})).toThrow("Allure service access token is required");
     });
 
     it("should throw an error if access token is invalid", () => {
-      expect(() => new AllureServiceClientClass({ url: fixtures.url, accessToken: invalidIssuerToken })).not.toThrow();
-    });
-
-    it("should throw an error if URL is not provided", () => {
       expect(() => new AllureServiceClientClass({ accessToken: "invalid-token" })).toThrow(
-        "Allure service URL is required",
+        "Allure service access token is invalid",
       );
     });
 
+    it("should throw an error if token payload doesn't contain a URL", () => {
+      expect(
+        () => new AllureServiceClientClass({ accessToken: createAccessToken({ accessToken: serviceAccessToken }) }),
+      ).toThrow("Allure service access token is invalid");
+    });
+
     it("should successfully create client with valid config", () => {
-      expect(() => new AllureServiceClientClass({ url: fixtures.url, accessToken: validAccessToken })).not.toThrow();
+      vi.clearAllMocks();
+
+      expect(() => new AllureServiceClientClass({ accessToken: validAccessToken })).not.toThrow();
+      expect(createHttpClientMock).toHaveBeenCalledWith(fixtures.url, fixtures.accessToken);
     });
   });
 
@@ -399,8 +402,7 @@ describe("AllureServiceClient", () => {
 
     it("should preserve the URL protocol slashes in uploaded file hrefs", async () => {
       serviceClient = new AllureServiceClientClass({
-        url: "http://localhost:3000/",
-        accessToken: fixtures.accessToken,
+        accessToken: createAccessToken({ accessToken: fixtures.serviceAccessToken, url: "http://localhost:3000/" }),
       });
       HttpClientMock.prototype.post.mockResolvedValue({});
 
