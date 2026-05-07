@@ -63,7 +63,7 @@ export const allure2: ResultsReader = {
       return true;
     }
 
-    if (originalFileName.endsWith("-check-result.json")) {
+    if (originalFileName.endsWith("-check.json")) {
       try {
         const parsed = await data.asJson<unknown>();
 
@@ -228,7 +228,7 @@ const processCheckResult = async (
 
   await visitor.visitCheckResult(
     {
-      name: ensureString(result.name, originalFileName.replace(/-check-result\.json$/, "")),
+      name: ensureString(result.name, originalFileName.replace(/-check\.json$/, "")),
       status: convertCheckStatus(result.status),
       ...(tags.length ? { tags } : {}),
       details: {

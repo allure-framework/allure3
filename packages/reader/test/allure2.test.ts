@@ -6,13 +6,13 @@ import { allure2 } from "../src/index.js";
 import { readResults } from "./utils.js";
 
 const generateTestResultName = () => `${randomUUID()}-result.json`;
-const generateCheckResultName = () => `${randomUUID()}-check-result.json`;
+const generateCheckResultName = () => `${randomUUID()}-check.json`;
 const generateGlobalsName = () => `${randomUUID()}-globals.json`;
 
 describe("allure2 reader", () => {
   it("should parse check result", async () => {
     const visitor = await readResults(allure2, {
-      "allure2data/check-result.json": generateCheckResultName(),
+      "allure2data/check.json": generateCheckResultName(),
     });
 
     expect(visitor.visitCheckResult).toHaveBeenCalledTimes(1);

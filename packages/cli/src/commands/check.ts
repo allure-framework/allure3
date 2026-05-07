@@ -98,7 +98,7 @@ const collectCheckCommandOutput = (checkProcess: ReturnType<typeof runProcess>):
 
 const writeCheckResultFile = async (output: string, result: AllureCheckResult) => {
   await mkdir(output, { recursive: true });
-  await writeFile(join(output, `${randomUUID()}-check-result.json`), `${JSON.stringify(result)}\n`, "utf-8");
+  await writeFile(join(output, `${randomUUID()}-check.json`), `${JSON.stringify(result)}\n`, "utf-8");
 };
 
 const dumpCheckResult = async (
