@@ -73,10 +73,10 @@ const config = {
   },
 };
 
-if (ALLURE_SERVICE_ACCESS_TOKEN) {
+if (ALLURE_SERVICE_ACCESS_TOKEN && ALLURE_SERVICE_URL) {
   config.allureService = {
+    url: ALLURE_SERVICE_URL,
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
-    legacy: true,
   };
 }
 
