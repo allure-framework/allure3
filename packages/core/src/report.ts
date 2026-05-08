@@ -504,11 +504,43 @@ export class AllureReport {
       });
 
       try {
+        const dumpEntries = await dumpArchive.entries();
+        const dumpEntriesList = Object.entries(dumpEntries);
+        const optionalEntryData = async (entryName: AllureStoreDumpFiles) =>
+          dumpEntries[entryName] ? dumpArchive.entryData(entryName) : undefined;
+
+        if (!dumpEntries[AllureStoreDumpFiles.TestResults]) {
+          const nestedDumpEntries = dumpEntriesList.filter(
+            ([entryName, entry]) =>
+              !entry.isDirectory &&
+              !entryName.startsWith("__MACOSX/") &&
+              !basename(entryName).startsWith("._") &&
+              entryName.toLowerCase().endsWith(".zip"),
+          );
+
+          if (nestedDumpEntries.length > 0) {
+            const nestedDumpsTempDir = await mkdtemp(join(tmpdir(), `${basename(dump, ".zip")}-nested-`));
+            const nestedDumpPaths: string[] = [];
+
+            this.#dumpTempDirs.push(nestedDumpsTempDir);
+
+            for (const [entryName] of nestedDumpEntries) {
+              const nestedDumpPath = join(nestedDumpsTempDir, `${nestedDumpPaths.length}-${basename(entryName)}`);
+
+              await writeFile(nestedDumpPath, await dumpArchive.entryData(entryName));
+              nestedDumpPaths.push(nestedDumpPath);
+            }
+
+            await this.restoreState(nestedDumpPaths);
+            continue;
+          }
+        }
+
         const testResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestResults);
         const testCasesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.TestCases);
         const fixturesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Fixtures);
         const attachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Attachments);
-        const checkResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.CheckResults);
+        const checkResultsEntry = await optionalEntryData(AllureStoreDumpFiles.CheckResults);
         const environmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.Environments);
         const reportVariablesEntry = await dumpArchive.entryData(AllureStoreDumpFiles.ReportVariables);
         const globalAttachmentsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.GlobalAttachments);
@@ -533,7 +565,7 @@ export class AllureReport {
         const qualityGateResultsEntry = await dumpArchive.entryData(AllureStoreDumpFiles.QualityGateResults);
         const attachmentsLinks = JSON.parse(attachmentsEntry.toString("utf8")) as AllureStoreDump["attachments"];
 
-        const attachmentsEntries = Object.entries(await dumpArchive.entries()).reduce((acc, [entryName, entry]) => {
+        const attachmentsEntries = dumpEntriesList.reduce((acc, [entryName, entry]) => {
           switch (entryName) {
             case AllureStoreDumpFiles.Attachments:
             case AllureStoreDumpFiles.CheckResults:
@@ -554,7 +586,7 @@ export class AllureReport {
             case AllureStoreDumpFiles.QualityGateResults:
               return acc;
             default:
-              if (attachmentsLinks[entryName]?.missed) {
+              if (entry.isDirectory || !attachmentsLinks[entryName] || attachmentsLinks[entryName].missed) {
                 return acc;
               }
 
