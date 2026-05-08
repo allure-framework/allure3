@@ -76,7 +76,6 @@ const config = {
 if (ALLURE_SERVICE_ACCESS_TOKEN) {
   config.allureService = {
     accessToken: ALLURE_SERVICE_ACCESS_TOKEN,
-    legacy: true,
   };
 }
 
